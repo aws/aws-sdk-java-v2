@@ -1,0 +1,345 @@
+[
+  {
+    "description": "Scalar Members are marshalled correctly",
+    "given": {
+      "input": {
+        "StringMember": "someVal",
+        "IntegerMember": 42,
+        "FloatMember": 1.234,
+        "DoubleMember": 5.678,
+        "LongMember": 2147483647
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "ionEquals": "{StringMember:\"someVal\",IntegerMember:42,FloatMember:1.234e0,DoubleMember:5.678e0,LongMember:2147483647 }"
+        }
+      }
+    }
+  },
+  {
+    "description": "Boolean member with value true is marshalled correctly",
+    "given": {
+      "input": {
+        "BooleanMember": true
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "ionEquals": "{BooleanMember:true}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Boolean member with value false is marshalled correctly",
+    "given": {
+      "input": {
+        "BooleanMember": false
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "ionEquals": "{BooleanMember:false}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Timestamp member in the payload is marshalled as seconds with millisecond precision",
+    "given": {
+      "input": {
+        "TimestampMember": 1422172801123
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "ionEquals": "{TimestampMember: 2015-01-25T08:00:01.123Z}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Blob member in payload is marshalled as Base64 encoded text",
+    "given": {
+      "input": {
+        "BlobArg": "foo"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "ionEquals": "{BlobArg: {{Zm9v}}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Nested blob member in payload is marshalled as Base64 encoded text",
+    "given": {
+      "input": {
+        "StructWithNestedBlob": {
+          "NestedBlob": "foo"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "ionEquals": "{StructWithNestedBlob: {NestedBlob: {{Zm9v}}}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Blob member as map value is marshalled as Base64 encoded text",
+    "given": {
+      "input": {
+        "BlobMap": {
+          "key1": "foo",
+          "key2": "bar"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "ionEquals": "{BlobMap: {key1: {{Zm9v}}, key2: {{YmFy}}}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Blob as list member is marshalled as Base64 encoded text",
+    "given": {
+      "input": {
+        "ListOfBlobs": [
+          "foo",
+          "bar"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "ionEquals": "{ListOfBlobs: [{{Zm9v}}, {{YmFy}}]}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Recursive structure with recursive member not set is marshalled correctly",
+    "given": {
+      "input": {
+        "RecursiveStruct": {
+          "NoRecurse": "foo"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "ionEquals": "{RecursiveStruct: {NoRecurse: \"foo\"}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Recursive structure with one level of recursion is marshalled correctly",
+    "given": {
+      "input": {
+        "RecursiveStruct": {
+          "RecursiveStruct": {
+            "NoRecurse": "foo"
+          }
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "ionEquals": "{RecursiveStruct: {RecursiveStruct: {NoRecurse: \"foo\"}}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Recursive structure with several levels of recursion is marshalled correctly",
+    "given": {
+      "input": {
+        "RecursiveStruct": {
+          "RecursiveStruct": {
+            "RecursiveStruct": {
+              "RecursiveStruct": {
+                "NoRecurse": "foo"
+              }
+            }
+          }
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "ionEquals": "{RecursiveStruct: {RecursiveStruct: {RecursiveStruct: {RecursiveStruct: {NoRecurse: \"foo\"}}}}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "List of recursive structs is marshalled correctly when no recursive members are set",
+    "given": {
+      "input": {
+        "RecursiveStruct": {
+          "RecursiveList": [
+            {
+              "NoRecurse": "foo"
+            },
+            {
+              "NoRecurse": "bar"
+            }
+          ]
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "ionEquals": "{RecursiveStruct: {RecursiveList: [{NoRecurse: \"foo\"}, {NoRecurse: \"bar\"}]}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "List of recursive structs with one level of recursion is marshalled correctly",
+    "given": {
+      "input": {
+        "RecursiveStruct": {
+          "RecursiveList": [
+            {
+              "NoRecurse": "foo"
+            },
+            {
+              "RecursiveStruct": {
+                "NoRecurse": "bar"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "ionEquals": "{RecursiveStruct: {RecursiveList: [{NoRecurse: \"foo\"}, {RecursiveStruct: {NoRecurse: \"bar\"}}]}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Recursive structure as map value is marshalled correctly",
+    "given": {
+      "input": {
+        "RecursiveStruct": {
+          "RecursiveMap": {
+            "foo": {
+              "NoRecurse": "foo"
+            },
+            "bar": {
+              "NoRecurse": "bar",
+              "RecursiveStruct": {
+                "NoRecurse": "baz"
+              }
+            }
+          }
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "ionEquals": "{RecursiveStruct: {RecursiveMap: {bar: {NoRecurse: \"bar\", RecursiveStruct: { NoRecurse: \"baz\"}}, foo: {NoRecurse: \"foo\"}}}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Empty maps are marshalled correctly",
+    "given": {
+      "input": {
+        "MapOfStringToString": {}
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "ionEquals": "{MapOfStringToString: {}}"
+        }
+      }
+    }
+  }
+]

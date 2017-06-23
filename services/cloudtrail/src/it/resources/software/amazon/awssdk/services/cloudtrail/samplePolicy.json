@@ -1,0 +1,28 @@
+{
+  "Version": "2008-10-17",
+  "Statement": [
+    {
+      "Sid": "EagleAclCheck20130909",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": "s3:GetBucketAcl",
+      "Resource": "arn:aws:s3:::@BUCKET_NAME@"
+    },
+    {
+      "Sid": "EagleWrite20130909",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::@BUCKET_NAME@/*",
+      "Condition": {
+        "StringEquals": {
+          "s3:x-amz-acl": "bucket-owner-full-control"
+        }
+      }
+    }
+  ]
+}

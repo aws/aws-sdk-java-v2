@@ -1,0 +1,35 @@
+To: @DESTINATION@
+From: @SOURCE@
+Subject: Raw Test :draft-ietf-mailext-pipeline-01.txt
+Date: Thu, 05 Jan 95 10:53:24 -0500
+Message-ID: <9501051053.aa04167@IETF.CNR I.Reston.VA.US>
+Mime-Version: 1.0
+Content-type: Multipart/Mixed; boundary="NextPart"
+
+--NextPart
+
+Content-type: text/plain; charset="us-ascii"
+
+A Revised Internet-Draft is available from the on-line Internet-Drafts directories.
+This draft is a work item of the Mail Extensions Working Group of the IETF.
+Title           : SMTP Service Extension for Command Pipelining
+Author(s)       : N. Freed, A. Cargille
+Filename        : draft-ietf-mailext-pipeline-01.txt
+Pages           : 9
+Date            : 01/04/1995
+
+This memo defines an extension to the SMTP service whereby a server can indicate
+the extent of its ability to accept multiple commands in a single TCP send operation.
+Using a single TCP send operation for multiple commands can improve SMTP
+performance significantly.
+
+--NextPart
+
+Content-type: Message/External-body;
+name="draft-ietf-mailext-pipeline-01.txt";
+site="ds.internic.net"; access-type="anon-ftp"; directory="internet-drafts"
+
+Content-Type: text/plain
+Content-ID: <19950104161302.I-D@CNRI.Reston.VA.US>
+
+--NextPart

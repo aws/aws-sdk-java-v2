@@ -1,0 +1,76 @@
+/*
+ * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
+package software.amazon.awssdk.codegen.emitters.tasks;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import org.apache.commons.logging.Log;
+import software.amazon.awssdk.codegen.emitters.GeneratorTask;
+import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
+import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
+import software.amazon.awssdk.codegen.internal.Freemarker;
+import software.amazon.awssdk.codegen.internal.Utils;
+import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.poet.ClassSpec;
+
+public abstract class BaseGeneratorTasks implements Iterable<GeneratorTask> {
+
+    protected final String baseDirectory;
+    protected final IntermediateModel model;
+    protected final Freemarker freemarker;
+    protected final Log log;
+
+    public BaseGeneratorTasks(GeneratorTaskParams dependencies) {
+        this.baseDirectory = dependencies.getPathProvider().getSourceDirectory();
+        this.model = dependencies.getModel();
+        this.freemarker = dependencies.getFreemarker();
+        this.log = dependencies.getLog();
+    }
+
+    protected void info(String message) {
+        log.info(message);
+    }
+
+    /**
+     * Hook to allow subclasses to indicate they have no tasks so they can assume when createTasks is called there's something to
+     * emit.
+     */
+    protected boolean hasTasks() {
+        return true;
+    }
+
+    protected final GeneratorTask createPoetGeneratorTask(ClassSpec classSpec) throws IOException {
+        String targetDirectory = baseDirectory + '/' + Utils.packageToDirectory(classSpec.className().packageName());
+        return new PoetGeneratorTask(targetDirectory, model.getFileHeader(), classSpec);
+    }
+
+    protected abstract List<GeneratorTask> createTasks() throws Exception;
+
+    @Override
+    public Iterator<GeneratorTask> iterator() {
+        try {
+            if (hasTasks()) {
+                return createTasks().iterator();
+            } else {
+                return Collections.<GeneratorTask>emptyList().iterator();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+}

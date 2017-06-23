@@ -1,0 +1,198 @@
+[
+  {
+    "description": "No parameters set marshalls as empty body",
+    "given": {
+      "input": {
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "equals": "null"
+        }
+      }
+    }
+  },
+  {
+    "description": "Scalar members in payload member",
+    "given": {
+      "input": {
+        "PayloadMember": {
+          "StringMember": "foo",
+          "IntegerMember": 42,
+          "NumberMember": 9000.1,
+          "BooleanMember": true
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"StringMember\": \"foo\", \"IntegerMember\": 42, \"NumberMember\": 9000.1, \"BooleanMember\": true}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Nested structure in payload member",
+    "given": {
+      "input": {
+        "PayloadMember": {
+          "NestedStructure": {
+            "StringMember": "foo"
+          }
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"NestedStructure\": {\"StringMember\": \"foo\"}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Recursive structure with no recursion used",
+    "given": {
+      "input": {
+        "PayloadMember": {
+          "RecursiveStructure": {
+            "NoRecurseMember": "foo"
+          }
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"RecursiveStructure\": {\"NoRecurseMember\": \"foo\"}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Recursive structure with multiple levels of recursion",
+    "given": {
+      "input": {
+        "PayloadMember": {
+          "RecursiveStructure": {
+            "RecursiveMember": {
+              "RecursiveMember": {
+                "NoRecurseMember": "foo"
+              }
+            }
+          }
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"RecursiveStructure\": {\"RecursiveMember\": {\"RecursiveMember\": {\"NoRecurseMember\": \"foo\"}}}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Modeled string header with location name",
+    "given": {
+      "input": {
+        "PathMember": "pathParamValue",
+        "HeaderMember": "headerVal"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MultiLocationOperation"
+    },
+    "then": {
+      "serializedAs": {
+        "headers": {
+          "contains": {
+            "x-apig-header-string": "headerVal"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Modeled string query parameters are marshalled correctly",
+    "given": {
+      "input": {
+        "PathMember": "pathParamValue",
+        "QueryMemberOne": "valueOne",
+        "QueryMemberTwo": "valueTwo"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MultiLocationOperation"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "QueryMemberOne": "valueOne",
+            "QueryMemberTwo": "valueTwo"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Operation with single path parameter replaces placeholder",
+    "given": {
+      "input": {
+        "PathMember": "pathParamValue"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MultiLocationOperation"
+    },
+    "then": {
+      "serializedAs": {
+        "uri": "/multiLocation/pathParamValue"
+      }
+    }
+  },
+  {
+    "description": "Operation with multiple path parameters replaces correct placeholders",
+    "given": {
+      "input": {
+        "PathMemberOne": "valueOne",
+        "PathMemberTwo": "valueTwo"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MultiPathParamOperation"
+    },
+    "then": {
+      "serializedAs": {
+        "uri": "/multiPathParam/valueOne/static/valueTwo"
+      }
+    }
+  }
+]

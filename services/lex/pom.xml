@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>software.amazon.awssdk</groupId>
+    <artifactId>pom</artifactId>
+    <version>@AWS_JAVA_SDK_VERSION@</version>
+
+  </parent>
+  <groupId>software.amazon.awssdk</groupId>
+  <artifactId>lex</artifactId>
+  <name>AWS Java SDK for AWS Lex</name>
+  <description>The AWS Java SDK for AWS Lex module holds the client classes that are used for communicating with AWS Lex.</description>
+  <url>https://aws.amazon.com/sdkforjava</url>
+
+  <!-- The dependencies section in pom.xml is auto generated. No manual changes are allowed -->
+  <dependencies>
+    <dependency>
+        <artifactId>core</artifactId>
+        <groupId>software.amazon.awssdk</groupId>
+        <optional>false</optional>
+        <version>${awsjavasdk.version}</version>
+    </dependency>
+    <dependency>
+        <artifactId>test-utils</artifactId>
+        <groupId>software.amazon.awssdk</groupId>
+        <optional>false</optional>
+        <scope>test</scope>
+        <version>${awsjavasdk.version}</version>
+    </dependency>
+    <dependency>
+        <artifactId>jmespath-java</artifactId>
+        <groupId>software.amazon.awssdk</groupId>
+        <optional>false</optional>
+    </dependency>
+</dependencies>
+    </profile>
+  </profiles>
+</project>

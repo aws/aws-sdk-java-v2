@@ -1,0 +1,9 @@
+{
+  "Codec": "H.264",
+  "CodecOptions": null,
+  "KeyframesMaxDist": "10",
+  "FixedGOP": "true",
+  "BitRate": "auto",
+  "FrameRate": "auto",
+  "Watermarks": []
+}

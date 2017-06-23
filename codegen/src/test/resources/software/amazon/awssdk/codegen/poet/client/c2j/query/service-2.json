@@ -1,0 +1,145 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2010-05-08",
+    "endpointPrefix": "query-service",
+    "globalEndpoint": "query-service.amazonaws.com",
+    "protocol": "query",
+    "serviceAbbreviation": "Query Service",
+    "serviceFullName": "Some Service That Uses Query Protocol",
+    "signatureVersion": "v4",
+    "uid": "query-service-2010-05-08",
+    "xmlNamespace": "https://query-service.amazonaws.com/doc/2010-05-08/"
+  },
+  "operations": {
+    "APostOperation": {
+      "name": "APostOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "APostOperationRequest"
+      },
+      "errors": [
+        {
+          "shape": "InvalidInputException"
+        }
+      ],
+      "documentation": "<p>Performs a post operation to the query service and has no output</p>"
+    },
+    "APostOperationWithOutput": {
+      "name": "APostOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "APostOperationWithOutputRequest"
+      },
+      "output": {
+        "shape": "APostOperationWithOutputResponse",
+        "resultWrapper": "APostOperationWithOutputResult"
+      },
+      "errors": [
+        {
+          "shape": "InvalidInputException"
+        }
+      ],
+      "documentation": "<p>Performs a post operation to the query service and has modelled output</p>"
+    }
+  },
+  "shapes": {
+    "APostOperationRequest": {
+      "type": "structure",
+      "required": [
+        "SomeNestedMember"
+      ],
+      "members": {
+        "SomeNestedMember": {
+          "shape": "nestedMember",
+          "documentation": "<p>a member that has nested members</p>"
+        },
+        "OptionalMember": {
+          "shape": "dateType",
+          "documentation": "<p>An optional member</p>"
+        }
+      }
+    },
+    "APostOperationWithOutputRequest": {
+      "type": "structure",
+      "required": [
+        "SomeNestedMember"
+      ],
+      "members": {
+        "SomeNestedMember": {
+          "shape": "nestedMember",
+          "documentation": "<p>a member that has nested members</p>"
+        },
+        "OptionalMember": {
+          "shape": "dateType",
+          "documentation": "<p>An optional member</p>"
+        }
+      }
+    },
+    "APostOperationWithOutputResponse": {
+      "type": "structure",
+      "required": [
+        "NestedMember"
+      ],
+      "members": {
+        "NestedMember": {
+          "shape": "nestedMember",
+          "documentation": "<p>A structure containing nested members</p>"
+        }
+      },
+      "documentation": "<p>Contains the response to a successful <a>APostOperationWithOutput</a> request. </p>"
+    },
+    "InvalidInputException": {
+      "type": "structure",
+      "members": {
+        "message": {
+          "shape": "invalidInputMessage"
+        }
+      },
+      "documentation": "<p>The request was rejected because an invalid or out-of-range value was supplied for an input parameter.</p>",
+      "error": {
+        "code": "InvalidInput",
+        "httpStatusCode": 400,
+        "senderFault": true
+      },
+      "exception": true
+    },
+    "nestedMember": {
+      "type": "structure",
+      "required": [
+        "SubMember",
+        "CreateDate"
+      ],
+      "members": {
+        "SubMember": {
+          "shape": "subMember",
+          "documentation": "<p>A sub-member</p>"
+        },
+        "CreateDate": {
+          "shape": "dateType",
+          "documentation": "<p>The date and time, in <a href=\"http://www.iso.org/iso/iso8601\">ISO 8601 date-time format</a>, when the member was created.</p>"
+        }
+      },
+      "documentation": "<p>A shape with nested sub-members"
+    },
+    "subMember": {
+      "type": "string",
+      "max": 63,
+      "min": 3,
+      "pattern": "^[a-z0-9](([a-z0-9]|-(?!-))*[a-z0-9])?$"
+    },
+    "dateType": {
+      "type": "timestamp"
+    },
+    "invalidInputMessage": {
+      "type": "string"
+    }
+  },
+  "documentation": "A service that is implemented using the query protocol"
+}

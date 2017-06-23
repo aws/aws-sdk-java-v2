@@ -1,0 +1,17 @@
+grant {
+    permission java.util.PropertyPermission "*", "read,write";
+    permission java.io.FilePermission "<<ALL FILES>>", "read,write";
+    permission java.lang.RuntimePermission "getenv.*";
+    permission "java.lang.RuntimePermission" "accessDeclaredMembers";
+    permission "javax.net.ssl.SSLPermission" "setDefaultSSLContext";
+    permission "java.net.SocketPermission" "*", "connect,resolve";
+
+    // Needed for test to remove the security manager
+    permission java.lang.RuntimePermission "setSecurityManager";
+
+    // This permission is explicitly not granted to test that the SdkTLSSocketFactory.verifyMasterSecurity will be skipped when we don't have permissions to call internal APIs
+    // permission "java.lang.RuntimePermission" "accessClassInPackage.sun.security.ssl";
+
+    // This permission is explicitly not granted to test that the InternalConfig can be deserialized without needing access to private/protected methods
+    // permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+};

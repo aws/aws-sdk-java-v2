@@ -1,0 +1,38 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2016-03-11",
+    "endpointPrefix":"jsonrpccustomized",
+    "jsonVersion":"1.1",
+    "protocol":"json",
+    "serviceAbbreviation":"AmazonProtocolJsonRpcCustomized",
+    "serviceFullName":"AWS DR Tools JSON Protocol Tests",
+    "signatureVersion":"v4",
+    "targetPrefix":"ProtocolTestsJsonRpcCustomizedService",
+    "timestampFormat":"unixTimestamp"
+  },
+  "operations":{
+    "Simple":{
+      "name":"Simple",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"SimpleStructure"},
+      "output":{"shape":"SimpleStructure"}
+    }
+  },
+  "shapes": {
+    "SimpleStructure": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "String": {
+      "type": "string"
+    }
+  }
+}

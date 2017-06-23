@@ -1,0 +1,580 @@
+[
+  // These tests apply to both REST-JSON and REST-XML
+  {
+    "description": "Operation with no path params, sets URI and HTTP method correctly",
+    "given": {
+      "input": {
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "uri": "/2016-03-11/allTypes",
+        "method": "POST"
+      }
+    }
+  },
+  {
+    "description": "X-Amz-Target header is not set for REST services.",
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "headers": {
+          "doesNotContain": [ "X-Amz-Target" ]
+        }
+      }
+    }
+  },
+  {
+    "description": "Scalars in headers are marshalled correctly",
+    "given": {
+      "input": {
+        "StringMember": "foo",
+        "IntegerMember": 42,
+        "LongMember": 9001,
+        "FloatMember": 1.234,
+        "DoubleMember": 5.678,
+        "TimestampMember": 1422172800123
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "serializedAs": {
+        "headers": {
+          "contains": {
+            "x-amz-string": "foo",
+            "x-amz-integer": "42",
+            "x-amz-long": "9001",
+            "x-amz-float": "1.234",
+            "x-amz-double": "5.678",
+            "x-amz-timestamp": "2015-01-25T08:00:00.123Z"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Null value bound to header, does not add header to request",
+    "given": {
+      "input": {
+        "StringMember": ""
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "serializedAs": {
+        "headers": {
+          "contains": {
+            "x-amz-string": ""
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Empty value bound to header, adds header with empty value",
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "serializedAs": {
+        "headers": {
+          "doesNotContain": ["StringMember"]
+        }
+      }
+    }
+  },
+  {
+    "description": "Boolean with value true in header is marshalled correctly",
+    "given": {
+      "input": {
+        "BooleanMember": true
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "serializedAs": {
+        "headers": {
+          "contains": {
+            "x-amz-boolean": "true"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Boolean with value false in header is marshalled correctly",
+    "given": {
+      "input": {
+        "BooleanMember": false
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "serializedAs": {
+        "headers": {
+          "contains": {
+            "x-amz-boolean": "false"
+          }
+        }
+      }
+    }
+  },
+  // TODO Service models support binding list of strings and maps (string and list) to headers but Java SDK does not
+  {
+    "description": "Scalars in query parameters are marshalled correctly",
+    "given": {
+      "input": {
+        "StringQueryParam": "foo",
+        "IntegerQueryParam": 42,
+        "LongQueryParam": 9001,
+        "FloatQueryParam": 1.234,
+        "DoubleQueryParam": 5.678,
+        "TimestampQueryParam": 1422172800123
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInQueryParams"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "String": "foo",
+            "Integer": "42",
+            "Long": "9001",
+            "Float": "1.234",
+            "Double": "5.678",
+            "Timestamp": "2015-01-25T08:00:00.123Z"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Boolean member with value true in query params marshalled as string 'true'",
+    "given": {
+      "input": {
+        "BooleanQueryParam": true
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInQueryParams"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "Boolean": "true"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Boolean member with value false in query params marshalled as string 'false'",
+    "given": {
+      "input": {
+        "BooleanQueryParam": false
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInQueryParams"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "Boolean": "false"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "List of strings in query params marshalled correctly",
+    "given": {
+      "input": {
+        "ListOfStrings": [
+          "foo",
+          "bar",
+          "baz"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInQueryParams"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "item": [
+              "foo",
+              "bar",
+              "baz"
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Empty list of strings in query params, does not add param",
+    "given": {
+      "input": {
+        "ListOfStrings": []
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInQueryParams"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "doesNotContain": ["item"]
+        }
+      }
+    }
+  },
+  {
+    "description": "Singleton list with empty string in query params, adds param with empty value",
+    "given": {
+      "input": {
+        "ListOfStrings": [""]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInQueryParams"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "item": ""
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Static query params in the requestURI are present.",
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInQueryParams"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "StaticQueryParam": "foo"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Map of String to String in query params marshalled correctly",
+    "given": {
+      "input": {
+        "MapOfStringToString": {
+          "keyOne": "valueOne",
+          "keyTwo": "valueTwo"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInQueryParams"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "keyOne": "valueOne",
+            "keyTwo": "valueTwo"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Map of String to List of Strings in query params marshalled correctly",
+    "given": {
+      "input": {
+        "MapOfStringToListOfStrings": {
+          "foo": [
+            "bar",
+            "baz"
+          ],
+          "fizz": [
+            "buzz",
+            "pop"
+          ]
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MapOfStringToListOfStringInQueryParams"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "foo": [
+              "bar",
+              "baz"
+            ],
+            "fizz": [
+              "buzz",
+              "pop"
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Input with member in path and members in query params is marshalled correctly",
+    "given": {
+      "input": {
+        "PathParam": "pathParamValue",
+        "QueryParamOne": "valueOne",
+        "QueryParamTwo": "valueTwo"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MultiLocationOperation"
+    },
+    "then": {
+      "serializedAs": {
+        "uri": "/2016-03-11/multiLocationOperation/pathParamValue",
+        "params": {
+          "contains": {
+            "QueryParamOne": "valueOne",
+            "QueryParamTwo": "valueTwo"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Query param member with null value is omitted from the request",
+    "given": {
+      "input": {
+        "PathParam": "pathParamValue",
+        "QueryParamOne": null
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MultiLocationOperation"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "doesNotContain": [
+            "QueryParamOne"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "description": "Query param member with empty value is serialized as empty string",
+    "given": {
+      "input": {
+        "PathParam": "pathParamValue",
+        "QueryParamOne": ""
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MultiLocationOperation"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "QueryParamOne": ""
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Operation with blob member explicitly marked as the payload is serialized as raw bytes",
+    "given": {
+      "input": {
+        "PayloadMember": "contents"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "OperationWithExplicitPayloadBlob"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "equals": "contents"
+        }
+      }
+    }
+  },
+  {
+    "description": "Operation that has a static query parameter with no value.",
+    "given": {
+      "input": {
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "QueryParamWithoutValue"
+    },
+    "then": {
+      "serializedAs": {
+        "uri": "/2016-03-11/queryParamWithoutValue",
+        "params": {
+          "contains": {
+            "param": [null]
+          }
+        }
+      }
+    }
+  },
+  {
+      "description": "Input with greedy label in path",
+      "given": {
+	  "input": {
+	      "NonGreedyPathParam": "pathParamValue",
+	      "GreedyPathParam": "foo/bar/baz"
+	  }
+      },
+      "when": {
+	  "action": "marshall",
+	  "operation": "OperationWithGreedyLabel"
+      },
+      "then": {
+	  "serializedAs": {
+	      "uri": "/2016-03-11/operationWithGreedyLabel/pathParamValue/foo/bar/baz"
+	  }
+      }
+  },
+  {
+      "description": "Input with greedy label in path, leading slash removed",
+      "given": {
+	  "input": {
+	      "NonGreedyPathParam": "pathParamValue",
+	      "GreedyPathParam": "/foo/bar/baz"
+	  }
+      },
+      "when": {
+	  "action": "marshall",
+	  "operation": "OperationWithGreedyLabel"
+      },
+      "then": {
+	  "serializedAs": {
+	      "uri": "/2016-03-11/operationWithGreedyLabel/pathParamValue/foo/bar/baz"
+	  }
+      }
+  },
+  {
+    "description": "Operation with null members that have the idempotent trait are autofilled.",
+    "when": {
+      "action": "marshall",
+      "operation": "IdempotentOperation"
+    },
+    "then": {
+      "serializedAs": {
+        "uri": "/2016-03-11/idempotentOperation/00000000-0000-4000-8000-000000000000",
+        "params": {
+          "contains": {
+            "QueryParam": "00000000-0000-4000-8000-000000000000"
+          }
+        },
+        "headers": {
+          "contains": {
+            "x-amz-idempotent-header": "00000000-0000-4000-8000-000000000000"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Operation with non-null members that have the idempotent trait are not autofilled.",
+    "given": {
+      "input": {
+          "PathIdempotentToken": "foo",
+          "QueryIdempotentToken": "bar",
+          "HeaderIdempotentToken": "baz"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "IdempotentOperation"
+    },
+    "then": {
+      "serializedAs": {
+        "uri": "/2016-03-11/idempotentOperation/foo",
+        "params": {
+          "contains": {
+            "QueryParam": "bar"
+          }
+        },
+        "headers": {
+          "contains": {
+            "x-amz-idempotent-header": "baz"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Operation with modeled content-type, respects modeled content-type over protocol default.",
+    "given": {
+      "input": {
+          "ContentType": "application/foo"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "OperationWithModeledContentType"
+    },
+    "then": {
+      "serializedAs": {
+        "headers": {
+          "contains": {
+            "Content-Type": "application/foo"
+          }
+        }
+      }
+    }
+  }
+]

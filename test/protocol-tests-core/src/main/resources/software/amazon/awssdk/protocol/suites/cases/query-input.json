@@ -1,0 +1,419 @@
+[
+  {
+    "description": "Asserts Action (operation) and Version are in query params",
+    "given": {
+      "input": {
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "Action": "AllTypes",
+            "Version": "2016-03-11"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Scalar Members are marshalled correctly into the query params",
+    "given": {
+      "input": {
+        "stringMember": "val1",
+        "integerMember": 50,
+        "floatMember": 1.234,
+        "doubleMember": 5.678,
+        "longMember": 100
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "stringMember": "val1",
+            "integerMember": 50,
+            "floatMember": 1.234,
+            "doubleMember": 5.678,
+            "longMember": 100
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Input with true boolean member is marshalled correctly into the query params",
+    "given": {
+      "input": {
+        "booleanMember": true
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "booleanMember": "true"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Input with false boolean member is marshalled correctly into the query params",
+    "given": {
+      "input": {
+        "booleanMember": false
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "booleanMember": "false"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "A simple struct is marshalled correctly into the query params",
+    "given": {
+      "input": {
+        "simpleStructMember": {
+          "StringMember": "foo"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "simpleStructMember.StringMember": "foo"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "A list of strings is marshalled correctly into the query params",
+    "given": {
+      "input": {
+        "simpleList": [
+          "foo",
+          "bar",
+          "baz"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "simpleList.member.1": "foo",
+            "simpleList.member.2": "bar",
+            "simpleList.member.3": "baz"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "An empty list is marshalled as an empty string in the query params",
+    "given": {
+      "input": {
+        "simpleList": []
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "simpleList": ""
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "A flattened list of strings is marshalled correctly into the query params",
+    "given": {
+      "input": {
+        "FlattenedListOfStrings": [
+          "foo",
+          "bar",
+          "baz"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "QueryTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "FlattenedListOfStrings.1": "foo",
+            "FlattenedListOfStrings.2": "bar",
+            "FlattenedListOfStrings.3": "baz"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "A flattened list of strings with non default location name is marshalled correctly",
+    "given": {
+      "input": {
+        "FlattenedListWithLocation": [
+          "foo",
+          "bar",
+          "baz"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "QueryTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "item.1": "foo",
+            "item.2": "bar",
+            "item.3": "baz"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "A non flattened list with non default location name is marshalled correctly",
+    "given": {
+      "input": {
+        "NonFlattenedListWithLocation": [
+          "foo",
+          "bar",
+          "baz"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "QueryTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "NonFlattenedListWithLocation.item.1": "foo",
+            "NonFlattenedListWithLocation.item.2": "bar",
+            "NonFlattenedListWithLocation.item.3": "baz"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "A flattened map of string to string is marshalled correctly",
+    "given": {
+      "input": {
+        "FlattenedMap": {
+          "key1": "val1",
+          "key2": "val2"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "QueryTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "FlattenedMap.1.key": "key1",
+            "FlattenedMap.1.value": "val1",
+            "FlattenedMap.2.key": "key2",
+            "FlattenedMap.2.value": "val2"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "A non flattened map of string to string is marshalled correctly",
+    "given": {
+      "input": {
+        "mapOfStringToString": {
+          "key1": "val1",
+          "key2": "val2"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "mapOfStringToString.entry.1.key": "key1",
+            "mapOfStringToString.entry.1.value": "val1",
+            "mapOfStringToString.entry.2.key": "key2",
+            "mapOfStringToString.entry.2.value": "val2"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "A non flattened list with location name for key and value is marshalled correctly",
+    "given": {
+      "input": {
+        "NonFlattenedMapWithLocation": {
+          "key1": "val1",
+          "key2": "val2"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "QueryTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "themap.entry.1.thekey": "key1",
+            "themap.entry.1.thevalue": "val1",
+            "themap.entry.2.thekey": "key2",
+            "themap.entry.2.thevalue": "val2"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "A blob member is marshalled as Base64 encoded text into the query params",
+    "given": {
+      "input": {
+        "blobArg": "foo"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "blobArg": "Zm9v"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "A blob list member is marshalled as Base64 encoded text into the query params",
+    "given": {
+      "input": {
+        "listOfBlobs": [
+          "foo",
+          "bar"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "listOfBlobs.member.1": "Zm9v",
+            "listOfBlobs.member.2": "YmFy"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "A blob map value member is marshalled as Base64 encoded text into the query params",
+    "given": {
+      "input": {
+        "blobMap": {
+          "key1": "foo"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "blobMap.entry.1.key": "key1",
+            "blobMap.entry.1.value": "Zm9v"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "A timestamp is marshalled as an ISO8601 date with millisecond precision",
+    "given": {
+      "input": {
+        "timestampMember": 1422172800123
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "timestampMember": "2015-01-25T08:00:00.123Z"
+          }
+        }
+      }
+    }
+  }
+  // TODO the current implementation of query marshallers cannot easily support recursion
+]

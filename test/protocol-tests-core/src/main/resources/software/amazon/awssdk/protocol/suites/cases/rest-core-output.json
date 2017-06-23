@@ -1,0 +1,93 @@
+[
+  // These tests apply to both REST-JSON and REST-XML
+  {
+    "description": "Scalar members bound to headers are unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "x-amz-string": "foo",
+          "x-amz-integer": "42",
+          "x-amz-long": "9001",
+          "x-amz-float": "1.234",
+          "x-amz-double": "5.678",
+          "x-amz-timestamp": "Sun, 25 Jan 2015 08:00:00 GMT"
+        }
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "deserializedAs": {
+        "StringMember": "foo",
+        "IntegerMember": 42,
+        "LongMember": 9001,
+        "FloatMember": 1.234,
+        "DoubleMember": 5.678,
+        "TimestampMember": 1422172800000
+      }
+    }
+  },
+  {
+    "description": "Boolean member with value true bound to header is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "x-amz-boolean": "true"
+        }
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "deserializedAs": {
+        "BooleanMember": true
+      }
+    }
+  },
+  {
+    "description": "Boolean member with value false bound to header is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "x-amz-boolean": "false"
+        }
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "deserializedAs": {
+        "BooleanMember": false
+      }
+    }
+  },
+  {
+    "description": "Delete operation with no output, returns 204 No Content. Unmarshalls as empty object.",
+    "given": {
+      "response": {
+        "status_code": 204
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "DeleteOperation"
+    },
+    "then": {
+      "deserializedAs": {
+          // Empty object
+      }
+    }
+  }
+  // TODO header maps, service models supports this but Java SDK does not (not currently exercised)
+  // TODO header maps with prefix, services models do not support this, only used by S3
+  // TODO List of strings bound to header, service  models supports this, not currently exercised by any service
+]

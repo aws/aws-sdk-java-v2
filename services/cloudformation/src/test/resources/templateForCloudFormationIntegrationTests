@@ -1,0 +1,113 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+
+  "Description" : "Template Description",
+
+  "Parameters" : {
+    "InstanceType" : {
+      "Description" : "Type of instance to launch (Note: The AMI is a 32bit AMI, so the instance must be capable of running a 32bit image)",
+      "Type" : "String",
+      "Default" : "m1.small"
+    },
+    "WebServerPort" : {
+      "Description" : "The TCP port for the Web Server",
+      "Type" : "String",
+      "Default" : "8888"
+    },
+    "KeyPair" : {
+      "Description" : "The EC2 Key Pair to allow SSH access to the instances",
+      "Type" : "String",
+      "Default" : "FooBar"
+    }
+  },
+
+  "Mappings" : {
+    "RegionMap" : {
+      "us-east-1" : {
+          "TestAZ" : "us-east-1a",
+          "AMI" : "ami-e08f7f89"
+      },
+      "us-west-1" : {
+          "TestAZ" : "us-west-1a",
+          "AMI" : "ami-a38bdbe6"
+      },
+      "eu-west-1" : {
+          "TestAZ" : "eu-west-1a",
+          "AMI" : "ami-03310577"
+      },
+      "ap-northeast-1" : {
+          "TestAZ" : "ap-northeast-1a",
+          "AMI" : "ami-e2a3ddb0"
+      }
+    }
+  },
+
+  "Resources" : {
+    "WebServerGroup" : {
+      "Type" : "AWS::AutoScaling::AutoScalingGroup",
+      "Properties" : {
+        "AvailabilityZones" : [ { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "TestAZ" ]} ],
+        "LaunchConfigurationName" : { "Ref" : "LaunchConfig" },
+        "MinSize" : "2",
+        "MaxSize" : "2",
+        "LoadBalancerNames" : [ { "Ref" : "ElasticLoadBalancer" } ]
+      }
+    },
+
+    "LaunchConfig" : {
+      "Type" : "AWS::AutoScaling::LaunchConfiguration",
+      "Properties" : {
+        "KeyName" : { "Ref" : "KeyPair" },
+        "ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "AMI" ]},
+        "UserData" : { "Fn::Base64" : { "Fn::Join" : [ ":", [ { "Ref" : "WebServerPort" }]]}},
+        "SecurityGroups" : [ { "Ref" : "InstanceSecurityGroup" } ],
+        "InstanceType" : { "Ref" : "InstanceType" }
+      }
+    },
+
+    "ElasticLoadBalancer" : {
+      "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties" : {
+        "AvailabilityZones" : [ { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "TestAZ" ]} ],
+        "Listeners" : [ {
+          "LoadBalancerPort" : "80",
+          "InstancePort" : { "Ref" : "WebServerPort" },
+          "Protocol" : "HTTP"
+        } ],
+        "HealthCheck" : {
+          "Target" : { "Fn::Join" : [ "", ["HTTP:", { "Ref" : "WebServerPort" }, "/"]]},
+          "HealthyThreshold" : "3",
+          "UnhealthyThreshold" : "5",
+          "Interval" : "30",
+          "Timeout" : "5"
+        }
+      }
+    },
+
+    "InstanceSecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription" : "Enable SSH access and HTTP access on the inbound port",
+        "SecurityGroupIngress" : [ {
+          "IpProtocol" : "tcp",
+          "FromPort" : "22",
+          "ToPort" : "22",
+          "CidrIp" : "0.0.0.0/0"
+        },
+        {
+          "IpProtocol" : "tcp",
+          "FromPort" : { "Ref" : "WebServerPort" },
+          "ToPort" : { "Ref" : "WebServerPort" },
+          "CidrIp" : "0.0.0.0/0"
+        } ]
+      }
+    }
+  },
+
+  "Outputs" : {
+    "URL" : {
+      "Description" : "The URL of the Load Balanced Web Site",
+      "Value" :  { "Fn::Join" : [ "", [ "http://", { "Fn::GetAtt" : [ "ElasticLoadBalancer", "DNSName" ]}]]}
+    }
+  }
+}

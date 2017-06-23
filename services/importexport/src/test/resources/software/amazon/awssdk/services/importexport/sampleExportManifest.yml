@@ -1,0 +1,18 @@
+manifestVersion: 1.2
+accessKeyId: @ACCESS_KEY_ID@
+deviceId: 532404500021
+logBucket: @BUCKET@
+logPrefix: logs/
+fileSystem: NTFS
+pinCode: 1234
+operations:
+    - exportBucket: @BUCKET@
+notificationEmail: joe.doe@example.com
+returnAddress:
+    name: Amazon.com ATTN Joe Random
+    street1: 1200 12th Ave S.
+    city: Seattle
+    stateOrProvince: WA
+    postalCode: 98114
+    phoneNumber: 206-266-0000
+    country: USA

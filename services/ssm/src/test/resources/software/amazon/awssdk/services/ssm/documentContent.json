@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "1.0",
+  "runtimeConfig": {
+    "aws:cloudWatch": {
+    }
+  }
+}

@@ -1,0 +1,14 @@
+bucket: @BUCKET@
+accessKeyId: @ACCESS_KEY_ID@
+manifestVersion: 1.3
+eraseDevice: yes
+deviceId: 123
+notificationEmail: joe.doe@example.com
+returnAddress:
+   name: Amazon.com ATTN:Joe Random
+   street1: 5555555 5th Ave
+   city: Seattle
+   stateOrProvince: WA
+   postalCode: 98104
+   phoneNumber: 206-555-1000
+   country: USA

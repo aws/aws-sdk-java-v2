@@ -1,0 +1,7 @@
+{
+  "testCases": [
+    "cases/ec2-input.json",
+    "cases/query-core-input.json",
+    "cases/ec2-output.json"
+  ]
+}

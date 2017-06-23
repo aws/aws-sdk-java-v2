@@ -1,0 +1,10 @@
+{
+  "testCases": [
+    "cases/rest-json-input.json",
+    "cases/json-core-input.json",
+    "cases/rest-core-input.json",
+    "cases/rest-json-output.json",
+    "cases/json-core-output.json",
+    "cases/rest-core-output.json"
+  ]
+}

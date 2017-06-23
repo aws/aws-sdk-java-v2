@@ -1,0 +1,3 @@
+software.amazon.awssdk.services.sqs.QueueUrlHandler
+software.amazon.awssdk.services.sqs.internal.SqsRequestHandler
+software.amazon.awssdk.services.sqs.MessageMD5ChecksumHandler

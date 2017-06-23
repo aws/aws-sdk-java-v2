@@ -1,0 +1,171 @@
+[
+  {
+    "description": "A non flattened list is still serialized as flattened",
+    "given": {
+      "input": {
+        "simpleList": [
+          "foo",
+          "bar",
+          "baz"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "simpleList.1": "foo",
+            "simpleList.2": "bar",
+            "simpleList.3": "baz"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "A flattened list of strings is marshalled correctly into the query params",
+    "given": {
+      "input": {
+        "FlattenedListOfStrings": [
+          "foo",
+          "bar",
+          "baz"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "Ec2Types"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "FlattenedListOfStrings.1": "foo",
+            "FlattenedListOfStrings.2": "bar",
+            "FlattenedListOfStrings.3": "baz"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "List member locationName (item) is ignored and member locationName is used",
+    "given": {
+      "input": {
+        "FlattenedListWithLocation": [
+          "foo",
+          "bar",
+          "baz"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "Ec2Types"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "ListMemberName.1": "foo",
+            "ListMemberName.2": "bar",
+            "ListMemberName.3": "baz"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Member with explicit location uses upper case locationName when marshalling",
+    "given": {
+      "input": {
+        "StringMemberWithLocation": "foo"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "Ec2Types"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "SomeLocation": "foo"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Query name takes precedence over member name",
+    "given": {
+      "input": {
+        "StringMemberWithQueryName": "foo"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "Ec2Types"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "someQueryName": "foo"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Query name takes precedence over location name and member name",
+    "given": {
+      "input": {
+        "StringMemberWithLocationAndQueryName": "foo"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "Ec2Types"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "someQueryName": "foo"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Query name takes precedence over location name and member name for list members",
+    "given": {
+      "input": {
+        "ListMemberWithLocationAndQueryName": [
+          "foo",
+          "bar"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "Ec2Types"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "listQueryName.1": "foo",
+            "listQueryName.2": "bar"
+          }
+        }
+      }
+    }
+  }
+]

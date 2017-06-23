@@ -1,0 +1,197 @@
+[
+  // Tests common to both Query and EC2
+  {
+    "description": "Asserts Action (operation) and Version are in query params",
+    "given": {
+      "input": {
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "Action": "AllTypes",
+            "Version": "2016-03-11"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Scalar Members are marshalled correctly into the query params",
+    "given": {
+      "input": {
+        "stringMember": "val1",
+        "integerMember": 50,
+        "floatMember": 1.234,
+        "doubleMember": 5.678,
+        "longMember": 100
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "stringMember": "val1",
+            "integerMember": 50,
+            "floatMember": 1.234,
+            "doubleMember": 5.678,
+            "longMember": 100
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Input with true boolean member is marshalled correctly into the query params",
+    "given": {
+      "input": {
+        "booleanMember": true
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "booleanMember": "true"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Input with false boolean member is marshalled correctly into the query params",
+    "given": {
+      "input": {
+        "booleanMember": false
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "booleanMember": "false"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "A simple struct is marshalled correctly into the query params",
+    "given": {
+      "input": {
+        "simpleStructMember": {
+          "StringMember": "foo"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "simpleStructMember.StringMember": "foo"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "A blob member is marshalled as Base64 encoded text into the query params",
+    "given": {
+      "input": {
+        "blobArg": "foo"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "blobArg": "Zm9v"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "A timestamp is marshalled as an ISO8601 date with millisecond precision",
+    "given": {
+      "input": {
+        "timestampMember": 1422172800123
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "timestampMember": "2015-01-25T08:00:00.123Z"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Operation with null members that have the idempotent trait are autofilled.",
+    "when": {
+      "action": "marshall",
+      "operation": "IdempotentOperation"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "IdempotencyToken": "00000000-0000-4000-8000-000000000000"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Operation with non-null members that have the idempotent trait are not autofilled.",
+    "given": {
+      "input": {
+        "IdempotencyToken": "foo"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "IdempotentOperation"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "contains": {
+            "IdempotencyToken": "foo"
+          }
+        }
+      }
+    }
+  }
+]

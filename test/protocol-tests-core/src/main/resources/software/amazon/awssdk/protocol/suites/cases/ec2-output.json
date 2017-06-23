@@ -1,0 +1,204 @@
+[
+  {
+    "description": "Tests that simple scalar members are unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<AllTypesResponse><stringMember>stringVal</stringMember><integerMember>42</integerMember><floatMember>1.234</floatMember><doubleMember>5.678</doubleMember><longMember>9001</longMember></AllTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "stringMember": "stringVal",
+        "integerMember": 42,
+        "floatMember": 1.234,
+        "doubleMember": 5.678,
+        "longMember": 9001
+      }
+    }
+  },
+  {
+    "description": "Tests that a boolean member with value false in unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<AllTypesResponse><booleanMember>false</booleanMember></AllTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "booleanMember": false
+      }
+    }
+  },
+  {
+    "description": "Tests that a boolean member with value true in unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<AllTypesResponse><booleanMember>true</booleanMember></AllTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "booleanMember": true
+      }
+    }
+  },
+  {
+    "description": "Tests that a Base64 encoded blob in the payload is unmarshalled and decoded correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<AllTypesResponse><blobArg>dmFsdWU=</blobArg></AllTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "blobArg": "value"
+      }
+    }
+  },
+  {
+    "description": "Tests that a list of strings in the payload is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<AllTypesResponse><simpleList><member>val1</member><member>val2</member></simpleList></AllTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "simpleList": [
+          "val1",
+          "val2"
+        ]
+      }
+    }
+  },
+  {
+    "description": "Tests that a flattened list with default location name is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<AllTypesResponse><FlattenedListOfStrings>val1</FlattenedListOfStrings><FlattenedListOfStrings>val2</FlattenedListOfStrings></AllTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "Ec2Types"
+    },
+    "then": {
+      "deserializedAs": {
+        "FlattenedListOfStrings": [
+          "val1",
+          "val2"
+        ]
+      }
+    }
+  },
+  {
+    "description": "Tests that a flattened list with a single element and with default location name is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<AllTypesResponse><FlattenedListOfStrings>val1</FlattenedListOfStrings></AllTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "Ec2Types"
+    },
+    "then": {
+      "deserializedAs": {
+        "FlattenedListOfStrings": [
+          "val1"
+        ]
+      }
+    }
+  },
+  {
+    "description": "Tests that a flattened list of structure types is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<AllTypesResponse><FlattenedListOfStructs><StringMember>foo</StringMember></FlattenedListOfStructs><FlattenedListOfStructs><StringMember>bar</StringMember></FlattenedListOfStructs></AllTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "Ec2Types"
+    },
+    "then": {
+      "deserializedAs": {
+        "FlattenedListOfStructs": [
+          {
+            "StringMember": "foo"
+          },
+          {
+            "StringMember": "bar"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "description": "Tests that a flattened list of strings with non default location name is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<AllTypesResponse><item>val1</item><item>val2</item></AllTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "Ec2Types"
+    },
+    "then": {
+      "deserializedAs": {
+        "FlattenedListWithLocation": [
+          "val1",
+          "val2"
+        ]
+      }
+    }
+  },
+  {
+    "description": "Tests unmarshalling an empty XML tag as an empty string",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<AllTypesResponse><stringMember/></AllTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "stringMember": ""
+      }
+    }
+  }
+]

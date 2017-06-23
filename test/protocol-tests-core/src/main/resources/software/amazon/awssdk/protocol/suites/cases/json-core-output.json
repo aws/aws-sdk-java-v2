@@ -1,0 +1,374 @@
+[
+  // These tests apply to both JSON RPC and REST-JSON
+  {
+    "description": "Scalar Members in payload are unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"StringMember\": \"myname\", \"IntegerMember\": 123, \"FloatMember\": 1.2, \"DoubleMember\": 1.3, \"LongMember\": 200}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "StringMember": "myname",
+        "IntegerMember": 123,
+        "FloatMember": 1.2,
+        "DoubleMember": 1.3,
+        "LongMember": 200
+      }
+    }
+  },
+  {
+    "description": "Boolean member with value true in payload is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"BooleanMember\": true}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "BooleanMember": true
+      }
+    }
+  },
+  {
+    "description": "Boolean member with value false in payload is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"BooleanMember\": false}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "BooleanMember": false
+      }
+    }
+  },
+  {
+    "description": "Base64 encoded blob member is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"BlobArg\": \"aGkh\"}}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "BlobArg": "hi!"
+      }
+    }
+  },
+  {
+    "description": "Nested Base64 encoded blob member is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"StructWithNestedBlob\": {\"NestedBlob\": \"aGkh\"}}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "StructWithNestedBlob": {
+          "NestedBlob": "hi!"
+        }
+      }
+    }
+  },
+  {
+    "description": "Base64 encoded blob as list member is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"ListOfBlobs\": [\"Zm9v\", \"YmFy\"]}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "ListOfBlobs": [
+          "foo",
+          "bar"
+        ]
+      }
+    }
+  },
+  {
+    "description": "Base64 encoded blob as map value is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"BlobMap\": {\"foo\": \"dGhlcmUh\"}}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "BlobMap": {
+          "foo": "there!"
+        }
+      }
+    }
+  },
+  {
+    "description": "Timestamp member in payload is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"TimestampMember\": 1398796238.123}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "TimestampMember": 1398796238123
+      }
+    }
+  },
+  {
+    "description": "Nested Timestamp member in payload is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"StructWithNestedTimestampMember\": {\"NestedTimestamp\": 1398796238.123}}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "StructWithNestedTimestampMember": {
+          "NestedTimestamp": 1398796238123
+        }
+      }
+    }
+  },
+  {
+    "description": "List of strings in payload is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"SimpleList\": [\"a\", \"b\", null]}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "SimpleList": [
+          "a",
+          "b",
+          null
+        ]
+      }
+    }
+  },
+  {
+    "description": "List of structs in payload is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"ListOfStructs\": [{\"StringMember\": \"foo\"}, null, {}]}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "ListOfStructs": [
+          {
+            "StringMember": "foo"
+          },
+          null,
+          {}
+        ]
+      }
+    }
+  },
+  {
+    "description": "List of maps in payload is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"ListOfMaps\": [{\"keyOne\": \"valOne\", \"keyTwo\": \"valTwo\"}, null, {}]}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "ListOfMaps": [
+          {
+            "keyOne": "valOne",
+            "keyTwo": "valTwo"
+          },
+          null,
+          {}
+        ]
+      }
+    }
+  },
+  {
+    "description": "Map of String to list of integers is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"MapOfStringToIntegerList\": {\"a\": [1, 2], \"b\": [3, 4]}}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "MapOfStringToIntegerList": {
+          "a": [
+            1,
+            2
+          ],
+          "b": [
+            3,
+            4
+          ]
+        }
+      }
+    }
+  },
+  {
+    "description": "Unmodeled data is ignored",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"foo\": \"bar\"}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+      }
+    }
+  },
+  {
+    "description": "Operation with no output defined ignores any content in body",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "THIS ISN'T JSON!!!"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "OperationWithNoInputOrOutput"
+    },
+    "then": {
+      "deserializedAs": {
+      }
+    }
+  },
+  {
+      "description": "List of List of strings in payload is unmarshalled correctly",
+      "given": {
+	  "response": {
+	      "status_code": 200,
+	      "body": "{\"ListOfListsOfStrings\": [[\"a\", \"b\"], [\"c\"], [\"d\"]]}"
+	  }
+      },
+      "when": {
+	  "action": "unmarshall",
+	  "operation": "NestedContainers"
+      },
+      "then": {
+	  "deserializedAs": {
+	      "ListOfListsOfStrings": [
+		  [ "a", "b" ],
+		  [ "c" ],
+		  [ "d" ]
+	      ]
+	  }
+      }
+  },
+  {
+      "description": "Map of list of list of strings is unmarshalled correctly",
+      "given": {
+	  "response": {
+	      "status_code": 200,
+	      "body": "{\"MapOfStringToListOfListsOfStrings\": {\"foo\": [[\"a\", \"b\"], [\"c\"]], \"bar\": [[\"a\"], [\"b\"]]}}"
+	  }
+      },
+      "when": {
+	  "action": "unmarshall",
+	  "operation": "NestedContainers"
+      },
+      "then": {
+	  "deserializedAs": {
+	      "MapOfStringToListOfListsOfStrings": {
+		  "foo": [[ "a", "b" ], [ "c" ]],
+		  "bar": [[ "a" ], [ "b" ]]
+	      }
+	  }
+      }
+  },
+  {
+      "description": "List of list of list of strings is unmarshalled correctly",
+      "given": {
+	  "response": {
+	      "status_code": 200,
+	      "body": "{\"ListOfListOfListsOfStrings\": [[[\"a\", \"b\"], [\"c\"]], [[\"d\"]]]}"
+	  }
+      },
+      "when": {
+	  "action": "unmarshall",
+	  "operation": "NestedContainers"
+      },
+      "then": {
+	  "deserializedAs": {
+	      "ListOfListOfListsOfStrings": [
+		  [[ "a", "b" ], [ "c" ]],
+		  [[ "d" ]]
+	      ]
+	  }
+      }
+  }
+]

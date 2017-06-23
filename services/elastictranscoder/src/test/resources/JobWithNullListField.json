@@ -1,0 +1,67 @@
+{
+  "Arn": "arn:aws:elastictranscoder:us-east-1:893399134089:1386201248195-w7m5f9",
+  "Id": "1386201248195-w7m5f9",
+  "Input": {
+    "AspectRatio": "auto",
+    "Container": "auto",
+    "FrameRate": "auto",
+    "Interlaced": "auto",
+    "Key": "source/five_seconds_one-minute-test-ios-480p.mp4",
+    "Resolution": "auto"
+  },
+  "Output": {
+    "AlbumArt": null,
+    "Composition": null,
+    "Duration": null,
+    "Height": null,
+    "Id": "1",
+    "Key": "JavaSDKTest/JavaSDKTest1386201248017",
+    "PresetId": "1351620000001-000020",
+    "Rotate": "auto",
+    "SegmentDuration": null,
+    "Status": "Progressing",
+    "StatusDetail": null,
+    "ThumbnailPattern": "",
+    "Watermarks": [
+    ],
+    "Width": null
+  },
+  "OutputKeyPrefix": null,
+  "Outputs": [
+    {
+      "AlbumArt": null,
+      "Composition": [
+        {
+          "TimeSpan": {
+            "StartTime": "00:00:00.000",
+            "Duration": "00:00:00.000"
+          }
+        },
+        null,
+        {
+          "TimeSpan": {
+            "StartTime": "00:00:00.000",
+            "Duration": "00:00:00.000"
+          }
+        }
+      ],
+      "Duration": null,
+      "Height": null,
+      "Id": "1",
+      "Key": "JavaSDKTest/JavaSDKTest1386201248017",
+      "PresetId": "1351620000001-000020",
+      "Rotate": "auto",
+      "SegmentDuration": null,
+      "Status": "Progressing",
+      "StatusDetail": null,
+      "ThumbnailPattern": "",
+      "Watermarks": [
+      ],
+      "Width": null
+    }
+  ],
+  "PipelineId": "1386201244548-3wuls4",
+  "Playlists": [
+  ],
+  "Status": "Progressing"
+}

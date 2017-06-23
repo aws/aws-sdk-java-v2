@@ -1,0 +1,439 @@
+[
+  // These tests apply to both JSON RPC and REST-JSON
+  {
+    "description": "Scalar Members are marshalled correctly",
+    "given": {
+      "input": {
+        "StringMember": "someVal",
+        "IntegerMember": 42,
+        "FloatMember": 1.234,
+        "DoubleMember": 5.678,
+        "LongMember": 2147483647
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"StringMember\":\"someVal\",\"IntegerMember\":42,\"FloatMember\":1.234,\"DoubleMember\":5.678,\"LongMember\":2147483647 }"
+        }
+      }
+    }
+  },
+  {
+    "description": "Boolean member with value true is marshalled correctly",
+    "given": {
+      "input": {
+        "BooleanMember": true
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"BooleanMember\":true}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Boolean member with value false is marshalled correctly",
+    "given": {
+      "input": {
+        "BooleanMember": false
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"BooleanMember\":false}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Timestamp member in the payload is marshalled as seconds with millisecond precision",
+    "given": {
+      "input": {
+        "TimestampMember": 1422172801123
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"TimestampMember\": 1422172801.123}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Blob member in payload is marshalled as Base64 encoded text",
+    "given": {
+      "input": {
+        "BlobArg": "foo"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"BlobArg\": \"Zm9v\"}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Nested blob member in payload is marshalled as Base64 encoded text",
+    "given": {
+      "input": {
+        "StructWithNestedBlob": {
+          "NestedBlob": "foo"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"StructWithNestedBlob\": {\"NestedBlob\": \"Zm9v\"}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Blob member as map value is marshalled as Base64 encoded text",
+    "given": {
+      "input": {
+        "BlobMap": {
+          "key1": "foo",
+          "key2": "bar"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"BlobMap\": {\"key1\": \"Zm9v\", \"key2\": \"YmFy\"}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Blob as list member is marshalled as Base64 encoded text",
+    "given": {
+      "input": {
+        "ListOfBlobs": [
+          "foo",
+          "bar"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"ListOfBlobs\": [\"Zm9v\", \"YmFy\"]}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Recursive structure with recursive member not set is marshalled correctly",
+    "given": {
+      "input": {
+        "RecursiveStruct": {
+          "NoRecurse": "foo"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"RecursiveStruct\": {\"NoRecurse\": \"foo\"}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Recursive structure with one level of recursion is marshalled correctly",
+    "given": {
+      "input": {
+        "RecursiveStruct": {
+          "RecursiveStruct": {
+            "NoRecurse": "foo"
+          }
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"RecursiveStruct\": {\"RecursiveStruct\": {\"NoRecurse\": \"foo\"}}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Recursive structure with several levels of recursion is marshalled correctly",
+    "given": {
+      "input": {
+        "RecursiveStruct": {
+          "RecursiveStruct": {
+            "RecursiveStruct": {
+              "RecursiveStruct": {
+                "NoRecurse": "foo"
+              }
+            }
+          }
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"RecursiveStruct\": {\"RecursiveStruct\": {\"RecursiveStruct\": {\"RecursiveStruct\": {\"NoRecurse\": \"foo\"}}}}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "List of recursive structs is marshalled correctly when no recursive members are set",
+    "given": {
+      "input": {
+        "RecursiveStruct": {
+          "RecursiveList": [
+            {
+              "NoRecurse": "foo"
+            },
+            {
+              "NoRecurse": "bar"
+            }
+          ]
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"RecursiveStruct\": {\"RecursiveList\": [{\"NoRecurse\": \"foo\"}, {\"NoRecurse\": \"bar\"}]}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "List of recursive structs with one level of recursion is marshalled correctly",
+    "given": {
+      "input": {
+        "RecursiveStruct": {
+          "RecursiveList": [
+            {
+              "NoRecurse": "foo"
+            },
+            {
+              "RecursiveStruct": {
+                "NoRecurse": "bar"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"RecursiveStruct\": {\"RecursiveList\": [{\"NoRecurse\": \"foo\"}, {\"RecursiveStruct\": {\"NoRecurse\": \"bar\"}}]}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Recursive structure as map value is marshalled correctly",
+    "given": {
+      "input": {
+        "RecursiveStruct": {
+          "RecursiveMap": {
+            "foo": {
+              "NoRecurse": "foo"
+            },
+            "bar": {
+              "NoRecurse": "bar",
+              "RecursiveStruct": {
+                "NoRecurse": "baz"
+              }
+            }
+          }
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"RecursiveStruct\": {\"RecursiveMap\": {\"foo\": {\"NoRecurse\": \"foo\"}, \"bar\": {\"NoRecurse\": \"bar\", \"RecursiveStruct\": { \"NoRecurse\": \"baz\"}}}}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Empty maps are marshalled correctly",
+    "given": {
+      "input": {
+        "MapOfStringToString": {}
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"MapOfStringToString\": {}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "List of list of strings is marshalled correctly",
+    "given": {
+      "input": {
+        "ListOfListsOfStrings": [
+          [ "foo", "bar" ],
+          [ "baz" ]
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "NestedContainers"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"ListOfListsOfStrings\": [[\"foo\", \"bar\"], [\"baz\"]]}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Deeply nested list is marshalled correctly.",
+    "given": {
+      "input": {
+        "ListOfListOfListsOfStrings": [
+          [
+            [ "foo", "bar" ], [ "baz" ]
+          ],
+          [
+            [ "abcd" ]
+          ]
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "NestedContainers"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"ListOfListOfListsOfStrings\": [ [ [\"foo\", \"bar\"], [\"baz\"] ], [ [\"abcd\"] ] ]}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Map of String to List of List of strings is marshalled correctly",
+    "given": {
+      "input": {
+        "MapOfStringToListOfListsOfStrings": {
+          "keyOne": [
+            [ "foo", "bar" ], [ "baz" ]
+          ],
+          "keyTwo": [
+            [ "abcd" ]
+          ]
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "NestedContainers"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"MapOfStringToListOfListsOfStrings\": {\"keyOne\": [ [\"foo\", \"bar\"], [\"baz\"] ], \"keyTwo\": [ [\"abcd\"] ]}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Explicit nulls in list are preserved.",
+    "given": {
+      "input": {
+        "SimpleList": [ null, "foo", null, "bar", null ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"SimpleList\": [null, \"foo\", null, \"bar\", null ] }"
+        }
+      }
+    }
+  }
+]

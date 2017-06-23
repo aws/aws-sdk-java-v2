@@ -1,0 +1,278 @@
+[
+  {
+    "description": "Scalar members in payload are unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"StringMember\": \"foo\", \"IntegerMember\": 123, \"NumberMember\": 9000.1}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "PayloadMember": {
+          "StringMember": "foo",
+          "IntegerMember": 123,
+          "NumberMember": 9000.1
+        }
+      }
+    }
+  },
+  {
+    "description": "Boolean member with value true in payload is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"BooleanMember\": true}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "PayloadMember": {
+          "BooleanMember": true
+        }
+      }
+    }
+  },
+  {
+    "description": "Boolean member with value false in payload is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"BooleanMember\": false}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "PayloadMember": {
+          "BooleanMember": false
+        }
+      }
+    }
+  },
+  {
+    "description": "Nested structure in payload is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"NestedStructure\": {\"StringMember\": \"foo\"}}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "PayloadMember": {
+          "NestedStructure": {
+            "StringMember": "foo"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "List of strings in payload is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"ListOfStrings\": [\"a\", \"b\", null]}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "PayloadMember": {
+          "ListOfStrings": [
+            "a",
+            "b",
+            null
+          ]
+        }
+      }
+    }
+  },
+  {
+    "description": "List of structs in payload is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"ListOfStructs\": [{\"StringMember\": \"foo\"}, null, {}]}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "PayloadMember": {
+          "ListOfStructs": [
+            {
+              "StringMember": "foo"
+            },
+            null,
+            {}
+          ]
+        }
+      }
+    }
+  },
+  {
+    "description": "Recursive structure with no recursion used is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"RecursiveStructure\": {\"NoRecurseMember\": \"foo\"}}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "PayloadMember": {
+          "RecursiveStructure": {
+            "NoRecurseMember": "foo"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Recursive structure with multiple levels of recursion is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"RecursiveStructure\": {\"RecursiveMember\": {\"RecursiveMember\": {\"NoRecurseMember\": \"foo\"}}}}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "PayloadMember": {
+          "RecursiveStructure": {
+            "RecursiveMember": {
+              "RecursiveMember": {
+                "NoRecurseMember": "foo"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Unmodeled data is ignored",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"foo\": \"bar\"}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "PayloadMember": {
+        }
+      }
+    }
+  },
+  {
+    "description": "Operation with no output defined ignores any content in body",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "THIS ISN'T JSON!!!"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "OperationWithNoInputOrOutput"
+    },
+    "then": {
+      "deserializedAs": {
+      }
+    }
+  },
+  {
+    "description": "No headers present, does not set modeled header member",
+    "given": {
+      "response": {
+        "status_code": 200
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "deserializedAs": {
+      }
+    }
+  },
+  {
+    "description": "Header in response, sets modeled string header member",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "x-apig-header-string-one": "valueOne"
+        }
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "deserializedAs": {
+        "HeaderMemberOne": "valueOne"
+      }
+    }
+  },
+  {
+    "description": "Multiple modeled headers in response, sets appropriate header members",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "x-apig-header-string-one": "valueOne",
+          "x-apig-header-string-two": "valueTwo"
+        }
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "deserializedAs": {
+        "HeaderMemberOne": "valueOne",
+        "HeaderMemberTwo": "valueTwo"
+      }
+    }
+  }
+]

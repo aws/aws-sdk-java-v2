@@ -1,0 +1,38 @@
+{
+  "Records": [
+    {
+      "eventVersion": "2.0",
+      "eventSource": "aws:s3",
+      "awsRegion": "us-west-2",
+      "eventTime": "2014-10-31T20:57:33.318Z",
+      "eventName": "ObjectCreated:Put",
+      "userIdentity": {
+        "principalId": "AWS:AIDAI3MECTMLDO3XFTMNC"
+      },
+      "requestParameters": {
+        "sourceIPAddress": "10.220.7.37"
+      },
+      "responseElements": {
+        "x-amz-request-id": "B061DAEB8364E5EE",
+        "x-amz-id-2": "6e2PHl0V+tlzL6uEMWjjyJQgR+IP/5Rjbao+B7f6kdpkwQ9xkRY4eYhG0vpnJ/dtblPnBLuU26o="
+      },
+      "s3": {
+        "s3SchemaVersion": "1.0",
+        "configurationId": "NTFkNTQ4OTMtMmNlYS00YzhjLThlYmMtYTYwNTQwNzI3Mjcy",
+        "bucket": {
+          "name": "reinvent2014demo",
+          "ownerIdentity": {
+            "principalId": "A1RUL5HMQLJ6W"
+          },
+          "arn": "arn:aws:s3:::reinvent2014demo"
+        },
+        "object": {
+          "key": "reinvent2014demo/scene_1.jpg",
+          "size": 1289274,
+          "eTag": "b69c026c402a7df75cd165e87b77759c",
+          "versionId": "-"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+ 
+  "Description" : "AWS CloudFormation Sample Template SQS: Sample template showing how to create an SQS queue. **WARNING** This template creates an Amazon SQS Queue. You will be billed for the AWS resources used if you create a stack from this template.",
+
+  "Resources" : {
+    "MyQueue" : {
+      "Type" : "AWS::SQS::Queue"
+    }
+  },
+  "Outputs" : {
+    "QueueURL" : {
+      "Description" : "URL of newly created SQS Queue",
+      "Value" : { "Ref" : "MyQueue" }
+    },
+    "QueueARN" : {
+      "Description" : "ARN of newly created SQS Queue",
+      "Value" : { "Fn::GetAtt" : ["MyQueue", "Arn"]}
+    }
+  }
+}

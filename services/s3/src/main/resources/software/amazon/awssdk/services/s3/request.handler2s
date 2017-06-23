@@ -1,0 +1,2 @@
+software.amazon.awssdk.services.s3.handlers.EndpointAddressRequestHandler
+software.amazon.awssdk.services.s3.handlers.CreateBucketRequestHandler

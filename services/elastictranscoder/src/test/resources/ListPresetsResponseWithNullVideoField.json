@@ -1,0 +1,72 @@
+{
+  "Presets": [
+    {
+      "Audio": {
+        "BitRate": "70",
+        "Channels": "auto",
+        "Codec": "AAC",
+        "SampleRate": "auto"
+      },
+      "Container": "ts",
+      "Description": "my-preset",
+      "Id": "1369076013606-fagecr",
+      "Name": "my-preset",
+      "Thumbnails": {
+        "AspectRatio": null,
+        "Format": "png",
+        "Interval": "1",
+        "MaxHeight": "auto",
+        "MaxWidth": "auto",
+        "PaddingPolicy": "Pad",
+        "Resolution": null,
+        "SizingPolicy": "Fit"
+      },
+      "Type": "Custom",
+      "Video": null
+    },
+    {
+      "Audio": {
+        "BitRate": "70",
+        "Channels": "auto",
+        "Codec": "AAC",
+        "SampleRate": "auto"
+      },
+      "Container": "ts",
+      "Description": "my-preset",
+      "Id": "1369076150341-uor61i",
+      "Name": "my-preset",
+      "Thumbnails": {
+        "AspectRatio": null,
+        "Format": "png",
+        "Interval": "1",
+        "MaxHeight": "auto",
+        "MaxWidth": "auto",
+        "PaddingPolicy": "Pad",
+        "Resolution": null,
+        "SizingPolicy": "Fit"
+      },
+      "Type": "Custom",
+      "Video": {
+        "AspectRatio": null,
+        "BitRate": "auto",
+        "Codec": "H.264",
+        "CodecOptions": {
+          "Level": "1",
+          "MaxReferenceFrames": "2",
+          "Profile": "baseline"
+        },
+        "DisplayAspectRatio": "auto",
+        "FixedGOP": "true",
+        "FrameRate": "auto",
+        "KeyframesMaxDist": "1",
+        "MaxFrameRate": null,
+        "MaxHeight": "auto",
+        "MaxWidth": "auto",
+        "PaddingPolicy": "Pad",
+        "Resolution": null,
+        "SizingPolicy": "Fit",
+        "Watermarks": []
+      }
+    }
+  ]
+}

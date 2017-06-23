@@ -1,0 +1,7 @@
+{
+  "testCases": [
+    "cases/query-input.json",
+    "cases/query-core-input.json",
+    "cases/query-output.json"
+  ]
+}

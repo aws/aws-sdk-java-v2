@@ -1,0 +1,138 @@
+[
+  {
+    "description": "No parameters set marshalls as empty body",
+    "given": {
+      "input": {
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "equals": "{}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Input with members in path, query parameters, headers, and payload is marshalled correctly",
+    "given": {
+      "input": {
+        "PathParam": "pathParamValue",
+        "QueryParamOne": "valueOne",
+        "QueryParamTwo": "valueTwo",
+        "StringHeaderMember": "headerVal",
+        "PayloadStructParam": {
+          "PayloadMemberOne": "payloadValueOne",
+          "PayloadMemberTwo": "payloadValueTwo"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MultiLocationOperation"
+    },
+    "then": {
+      "serializedAs": {
+        "uri": "/2016-03-11/multiLocationOperation/pathParamValue",
+        "params": {
+          "contains": {
+            "QueryParamOne": "valueOne",
+            "QueryParamTwo": "valueTwo"
+          }
+        },
+        "headers": {
+          "contains": {
+            "x-amz-header-string": "headerVal"
+          }
+        },
+        "body": {
+          "jsonEquals": "{\"PayloadStructParam\": {\"PayloadMemberOne\": \"payloadValueOne\", \"PayloadMemberTwo\": \"payloadValueTwo\"}}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Operation with structure member explicitly marked as the payload is serialized as unwrapped JSON",
+    "given": {
+      "input": {
+        "PayloadMember": {
+          "StringMember": "foo"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "OperationWithExplicitPayloadStructure"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"StringMember\": \"foo\"}"
+        }
+      }
+    }
+  },
+  {
+    "description": "Explicit payload member and no parameters marshalls into an empty request body",
+    "given": {
+      "input": {
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "OperationWithExplicitPayloadStructure"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "equals": ""
+        }
+      }
+    }
+  },
+  // TODO this should be moved up to common rest tests but Java SDK doesn't support streaming members for
+  // Rest XML
+  {
+    "description": "Streaming payload member is marshalled correctly",
+    "given": {
+      "input": {
+        "StreamingMember": "contents"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "StreamingInputOperation"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "equals": "contents"
+        }
+      }
+    }
+  }
+  // TODO This is a post process customization for API Gateway
+  //  {
+  //    "name": "NamedLocationsInJsonBody",
+  //    "given": {
+  //      "input": {
+  //        "StringPayloadMember": "foo"
+  //      }
+  //    },
+  //    "when": {
+  //      "action": "marshall",
+  //      "operation": "NamedLocationsInBOdy"
+  //    },
+  //    "then": {
+  //      "serializedAs": {
+  //        "body": {
+  //          "jsonEquals": "{\"overridden_location\": \"foo\"}"
+  //        }
+  //      }
+  //    }
+  //  }
+]

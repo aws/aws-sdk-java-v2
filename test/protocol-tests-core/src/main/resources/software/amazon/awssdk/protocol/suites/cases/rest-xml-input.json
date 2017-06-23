@@ -1,0 +1,359 @@
+[
+  {
+    "description": "URI is set correctly for operation",
+    "given": {
+      "input": {
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "uri": "/2016-03-11/allTypes"
+      }
+    }
+  },
+  {
+    "description": "Scalar types are marshalled correctly as XML in the payload",
+    "given": {
+      "input": {
+        "stringMember": "foo",
+        "integerMember": 42,
+        "floatMember": 1.234,
+        "doubleMember": 5.678,
+        "longMember": 9001
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "xmlEquals": "<AllTypesRequest xmlns=\"https://restxml/\"><stringMember>foo</stringMember><integerMember>42</integerMember><floatMember>1.234</floatMember><doubleMember>5.678</doubleMember><longMember>9001</longMember></AllTypesRequest>"
+        }
+      }
+    }
+  },
+  {
+    "description": "Boolean member with value true is marshalled correctly as XML",
+    "given": {
+      "input": {
+        "booleanMember": true
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "xmlEquals": "<AllTypesRequest xmlns=\"https://restxml/\"><booleanMember>true</booleanMember></AllTypesRequest>"
+        }
+      }
+    }
+  },
+  {
+    "description": "Boolean member with value false is marshalled correctly as XML",
+    "given": {
+      "input": {
+        "booleanMember": false
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "xmlEquals": "<AllTypesRequest xmlns=\"https://restxml/\"><booleanMember>false</booleanMember></AllTypesRequest>"
+        }
+      }
+    }
+  },
+  {
+    "description": "Simple structure is marshalled correctly as XML",
+    "given": {
+      "input": {
+        "simpleStructMember": {
+          "StringMember": "foo"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "xmlEquals": "<AllTypesRequest xmlns=\"https://restxml/\"><simpleStructMember><StringMember>foo</StringMember></simpleStructMember></AllTypesRequest>"
+        }
+      }
+    }
+  },
+  {
+    "description": "A simple structure with no members set is marshalled as an empty XML tag",
+    "given": {
+      "input": {
+        "simpleStructMember": {}
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "xmlEquals": "<AllTypesRequest xmlns=\"https://restxml/\"><simpleStructMember/></AllTypesRequest>"
+        }
+      }
+    }
+  },
+  {
+    "description": "A non flattened list of strings is marshalled correctly as XML",
+    "given": {
+      "input": {
+        "simpleList": [
+          "foo",
+          "bar"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "xmlEquals": "<AllTypesRequest xmlns=\"https://restxml/\"><simpleList><member>foo</member><member>bar</member></simpleList></AllTypesRequest>"
+        }
+      }
+    }
+  },
+  {
+    "description": "A non flattened list of strings with an overridden member location is marshalled correctly as XML",
+    "given": {
+      "input": {
+        "NonFlattenedListWithLocation": [
+          "foo",
+          "bar"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "RestXmlTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "xmlEquals": "<RestXmlTypesRequest xmlns=\"https://restxml/\"><NonFlattenedListWithLocation><item>foo</item><item>bar</item></NonFlattenedListWithLocation></RestXmlTypesRequest>"
+        }
+      }
+    }
+  },
+  {
+    "description": "A flattened list of strings is marshalled correctly as XML",
+    "given": {
+      "input": {
+        "FlattenedListOfStrings": [
+          "foo",
+          "bar"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "RestXmlTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "xmlEquals": "<RestXmlTypesRequest xmlns=\"https://restxml/\"><FlattenedListOfStrings>foo</FlattenedListOfStrings><FlattenedListOfStrings>bar</FlattenedListOfStrings></RestXmlTypesRequest>"
+        }
+      }
+    }
+  },
+  {
+    "description": "A flattened list of strings with an overridden location is marshalled correctly as XML",
+    "given": {
+      "input": {
+        "FlattenedListWithLocation": [
+          "foo",
+          "bar"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "RestXmlTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "xmlEquals": "<RestXmlTypesRequest xmlns=\"https://restxml/\"><item>foo</item><item>bar</item></RestXmlTypesRequest>"
+        }
+      }
+    }
+  },
+  {
+    "description": "A list of structure types is marshalled correctly as XML",
+    "given": {
+      "input": {
+        "listOfStructs": [
+          {
+            "StringMember": "foo"
+          },
+          {
+            "StringMember": "bar"
+          }
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "xmlEquals": "<AllTypesRequest xmlns=\"https://restxml/\"><listOfStructs><member><StringMember>foo</StringMember></member><member><StringMember>bar</StringMember></member></listOfStructs></AllTypesRequest>"
+        }
+      }
+    }
+  },
+  {
+    "description": "Blobs are marshalled as Base64 encoded text in an XML element",
+    "given": {
+      "input": {
+        "blobArg": "foo"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "xmlEquals": "<AllTypesRequest xmlns=\"https://restxml/\"><blobArg>Zm9v</blobArg></AllTypesRequest>"
+        }
+      }
+    }
+  },
+  {
+    "description": "A list of blobs are marshalled as Base64 encoded text",
+    "given": {
+      "input": {
+        "listOfBlobs": [
+          "foo",
+          "bar"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "xmlEquals": "<AllTypesRequest xmlns=\"https://restxml/\"><listOfBlobs><member>Zm9v</member><member>YmFy</member></listOfBlobs></AllTypesRequest>"
+        }
+      }
+    }
+  },
+  {
+    "description": "A map of string to blobs is marshalled as Base64 encoded text",
+    "given": {
+      "input": {
+        "blobMap": {
+          "keyOne": "foo",
+          "keyTwo": "bar"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "xmlEquals": "<AllTypesRequest xmlns=\"https://restxml/\"><blobMap><entry><key>keyOne</key><value>Zm9v</value></entry><entry><key>keyTwo</key><value>YmFy</value></entry></blobMap></AllTypesRequest>"
+        }
+      }
+    }
+  },
+  {
+    "description": "A timestamp member in the payload is marshalled as ISO8601 with millisecond precisio",
+    "given": {
+      "input": {
+        "timestampMember": 1422172800123
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "xmlEquals": "<AllTypesRequest xmlns=\"https://restxml/\"><timestampMember>2015-01-25T08:00:00.123Z</timestampMember></AllTypesRequest>"
+        }
+      }
+    }
+  },
+  {
+    "description": "A nested timestamp member in the payload is marshalled as ISO8601 with millisecond precisio",
+    "given": {
+      "input": {
+        "structWithNestedTimestampMember": {
+          "NestedTimestamp": 1422172800123
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "xmlEquals": "<AllTypesRequest xmlns=\"https://restxml/\"><structWithNestedTimestampMember><NestedTimestamp>2015-01-25T08:00:00.123Z</NestedTimestamp></structWithNestedTimestampMember></AllTypesRequest>"
+        }
+      }
+    }
+  }
+  //  TODO this is not possible, payloads can only be structures or blobs. Only S3 utilizes this
+  //  {
+  //    "description": "Tests an operation that has a string member explicitly marked as the payload",
+  //    "given": {
+  //      "input": {
+  //        "StringMember": "foo"
+  //      }
+  //    },
+  //    "when": {
+  //      "action": "marshall",
+  //      "operation": "StringMemberIsPayload"
+  //    },
+  //    "then": {
+  //      "serializedAs": {
+  //        "body": {
+  //          "equals": "foo"
+  //        }
+  //      }
+  //    }
+  //  }
+  // TODO support XML attribute (only S3 exercises this)
+  // TODO support greedy labels (only S3 exercises this)
+  // TODO support recursive shapes
+]

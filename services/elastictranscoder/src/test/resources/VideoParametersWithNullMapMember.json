@@ -1,0 +1,15 @@
+{
+  "Codec": "H.264",
+  "CodecOptions": {
+    "Profile": null,
+    "Level": "1",
+    "MaxReferenceFrames": "60",
+    "MaxBitRate": "60",
+    "BufferSize": "60"
+  },
+  "KeyframesMaxDist": "10",
+  "FixedGOP": "true",
+  "BitRate": "auto",
+  "FrameRate": "auto",
+  "Watermarks": []
+}

@@ -1,0 +1,7 @@
+{
+  "testCases": [
+    "cases/json-rpc-input.json",
+    "cases/json-core-input.json",
+    "cases/json-core-output.json"
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "asyncClient": {
+    "mainTemplate" : "/templates/common/AsyncClientClass.ftl",
+    "childTemplates" : [
+      {
+        "location" : "/macros/asyncclientclass/ClientMethodForOperation.ftl",
+        "importAsNamespace" : "AsyncClientMethodForOperation"
+      }, {
+        "location": "/macros/asyncclientclass/ClientMethodForOperationWithSimpleForm.ftl",
+        "importAsNamespace": "AsyncClientMethodForOperationWithSimpleForm"
+      }
+    ]
+  },
+  "requestClass": {
+    "mainTemplate" : "/templates/ec2/EC2RequestClass.ftl"
+  },
+  "responseClass": {
+    "mainTemplate" : "/templates/ec2/EC2ResponseClass.ftl"
+  },
+  "modelClass": {
+    "mainTemplate" : "/templates/common/model-class.ftl"
+  },
+  "modelEnum": {
+    "mainTemplate" : "/templates/common/enum-class.ftl"
+  },
+  "modelMarshaller": {
+     "mainTemplate" : "/templates/query/request-marshaller.ftl",
+     "childTemplates" : [
+        {
+          "location" : "/macros/marshaller/ec2/MemberMarshallerMacro.ftl",
+          "importAsNamespace" : "MemberMarshallerMacro"
+        }, {
+          "location" : "/macros/marshaller/common/IdempotencyTokenMacro.ftl",
+          "importAsNamespace" : "IdempotencyTokenMacro"
+        }
+    ]
+  },
+  "modelUnmarshaller": {
+    "mainTemplate" : "/templates/query/ModelStaxUnmarshaller.ftl",
+    "childTemplates" : [
+        {
+          "location" : "/macros/unmarshaller/awsquery/MapEntryUnmarshaller.ftl",
+          "importAsNamespace" : "MapEntryUnmarshallerMacro"
+        }, {
+          "location" : "/macros/unmarshaller/awsquery/MemberUnmarshallerInvocation.ftl",
+          "importAsNamespace" : "MemberUnmarshallerInvocationMacro"
+        }
+    ]
+  },
+  "baseExceptionClass": {
+    "mainTemplate" : "/templates/common/base-exception-class.ftl"
+  },
+  "exceptionClass": {
+    "mainTemplate" : "/templates/common/model-exception-class.ftl"
+  },
+  "exceptionUnmarshaller": {},
+  "policyActionClass" : {
+    "mainTemplate" : "/templates/common/auth-policy-action-class.ftl"
+  },
+  "packageInfo" : {
+    "mainTemplate" : "/templates/common/package-info.ftl"
+  },
+  "commonChildTemplates" : [
+    {
+      "location" : "/macros/common/VariableDeclarationMacro.ftl",
+      "importAsNamespace" : "VariableDeclarationMacro"
+    }, {
+      "location" : "/macros/common/AdditionalAnnotationsForAccessors.ftl",
+      "importAsNamespace" : "AdditionalAnnotationsForAccessors"
+    }, {
+      "location" : "/macros/common/OverrideMethodsMacro.ftl",
+      "importAsNamespace" : "OverrideMethodsMacro"
+    }, {
+      "location" : "/macros/common/MethodDefinitionMacro.ftl",
+      "importAsNamespace" : "MethodDefinitionMacro"
+    }, {
+      "location" : "/macros/common/ConstructorDefinitionMacro.ftl",
+      "importAsNamespace" : "ConstructorDefinitionMacro"
+    }, {
+      "location" : "/macros/marshaller/common/RequiredParameterValidationFunctionMacro.ftl",
+      "importAsNamespace" : "RequiredParameterValidationFunctionMacro"
+    }, {
+      "location" : "/macros/marshaller/common/RequiredParameterValidationInvocationMacro.ftl",
+      "importAsNamespace" : "RequiredParameterValidationInvocationMacro"
+    }
+  ]
+}

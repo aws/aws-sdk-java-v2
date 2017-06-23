@@ -1,0 +1,59 @@
+[
+  {
+    "description": "Operation with explicit payload structure in output is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"StringMember\": \"foo\"}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "OperationWithExplicitPayloadStructure"
+    },
+    "then": {
+      "deserializedAs": {
+        "PayloadMember": {
+          "StringMember": "foo"
+        }
+      }
+    }
+  },
+  // TODO payload blob and streaming should be moved up to rest-core when Java supports it
+  {
+    "description": "Operation with explicit payload blob in output is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "contents"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "OperationWithExplicitPayloadBlob"
+    },
+    "then": {
+      "deserializedAs": {
+        "PayloadMember": "contents"
+      }
+    }
+  },
+  {
+    "description": "Operation with streaming payload in output is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "contents"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "StreamingOutputOperation"
+    },
+    "then": {
+      "deserializedAs": {
+        "StreamingMember": "contents"
+      }
+    }
+  }
+]

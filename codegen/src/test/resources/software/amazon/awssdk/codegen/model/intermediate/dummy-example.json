@@ -1,0 +1,26 @@
+{
+  "version": "1234",
+  "examples": {
+    "FooOperation": [
+      {
+        "input": {
+          "FooInputParam": "value"
+        },
+        "output": {
+          "FooOutputParam": "value"
+        },
+        "comments": {
+          "input": {
+            "FooInputParam": "Some comment"
+          },
+          "output": {
+            "FooOutputParam": "Some comment"
+          }
+        },
+        "description": "This is an example",
+        "id": "foo-id",
+        "title": "Mock Example"
+      }
+    ]
+  }
+}

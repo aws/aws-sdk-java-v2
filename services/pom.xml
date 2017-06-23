@@ -1,0 +1,223 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License").
+  ~ You may not use this file except in compliance with the License.
+  ~ A copy of the License is located at
+  ~
+  ~  http://aws.amazon.com/apache2.0
+  ~
+  ~ or in the "license" file accompanying this file. This file is distributed
+  ~ on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+  ~ express or implied. See the License for the specific language governing
+  ~ permissions and limitations under the License.
+  -->
+
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>aws-sdk-java-pom</artifactId>
+        <version>2.0.0-preview-1</version>
+    </parent>
+    <artifactId>services</artifactId>
+    <name>AWS Java SDK :: Services</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>acm</module>
+        <module>api-gateway</module>
+        <module>applicationautoscaling</module>
+        <module>appstream</module>
+        <module>athena</module>
+        <module>autoscaling</module>
+        <module>batch</module>
+        <module>budgets</module>
+        <module>clouddirectory</module>
+        <module>cloudformation</module>
+        <module>cloudfront</module>
+        <module>cloudhsm</module>
+        <module>cloudsearch</module>
+        <module>cloudtrail</module>
+        <module>cloudwatch</module>
+        <module>codebuild</module>
+        <module>codecommit</module>
+        <module>codedeploy</module>
+        <module>codepipeline</module>
+        <module>codestar</module>
+        <module>cognitoidentity</module>
+        <module>cognitoidp</module>
+        <module>cognitosync</module>
+        <module>config</module>
+        <module>costandusagereport</module>
+        <module>datapipeline</module>
+        <module>dax</module>
+        <module>devicefarm</module>
+        <module>directconnect</module>
+        <module>directory</module>
+        <module>discovery</module>
+        <module>dms</module>
+        <module>dynamodb</module>
+        <module>ec2</module>
+        <module>ecr</module>
+        <module>ecs</module>
+        <module>efs</module>
+        <module>elasticache</module>
+        <module>elasticbeanstalk</module>
+        <module>elasticloadbalancing</module>
+        <module>elasticloadbalancingv2</module>
+        <module>elasticsearch</module>
+        <module>elastictranscoder</module>
+        <module>emr</module>
+        <module>events</module>
+        <module>gamelift</module>
+        <module>glacier</module>
+        <module>greengrass</module>
+        <module>health</module>
+        <module>iam</module>
+        <module>importexport</module>
+        <module>inspector</module>
+        <module>iot</module>
+        <module>kinesis</module>
+        <module>kms</module>
+        <module>lambda</module>
+        <module>lightsail</module>
+        <module>lexmodelbuilding</module>
+        <module>logs</module>
+        <module>machinelearning</module>
+        <module>marketplacecommerceanalytics</module>
+        <module>marketplaceentitlement</module>
+        <module>marketplacemeteringservice</module>
+        <module>mechanicalturkrequester</module>
+        <module>opsworks</module>
+        <module>opsworkscm</module>
+        <module>organizations</module>
+        <module>pinpoint</module>
+        <module>polly</module>
+        <module>rds</module>
+        <module>redshift</module>
+        <module>rekognition</module>
+        <module>resourcegroupstaggingapi</module>
+        <module>route53</module>
+        <module>s3</module>
+        <module>servermigration</module>
+        <module>servicecatalog</module>
+        <module>ses</module>
+        <module>shield</module>
+        <module>simpledb</module>
+        <module>simpleworkflow</module>
+        <module>snowball</module>
+        <module>sns</module>
+        <module>sqs</module>
+        <module>ssm</module>
+        <module>stepfunctions</module>
+        <module>storagegateway</module>
+        <module>sts</module>
+        <module>support</module>
+        <module>waf</module>
+        <module>workdocs</module>
+        <module>workspaces</module>
+        <module>xray</module>
+    </modules>
+
+    <description>The AWS Java SDK services</description>
+    <url>https://aws.amazon.com/sdkforjava</url>
+
+    <dependencies>
+        <dependency>
+            <artifactId>core</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>aws-http-client-apache</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <artifactId>aws-http-nio-client-netty</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <artifactId>test-utils</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <scope>test</scope>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>jmespath-java</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                </plugin>
+                <plugin>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>codegen-maven-plugin</artifactId>
+                    <version>${awsjavasdk.version}</version>
+                    <executions>
+                        <execution>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>generate</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <!-- Build steps executed for every service -->
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- Build steps executed for services with models -->
+        <profile>
+            <id>generated-service</id>
+            <activation>
+                <file>
+                    <exists>src/main/resources/codegen-resources</exists>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>software.amazon.awssdk</groupId>
+                        <artifactId>codegen-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

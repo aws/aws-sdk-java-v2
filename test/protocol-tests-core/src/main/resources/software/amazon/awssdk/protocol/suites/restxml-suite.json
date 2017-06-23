@@ -1,0 +1,8 @@
+{
+  "testCases": [
+    "cases/rest-xml-input.json",
+    "cases/rest-core-input.json",
+    "cases/rest-xml-output.json",
+    "cases/rest-core-output.json"
+  ]
+}

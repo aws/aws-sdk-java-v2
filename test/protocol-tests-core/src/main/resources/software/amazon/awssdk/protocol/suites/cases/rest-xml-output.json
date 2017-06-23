@@ -1,0 +1,313 @@
+[
+  {
+    "description": "Tests that simple scalar members are unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<AllTypesResponse><stringMember>stringVal</stringMember><integerMember>42</integerMember><floatMember>1.234</floatMember><doubleMember>5.678</doubleMember><longMember>9001</longMember></AllTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "stringMember": "stringVal",
+        "integerMember": 42,
+        "floatMember": 1.234,
+        "doubleMember": 5.678,
+        "longMember": 9001
+      }
+    }
+  },
+  {
+    "description": "Tests that a boolean member with value false in unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<AllTypesResponse><booleanMember>false</booleanMember></AllTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "booleanMember": false
+      }
+    }
+  },
+  {
+    "description": "Tests that a boolean member with value true in unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<AllTypesResponse><booleanMember>true</booleanMember></AllTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "booleanMember": true
+      }
+    }
+  },
+  {
+    "description": "Tests that a Base64 encoded blob in the payload is unmarshalled and decoded correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<AllTypesResponse><blobArg>dmFsdWU=</blobArg></AllTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "blobArg": "value"
+      }
+    }
+  },
+  {
+    "description": "Tests that a list of strings in the payload is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<AllTypesResponse><simpleList><member>val1</member><member>val2</member></simpleList></AllTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "simpleList": [
+          "val1",
+          "val2"
+        ]
+      }
+    }
+  },
+  {
+    "description": "Tests that a list of strings with an non default location name is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<RestXmlTypesResponse><NonFlattenedListWithLocation><item>val1</item><item>val2</item></NonFlattenedListWithLocation></RestXmlTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "RestXmlTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "NonFlattenedListWithLocation": [
+          "val1",
+          "val2"
+        ]
+      }
+    }
+  },
+  {
+    "description": "Tests that a flattened list with default location name is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<RestXmlTypes><FlattenedListOfStrings>val1</FlattenedListOfStrings><FlattenedListOfStrings>val2</FlattenedListOfStrings></RestXmlTypes>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "RestXmlTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "FlattenedListOfStrings": [
+          "val1",
+          "val2"
+        ]
+      }
+    }
+  },
+  {
+    "description": "Tests that a flattened list with a single element and with default location name is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<RestXmlTypesResponse><FlattenedListOfStrings>val1</FlattenedListOfStrings></RestXmlTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "RestXmlTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "FlattenedListOfStrings": [
+          "val1"
+        ]
+      }
+    }
+  },
+  {
+    "description": "Tests that a list of structure types is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<RestXmlTypesResponse><listOfStructs><member><StringMember>foo</StringMember></member><member><StringMember>bar</StringMember></member></listOfStructs></RestXmlTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "listOfStructs": [
+          {
+            "StringMember": "foo"
+          },
+          {
+            "StringMember": "bar"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "description": "Tests that a flattened list of structure types is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<RestXmlTypesResponse><FlattenedListOfStructs><StringMember>foo</StringMember></FlattenedListOfStructs><FlattenedListOfStructs><StringMember>bar</StringMember></FlattenedListOfStructs></RestXmlTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "RestXmlTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "FlattenedListOfStructs": [
+          {
+            "StringMember": "foo"
+          },
+          {
+            "StringMember": "bar"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "description": "Tests that a flattened list of strings with non default location name is unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<RestXmlTypesResponse><item>val1</item><item>val2</item></RestXmlTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "RestXmlTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "FlattenedListWithLocation": [
+          "val1",
+          "val2"
+        ]
+      }
+    }
+  },
+  {
+    "description": "Tests unmarshalling a non-flattened map in the payload",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<RestXmlTypesResponse><mapOfStringToString><entry><key>key1</key><value>val1</value></entry><entry><key>key2</key><value>val2</value></entry></mapOfStringToString></RestXmlTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "mapOfStringToString": {
+          "key1": "val1",
+          "key2": "val2"
+        }
+      }
+    }
+  },
+  {
+    "description": "Tests unmarshalling a non-flattened map with an explicit locationName and locationName's for both key and value",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<RestXmlTypesResponse><themap><entry><thekey>key1</thekey><thevalue>val1</thevalue></entry><entry><thekey>key2</thekey><thevalue>val2</thevalue></entry></themap></RestXmlTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "RestXmlTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "NonFlattenedMapWithLocation": {
+          "key1": "val1",
+          "key2": "val2"
+        }
+      }
+    }
+  },
+  {
+    "description": "Tests unmarshalling a flattened map with an explicit locationName and locationName's for both key and value",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<RestXmlTypesResponse><flatmap><thekey>key1</thekey><thevalue>val1</thevalue></flatmap><flatmap><thekey>key2</thekey><thevalue>val2</thevalue></flatmap></RestXmlTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "RestXmlTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "FlattenedMapWithLocation": {
+          "key1": "val1",
+          "key2": "val2"
+        }
+      }
+    }
+  },
+  {
+    "description": "Tests unmarshalling an empty XML tag as an empty string",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "<RestXmlTypesResponse><stringMember/></RestXmlTypesResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "stringMember": ""
+      }
+    }
+  }
+]

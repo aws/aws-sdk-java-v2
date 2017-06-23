@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "waiters": {
+    "PostOperationSuccess": {
+      "delay": 1,
+      "operation": "APostOperation",
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "expected": 200,
+          "matcher": "status",
+          "state": "success"
+        },
+        {
+          "state": "retry",
+          "matcher": "status",
+          "expected": 404
+        }
+      ]
+    }
+  }
+}
