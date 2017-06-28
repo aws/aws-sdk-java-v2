@@ -114,8 +114,8 @@
         <unitils.version>3.3</unitils.version>
 
         <!-- These properties are used by S3 for its test dependencies -->
-        <takari.cpsuite.version>1.2.7</takari.cpsuite.version>
         <bouncycastle.version>1.56</bouncycastle.version>
+
         <skip.unit.tests>${skipTests}</skip.unit.tests>
     </properties>
 
