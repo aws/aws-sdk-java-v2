@@ -43,8 +43,6 @@ public class EC2ContainerServiceIntegrationTest extends AwsTestBase {
 
     @BeforeClass
     public static void setup() throws Exception {
-        //        BasicConfigurator.configure();
-
         setUpCredentials();
 
         client = ECSClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();

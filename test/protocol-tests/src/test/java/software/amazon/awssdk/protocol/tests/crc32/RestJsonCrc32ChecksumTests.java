@@ -24,7 +24,6 @@ import com.github.tomakehurst.wiremock.common.SingleRootFileSource;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
-import org.apache.log4j.BasicConfigurator;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -56,11 +55,6 @@ public class RestJsonCrc32ChecksumTests {
             .port(0)
             .fileSource(
                     new SingleRootFileSource("src/test/resources")));
-
-    @BeforeClass
-    public static void setup() {
-        BasicConfigurator.configure();
-    }
 
     @Test
     public void clientCalculatesCrc32FromCompressedData_WhenCrc32IsValid() {
