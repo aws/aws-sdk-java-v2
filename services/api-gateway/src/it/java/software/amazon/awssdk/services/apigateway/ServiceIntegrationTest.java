@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.apigateway;
 
 import java.util.List;
 import junit.framework.Assert;
-import org.apache.log4j.BasicConfigurator;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -58,7 +57,6 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
 
     @BeforeClass
     public static void createRestApi() {
-        BasicConfigurator.configure();
         CreateRestApiResponse createRestApiResult = apiGateway.createRestApi(
                 CreateRestApiRequest.builder().name(NAME)
                                           .description(DESCRIPTION).build());

@@ -24,7 +24,6 @@ import static util.exception.ExceptionTestUtils.stub404Response;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
-import org.apache.log4j.BasicConfigurator;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -58,11 +57,6 @@ public class RestJsonExceptionTests {
                                        .region(Region.US_EAST_1)
                                        .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                        .build();
-    }
-
-    @Before
-    public void setup() {
-        BasicConfigurator.configure();
     }
 
     @Test

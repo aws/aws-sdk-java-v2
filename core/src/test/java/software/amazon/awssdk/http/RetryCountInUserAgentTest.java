@@ -25,7 +25,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.fail;
 import static software.amazon.awssdk.http.pipeline.stages.RetryableStage.HEADER_SDK_RETRY_INFO;
 
-import org.apache.log4j.BasicConfigurator;
 import org.junit.Test;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.LegacyClientConfiguration;
@@ -43,7 +42,6 @@ public class RetryCountInUserAgentTest extends WireMockTestBase {
 
     @Test
     public void retriedRequest_AppendsCorrectRetryCountInUserAgent() throws Exception {
-        BasicConfigurator.configure();
         stubFor(get(urlEqualTo(RESOURCE_PATH)).willReturn(aResponse().withStatus(500)));
 
         executeRequest();
@@ -56,7 +54,6 @@ public class RetryCountInUserAgentTest extends WireMockTestBase {
 
     @Test
     public void retriedRequest_AppendsCorrectRetryCountInUserAgent_throttlingEnabled() throws Exception {
-        BasicConfigurator.configure();
         stubFor(get(urlEqualTo(RESOURCE_PATH)).willReturn(aResponse().withStatus(500)));
 
         executeRequest();

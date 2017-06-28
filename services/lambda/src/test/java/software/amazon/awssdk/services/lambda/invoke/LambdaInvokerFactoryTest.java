@@ -33,7 +33,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 
-import org.apache.log4j.BasicConfigurator;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -50,9 +49,6 @@ public class LambdaInvokerFactoryTest {
 
     @Before
     public void before() {
-        BasicConfigurator.resetConfiguration();
-        BasicConfigurator.configure();
-
         mock = mock(LambdaAsyncClient.class);
         invoker = LambdaInvokerFactory.builder()
                                       .lambdaClient(mock)
