@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Generated;
@@ -15,7 +16,7 @@ final class MapOfStringToSimpleStructCopier {
         for (Map.Entry<String, SimpleStruct> e : mapOfStringToSimpleStructParam.entrySet()) {
             mapOfStringToSimpleStructParamCopy.put(StandardMemberCopier.copy(e.getKey()), e.getValue());
         }
-        return mapOfStringToSimpleStructParamCopy;
+        return Collections.unmodifiableMap(mapOfStringToSimpleStructParamCopy);
     }
 }
 

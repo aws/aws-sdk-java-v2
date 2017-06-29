@@ -3,6 +3,7 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import javax.annotation.Generated;
 import software.amazon.awssdk.runtime.StandardMemberCopier;
@@ -17,7 +18,7 @@ final class ListOfBlobsTypeCopier {
         for (ByteBuffer e : listOfBlobsTypeParam) {
             listOfBlobsTypeParamCopy.add(StandardMemberCopier.copy(e));
         }
-        return listOfBlobsTypeParamCopy;
+        return Collections.unmodifiableList(listOfBlobsTypeParamCopy);
     }
 }
 

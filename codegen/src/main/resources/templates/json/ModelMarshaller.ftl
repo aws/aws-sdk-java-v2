@@ -64,6 +64,7 @@ public class ${className} {
             <#if shape.nonStreamingMembers??>
                 <#list shape.nonStreamingMembers as member>
                 <#assign getter = shape.variable.variableName + "." + member.fluentGetterMethodName + "()" />
+
                 protocolMarshaller.marshall(
                 ${getter},
                 ${member.marshallerBindingFieldName});

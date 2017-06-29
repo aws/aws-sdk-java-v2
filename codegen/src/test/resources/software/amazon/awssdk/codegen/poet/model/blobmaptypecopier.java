@@ -1,6 +1,7 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Generated;
@@ -16,7 +17,7 @@ final class BlobMapTypeCopier {
         for (Map.Entry<String, ByteBuffer> e : blobMapTypeParam.entrySet()) {
             blobMapTypeParamCopy.put(StandardMemberCopier.copy(e.getKey()), StandardMemberCopier.copy(e.getValue()));
         }
-        return blobMapTypeParamCopy;
+        return Collections.unmodifiableMap(blobMapTypeParamCopy);
     }
 }
 

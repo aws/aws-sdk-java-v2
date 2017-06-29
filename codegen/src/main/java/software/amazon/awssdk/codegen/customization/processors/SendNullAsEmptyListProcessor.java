@@ -24,36 +24,35 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 
-public final class SendEmptyAutoConstructedListAsEmptyListProcessor implements
-                                                                    CodegenCustomizationProcessor {
+public final class SendNullAsEmptyListProcessor implements CodegenCustomizationProcessor {
 
-    private Map<String, List<String>> sendEmptyQueryString;
+    private Map<String, List<String>> sendNullAsEmptyListMembers;
 
-    SendEmptyAutoConstructedListAsEmptyListProcessor(Map<String, List<String>> sendEmptyQueryString) {
-        this.sendEmptyQueryString = sendEmptyQueryString;
+    SendNullAsEmptyListProcessor(Map<String, List<String>> sendNullAsEmptyListMembers) {
+        this.sendNullAsEmptyListMembers = sendNullAsEmptyListMembers;
     }
 
     @Override
     public void preprocess(ServiceModel serviceModel) {
-        // do nothing
+        // Do nothing
     }
 
     @Override
     public void postprocess(IntermediateModel intermediateModel) {
-        if (sendEmptyQueryString == null || sendEmptyQueryString.isEmpty()) {
+        if (sendNullAsEmptyListMembers == null || sendNullAsEmptyListMembers.isEmpty()) {
             return;
         }
 
         sanityCheck(intermediateModel);
 
-        for (Entry<String, List<String>> entry : sendEmptyQueryString.entrySet()) {
+        for (Entry<String, List<String>> entry : sendNullAsEmptyListMembers.entrySet()) {
             String shapeName = entry.getKey();
             List<String> members = entry.getValue();
 
             ShapeModel shapeModel = intermediateModel.getShapes().get(shapeName);
             for (String memberName : members) {
                 MemberModel memberModel = shapeModel.getMemberByName(memberName);
-                memberModel.getListModel().setSendEmptyQueryString(true);
+                memberModel.getListModel().setSendNullAsEmptyList(true);
             }
         }
     }
@@ -63,7 +62,7 @@ public final class SendEmptyAutoConstructedListAsEmptyListProcessor implements
      * are list shapes.
      */
     private void sanityCheck(IntermediateModel intermediateModel) {
-        for (Entry<String, List<String>> entry : sendEmptyQueryString.entrySet()) {
+        for (Entry<String, List<String>> entry : sendNullAsEmptyListMembers.entrySet()) {
             String shapeName = entry.getKey();
             List<String> members = entry.getValue();
 

@@ -1,7 +1,7 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -16,7 +16,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public class AllTypesRequest extends AmazonWebServiceRequest implements
-        ToCopyableBuilder<AllTypesRequest.Builder, AllTypesRequest> {
+                                                             ToCopyableBuilder<AllTypesRequest.Builder, AllTypesRequest> {
     private final String stringMember;
 
     private final Integer integerMember;
@@ -204,7 +204,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
      * . Doing so will ensure that anyone else using the {@code ByteBuffer} will not be affected by changes to the
      * {@code position}.
      * </p>
-     * 
+     *
      * @return
      */
     public ByteBuffer blobArg() {
@@ -289,7 +289,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         hashCode = 31 * hashCode + ((mapOfStringToStruct() == null) ? 0 : mapOfStringToStruct().hashCode());
         hashCode = 31 * hashCode + ((timestampMember() == null) ? 0 : timestampMember().hashCode());
         hashCode = 31 * hashCode
-                + ((structWithNestedTimestampMember() == null) ? 0 : structWithNestedTimestampMember().hashCode());
+                   + ((structWithNestedTimestampMember() == null) ? 0 : structWithNestedTimestampMember().hashCode());
         hashCode = 31 * hashCode + ((blobArg() == null) ? 0 : blobArg().hashCode());
         hashCode = 31 * hashCode + ((structWithNestedBlob() == null) ? 0 : structWithNestedBlob().hashCode());
         hashCode = 31 * hashCode + ((blobMap() == null) ? 0 : blobMap().hashCode());
@@ -394,7 +394,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
             return false;
         }
         if (other.structWithNestedTimestampMember() != null
-                && !other.structWithNestedTimestampMember().equals(this.structWithNestedTimestampMember())) {
+            && !other.structWithNestedTimestampMember().equals(this.structWithNestedTimestampMember())) {
             return false;
         }
         if (other.blobArg() == null ^ this.blobArg() == null) {
@@ -431,14 +431,14 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
             return false;
         }
         if (other.polymorphicTypeWithSubTypes() != null
-                && !other.polymorphicTypeWithSubTypes().equals(this.polymorphicTypeWithSubTypes())) {
+            && !other.polymorphicTypeWithSubTypes().equals(this.polymorphicTypeWithSubTypes())) {
             return false;
         }
         if (other.polymorphicTypeWithoutSubTypes() == null ^ this.polymorphicTypeWithoutSubTypes() == null) {
             return false;
         }
         if (other.polymorphicTypeWithoutSubTypes() != null
-                && !other.polymorphicTypeWithoutSubTypes().equals(this.polymorphicTypeWithoutSubTypes())) {
+            && !other.polymorphicTypeWithoutSubTypes().equals(this.polymorphicTypeWithoutSubTypes())) {
             return false;
         }
         return true;
@@ -572,7 +572,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
          * {@link #setSimpleList(java.util.Collection)} or {@link #withSimpleList(java.util.Collection)} if you want to
          * override the existing values.
          * </p>
-         * 
+         *
          * @param simpleList
          * @return Returns a reference to this object so that method calls can be chained together.
          */
@@ -592,7 +592,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
          * {@link #setListOfMaps(java.util.Collection)} or {@link #withListOfMaps(java.util.Collection)} if you want to
          * override the existing values.
          * </p>
-         * 
+         *
          * @param listOfMaps
          * @return Returns a reference to this object so that method calls can be chained together.
          */
@@ -612,7 +612,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
          * {@link #setListOfStructs(java.util.Collection)} or {@link #withListOfStructs(java.util.Collection)} if you
          * want to override the existing values.
          * </p>
-         * 
+         *
          * @param listOfStructs
          * @return Returns a reference to this object so that method calls can be chained together.
          */
@@ -688,7 +688,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
          * {@link #setListOfBlobs(java.util.Collection)} or {@link #withListOfBlobs(java.util.Collection)} if you want
          * to override the existing values.
          * </p>
-         * 
+         *
          * @param listOfBlobs
          * @return Returns a reference to this object so that method calls can be chained together.
          */
@@ -883,12 +883,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         @Override
         @SafeVarargs
         public final Builder simpleList(String... simpleList) {
-            if (this.simpleList == null) {
-                this.simpleList = new ArrayList<>(simpleList.length);
-            }
-            for (String e : simpleList) {
-                this.simpleList.add(e);
-            }
+            simpleList(Arrays.asList(simpleList));
             return this;
         }
 
@@ -898,12 +893,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
         @SafeVarargs
         public final void setSimpleList(String... simpleList) {
-            if (this.simpleList == null) {
-                this.simpleList = new ArrayList<>(simpleList.length);
-            }
-            for (String e : simpleList) {
-                this.simpleList.add(e);
-            }
+            simpleList(Arrays.asList(simpleList));
         }
 
         public final Collection<Map<String, String>> getListOfMaps() {
@@ -919,12 +909,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         @Override
         @SafeVarargs
         public final Builder listOfMaps(Map<String, String>... listOfMaps) {
-            if (this.listOfMaps == null) {
-                this.listOfMaps = new ArrayList<>(listOfMaps.length);
-            }
-            for (Map<String, String> e : listOfMaps) {
-                this.listOfMaps.add(MapOfStringToStringCopier.copy(e));
-            }
+            listOfMaps(Arrays.asList(listOfMaps));
             return this;
         }
 
@@ -934,12 +919,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
         @SafeVarargs
         public final void setListOfMaps(Map<String, String>... listOfMaps) {
-            if (this.listOfMaps == null) {
-                this.listOfMaps = new ArrayList<>(listOfMaps.length);
-            }
-            for (Map<String, String> e : listOfMaps) {
-                this.listOfMaps.add(MapOfStringToStringCopier.copy(e));
-            }
+            listOfMaps(Arrays.asList(listOfMaps));
         }
 
         public final Collection<SimpleStruct> getListOfStructs() {
@@ -955,12 +935,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         @Override
         @SafeVarargs
         public final Builder listOfStructs(SimpleStruct... listOfStructs) {
-            if (this.listOfStructs == null) {
-                this.listOfStructs = new ArrayList<>(listOfStructs.length);
-            }
-            for (SimpleStruct e : listOfStructs) {
-                this.listOfStructs.add(e);
-            }
+            listOfStructs(Arrays.asList(listOfStructs));
             return this;
         }
 
@@ -970,12 +945,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
         @SafeVarargs
         public final void setListOfStructs(SimpleStruct... listOfStructs) {
-            if (this.listOfStructs == null) {
-                this.listOfStructs = new ArrayList<>(listOfStructs.length);
-            }
-            for (SimpleStruct e : listOfStructs) {
-                this.listOfStructs.add(e);
-            }
+            listOfStructs(Arrays.asList(listOfStructs));
         }
 
         public final Map<String, ? extends Collection<Integer>> getMapOfStringToIntegerList() {
@@ -1103,12 +1073,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         @Override
         @SafeVarargs
         public final Builder listOfBlobs(ByteBuffer... listOfBlobs) {
-            if (this.listOfBlobs == null) {
-                this.listOfBlobs = new ArrayList<>(listOfBlobs.length);
-            }
-            for (ByteBuffer e : listOfBlobs) {
-                this.listOfBlobs.add(StandardMemberCopier.copy(e));
-            }
+            listOfBlobs(Arrays.asList(listOfBlobs));
             return this;
         }
 
@@ -1118,12 +1083,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
         @SafeVarargs
         public final void setListOfBlobs(ByteBuffer... listOfBlobs) {
-            if (this.listOfBlobs == null) {
-                this.listOfBlobs = new ArrayList<>(listOfBlobs.length);
-            }
-            for (ByteBuffer e : listOfBlobs) {
-                this.listOfBlobs.add(StandardMemberCopier.copy(e));
-            }
+            listOfBlobs(Arrays.asList(listOfBlobs));
         }
 
         public final RecursiveStructType getRecursiveStruct() {

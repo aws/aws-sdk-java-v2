@@ -16,7 +16,6 @@
 package software.amazon.awssdk.codegen.poet.model;
 
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -24,11 +23,8 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
@@ -101,32 +97,6 @@ class ModelBuilderSpecs {
 
     private List<FieldSpec> fields() {
         List<FieldSpec> fields = shapeModelSpec.fields(Modifier.PRIVATE);
-
-        Map<String, MemberModel> members = shapeModel.getNonStreamingMembers().stream()
-                .collect(Collectors.toMap(m -> shapeModelSpec.asField(m).name, m -> m));
-
-        // Auto initialize any auto construct containers
-        fields = fields.stream()
-                .map(f -> {
-                    MemberModel m = members.get(f.name);
-
-                    if (intermediateModel.getCustomizationConfig().isUseAutoConstructList() && m.isList()) {
-                        return f.toBuilder().initializer(CodeBlock.builder()
-                                .add("new $T<>()", typeProvider.listImplClassName())
-                                .build())
-                                .build();
-                    }
-
-                    if (intermediateModel.getCustomizationConfig().isUseAutoConstructMap() && m.isMap()) {
-                        return f.toBuilder().initializer(CodeBlock.builder()
-                                .add("new $T<>()", typeProvider.mapImplClassName())
-                                .build())
-                                .build();
-                    }
-
-                    return f;
-                })
-                .collect(Collectors.toList());
 
         // Inject a message member for the exception message
         if (exception()) {

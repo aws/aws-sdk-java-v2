@@ -34,12 +34,7 @@ public class ListModel {
 
     private String memberAdditionalUnmarshallingPath;
 
-    /**
-     * Whether force to send empty Query String to wire.
-     */
-    private boolean sendEmptyQueryString;
-
-    private boolean marshallNonAutoConstructedEmptyLists;
+    private boolean sendNullAsEmptyList;
 
     public ListModel(
             @JsonProperty("memberType") String memberType,
@@ -53,7 +48,7 @@ public class ListModel {
         this.implType = implType;
         this.interfaceType = interfaceType;
         this.listMemberModel = listMemberModel;
-        this.sendEmptyQueryString = false;
+        this.sendNullAsEmptyList = false;
     }
 
     public String getImplType() {
@@ -94,21 +89,12 @@ public class ListModel {
         this.memberAdditionalUnmarshallingPath = memberAdditionalUnmarshallingPath;
     }
 
-    public boolean isSendEmptyQueryString() {
-        return sendEmptyQueryString;
+    public boolean isSendNullAsEmptyList() {
+        return sendNullAsEmptyList;
     }
 
-    public void setSendEmptyQueryString(boolean sendEmptyQueryString) {
-        this.sendEmptyQueryString = sendEmptyQueryString;
-    }
-
-    public boolean isMarshallNonAutoConstructedEmptyLists() {
-        return marshallNonAutoConstructedEmptyLists;
-    }
-
-    public void setMarshallNonAutoConstructedEmptyLists(
-            boolean marshallNonAutoConstructedEmptyLists) {
-        this.marshallNonAutoConstructedEmptyLists = marshallNonAutoConstructedEmptyLists;
+    public void setSendNullAsEmptyList(boolean sendNullAsEmptyList) {
+        this.sendNullAsEmptyList = sendNullAsEmptyList;
     }
 
     public boolean isSimple() {

@@ -75,7 +75,7 @@ public abstract class ItemCollection<R> extends PageBasedCollection<Item, R> {
                 } else {
                     accumulatedConsumedCapacity = accumulatedConsumedCapacity.toBuilder().globalSecondaryIndexes(add(
                             consumedCapacity.globalSecondaryIndexes(),
-                            accumulatedConsumedCapacity.globalSecondaryIndexes())).build();
+                            clone(accumulatedConsumedCapacity.globalSecondaryIndexes()))).build();
                 }
                 // Accumulate the LSI capacities
                 final Map<String, Capacity> lsi = accumulatedConsumedCapacity.localSecondaryIndexes();
@@ -85,7 +85,7 @@ public abstract class ItemCollection<R> extends PageBasedCollection<Item, R> {
                 } else {
                     accumulatedConsumedCapacity = accumulatedConsumedCapacity.toBuilder().localSecondaryIndexes(add(
                             consumedCapacity.localSecondaryIndexes(),
-                            accumulatedConsumedCapacity.localSecondaryIndexes())).build();
+                            clone(accumulatedConsumedCapacity.localSecondaryIndexes()))).build();
                 }
                 // Accumulate table capacity
                 final Capacity tableCapacity = accumulatedConsumedCapacity.table();

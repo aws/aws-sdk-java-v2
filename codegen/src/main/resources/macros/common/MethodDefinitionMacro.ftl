@@ -26,11 +26,6 @@
     ${deprecated}
     <@AdditionalAnnotationsForAccessors.content shape.type member/>
     public ${getter.returnType} ${getterMethodName}() {
-        <#if customConfig.useAutoConstructList>
-        if(${variableName} == null) {
-            ${variableName} = new ${listModel.templateImplType}();
-        }
-        </#if>
         return ${variableName};
     }
 
@@ -95,11 +90,6 @@
     ${deprecated}
     <@AdditionalAnnotationsForAccessors.content shape.type member/>
     public ${getter.returnType} ${getterMethodName}(){
-        <#if customConfig.useAutoConstructMap>
-        if(${variableName} == null) {
-            ${variableName} = new ${mapModel.templateImplType}();
-        }
-        </#if>
         return ${variableName};
     }
 
@@ -107,13 +97,7 @@
     ${deprecated}
     <@AdditionalAnnotationsForAccessors.content shape.type member/>
     public void ${setterMethodName}(${setter.variableType} ${setter.variableName}){
-        <#if customConfig.useAutoConstructMap>
-            this.${variableName} = ${setter.variableName} == null
-                ? null
-                : new ${mapModel.templateImplType}(${setter.variableName});
-        <#else>
-            this.${variableName} = ${setter.variableName};
-        </#if>
+        this.${variableName} = ${setter.variableName};
     }
 
     ${fluentDoc}

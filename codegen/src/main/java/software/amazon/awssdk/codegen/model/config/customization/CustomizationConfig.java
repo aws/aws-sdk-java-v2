@@ -36,14 +36,7 @@ public class CustomizationConfig {
      * Example: "software.amazon.awssdk.services.dynamodbv2.metrics.DynamoDBRequestMetric"
      */
     private String requestMetrics;
-    /**
-     * True if auto-construct list is in use; false otherwise.
-     */
-    private boolean useAutoConstructList;
-    /**
-     * True if auto-construct map is in use; false otherwise.
-     */
-    private boolean useAutoConstructMap;
+
     /**
      * True if we want to apply the ServiceClientHolderInputStream wrapper to all the stream
      * response returned by the client; the purpose is to prevent the client being GCed before the
@@ -110,17 +103,13 @@ public class CustomizationConfig {
      * Specify shapes to be renamed.
      */
     private Map<String, String> renameShapes;
+
     /**
-     * Specify List member shapes to send empty String when the List is auto-constructed in query
-     * protocol. This customization will only affect marshaling when autoConstructList is true.
-     * Currently, it's only set in ElasticLoadBalancing service.
+     * The members for which we should treat "null" as empty list when marshalling a request. This is currently only supported by
+     * the query protocol and is only used by Elastic Load Balancing.
      */
-    private Map<String, List<String>> sendEmptyAutoConstructedListAsEmptyList;
-    /**
-     * Marshalls empty lists on the wire. This customization does not send empty lists created by
-     * the autoconstruct customization and is only applicable to AWS Query services.
-     */
-    private boolean sendExplicitlyEmptyListsForQuery;
+    private Map<String, List<String>> sendNullAsEmptyListMembers;
+
     /**
      * Configuration for generating policy action enums.
      */
@@ -298,13 +287,12 @@ public class CustomizationConfig {
         this.renameShapes = renameShapes;
     }
 
-    public Map<String, List<String>> getSendEmptyAutoConstructedListAsEmptyList() {
-        return sendEmptyAutoConstructedListAsEmptyList;
+    public Map<String, List<String>> getSendNullAsEmptyListMembers() {
+        return sendNullAsEmptyListMembers;
     }
 
-    public void setSendEmptyAutoConstructedListAsEmptyList(
-            Map<String, List<String>> sendEmptyAutoConstructedListAsEmptyList) {
-        this.sendEmptyAutoConstructedListAsEmptyList = sendEmptyAutoConstructedListAsEmptyList;
+    public void setSendNullAsEmptyListMembers(Map<String, List<String>> sendNullAsEmptyListMembers) {
+        this.sendNullAsEmptyListMembers = sendNullAsEmptyListMembers;
     }
 
     public Map<String, ShapeSubstitution> getShapeSubstitutions() {
@@ -329,22 +317,6 @@ public class CustomizationConfig {
 
     public void setSimpleMethods(Map<String, SimpleMethodFormsWrapper> simpleMethods) {
         this.simpleMethods = simpleMethods;
-    }
-
-    public boolean isUseAutoConstructList() {
-        return useAutoConstructList;
-    }
-
-    public void setUseAutoConstructList(boolean useAutoConstructList) {
-        this.useAutoConstructList = useAutoConstructList;
-    }
-
-    public boolean isUseAutoConstructMap() {
-        return useAutoConstructMap;
-    }
-
-    public void setUseAutoConstructMap(boolean useAutoConstructMap) {
-        this.useAutoConstructMap = useAutoConstructMap;
     }
 
     public AuthPolicyActions getAuthPolicyActions() {
@@ -470,14 +442,6 @@ public class CustomizationConfig {
 
     public void setSkipSmokeTests(boolean skipSmokeTests) {
         this.skipSmokeTests = skipSmokeTests;
-    }
-
-    public boolean isSendExplicitlyEmptyListsForQuery() {
-        return sendExplicitlyEmptyListsForQuery;
-    }
-
-    public void setSendExplicitlyEmptyListsForQuery(boolean sendExplicitlyEmptyListsForQuery) {
-        this.sendExplicitlyEmptyListsForQuery = sendExplicitlyEmptyListsForQuery;
     }
 
     public String getPresignersFqcn() {

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling;
 
+import static java.util.stream.Collectors.toMap;
 import static software.amazon.awssdk.services.dynamodb.model.KeyType.HASH;
 import static software.amazon.awssdk.services.dynamodb.model.KeyType.RANGE;
 
@@ -1286,40 +1287,45 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
             return new HashMap<>();
         }
 
-        Map<String, KeysAndAttributes> requestItems = new HashMap<String, KeysAndAttributes>();
+        Map<String, Collection<Map<String, AttributeValue>>> requestItemLists = new HashMap<>();
         Map<String, Class<?>> classesByTableName = new HashMap<String, Class<?>>();
         Map<String, List<Object>> resultSet = new HashMap<String, List<Object>>();
         int count = 0;
 
         for (Object keyObject : itemsToGet) {
             Class<Object> clazz = (Class<Object>) keyObject.getClass();
-            final DynamoDbMapperTableModel model = getTableModel(clazz, config);
+            final DynamoDbMapperTableModel<Object> model = getTableModel(clazz, config);
 
             String tableName = getTableName(clazz, keyObject, config);
             classesByTableName.put(tableName, clazz);
 
-            if (!requestItems.containsKey(tableName)) {
-                requestItems.put(
-                        tableName,
-                        KeysAndAttributes.builder().consistentRead(consistentReads).keys(
-                                new LinkedList<Map<String, AttributeValue>>()).build());
-            }
-
-            requestItems.get(tableName).keys().add(model.convertKey(keyObject));
+            requestItemLists.computeIfAbsent(tableName, ignored -> new LinkedList<>()).add(model.convertKey(keyObject));
 
             // Reach the maximum number which can be handled in a single batchGet
             if (++count == 100) {
+                Map<String, KeysAndAttributes> requestItems = batchRequestItems(consistentReads, requestItemLists);
                 processBatchGetRequest(classesByTableName, requestItems, resultSet, config);
-                requestItems.clear();
+                requestItemLists.clear();
                 count = 0;
             }
         }
 
         if (count > 0) {
+            Map<String, KeysAndAttributes> requestItems = batchRequestItems(consistentReads, requestItemLists);
             processBatchGetRequest(classesByTableName, requestItems, resultSet, config);
         }
 
         return resultSet;
+    }
+
+    private Map<String, KeysAndAttributes> batchRequestItems(
+            boolean consistentReads,
+            Map<String, Collection<Map<String, AttributeValue>>> requestItemLists) {
+        return requestItemLists.entrySet().stream()
+                               .collect(toMap(Entry::getKey, e -> KeysAndAttributes.builder()
+                                                                                   .consistentRead(consistentReads)
+                                                                                   .keys(e.getValue())
+                                                                                   .build()));
     }
 
     @Override
