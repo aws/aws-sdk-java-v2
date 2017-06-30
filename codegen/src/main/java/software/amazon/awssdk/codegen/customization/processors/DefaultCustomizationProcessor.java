@@ -32,9 +32,7 @@ public final class DefaultCustomizationProcessor {
                 new CustomConstructorsProcessor(config),
                 new SimpleMethodsProcessor(config.getSimpleMethods()),
                 new RemoveExceptionMessagePropertyProcessor(),
-                new RenameShapesProcessor(config.getRenameShapes()),
-                new SendEmptyAutoConstructedListAsEmptyListProcessor(config.getSendEmptyAutoConstructedListAsEmptyList()),
-                new SendEmptyNonAutoConstructedListAsEmptyListProcessor(config)
+                new RenameShapesProcessor(config.getRenameShapes())
         );
     }
 }

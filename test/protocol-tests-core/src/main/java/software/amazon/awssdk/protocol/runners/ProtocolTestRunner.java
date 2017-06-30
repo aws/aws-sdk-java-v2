@@ -61,7 +61,7 @@ public class ProtocolTestRunner {
 
     public void runTests(List<TestCase> tests) throws Exception {
         for (TestCase testCase : tests) {
-            log.debug(() -> "Running test: " + testCase.getDescription());
+            log.info(() -> "Running test: " + testCase.getDescription());
             switch (testCase.getWhen().getAction()) {
                 case MARSHALL:
                     marshallingTestRunner.runTest(testCase);

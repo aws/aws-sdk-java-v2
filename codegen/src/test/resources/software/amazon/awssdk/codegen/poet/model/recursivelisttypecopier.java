@@ -2,6 +2,7 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import javax.annotation.Generated;
 
@@ -15,7 +16,7 @@ final class RecursiveListTypeCopier {
         for (RecursiveStructType e : recursiveListTypeParam) {
             recursiveListTypeParamCopy.add(e);
         }
-        return recursiveListTypeParamCopy;
+        return Collections.unmodifiableList(recursiveListTypeParamCopy);
     }
 }
 

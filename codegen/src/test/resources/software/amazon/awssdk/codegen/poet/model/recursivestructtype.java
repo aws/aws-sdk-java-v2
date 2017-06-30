@@ -1,6 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -180,7 +180,7 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
          * {@link #setRecursiveList(java.util.Collection)} or {@link #withRecursiveList(java.util.Collection)} if you
          * want to override the existing values.
          * </p>
-         * 
+         *
          * @param recursiveList
          * @return Returns a reference to this object so that method calls can be chained together.
          */
@@ -254,12 +254,7 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
         @Override
         @SafeVarargs
         public final Builder recursiveList(RecursiveStructType... recursiveList) {
-            if (this.recursiveList == null) {
-                this.recursiveList = new ArrayList<>(recursiveList.length);
-            }
-            for (RecursiveStructType e : recursiveList) {
-                this.recursiveList.add(e);
-            }
+            recursiveList(Arrays.asList(recursiveList));
             return this;
         }
 
@@ -269,12 +264,7 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
 
         @SafeVarargs
         public final void setRecursiveList(RecursiveStructType... recursiveList) {
-            if (this.recursiveList == null) {
-                this.recursiveList = new ArrayList<>(recursiveList.length);
-            }
-            for (RecursiveStructType e : recursiveList) {
-                this.recursiveList.add(e);
-            }
+            recursiveList(Arrays.asList(recursiveList));
         }
 
         public final Map<String, RecursiveStructType> getRecursiveMap() {
