@@ -73,7 +73,7 @@ public class InternalUtilsTest {
         byte[] bytesFrom = {1, 2, 3, 4};
         AttributeValue av = InternalUtils.toAttributeValue(bytesFrom);
         ByteBuffer bbTo = av.b();
-        assertTrue(Arrays.equals(bytesFrom, bbTo.array()));
+        assertTrue(ByteBuffer.wrap(bytesFrom).compareTo(bbTo) == 0);
     }
 
     @Test
@@ -143,9 +143,9 @@ public class InternalUtilsTest {
         boolean bool1 = false;
         boolean bool2 = false;
         for (ByteBuffer b : bs) {
-            if (Arrays.equals(ba1From, b.array())) {
+            if (ByteBuffer.wrap(ba1From).compareTo(b) == 0) {
                 bool1 = true;
-            } else if (Arrays.equals(ba2From, b.array())) {
+            } else if (ByteBuffer.wrap(ba2From).compareTo(b) == 0) {
                 bool2 = true;
             }
         }
@@ -167,9 +167,9 @@ public class InternalUtilsTest {
         boolean bool1 = false;
         boolean bool2 = false;
         for (ByteBuffer b : bs) {
-            if (Arrays.equals(ba1From, b.array())) {
+            if (ByteBuffer.wrap(ba1From).compareTo(b) == 0) {
                 bool1 = true;
-            } else if (Arrays.equals(ba2From, b.array())) {
+            } else if (ByteBuffer.wrap(ba2From).compareTo(b) == 0) {
                 bool2 = true;
             }
         }

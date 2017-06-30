@@ -3,6 +3,9 @@ package software.amazon.awssdk.protocol.tests;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,9 +16,9 @@ import software.amazon.awssdk.services.protocolrestjson.model.AllTypesRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.SimpleStruct;
 
 /**
- * Verifies that the collections inside of models are immutable.
+ * Verifies that the models are actually immutable.
  */
-public class ImmutableModelCollectionsTest {
+public class ImmutableModelTest {
     @Test
     public void mapsAreImmutable() {
         Map<String, String> map = new HashMap<>();
@@ -58,5 +61,28 @@ public class ImmutableModelCollectionsTest {
         assertThat(request.mapOfStringToIntegerList().get("key")).doesNotContain(2);
         assertThatExceptionOfType(UnsupportedOperationException.class)
                 .isThrownBy(() -> request.mapOfStringToIntegerList().get("key").add(2));
+    }
+
+    @Test
+    public void byteBuffersAreImmutable() {
+        ByteBuffer buffer = ByteBuffer.wrap("Hello".getBytes(StandardCharsets.UTF_8));
+
+        int position = buffer.position();
+        int limit = buffer.limit();
+        ByteOrder order = buffer.order();
+
+        AllTypesRequest request = AllTypesRequest.builder().blobArg(buffer).build();
+
+        buffer.limit(4);
+        buffer.position(0);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        buffer.put("Foo".getBytes(StandardCharsets.UTF_8));
+
+        assertThat(request.blobArg()).as("Check new read-only blob each time").isNotSameAs(request.blobArg());
+        assertThat(request.blobArg().isReadOnly()).as("Check read-only").isTrue();
+        assertThat(request.blobArg().limit()).as("Check limit").isEqualTo(limit);
+        assertThat(request.blobArg().position()).as("Check position").isEqualTo(position);
+        assertThat(request.blobArg().order()).as("Check order").isEqualTo(order);
+        assertThat(request.blobArg()).as("Check concurrent modification").isNotEqualByComparingTo(buffer);
     }
 }

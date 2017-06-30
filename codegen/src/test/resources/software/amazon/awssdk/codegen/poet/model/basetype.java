@@ -19,8 +19,9 @@ public class BaseType implements StructuredPojo, ToCopyableBuilder<BaseType.Buil
     }
 
     /**
+     * Returns the value of the BaseMember property for this object.
      *
-     * @return
+     * @return The value of the BaseMember property for this object.
      */
     public String baseMember() {
         return baseMember;
@@ -86,8 +87,10 @@ public class BaseType implements StructuredPojo, ToCopyableBuilder<BaseType.Buil
 
     public interface Builder extends CopyableBuilder<Builder, BaseType> {
         /**
+         * Sets the value of the BaseMember property for this object.
          *
          * @param baseMember
+         *        The new value for the BaseMember property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder baseMember(String baseMember);

@@ -27,24 +27,36 @@ public class NestedContainersRequest extends AmazonWebServiceRequest implements
     }
 
     /**
+     * Returns the value of the ListOfListOfStrings property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
      *
-     * @return
+     * @return The value of the ListOfListOfStrings property for this object.
      */
     public List<List<String>> listOfListOfStrings() {
         return listOfListOfStrings;
     }
 
     /**
+     * Returns the value of the ListOfListOfListOfStrings property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
      *
-     * @return
+     * @return The value of the ListOfListOfListOfStrings property for this object.
      */
     public List<List<List<String>>> listOfListOfListOfStrings() {
         return listOfListOfListOfStrings;
     }
 
     /**
+     * Returns the value of the MapOfStringToListOfListOfStrings property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
      *
-     * @return
+     * @return The value of the MapOfStringToListOfListOfStrings property for this object.
      */
     public Map<String, List<List<String>>> mapOfStringToListOfListOfStrings() {
         return mapOfStringToListOfListOfStrings;
@@ -127,48 +139,46 @@ public class NestedContainersRequest extends AmazonWebServiceRequest implements
 
     public interface Builder extends CopyableBuilder<Builder, NestedContainersRequest> {
         /**
+         * Sets the value of the ListOfListOfStrings property for this object.
          *
          * @param listOfListOfStrings
+         *        The new value for the ListOfListOfStrings property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder listOfListOfStrings(Collection<? extends Collection<String>> listOfListOfStrings);
 
         /**
-         *
-         * <p>
-         * <b>NOTE:</b> This method appends the values to the existing list (if any). Use
-         * {@link #setListOfListOfStrings(java.util.Collection)} or
-         * {@link #withListOfListOfStrings(java.util.Collection)} if you want to override the existing values.
-         * </p>
+         * Sets the value of the ListOfListOfStrings property for this object.
          *
          * @param listOfListOfStrings
+         *        The new value for the ListOfListOfStrings property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder listOfListOfStrings(Collection<String>... listOfListOfStrings);
 
         /**
+         * Sets the value of the ListOfListOfListOfStrings property for this object.
          *
          * @param listOfListOfListOfStrings
+         *        The new value for the ListOfListOfListOfStrings property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder listOfListOfListOfStrings(Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStrings);
 
         /**
-         *
-         * <p>
-         * <b>NOTE:</b> This method appends the values to the existing list (if any). Use
-         * {@link #setListOfListOfListOfStrings(java.util.Collection)} or
-         * {@link #withListOfListOfListOfStrings(java.util.Collection)} if you want to override the existing values.
-         * </p>
+         * Sets the value of the ListOfListOfListOfStrings property for this object.
          *
          * @param listOfListOfListOfStrings
+         *        The new value for the ListOfListOfListOfStrings property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder listOfListOfListOfStrings(Collection<? extends Collection<String>>... listOfListOfListOfStrings);
 
         /**
+         * Sets the value of the MapOfStringToListOfListOfStrings property for this object.
          *
          * @param mapOfStringToListOfListOfStrings
+         *        The new value for the MapOfStringToListOfListOfStrings property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder mapOfStringToListOfListOfStrings(

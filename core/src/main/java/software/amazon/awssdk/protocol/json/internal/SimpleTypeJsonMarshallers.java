@@ -150,9 +150,6 @@ public class SimpleTypeJsonMarshallers {
 
         @Override
         public final void marshall(T val, JsonMarshallerContext context, String paramName) {
-            if (!shouldEmit(val)) {
-                return;
-            }
             if (paramName != null) {
                 context.jsonGenerator().writeFieldName(paramName);
             }
@@ -160,14 +157,6 @@ public class SimpleTypeJsonMarshallers {
         }
 
         public abstract void marshall(T val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context);
-
-        /**
-         * Hook to prevent emitting the field name. Used for maps and lists since we treat empty auto constructed
-         * containers as null.
-         */
-        protected boolean shouldEmit(T val) {
-            return true;
-        }
     }
 
 }

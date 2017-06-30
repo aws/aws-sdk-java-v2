@@ -85,176 +85,216 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
     }
 
     /**
+     * Returns the value of the StringMember property for this object.
      *
-     * @return
+     * @return The value of the StringMember property for this object.
      */
     public String stringMember() {
         return stringMember;
     }
 
     /**
+     * Returns the value of the IntegerMember property for this object.
      *
-     * @return
+     * @return The value of the IntegerMember property for this object.
      */
     public Integer integerMember() {
         return integerMember;
     }
 
     /**
+     * Returns the value of the BooleanMember property for this object.
      *
-     * @return
+     * @return The value of the BooleanMember property for this object.
      */
     public Boolean booleanMember() {
         return booleanMember;
     }
 
     /**
+     * Returns the value of the FloatMember property for this object.
      *
-     * @return
+     * @return The value of the FloatMember property for this object.
      */
     public Float floatMember() {
         return floatMember;
     }
 
     /**
+     * Returns the value of the DoubleMember property for this object.
      *
-     * @return
+     * @return The value of the DoubleMember property for this object.
      */
     public Double doubleMember() {
         return doubleMember;
     }
 
     /**
+     * Returns the value of the LongMember property for this object.
      *
-     * @return
+     * @return The value of the LongMember property for this object.
      */
     public Long longMember() {
         return longMember;
     }
 
     /**
+     * Returns the value of the SimpleList property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
      *
-     * @return
+     * @return The value of the SimpleList property for this object.
      */
     public List<String> simpleList() {
         return simpleList;
     }
 
     /**
+     * Returns the value of the ListOfMaps property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
      *
-     * @return
+     * @return The value of the ListOfMaps property for this object.
      */
     public List<Map<String, String>> listOfMaps() {
         return listOfMaps;
     }
 
     /**
+     * Returns the value of the ListOfStructs property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
      *
-     * @return
+     * @return The value of the ListOfStructs property for this object.
      */
     public List<SimpleStruct> listOfStructs() {
         return listOfStructs;
     }
 
     /**
+     * Returns the value of the MapOfStringToIntegerList property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
      *
-     * @return
+     * @return The value of the MapOfStringToIntegerList property for this object.
      */
     public Map<String, List<Integer>> mapOfStringToIntegerList() {
         return mapOfStringToIntegerList;
     }
 
     /**
+     * Returns the value of the MapOfStringToString property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
      *
-     * @return
+     * @return The value of the MapOfStringToString property for this object.
      */
     public Map<String, String> mapOfStringToString() {
         return mapOfStringToString;
     }
 
     /**
+     * Returns the value of the MapOfStringToStruct property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
      *
-     * @return
+     * @return The value of the MapOfStringToStruct property for this object.
      */
     public Map<String, SimpleStruct> mapOfStringToStruct() {
         return mapOfStringToStruct;
     }
 
     /**
+     * Returns the value of the TimestampMember property for this object.
      *
-     * @return
+     * @return The value of the TimestampMember property for this object.
      */
     public Date timestampMember() {
         return timestampMember;
     }
 
     /**
+     * Returns the value of the StructWithNestedTimestampMember property for this object.
      *
-     * @return
+     * @return The value of the StructWithNestedTimestampMember property for this object.
      */
     public StructWithTimestamp structWithNestedTimestampMember() {
         return structWithNestedTimestampMember;
     }
 
     /**
-     *
+     * Returns the value of the BlobArg property for this object.
      * <p>
-     * {@code ByteBuffer}s are stateful. Calling their {@code get} methods changes their {@code position}. We recommend
-     * using {@link java.nio.ByteBuffer#asReadOnlyBuffer()} to create a read-only view of the buffer with an independent
-     * {@code position}, and calling {@code get} methods on this rather than directly on the returned {@code ByteBuffer}
-     * . Doing so will ensure that anyone else using the {@code ByteBuffer} will not be affected by changes to the
-     * {@code position}.
+     * This method will return a new read-only {@code ByteBuffer} each time it is invoked.
      * </p>
      *
-     * @return
+     * @return The value of the BlobArg property for this object.
      */
     public ByteBuffer blobArg() {
-        return blobArg;
+        return blobArg == null ? null : blobArg.asReadOnlyBuffer();
     }
 
     /**
+     * Returns the value of the StructWithNestedBlob property for this object.
      *
-     * @return
+     * @return The value of the StructWithNestedBlob property for this object.
      */
     public StructWithNestedBlobType structWithNestedBlob() {
         return structWithNestedBlob;
     }
 
     /**
+     * Returns the value of the BlobMap property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
      *
-     * @return
+     * @return The value of the BlobMap property for this object.
      */
     public Map<String, ByteBuffer> blobMap() {
         return blobMap;
     }
 
     /**
+     * Returns the value of the ListOfBlobs property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
      *
-     * @return
+     * @return The value of the ListOfBlobs property for this object.
      */
     public List<ByteBuffer> listOfBlobs() {
         return listOfBlobs;
     }
 
     /**
+     * Returns the value of the RecursiveStruct property for this object.
      *
-     * @return
+     * @return The value of the RecursiveStruct property for this object.
      */
     public RecursiveStructType recursiveStruct() {
         return recursiveStruct;
     }
 
     /**
+     * Returns the value of the PolymorphicTypeWithSubTypes property for this object.
      *
-     * @return
+     * @return The value of the PolymorphicTypeWithSubTypes property for this object.
      */
     public BaseType polymorphicTypeWithSubTypes() {
         return polymorphicTypeWithSubTypes;
     }
 
     /**
+     * Returns the value of the PolymorphicTypeWithoutSubTypes property for this object.
      *
-     * @return
+     * @return The value of the PolymorphicTypeWithoutSubTypes property for this object.
      */
     public SubTypeOne polymorphicTypeWithoutSubTypes() {
         return polymorphicTypeWithoutSubTypes;
@@ -518,200 +558,233 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
     public interface Builder extends CopyableBuilder<Builder, AllTypesResponse> {
         /**
+         * Sets the value of the StringMember property for this object.
          *
          * @param stringMember
+         *        The new value for the StringMember property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder stringMember(String stringMember);
 
         /**
+         * Sets the value of the IntegerMember property for this object.
          *
          * @param integerMember
+         *        The new value for the IntegerMember property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder integerMember(Integer integerMember);
 
         /**
+         * Sets the value of the BooleanMember property for this object.
          *
          * @param booleanMember
+         *        The new value for the BooleanMember property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder booleanMember(Boolean booleanMember);
 
         /**
+         * Sets the value of the FloatMember property for this object.
          *
          * @param floatMember
+         *        The new value for the FloatMember property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder floatMember(Float floatMember);
 
         /**
+         * Sets the value of the DoubleMember property for this object.
          *
          * @param doubleMember
+         *        The new value for the DoubleMember property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder doubleMember(Double doubleMember);
 
         /**
+         * Sets the value of the LongMember property for this object.
          *
          * @param longMember
+         *        The new value for the LongMember property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder longMember(Long longMember);
 
         /**
+         * Sets the value of the SimpleList property for this object.
          *
          * @param simpleList
+         *        The new value for the SimpleList property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder simpleList(Collection<String> simpleList);
 
         /**
-         *
-         * <p>
-         * <b>NOTE:</b> This method appends the values to the existing list (if any). Use
-         * {@link #setSimpleList(java.util.Collection)} or {@link #withSimpleList(java.util.Collection)} if you want to
-         * override the existing values.
-         * </p>
+         * Sets the value of the SimpleList property for this object.
          *
          * @param simpleList
+         *        The new value for the SimpleList property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder simpleList(String... simpleList);
 
         /**
+         * Sets the value of the ListOfMaps property for this object.
          *
          * @param listOfMaps
+         *        The new value for the ListOfMaps property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder listOfMaps(Collection<Map<String, String>> listOfMaps);
 
         /**
-         *
-         * <p>
-         * <b>NOTE:</b> This method appends the values to the existing list (if any). Use
-         * {@link #setListOfMaps(java.util.Collection)} or {@link #withListOfMaps(java.util.Collection)} if you want to
-         * override the existing values.
-         * </p>
+         * Sets the value of the ListOfMaps property for this object.
          *
          * @param listOfMaps
+         *        The new value for the ListOfMaps property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder listOfMaps(Map<String, String>... listOfMaps);
 
         /**
+         * Sets the value of the ListOfStructs property for this object.
          *
          * @param listOfStructs
+         *        The new value for the ListOfStructs property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder listOfStructs(Collection<SimpleStruct> listOfStructs);
 
         /**
-         *
-         * <p>
-         * <b>NOTE:</b> This method appends the values to the existing list (if any). Use
-         * {@link #setListOfStructs(java.util.Collection)} or {@link #withListOfStructs(java.util.Collection)} if you
-         * want to override the existing values.
-         * </p>
+         * Sets the value of the ListOfStructs property for this object.
          *
          * @param listOfStructs
+         *        The new value for the ListOfStructs property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder listOfStructs(SimpleStruct... listOfStructs);
 
         /**
+         * Sets the value of the MapOfStringToIntegerList property for this object.
          *
          * @param mapOfStringToIntegerList
+         *        The new value for the MapOfStringToIntegerList property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder mapOfStringToIntegerList(Map<String, ? extends Collection<Integer>> mapOfStringToIntegerList);
 
         /**
+         * Sets the value of the MapOfStringToString property for this object.
          *
          * @param mapOfStringToString
+         *        The new value for the MapOfStringToString property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder mapOfStringToString(Map<String, String> mapOfStringToString);
 
         /**
+         * Sets the value of the MapOfStringToStruct property for this object.
          *
          * @param mapOfStringToStruct
+         *        The new value for the MapOfStringToStruct property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder mapOfStringToStruct(Map<String, SimpleStruct> mapOfStringToStruct);
 
         /**
+         * Sets the value of the TimestampMember property for this object.
          *
          * @param timestampMember
+         *        The new value for the TimestampMember property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder timestampMember(Date timestampMember);
 
         /**
+         * Sets the value of the StructWithNestedTimestampMember property for this object.
          *
          * @param structWithNestedTimestampMember
+         *        The new value for the StructWithNestedTimestampMember property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder structWithNestedTimestampMember(StructWithTimestamp structWithNestedTimestampMember);
 
         /**
+         * Sets the value of the BlobArg property for this object.
+         * <p>
+         * The AWS SDK for Java performs a Base64 encoding on this field before sending this request to the AWS service
+         * by default. Users of the SDK should not perform Base64 encoding on this field.
+         * </p>
+         * <p>
+         * The provided byte buffer will be copied when set to prevent concurrent modification.
+         * </p>
          *
          * @param blobArg
+         *        The new value for the BlobArg property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder blobArg(ByteBuffer blobArg);
 
         /**
+         * Sets the value of the StructWithNestedBlob property for this object.
          *
          * @param structWithNestedBlob
+         *        The new value for the StructWithNestedBlob property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder structWithNestedBlob(StructWithNestedBlobType structWithNestedBlob);
 
         /**
+         * Sets the value of the BlobMap property for this object.
          *
          * @param blobMap
+         *        The new value for the BlobMap property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder blobMap(Map<String, ByteBuffer> blobMap);
 
         /**
+         * Sets the value of the ListOfBlobs property for this object.
          *
          * @param listOfBlobs
+         *        The new value for the ListOfBlobs property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder listOfBlobs(Collection<ByteBuffer> listOfBlobs);
 
         /**
-         *
-         * <p>
-         * <b>NOTE:</b> This method appends the values to the existing list (if any). Use
-         * {@link #setListOfBlobs(java.util.Collection)} or {@link #withListOfBlobs(java.util.Collection)} if you want
-         * to override the existing values.
-         * </p>
+         * Sets the value of the ListOfBlobs property for this object.
          *
          * @param listOfBlobs
+         *        The new value for the ListOfBlobs property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder listOfBlobs(ByteBuffer... listOfBlobs);
 
         /**
+         * Sets the value of the RecursiveStruct property for this object.
          *
          * @param recursiveStruct
+         *        The new value for the RecursiveStruct property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder recursiveStruct(RecursiveStructType recursiveStruct);
 
         /**
+         * Sets the value of the PolymorphicTypeWithSubTypes property for this object.
          *
          * @param polymorphicTypeWithSubTypes
+         *        The new value for the PolymorphicTypeWithSubTypes property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder polymorphicTypeWithSubTypes(BaseType polymorphicTypeWithSubTypes);
 
         /**
+         * Sets the value of the PolymorphicTypeWithoutSubTypes property for this object.
          *
          * @param polymorphicTypeWithoutSubTypes
+         *        The new value for the PolymorphicTypeWithoutSubTypes property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder polymorphicTypeWithoutSubTypes(SubTypeOne polymorphicTypeWithoutSubTypes);

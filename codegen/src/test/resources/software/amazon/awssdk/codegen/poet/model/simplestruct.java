@@ -19,8 +19,9 @@ public class SimpleStruct implements StructuredPojo, ToCopyableBuilder<SimpleStr
     }
 
     /**
+     * Returns the value of the StringMember property for this object.
      *
-     * @return
+     * @return The value of the StringMember property for this object.
      */
     public String stringMember() {
         return stringMember;
@@ -86,8 +87,10 @@ public class SimpleStruct implements StructuredPojo, ToCopyableBuilder<SimpleStr
 
     public interface Builder extends CopyableBuilder<Builder, SimpleStruct> {
         /**
+         * Sets the value of the StringMember property for this object.
          *
          * @param stringMember
+         *        The new value for the StringMember property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder stringMember(String stringMember);
