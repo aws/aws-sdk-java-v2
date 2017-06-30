@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import software.amazon.awssdk.codegen.internal.Constants;
 import software.amazon.awssdk.codegen.internal.DocumentationUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 public class ConstructorModel extends DocumentationModel {
 
@@ -60,8 +61,8 @@ public class ConstructorModel extends DocumentationModel {
     @Override
     public String getDocumentation() {
         StringBuilder docBuilder = new StringBuilder("/**");
-        docBuilder.append(documentation != null ? documentation
-                                                : String.format(DocumentationUtils.CONSTRUCTOR_DOC, modelClassName));
+        docBuilder.append(StringUtils.isNotBlank(documentation)
+                          ? documentation : String.format(DocumentationUtils.CONSTRUCTOR_DOC, modelClassName));
 
         for (ArgumentModel arg : arguments) {
             docBuilder.append(Constants.LF);

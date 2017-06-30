@@ -74,6 +74,19 @@ public final class StandardMemberCopier {
         if (bb == null) {
             return null;
         }
-        return bb.duplicate();
+
+        ByteBuffer copy = bb.isDirect() ? ByteBuffer.allocateDirect(bb.capacity()) : ByteBuffer.allocate(bb.capacity());
+
+        // Copy content
+        ByteBuffer toCopy = bb.asReadOnlyBuffer();
+        toCopy.rewind();
+        copy.put(toCopy);
+
+        // Copy non-content
+        copy.position(bb.position());
+        copy.limit(bb.limit());
+        copy.order(bb.order());
+
+        return copy.asReadOnlyBuffer();
     }
 }

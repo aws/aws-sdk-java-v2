@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.poet.model;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
@@ -28,7 +29,9 @@ import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.intermediate.VariableModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
@@ -129,9 +132,19 @@ public class AwsServiceModel implements ClassSpec {
                                              .addJavadoc("$L", m.getGetterDocumentation())
                                              .returns(typeProvider.fieldType(m))
                                              .addModifiers(Modifier.PUBLIC)
-                                             .addStatement("return $N", m.getVariable().getVariableName())
+                                             .addCode(getterStatement(m))
                                              .build())
                          .collect(Collectors.toList());
+    }
+
+    private CodeBlock getterStatement(MemberModel model) {
+        VariableModel modelVariable = model.getVariable();
+
+        if ("java.nio.ByteBuffer".equals(modelVariable.getVariableType())) {
+            return CodeBlock.of("return $1N == null ? null : $1N.asReadOnlyBuffer();", modelVariable.getVariableName());
+        }
+
+        return CodeBlock.of("return $N;", modelVariable.getVariableName());
     }
 
     private List<TypeSpec> nestedModelClassTypes() {

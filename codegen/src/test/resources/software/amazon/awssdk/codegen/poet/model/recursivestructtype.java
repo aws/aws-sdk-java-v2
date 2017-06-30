@@ -32,32 +32,42 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
     }
 
     /**
+     * Returns the value of the NoRecurse property for this object.
      *
-     * @return
+     * @return The value of the NoRecurse property for this object.
      */
     public String noRecurse() {
         return noRecurse;
     }
 
     /**
+     * Returns the value of the RecursiveStruct property for this object.
      *
-     * @return
+     * @return The value of the RecursiveStruct property for this object.
      */
     public RecursiveStructType recursiveStruct() {
         return recursiveStruct;
     }
 
     /**
+     * Returns the value of the RecursiveList property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
      *
-     * @return
+     * @return The value of the RecursiveList property for this object.
      */
     public List<RecursiveStructType> recursiveList() {
         return recursiveList;
     }
 
     /**
+     * Returns the value of the RecursiveMap property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
      *
-     * @return
+     * @return The value of the RecursiveMap property for this object.
      */
     public Map<String, RecursiveStructType> recursiveMap() {
         return recursiveMap;
@@ -153,42 +163,46 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
 
     public interface Builder extends CopyableBuilder<Builder, RecursiveStructType> {
         /**
+         * Sets the value of the NoRecurse property for this object.
          *
          * @param noRecurse
+         *        The new value for the NoRecurse property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder noRecurse(String noRecurse);
 
         /**
+         * Sets the value of the RecursiveStruct property for this object.
          *
          * @param recursiveStruct
+         *        The new value for the RecursiveStruct property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder recursiveStruct(RecursiveStructType recursiveStruct);
 
         /**
+         * Sets the value of the RecursiveList property for this object.
          *
          * @param recursiveList
+         *        The new value for the RecursiveList property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder recursiveList(Collection<RecursiveStructType> recursiveList);
 
         /**
-         *
-         * <p>
-         * <b>NOTE:</b> This method appends the values to the existing list (if any). Use
-         * {@link #setRecursiveList(java.util.Collection)} or {@link #withRecursiveList(java.util.Collection)} if you
-         * want to override the existing values.
-         * </p>
+         * Sets the value of the RecursiveList property for this object.
          *
          * @param recursiveList
+         *        The new value for the RecursiveList property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder recursiveList(RecursiveStructType... recursiveList);
 
         /**
+         * Sets the value of the RecursiveMap property for this object.
          *
          * @param recursiveMap
+         *        The new value for the RecursiveMap property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder recursiveMap(Map<String, RecursiveStructType> recursiveMap);

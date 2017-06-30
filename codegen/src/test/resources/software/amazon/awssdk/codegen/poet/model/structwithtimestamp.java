@@ -21,8 +21,9 @@ public class StructWithTimestamp implements StructuredPojo, ToCopyableBuilder<St
     }
 
     /**
+     * Returns the value of the NestedTimestamp property for this object.
      *
-     * @return
+     * @return The value of the NestedTimestamp property for this object.
      */
     public Date nestedTimestamp() {
         return nestedTimestamp;
@@ -88,8 +89,10 @@ public class StructWithTimestamp implements StructuredPojo, ToCopyableBuilder<St
 
     public interface Builder extends CopyableBuilder<Builder, StructWithTimestamp> {
         /**
+         * Sets the value of the NestedTimestamp property for this object.
          *
          * @param nestedTimestamp
+         *        The new value for the NestedTimestamp property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder nestedTimestamp(Date nestedTimestamp);

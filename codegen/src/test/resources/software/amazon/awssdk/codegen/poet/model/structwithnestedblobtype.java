@@ -14,7 +14,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public class StructWithNestedBlobType implements StructuredPojo,
-        ToCopyableBuilder<StructWithNestedBlobType.Builder, StructWithNestedBlobType> {
+                                                 ToCopyableBuilder<StructWithNestedBlobType.Builder, StructWithNestedBlobType> {
     private final ByteBuffer nestedBlob;
 
     private StructWithNestedBlobType(BuilderImpl builder) {
@@ -22,19 +22,15 @@ public class StructWithNestedBlobType implements StructuredPojo,
     }
 
     /**
-     *
+     * Returns the value of the NestedBlob property for this object.
      * <p>
-     * {@code ByteBuffer}s are stateful. Calling their {@code get} methods changes their {@code position}. We recommend
-     * using {@link java.nio.ByteBuffer#asReadOnlyBuffer()} to create a read-only view of the buffer with an independent
-     * {@code position}, and calling {@code get} methods on this rather than directly on the returned {@code ByteBuffer}
-     * . Doing so will ensure that anyone else using the {@code ByteBuffer} will not be affected by changes to the
-     * {@code position}.
+     * This method will return a new read-only {@code ByteBuffer} each time it is invoked.
      * </p>
-     * 
-     * @return
+     *
+     * @return The value of the NestedBlob property for this object.
      */
     public ByteBuffer nestedBlob() {
-        return nestedBlob;
+        return nestedBlob == null ? null : nestedBlob.asReadOnlyBuffer();
     }
 
     @Override
@@ -97,8 +93,17 @@ public class StructWithNestedBlobType implements StructuredPojo,
 
     public interface Builder extends CopyableBuilder<Builder, StructWithNestedBlobType> {
         /**
+         * Sets the value of the NestedBlob property for this object.
+         * <p>
+         * The AWS SDK for Java performs a Base64 encoding on this field before sending this request to the AWS service
+         * by default. Users of the SDK should not perform Base64 encoding on this field.
+         * </p>
+         * <p>
+         * The provided byte buffer will be copied when set to prevent concurrent modification.
+         * </p>
          *
          * @param nestedBlob
+         *        The new value for the NestedBlob property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder nestedBlob(ByteBuffer nestedBlob);
