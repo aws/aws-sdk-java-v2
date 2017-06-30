@@ -58,12 +58,6 @@
 
     ${listModel.templateType} ${listVariable} = ${getMember}();
 
-    <#if listModel.sendNullAsEmptyList>
-    if (${listVariable} == null) {
-        ${listVariable} = new java.util.ArrayList<>();
-    }
-    </#if>
-
     if (${listVariable} != null) {
         if (!${listVariable}.isEmpty()) {
             int ${listIndex} = 1;

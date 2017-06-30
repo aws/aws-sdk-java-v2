@@ -34,8 +34,6 @@ public class ListModel {
 
     private String memberAdditionalUnmarshallingPath;
 
-    private boolean sendNullAsEmptyList;
-
     public ListModel(
             @JsonProperty("memberType") String memberType,
             @JsonProperty("memberLocationName") String memberLocationName,
@@ -48,7 +46,6 @@ public class ListModel {
         this.implType = implType;
         this.interfaceType = interfaceType;
         this.listMemberModel = listMemberModel;
-        this.sendNullAsEmptyList = false;
     }
 
     public String getImplType() {
@@ -87,14 +84,6 @@ public class ListModel {
     public void setMemberAdditionalUnmarshallingPath(
             String memberAdditionalUnmarshallingPath) {
         this.memberAdditionalUnmarshallingPath = memberAdditionalUnmarshallingPath;
-    }
-
-    public boolean isSendNullAsEmptyList() {
-        return sendNullAsEmptyList;
-    }
-
-    public void setSendNullAsEmptyList(boolean sendNullAsEmptyList) {
-        this.sendNullAsEmptyList = sendNullAsEmptyList;
     }
 
     public boolean isSimple() {

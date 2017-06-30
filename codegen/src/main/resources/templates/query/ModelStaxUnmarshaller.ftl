@@ -122,7 +122,7 @@ public class ${shape.shapeName}Unmarshaller implements Unmarshaller<${shape.shap
             if (xmlEvent.isEndDocument()) {
             <#-- Set any map members we filled during unmarshalling -->
 <#list shape.members as memberModel>
-    <#if (memberModel.map || memberModel.list) && (!memberModel.http.location?? || memberModel.http.location == "headers")>
+    <#if memberModel.map || memberModel.list>
         ${shape.variable.variableName}.${memberModel.fluentSetterMethodName}(${memberModel.variable.variableName});
     </#if>
 </#list>
@@ -151,7 +151,7 @@ public class ${shape.shapeName}Unmarshaller implements Unmarshaller<${shape.shap
             } else if (xmlEvent.isEndElement()) {
                 if (context.getCurrentDepth() < originalDepth) {
 <#list shape.members as memberModel>
-    <#if (memberModel.map || memberModel.list) && (!memberModel.http.location?? || memberModel.http.location == "headers")>
+    <#if memberModel.map || memberModel.list>
         ${shape.variable.variableName}.${memberModel.fluentSetterMethodName}(${memberModel.variable.variableName});
     </#if>
 </#list>

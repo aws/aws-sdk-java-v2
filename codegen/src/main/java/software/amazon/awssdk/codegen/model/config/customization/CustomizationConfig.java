@@ -103,13 +103,6 @@ public class CustomizationConfig {
      * Specify shapes to be renamed.
      */
     private Map<String, String> renameShapes;
-
-    /**
-     * The members for which we should treat "null" as empty list when marshalling a request. This is currently only supported by
-     * the query protocol and is only used by Elastic Load Balancing.
-     */
-    private Map<String, List<String>> sendNullAsEmptyListMembers;
-
     /**
      * Configuration for generating policy action enums.
      */
@@ -285,14 +278,6 @@ public class CustomizationConfig {
 
     public void setRenameShapes(Map<String, String> renameShapes) {
         this.renameShapes = renameShapes;
-    }
-
-    public Map<String, List<String>> getSendNullAsEmptyListMembers() {
-        return sendNullAsEmptyListMembers;
-    }
-
-    public void setSendNullAsEmptyListMembers(Map<String, List<String>> sendNullAsEmptyListMembers) {
-        this.sendNullAsEmptyListMembers = sendNullAsEmptyListMembers;
     }
 
     public Map<String, ShapeSubstitution> getShapeSubstitutions() {
