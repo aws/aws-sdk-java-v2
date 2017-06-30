@@ -120,11 +120,6 @@ public class SimpleTypeJsonMarshallers {
             }
             jsonGenerator.writeEndArray();
         }
-
-        @Override
-        protected boolean shouldEmit(List list) {
-            return list != null;
-        }
     };
 
     /**
@@ -142,11 +137,6 @@ public class SimpleTypeJsonMarshallers {
                 }
             }
             jsonGenerator.writeEndObject();
-        }
-
-        @Override
-        protected boolean shouldEmit(Map map) {
-            return map != null;
         }
     };
 
