@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -104,7 +105,7 @@ public class AutoScalingIntegrationTest extends IntegrationTestBase {
     protected static final List<String> TERMINATION_POLICIES;
     protected static final String TERMINATION_POLICY = "ClosestToNextInstanceHour";
 
-    protected static final Date TEST_ACTION_TIME = new Date(new Date().getTime() + 100000);
+    protected static final Instant TEST_ACTION_TIME = Instant.now().plusMillis(100000);
 
     static {
         TERMINATION_POLICIES = new LinkedList<String>();

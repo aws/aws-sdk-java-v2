@@ -22,7 +22,7 @@ import static software.amazon.awssdk.http.pipeline.stages.RetryableStage.HEADER_
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
@@ -103,12 +103,12 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
     private static int parseClockSkewOffset(HttpResponse httpResponse) {
         Optional<String> dateHeader = Optional.ofNullable(httpResponse.getHeader("Date"));
         try {
-            Date serverDate = dateHeader
+            Instant serverDate = dateHeader
                     .filter(h -> !h.isEmpty())
                     .map(DateUtils::parseRfc822Date)
                     .orElseThrow(() -> new RuntimeException(
                             "Unable to parse clock skew offset from response. Server Date header missing"));
-            long diff = System.currentTimeMillis() - serverDate.getTime();
+            long diff = System.currentTimeMillis() - serverDate.toEpochMilli();
             return (int) (diff / 1000);
         } catch (RuntimeException e) {
             log.warn("Unable to parse clock skew offset from response: " + dateHeader.orElse(""), e);

@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.BinaryUtils.copyBytesFrom;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.text.Collator;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Locale;
 import software.amazon.awssdk.utils.Base64Utils;
@@ -79,6 +80,19 @@ public class StringUtils {
      */
     public static String fromDate(Date value) {
         return DateUtils.formatIso8601Date(value);
+    }
+
+    /**
+     * Converts the specified date to an ISO 8601 timestamp string and returns
+     * it.
+     *
+     * @param value
+     *            The date to format as an ISO 8601 timestamp string.
+     *
+     * @return An ISO 8601 timestamp string created from the specified date.
+     */
+    public static String fromInstant(Instant value) {
+        return DateUtils.formatIso8601Date(Date.from(value));
     }
 
     /**

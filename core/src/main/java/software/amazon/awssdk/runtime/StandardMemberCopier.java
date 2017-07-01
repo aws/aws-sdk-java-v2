@@ -18,7 +18,7 @@ package software.amazon.awssdk.runtime;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
-import java.util.Date;
+import java.time.Instant;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -64,11 +64,8 @@ public final class StandardMemberCopier {
         return is;
     }
 
-    public static Date copy(Date d) {
-        if (d == null) {
-            return null;
-        }
-        return new Date(d.getTime());
+    public static Instant copy(Instant i) {
+        return i;
     }
 
     public static ByteBuffer copy(ByteBuffer bb) {

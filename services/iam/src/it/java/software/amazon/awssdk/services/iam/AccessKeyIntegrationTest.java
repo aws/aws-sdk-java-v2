@@ -53,7 +53,7 @@ public class AccessKeyIntegrationTest extends IntegrationTestBase {
                                                            .userName(username).build());
             keyId = response.accessKey().accessKeyId();
             assertEquals(System.currentTimeMillis() / MILLISECONDS_IN_DAY,
-                         response.accessKey().createDate().getTime()
+                         response.accessKey().createDate().toEpochMilli()
                          / MILLISECONDS_IN_DAY);
         } catch (Exception e) {
             e.printStackTrace();

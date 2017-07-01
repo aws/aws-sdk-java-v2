@@ -18,7 +18,7 @@ package software.amazon.awssdk.runtime.transform;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.Date;
+import java.time.Instant;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.util.DateUtils;
@@ -163,20 +163,17 @@ public class SimpleTypeJsonUnmarshallers {
         }
     }
 
-    /**
-     * Unmarshaller for Date values - JSON dates come in as epoch seconds.
-     */
-    public static class DateJsonUnmarshaller implements Unmarshaller<Date, JsonUnmarshallerContext> {
-        private static final DateJsonUnmarshaller INSTANCE = new DateJsonUnmarshaller();
+    public static class InstantJsonUnmarshaller implements Unmarshaller<Instant, JsonUnmarshallerContext> {
+        private static final InstantJsonUnmarshaller INSTANCE = new InstantJsonUnmarshaller();
 
-        public static DateJsonUnmarshaller getInstance() {
+        public static InstantJsonUnmarshaller getInstance() {
             return INSTANCE;
         }
 
-        public Date unmarshall(JsonUnmarshallerContext unmarshallerContext)
+        public Instant unmarshall(JsonUnmarshallerContext unmarshallerContext)
                 throws Exception {
             return DateUtils.parseServiceSpecificDate(unmarshallerContext
-                                                              .readText());
+                    .readText()).toInstant();
         }
     }
 

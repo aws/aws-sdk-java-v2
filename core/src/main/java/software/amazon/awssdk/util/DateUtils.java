@@ -16,6 +16,7 @@
 package software.amazon.awssdk.util;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -181,12 +182,12 @@ public class DateUtils {
      *
      * @return The parsed Date object.
      */
-    public static Date parseRfc822Date(String dateString) {
+    public static Instant parseRfc822Date(String dateString) {
         if (dateString == null) {
             return null;
         }
         try {
-            return new Date(RFC_822_DATE_FORMAT.parseMillis(dateString));
+            return Instant.ofEpochMilli(RFC_822_DATE_FORMAT.parseMillis(dateString));
         } catch (RuntimeException ex) {
             throw handleException(ex);
         }
@@ -195,14 +196,14 @@ public class DateUtils {
     /**
      * Formats the specified date as an RFC 822 string.
      *
-     * @param date
+     * @param instant
      *            The date to format.
      *
      * @return The RFC 822 string representing the specified date.
      */
-    public static String formatRfc822Date(Date date) {
+    public static String formatRfc822Date(Instant instant) {
         try {
-            return RFC_822_DATE_FORMAT.print(date.getTime());
+            return RFC_822_DATE_FORMAT.print(instant.toEpochMilli());
         } catch (RuntimeException ex) {
             throw handleException(ex);
         }

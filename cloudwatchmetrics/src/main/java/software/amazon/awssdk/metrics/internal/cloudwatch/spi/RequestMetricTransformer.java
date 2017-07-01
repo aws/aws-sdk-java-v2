@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.metrics.internal.cloudwatch.spi;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import software.amazon.awssdk.Request;
 import software.amazon.awssdk.metrics.spi.MetricType;
@@ -58,8 +58,8 @@ public interface RequestMetricTransformer {
             return endTimeMilli == null ? System.currentTimeMillis() : endTimeMilli;
         }
 
-        public static Date endTimestamp(TimingInfo ti) {
-            return new Date(endTimeMilli(ti));
+        public static Instant endTimestamp(TimingInfo ti) {
+            return Instant.ofEpochMilli(endTimeMilli(ti));
         }
     }
 }

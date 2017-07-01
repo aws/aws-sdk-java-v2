@@ -23,9 +23,9 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -143,7 +143,7 @@ class TypeProvider {
                 // and non-streaming
                 ByteBuffer.class,
                 InputStream.class,
-                Date.class)
+                Instant.class)
                 .filter(cls -> cls.getName().equals(simpleType) || cls.getSimpleName().equals(simpleType))
                 .map(ClassName::get)
                 .findFirst()

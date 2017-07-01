@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import java.util.Date;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
@@ -197,9 +198,9 @@ public class SdkJsonGenerator implements StructuredJsonGenerator {
     }
 
     @Override
-    public StructuredJsonGenerator writeValue(Date date) {
+    public StructuredJsonGenerator writeValue(Instant instant) {
         try {
-            generator.writeNumber(DateUtils.formatServiceSpecificDate(date));
+            generator.writeNumber(DateUtils.formatServiceSpecificDate(Date.from(instant)));
         } catch (IOException e) {
             throw new JsonGenerationException(e);
         }

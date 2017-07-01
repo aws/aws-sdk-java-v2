@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
@@ -83,9 +84,9 @@ public class SdkJsonGeneratorTest {
 
     @Test
     public void simpleObject_WithServiceDate() throws IOException {
-        Date date = new Date(123456);
+        Instant instant = Instant.ofEpochMilli(123456);
         jsonGenerator.writeStartObject();
-        jsonGenerator.writeFieldName("dateProp").writeValue(date);
+        jsonGenerator.writeFieldName("dateProp").writeValue(instant);
         jsonGenerator.writeEndObject();
         JsonNode node = toJsonNode();
         assertEquals(123.456, node.get("dateProp").doubleValue(), DELTA);

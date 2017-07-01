@@ -1,9 +1,9 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Generated;
@@ -16,7 +16,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public class AllTypesRequest extends AmazonWebServiceRequest implements
-                                                             ToCopyableBuilder<AllTypesRequest.Builder, AllTypesRequest> {
+        ToCopyableBuilder<AllTypesRequest.Builder, AllTypesRequest> {
     private final String stringMember;
 
     private final Integer integerMember;
@@ -41,7 +41,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
     private final Map<String, SimpleStruct> mapOfStringToStruct;
 
-    private final Date timestampMember;
+    private final Instant timestampMember;
 
     private final StructWithTimestamp structWithNestedTimestampMember;
 
@@ -214,7 +214,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
      *
      * @return The value of the TimestampMember property for this object.
      */
-    public Date timestampMember() {
+    public Instant timestampMember() {
         return timestampMember;
     }
 
@@ -329,7 +329,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         hashCode = 31 * hashCode + ((mapOfStringToStruct() == null) ? 0 : mapOfStringToStruct().hashCode());
         hashCode = 31 * hashCode + ((timestampMember() == null) ? 0 : timestampMember().hashCode());
         hashCode = 31 * hashCode
-                   + ((structWithNestedTimestampMember() == null) ? 0 : structWithNestedTimestampMember().hashCode());
+                + ((structWithNestedTimestampMember() == null) ? 0 : structWithNestedTimestampMember().hashCode());
         hashCode = 31 * hashCode + ((blobArg() == null) ? 0 : blobArg().hashCode());
         hashCode = 31 * hashCode + ((structWithNestedBlob() == null) ? 0 : structWithNestedBlob().hashCode());
         hashCode = 31 * hashCode + ((blobMap() == null) ? 0 : blobMap().hashCode());
@@ -434,7 +434,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
             return false;
         }
         if (other.structWithNestedTimestampMember() != null
-            && !other.structWithNestedTimestampMember().equals(this.structWithNestedTimestampMember())) {
+                && !other.structWithNestedTimestampMember().equals(this.structWithNestedTimestampMember())) {
             return false;
         }
         if (other.blobArg() == null ^ this.blobArg() == null) {
@@ -471,14 +471,14 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
             return false;
         }
         if (other.polymorphicTypeWithSubTypes() != null
-            && !other.polymorphicTypeWithSubTypes().equals(this.polymorphicTypeWithSubTypes())) {
+                && !other.polymorphicTypeWithSubTypes().equals(this.polymorphicTypeWithSubTypes())) {
             return false;
         }
         if (other.polymorphicTypeWithoutSubTypes() == null ^ this.polymorphicTypeWithoutSubTypes() == null) {
             return false;
         }
         if (other.polymorphicTypeWithoutSubTypes() != null
-            && !other.polymorphicTypeWithoutSubTypes().equals(this.polymorphicTypeWithoutSubTypes())) {
+                && !other.polymorphicTypeWithoutSubTypes().equals(this.polymorphicTypeWithoutSubTypes())) {
             return false;
         }
         return true;
@@ -698,7 +698,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
          *        The new value for the TimestampMember property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
-        Builder timestampMember(Date timestampMember);
+        Builder timestampMember(Instant timestampMember);
 
         /**
          * Sets the value of the StructWithNestedTimestampMember property for this object.
@@ -811,7 +811,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
         private Map<String, SimpleStruct> mapOfStringToStruct;
 
-        private Date timestampMember;
+        private Instant timestampMember;
 
         private StructWithTimestamp structWithNestedTimestampMember;
 
@@ -1060,18 +1060,18 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
             this.mapOfStringToStruct = MapOfStringToSimpleStructCopier.copy(mapOfStringToStruct);
         }
 
-        public final Date getTimestampMember() {
+        public final Instant getTimestampMember() {
             return timestampMember;
         }
 
         @Override
-        public final Builder timestampMember(Date timestampMember) {
-            this.timestampMember = StandardMemberCopier.copy(timestampMember);
+        public final Builder timestampMember(Instant timestampMember) {
+            this.timestampMember = timestampMember;
             return this;
         }
 
-        public final void setTimestampMember(Date timestampMember) {
-            this.timestampMember = StandardMemberCopier.copy(timestampMember);
+        public final void setTimestampMember(Instant timestampMember) {
+            this.timestampMember = timestampMember;
         }
 
         public final StructWithTimestamp getStructWithNestedTimestampMember() {
@@ -1204,3 +1204,4 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         }
     }
 }
+
