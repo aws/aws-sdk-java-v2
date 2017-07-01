@@ -5,6 +5,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.TemporalAmount;
 import java.util.Calendar;
 import java.util.List;
 import org.junit.After;
@@ -203,8 +206,7 @@ public class CloudSearchv2IntegrationTest extends AwsIntegrationTestBase {
     public void testAccessPolicies() {
 
         AccessPoliciesStatus accessPoliciesStatus = null;
-        Calendar yesterday = Calendar.getInstance();
-        yesterday.add(Calendar.DAY_OF_MONTH, -1);
+        Instant yesterday = Instant.now().minus(Duration.ofDays(1));
 
         DescribeDomainsResponse describeDomainResult = cloudSearch
                 .describeDomains(DescribeDomainsRequest.builder()
@@ -222,9 +224,9 @@ public class CloudSearchv2IntegrationTest extends AwsIntegrationTestBase {
         accessPoliciesStatus = accessPolicyResult.accessPolicies();
 
         assertNotNull(accessPoliciesStatus);
-        assertTrue(yesterday.getTime().before(
+        assertTrue(yesterday.isBefore(
                 accessPoliciesStatus.status().creationDate()));
-        assertTrue(yesterday.getTime().before(
+        assertTrue(yesterday.isBefore(
                 accessPoliciesStatus.status().updateDate()));
         assertTrue(accessPoliciesStatus.options().length() > 0);
         assertNotNull(accessPoliciesStatus.status().state());

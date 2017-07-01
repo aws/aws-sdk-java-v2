@@ -23,8 +23,8 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +60,7 @@ public class TypeUtils {
         DATA_TYPE_MAPPINGS.put("long", Long.class.getSimpleName());
         DATA_TYPE_MAPPINGS.put("float", Float.class.getSimpleName());
         DATA_TYPE_MAPPINGS.put("byte", Byte.class.getSimpleName());
-        DATA_TYPE_MAPPINGS.put("timestamp", Date.class.getName());
+        DATA_TYPE_MAPPINGS.put("timestamp", Instant.class.getName());
         DATA_TYPE_MAPPINGS.put("blob", ByteBuffer.class.getName());
         DATA_TYPE_MAPPINGS.put("stream", InputStream.class.getName());
         DATA_TYPE_MAPPINGS.put("bigdecimal", BigDecimal.class.getName());
@@ -77,7 +77,7 @@ public class TypeUtils {
         MARSHALLING_TYPE_MAPPINGS.put("Long", "LONG");
         MARSHALLING_TYPE_MAPPINGS.put("Float", "FLOAT");
         MARSHALLING_TYPE_MAPPINGS.put("Double", "DOUBLE");
-        MARSHALLING_TYPE_MAPPINGS.put("Date", "DATE");
+        MARSHALLING_TYPE_MAPPINGS.put("Instant", "INSTANT");
         MARSHALLING_TYPE_MAPPINGS.put("ByteBuffer", "BYTE_BUFFER");
         MARSHALLING_TYPE_MAPPINGS.put("Boolean", "BOOLEAN");
         MARSHALLING_TYPE_MAPPINGS.put("BigDecimal", "BIG_DECIMAL");

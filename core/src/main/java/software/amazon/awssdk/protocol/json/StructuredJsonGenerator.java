@@ -18,7 +18,7 @@ package software.amazon.awssdk.protocol.json;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.Date;
+import java.time.Instant;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 
 /**
@@ -105,7 +105,7 @@ public interface StructuredJsonGenerator {
         }
 
         @Override
-        public StructuredJsonGenerator writeValue(Date date) {
+        public StructuredJsonGenerator writeValue(Instant instant) {
             return this;
         }
 
@@ -158,7 +158,7 @@ public interface StructuredJsonGenerator {
 
     StructuredJsonGenerator writeValue(ByteBuffer bytes);
 
-    StructuredJsonGenerator writeValue(Date date);
+    StructuredJsonGenerator writeValue(Instant instant);
 
     StructuredJsonGenerator writeValue(BigDecimal value);
 

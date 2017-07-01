@@ -21,8 +21,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -141,7 +141,7 @@ public class ShapeModelReflector {
     private String getFullyQualifiedType(MemberModel memberModel) {
         if (memberModel.isSimple()) {
             switch (memberModel.getVariable().getSimpleType()) {
-                case "Date":
+                case "Instant":
                 case "ByteBuffer":
                 case "InputStream":
                     return memberModel.getSetterModel().getVariableSetterType();
@@ -216,8 +216,8 @@ public class ShapeModelReflector {
                 return currentNode.asBoolean();
             case "Double":
                 return currentNode.asDouble();
-            case "Date":
-                return new Date(currentNode.asLong());
+            case "Instant":
+                return Instant.ofEpochMilli(currentNode.asLong());
             case "ByteBuffer":
                 return ByteBuffer.wrap(currentNode.asText().getBytes(StandardCharsets.UTF_8));
             case "Float":

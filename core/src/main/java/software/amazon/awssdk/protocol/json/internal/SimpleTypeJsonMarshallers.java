@@ -17,7 +17,7 @@ package software.amazon.awssdk.protocol.json.internal;
 
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotation.SdkInternalApi;
@@ -87,9 +87,9 @@ public class SimpleTypeJsonMarshallers {
         }
     };
 
-    public static final JsonMarshaller<Date> DATE = new BaseJsonMarshaller<Date>() {
+    public static final JsonMarshaller<Instant> INSTANT = new BaseJsonMarshaller<Instant>() {
         @Override
-        public void marshall(Date val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
+        public void marshall(Instant val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
             jsonGenerator.writeValue(val);
         }
     };

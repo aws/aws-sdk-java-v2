@@ -14,8 +14,8 @@
  */
 package software.amazon.awssdk.metrics.internal.cloudwatch;
 
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -107,7 +107,7 @@ public class MetricUnitTestBase {
             final String metric = fields[1];
             m.metricName(metricName)
              .dimensions(Dimension.builder().name("metric").value(metric).build())
-             .timestamp(new Date(Long.parseLong(fields[3])));
+             .timestamp(Instant.ofEpochMilli(Long.parseLong(fields[3])));
             if (fields[4] != null && !fields[4].isEmpty())
                 m.value(Double.parseDouble(fields[4]));
             m.unit(fields[6]);

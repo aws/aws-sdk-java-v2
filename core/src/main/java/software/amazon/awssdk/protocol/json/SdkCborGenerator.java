@@ -16,9 +16,6 @@
 package software.amazon.awssdk.protocol.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.dataformat.cbor.CBORGenerator;
-import java.io.IOException;
-import java.util.Date;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 
 /**
@@ -31,28 +28,5 @@ class SdkCborGenerator extends SdkJsonGenerator {
 
     public SdkCborGenerator(JsonFactory factory, String contentType) {
         super(factory, contentType);
-    }
-
-    /**
-     * Jackson doesn't have native support for timestamp. As per the RFC 7049
-     * (https://tools.ietf.org/html/rfc7049#section-2.4.1) we will need to
-     * write a tag and write the epoch.
-     */
-    @Override
-    public StructuredJsonGenerator writeValue(Date date) {
-
-        if (!(getGenerator() instanceof CBORGenerator)) {
-            throw new IllegalStateException("SdkCborGenerator is not created " +
-                                            "with a CBORGenerator.");
-        }
-
-        CBORGenerator generator = (CBORGenerator) getGenerator();
-        try {
-            generator.writeTag(CBOR_TAG_TIMESTAP);
-            generator.writeNumber(date.getTime());
-        } catch (IOException e) {
-            throw new JsonGenerationException(e);
-        }
-        return this;
     }
 }

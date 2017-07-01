@@ -22,8 +22,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
-import java.util.Date;
 import java.util.LinkedList;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -107,7 +108,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
 
         MetricDatum datum = MetricDatum.builder().dimensions(
                 Dimension.builder().name("InstanceType").value("m1.small").build())
-                                             .metricName(measureName).timestamp(new Date())
+                                             .metricName(measureName).timestamp(Instant.now())
                                              .unit("Count").value(42.0).build();
 
         cloudwatch.putMetricData(PutMetricDataRequest.builder()
@@ -117,15 +118,13 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
         Thread.sleep(60 * 1000);
 
         GetMetricStatisticsRequest getRequest = GetMetricStatisticsRequest.builder()
-                .startTime(
-                        new Date(new Date().getTime()
-                                 - ONE_WEEK_IN_MILLISECONDS))
+                .startTime(Instant.now().minus(Duration.ofDays(7)))
                 .namespace("AWS.EC2")
                 .period(60 * 60)
                 .dimensions(Dimension.builder().name("InstanceType").value("m1.small").build())
                 .metricName(measureName)
                 .statistics("Average", "Maximum", "Minimum", "Sum")
-                .endTime(new Date())
+                .endTime(Instant.now())
                 .build();
         GetMetricStatisticsResponse result = cloudwatch
                 .getMetricStatistics(getRequest);
@@ -178,7 +177,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
             long time = now - i;
             MetricDatum datum = MetricDatum.builder().dimensions(
                     Dimension.builder().name("InstanceType").value("m1.small").build())
-                                                 .metricName(measureName).timestamp(new Date(time))
+                                                 .metricName(measureName).timestamp(Instant.now())
                                                  .unit("Count").value(value).build();
             data.add(datum);
         }

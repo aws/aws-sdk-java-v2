@@ -74,7 +74,7 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
     protected abstract ResponseT callClient(STSClient client, RequestT request);
 
     public void callClientWithCredentialsProvider(Instant credentialsExpirationDate, int numTimesInvokeCredentialsProvider) {
-        Credentials credentials = Credentials.builder().accessKeyId("a").secretAccessKey("b").sessionToken("c").expiration(Date.from(credentialsExpirationDate)).build();
+        Credentials credentials = Credentials.builder().accessKeyId("a").secretAccessKey("b").sessionToken("c").expiration(credentialsExpirationDate).build();
         RequestT request = getRequest();
         ResponseT response = getResponse(credentials);
 

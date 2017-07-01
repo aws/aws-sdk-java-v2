@@ -24,6 +24,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Locale;
 import java.util.SimpleTimeZone;
@@ -39,7 +40,7 @@ public class DateUtilsTest {
     @Test
     public void tt0031561767() throws ParseException {
         String input = "Fri, 16 May 2014 23:56:46 GMT";
-        Date date = DateUtils.parseRfc822Date(input);
+        Instant date = DateUtils.parseRfc822Date(input);
         assertEquals(input, DateUtils.formatRfc822Date(date));
     }
 
@@ -59,15 +60,15 @@ public class DateUtilsTest {
 
     @Test
     public void formatRfc822Date() throws ParseException {
-        Date date = new Date();
+        Instant date = Instant.now();
         SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
         sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
-        String expected = sdf.format(date);
+        String expected = sdf.format(Date.from(date));
         String actual = DateUtils.formatRfc822Date(date);
         assertEquals(expected, actual);
 
-        Date expectedDate = sdf.parse(expected);
-        Date actualDate = DateUtils.parseRfc822Date(actual);
+        Instant expectedDate = sdf.parse(expected).toInstant();
+        Instant actualDate = DateUtils.parseRfc822Date(actual);
         assertEquals(expectedDate, actualDate);
     }
 
@@ -84,12 +85,12 @@ public class DateUtilsTest {
 
     @Test
     public void parseRfc822Date() throws ParseException {
-        Date date = new Date();
+        Instant date = Instant.now();
         SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
         sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
-        String formatted = sdf.format(date);
-        Date expected = sdf.parse(formatted);
-        Date actual = DateUtils.parseRfc822Date(formatted);
+        String formatted = sdf.format(Date.from(date));
+        Instant expected = sdf.parse(formatted).toInstant();
+        Instant actual = DateUtils.parseRfc822Date(formatted);
         assertEquals(expected, actual);
     }
 
@@ -255,7 +256,7 @@ public class DateUtilsTest {
     public void testNumericNoQuote() {
         StructuredJsonGenerator jw = new SdkJsonGenerator(new JsonFactory(), null);
         jw.writeStartObject();
-        jw.writeFieldName("foo").writeValue(new Date());
+        jw.writeFieldName("foo").writeValue(Instant.now());
         jw.writeEndObject();
         String s = new String(jw.getBytes(), Charset.forName("UTF-8"));
         // Something like: {"foo":1408378076.135}.

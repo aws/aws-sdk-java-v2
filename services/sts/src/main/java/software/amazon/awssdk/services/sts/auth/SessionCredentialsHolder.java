@@ -35,7 +35,7 @@ final class SessionCredentialsHolder {
         this.sessionCredentials = new AwsSessionCredentials(credentials.accessKeyId(),
                                                             credentials.secretAccessKey(),
                                                             credentials.sessionToken());
-        this.sessionCredentialsExpiration = credentials.expiration();
+        this.sessionCredentialsExpiration = Date.from(credentials.expiration());
     }
 
     public AwsSessionCredentials getSessionCredentials() {

@@ -19,7 +19,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Map;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
@@ -53,7 +53,7 @@ public class SdkStructuredPlainJsonFactory {
             .put(Float.class, SimpleTypeJsonUnmarshallers.FloatJsonUnmarshaller.getInstance())
             .put(Long.class, SimpleTypeJsonUnmarshallers.LongJsonUnmarshaller.getInstance())
             .put(Byte.class, SimpleTypeJsonUnmarshallers.ByteJsonUnmarshaller.getInstance())
-            .put(Date.class, SimpleTypeJsonUnmarshallers.DateJsonUnmarshaller.getInstance())
+            .put(Instant.class, SimpleTypeJsonUnmarshallers.InstantJsonUnmarshaller.getInstance())
             .put(ByteBuffer.class, SimpleTypeJsonUnmarshallers.ByteBufferJsonUnmarshaller.getInstance())
             .put(Character.class, SimpleTypeJsonUnmarshallers.CharacterJsonUnmarshaller.getInstance())
             .put(Short.class, SimpleTypeJsonUnmarshallers.ShortJsonUnmarshaller.getInstance()).build();

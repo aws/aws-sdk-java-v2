@@ -18,7 +18,7 @@ package software.amazon.awssdk.protocol;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
@@ -50,7 +50,7 @@ public interface MarshallingType<T> {
 
     MarshallingType<Boolean> BOOLEAN = () -> Boolean.class;
 
-    MarshallingType<Date> DATE = () -> Date.class;
+    MarshallingType<Instant> INSTANT = () -> Instant.class;
 
     MarshallingType<ByteBuffer> BYTE_BUFFER = () -> ByteBuffer.class;
 
