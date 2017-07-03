@@ -712,11 +712,8 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         /**
          * Sets the value of the BlobArg property for this object.
          * <p>
-         * The AWS SDK for Java performs a Base64 encoding on this field before sending this request to the AWS service
-         * by default. Users of the SDK should not perform Base64 encoding on this field.
-         * </p>
-         * <p>
-         * The provided byte buffer will be copied when set to prevent concurrent modification.
+         * To preserve immutability, the remaining bytes in the provided buffer will be copied into a new buffer when
+         * set.
          * </p>
          *
          * @param blobArg

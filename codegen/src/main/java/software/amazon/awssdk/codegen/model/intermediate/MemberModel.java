@@ -303,7 +303,8 @@ public class MemberModel extends DocumentationModel {
         docBuilder.append(StringUtils.isNotBlank(documentation) ? documentation : DEFAULT_SETTER.replace("%s", name) + "\n");
 
         if (ByteBuffer.class.getName().equals(this.getGetterModel().getReturnType())) {
-            appendParagraph(docBuilder, "The provided byte buffer will be copied when set to prevent concurrent modification.");
+            appendParagraph(docBuilder, "To preserve immutability, the remaining bytes in the provided buffer will be copied "
+                                        + "into a new buffer when set.");
         }
 
         docBuilder.append(getParamDoc())
