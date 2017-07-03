@@ -22,7 +22,7 @@ import software.amazon.awssdk.codegen.internal.Constants;
 import software.amazon.awssdk.codegen.internal.DocumentationUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
-public class ConstructorModel extends DocumentationModel {
+public class ConstructorModel {
 
     private final String modelClassName;
     private final List<ArgumentModel> arguments = new LinkedList<ArgumentModel>();
@@ -56,27 +56,5 @@ public class ConstructorModel extends DocumentationModel {
         }
 
         return builder.toString();
-    }
-
-    @Override
-    public String getDocumentation() {
-        StringBuilder docBuilder = new StringBuilder("/**");
-        docBuilder.append(StringUtils.isNotBlank(documentation)
-                          ? documentation : String.format(DocumentationUtils.CONSTRUCTOR_DOC, modelClassName));
-
-        for (ArgumentModel arg : arguments) {
-            docBuilder.append(Constants.LF);
-            docBuilder.append("@param " + arg.getName() + " "
-                              + DocumentationUtils.stripHtmlTags(arg.getDocumentation()));
-        }
-
-        docBuilder.append("*/");
-        return docBuilder.toString();
-    }
-
-    @Override
-    public void setDocumentation(String documentation) {
-        throw new UnsupportedOperationException(
-                "Documentation for ConstructorModel is not allowed to be manually set.");
     }
 }

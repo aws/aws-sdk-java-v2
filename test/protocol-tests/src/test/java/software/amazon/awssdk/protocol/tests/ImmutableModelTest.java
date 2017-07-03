@@ -83,6 +83,6 @@ public class ImmutableModelTest {
         assertThat(request.blobArg().limit()).as("Check limit").isEqualTo(limit);
         assertThat(request.blobArg().position()).as("Check position").isEqualTo(position);
         assertThat(request.blobArg().order()).as("Check order").isEqualTo(order);
-        assertThat(request.blobArg()).as("Check concurrent modification").isNotEqualByComparingTo(buffer);
+        assertThat(request.blobArg()).as("Check original buffer modification").isNotEqualByComparingTo(buffer);
     }
 }

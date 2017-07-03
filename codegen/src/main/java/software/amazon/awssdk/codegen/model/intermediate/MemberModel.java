@@ -303,9 +303,6 @@ public class MemberModel extends DocumentationModel {
         docBuilder.append(StringUtils.isNotBlank(documentation) ? documentation : DEFAULT_SETTER.replace("%s", name) + "\n");
 
         if (ByteBuffer.class.getName().equals(this.getGetterModel().getReturnType())) {
-            appendParagraph(docBuilder, "The AWS SDK for Java performs a Base64 encoding on this field before sending this "
-                                        + "request to the AWS service by default. Users of the SDK should not perform Base64 "
-                                        + "encoding on this field.");
             appendParagraph(docBuilder, "The provided byte buffer will be copied when set to prevent concurrent modification.");
         }
 
