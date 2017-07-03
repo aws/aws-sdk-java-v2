@@ -24,8 +24,6 @@ import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.protocol.MarshallLocation;
 import software.amazon.awssdk.protocol.StructuredPojo;
 import software.amazon.awssdk.protocol.json.StructuredJsonGenerator;
-import software.amazon.awssdk.runtime.SdkInternalList;
-import software.amazon.awssdk.runtime.SdkInternalMap;
 
 @SdkInternalApi
 public class SimpleTypeJsonMarshallers {
@@ -122,11 +120,6 @@ public class SimpleTypeJsonMarshallers {
             }
             jsonGenerator.writeEndArray();
         }
-
-        @Override
-        protected boolean shouldEmit(List list) {
-            return !(list.isEmpty() && list instanceof SdkInternalList && ((SdkInternalList) list).isAutoConstruct());
-        }
     };
 
     /**
@@ -144,11 +137,6 @@ public class SimpleTypeJsonMarshallers {
                 }
             }
             jsonGenerator.writeEndObject();
-        }
-
-        @Override
-        protected boolean shouldEmit(Map map) {
-            return !(map.isEmpty() && map instanceof SdkInternalMap && ((SdkInternalMap) map).isAutoConstruct());
         }
     };
 

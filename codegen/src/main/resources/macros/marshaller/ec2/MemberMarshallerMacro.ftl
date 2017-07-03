@@ -30,13 +30,8 @@
             <#local listVariable = shape.variable.variableName + memberVariableName?cap_first + "List"/>
             <#local loopVariable = listVariable + "Value"/>
 
-            <#if customConfig.useAutoConstructList>
-                ${listModel.templateImplType} ${listVariable} = (${listModel.templateImplType})${getMember}();
-                if (!${listVariable}.isEmpty() || !${listVariable}.isAutoConstruct()) {
-            <#else>
-                ${listModel.templateType} ${listVariable} = ${getMember}();
-                if (${listVariable} != null) {
-            </#if>
+            ${listModel.templateType} ${listVariable} = ${getMember}();
+            if (${listVariable} != null) {
                 int ${listIndex} = 1;
 
                 for (${listModel.memberType} ${loopVariable} : ${listVariable}) {

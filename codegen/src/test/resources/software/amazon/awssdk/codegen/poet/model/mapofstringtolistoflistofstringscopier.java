@@ -1,6 +1,7 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,7 @@ final class MapOfStringToListOfListOfStringsCopier {
             mapOfStringToListOfListOfStringsParamCopy.put(StandardMemberCopier.copy(e.getKey()),
                     ListOfListOfStringsCopier.copy(e.getValue()));
         }
-        return mapOfStringToListOfListOfStringsParamCopy;
+        return Collections.unmodifiableMap(mapOfStringToListOfListOfStringsParamCopy);
     }
 }
 

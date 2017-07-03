@@ -83,8 +83,13 @@ public class ${shape.shapeName}Unmarshaller implements Unmarshaller<${shape.shap
         ${shape.variable.variableName}.${memberModel.fluentSetterMethodName}(context.getHttpResponse().getStatusCode());
         </#if>
 
-        <#if memberModel.map && (!memberModel.http.location?? || memberModel.http.location != "headers")>
-        java.util.Map<${memberModel.mapModel.keyType}, ${memberModel.mapModel.valueType}> ${memberModel.variable.variableName} = null;
+        <#if !memberModel.http.location?? || memberModel.http.location != "headers">
+            <#if memberModel.map>
+                java.util.Map<${memberModel.mapModel.keyType}, ${memberModel.mapModel.valueType}> ${memberModel.variable.variableName} = null;
+            </#if>
+            <#if memberModel.list>
+                java.util.List<${memberModel.listModel.memberType}> ${memberModel.variable.variableName} = null;
+            </#if>
         </#if>
     </#list>
 </#if>
@@ -102,8 +107,13 @@ public class ${shape.shapeName}Unmarshaller implements Unmarshaller<${shape.shap
 <#-- If any member unmarshalls as payload we want to XML unmarshall. Otherwise, response won't contain xml -->
 <#if hasPayload && !shape.hasStreamingMember >
 <#list shape.members as memberModel>
-    <#if memberModel.map && (!memberModel.http.location?? || memberModel.http.location != "headers")>
-        java.util.Map<${memberModel.mapModel.keyType}, ${memberModel.mapModel.valueType}> ${memberModel.variable.variableName} = null;
+    <#if !memberModel.http.location?? || memberModel.http.location != "headers">
+        <#if memberModel.map>
+            java.util.Map<${memberModel.mapModel.keyType}, ${memberModel.mapModel.valueType}> ${memberModel.variable.variableName} = null;
+        </#if>
+        <#if memberModel.list>
+            java.util.List<${memberModel.listModel.memberType}> ${memberModel.variable.variableName} = null;
+        </#if>
     </#if>
 </#list>
 
@@ -112,8 +122,8 @@ public class ${shape.shapeName}Unmarshaller implements Unmarshaller<${shape.shap
             if (xmlEvent.isEndDocument()) {
             <#-- Set any map members we filled during unmarshalling -->
 <#list shape.members as memberModel>
-    <#if memberModel.map && (!memberModel.http.location?? || memberModel.http.location == "headers")>
-                    ${shape.variable.variableName}.${memberModel.fluentSetterMethodName}(${memberModel.variable.variableName});
+    <#if memberModel.map || memberModel.list>
+        ${shape.variable.variableName}.${memberModel.fluentSetterMethodName}(${memberModel.variable.variableName});
     </#if>
 </#list>
                 break;
@@ -141,9 +151,8 @@ public class ${shape.shapeName}Unmarshaller implements Unmarshaller<${shape.shap
             } else if (xmlEvent.isEndElement()) {
                 if (context.getCurrentDepth() < originalDepth) {
 <#list shape.members as memberModel>
-    <#if memberModel.map && (!memberModel.http.location?? || memberModel.http.location == "headers")>
-                    ${shape.variable.variableName}.${memberModel.fluentSetterMethodName}(${memberModel.variable.variableName});
-
+    <#if memberModel.map || memberModel.list>
+        ${shape.variable.variableName}.${memberModel.fluentSetterMethodName}(${memberModel.variable.variableName});
     </#if>
 </#list>
                     break;

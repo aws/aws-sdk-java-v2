@@ -17,10 +17,8 @@ package software.amazon.awssdk.codegen;
 
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.generateGetterDocumentation;
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.generateSetterDocumentation;
-import static software.amazon.awssdk.codegen.internal.TypeUtils.LIST_AUTO_CONSTRUCT_IMPL;
 import static software.amazon.awssdk.codegen.internal.TypeUtils.LIST_DEFAULT_IMPL;
 import static software.amazon.awssdk.codegen.internal.TypeUtils.LIST_INTERFACE;
-import static software.amazon.awssdk.codegen.internal.TypeUtils.MAP_AUTO_CONSTRUCT_IMPL;
 import static software.amazon.awssdk.codegen.internal.TypeUtils.MAP_DEFAULT_IMPL;
 import static software.amazon.awssdk.codegen.internal.TypeUtils.MAP_INTERFACE;
 import static software.amazon.awssdk.codegen.internal.TypeUtils.getDataTypeMapping;
@@ -307,9 +305,7 @@ abstract class AddShapes {
 
             listMemberModel = generateMemberModel("member", listMemberDefinition, protocol,
                                                   memberC2jShape, c2jShapes);
-            final String listImpl = getCustomizationConfig().isUseAutoConstructList() ?
-                    getDataTypeMapping(LIST_AUTO_CONSTRUCT_IMPL) :
-                    getDataTypeMapping(LIST_DEFAULT_IMPL);
+            final String listImpl = getDataTypeMapping(LIST_DEFAULT_IMPL);
             memberModel.setListModel(
                     new ListModel(getTypeUtils().getJavaDataType(c2jShapes, listMemberC2jShapeName),
                                   memberC2jShape.getListMember().getLocationName(), listImpl,
@@ -342,9 +338,7 @@ abstract class AddShapes {
             }
             mapValueModel = generateMemberModel("value", mapValueMemberDefinition, protocol,
                                                 memberC2jShape, c2jShapes);
-            final String mapImpl = getCustomizationConfig().isUseAutoConstructMap() ?
-                    getDataTypeMapping(MAP_AUTO_CONSTRUCT_IMPL) :
-                    getDataTypeMapping(MAP_DEFAULT_IMPL);
+            final String mapImpl = getDataTypeMapping(MAP_DEFAULT_IMPL);
 
             String keyLocation = memberC2jShape.getMapKeyType().getLocationName() != null ?
                     memberC2jShape.getMapKeyType().getLocationName() : "key";

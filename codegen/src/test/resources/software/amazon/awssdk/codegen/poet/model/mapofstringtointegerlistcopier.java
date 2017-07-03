@@ -1,6 +1,7 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +18,7 @@ final class MapOfStringToIntegerListCopier {
         for (Map.Entry<String, ? extends Collection<Integer>> e : mapOfStringToIntegerListParam.entrySet()) {
             mapOfStringToIntegerListParamCopy.put(StandardMemberCopier.copy(e.getKey()), ListOfIntegersCopier.copy(e.getValue()));
         }
-        return mapOfStringToIntegerListParamCopy;
+        return Collections.unmodifiableMap(mapOfStringToIntegerListParamCopy);
     }
 }
 

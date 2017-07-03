@@ -31,12 +31,7 @@ import java.util.Map;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
-import software.amazon.awssdk.runtime.SdkInternalList;
-import software.amazon.awssdk.runtime.SdkInternalMap;
 
-/**
- * Used to determine the Java types for the service model.
- */
 /**
  * Used to determine the Java types for the service model.
  */
@@ -46,13 +41,9 @@ public class TypeUtils {
 
     public static final String LIST_DEFAULT_IMPL = "listDefaultImpl";
 
-    public static final String LIST_AUTO_CONSTRUCT_IMPL = "listAutoConstructImpl";
-
     public static final String MAP_INTERFACE = "mapInterface";
 
     public static final String MAP_DEFAULT_IMPL = "mapDefaultImpl";
-
-    public static final String MAP_AUTO_CONSTRUCT_IMPL = "mapAutoConstructImpl";
 
     private static final Map<String, String> DATA_TYPE_MAPPINGS = new HashMap<>();
 
@@ -78,16 +69,8 @@ public class TypeUtils {
         DATA_TYPE_MAPPINGS.put("map", Map.class.getSimpleName());
         DATA_TYPE_MAPPINGS.put(LIST_INTERFACE, List.class.getName());
         DATA_TYPE_MAPPINGS.put(LIST_DEFAULT_IMPL, ArrayList.class.getName());
-        DATA_TYPE_MAPPINGS.put(LIST_AUTO_CONSTRUCT_IMPL, SdkInternalList.class.getName());
         DATA_TYPE_MAPPINGS.put(MAP_INTERFACE, Map.class.getName());
         DATA_TYPE_MAPPINGS.put(MAP_DEFAULT_IMPL, HashMap.class.getName());
-        DATA_TYPE_MAPPINGS.put(MAP_AUTO_CONSTRUCT_IMPL, SdkInternalMap.class.getName());
-        DATA_TYPE_MAPPINGS.put(LIST_INTERFACE, List.class.getName());
-        DATA_TYPE_MAPPINGS.put(LIST_DEFAULT_IMPL, ArrayList.class.getName());
-        DATA_TYPE_MAPPINGS.put(LIST_AUTO_CONSTRUCT_IMPL, SdkInternalList.class.getName());
-        DATA_TYPE_MAPPINGS.put(MAP_INTERFACE, Map.class.getName());
-        DATA_TYPE_MAPPINGS.put(MAP_DEFAULT_IMPL, HashMap.class.getName());
-        DATA_TYPE_MAPPINGS.put(MAP_AUTO_CONSTRUCT_IMPL, SdkInternalMap.class.getName());
 
         MARSHALLING_TYPE_MAPPINGS.put("String", "STRING");
         MARSHALLING_TYPE_MAPPINGS.put("Integer", "INTEGER");
@@ -151,15 +134,11 @@ public class TypeUtils {
         if (Structure.getName().equals(shapeType)) {
             return namingStrategy.getJavaClassName(shapeName);
         } else if (List.getName().equals(shapeType)) {
-            String listType =
-                    customConfig != null && customConfig.isUseAutoConstructList() ? LIST_AUTO_CONSTRUCT_IMPL : LIST_INTERFACE;
-            final String listContainerType = DATA_TYPE_MAPPINGS.get(listType);
+            final String listContainerType = DATA_TYPE_MAPPINGS.get(LIST_INTERFACE);
             return listContainerType + "<" +
                     getJavaDataType(shapes, shape.getListMember().getShape()) + ">";
         } else if (Map.getName().equals(shapeType)) {
-            String mapType =
-                    customConfig != null && customConfig.isUseAutoConstructMap() ? MAP_AUTO_CONSTRUCT_IMPL : MAP_INTERFACE;
-            final String mapContainerType = DATA_TYPE_MAPPINGS.get(mapType);
+            final String mapContainerType = DATA_TYPE_MAPPINGS.get(MAP_INTERFACE);
             return mapContainerType + "<" +
                     getJavaDataType(shapes, shape.getMapKeyType().getShape()) + "," +
                     getJavaDataType(shapes, shape.getMapValueType().getShape()) + ">";

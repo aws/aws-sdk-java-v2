@@ -2,6 +2,7 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import javax.annotation.Generated;
 
@@ -15,7 +16,7 @@ final class ListOfSimpleStructsCopier {
         for (SimpleStruct e : listOfSimpleStructsParam) {
             listOfSimpleStructsParamCopy.add(e);
         }
-        return listOfSimpleStructsParamCopy;
+        return Collections.unmodifiableList(listOfSimpleStructsParamCopy);
     }
 }
 

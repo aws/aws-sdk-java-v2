@@ -22,6 +22,7 @@ import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
+import java.util.Collections;
 import javax.lang.model.element.Modifier;
 
 import software.amazon.awssdk.codegen.internal.Utils;
@@ -98,8 +99,8 @@ class MemberCopierSpec implements ClassSpec {
                 .orElseGet(() -> elementCopyExprBuilder.add("e"));
 
         return builder.addStatement("$N.add($L)", copyName, elementCopyExprBuilder.build())
-                .endControlFlow()
-                .addStatement("return $N", copyName).build();
+                      .endControlFlow()
+                      .addStatement("return $T.unmodifiableList($N)", Collections.class, copyName).build();
     }
 
     private CodeBlock mapCopyBody() {
@@ -126,7 +127,7 @@ class MemberCopierSpec implements ClassSpec {
 
         return builder.addStatement("$N.put($L, $L)", copyName, keyCopyExpr, valueCopyExprBuilder.build())
                 .endControlFlow()
-                .addStatement("return $N", copyName)
+                .addStatement("return $T.unmodifiableMap($N)", Collections.class, copyName)
                 .build();
     }
 

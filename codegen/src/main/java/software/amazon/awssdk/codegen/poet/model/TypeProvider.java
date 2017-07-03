@@ -19,7 +19,6 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.WildcardTypeName;
-
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -31,38 +30,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.ListModel;
 import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
-import software.amazon.awssdk.runtime.SdkInternalList;
-import software.amazon.awssdk.runtime.SdkInternalMap;
 
 /**
  * Helper class for resolving Poet {@link TypeName}s for use in model classes.
  */
 class TypeProvider {
-    private final IntermediateModel intermediateModel;
     private final PoetExtensions poetExtensions;
 
     public TypeProvider(IntermediateModel intermediateModel) {
-        this.intermediateModel = intermediateModel;
         this.poetExtensions = new PoetExtensions(intermediateModel);
     }
 
     public ClassName listImplClassName() {
-        if (intermediateModel.getCustomizationConfig().isUseAutoConstructList()) {
-            return ClassName.get(SdkInternalList.class);
-        }
         return ClassName.get(ArrayList.class);
     }
 
     public ClassName mapImplClassName() {
-        if (intermediateModel.getCustomizationConfig().isUseAutoConstructMap()) {
-            return ClassName.get(SdkInternalMap.class);
-        }
         return ClassName.get(HashMap.class);
     }
 

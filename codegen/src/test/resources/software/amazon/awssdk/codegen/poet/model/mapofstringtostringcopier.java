@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Generated;
@@ -15,7 +16,7 @@ final class MapOfStringToStringCopier {
         for (Map.Entry<String, String> e : mapOfStringToStringParam.entrySet()) {
             mapOfStringToStringParamCopy.put(StandardMemberCopier.copy(e.getKey()), e.getValue());
         }
-        return mapOfStringToStringParamCopy;
+        return Collections.unmodifiableMap(mapOfStringToStringParamCopy);
     }
 }
 

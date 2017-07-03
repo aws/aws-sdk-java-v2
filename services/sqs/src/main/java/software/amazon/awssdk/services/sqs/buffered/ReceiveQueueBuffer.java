@@ -508,7 +508,7 @@ public class ReceiveQueueBuffer {
 
                 ResultConverter.appendUserAgent(request, SqsBufferedAsyncClient.USER_AGENT);
 
-                messages = sqsClient.receiveMessage(request).join().messages();
+                messages = new ArrayList<>(sqsClient.receiveMessage(request).join().messages());
             } catch (AmazonClientException e) {
                 exception = e;
             } finally {

@@ -25,7 +25,8 @@ public class BlockingRequestBuilderTest {
         assertTrue(0 == md.dimensions().size());
         md = md.toBuilder().dimensions(Dimension.builder().name("Name1").value("Value1").build()).build();
         assertTrue(1 == md.dimensions().size());
-        md = md.toBuilder().dimensions(Dimension.builder().name("Name2").value("Value2").build()).build();
+        md = md.toBuilder().dimensions(Dimension.builder().name("Name1").value("Value1").build(),
+                                       Dimension.builder().name("Name2").value("Value2").build()).build();
         assertTrue(2 == md.dimensions().size());
         md = md.toBuilder()
                 .metricName("MetricName")
