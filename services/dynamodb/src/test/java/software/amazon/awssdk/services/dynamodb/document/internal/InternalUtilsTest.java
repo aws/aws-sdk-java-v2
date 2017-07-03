@@ -291,18 +291,20 @@ public class InternalUtilsTest {
     @Test
     public void toSimpleValue_ByteArray() {
         byte[] bytesFrom = new byte[] {1, 2, 3};
+        ByteBuffer byteBufferTo = ByteBuffer.allocate(3).put(bytesFrom);
+        byteBufferTo.rewind();
         byte[] bytesTo = InternalUtils.toSimpleValue(
-                AttributeValue.builder().b(
-                        ByteBuffer.allocate(3).put(bytesFrom)).build());
+                AttributeValue.builder().b(byteBufferTo).build());
         assertTrue(Arrays.equals(bytesTo, bytesFrom));
     }
 
     @Test
     public void toSimpleValue_DirectByteBuffer() {
         byte[] bytesFrom = new byte[] {1, 2, 3};
+        ByteBuffer byteBufferTo = ByteBuffer.allocateDirect(3).put(bytesFrom);
+        byteBufferTo.rewind();
         byte[] bytesTo = InternalUtils.toSimpleValue(
-                AttributeValue.builder().b(
-                        ByteBuffer.allocateDirect(3).put(bytesFrom)).build());
+                AttributeValue.builder().b(byteBufferTo).build());
         assertTrue(Arrays.equals(bytesTo, bytesFrom));
     }
 

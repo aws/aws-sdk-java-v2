@@ -18,17 +18,14 @@ package software.amazon.awssdk.codegen.model.intermediate;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import software.amazon.awssdk.codegen.internal.Constants;
-import software.amazon.awssdk.codegen.internal.DocumentationUtils;
-import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 
+@ReviewBeforeRelease("If we get rid of 'simple constructors' for simple models, this can be deleted.")
 public class ConstructorModel {
 
-    private final String modelClassName;
     private final List<ArgumentModel> arguments = new LinkedList<ArgumentModel>();
 
     public ConstructorModel(String modelClassName) {
-        this.modelClassName = modelClassName;
     }
 
     public List<ArgumentModel> getArguments() {

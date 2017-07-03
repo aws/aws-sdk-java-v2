@@ -14,6 +14,7 @@ import java.util.Map;
 import org.junit.Test;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.SimpleStruct;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * Verifies that the models are actually immutable.
@@ -67,22 +68,15 @@ public class ImmutableModelTest {
     public void byteBuffersAreImmutable() {
         ByteBuffer buffer = ByteBuffer.wrap("Hello".getBytes(StandardCharsets.UTF_8));
 
-        int position = buffer.position();
-        int limit = buffer.limit();
-        ByteOrder order = buffer.order();
+        buffer.position(1);
 
         AllTypesRequest request = AllTypesRequest.builder().blobArg(buffer).build();
 
-        buffer.limit(4);
-        buffer.position(0);
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
-        buffer.put("Foo".getBytes(StandardCharsets.UTF_8));
+        buffer.array()[1] = ' ';
 
         assertThat(request.blobArg()).as("Check new read-only blob each time").isNotSameAs(request.blobArg());
         assertThat(request.blobArg().isReadOnly()).as("Check read-only").isTrue();
-        assertThat(request.blobArg().limit()).as("Check limit").isEqualTo(limit);
-        assertThat(request.blobArg().position()).as("Check position").isEqualTo(position);
-        assertThat(request.blobArg().order()).as("Check order").isEqualTo(order);
-        assertThat(request.blobArg()).as("Check original buffer modification").isNotEqualByComparingTo(buffer);
+        assertThat(BinaryUtils.copyAllBytesFrom(request.blobArg()))
+                .as("Check copy contents").containsExactly('e', 'l', 'l', 'o');
     }
 }

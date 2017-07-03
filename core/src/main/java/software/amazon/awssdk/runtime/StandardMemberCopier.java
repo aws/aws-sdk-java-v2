@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * Used in combination with the generated member copiers to implement deep
@@ -75,18 +76,6 @@ public final class StandardMemberCopier {
             return null;
         }
 
-        ByteBuffer copy = bb.isDirect() ? ByteBuffer.allocateDirect(bb.capacity()) : ByteBuffer.allocate(bb.capacity());
-
-        // Copy content
-        ByteBuffer toCopy = bb.asReadOnlyBuffer();
-        toCopy.rewind();
-        copy.put(toCopy);
-
-        // Copy non-content
-        copy.position(bb.position());
-        copy.limit(bb.limit());
-        copy.order(bb.order());
-
-        return copy.asReadOnlyBuffer();
+        return ByteBuffer.wrap(BinaryUtils.copyBytesFrom(bb)).asReadOnlyBuffer();
     }
 }
