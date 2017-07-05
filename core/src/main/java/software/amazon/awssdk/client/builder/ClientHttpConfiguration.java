@@ -147,7 +147,7 @@ public final class ClientHttpConfiguration
         }
 
         public void setHttpClient(SdkHttpClient httpClient) {
-            this.httpClient = httpClient;
+            httpClient(httpClient);
         }
 
         @Override
@@ -157,7 +157,7 @@ public final class ClientHttpConfiguration
         }
 
         public void setHttpClientFactory(SdkHttpClientFactory httpClientFactory) {
-            this.httpClientFactory = httpClientFactory;
+            httpClientFactory(httpClientFactory);
         }
 
         /**
