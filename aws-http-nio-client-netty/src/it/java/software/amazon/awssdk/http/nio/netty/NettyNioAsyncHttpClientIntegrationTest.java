@@ -35,10 +35,15 @@ import static org.apache.commons.lang.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.reverse;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import io.netty.channel.EventLoopGroup;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -48,6 +53,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.junit.AfterClass;
@@ -55,6 +61,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -81,6 +88,96 @@ public class NettyNioAsyncHttpClientIntegrationTest {
     @AfterClass
     public static void tearDown() throws Exception {
         client.close();
+    }
+
+    @Test
+    public void customFactoryIsUsed() throws Exception {
+        ThreadFactory threadFactory = spy(new CustomThreadFactory());
+        EventLoopGroupConfiguration eventLoopGroupConfiguration =
+                EventLoopGroupConfiguration.builder()
+                                           .eventLoopGroupFactory(EventLoopGroupFactory.builder()
+                                                                                       .threadFactory(threadFactory)
+                                                                                       .build())
+                                           .build();
+        SdkAsyncHttpClient customClient =
+                NettySdkHttpClientFactory.builder()
+                                         .trustAllCertificates(true)
+                                         .eventLoopGroupConfiguration(eventLoopGroupConfiguration)
+                                         .build()
+                                         .createHttpClient();
+
+        makeSimpleRequest(customClient);
+        customClient.close();
+
+        Mockito.verify(threadFactory, atLeastOnce()).newThread(Mockito.any());
+    }
+
+    @Test
+    public void customThreadCountIsRespected() throws Exception {
+        final int threadCount = 10;
+        ThreadFactory threadFactory = spy(new CustomThreadFactory());
+        EventLoopGroupConfiguration eventLoopGroupConfiguration =
+                EventLoopGroupConfiguration.builder()
+                                           .eventLoopGroupFactory(EventLoopGroupFactory.builder()
+                                                                                       .threadFactory(threadFactory)
+                                                                                       .numberOfThreads(threadCount)
+                                                                                       .build())
+                                           .build();
+        SdkAsyncHttpClient customClient =
+                NettySdkHttpClientFactory.builder()
+                                         .trustAllCertificates(true)
+                                         .eventLoopGroupConfiguration(eventLoopGroupConfiguration)
+                                         .build()
+                                         .createHttpClient();
+
+        // Have to make enough requests to prime the threads
+        for (int i = 0; i < threadCount + 1; i++) {
+            makeSimpleRequest(customClient);
+        }
+        customClient.close();
+
+        Mockito.verify(threadFactory, times(threadCount)).newThread(Mockito.any());
+    }
+
+    @Test
+    public void customEventLoopGroup_NotClosedWhenClientIsClosed() throws Exception {
+
+        ThreadFactory threadFactory = spy(new CustomThreadFactory());
+        EventLoopGroup eventLoopGroup = spy(EventLoopGroupFactory.builder()
+                                                                 .threadFactory(threadFactory)
+                                                                 .build()
+                                                                 .create());
+        EventLoopGroupConfiguration eventLoopGroupConfiguration =
+                EventLoopGroupConfiguration.builder()
+                                           .eventLoopGroup(eventLoopGroup)
+                                           .build();
+        SdkAsyncHttpClient customClient =
+                NettySdkHttpClientFactory.builder()
+                                         .trustAllCertificates(true)
+                                         .eventLoopGroupConfiguration(eventLoopGroupConfiguration)
+                                         .build()
+                                         .createHttpClient();
+
+        makeSimpleRequest(customClient);
+        customClient.close();
+
+        Mockito.verify(threadFactory, atLeastOnce()).newThread(Mockito.any());
+        Mockito.verify(eventLoopGroup, never()).shutdownGracefully();
+    }
+
+    /**
+     * Make a simple async request and wait for it to fiish.
+     *
+     * @param client Client to make request with.
+     */
+    private void makeSimpleRequest(SdkAsyncHttpClient client) throws Exception {
+        String body = randomAlphabetic(10);
+        URI uri = URI.create("http://localhost:" + mockServer.port());
+        stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withBody(body)));
+        SdkHttpRequest request = createRequest(uri);
+        RecordingResponseHandler recorder = new RecordingResponseHandler();
+        client.prepareRequest(request, requestContext, createProvider(""), recorder).run();
+        recorder.completeFuture.get(5, TimeUnit.SECONDS);
     }
 
     @Test
@@ -219,5 +316,13 @@ public class NettyNioAsyncHttpClientIntegrationTest {
             split.add(str.substring(i * 1000, Math.min((i + 1) * 1000, str.length())));
         }
         return split;
+    }
+
+    // Needs to be a non-anon class in order to spy
+    public static class CustomThreadFactory implements ThreadFactory {
+        @Override
+        public Thread newThread(Runnable r) {
+            return new Thread(r);
+        }
     }
 }

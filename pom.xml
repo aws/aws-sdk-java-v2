@@ -217,6 +217,11 @@
                 <version>${netty.version}</version>
             </dependency>
             <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-transport-native-epoll</artifactId>
+                <version>${netty.version}</version>
+            </dependency>
+            <dependency>
                 <artifactId>cucumber-java</artifactId>
                 <groupId>info.cukes</groupId>
                 <version>${cucumber.info.cukes.version}</version>

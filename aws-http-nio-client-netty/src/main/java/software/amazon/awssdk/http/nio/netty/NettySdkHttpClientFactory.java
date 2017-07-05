@@ -19,6 +19,7 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.SOCKET_TIMEOUT;
 
+import io.netty.channel.EventLoopGroup;
 import java.time.Duration;
 import java.util.Optional;
 import software.amazon.awssdk.annotation.Immutable;
@@ -39,10 +40,12 @@ public final class NettySdkHttpClientFactory
 
     private final AttributeMap standardOptions;
     private final Optional<Boolean> trustAllCertificates;
+    private final EventLoopGroupConfiguration eventLoopGroupConfiguration;
 
     private NettySdkHttpClientFactory(DefaultBuilder builder) {
         this.standardOptions = builder.standardOptions.build();
         this.trustAllCertificates = Optional.ofNullable(builder.trustAllCertificates);
+        this.eventLoopGroupConfiguration = builder.eventLoopGroupConfiguration;
     }
 
     /**
@@ -78,6 +81,15 @@ public final class NettySdkHttpClientFactory
     }
 
     /**
+     * @return The current {@link EventLoopGroupConfiguration} which is a container for either an {@link EventLoopGroup} or an
+     * {@link EventLoopGroupFactory}.
+     * @see Builder#eventLoopGroupConfiguration(EventLoopGroupConfiguration)
+     */
+    public EventLoopGroupConfiguration eventLoopGroupConfiguration() {
+        return eventLoopGroupConfiguration;
+    }
+
+    /**
      * Create an HTTP client instance with global defaults applied. This client instance can be shared
      * across multiple SDK clients for better resource utilization. Note that if sharing is not needed then it is
      * recommended to pass this factory into the SDK client builders so that service defaults may be applied.
@@ -100,6 +112,9 @@ public final class NettySdkHttpClientFactory
                 .trustAllCertificates(trustAllCertificates.orElse(null));
     }
 
+    /**
+     * @return A {@link Builder} for creating an immutable {@link NettySdkHttpClientFactory}.
+     */
     public static Builder builder() {
         return new DefaultBuilder(AttributeMap.builder());
     }
@@ -140,12 +155,22 @@ public final class NettySdkHttpClientFactory
          * @return This builder for method chaining.
          */
         Builder trustAllCertificates(Boolean trustAllCertificates);
+
+        /**
+         * Configuration for the Netty {@link EventLoopGroup} which multiplexes IO events..
+         *
+         * @param eventLoopGroupConfiguration New configuration object.
+         * @return This builder for method chaining.
+         */
+        Builder eventLoopGroupConfiguration(EventLoopGroupConfiguration eventLoopGroupConfiguration);
+
     }
 
     private static final class DefaultBuilder implements Builder {
 
-        private Boolean trustAllCertificates;
         private final AttributeMap.Builder standardOptions;
+        private Boolean trustAllCertificates;
+        private EventLoopGroupConfiguration eventLoopGroupConfiguration = EventLoopGroupConfiguration.builder().build();
 
         private DefaultBuilder(AttributeMap.Builder standardOptions) {
             this.standardOptions = standardOptions;
@@ -189,6 +214,16 @@ public final class NettySdkHttpClientFactory
 
         public void setTrustAllCertificates(Boolean trustAllCertificates) {
             trustAllCertificates(trustAllCertificates);
+        }
+
+        @Override
+        public DefaultBuilder eventLoopGroupConfiguration(EventLoopGroupConfiguration eventLoopGroupConfiguration) {
+            this.eventLoopGroupConfiguration = eventLoopGroupConfiguration;
+            return this;
+        }
+
+        public void setEventLoopGroupConfiguration(EventLoopGroupConfiguration eventLoopGroupConfiguration) {
+            eventLoopGroupConfiguration(eventLoopGroupConfiguration);
         }
 
         @Override

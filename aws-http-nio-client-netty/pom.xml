@@ -48,6 +48,10 @@
             <artifactId>netty-handler</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-native-epoll</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.typesafe.netty</groupId>
             <artifactId>netty-reactive-streams</artifactId>
             <version>1.0.8</version>
