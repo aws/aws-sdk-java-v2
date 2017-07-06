@@ -16,7 +16,6 @@
 package software.amazon.awssdk.protocol.json.internal;
 
 import java.time.Instant;
-import java.util.Date;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 
 @SdkInternalApi
