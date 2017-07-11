@@ -26,7 +26,7 @@ final class Problem {
     private final ValidationContext context;
     private final String message;
 
-    public Problem(ValidationContext context, String message) {
+    Problem(ValidationContext context, String message) {
         this.context = context;
         this.message = message;
     }

@@ -26,16 +26,16 @@ public interface DynamoDbMapperModelFactory {
     /**
      * Gets/creates the mapper's model factory.
      */
-    public TableFactory getTableFactory(DynamoDbMapperConfig config);
+    TableFactory getTableFactory(DynamoDbMapperConfig config);
 
     /**
      * {@link DynamoDbMapperModelFactory} factory.
      */
-    public static interface TableFactory {
+    interface TableFactory {
         /**
          * Gets the table model for the given type and configuration.
          */
-        public <T> DynamoDbMapperTableModel<T> getTable(Class<T> clazz);
+        <T> DynamoDbMapperTableModel<T> getTable(Class<T> clazz);
     }
 
 }

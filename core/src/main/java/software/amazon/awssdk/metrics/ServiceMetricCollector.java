@@ -51,11 +51,11 @@ public abstract class ServiceMetricCollector {
         return true;
     }
 
-    public static interface Factory {
+    public interface Factory {
         /**
          * Returns an instance of the collector; or null if if failed to create
          * one.
          */
-        public ServiceMetricCollector getServiceMetricCollector();
+        ServiceMetricCollector getServiceMetricCollector();
     }
 }

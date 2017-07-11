@@ -406,7 +406,7 @@ public class Statement {
      * evaluation time. A policy statement can either allow access or explicitly
      * deny access.
      */
-    public static enum Effect {
+    public enum Effect {
         Allow(), Deny();
     }
 

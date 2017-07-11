@@ -92,7 +92,7 @@ public class DynamoDbRequestMetricTransformer implements RequestMetricTransforme
                                   .build());
                 // table specific
                 dims.add(Dimension.builder()
-                                  .name(DynamoDBDimensions.TableName.name())
+                                  .name(DynamoDbDimensions.TableName.name())
                                   .value(tableName)
                                   .build());
                 MetricDatum datum = MetricDatum.builder()

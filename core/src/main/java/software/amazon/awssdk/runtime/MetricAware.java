@@ -27,5 +27,5 @@ public interface MetricAware {
      * Returns true if this object or one of it's inner wrapped objects has
      * metrics gathering activity turned on; false otherwise.
      */
-    public boolean isMetricActivated();
+    boolean isMetricActivated();
 }

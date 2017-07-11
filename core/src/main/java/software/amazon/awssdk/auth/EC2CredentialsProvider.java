@@ -43,7 +43,7 @@ class EC2CredentialsProvider implements AwsCredentialsProvider, AutoCloseable {
     private final CredentialsEndpointProvider credentialsEndpointProvider;
     private final CachedSupplier<AwsCredentials> credentialsCache;
 
-    public EC2CredentialsProvider(CredentialsEndpointProvider credentialsEndpointProvider,
+    EC2CredentialsProvider(CredentialsEndpointProvider credentialsEndpointProvider,
                                   boolean asyncRefreshEnabled,
                                   String asyncThreadName) {
         this.credentialsEndpointProvider = credentialsEndpointProvider;

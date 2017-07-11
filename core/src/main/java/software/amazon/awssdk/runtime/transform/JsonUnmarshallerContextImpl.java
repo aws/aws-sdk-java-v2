@@ -302,7 +302,7 @@ public class JsonUnmarshallerContextImpl extends JsonUnmarshallerContext {
          * @param token
          *            Not null.
          */
-        public JsonFieldTokenPair(String fieldString, JsonToken token) {
+        JsonFieldTokenPair(String fieldString, JsonToken token) {
             field = fieldString;
             jsonToken = token;
         }

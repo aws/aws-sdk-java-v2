@@ -86,7 +86,7 @@ class DerParser {
      * @param in
      *            The DER encoded stream
      */
-    public DerParser(InputStream in) throws IOException {
+    DerParser(InputStream in) throws IOException {
         this.in = in;
     }
 
@@ -95,7 +95,7 @@ class DerParser {
      *
      * @param the encoded bytes
      */
-    public DerParser(byte[] bytes) throws IOException {
+    DerParser(byte[] bytes) throws IOException {
         this(new ByteArrayInputStream(bytes));
     }
 

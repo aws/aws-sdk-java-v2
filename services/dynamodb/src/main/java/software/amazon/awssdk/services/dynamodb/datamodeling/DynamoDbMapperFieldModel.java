@@ -385,27 +385,27 @@ public class DynamoDbMapperFieldModel<T, V> implements DynamoDbAutoGenerator<V>,
         return lo == null ? (hi == null ? null : le(hi)) : (hi == null ? ge(lo) : (lo.equals(hi) ? eq(lo) : between(lo, hi)));
     }
 
-    public static enum DynamoDbAttributeType {
+    public enum DynamoDbAttributeType {
         B, N, S, BS, NS, SS, BOOL, NULL, L, M
     }
 
     /**
      * The field model properties.
      */
-    static interface Properties<V> {
-        public String attributeName();
+    interface Properties<V> {
+        String attributeName();
 
-        public KeyType keyType();
+        KeyType keyType();
 
-        public boolean versioned();
+        boolean versioned();
 
-        public Map<KeyType, List<String>> globalSecondaryIndexNames();
+        Map<KeyType, List<String>> globalSecondaryIndexNames();
 
-        public List<String> localSecondaryIndexNames();
+        List<String> localSecondaryIndexNames();
 
-        public DynamoDbAutoGenerator<V> autoGenerator();
+        DynamoDbAutoGenerator<V> autoGenerator();
 
-        static final class Immutable<V> implements Properties<V> {
+        final class Immutable<V> implements Properties<V> {
             private final String attributeName;
             private final KeyType keyType;
             private final boolean versioned;
@@ -413,7 +413,7 @@ public class DynamoDbMapperFieldModel<T, V> implements DynamoDbAutoGenerator<V>,
             private final List<String> localSecondaryIndexNames;
             private final DynamoDbAutoGenerator<V> autoGenerator;
 
-            public Immutable(final Properties<V> properties) {
+            Immutable(final Properties<V> properties) {
                 this.attributeName = properties.attributeName();
                 this.keyType = properties.keyType();
                 this.versioned = properties.versioned();
@@ -423,32 +423,32 @@ public class DynamoDbMapperFieldModel<T, V> implements DynamoDbAutoGenerator<V>,
             }
 
             @Override
-            public final String attributeName() {
+            public String attributeName() {
                 return this.attributeName;
             }
 
             @Override
-            public final KeyType keyType() {
+            public KeyType keyType() {
                 return this.keyType;
             }
 
             @Override
-            public final boolean versioned() {
+            public boolean versioned() {
                 return this.versioned;
             }
 
             @Override
-            public final Map<KeyType, List<String>> globalSecondaryIndexNames() {
+            public Map<KeyType, List<String>> globalSecondaryIndexNames() {
                 return this.globalSecondaryIndexNames;
             }
 
             @Override
-            public final List<String> localSecondaryIndexNames() {
+            public List<String> localSecondaryIndexNames() {
                 return this.localSecondaryIndexNames;
             }
 
             @Override
-            public final DynamoDbAutoGenerator<V> autoGenerator() {
+            public DynamoDbAutoGenerator<V> autoGenerator() {
                 return this.autoGenerator;
             }
         }
@@ -459,10 +459,10 @@ public class DynamoDbMapperFieldModel<T, V> implements DynamoDbAutoGenerator<V>,
      * @param <T> The object type.
      * @param <V> The value type.
      */
-    static interface Reflect<T, V> {
-        public V get(T object);
+    interface Reflect<T, V> {
+        V get(T object);
 
-        public void set(T object, V value);
+        void set(T object, V value);
     }
 
     /**
@@ -475,7 +475,7 @@ public class DynamoDbMapperFieldModel<T, V> implements DynamoDbAutoGenerator<V>,
         private DynamoDbAttributeType attributeType;
         private Class<T> targetType;
 
-        public Builder(Class<T> targetType, DynamoDbMapperFieldModel.Properties<V> properties) {
+        Builder(Class<T> targetType, DynamoDbMapperFieldModel.Properties<V> properties) {
             this.properties = properties;
             this.targetType = targetType;
         }

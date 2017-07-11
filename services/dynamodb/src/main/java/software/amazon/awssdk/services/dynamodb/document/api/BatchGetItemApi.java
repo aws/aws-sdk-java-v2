@@ -39,9 +39,9 @@ public interface BatchGetItemApi {
      *            the tables, keys, and attributes specification to be used to
      *            retrieve the items.
      */
-    public BatchGetItemOutcome batchGetItem(
-            ReturnConsumedCapacity returnConsumedCapacity,
-            TableKeysAndAttributes... tableKeyAndAttributes);
+    BatchGetItemOutcome batchGetItem(
+        ReturnConsumedCapacity returnConsumedCapacity,
+        TableKeysAndAttributes... tableKeyAndAttributes);
 
     /**
      * Used to perform a batch get-item operation from DynamoDB.
@@ -50,14 +50,14 @@ public interface BatchGetItemApi {
      *            the tables, keys, and attributes specification to be used to
      *            retrieve the items.
      */
-    public BatchGetItemOutcome batchGetItem(
-            TableKeysAndAttributes... tableKeyAndAttributes);
+    BatchGetItemOutcome batchGetItem(
+        TableKeysAndAttributes... tableKeyAndAttributes);
 
     /**
      * Used to perform a batch get-item operation from DynamoDB with full
      * parameter specification.
      */
-    public BatchGetItemOutcome batchGetItem(BatchGetItemSpec spec);
+    BatchGetItemOutcome batchGetItem(BatchGetItemSpec spec);
 
     /**
      * Used to perform a batch get-item for the unprocessed keys returned from a
@@ -71,9 +71,9 @@ public interface BatchGetItemApi {
      *
      * @see BatchGetItemOutcome#getUnprocessedKeys()
      */
-    public BatchGetItemOutcome batchGetItemUnprocessed(
-            ReturnConsumedCapacity returnConsumedCapacity,
-            Map<String, KeysAndAttributes> unprocessedKeys);
+    BatchGetItemOutcome batchGetItemUnprocessed(
+        ReturnConsumedCapacity returnConsumedCapacity,
+        Map<String, KeysAndAttributes> unprocessedKeys);
 
     /**
      * Used to perform a batch get-item for the unprocessed keys returned from a
@@ -85,6 +85,6 @@ public interface BatchGetItemApi {
      *
      * @see BatchGetItemOutcome#getUnprocessedKeys()
      */
-    public BatchGetItemOutcome batchGetItemUnprocessed(
-            Map<String, KeysAndAttributes> unprocessedKeys);
+    BatchGetItemOutcome batchGetItemUnprocessed(
+        Map<String, KeysAndAttributes> unprocessedKeys);
 }

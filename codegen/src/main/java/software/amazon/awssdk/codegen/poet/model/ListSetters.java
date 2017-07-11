@@ -35,7 +35,7 @@ class ListSetters extends AbstractMemberSetters {
     private final TypeProvider typeProvider;
     private final PoetExtensions poetExtensions;
 
-    public ListSetters(IntermediateModel intermediateModel,
+    ListSetters(IntermediateModel intermediateModel,
                        ShapeModel shapeModel,
                        MemberModel memberModel,
                        TypeProvider typeProvider) {

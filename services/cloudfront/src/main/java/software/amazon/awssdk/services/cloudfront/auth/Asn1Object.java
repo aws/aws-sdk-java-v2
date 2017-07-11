@@ -59,7 +59,7 @@ class Asn1Object {
      * @param length Length of the field
      * @param value Encoded octet string for the field.
      */
-    public Asn1Object(int tag, int length, byte[] value) {
+    Asn1Object(int tag, int length, byte[] value) {
         this.tag = tag;
         this.type = tag & 0x1F;
         this.length = length;

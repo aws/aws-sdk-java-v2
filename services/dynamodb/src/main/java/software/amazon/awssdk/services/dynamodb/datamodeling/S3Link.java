@@ -490,7 +490,7 @@ public class S3Link {
             this.s3cc = s3cc;
         }
 
-        public static final Factory of(final AwsCredentialsProvider provider) {
+        public static Factory of(final AwsCredentialsProvider provider) {
             return provider == null ? DEFAULT : new Factory(new S3ClientCache(provider));
         }
 

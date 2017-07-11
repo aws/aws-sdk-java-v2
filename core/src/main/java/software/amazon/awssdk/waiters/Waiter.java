@@ -47,6 +47,6 @@ public interface Waiter<InputT extends AmazonWebServiceRequest> {
      * @return Future object that holds the result of an asynchronous
      *     computation of waiter
      */
-    Future<Void> runAsync(final WaiterParameters<InputT> waiterParameters, final WaiterHandler callback)
+    Future<Void> runAsync(WaiterParameters<InputT> waiterParameters, WaiterHandler callback)
             throws AmazonServiceException, WaiterTimedOutException, WaiterUnrecoverableException;
 }

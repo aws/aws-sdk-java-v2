@@ -43,51 +43,51 @@ public final class MutableClientConfiguration
     private ScheduledExecutorService asyncExecutorService;
 
     @Override
-    public final ClientOverrideConfiguration overrideConfiguration() {
+    public ClientOverrideConfiguration overrideConfiguration() {
         return overrideConfiguration;
     }
 
-    public final MutableClientConfiguration overrideConfiguration(ClientOverrideConfiguration overrideConfiguration) {
+    public MutableClientConfiguration overrideConfiguration(ClientOverrideConfiguration overrideConfiguration) {
         this.overrideConfiguration = overrideConfiguration;
         return this;
     }
 
     @Override
-    public final AwsCredentialsProvider credentialsProvider() {
+    public AwsCredentialsProvider credentialsProvider() {
         return credentialsProvider;
     }
 
-    public final MutableClientConfiguration credentialsProvider(AwsCredentialsProvider credentialsProvider) {
+    public MutableClientConfiguration credentialsProvider(AwsCredentialsProvider credentialsProvider) {
         this.credentialsProvider = credentialsProvider;
         return this;
     }
 
     @Override
-    public final URI endpoint() {
+    public URI endpoint() {
         return endpoint;
     }
 
-    public final MutableClientConfiguration endpoint(URI endpoint) {
+    public MutableClientConfiguration endpoint(URI endpoint) {
         this.endpoint = endpoint;
         return this;
     }
 
     @Override
-    public final ScheduledExecutorService asyncExecutorService() {
+    public ScheduledExecutorService asyncExecutorService() {
         return asyncExecutorService;
     }
 
-    public final MutableClientConfiguration asyncExecutorService(ScheduledExecutorService executorService) {
+    public MutableClientConfiguration asyncExecutorService(ScheduledExecutorService executorService) {
         this.asyncExecutorService = executorService;
         return this;
     }
 
     @Override
-    public final SdkHttpClient httpClient() {
+    public SdkHttpClient httpClient() {
         return sdkHttpClient;
     }
 
-    public final MutableClientConfiguration httpClient(SdkHttpClient sdkHttpClient) {
+    public MutableClientConfiguration httpClient(SdkHttpClient sdkHttpClient) {
         this.sdkHttpClient = sdkHttpClient;
         return this;
     }
@@ -97,13 +97,13 @@ public final class MutableClientConfiguration
         return asyncHttpClient;
     }
 
-    public final MutableClientConfiguration asyncHttpClient(SdkAsyncHttpClient asyncHttpClient) {
+    public MutableClientConfiguration asyncHttpClient(SdkAsyncHttpClient asyncHttpClient) {
         this.asyncHttpClient = asyncHttpClient;
         return this;
     }
 
     @Override
-    public final MutableClientConfiguration clone() {
+    public MutableClientConfiguration clone() {
         try {
             return (MutableClientConfiguration) super.clone();
         } catch (CloneNotSupportedException e) {

@@ -428,7 +428,7 @@ public abstract class PaginatedList<T> implements List<T> {
 
         private int pos = 0;
 
-        public PaginatedListIterator(boolean iterationOnly) {
+        PaginatedListIterator(boolean iterationOnly) {
             this.iterationOnly = iterationOnly;
 
             if (iterationOnly) {

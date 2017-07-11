@@ -315,7 +315,7 @@ public final class DynamoDbTableMapper<T extends Object, H extends Object, R ext
      * @param object The object to delete.
      * @see DynamoDbMapper#delete
      */
-    public final void delete(final T object) {
+    public void delete(final T object) {
         mapper.delete(object);
     }
 
@@ -326,7 +326,7 @@ public final class DynamoDbTableMapper<T extends Object, H extends Object, R ext
      * @param deleteExpression The delete expression.
      * @see DynamoDbMapper#delete
      */
-    public final void delete(final T object, final DynamoDbDeleteExpression deleteExpression) {
+    public void delete(final T object, final DynamoDbDeleteExpression deleteExpression) {
         mapper.delete(object, deleteExpression);
     }
 

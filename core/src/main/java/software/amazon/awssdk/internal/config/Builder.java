@@ -16,5 +16,5 @@
 package software.amazon.awssdk.internal.config;
 
 public interface Builder<T> {
-    public T build();
+    T build();
 }

@@ -20,6 +20,6 @@ import software.amazon.awssdk.annotation.SdkProtectedApi;
 @SdkProtectedApi
 public interface Unmarshaller<T, R> {
 
-    public T unmarshall(R in) throws Exception;
+    T unmarshall(R in) throws Exception;
 
 }

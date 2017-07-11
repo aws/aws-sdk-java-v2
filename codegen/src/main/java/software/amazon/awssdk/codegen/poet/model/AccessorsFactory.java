@@ -31,7 +31,7 @@ class AccessorsFactory {
     private final TypeProvider typeProvider;
     private final IntermediateModel intermediateModel;
 
-    public AccessorsFactory(ShapeModel shapeModel, IntermediateModel intermediateModel, TypeProvider typeProvider) {
+    AccessorsFactory(ShapeModel shapeModel, IntermediateModel intermediateModel, TypeProvider typeProvider) {
         this.shapeModel = shapeModel;
         this.typeProvider = typeProvider;
         this.intermediateModel = intermediateModel;

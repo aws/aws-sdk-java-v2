@@ -39,7 +39,7 @@ abstract class AbstractMemberSetters implements MemberSetters {
     private final TypeProvider typeProvider;
     private final ServiceModelCopiers serviceModelCopiers;
 
-    public AbstractMemberSetters(IntermediateModel intermediateModel,
+    AbstractMemberSetters(IntermediateModel intermediateModel,
                                  ShapeModel shapeModel,
                                  MemberModel memberModel,
                                  TypeProvider typeProvider) {

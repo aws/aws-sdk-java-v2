@@ -23,7 +23,7 @@ package software.amazon.awssdk.util;
  */
 @Deprecated
 interface Codec {
-    public byte[] encode(byte[] src);
+    byte[] encode(byte[] src);
 
-    public byte[] decode(byte[] src, final int length);
+    byte[] decode(byte[] src, int length);
 }

@@ -44,18 +44,18 @@ public interface DynamoDbAutoGenerator<T extends Object> {
     /**
      * Gets the auto-generate strategy.
      */
-    public DynamoDbAutoGenerateStrategy getGenerateStrategy();
+    DynamoDbAutoGenerateStrategy getGenerateStrategy();
 
     /**
      * Generates a new value given the current value (or null) if applicable.
      */
-    public T generate(T currentValue);
+    T generate(T currentValue);
 
     /**
      * A generator which holds the {@link DynamoDbAutoGenerateStrategy}.
      */
     @SdkInternalApi
-    abstract static class AbstractGenerator<T> implements DynamoDbAutoGenerator<T> {
+    abstract class AbstractGenerator<T> implements DynamoDbAutoGenerator<T> {
         private final DynamoDbAutoGenerateStrategy strategy;
 
         protected AbstractGenerator(DynamoDbAutoGenerateStrategy strategy) {

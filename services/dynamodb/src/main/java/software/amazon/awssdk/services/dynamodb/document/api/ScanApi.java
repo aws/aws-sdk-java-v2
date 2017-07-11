@@ -30,7 +30,7 @@ public interface ScanApi {
     /**
      * Retrieves items by the specified list of scan filters.
      */
-    public ItemCollection<ScanOutcome> scan(ScanFilter... scanFilters);
+    ItemCollection<ScanOutcome> scan(ScanFilter... scanFilters);
 
     /**
      * Scans table using a Filter Expression.
@@ -46,9 +46,9 @@ public interface ScanApi {
      *            actual values for the value place holders can be null if there
      *            is no attribute-value placeholder.
      */
-    public ItemCollection<ScanOutcome> scan(String filterExpression,
-                                            Map<String, String> nameMap,
-                                            Map<String, Object> valueMap);
+    ItemCollection<ScanOutcome> scan(String filterExpression,
+                                     Map<String, String> nameMap,
+                                     Map<String, Object> valueMap);
 
     /**
      * Scans table using a Filter Expression and a Projection Expression.
@@ -64,14 +64,14 @@ public interface ScanApi {
      * @param valueMap actual values for the value place holders
      *                can be null if there is no attribute-value placeholder.
      */
-    public ItemCollection<ScanOutcome> scan(
-            String filterExpression,
-            String projectionExpression,
-            Map<String, String> nameMap,
-            Map<String, Object> valueMap);
+    ItemCollection<ScanOutcome> scan(
+        String filterExpression,
+        String projectionExpression,
+        Map<String, String> nameMap,
+        Map<String, Object> valueMap);
 
     /**
      * Scans table by specifying all the details.
      */
-    public ItemCollection<ScanOutcome> scan(ScanSpec params);
+    ItemCollection<ScanOutcome> scan(ScanSpec params);
 }

@@ -215,7 +215,7 @@ public class TableUtils {
      * @param createTableRequest The create table request.
      * @return True if created, false otherwise.
      */
-    public static final boolean createTableIfNotExists(final DynamoDBClient dynamo, final CreateTableRequest createTableRequest) {
+    public static boolean createTableIfNotExists(final DynamoDBClient dynamo, final CreateTableRequest createTableRequest) {
         try {
             dynamo.createTable(createTableRequest);
             return true;
@@ -233,7 +233,7 @@ public class TableUtils {
      * @param deleteTableRequest The delete table request.
      * @return True if deleted, false otherwise.
      */
-    public static final boolean deleteTableIfExists(final DynamoDBClient dynamo, final DeleteTableRequest deleteTableRequest) {
+    public static boolean deleteTableIfExists(final DynamoDBClient dynamo, final DeleteTableRequest deleteTableRequest) {
         try {
             dynamo.deleteTable(deleteTableRequest);
             return true;

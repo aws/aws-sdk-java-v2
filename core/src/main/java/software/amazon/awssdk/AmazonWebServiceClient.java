@@ -488,7 +488,7 @@ public abstract class AmazonWebServiceClient {
      * Returns the most specific request metric collector, starting from the request level, then
      * client level, then finally the AWS SDK level.
      */
-    private final RequestMetricCollector findRequestMetricCollector(
+    private RequestMetricCollector findRequestMetricCollector(
             RequestMetricCollector reqLevelMetricsCollector) {
         if (reqLevelMetricsCollector != null) {
             return reqLevelMetricsCollector;

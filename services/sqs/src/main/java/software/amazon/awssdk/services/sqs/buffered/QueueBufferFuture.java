@@ -42,11 +42,11 @@ class QueueBufferFuture<ReqT extends AmazonWebServiceRequest, ResT> implements F
      */
     private QueueBuffer issuingBuffer = null;
 
-    public QueueBufferFuture() {
+    QueueBufferFuture() {
         this(null);
     }
 
-    public QueueBufferFuture(QueueBufferCallback<ReqT, ResT> cb) {
+    QueueBufferFuture(QueueBufferCallback<ReqT, ResT> cb) {
         callback = cb;
     }
 

@@ -16,5 +16,5 @@
 package software.amazon.awssdk.metrics;
 
 public interface ThroughputMetricType extends ServiceMetricType {
-    public ServiceMetricType getByteCountMetricType();
+    ServiceMetricType getByteCountMetricType();
 }

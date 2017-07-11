@@ -270,7 +270,7 @@ public class StepFactory {
      *  Hive_0_7 Hive 0.7
      *  Hive_0_7_1 Hive 0.7.1
      */
-    public static enum HiveVersion {
+    public enum HiveVersion {
         Hive_0_5("0.5"),
         Hive_0_7("0.7"),
         Hive_0_7_1("0.7.1"),

@@ -21,7 +21,7 @@ package software.amazon.awssdk.util;
  * @author Hanson Char
  */
 public interface EncodingScheme {
-    public String encodeAsString(byte[] bytes);
+    String encodeAsString(byte[] bytes);
 
-    public byte[] decode(String encoded);
+    byte[] decode(String encoded);
 }

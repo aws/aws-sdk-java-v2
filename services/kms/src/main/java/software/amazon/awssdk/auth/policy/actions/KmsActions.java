@@ -93,7 +93,7 @@ public enum KmsActions implements Action {
 
     private final String action;
 
-    private KmsActions(String action) {
+    KmsActions(String action) {
         this.action = action;
     }
 

@@ -31,7 +31,7 @@ public enum KeyConditions {
 
     private final ComparisonOperator comparisonOperator;
 
-    private KeyConditions(ComparisonOperator comparisonOperator) {
+    KeyConditions(ComparisonOperator comparisonOperator) {
         this.comparisonOperator = comparisonOperator;
     }
 

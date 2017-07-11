@@ -44,5 +44,5 @@ public interface Action {
      *
      * @return The name of this action.
      */
-    public String getActionName();
+    String getActionName();
 }

@@ -42,7 +42,7 @@ final class AddOperations {
     private final ServiceModel serviceModel;
     private final NamingStrategy namingStrategy;
 
-    public AddOperations(IntermediateModelBuilder builder) {
+    AddOperations(IntermediateModelBuilder builder) {
         this.serviceModel = builder.getService();
         this.namingStrategy = builder.getNamingStrategy();
     }

@@ -29,7 +29,7 @@ import software.amazon.awssdk.SdkClientException;
  * @see ProgressEvent
  */
 public interface ProgressListener {
-    public static final ProgressListener NOOP = new NoOpProgressListener();
+    ProgressListener NOOP = new NoOpProgressListener();
 
     /**
      * Called when progress has changed, such as additional bytes transferred,
@@ -50,9 +50,9 @@ public interface ProgressListener {
      * @see SdkProgressPublisher
      * @see ExceptionReporter
      */
-    public void progressChanged(ProgressEvent progressEvent);
+    void progressChanged(ProgressEvent progressEvent);
 
-    static class NoOpProgressListener implements ProgressListener, DeliveryMode {
+    class NoOpProgressListener implements ProgressListener, DeliveryMode {
 
         @Override
         public boolean isSyncCallSafe() {
@@ -70,7 +70,7 @@ public interface ProgressListener {
      * underlying listener, all subsequent events will no longer be notified to
      * the listener.
      */
-    public static class ExceptionReporter implements ProgressListener, DeliveryMode {
+    class ExceptionReporter implements ProgressListener, DeliveryMode {
         private final ProgressListener listener;
         private final boolean syncCallSafe;
         private volatile Throwable cause;

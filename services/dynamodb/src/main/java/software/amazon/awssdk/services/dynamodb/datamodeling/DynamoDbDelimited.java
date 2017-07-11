@@ -112,12 +112,12 @@ public @interface DynamoDbDelimited {
     /**
      * Type converter for string delimited attributes.
      */
-    static final class Converter<T> implements DynamoDbTypeConverter<String, T> {
+    final class Converter<T> implements DynamoDbTypeConverter<String, T> {
         private final Field<T, Object>[] fields;
         private final Class<T> targetType;
         private final String delimiter;
 
-        public Converter(Class<T> targetType, DynamoDbDelimited annotation) {
+        Converter(Class<T> targetType, DynamoDbDelimited annotation) {
             final BeanMap<T, Object> beans = new BeanMap<T, Object>(targetType, true);
 
             final String[] names = annotation.attributeNames();
@@ -140,7 +140,7 @@ public @interface DynamoDbDelimited {
         }
 
         @Override
-        public final String convert(final T object) {
+        public String convert(final T object) {
             final StringBuilder string = new StringBuilder();
             for (int i = 0; i < fields.length; i++) {
                 if (i > 0) {
@@ -161,7 +161,7 @@ public @interface DynamoDbDelimited {
         }
 
         @Override
-        public final T unconvert(final String string) {
+        public T unconvert(final String string) {
             final T object = StandardBeanProperties.DeclaringReflect.<T>newInstance(targetType);
             final String[] values = string.split(Pattern.quote(delimiter));
             for (int i = 0, its = Math.min(fields.length, values.length); i < its; i++) {
@@ -183,7 +183,7 @@ public @interface DynamoDbDelimited {
                 this.bean = bean;
             }
 
-            private final String get(final T object) {
+            private String get(final T object) {
                 final V value = bean.reflect().get(object);
                 if (value == null) {
                     return null;
@@ -191,7 +191,7 @@ public @interface DynamoDbDelimited {
                 return converter.convert(value);
             }
 
-            private final void set(final T object, final String string) {
+            private void set(final T object, final String string) {
                 if (!string.isEmpty()) {
                     final V value = converter.unconvert(string);
                     if (value != null) {

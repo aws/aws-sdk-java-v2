@@ -301,7 +301,7 @@ public class StaxUnmarshallerContext {
         public int targetDepth;
         public String key;
 
-        public MetadataExpression(String expression, int targetDepth, String key) {
+        MetadataExpression(String expression, int targetDepth, String key) {
             this.expression = expression;
             this.targetDepth = targetDepth;
             this.key = key;

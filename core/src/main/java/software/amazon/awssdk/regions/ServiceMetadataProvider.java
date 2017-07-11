@@ -20,5 +20,5 @@ import software.amazon.awssdk.annotation.SdkInternalApi;
 @SdkInternalApi
 public interface ServiceMetadataProvider {
 
-    ServiceMetadata getServiceMetadata(final String service);
+    ServiceMetadata getServiceMetadata(String service);
 }

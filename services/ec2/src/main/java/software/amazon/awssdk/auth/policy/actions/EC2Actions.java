@@ -434,7 +434,7 @@ public enum EC2Actions implements Action {
 
     private final String action;
 
-    private EC2Actions(String action) {
+    EC2Actions(String action) {
         this.action = action;
     }
 

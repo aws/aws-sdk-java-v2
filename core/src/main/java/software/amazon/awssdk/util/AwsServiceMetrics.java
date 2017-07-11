@@ -30,7 +30,7 @@ public enum AwsServiceMetrics implements ServiceMetricType {
 
     private final String serviceName;
 
-    private AwsServiceMetrics(String serviceName) {
+    AwsServiceMetrics(String serviceName) {
         this.serviceName = serviceName;
     }
 

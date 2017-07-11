@@ -186,7 +186,7 @@ public class ResizeJobFlowStep {
      *        manual intervention).
      * Continue - Proceed onto the next step.
      */
-    public static enum OnArrested {
+    public enum OnArrested {
         Fail,
         Wait,
         Continue;
@@ -197,14 +197,14 @@ public class ResizeJobFlowStep {
      * Fail - Fail the step.
      * Continue - Proceed on to the next step.
      */
-    public static enum OnFailure {
+    public enum OnFailure {
         Fail,
         Continue;
     }
 
 
-    public static interface ResizeAction {
-        public List<String> args();
+    public interface ResizeAction {
+        List<String> args();
     }
 
 

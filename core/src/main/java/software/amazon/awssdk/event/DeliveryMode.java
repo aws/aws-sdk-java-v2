@@ -28,13 +28,13 @@ public interface DeliveryMode {
      * implementing listener without the risk of incurring undue latency; false
      * otherwise.
      */
-    public boolean isSyncCallSafe();
+    boolean isSyncCallSafe();
 
     /**
      * Provides convenient method to check if a listener is safe to be invoked
      * synchronously.
      */
-    public static class Check {
+    class Check {
         public static boolean isSyncCallSafe(ProgressListener listener) {
             if (listener instanceof DeliveryMode) {
                 DeliveryMode mode = (DeliveryMode) listener;
