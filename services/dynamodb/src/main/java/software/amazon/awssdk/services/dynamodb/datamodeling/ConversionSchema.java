@@ -39,7 +39,7 @@ public interface ConversionSchema {
      * Dependency injection for the {@code ItemConverter}s that this
      * {@code ConversionSchema} generates.
      */
-    static class Dependencies {
+    class Dependencies {
 
         private final Map<Class<?>, Object> values;
 

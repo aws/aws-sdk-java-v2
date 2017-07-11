@@ -1763,7 +1763,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
         private final DynamoDbMapperConfig mapperConfig;
         private final String tableName;
 
-        public TransformerParameters(
+        TransformerParameters(
                 final DynamoDbMapperTableModel<T> model,
                 final Map<String, AttributeValue> attributeValues,
                 final boolean partialUpdate,
@@ -1842,17 +1842,17 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
             this.exception = excetpion;
         }
 
-        private final boolean isRequestEntityTooLarge() {
+        private boolean isRequestEntityTooLarge() {
             return exception instanceof AmazonServiceException &&
                    RetryUtils.isRequestEntityTooLargeException((AmazonServiceException) exception);
         }
 
-        private final boolean isThrottling() {
+        private boolean isThrottling() {
             return exception instanceof AmazonServiceException &&
                    RetryUtils.isThrottlingException((AmazonServiceException) exception);
         }
 
-        private final int size() {
+        private int size() {
             int size = 0;
             for (final List<WriteRequest> values : unprocessedItems.values()) {
                 size += values.size();
@@ -2332,10 +2332,10 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
         private final AttributeValue newValue;
         private final Object target;
 
-        public ValueUpdate(
-                DynamoDbMapperFieldModel<Object, Object> field,
-                AttributeValue newValue,
-                Object target) {
+        ValueUpdate(
+            DynamoDbMapperFieldModel<Object, Object> field,
+            AttributeValue newValue,
+            Object target) {
 
             this.field = field;
             this.newValue = newValue;

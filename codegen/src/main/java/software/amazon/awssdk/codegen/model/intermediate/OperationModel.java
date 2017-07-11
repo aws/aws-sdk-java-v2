@@ -105,7 +105,7 @@ public class OperationModel extends DocumentationModel {
         this.outputShape = outputShape;
     }
 
-    private static enum MethodType {
+    private enum MethodType {
 
         SYNC(false),
         ASYNC(true),
@@ -113,7 +113,7 @@ public class OperationModel extends DocumentationModel {
 
         private final boolean async;
 
-        private MethodType(boolean async) {
+        MethodType(boolean async) {
             this.async = async;
         }
 

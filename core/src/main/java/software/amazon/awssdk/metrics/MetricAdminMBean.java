@@ -25,19 +25,19 @@ public interface MetricAdminMBean {
      * Returns true if metrics at the AWS SDK level is enabled; false if
      * disabled.
      */
-    public boolean isMetricsEnabled();
+    boolean isMetricsEnabled();
 
     /**
      * Returns the name of the request metric collector set at the AWS SDK
      * level, or NONE if there is none.
      */
-    public String getRequestMetricCollector();
+    String getRequestMetricCollector();
 
     /**
      * Returns the name of the service metric collector set at the AWS SDK
      * level, or NONE if there is none.
      */
-    public String getServiceMetricCollector();
+    String getServiceMetricCollector();
 
     /**
      * Starts the default AWS SDK metric collector, but only if no metric
@@ -46,17 +46,17 @@ public interface MetricAdminMBean {
      * @return true if the default AWS SDK metric collector has been
      *         successfully started by this call; false otherwise.
      */
-    public boolean enableDefaultMetrics();
+    boolean enableDefaultMetrics();
 
     /**
      * Disables the metric collector at the AWS SDK level.
      */
-    public void disableMetrics();
+    void disableMetrics();
 
     /**
      * Returns true if machine metrics is to be excluded; false otherwise.
      */
-    public boolean isMachineMetricsExcluded();
+    boolean isMachineMetricsExcluded();
 
     /**
      * Used to set whether the JVM metrics is to be excluded.
@@ -64,12 +64,12 @@ public interface MetricAdminMBean {
      * @param excludeMachineMetrics
      *            true if JVM metrics is to be excluded; false otherwise.
      */
-    public void setMachineMetricsExcluded(boolean excludeMachineMetrics);
+    void setMachineMetricsExcluded(boolean excludeMachineMetrics);
 
     /**
      * Returns true if per-host metrics is to be included; false otherwise.
      */
-    public boolean isPerHostMetricsIncluded();
+    boolean isPerHostMetricsIncluded();
 
     /**
      * Used to set whether the per-host metrics is to be included.
@@ -77,31 +77,31 @@ public interface MetricAdminMBean {
      * @param includePerHostMetrics
      *            true if per-host metrics is to be included; false otherwise.
      */
-    public void setPerHostMetricsIncluded(boolean includePerHostMetrics);
+    void setPerHostMetricsIncluded(boolean includePerHostMetrics);
 
     /**
      * Returns the region configured for the default AWS SDK metric collector;
      * or null if the default is to be used.
      */
-    public String getRegion();
+    String getRegion();
 
     /**
      * Sets the region to be used for the default AWS SDK metric collector; or
      * null if the default is to be used.
      */
-    public void setRegion(String region);
+    void setRegion(String region);
 
     /**
      * Returns the internal metric queue size to be used for the default AWS SDK
      * metric collector; or null if the default is to be used.
      */
-    public Integer getMetricQueueSize();
+    Integer getMetricQueueSize();
 
     /**
      * Sets the metric queue size to be used for the default AWS SDK metric
      * collector; or null if the default is to be used.
      */
-    public void setMetricQueueSize(Integer metricQueueSize);
+    void setMetricQueueSize(Integer metricQueueSize);
 
     /**
      * Returns the internal metric queue timeout in millisecond to be used for
@@ -109,19 +109,19 @@ public interface MetricAdminMBean {
      * used. Use Integer instead of Long as it seems jconsole does not handle
      * Long properly.
      */
-    public Integer getQueuePollTimeoutMilli();
+    Integer getQueuePollTimeoutMilli();
 
     /**
      * Sets the queue poll time in millisecond to be used for the default AWS
      * SDK metric collector; or null if the default is to be used. Use Integer
      * instead of Long as it seems jconsole does not handle Long properly.
      */
-    public void setQueuePollTimeoutMilli(Integer timeoutMilli);
+    void setQueuePollTimeoutMilli(Integer timeoutMilli);
 
     /**
      * Returns the metric name space.
      */
-    public String getMetricNameSpace();
+    String getMetricNameSpace();
 
     /**
      * Sets the metric name space.
@@ -129,27 +129,27 @@ public interface MetricAdminMBean {
      * @throws IllegalArgumentException
      *             if the given name space is either null or blank.
      */
-    public void setMetricNameSpace(String metricNameSpace);
+    void setMetricNameSpace(String metricNameSpace);
 
     /**
      * Returns the JVM metric name. If the returned value is either null or
      * blank, no JVM level metrics will be generated.
      */
-    public String getJvmMetricName();
+    String getJvmMetricName();
 
     /**
      * Sets the JVM metric name to enable per-JVM level metrics generation. If
      * the given value is either null or blank, no JVM level metrics will be
      * generated.
      */
-    public void setJvmMetricName(String jvmMetricName);
+    void setJvmMetricName(String jvmMetricName);
 
     /**
      * Returns the host name for metric purposes. If the returned value is
      * either null or blank, the host name will be automatically detected via
      * {@link InetAddress}.
      */
-    public String getHostMetricName();
+    String getHostMetricName();
 
     /**
      * Sets the host name to enable per-host level metrics generation. If
@@ -157,15 +157,15 @@ public interface MetricAdminMBean {
      * enabled, the host name will be automatically detected via
      * {@link InetAddress}.
      */
-    public void setHostMetricName(String hostMetricName);
+    void setHostMetricName(String hostMetricName);
 
     /**
      * Returns true if single metric name space is to be used; false otherwise.
      */
-    public boolean isSingleMetricNamespace();
+    boolean isSingleMetricNamespace();
 
     /**
      * Used to set whether a single metric name space is to be used.
      */
-    public void setSingleMetricNamespace(boolean singleMetricNamespace);
+    void setSingleMetricNamespace(boolean singleMetricNamespace);
 }

@@ -25,7 +25,7 @@ public enum ShapeType {
 
     private String value;
 
-    private ShapeType(String value) {
+    ShapeType(String value) {
         this.value = value;
     }
 

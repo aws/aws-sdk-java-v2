@@ -26,7 +26,7 @@ class SdkCborGenerator extends SdkJsonGenerator {
 
     private static final int CBOR_TAG_TIMESTAP = 1;
 
-    public SdkCborGenerator(JsonFactory factory, String contentType) {
+    SdkCborGenerator(JsonFactory factory, String contentType) {
         super(factory, contentType);
     }
 }

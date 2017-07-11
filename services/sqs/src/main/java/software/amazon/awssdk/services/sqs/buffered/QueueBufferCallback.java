@@ -30,7 +30,7 @@ class QueueBufferCallback<RequestT extends AmazonWebServiceRequest, ResultT> {
     private final AsyncHandler<RequestT, ResultT> handler;
     private final RequestT request;
 
-    public QueueBufferCallback(AsyncHandler<RequestT, ResultT> paramHandler, RequestT request) {
+    QueueBufferCallback(AsyncHandler<RequestT, ResultT> paramHandler, RequestT request) {
         this.handler = paramHandler;
         this.request = request;
     }

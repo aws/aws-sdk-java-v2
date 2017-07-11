@@ -32,31 +32,31 @@ public interface QueryApi {
     /**
      * Retrieves items by the specified hash key.
      */
-    public ItemCollection<QueryOutcome> query(String hashKeyName, Object hashKeyValue);
+    ItemCollection<QueryOutcome> query(String hashKeyName, Object hashKeyValue);
 
     /**
      * Retrieves items by the specified hash key.
      */
-    public ItemCollection<QueryOutcome> query(KeyAttribute hashKey);
+    ItemCollection<QueryOutcome> query(KeyAttribute hashKey);
 
     /**
      * Retrieves items by the specified hash key and a range key condition.
      */
-    public ItemCollection<QueryOutcome> query(KeyAttribute hashKey,
-                                              RangeKeyCondition rangeKeyCondition);
+    ItemCollection<QueryOutcome> query(KeyAttribute hashKey,
+                                       RangeKeyCondition rangeKeyCondition);
 
-    public ItemCollection<QueryOutcome> query(String hashKeyName, Object hashKeyValue,
-                                              RangeKeyCondition rangeKeyCondition);
+    ItemCollection<QueryOutcome> query(String hashKeyName, Object hashKeyValue,
+                                       RangeKeyCondition rangeKeyCondition);
 
     /**
      * Retrieves items by the specified hash key, a range key condition
      * and a list of query filters.
      */
-    public ItemCollection<QueryOutcome> query(KeyAttribute hashKey,
-                                              RangeKeyCondition rangeKeyCondition, QueryFilter... queryFilters);
+    ItemCollection<QueryOutcome> query(KeyAttribute hashKey,
+                                       RangeKeyCondition rangeKeyCondition, QueryFilter... queryFilters);
 
-    public ItemCollection<QueryOutcome> query(String hashKeyName, Object hashKeyValue,
-                                              RangeKeyCondition rangeKeyCondition, QueryFilter... queryFilters);
+    ItemCollection<QueryOutcome> query(String hashKeyName, Object hashKeyValue,
+                                       RangeKeyCondition rangeKeyCondition, QueryFilter... queryFilters);
 
     /**
      * Retrieves items by the specified hash key, a range key condition, and
@@ -70,39 +70,17 @@ public interface QueryApi {
      * @param valueMap actual values for the value place holders
      *                can be null if there is no attribute-value placeholder.
      */
-    public ItemCollection<QueryOutcome> query(KeyAttribute hashKey,
-                                              RangeKeyCondition rangeKeyCondition,
-                                              String filterExpression,
-                                              Map<String, String> nameMap,
-                                              Map<String, Object> valueMap);
+    ItemCollection<QueryOutcome> query(KeyAttribute hashKey,
+                                       RangeKeyCondition rangeKeyCondition,
+                                       String filterExpression,
+                                       Map<String, String> nameMap,
+                                       Map<String, Object> valueMap);
 
-    public ItemCollection<QueryOutcome> query(String hashKeyName, Object hashKeyValue,
-                                              RangeKeyCondition rangeKeyCondition,
-                                              String filterExpression,
-                                              Map<String, String> nameMap,
-                                              Map<String, Object> valueMap);
-
-    /**
-     * Retrieves items by the specified hash key, a range key condition,
-     * a filter expression and a projection expression.
-     *
-     * @param filterExpression filter expression
-     *     example: "(#a > :a) AND (#c > :c OR #e < :e)"
-     *
-     * @param projectionExpression projection expression
-     *     example: "a.b, c[0].e"
-     *
-     * @param nameMap actual values for the attribute-name place holders;
-     *                can be null if there is no attribute-name placeholder.
-     * @param valueMap actual values for the value place holders
-     *                can be null if there is no attribute-value placeholder.
-     */
-    public ItemCollection<QueryOutcome> query(KeyAttribute hashKey,
-                                              RangeKeyCondition rangeKeyCondition,
-                                              String filterExpression,
-                                              String projectionExpression,
-                                              Map<String, String> nameMap,
-                                              Map<String, Object> valueMap);
+    ItemCollection<QueryOutcome> query(String hashKeyName, Object hashKeyValue,
+                                       RangeKeyCondition rangeKeyCondition,
+                                       String filterExpression,
+                                       Map<String, String> nameMap,
+                                       Map<String, Object> valueMap);
 
     /**
      * Retrieves items by the specified hash key, a range key condition,
@@ -119,15 +97,37 @@ public interface QueryApi {
      * @param valueMap actual values for the value place holders
      *                can be null if there is no attribute-value placeholder.
      */
-    public ItemCollection<QueryOutcome> query(String hashKeyName, Object hashKeyValue,
-                                              RangeKeyCondition rangeKeyCondition,
-                                              String filterExpression,
-                                              String projectionExpression,
-                                              Map<String, String> nameMap,
-                                              Map<String, Object> valueMap);
+    ItemCollection<QueryOutcome> query(KeyAttribute hashKey,
+                                       RangeKeyCondition rangeKeyCondition,
+                                       String filterExpression,
+                                       String projectionExpression,
+                                       Map<String, String> nameMap,
+                                       Map<String, Object> valueMap);
+
+    /**
+     * Retrieves items by the specified hash key, a range key condition,
+     * a filter expression and a projection expression.
+     *
+     * @param filterExpression filter expression
+     *     example: "(#a > :a) AND (#c > :c OR #e < :e)"
+     *
+     * @param projectionExpression projection expression
+     *     example: "a.b, c[0].e"
+     *
+     * @param nameMap actual values for the attribute-name place holders;
+     *                can be null if there is no attribute-name placeholder.
+     * @param valueMap actual values for the value place holders
+     *                can be null if there is no attribute-value placeholder.
+     */
+    ItemCollection<QueryOutcome> query(String hashKeyName, Object hashKeyValue,
+                                       RangeKeyCondition rangeKeyCondition,
+                                       String filterExpression,
+                                       String projectionExpression,
+                                       Map<String, String> nameMap,
+                                       Map<String, Object> valueMap);
 
     /**
      * Queries table by specifying all the details.
      */
-    public ItemCollection<QueryOutcome> query(QuerySpec spec);
+    ItemCollection<QueryOutcome> query(QuerySpec spec);
 }

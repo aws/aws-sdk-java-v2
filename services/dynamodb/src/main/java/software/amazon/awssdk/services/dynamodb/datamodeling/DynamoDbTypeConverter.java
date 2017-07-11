@@ -39,7 +39,7 @@ public interface DynamoDbTypeConverter<S extends Object, T extends Object> {
      * An abstract converter with additional general purpose functions.
      */
     @SdkInternalApi
-    abstract static class AbstractConverter<S, T> implements DynamoDbTypeConverter<S, T> {
+    abstract class AbstractConverter<S, T> implements DynamoDbTypeConverter<S, T> {
         public static <S, U, T> ExtendedConverter<S, U, T> join(DynamoDbTypeConverter<S, U> source,
                                                                 DynamoDbTypeConverter<U, T> target) {
             return new ExtendedConverter<S, U, T>(source, target);
@@ -71,7 +71,7 @@ public interface DynamoDbTypeConverter<S extends Object, T extends Object> {
     /**
      * A converter which wraps a source and target converter.
      */
-    public static class ExtendedConverter<S, U, T> extends AbstractConverter<S, T> {
+    class ExtendedConverter<S, U, T> extends AbstractConverter<S, T> {
         private final DynamoDbTypeConverter<S, U> source;
         private final DynamoDbTypeConverter<U, T> target;
 
@@ -97,7 +97,7 @@ public interface DynamoDbTypeConverter<S extends Object, T extends Object> {
     /**
      * A general purpose delegating converter.
      */
-    public static class DelegateConverter<S, T> extends AbstractConverter<S, T> {
+    class DelegateConverter<S, T> extends AbstractConverter<S, T> {
         private final DynamoDbTypeConverter<S, T> delegate;
 
         public DelegateConverter(DynamoDbTypeConverter<S, T> delegate) {
@@ -118,7 +118,7 @@ public interface DynamoDbTypeConverter<S extends Object, T extends Object> {
     /**
      * A converter which evaluates nullability before convert/unconvert.
      */
-    public static class NullSafeConverter<S, T> extends DelegateConverter<S, T> {
+    class NullSafeConverter<S, T> extends DelegateConverter<S, T> {
         public NullSafeConverter(DynamoDbTypeConverter<S, T> delegate) {
             super(delegate);
         }

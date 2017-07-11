@@ -197,7 +197,7 @@ public final class LambdaInvokerFactory {
         private final Log log;
         private final LambdaInvokerFactoryConfig config;
 
-        public LambdaInvocationHandler(Class<?> interfaceClass, LambdaAsyncClient awsLambda, LambdaInvokerFactoryConfig config) {
+        LambdaInvocationHandler(Class<?> interfaceClass, LambdaAsyncClient awsLambda, LambdaInvokerFactoryConfig config) {
             this.awsLambda = awsLambda;
             this.log = LogFactory.getLog(interfaceClass);
             this.config = config;

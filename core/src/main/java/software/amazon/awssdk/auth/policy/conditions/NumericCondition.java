@@ -44,7 +44,7 @@ public class NumericCondition extends Condition {
     ;
 
     /** Enumeration of the supported ways a numeric comparison can be evaluated. */
-    public static enum NumericComparisonType {
+    public enum NumericComparisonType {
         NumericEquals,
         NumericGreaterThan,
         NumericGreaterThanEquals,

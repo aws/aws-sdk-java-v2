@@ -29,68 +29,68 @@ import software.amazon.awssdk.services.dynamodb.document.spec.DeleteItemSpec;
 @ThreadSafe
 public interface DeleteItemApi {
     /** Deletes an item by primary key. */
-    public DeleteItemOutcome deleteItem(KeyAttribute... primaryKeyComponents);
+    DeleteItemOutcome deleteItem(KeyAttribute... primaryKeyComponents);
 
     /** Deletes an item by primary key. */
-    public DeleteItemOutcome deleteItem(PrimaryKey primaryKey);
+    DeleteItemOutcome deleteItem(PrimaryKey primaryKey);
 
     /** Deletes an item by hash-only primary key. */
-    public DeleteItemOutcome deleteItem(String hashKeyName, Object hashKeyValue);
+    DeleteItemOutcome deleteItem(String hashKeyName, Object hashKeyValue);
 
     /** Deletes an item by hash key-and-range primary key. */
-    public DeleteItemOutcome deleteItem(String hashKeyName, Object hashKeyValue,
-                                        String rangeKeyName, Object rangeKeyValue);
+    DeleteItemOutcome deleteItem(String hashKeyName, Object hashKeyValue,
+                                 String rangeKeyName, Object rangeKeyValue);
 
     /**
      * Conditional delete with the specified primary key and expected
      * conditions.
      */
-    public DeleteItemOutcome deleteItem(PrimaryKey primaryKey,
-                                        Expected... expected);
+    DeleteItemOutcome deleteItem(PrimaryKey primaryKey,
+                                 Expected... expected);
 
     /**
      * Conditional delete with the specified hash-only primary key and expected
      * conditions.
      */
-    public DeleteItemOutcome deleteItem(String hashKeyName, Object hashKeyValue,
-                                        Expected... expected);
+    DeleteItemOutcome deleteItem(String hashKeyName, Object hashKeyValue,
+                                 Expected... expected);
 
     /**
      * Conditional delete with the specified hash-and-range primary key and
      * expected conditions.
      */
-    public DeleteItemOutcome deleteItem(String hashKeyName, Object hashKeyValue,
-                                        String rangeKeyName, Object rangeKeyValue,
-                                        Expected... expected);
+    DeleteItemOutcome deleteItem(String hashKeyName, Object hashKeyValue,
+                                 String rangeKeyName, Object rangeKeyValue,
+                                 Expected... expected);
 
     /**
      * Conditional delete with the specified primary key and condition
      * expression.
      */
-    public DeleteItemOutcome deleteItem(PrimaryKey primaryKey,
-                                        String conditionExpression,
-                                        Map<String, String> nameMap,
-                                        Map<String, Object> valueMap);
+    DeleteItemOutcome deleteItem(PrimaryKey primaryKey,
+                                 String conditionExpression,
+                                 Map<String, String> nameMap,
+                                 Map<String, Object> valueMap);
 
     /**
      * Conditional delete with the specified hash-only primary key and condition
      * expression.
      */
-    public DeleteItemOutcome deleteItem(String hashKeyName, Object hashKeyValue,
-                                        String conditionExpression,
-                                        Map<String, String> nameMap,
-                                        Map<String, Object> valueMap);
+    DeleteItemOutcome deleteItem(String hashKeyName, Object hashKeyValue,
+                                 String conditionExpression,
+                                 Map<String, String> nameMap,
+                                 Map<String, Object> valueMap);
 
     /**
      * Conditional delete with the specified hash-and-range primary key and
      * condition expression.
      */
-    public DeleteItemOutcome deleteItem(String hashKeyName, Object hashKeyValue,
-                                        String rangeKeyName, Object rangeKeyValue,
-                                        String conditionExpression,
-                                        Map<String, String> nameMap,
-                                        Map<String, Object> valueMap);
+    DeleteItemOutcome deleteItem(String hashKeyName, Object hashKeyValue,
+                                 String rangeKeyName, Object rangeKeyValue,
+                                 String conditionExpression,
+                                 Map<String, String> nameMap,
+                                 Map<String, Object> valueMap);
 
     /** Deletes an item by specifying all the details. */
-    public DeleteItemOutcome deleteItem(DeleteItemSpec spec);
+    DeleteItemOutcome deleteItem(DeleteItemSpec spec);
 }

@@ -283,7 +283,7 @@ public class ProfilesConfigFileWriter {
          *            If a profile name is associated with a null value, it's
          *            profile content will be removed.
          */
-        public ProfilesConfigFileWriterHelper(Writer writer, Map<String, Profile> modifications) {
+        ProfilesConfigFileWriterHelper(Writer writer, Map<String, Profile> modifications) {
             this.writer = writer;
 
             for (Entry<String, Profile> entry : modifications.entrySet()) {

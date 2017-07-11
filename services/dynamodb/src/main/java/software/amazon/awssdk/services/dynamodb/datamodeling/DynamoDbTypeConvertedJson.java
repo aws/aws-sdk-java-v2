@@ -73,12 +73,12 @@ public @interface DynamoDbTypeConvertedJson {
         private static final ObjectMapper MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         private final Class<T> targetType;
 
-        public Converter(Class<T> targetType, DynamoDbTypeConvertedJson annotation) {
+        Converter(Class<T> targetType, DynamoDbTypeConvertedJson annotation) {
             this.targetType = annotation.targetType() == void.class ? targetType : (Class<T>) annotation.targetType();
         }
 
         @Override
-        public final String convert(final T object) {
+        public String convert(final T object) {
             try {
                 return MAPPER.writeValueAsString(object);
             } catch (final Exception e) {
@@ -87,7 +87,7 @@ public @interface DynamoDbTypeConvertedJson {
         }
 
         @Override
-        public final T unconvert(final String object) {
+        public T unconvert(final String object) {
             try {
                 return MAPPER.readValue(object, targetType);
             } catch (final Exception e) {

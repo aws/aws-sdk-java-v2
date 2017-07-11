@@ -20,7 +20,7 @@ class ChunkContentIterator {
     private final byte[] signedChunk;
     private int pos;
 
-    public ChunkContentIterator(byte[] signedChunk) {
+    ChunkContentIterator(byte[] signedChunk) {
         this.signedChunk = signedChunk;
     }
 

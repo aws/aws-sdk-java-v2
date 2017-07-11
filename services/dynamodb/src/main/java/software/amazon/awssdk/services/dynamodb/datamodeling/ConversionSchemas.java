@@ -351,13 +351,13 @@ public final class ConversionSchemas {
         return null;
     }
 
-    static interface MarshallerSet {
+    interface MarshallerSet {
         ArgumentMarshaller marshaller(Method getter);
 
         ArgumentMarshaller memberMarshaller(Type memberType);
     }
 
-    static interface UnmarshallerSet {
+    interface UnmarshallerSet {
         ArgumentUnmarshaller getUnmarshaller(Method getter, Method setter);
 
         ArgumentUnmarshaller memberUnmarshaller(Type memberType);
@@ -418,7 +418,7 @@ public final class ConversionSchemas {
         private final MarshallerSet marshallers;
         private final UnmarshallerSet unmarshallers;
 
-        public StandardConversionSchema(
+        StandardConversionSchema(
                 String name,
                 MarshallerSet marshallers,
                 UnmarshallerSet unmarshallers) {
@@ -454,7 +454,7 @@ public final class ConversionSchemas {
         private final UnmarshallerSet unmarshallerSet;
         private final S3ClientCache s3cc;
 
-        public StandardItemConverter(
+        StandardItemConverter(
                 MarshallerSet marshallerSet,
                 UnmarshallerSet unmarshallerSet,
                 S3ClientCache s3cc) {
@@ -994,7 +994,7 @@ public final class ConversionSchemas {
         private final List<Pair<ArgumentMarshaller>> marshallers;
         private final List<Pair<ArgumentMarshaller>> setMarshallers;
 
-        public AbstractMarshallerSet(
+        AbstractMarshallerSet(
                 List<Pair<ArgumentMarshaller>> marshallers,
                 List<Pair<ArgumentMarshaller>> setMarshallers) {
 
@@ -1073,11 +1073,11 @@ public final class ConversionSchemas {
         private final List<Pair<ArgumentUnmarshaller>> unmarshallers;
         private final List<Pair<ArgumentUnmarshaller>> setUnmarshallers;
 
-        public StandardUnmarshallerSet() {
+        StandardUnmarshallerSet() {
             this(unmarshallers(), setUnmarshallers());
         }
 
-        public StandardUnmarshallerSet(
+        StandardUnmarshallerSet(
                 List<Pair<ArgumentUnmarshaller>> unmarshallers,
                 List<Pair<ArgumentUnmarshaller>> setUnmarshallers) {
 
@@ -1291,7 +1291,7 @@ public final class ConversionSchemas {
 
         private final MarshallerSet wrapped;
 
-        public AnnotationAwareMarshallerSet(MarshallerSet wrapped) {
+        AnnotationAwareMarshallerSet(MarshallerSet wrapped) {
             this.wrapped = wrapped;
         }
 
@@ -1318,7 +1318,7 @@ public final class ConversionSchemas {
 
         private final UnmarshallerSet wrapped;
 
-        public AnnotationAwareUnmarshallerSet(UnmarshallerSet wrapped) {
+        AnnotationAwareUnmarshallerSet(UnmarshallerSet wrapped) {
             this.wrapped = wrapped;
         }
 
@@ -1350,7 +1350,7 @@ public final class ConversionSchemas {
 
         private final MarshallerSet wrapped;
 
-        public CachingMarshallerSet(MarshallerSet wrapped) {
+        CachingMarshallerSet(MarshallerSet wrapped) {
             this.wrapped = wrapped;
         }
 
@@ -1393,7 +1393,7 @@ public final class ConversionSchemas {
 
         private final UnmarshallerSet wrapped;
 
-        public CachingUnmarshallerSet(UnmarshallerSet wrapped) {
+        CachingUnmarshallerSet(UnmarshallerSet wrapped) {
             this.wrapped = wrapped;
         }
 

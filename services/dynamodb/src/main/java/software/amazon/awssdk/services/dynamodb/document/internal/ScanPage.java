@@ -38,12 +38,12 @@ class ScanPage extends Page<Item, ScanOutcome> {
     private final int index;
     private final Map<String, AttributeValue> lastEvaluatedKey;
 
-    public ScanPage(
-            DynamoDBClient client,
-            ScanSpec spec,
-            ScanRequest request,
-            int index,
-            ScanOutcome outcome) {
+    ScanPage(
+        DynamoDBClient client,
+        ScanSpec spec,
+        ScanRequest request,
+        int index,
+        ScanOutcome outcome) {
         super(Collections.unmodifiableList(
                 toItemList(outcome.scanResult().items())),
               outcome);

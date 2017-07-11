@@ -21,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
  * SPI used to retrieve JMX information and can survive the absence of JMX.
  */
 public interface JmxInfoProvider {
-    static final JmxInfoProvider NONE = new JmxInfoProvider() {
+    JmxInfoProvider NONE = new JmxInfoProvider() {
         @Override
         public long[] getFileDecriptorInfo() {
             return null;
@@ -58,21 +58,21 @@ public interface JmxInfoProvider {
         }
     };
 
-    public long[] getFileDecriptorInfo();
+    long[] getFileDecriptorInfo();
 
-    public int getThreadCount();
+    int getThreadCount();
 
-    public int getDaemonThreadCount();
+    int getDaemonThreadCount();
 
-    public int getPeakThreadCount();
+    int getPeakThreadCount();
 
-    public long getTotalStartedThreadCount();
+    long getTotalStartedThreadCount();
 
-    public long[] findDeadlockedThreads();
+    long[] findDeadlockedThreads();
 
-    public boolean isEnabled();
+    boolean isEnabled();
 
-    public static class Factory {
+    class Factory {
         private static final JmxInfoProvider PROVIDER;
 
         static {

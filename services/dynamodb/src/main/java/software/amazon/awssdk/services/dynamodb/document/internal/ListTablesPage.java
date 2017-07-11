@@ -33,12 +33,12 @@ class ListTablesPage extends Page<Table, ListTablesResponse> {
     private final int index;
     private final String lastEvaluatedKey;
 
-    public ListTablesPage(
-            DynamoDBClient client,
-            ListTablesSpec spec,
-            ListTablesRequest request,
-            int index,
-            ListTablesResponse result) {
+    ListTablesPage(
+        DynamoDBClient client,
+        ListTablesSpec spec,
+        ListTablesRequest request,
+        int index,
+        ListTablesResponse result) {
         super(Collections.unmodifiableList(
                 toTableList(client, result.tableNames())),
               result);

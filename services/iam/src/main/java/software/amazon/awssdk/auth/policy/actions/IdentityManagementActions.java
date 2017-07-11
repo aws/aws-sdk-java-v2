@@ -236,7 +236,7 @@ public enum IdentityManagementActions implements Action {
 
     private final String action;
 
-    private IdentityManagementActions(String action) {
+    IdentityManagementActions(String action) {
         this.action = action;
     }
 

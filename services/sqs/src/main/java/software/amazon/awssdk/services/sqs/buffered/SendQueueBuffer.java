@@ -308,7 +308,7 @@ public class SendQueueBuffer {
 
         private volatile Listener<OutboundBatchTask<R, ResultT>> onCompleted;
 
-        public OutboundBatchTask() {
+        OutboundBatchTask() {
             this.requests = new ArrayList<R>(config.getMaxBatchSize());
             this.futures = new ArrayList<QueueBufferFuture<R, ResultT>>(config.getMaxBatchSize());
         }

@@ -30,19 +30,19 @@ public interface PutItemApi {
     /**
      * Unconditional put.
      */
-    public PutItemOutcome putItem(Item item);
+    PutItemOutcome putItem(Item item);
 
     /**
      * Conditional put.
      */
-    public PutItemOutcome putItem(Item item, Expected... expected);
+    PutItemOutcome putItem(Item item, Expected... expected);
 
     /**
      * Conditional put via condition expression.
      */
-    public PutItemOutcome putItem(Item item, String conditionExpression,
-                                  Map<String, String> nameMap, Map<String, Object> valueMap);
+    PutItemOutcome putItem(Item item, String conditionExpression,
+                           Map<String, String> nameMap, Map<String, Object> valueMap);
 
     /** Puts an item by specifying all the details. */
-    public PutItemOutcome putItem(PutItemSpec spec);
+    PutItemOutcome putItem(PutItemSpec spec);
 }

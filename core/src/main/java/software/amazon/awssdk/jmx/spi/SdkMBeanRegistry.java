@@ -21,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
  * SPI used to register MBeans and can survive the absence of JMX.
  */
 public interface SdkMBeanRegistry {
-    static final SdkMBeanRegistry NONE = new SdkMBeanRegistry() {
+    SdkMBeanRegistry NONE = new SdkMBeanRegistry() {
         @Override
         public boolean registerMetricAdminMBean(String objectName) {
             return false;
@@ -42,21 +42,21 @@ public interface SdkMBeanRegistry {
      * Returns true if the registration of the admin MBean under the given
      * object name succeeded; false otherwise.
      */
-    public boolean registerMetricAdminMBean(String objectName);
+    boolean registerMetricAdminMBean(String objectName);
 
     /**
      * Returns true if the unregistration of the MBean under the given object
      * name succeeded; false otherwise.
      */
-    public boolean unregisterMBean(String objectName);
+    boolean unregisterMBean(String objectName);
 
     /**
      * Returns true if the the MBean under the given object name is currently
      * registered; false otherwise.
      */
-    public boolean isMBeanRegistered(String objectName);
+    boolean isMBeanRegistered(String objectName);
 
-    public static class Factory {
+    class Factory {
         private static final SdkMBeanRegistry REGISTRY;
 
         static {

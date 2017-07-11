@@ -42,7 +42,7 @@ import software.amazon.awssdk.codegen.poet.PoetExtensions;
 class TypeProvider {
     private final PoetExtensions poetExtensions;
 
-    public TypeProvider(IntermediateModel intermediateModel) {
+    TypeProvider(IntermediateModel intermediateModel) {
         this.poetExtensions = new PoetExtensions(intermediateModel);
     }
 

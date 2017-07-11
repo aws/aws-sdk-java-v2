@@ -33,7 +33,7 @@ class ScanCollection extends ItemCollection<ScanOutcome> {
     private final ScanSpec spec;
     private final Map<String, AttributeValue> startKey;
 
-    public ScanCollection(DynamoDBClient client, ScanSpec spec) {
+    ScanCollection(DynamoDBClient client, ScanSpec spec) {
         this.client = client;
         this.spec = spec;
         Map<String, AttributeValue> startKey = spec.getRequest()

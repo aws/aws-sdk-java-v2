@@ -57,15 +57,15 @@ final class StandardModelFactories {
     /**
      * Creates the standard {@link DynamoDbMapperModelFactory} factory.
      */
-    static final DynamoDbMapperModelFactory of(S3Link.Factory s3Links) {
+    static DynamoDbMapperModelFactory of(S3Link.Factory s3Links) {
         return new StandardModelFactory(s3Links);
     }
 
     /**
      * Creates a new set of conversion rules based on the configuration.
      */
-    private static final <T> RuleFactory<T> rulesOf(DynamoDbMapperConfig config, S3Link.Factory s3Links,
-                                                    DynamoDbMapperModelFactory models) {
+    private static <T> RuleFactory<T> rulesOf(DynamoDbMapperConfig config, S3Link.Factory s3Links,
+                                              DynamoDbMapperModelFactory models) {
         final boolean ver1 = (config.getConversionSchema() == ConversionSchemas.V1);
         final boolean ver2 = (config.getConversionSchema() == ConversionSchemas.V2);
         final boolean v2Compatible = (config.getConversionSchema() == ConversionSchemas.V2_COMPATIBLE);
@@ -95,7 +95,7 @@ final class StandardModelFactories {
     /**
      * Attribute value conversion.
      */
-    static interface Rule<T> {
+    interface Rule<T> {
         boolean isAssignableFrom(ConvertibleType<?> type);
 
         DynamoDbTypeConverter<AttributeValue, T> newConverter(ConvertibleType<T> type);
@@ -106,7 +106,7 @@ final class StandardModelFactories {
     /**
      * Attribute value conversion factory.
      */
-    static interface RuleFactory<T> {
+    interface RuleFactory<T> {
         Rule<T> getRule(ConvertibleType<T> type);
     }
 
@@ -234,7 +234,7 @@ final class StandardModelFactories {
          */
         private DynamoDbTypeConverter<AttributeValue, T> getConverter(ConvertibleType<T> type) {
             return new DelegateConverter<AttributeValue, T>(getRule(type).newConverter(type)) {
-                public final AttributeValue convert(T o) {
+                public AttributeValue convert(T o) {
                     return o == null ? AttributeValue.builder().nul(true).build() : super.convert(o);
                 }
             };
@@ -703,11 +703,11 @@ final class StandardModelFactories {
             @Override
             public DynamoDbTypeConverter<AttributeValue, T> newConverter(final ConvertibleType<T> type) {
                 return joinAll(new DynamoDbTypeConverter<Map<String, AttributeValue>, T>() {
-                    public final Map<String, AttributeValue> convert(final T o) {
+                    public Map<String, AttributeValue> convert(final T o) {
                         return models.getTableFactory(config).getTable(type.targetType()).convert(o);
                     }
 
-                    public final T unconvert(final Map<String, AttributeValue> o) {
+                    public T unconvert(final Map<String, AttributeValue> o) {
                         return models.getTableFactory(config).getTable(type.targetType()).unconvert(o);
                     }
                 }, type.<Map<String, AttributeValue>>typeConverter());

@@ -51,7 +51,7 @@ public class StringCondition extends Condition {
     /**
      * Enumeration of the supported ways a string comparison can be evaluated.
      */
-    public static enum StringComparisonType {
+    public enum StringComparisonType {
         /** Case-sensitive exact string matching. */
         StringEquals,
 

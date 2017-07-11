@@ -40,7 +40,7 @@ class NamespaceRemovingInputStream extends SdkFilterInputStream {
      *            The InputStream containing an XML document whose XML namespace
      *            is to be removed.
      */
-    public NamespaceRemovingInputStream(InputStream in) {
+    NamespaceRemovingInputStream(InputStream in) {
         // Wrap our input stream in a buffered input stream to ensure
         // that it support mark/reset
         super(new BufferedInputStream(in));
@@ -143,7 +143,7 @@ class NamespaceRemovingInputStream extends SdkFilterInputStream {
     private static final class StringPrefixSlicer {
         private String s;
 
-        public StringPrefixSlicer(String s) {
+        StringPrefixSlicer(String s) {
             this.s = s;
         }
 

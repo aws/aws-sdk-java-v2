@@ -47,7 +47,7 @@ public enum StsActions implements Action {
 
     private final String action;
 
-    private StsActions(String action) {
+    StsActions(String action) {
         this.action = action;
     }
 

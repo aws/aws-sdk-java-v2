@@ -306,7 +306,7 @@ public class DynamoDbMapperConfig {
     /**
      * Creates a new empty builder.
      */
-    public static final Builder builder() {
+    public static Builder builder() {
         return new Builder(false);
     }
 
@@ -414,7 +414,7 @@ public class DynamoDbMapperConfig {
     /**
      * Enumeration of behaviors for the save operation.
      */
-    public static enum SaveBehavior {
+    public enum SaveBehavior {
         /**
          * UPDATE will not affect unmodeled attributes on a save operation and a
          * null value for the modeled attribute will remove it from that item in
@@ -470,7 +470,7 @@ public class DynamoDbMapperConfig {
      * <p>
      * By default, the mapper uses eventual consistency.
      */
-    public static enum ConsistentReads {
+    public enum ConsistentReads {
         CONSISTENT,
         EVENTUAL;
 
@@ -484,7 +484,7 @@ public class DynamoDbMapperConfig {
     /**
      * Enumeration of pagination loading strategy.
      */
-    public static enum PaginationLoadingStrategy {
+    public enum PaginationLoadingStrategy {
         /**
          * Paginated list is lazily loaded when possible, and all loaded results
          * are kept in the memory.
@@ -527,7 +527,7 @@ public class DynamoDbMapperConfig {
      * @see ObjectTableNameResolver
      * @author Raniz
      */
-    public static interface TableNameResolver {
+    public interface TableNameResolver {
 
         /**
          * Get the table name for a class. This method is used when an object is not available
@@ -537,7 +537,7 @@ public class DynamoDbMapperConfig {
          * @param config The {@link DynamoDbMapperConfig}
          * @return The table name to use for instances of clazz
          */
-        public String getTableName(Class<?> clazz, DynamoDbMapperConfig config);
+        String getTableName(Class<?> clazz, DynamoDbMapperConfig config);
     }
 
     /**
@@ -552,7 +552,7 @@ public class DynamoDbMapperConfig {
      * @see TableNameResolver
      * @author Raniz
      */
-    public static interface ObjectTableNameResolver {
+    public interface ObjectTableNameResolver {
 
         /**
          * Get the table name for an object.
@@ -561,7 +561,7 @@ public class DynamoDbMapperConfig {
          * @param config The {@link DynamoDbMapperConfig}
          * @return The table name to use for object
          */
-        public String getTableName(Object object, DynamoDbMapperConfig config);
+        String getTableName(Object object, DynamoDbMapperConfig config);
 
     }
 
@@ -591,8 +591,8 @@ public class DynamoDbMapperConfig {
          *         want it to keep retrying until all the UnprocessedItems are
          *         fulfilled.
          */
-        public int maxRetryOnUnprocessedItems(
-                Map<String, List<WriteRequest>> batchWriteItemInput);
+        int maxRetryOnUnprocessedItems(
+            Map<String, List<WriteRequest>> batchWriteItemInput);
 
         /**
          * Returns the delay (in milliseconds) before retrying on
@@ -607,9 +607,9 @@ public class DynamoDbMapperConfig {
          * @return the delay (in milliseconds) before resending
          *         UnprocessedItems.
          */
-        public long getDelayBeforeRetryUnprocessedItems(
-                Map<String, List<WriteRequest>> unprocessedItems,
-                int retriesAttempted);
+        long getDelayBeforeRetryUnprocessedItems(
+            Map<String, List<WriteRequest>> unprocessedItems,
+            int retriesAttempted);
     }
 
     /**
@@ -625,7 +625,7 @@ public class DynamoDbMapperConfig {
          *
          * @return a boolean true or false value.
          */
-        public boolean shouldRetry(final BatchLoadContext batchLoadContext);
+        boolean shouldRetry(BatchLoadContext batchLoadContext);
 
         /**
          * Returns delay(in milliseconds) before retrying Unprocessed keys
@@ -633,7 +633,7 @@ public class DynamoDbMapperConfig {
          * @param batchLoadContext see {@link BatchLoadContext}
          * @return delay(in milliseconds) before attempting to read unprocessed keys
          */
-        public long getDelayBeforeNextRetry(final BatchLoadContext batchLoadContext);
+        long getDelayBeforeNextRetry(BatchLoadContext batchLoadContext);
     }
 
     /**
@@ -677,7 +677,7 @@ public class DynamoDbMapperConfig {
         /**
          * Merges any non-null configuration values for the specified overrides.
          */
-        private final Builder merge(final DynamoDbMapperConfig o) {
+        private Builder merge(final DynamoDbMapperConfig o) {
             if (o == null) {
                 return this;
             }
@@ -1081,7 +1081,7 @@ public class DynamoDbMapperConfig {
             return tableNamePrefix;
         }
 
-        public final DynamoDbMapperConfig config() {
+        public DynamoDbMapperConfig config() {
             return this.config;
         }
     }

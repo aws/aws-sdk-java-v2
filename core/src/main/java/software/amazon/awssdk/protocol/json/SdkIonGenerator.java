@@ -224,7 +224,7 @@ abstract class SdkIonGenerator implements StructuredJsonGenerator {
     private static class ByteArraySdkIonGenerator extends SdkIonGenerator {
         private final ByteArrayOutputStream bytes;
 
-        public ByteArraySdkIonGenerator(ByteArrayOutputStream bytes, IonWriter writer, String contentType) {
+        ByteArraySdkIonGenerator(ByteArrayOutputStream bytes, IonWriter writer, String contentType) {
             super(writer, contentType);
             this.bytes = bytes;
         }

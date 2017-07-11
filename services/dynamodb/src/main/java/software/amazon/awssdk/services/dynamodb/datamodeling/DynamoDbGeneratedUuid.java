@@ -53,16 +53,16 @@ public @interface DynamoDbGeneratedUuid {
     /**
      * Default generator.
      */
-    static final class Generator<T> extends DynamoDbAutoGenerator.AbstractGenerator<T> {
+    final class Generator<T> extends DynamoDbAutoGenerator.AbstractGenerator<T> {
         private final DynamoDbTypeConverter<T, UUID> converter;
 
-        public Generator(Class<T> targetType, DynamoDbGeneratedUuid annotation) {
+        Generator(Class<T> targetType, DynamoDbGeneratedUuid annotation) {
             super(annotation.value());
             this.converter = StandardTypeConverters.factory().getConverter(targetType, UUID.class);
         }
 
         @Override
-        public final T generate(final T currentValue) {
+        public T generate(final T currentValue) {
             return converter.convert(UUID.randomUUID());
         }
     }

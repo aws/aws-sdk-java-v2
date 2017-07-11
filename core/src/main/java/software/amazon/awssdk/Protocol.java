@@ -41,7 +41,7 @@ public enum Protocol {
 
     private final String protocol;
 
-    private Protocol(String protocol) {
+    Protocol(String protocol) {
         this.protocol = protocol;
     }
 

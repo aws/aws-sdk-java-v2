@@ -28,7 +28,7 @@ class DecodedStreamBuffer {
     private int pos = -1;
     private boolean bufferSizeOverflow;
 
-    public DecodedStreamBuffer(int maxBufferSize) {
+    DecodedStreamBuffer(int maxBufferSize) {
         bufferArray = new byte[maxBufferSize];
         this.maxBufferSize = maxBufferSize;
     }

@@ -110,7 +110,7 @@ public class AttributeTransformerChain implements AttributeTransformer {
          *
          * @param delegate the parameters object to wrap
          */
-        public ProxyParameters(final Parameters<T> delegate) {
+        ProxyParameters(final Parameters<T> delegate) {
             this.delegate = delegate;
             this.values = delegate.getAttributeValues();
         }

@@ -25,7 +25,7 @@ public enum ShapeTypes {
 
     private String name;
 
-    private ShapeTypes(String name) {
+    ShapeTypes(String name) {
         this.name = name;
     }
 

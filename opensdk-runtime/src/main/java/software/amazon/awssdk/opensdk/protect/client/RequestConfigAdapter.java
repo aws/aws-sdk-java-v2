@@ -36,7 +36,7 @@ class RequestConfigAdapter extends RequestConfig {
     private final SdkRequestConfig sdkRequestConfig;
     private final RequestClientOptions clientOptions = new RequestClientOptions();
 
-    public RequestConfigAdapter(BaseRequest request) {
+    RequestConfigAdapter(BaseRequest request) {
         this.request = request;
         this.sdkRequestConfig = request.sdkRequestConfig();
     }

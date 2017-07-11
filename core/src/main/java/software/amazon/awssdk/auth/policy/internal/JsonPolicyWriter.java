@@ -385,7 +385,7 @@ public class JsonPolicyWriter {
     static class ConditionsByKey {
         private Map<String, List<String>> conditionsByKey;
 
-        public ConditionsByKey() {
+        ConditionsByKey() {
             conditionsByKey = new LinkedHashMap<String, List<String>>();
         }
 

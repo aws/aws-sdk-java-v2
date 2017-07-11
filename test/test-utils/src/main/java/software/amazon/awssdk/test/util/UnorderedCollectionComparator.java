@@ -86,10 +86,10 @@ public class UnorderedCollectionComparator {
     /**
      * A simple interface that attempts to compare objects of two different types
      */
-    public static interface CrossTypeComparator<A, B> {
+    public interface CrossTypeComparator<A, B> {
         /**
          * @return True if a and b should be treated as equal.
          */
-        public boolean equals(A a, B b);
+        boolean equals(A a, B b);
     }
 }

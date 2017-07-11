@@ -32,7 +32,7 @@ class QueryCollection extends ItemCollection<QueryOutcome> {
     private final QuerySpec spec;
     private final Map<String, AttributeValue> startKey;
 
-    public QueryCollection(DynamoDBClient client, QuerySpec spec) {
+    QueryCollection(DynamoDBClient client, QuerySpec spec) {
         this.client = client;
         this.spec = spec;
         Map<String, AttributeValue> startKey =
