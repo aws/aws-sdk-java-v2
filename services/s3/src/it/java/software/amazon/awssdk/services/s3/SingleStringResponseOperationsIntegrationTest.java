@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.services.s3.model.BucketLocationConstraint.UsWest2;
 
-import java.util.Date;
+import java.time.Instant;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -41,7 +41,7 @@ public final class SingleStringResponseOperationsIntegrationTest extends S3Integ
     /**
      * The name of the bucket created, used, and deleted by these tests.
      */
-    private static String bucketName = "single-string-integ-test-" + new Date().getTime();
+    private static String bucketName = "single-string-integ-test-" + Instant.now().toEpochMilli();
 
     @BeforeClass
     public static void setupSuite() {
@@ -83,10 +83,10 @@ public final class SingleStringResponseOperationsIntegrationTest extends S3Integ
 
     private String createPolicy() {
         return new Policy().withStatements(
-            new Statement(Statement.Effect.Allow)
+            new Statement(Statement.Effect.Deny)
                 .withPrincipals(new Principal("*"))
-                .withResources(new Resource("arn:aws:s3:::" + bucketName))
-                .withActions((Action) () -> "*"))
+                .withResources(new Resource("arn:aws:s3:::" + bucketName + "/*"))
+                .withActions((Action) () -> "s3:GetObject"))
                            .toJson();
     }
 }
