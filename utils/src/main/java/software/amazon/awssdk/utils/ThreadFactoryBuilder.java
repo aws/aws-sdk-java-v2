@@ -17,17 +17,25 @@ package software.amazon.awssdk.utils;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotation.SdkTestInternalApi;
 
 /**
  * A builder for creating a thread factory. This allows changing the behavior of the created thread factory.
  */
 @SdkProtectedApi
 public class ThreadFactoryBuilder {
-    private static final AtomicInteger POOL_NUMBER = new AtomicInteger(1);
 
-    private String threadNamePrefix = "aws-java-sdk-thread";
+    /**
+     * To prevent thread names from becoming too long we limit to 4 digits for the pool number before wrapping back
+     * around.
+     */
+    private static final int POOL_NUMBER_MAX = 10_000;
+
+    private static final AtomicLong POOL_NUMBER = new AtomicLong(0);
+
+    private String threadNamePrefix = "aws-java-sdk";
     private Boolean daemonThreads = true;
 
     /**
@@ -53,10 +61,18 @@ public class ThreadFactoryBuilder {
     }
 
     /**
+     * Test API to reset pool count for reliable assertions.
+     */
+    @SdkTestInternalApi
+    static void resetPoolNumber() {
+        POOL_NUMBER.set(0);
+    }
+
+    /**
      * Create the {@link ThreadFactory} with the configuration currently applied to this builder.
      */
     public ThreadFactory build() {
-        String threadNamePrefixWithPoolNumber = threadNamePrefix + "-" + POOL_NUMBER.getAndIncrement();
+        String threadNamePrefixWithPoolNumber = threadNamePrefix + "-" + POOL_NUMBER.getAndIncrement() % POOL_NUMBER_MAX;
 
         ThreadFactory result = new NamedThreadFactory(Executors.defaultThreadFactory(), threadNamePrefixWithPoolNumber);
 
