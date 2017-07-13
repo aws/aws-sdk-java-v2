@@ -82,7 +82,7 @@ public final class NettySdkHttpClientFactory
 
     /**
      * @return The current {@link EventLoopGroupConfiguration} which is a container for either an {@link EventLoopGroup} or an
-     * {@link EventLoopGroupFactory}.
+     * {@link DefaultEventLoopGroupFactory}.
      * @see Builder#eventLoopGroupConfiguration(EventLoopGroupConfiguration)
      */
     public EventLoopGroupConfiguration eventLoopGroupConfiguration() {
@@ -157,7 +157,12 @@ public final class NettySdkHttpClientFactory
         Builder trustAllCertificates(Boolean trustAllCertificates);
 
         /**
-         * Configuration for the Netty {@link EventLoopGroup} which multiplexes IO events..
+         * Configuration for the Netty {@link EventLoopGroup} which multiplexes IO events.
+         *
+         * <p>
+         * If none is provided then a default {@link EventLoopGroup} will be used. This default {@link EventLoopGroup} will be
+         * shared across all HTTP client instances and will be automatically shutdown by the SDK when no references to it remain.
+         * </p>
          *
          * @param eventLoopGroupConfiguration New configuration object.
          * @return This builder for method chaining.

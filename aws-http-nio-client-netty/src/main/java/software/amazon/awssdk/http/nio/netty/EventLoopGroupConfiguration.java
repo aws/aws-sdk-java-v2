@@ -63,8 +63,8 @@ public final class EventLoopGroupConfiguration
     }
 
     /**
-     * Transforms this configuration into an {@link Either} of {@link EventLoopGroup} and {@link EventLoopGroupFactory} to ease
-     * resolution of the Netty event loop group. Returns an empty {@link Optional} if neither is set.
+     * Transforms this configuration into an {@link Either} of {@link EventLoopGroup} and {@link EventLoopGroupFactory} to
+     * ease resolution of the Netty event loop group. Returns an empty {@link Optional} if neither is set.
      */
     @SdkInternalApi
     Optional<Either<EventLoopGroup, EventLoopGroupFactory>> toEither() {
@@ -92,8 +92,8 @@ public final class EventLoopGroupConfiguration
         /**
          * Sets the {@link EventLoopGroup} to use for the Netty HTTP client. This event loop group may be shared
          * across multiple HTTP clients for better resource and thread utilization. The preferred way to create
-         * an {@link EventLoopGroup} is by using the {@link EventLoopGroupFactory#create()} method which will choose the optimal
-         * implementation per the platform.
+         * an {@link EventLoopGroup} is by using the {@link EventLoopGroupFactory#create()} method which will choose the
+         * optimal implementation per the platform.
          *
          * <p>The {@link EventLoopGroup} <b>MUST</b> be closed by the caller when it is ready to
          * be disposed. The SDK will not close the {@link EventLoopGroup} when the HTTP client is closed. See
@@ -106,7 +106,7 @@ public final class EventLoopGroupConfiguration
          *
          * @param eventLoopGroup Netty {@link EventLoopGroup} to use.
          * @return This builder for method chaining.
-         * @see EventLoopGroupFactory
+         * @see DefaultEventLoopGroupFactory
          */
         // This intentionally returns SdkBuilder so that only eventLoopGroup or eventLoopGroupFactory may be supplied.
         SdkBuilder<?, EventLoopGroupConfiguration> eventLoopGroup(EventLoopGroup eventLoopGroup);
@@ -124,6 +124,7 @@ public final class EventLoopGroupConfiguration
          *
          * @param eventLoopGroupFactory {@link EventLoopGroupFactory} to use.
          * @return This builder for method chaining.
+         * @see DefaultEventLoopGroupFactory
          */
         // This intentionally returns SdkBuilder so that only eventLoopGroup or eventLoopGroupFactory may be supplied.
         SdkBuilder<?, EventLoopGroupConfiguration> eventLoopGroupFactory(EventLoopGroupFactory eventLoopGroupFactory);

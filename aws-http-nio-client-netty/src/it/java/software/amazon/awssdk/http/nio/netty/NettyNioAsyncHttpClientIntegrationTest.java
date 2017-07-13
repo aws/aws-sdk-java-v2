@@ -95,9 +95,9 @@ public class NettyNioAsyncHttpClientIntegrationTest {
         ThreadFactory threadFactory = spy(new CustomThreadFactory());
         EventLoopGroupConfiguration eventLoopGroupConfiguration =
                 EventLoopGroupConfiguration.builder()
-                                           .eventLoopGroupFactory(EventLoopGroupFactory.builder()
-                                                                                       .threadFactory(threadFactory)
-                                                                                       .build())
+                                           .eventLoopGroupFactory(DefaultEventLoopGroupFactory.builder()
+                                                                                              .threadFactory(threadFactory)
+                                                                                              .build())
                                            .build();
         SdkAsyncHttpClient customClient =
                 NettySdkHttpClientFactory.builder()
@@ -118,10 +118,10 @@ public class NettyNioAsyncHttpClientIntegrationTest {
         ThreadFactory threadFactory = spy(new CustomThreadFactory());
         EventLoopGroupConfiguration eventLoopGroupConfiguration =
                 EventLoopGroupConfiguration.builder()
-                                           .eventLoopGroupFactory(EventLoopGroupFactory.builder()
-                                                                                       .threadFactory(threadFactory)
-                                                                                       .numberOfThreads(threadCount)
-                                                                                       .build())
+                                           .eventLoopGroupFactory(DefaultEventLoopGroupFactory.builder()
+                                                                                              .threadFactory(threadFactory)
+                                                                                              .numberOfThreads(threadCount)
+                                                                                              .build())
                                            .build();
         SdkAsyncHttpClient customClient =
                 NettySdkHttpClientFactory.builder()
@@ -143,10 +143,10 @@ public class NettyNioAsyncHttpClientIntegrationTest {
     public void customEventLoopGroup_NotClosedWhenClientIsClosed() throws Exception {
 
         ThreadFactory threadFactory = spy(new CustomThreadFactory());
-        EventLoopGroup eventLoopGroup = spy(EventLoopGroupFactory.builder()
-                                                                 .threadFactory(threadFactory)
-                                                                 .build()
-                                                                 .create());
+        EventLoopGroup eventLoopGroup = spy(DefaultEventLoopGroupFactory.builder()
+                                                                        .threadFactory(threadFactory)
+                                                                        .build()
+                                                                        .create());
         EventLoopGroupConfiguration eventLoopGroupConfiguration =
                 EventLoopGroupConfiguration.builder()
                                            .eventLoopGroup(eventLoopGroup)
