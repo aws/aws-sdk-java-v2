@@ -182,7 +182,7 @@ public class SignerUtils {
     /**
      * Enumeration of protocols for presigned URLs
      */
-    public static enum Protocol {
+    public enum Protocol {
         http, https, rtmp
     }
 }

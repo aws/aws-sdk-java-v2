@@ -17,7 +17,7 @@ package software.amazon.awssdk.protocol.json.internal;
 
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotation.SdkInternalApi;
@@ -87,9 +87,9 @@ public class SimpleTypeJsonMarshallers {
         }
     };
 
-    public static final JsonMarshaller<Date> DATE = new BaseJsonMarshaller<Date>() {
+    public static final JsonMarshaller<Instant> INSTANT = new BaseJsonMarshaller<Instant>() {
         @Override
-        public void marshall(Date val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
+        public void marshall(Instant val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
             jsonGenerator.writeValue(val);
         }
     };
@@ -150,9 +150,6 @@ public class SimpleTypeJsonMarshallers {
 
         @Override
         public final void marshall(T val, JsonMarshallerContext context, String paramName) {
-            if (!shouldEmit(val)) {
-                return;
-            }
             if (paramName != null) {
                 context.jsonGenerator().writeFieldName(paramName);
             }
@@ -160,14 +157,6 @@ public class SimpleTypeJsonMarshallers {
         }
 
         public abstract void marshall(T val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context);
-
-        /**
-         * Hook to prevent emitting the field name. Used for maps and lists since we treat empty auto constructed
-         * containers as null.
-         */
-        protected boolean shouldEmit(T val) {
-            return true;
-        }
     }
 
 }

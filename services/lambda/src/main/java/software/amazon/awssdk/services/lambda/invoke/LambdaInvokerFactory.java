@@ -27,9 +27,8 @@ import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.lambda.LambdaAsyncClient;
 import software.amazon.awssdk.services.lambda.model.InvocationType;
 import software.amazon.awssdk.services.lambda.model.InvokeRequest;
@@ -194,12 +193,12 @@ public final class LambdaInvokerFactory {
     private static class LambdaInvocationHandler implements InvocationHandler {
 
         private final LambdaAsyncClient awsLambda;
-        private final Log log;
+        private final Logger log;
         private final LambdaInvokerFactoryConfig config;
 
-        public LambdaInvocationHandler(Class<?> interfaceClass, LambdaAsyncClient awsLambda, LambdaInvokerFactoryConfig config) {
+        LambdaInvocationHandler(Class<?> interfaceClass, LambdaAsyncClient awsLambda, LambdaInvokerFactoryConfig config) {
             this.awsLambda = awsLambda;
-            this.log = LogFactory.getLog(interfaceClass);
+            this.log = LoggerFactory.getLogger(interfaceClass);
             this.config = config;
         }
 

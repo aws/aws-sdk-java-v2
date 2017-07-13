@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.protocol.json.internal;
 
-import java.util.Date;
+import java.time.Instant;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 
 @SdkInternalApi
@@ -33,7 +33,7 @@ public class HeaderMarshallers {
 
     public static final JsonMarshaller<Boolean> BOOLEAN = new SimpleHeaderMarshaller<>(ValueToStringConverters.FROM_BOOLEAN);
 
-    public static final JsonMarshaller<Date> DATE = new SimpleHeaderMarshaller<>(ValueToStringConverters.FROM_DATE);
+    public static final JsonMarshaller<Instant> INSTANT = new SimpleHeaderMarshaller<>(ValueToStringConverters.FROM_INSTANT);
 
     private static class SimpleHeaderMarshaller<T> implements JsonMarshaller<T> {
 

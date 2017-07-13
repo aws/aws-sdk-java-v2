@@ -86,7 +86,7 @@ public final class RequestClientOptions {
      *
      * @see InputStream#mark(int)
      */
-    public final int getReadLimit() {
+    public int getReadLimit() {
         return readLimit;
     }
 
@@ -96,7 +96,7 @@ public final class RequestClientOptions {
      *
      * @see InputStream#mark(int)
      */
-    public final void setReadLimit(int readLimit) {
+    public void setReadLimit(int readLimit) {
         this.readLimit = readLimit;
     }
 
@@ -111,7 +111,7 @@ public final class RequestClientOptions {
         }
     }
 
-    public static enum Marker {
+    public enum Marker {
         /**
          * Used to specify the http user_agent value.
          * This marker is intended only for internal use by the AWS SDK.

@@ -75,7 +75,7 @@ final class AddOutputShapes extends AddShapes implements IntermediateModelShapeP
         return javaShapes;
     }
 
-    private final ShapeModel generateOutputShapeModel(Operation c2jOperationModel,
+    private ShapeModel generateOutputShapeModel(Operation c2jOperationModel,
                                                       String javaOutputShapeNameOverride,
                                                       Map<String, Shape> c2jShapes) {
 

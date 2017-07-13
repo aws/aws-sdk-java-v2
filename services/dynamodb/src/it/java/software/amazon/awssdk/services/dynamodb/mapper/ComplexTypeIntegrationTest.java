@@ -16,7 +16,6 @@
 package software.amazon.awssdk.services.dynamodb.mapper;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -35,11 +34,11 @@ import java.util.List;
 import org.junit.Test;
 import software.amazon.awssdk.services.dynamodb.DynamoDBMapperIntegrationTestBase;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbHashKey;
+import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbTable;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbTypeConverted;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbTypeConvertedJson;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbTypeConverter;
-import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 
 /**
  * Tests of the configuration object

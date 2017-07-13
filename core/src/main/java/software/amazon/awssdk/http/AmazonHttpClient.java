@@ -17,8 +17,8 @@ package software.amazon.awssdk.http;
 
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.AmazonWebServiceResponse;
 import software.amazon.awssdk.LegacyClientConfiguration;
@@ -80,7 +80,7 @@ public class AmazonHttpClient implements AutoCloseable {
      * etc.
      */
     @SdkInternalApi
-    public static final Log REQUEST_LOG = LogFactory.getLog("software.amazon.awssdk.request");
+    public static final Logger REQUEST_LOG = LoggerFactory.getLogger("software.amazon.awssdk.request");
 
     /**
      * When throttled retries are enabled, each retry attempt will consume this much capacity.

@@ -17,8 +17,8 @@ package software.amazon.awssdk.internal.io;
 
 import java.io.Closeable;
 import java.io.IOException;
-import software.amazon.awssdk.log.InternalLogApi;
-import software.amazon.awssdk.log.InternalLogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -29,7 +29,7 @@ import software.amazon.awssdk.utils.IoUtils;
 @Deprecated
 public enum SdkIoUtils {
     ;
-    private static final InternalLogApi DEFAULT_LOG = InternalLogFactory.getLog(SdkIoUtils.class);
+    private static final Logger DEFAULT_LOG = LoggerFactory.getLogger(SdkIoUtils.class);
 
     public static void closeQuietly(Closeable is) {
         closeQuietly(is, null);
@@ -40,12 +40,12 @@ public enum SdkIoUtils {
      * @param is the given closeable
      * @param log logger used to log any failure should the close fail
      */
-    static void closeQuietly(Closeable is, InternalLogApi log) {
+    static void closeQuietly(Closeable is, Logger log) {
         if (is != null) {
             try {
                 is.close();
             } catch (IOException ex) {
-                InternalLogApi logger = log == null ? DEFAULT_LOG : log;
+                Logger logger = log == null ? DEFAULT_LOG : log;
                 if (logger.isDebugEnabled()) {
                     logger.debug("Ignore failure in closing the Closeable", ex);
                 }

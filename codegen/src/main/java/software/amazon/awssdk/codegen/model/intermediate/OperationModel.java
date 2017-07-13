@@ -25,6 +25,7 @@ import java.util.List;
 import software.amazon.awssdk.codegen.internal.DocumentationUtils;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 public class OperationModel extends DocumentationModel {
 
@@ -104,7 +105,7 @@ public class OperationModel extends DocumentationModel {
         this.outputShape = outputShape;
     }
 
-    private static enum MethodType {
+    private enum MethodType {
 
         SYNC(false),
         ASYNC(true),
@@ -112,7 +113,7 @@ public class OperationModel extends DocumentationModel {
 
         private final boolean async;
 
-        private MethodType(boolean async) {
+        MethodType(boolean async) {
             this.async = async;
         }
 
@@ -125,7 +126,7 @@ public class OperationModel extends DocumentationModel {
         Metadata md = model.getMetadata();
         StringBuilder docBuilder = new StringBuilder();
 
-        if (documentation != null) {
+        if (StringUtils.isNotBlank(documentation)) {
             docBuilder.append(documentation);
         } else {
             docBuilder.append("Invokes the ").append(operationName).append(" operation");

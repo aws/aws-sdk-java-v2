@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.services.dynamodb.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
@@ -47,7 +47,7 @@ public class TableUtils {
     /**
      * The logging utility.
      */
-    private static final Log LOG = LogFactory.getLog(TableUtils.class);
+    private static final Logger log = LoggerFactory.getLogger(TableUtils.class);
 
     /**
      * Waits up to 10 minutes for a specified DynamoDB table to resolve,
@@ -215,13 +215,13 @@ public class TableUtils {
      * @param createTableRequest The create table request.
      * @return True if created, false otherwise.
      */
-    public static final boolean createTableIfNotExists(final DynamoDBClient dynamo, final CreateTableRequest createTableRequest) {
+    public static boolean createTableIfNotExists(final DynamoDBClient dynamo, final CreateTableRequest createTableRequest) {
         try {
             dynamo.createTable(createTableRequest);
             return true;
         } catch (final ResourceInUseException e) {
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("Table " + createTableRequest.tableName() + " already exists", e);
+            if (log.isTraceEnabled()) {
+                log.trace("Table " + createTableRequest.tableName() + " already exists", e);
             }
         }
         return false;
@@ -233,13 +233,13 @@ public class TableUtils {
      * @param deleteTableRequest The delete table request.
      * @return True if deleted, false otherwise.
      */
-    public static final boolean deleteTableIfExists(final DynamoDBClient dynamo, final DeleteTableRequest deleteTableRequest) {
+    public static boolean deleteTableIfExists(final DynamoDBClient dynamo, final DeleteTableRequest deleteTableRequest) {
         try {
             dynamo.deleteTable(deleteTableRequest);
             return true;
         } catch (final ResourceNotFoundException e) {
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("Table " + deleteTableRequest.tableName() + " does not exist", e);
+            if (log.isTraceEnabled()) {
+                log.trace("Table " + deleteTableRequest.tableName() + " does not exist", e);
             }
         }
         return false;

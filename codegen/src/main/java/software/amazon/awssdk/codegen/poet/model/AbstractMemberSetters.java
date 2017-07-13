@@ -20,10 +20,8 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
-
 import java.util.Optional;
 import javax.lang.model.element.Modifier;
-
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
@@ -39,7 +37,7 @@ abstract class AbstractMemberSetters implements MemberSetters {
     private final TypeProvider typeProvider;
     private final ServiceModelCopiers serviceModelCopiers;
 
-    public AbstractMemberSetters(IntermediateModel intermediateModel,
+    AbstractMemberSetters(IntermediateModel intermediateModel,
                                  ShapeModel shapeModel,
                                  MemberModel memberModel,
                                  TypeProvider typeProvider) {

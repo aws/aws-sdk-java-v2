@@ -29,7 +29,7 @@ class ListTablesCollection extends TableCollection<ListTablesResponse> {
     private final ListTablesSpec spec;
     private final String startKey;
 
-    public ListTablesCollection(DynamoDBClient client, ListTablesSpec spec) {
+    ListTablesCollection(DynamoDBClient client, ListTablesSpec spec) {
         this.client = client;
         this.spec = spec;
         this.startKey = spec.getExclusiveStartTableName();

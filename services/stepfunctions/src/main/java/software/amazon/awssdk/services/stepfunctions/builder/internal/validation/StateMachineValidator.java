@@ -110,7 +110,7 @@ public class StateMachineValidator {
         private final Map<String, State> visited = new HashMap<String, State>();
         private final ValidationContext currentContext;
 
-        public GraphValidator(ValidationContext context, StateMachine stateMachine) {
+        GraphValidator(ValidationContext context, StateMachine stateMachine) {
             this(context,
                  Collections.<String, State>emptyMap(),
                  stateMachine.getStartAt(),

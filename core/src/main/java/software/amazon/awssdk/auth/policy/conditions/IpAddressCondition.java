@@ -77,7 +77,7 @@ public class IpAddressCondition extends Condition {
     /**
      * Enumeration of the supported ways an IP address comparison can be evaluated.
      */
-    public static enum IpAddressComparisonType {
+    public enum IpAddressComparisonType {
         /**
          * Matches an IP address against a CIDR IP range, evaluating to true if
          * the IP address being tested is in the condition's specified CIDR IP

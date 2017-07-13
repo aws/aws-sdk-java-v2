@@ -29,8 +29,8 @@ import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.UUID;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.auth.profile.internal.AbstractProfilesConfigFileScanner;
 import software.amazon.awssdk.auth.profile.internal.Profile;
@@ -42,7 +42,7 @@ import software.amazon.awssdk.util.StringUtils;
  */
 public class ProfilesConfigFileWriter {
 
-    private static final Log LOG = LogFactory.getLog(ProfilesConfigFileWriter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ProfilesConfigFileWriter.class);
 
     /**
      * Write all the credential profiles to a file. Note that this method will
@@ -283,7 +283,7 @@ public class ProfilesConfigFileWriter {
          *            If a profile name is associated with a null value, it's
          *            profile content will be removed.
          */
-        public ProfilesConfigFileWriterHelper(Writer writer, Map<String, Profile> modifications) {
+        ProfilesConfigFileWriterHelper(Writer writer, Map<String, Profile> modifications) {
             this.writer = writer;
 
             for (Entry<String, Profile> entry : modifications.entrySet()) {

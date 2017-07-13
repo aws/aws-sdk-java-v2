@@ -19,6 +19,10 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>utils</artifactId>
             <version>${awsjavasdk.version}</version>

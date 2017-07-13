@@ -18,9 +18,9 @@ package software.amazon.awssdk.runtime.transform;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.Date;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.time.Instant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.util.DateUtils;
 import software.amazon.awssdk.utils.Base64Utils;
@@ -30,7 +30,7 @@ import software.amazon.awssdk.utils.Base64Utils;
  */
 public class SimpleTypeStaxUnmarshallers {
     /** Shared logger. */
-    private static Log log = LogFactory.getLog(SimpleTypeUnmarshallers.class);
+    private static Logger log = LoggerFactory.getLogger(SimpleTypeUnmarshallers.class);
 
     /**
      * Unmarshaller for String values.
@@ -174,21 +174,21 @@ public class SimpleTypeStaxUnmarshallers {
     /**
      * Unmarshaller for Date values.
      */
-    public static class DateUnmarshaller implements Unmarshaller<Date, StaxUnmarshallerContext> {
-        private static final DateUnmarshaller INSTANCE = new DateUnmarshaller();
+    public static class InstantUnmarshaller implements Unmarshaller<Instant, StaxUnmarshallerContext> {
+        private static final InstantUnmarshaller INSTANCE = new InstantUnmarshaller();
 
-        public static DateUnmarshaller getInstance() {
+        public static InstantUnmarshaller getInstance() {
             return INSTANCE;
         }
 
-        public Date unmarshall(StaxUnmarshallerContext unmarshallerContext) throws Exception {
+        public Instant unmarshall(StaxUnmarshallerContext unmarshallerContext) throws Exception {
             String dateString = unmarshallerContext.readText();
             if (dateString == null) {
                 return null;
             }
 
             try {
-                return DateUtils.parseIso8601Date(dateString);
+                return DateUtils.parseIso8601Date(dateString).toInstant();
             } catch (Exception e) {
                 log.warn("Unable to parse date '" + dateString + "':  " + e.getMessage(), e);
                 return null;

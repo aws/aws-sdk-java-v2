@@ -37,14 +37,14 @@ final class StandardBeanProperties {
      * Returns the bean mappings for a given class (caches the results).
      */
     @SuppressWarnings("unchecked")
-    static final <T> Beans<T> of(Class<T> clazz) {
+    static <T> Beans<T> of(Class<T> clazz) {
         return ((CachedBeans<T>) CachedBeans.CACHE).beans(clazz);
     }
 
     /**
      * Gets the field name given the getter method.
      */
-    static final String fieldNameOf(Method getter) {
+    static String fieldNameOf(Method getter) {
         final String name = getter.getName().replaceFirst("^(get|is)", "");
         return StringUtils.lowerCase(name.substring(0, 1)) + name.substring(1);
     }
@@ -56,7 +56,7 @@ final class StandardBeanProperties {
         private static final CachedBeans<Object> CACHE = new CachedBeans<Object>();
         private final ConcurrentMap<Class<T>, Beans<T>> cache = new ConcurrentHashMap<Class<T>, Beans<T>>();
 
-        private final Beans<T> beans(Class<T> clazz) {
+        private Beans<T> beans(Class<T> clazz) {
             if (!cache.containsKey(clazz)) {
                 final TableMap<T> annotations = StandardAnnotationMaps.<T>of(clazz);
                 final BeanMap<T, Object> map = new BeanMap<T, Object>(clazz, false);
@@ -78,11 +78,11 @@ final class StandardBeanProperties {
             this.map = Collections.unmodifiableMap(map);
         }
 
-        final DynamoDbMapperTableModel.Properties<T> properties() {
+        DynamoDbMapperTableModel.Properties<T> properties() {
             return this.properties;
         }
 
-        final Map<String, Bean<T, Object>> map() {
+        Map<String, Bean<T, Object>> map() {
             return this.map;
         }
     }
@@ -101,15 +101,15 @@ final class StandardBeanProperties {
             this.reflect = reflect;
         }
 
-        final DynamoDbMapperFieldModel.Properties<V> properties() {
+        DynamoDbMapperFieldModel.Properties<V> properties() {
             return this.properties;
         }
 
-        final ConvertibleType<V> type() {
+        ConvertibleType<V> type() {
             return this.type;
         }
 
-        final Reflect<T, V> reflect() {
+        Reflect<T, V> reflect() {
             return this.reflect;
         }
     }

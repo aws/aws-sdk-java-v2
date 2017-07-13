@@ -17,9 +17,7 @@ package software.amazon.awssdk.codegen.poet.model;
 
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
-
 import java.util.List;
-
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
@@ -31,7 +29,7 @@ class AccessorsFactory {
     private final TypeProvider typeProvider;
     private final IntermediateModel intermediateModel;
 
-    public AccessorsFactory(ShapeModel shapeModel, IntermediateModel intermediateModel, TypeProvider typeProvider) {
+    AccessorsFactory(ShapeModel shapeModel, IntermediateModel intermediateModel, TypeProvider typeProvider) {
         this.shapeModel = shapeModel;
         this.typeProvider = typeProvider;
         this.intermediateModel = intermediateModel;

@@ -19,7 +19,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.apache.commons.logging.LogFactory;
 import software.amazon.awssdk.services.lambda.model.InvocationType;
 import software.amazon.awssdk.services.lambda.model.InvokeRequest;
 import software.amazon.awssdk.services.lambda.model.LogType;
@@ -70,7 +69,7 @@ public @interface LambdaFunction {
      * JCL log for the interface class at the {@code INFO} level.
      *
      * @see InvokeRequest#logType(LogType)
-     * @see LogFactory#getLog(Class)
+     * @see LoggerFactory.getLogger(Class)
      */
     LogType logType() default LogType.None;
 }

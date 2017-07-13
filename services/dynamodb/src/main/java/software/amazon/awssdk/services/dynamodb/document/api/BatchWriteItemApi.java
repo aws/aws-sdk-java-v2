@@ -38,14 +38,14 @@ public interface BatchWriteItemApi {
      *            the tables and the respective keys to delete from and/or the
      *            respective items to be put.
      */
-    public BatchWriteItemOutcome batchWriteItem(
-            TableWriteItems... tableWriteItems);
+    BatchWriteItemOutcome batchWriteItem(
+        TableWriteItems... tableWriteItems);
 
     /**
      * Used to perform a batch write operation to DynamoDB with full parameter
      * specification.
      */
-    public BatchWriteItemOutcome batchWriteItem(BatchWriteItemSpec spec);
+    BatchWriteItemOutcome batchWriteItem(BatchWriteItemSpec spec);
 
     /**
      * Used to perform a batch write operation for the unprocessed items
@@ -57,6 +57,6 @@ public interface BatchWriteItemApi {
      *
      * @see BatchWriteItemOutcome#getUnprocessedItems()
      */
-    public BatchWriteItemOutcome batchWriteItemUnprocessed(
-            Map<String, List<WriteRequest>> unprocessedItems);
+    BatchWriteItemOutcome batchWriteItemUnprocessed(
+        Map<String, List<WriteRequest>> unprocessedItems);
 }

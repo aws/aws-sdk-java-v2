@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.services.dynamodb.document.Expected;
@@ -73,7 +72,7 @@ public class InternalUtilsTest {
         byte[] bytesFrom = {1, 2, 3, 4};
         AttributeValue av = InternalUtils.toAttributeValue(bytesFrom);
         ByteBuffer bbTo = av.b();
-        assertTrue(Arrays.equals(bytesFrom, bbTo.array()));
+        assertTrue(ByteBuffer.wrap(bytesFrom).compareTo(bbTo) == 0);
     }
 
     @Test
@@ -143,9 +142,9 @@ public class InternalUtilsTest {
         boolean bool1 = false;
         boolean bool2 = false;
         for (ByteBuffer b : bs) {
-            if (Arrays.equals(ba1From, b.array())) {
+            if (ByteBuffer.wrap(ba1From).compareTo(b) == 0) {
                 bool1 = true;
-            } else if (Arrays.equals(ba2From, b.array())) {
+            } else if (ByteBuffer.wrap(ba2From).compareTo(b) == 0) {
                 bool2 = true;
             }
         }
@@ -167,9 +166,9 @@ public class InternalUtilsTest {
         boolean bool1 = false;
         boolean bool2 = false;
         for (ByteBuffer b : bs) {
-            if (Arrays.equals(ba1From, b.array())) {
+            if (ByteBuffer.wrap(ba1From).compareTo(b) == 0) {
                 bool1 = true;
-            } else if (Arrays.equals(ba2From, b.array())) {
+            } else if (ByteBuffer.wrap(ba2From).compareTo(b) == 0) {
                 bool2 = true;
             }
         }
@@ -291,18 +290,20 @@ public class InternalUtilsTest {
     @Test
     public void toSimpleValue_ByteArray() {
         byte[] bytesFrom = new byte[] {1, 2, 3};
+        ByteBuffer byteBufferTo = ByteBuffer.allocate(3).put(bytesFrom);
+        byteBufferTo.rewind();
         byte[] bytesTo = InternalUtils.toSimpleValue(
-                AttributeValue.builder().b(
-                        ByteBuffer.allocate(3).put(bytesFrom)).build());
+                AttributeValue.builder().b(byteBufferTo).build());
         assertTrue(Arrays.equals(bytesTo, bytesFrom));
     }
 
     @Test
     public void toSimpleValue_DirectByteBuffer() {
         byte[] bytesFrom = new byte[] {1, 2, 3};
+        ByteBuffer byteBufferTo = ByteBuffer.allocateDirect(3).put(bytesFrom);
+        byteBufferTo.rewind();
         byte[] bytesTo = InternalUtils.toSimpleValue(
-                AttributeValue.builder().b(
-                        ByteBuffer.allocateDirect(3).put(bytesFrom)).build());
+                AttributeValue.builder().b(byteBufferTo).build());
         assertTrue(Arrays.equals(bytesTo, bytesFrom));
     }
 

@@ -24,5 +24,5 @@ public interface MetricType {
      * type. Therefore, the name returned must be globally unique across all
      * metric types that implement this interface.
      */
-    public String name();
+    String name();
 }

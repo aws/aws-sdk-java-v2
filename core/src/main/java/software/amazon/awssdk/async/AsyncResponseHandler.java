@@ -30,7 +30,10 @@ public interface AsyncResponseHandler<ResponseT, ReturnT> {
 
     /**
      * Called when the initial response (headers/status code) has been received and the POJO response has
-     * been unmarshalled.
+     * been unmarshalled. This is guaranteed to be called before {@link #onStream(Publisher)}.
+     *
+     * <p>In the event of a retryable error, this callback may be called multiple times. It
+     * also may never be invoked if the request never succeeds.</p>
      *
      * @param response Unmarshalled POJO containing metadata about the streamed data.
      */
@@ -45,6 +48,8 @@ public interface AsyncResponseHandler<ResponseT, ReturnT> {
      * If at any time the subscriber wishes to stop receiving data, it may call {@link Subscription#cancel()}. This
      * will be treated as a failure of the response and the {@link #exceptionOccurred(Throwable)} callback will be invoked.
      * </p>
+     *
+     * <p>This callback may never be called if the response has no content or if an error occurs.</p>
      *
      * <p>
      * In the event of a retryable error, this callback may be called multiple times with different Publishers.

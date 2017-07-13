@@ -79,7 +79,7 @@ public class JavaVersionParser {
         private Integer knownMajorVersionFamily;
         private Integer knownMajorVersion;
 
-        private KnownJavaVersions(final int majorVersionFamily, final int majorVersion) {
+        KnownJavaVersions(final int majorVersionFamily, final int majorVersion) {
             this.knownMajorVersionFamily = majorVersionFamily;
             this.knownMajorVersion = Integer.valueOf(majorVersion);
         }

@@ -69,7 +69,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     /**
      * Standard scalar types.
      */
-    static enum Scalar {
+    enum Scalar {
         /**
          * {@link BigDecimal}
          */
@@ -287,7 +287,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
         /**
          * Constructs a new scalar with the specified conversion mappings.
          */
-        private Scalar(ScalarAttributeType scalarAttributeType, ConverterMap map) {
+        Scalar(ScalarAttributeType scalarAttributeType, ConverterMap map) {
             this.scalarAttributeType = scalarAttributeType;
             this.map = map;
         }
@@ -317,14 +317,14 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
          * Converts the target instance using the standard type-conversions.
          */
         @SuppressWarnings("unchecked")
-        final <S> S convert(Object o) {
+        <S> S convert(Object o) {
             return getConverter(this.<S>type(), (Class<Object>) o.getClass()).convert(o);
         }
 
         /**
          * Determines if the scalar is of the specified scalar attribute type.
          */
-        final boolean is(final ScalarAttributeType scalarAttributeType) {
+        boolean is(final ScalarAttributeType scalarAttributeType) {
             return this.scalarAttributeType == scalarAttributeType;
         }
 
@@ -332,7 +332,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
          * Determines if the class represented by this scalar is either the
          * same as or a supertype of the specified target type.
          */
-        final boolean is(final Class<?> type) {
+        boolean is(final Class<?> type) {
             return this.map.isAssignableFrom(type);
         }
 
@@ -340,7 +340,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
          * Returns the primary reference type.
          */
         @SuppressWarnings("unchecked")
-        final <S> Class<S> type() {
+        <S> Class<S> type() {
             return (Class<S>) this.map.referenceType;
         }
     }
@@ -397,7 +397,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
             private static class ListTypeConverter<S, T> implements DynamoDbTypeConverter<List<S>, List<T>> {
                 private final DynamoDbTypeConverter<S, T> scalar;
 
-                public ListTypeConverter(DynamoDbTypeConverter<S, T> scalar) {
+                ListTypeConverter(DynamoDbTypeConverter<S, T> scalar) {
                     this.scalar = scalar;
                 }
 
@@ -441,7 +441,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
             private static class MapTypeConverter<K, S, T> implements DynamoDbTypeConverter<Map<K, S>, Map<K, T>> {
                 private final DynamoDbTypeConverter<S, T> scalar;
 
-                public MapTypeConverter(DynamoDbTypeConverter<S, T> scalar) {
+                MapTypeConverter(DynamoDbTypeConverter<S, T> scalar) {
                     this.scalar = scalar;
                 }
 
@@ -479,7 +479,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
             private static class SetTypeConverter<S, T> implements DynamoDbTypeConverter<List<S>, Collection<T>> {
                 private final DynamoDbTypeConverter<S, T> target;
 
-                public SetTypeConverter(DynamoDbTypeConverter<S, T> target) {
+                SetTypeConverter(DynamoDbTypeConverter<S, T> target) {
                     this.target = target;
                 }
 
@@ -540,7 +540,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToBigDecimal<T> extends Converter<BigDecimal, T> {
         private static final ToBigDecimal<String> FROM_STRING = new ToBigDecimal<String>() {
             @Override
-            public final BigDecimal convert(final String o) {
+            public BigDecimal convert(final String o) {
                 return new BigDecimal(o);
             }
         };
@@ -552,7 +552,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToBigInteger<T> extends Converter<BigInteger, T> {
         private static final ToBigInteger<String> FROM_STRING = new ToBigInteger<String>() {
             @Override
-            public final BigInteger convert(final String o) {
+            public BigInteger convert(final String o) {
                 return new BigInteger(o);
             }
         };
@@ -567,7 +567,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
             private final Pattern y1 = Pattern.compile("(?i)[Y1]");
 
             @Override
-            public final Boolean convert(final String o) {
+            public Boolean convert(final String o) {
                 return n0.matcher(o).matches() ? Boolean.FALSE : y1.matcher(o).matches() ? Boolean.TRUE : Boolean.valueOf(o);
             }
         };
@@ -579,14 +579,14 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToByte<T> extends Converter<Byte, T> {
         private static final ToByte<Number> FROM_NUMBER = new ToByte<Number>() {
             @Override
-            public final Byte convert(final Number o) {
+            public Byte convert(final Number o) {
                 return o.byteValue();
             }
         };
 
         private static final ToByte<String> FROM_STRING = new ToByte<String>() {
             @Override
-            public final Byte convert(final String o) {
+            public Byte convert(final String o) {
                 return Byte.valueOf(o);
             }
         };
@@ -598,7 +598,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToByteArray<T> extends Converter<byte[], T> {
         private static final ToByteArray<ByteBuffer> FROM_BYTE_BUFFER = new ToByteArray<ByteBuffer>() {
             @Override
-            public final byte[] convert(final ByteBuffer o) {
+            public byte[] convert(final ByteBuffer o) {
                 if (o.hasArray()) {
                     return o.array();
                 }
@@ -610,7 +610,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
 
         private static final ToByteArray<String> FROM_STRING = new ToByteArray<String>() {
             @Override
-            public final byte[] convert(final String o) {
+            public byte[] convert(final String o) {
                 return o.getBytes(Charset.forName("UTF-8"));
             }
         };
@@ -622,14 +622,14 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToByteBuffer<T> extends Converter<ByteBuffer, T> {
         private static final ToByteBuffer<byte[]> FROM_BYTE_ARRAY = new ToByteBuffer<byte[]>() {
             @Override
-            public final ByteBuffer convert(final byte[] o) {
+            public ByteBuffer convert(final byte[] o) {
                 return ByteBuffer.wrap(o);
             }
         };
 
         private static final ToByteBuffer<java.util.UUID> FROM_UUID = new ToByteBuffer<java.util.UUID>() {
             @Override
-            public final ByteBuffer convert(final java.util.UUID o) {
+            public ByteBuffer convert(final java.util.UUID o) {
                 final ByteBuffer value = ByteBuffer.allocate(16);
                 value.putLong(o.getMostSignificantBits()).putLong(o.getLeastSignificantBits());
                 value.position(0);
@@ -644,7 +644,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToCalendar<T> extends Converter<Calendar, T> {
         private static final ToCalendar<Date> FROM_DATE = new ToCalendar<Date>() {
             @Override
-            public final Calendar convert(final Date o) {
+            public Calendar convert(final Date o) {
                 final Calendar value = Calendar.getInstance();
                 value.setTime(o);
                 return value;
@@ -658,7 +658,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToCharacter<T> extends Converter<Character, T> {
         private static final ToCharacter<String> FROM_STRING = new ToCharacter<String>() {
             @Override
-            public final Character convert(final String o) {
+            public Character convert(final String o) {
                 return Character.valueOf(o.charAt(0));
             }
         };
@@ -670,7 +670,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToCurrency<T> extends Converter<Currency, T> {
         private static final ToCurrency<String> FROM_STRING = new ToCurrency<String>() {
             @Override
-            public final Currency convert(final String o) {
+            public Currency convert(final String o) {
                 return Currency.getInstance(o);
             }
         };
@@ -682,28 +682,28 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToDate<T> extends Converter<Date, T> {
         private static final ToDate<Calendar> FROM_CALENDAR = new ToDate<Calendar>() {
             @Override
-            public final Date convert(final Calendar o) {
+            public Date convert(final Calendar o) {
                 return o.getTime();
             }
         };
 
         private static final ToDate<DateTime> FROM_DATETIME = new ToDate<DateTime>() {
             @Override
-            public final Date convert(final DateTime o) {
+            public Date convert(final DateTime o) {
                 return o.toDate();
             }
         };
 
         private static final ToDate<Long> FROM_LONG = new ToDate<Long>() {
             @Override
-            public final Date convert(final Long o) {
+            public Date convert(final Long o) {
                 return new Date(o);
             }
         };
 
         private static final ToDate<String> FROM_STRING = new ToDate<String>() {
             @Override
-            public final Date convert(final String o) {
+            public Date convert(final String o) {
                 return DateUtils.parseIso8601Date(o);
             }
         };
@@ -714,7 +714,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
      */
     private abstract static class ToDateTime<T> extends Converter<DateTime, T> {
         private static final ToDateTime<Date> FROM_DATE = new ToDateTime<Date>() {
-            public final DateTime convert(final Date o) {
+            public DateTime convert(final Date o) {
                 return new DateTime(o);
             }
         };
@@ -726,14 +726,14 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToDouble<T> extends Converter<Double, T> {
         private static final ToDouble<Number> FROM_NUMBER = new ToDouble<Number>() {
             @Override
-            public final Double convert(final Number o) {
+            public Double convert(final Number o) {
                 return o.doubleValue();
             }
         };
 
         private static final ToDouble<String> FROM_STRING = new ToDouble<String>() {
             @Override
-            public final Double convert(final String o) {
+            public Double convert(final String o) {
                 return Double.valueOf(o);
             }
         };
@@ -751,7 +751,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
             }
 
             @Override
-            public final S convert(final String o) {
+            public S convert(final String o) {
                 return Enum.valueOf(sourceType, o);
             }
         }
@@ -763,14 +763,14 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToFloat<T> extends Converter<Float, T> {
         private static final ToFloat<Number> FROM_NUMBER = new ToFloat<Number>() {
             @Override
-            public final Float convert(final Number o) {
+            public Float convert(final Number o) {
                 return o.floatValue();
             }
         };
 
         private static final ToFloat<String> FROM_STRING = new ToFloat<String>() {
             @Override
-            public final Float convert(final String o) {
+            public Float convert(final String o) {
                 return Float.valueOf(o);
             }
         };
@@ -782,14 +782,14 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToInteger<T> extends Converter<Integer, T> {
         private static final ToInteger<Number> FROM_NUMBER = new ToInteger<Number>() {
             @Override
-            public final Integer convert(final Number o) {
+            public Integer convert(final Number o) {
                 return o.intValue();
             }
         };
 
         private static final ToInteger<String> FROM_STRING = new ToInteger<String>() {
             @Override
-            public final Integer convert(final String o) {
+            public Integer convert(final String o) {
                 return Integer.valueOf(o);
             }
         };
@@ -801,7 +801,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToLocale<T> extends Converter<Locale, T> {
         private static final ToLocale<String> FROM_STRING = new ToLocale<String>() {
             @Override
-            public final Locale convert(final String o) {
+            public Locale convert(final String o) {
                 final String[] value = o.split("-", 3);
                 if (value.length == 3) {
                     return new Locale(value[0], value[1], value[2]);
@@ -820,21 +820,21 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToLong<T> extends Converter<Long, T> {
         private static final ToLong<Date> FROM_DATE = new ToLong<Date>() {
             @Override
-            public final Long convert(final Date o) {
+            public Long convert(final Date o) {
                 return o.getTime();
             }
         };
 
         private static final ToLong<Number> FROM_NUMBER = new ToLong<Number>() {
             @Override
-            public final Long convert(final Number o) {
+            public Long convert(final Number o) {
                 return o.longValue();
             }
         };
 
         private static final ToLong<String> FROM_STRING = new ToLong<String>() {
             @Override
-            public final Long convert(final String o) {
+            public Long convert(final String o) {
                 return Long.valueOf(o);
             }
         };
@@ -846,14 +846,14 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToShort<T> extends Converter<Short, T> {
         private static final ToShort<Number> FROM_NUMBER = new ToShort<Number>() {
             @Override
-            public final Short convert(final Number o) {
+            public Short convert(final Number o) {
                 return o.shortValue();
             }
         };
 
         private static final ToShort<String> FROM_STRING = new ToShort<String>() {
             @Override
-            public final Short convert(final String o) {
+            public Short convert(final String o) {
                 return Short.valueOf(o);
             }
         };
@@ -865,35 +865,35 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToString<T> extends Converter<String, T> {
         private static final ToString<Boolean> FROM_BOOLEAN = new ToString<Boolean>() {
             @Override
-            public final String convert(final Boolean o) {
+            public String convert(final Boolean o) {
                 return Boolean.TRUE.equals(o) ? "1" : "0";
             }
         };
 
         private static final ToString<byte[]> FROM_BYTE_ARRAY = new ToString<byte[]>() {
             @Override
-            public final String convert(final byte[] o) {
+            public String convert(final byte[] o) {
                 return new String(o, Charset.forName("UTF-8"));
             }
         };
 
         private static final ToString<Date> FROM_DATE = new ToString<Date>() {
             @Override
-            public final String convert(final Date o) {
+            public String convert(final Date o) {
                 return DateUtils.formatIso8601Date(o);
             }
         };
 
         private static final ToString<Enum> FROM_ENUM = new ToString<Enum>() {
             @Override
-            public final String convert(final Enum o) {
+            public String convert(final Enum o) {
                 return o.name();
             }
         };
 
         private static final ToString<Locale> FROM_LOCALE = new ToString<Locale>() {
             @Override
-            public final String convert(final Locale o) {
+            public String convert(final Locale o) {
                 final StringBuilder value = new StringBuilder(o.getLanguage());
                 if (!o.getCountry().isEmpty() || !o.getVariant().isEmpty()) {
                     value.append("-").append(o.getCountry());
@@ -907,21 +907,21 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
 
         private static final ToString<Number> FROM_NUMBER = new ToString<Number>() {
             @Override
-            public final String convert(final Number o) {
+            public String convert(final Number o) {
                 return o.toString();
             }
         };
 
         private static final ToString<TimeZone> FROM_TIME_ZONE = new ToString<TimeZone>() {
             @Override
-            public final String convert(final TimeZone o) {
+            public String convert(final TimeZone o) {
                 return o.getID();
             }
         };
 
         private static final ToString<Object> FROM_OBJECT = new ToString<Object>() {
             @Override
-            public final String convert(final Object o) {
+            public String convert(final Object o) {
                 return o.toString();
             }
         };
@@ -933,7 +933,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToTimeZone<T> extends Converter<TimeZone, T> {
         private static final ToTimeZone<String> FROM_STRING = new ToTimeZone<String>() {
             @Override
-            public final TimeZone convert(final String o) {
+            public TimeZone convert(final String o) {
                 return TimeZone.getTimeZone(o);
             }
         };
@@ -945,7 +945,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToUrl<T> extends Converter<java.net.URL, String> {
         private static final ToUrl<String> FROM_STRING = new ToUrl<String>() {
             @Override
-            public final java.net.URL convert(final String o) {
+            public java.net.URL convert(final String o) {
                 try {
                     return new java.net.URL(o);
                 } catch (final java.net.MalformedURLException e) {
@@ -961,7 +961,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToUri<T> extends Converter<java.net.URI, T> {
         private static final ToUri<String> FROM_STRING = new ToUri<String>() {
             @Override
-            public final java.net.URI convert(final String o) {
+            public java.net.URI convert(final String o) {
                 try {
                     return new java.net.URI(o);
                 } catch (final java.net.URISyntaxException e) {
@@ -977,14 +977,14 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToUuid<T> extends Converter<java.util.UUID, T> {
         private static final ToUuid<ByteBuffer> FROM_BYTE_BUFFER = new ToUuid<ByteBuffer>() {
             @Override
-            public final java.util.UUID convert(final ByteBuffer o) {
+            public java.util.UUID convert(final ByteBuffer o) {
                 return new java.util.UUID(o.getLong(), o.getLong());
             }
         };
 
         private static final ToUuid<String> FROM_STRING = new ToUuid<String>() {
             @Override
-            public final java.util.UUID convert(final String o) {
+            public java.util.UUID convert(final String o) {
                 return java.util.UUID.fromString(o);
             }
         };
@@ -996,7 +996,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     private abstract static class ToObject<T> extends Converter<Object, T> {
         private static final ToObject<Object> FROM_OBJECT = new ToObject<Object>() {
             @Override
-            public final Object convert(final Object o) {
+            public Object convert(final Object o) {
                 return o;
             }
         };
@@ -1023,7 +1023,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
         private final Converter<S, T> toSource;
         private final Converter<T, S> toTarget;
 
-        public StandardDynamoDbTypeConverter(Converter<S, T> toSource, Converter<T, S> toTarget) {
+        StandardDynamoDbTypeConverter(Converter<S, T> toSource, Converter<T, S> toTarget) {
             this.toSource = toSource;
             this.toTarget = toTarget;
         }

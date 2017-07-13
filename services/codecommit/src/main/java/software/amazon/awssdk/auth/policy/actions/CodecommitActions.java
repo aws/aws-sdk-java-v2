@@ -73,7 +73,7 @@ public enum CodecommitActions implements Action {
 
     private final String action;
 
-    private CodecommitActions(String action) {
+    CodecommitActions(String action) {
         this.action = action;
     }
 

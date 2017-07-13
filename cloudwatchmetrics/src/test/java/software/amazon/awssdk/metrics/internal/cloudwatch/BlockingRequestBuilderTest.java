@@ -4,10 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import org.junit.Test;
 import software.amazon.awssdk.services.cloudwatch.model.Dimension;
 import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
@@ -32,7 +32,7 @@ public class BlockingRequestBuilderTest {
                 .metricName("MetricName")
                 .statisticValues(StatisticSet.builder().maximum(100.0)
                 .minimum(10.0).sampleCount(12.34).sum(99.9).build())
-                .timestamp(new Date())
+                .timestamp(Instant.now())
                 .unit(StandardUnit.Milliseconds)
                 .value(56.78)
                 .build();

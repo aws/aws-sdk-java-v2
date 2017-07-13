@@ -69,11 +69,11 @@ public @interface DynamoDbTypeConvertedTimestamp {
     /**
      * Timestamp format converter.
      */
-    static final class Converter<T> implements DynamoDbTypeConverter<String, T> {
+    final class Converter<T> implements DynamoDbTypeConverter<String, T> {
         private final DynamoDbTypeConverter<DateTime, T> converter;
         private final DateTimeFormatter formatter;
 
-        public Converter(Class<T> targetType, DynamoDbTypeConvertedTimestamp annotation) {
+        Converter(Class<T> targetType, DynamoDbTypeConvertedTimestamp annotation) {
             this.formatter = DateTimeFormat.forPattern(annotation.pattern()).withZone(
                     DateTimeZone.forTimeZone(StandardTypeConverters.Scalar.TIME_ZONE.<TimeZone>convert(annotation.timeZone()))
                                                                                      );
@@ -81,12 +81,12 @@ public @interface DynamoDbTypeConvertedTimestamp {
         }
 
         @Override
-        public final String convert(final T object) {
+        public String convert(final T object) {
             return formatter.print(converter.convert(object));
         }
 
         @Override
-        public final T unconvert(final String object) {
+        public T unconvert(final String object) {
             return converter.unconvert(formatter.parseDateTime(object));
         }
     }

@@ -16,7 +16,7 @@
 package software.amazon.awssdk.internal.region.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Set;
+import java.util.List;
 import software.amazon.awssdk.Protocol;
 
 /**
@@ -37,17 +37,19 @@ public class Endpoint implements Cloneable {
     /**
      * supported schemes for the endpoint.
      */
-    private Set<String> protocols;
+    private List<String> protocols;
 
     /**
      * supported signature versions of the endpoint.
      */
-    private Set<String> signatureVersions;
+    private List<String> signatureVersions;
 
     /**
      * ssl common name for the endpoint.
      */
     private String sslCommonName;
+
+    public Endpoint() {}
 
     /**
      * Merges the given endpoints and returns the merged one.
@@ -115,22 +117,21 @@ public class Endpoint implements Cloneable {
     /**
      * returns the supported schemes for the endpoint.
      */
-    public Set<String> getProtocols() {
+    public List<String> getProtocols() {
         return protocols;
     }
 
     /**
      * sets the supported schemes for the endpoint.
      */
-    @JsonProperty(value = "protocols")
-    public void setProtocols(Set<String> protocols) {
+    public void setProtocols(List<String> protocols) {
         this.protocols = protocols;
     }
 
     /**
      * returns the supported signature versions of the endpoint.
      */
-    public Set<String> getSignatureVersions() {
+    public List<String> getSignatureVersions() {
         return signatureVersions;
     }
 
@@ -138,7 +139,7 @@ public class Endpoint implements Cloneable {
      * returns the supported signature versions of the endpoint.
      */
     @JsonProperty(value = "signatureVersions")
-    public void setSignatureVersions(Set<String> signatureVersions) {
+    public void setSignatureVersions(List<String> signatureVersions) {
         this.signatureVersions = signatureVersions;
     }
 

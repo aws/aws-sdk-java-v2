@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.protocol.json.internal;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotation.SdkInternalApi;
@@ -41,7 +41,7 @@ public class QueryParamMarshallers {
     public static final JsonMarshaller<Boolean> BOOLEAN = new SimpleQueryParamMarshaller<>(
             ValueToStringConverters.FROM_BOOLEAN);
 
-    public static final JsonMarshaller<Date> DATE = new SimpleQueryParamMarshaller<>(ValueToStringConverters.FROM_DATE);
+    public static final JsonMarshaller<Instant> INSTANT = new SimpleQueryParamMarshaller<>(ValueToStringConverters.FROM_INSTANT);
 
     public static final JsonMarshaller<List> LIST = (list, context, paramName) -> {
         for (Object listVal : list) {

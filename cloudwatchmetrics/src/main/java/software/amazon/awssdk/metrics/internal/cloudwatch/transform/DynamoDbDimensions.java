@@ -18,6 +18,6 @@ package software.amazon.awssdk.metrics.internal.cloudwatch.transform;
 /**
  * DynamoDB specific metric dimensions.
  */
-public enum DynamoDBDimensions {
+public enum DynamoDbDimensions {
     TableName,;
 }

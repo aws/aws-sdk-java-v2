@@ -19,7 +19,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Date;
+import java.time.Duration;
+import java.time.Instant;
 import org.junit.After;
 import org.junit.Test;
 import software.amazon.awssdk.services.emr.model.ActionOnFailure;
@@ -60,7 +61,7 @@ public class EMRIntegrationTest extends IntegrationTestBase {
     @Test
     public void testListCluster() {
         emr.listClusters(ListClustersRequest.builder()
-                                            .createdAfter(new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000))
+                                            .createdAfter(Instant.now().minus(Duration.ofDays(1)))
                                             .build());
     }
 

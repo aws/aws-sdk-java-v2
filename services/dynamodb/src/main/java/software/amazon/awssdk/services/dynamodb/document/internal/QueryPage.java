@@ -37,12 +37,12 @@ class QueryPage extends Page<Item, QueryOutcome> {
     private final int index;
     private final Map<String, AttributeValue> lastEvaluatedKey;
 
-    public QueryPage(
-            DynamoDBClient client,
-            QuerySpec spec,
-            QueryRequest request,
-            int index,
-            QueryOutcome outcome) {
+    QueryPage(
+        DynamoDBClient client,
+        QuerySpec spec,
+        QueryRequest request,
+        int index,
+        QueryOutcome outcome) {
         super(Collections.unmodifiableList(
                 toItemList(outcome.getQueryResponse().items())),
               outcome);

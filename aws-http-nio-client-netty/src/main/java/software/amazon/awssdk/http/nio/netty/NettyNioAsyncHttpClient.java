@@ -26,7 +26,6 @@ import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.pool.AbstractChannelPoolMap;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolMap;
@@ -48,6 +47,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelPipelineInitializer;
+import software.amazon.awssdk.http.nio.netty.internal.NonManagedEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.RequestAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
 import software.amazon.awssdk.http.nio.netty.internal.RunnableRequest;
@@ -56,7 +56,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 @SdkInternalApi
 final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
-    private final EventLoopGroup group = new NioEventLoopGroup();
+    private final EventLoopGroup group;
     private final RequestAdapter requestAdapter = new RequestAdapter();
     private final ChannelPoolMap<URI, ChannelPool> pools;
     private final ServiceDefaults serviceDefaults;
@@ -65,6 +65,11 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     NettyNioAsyncHttpClient(NettySdkHttpClientFactory factory, AttributeMap serviceDefaultsMap) {
         this.serviceDefaults = new ServiceDefaults(serviceDefaultsMap);
         this.trustAllCertificates = factory.trustAllCertificates().orElse(Boolean.FALSE);
+        this.group = factory.eventLoopGroupConfiguration().toEither()
+                            .map(e -> e.map(NonManagedEventLoopGroup::new,
+                                            EventLoopGroupFactory::create))
+                            // TODO Use a shared event loop group for all service clients
+                            .orElse(EventLoopGroupFactory.builder().build().create());
         this.pools = createChannelPoolMap(serviceDefaults,
                                           factory.maxConnectionsPerEndpoint().orElse(serviceDefaults.getMaxConnections()));
     }

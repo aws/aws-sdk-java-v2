@@ -17,8 +17,6 @@ package utils.resources;
 
 import java.util.HashSet;
 import java.util.Set;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Ignore;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
@@ -27,6 +25,8 @@ import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utils.resources.RequiredResources.RequiredResource;
 import utils.resources.RequiredResources.ResourceRetentionPolicy;
 
@@ -36,7 +36,7 @@ public class ResourceCentricBlockJUnit4ClassRunner extends BlockJUnit4ClassRunne
 
     private final RequiredResources classRequiredResourcesAnnotation;
 
-    private final Log log = LogFactory.getLog(ResourceCentricBlockJUnit4ClassRunner.class);
+    private final Logger log = LoggerFactory.getLogger(ResourceCentricBlockJUnit4ClassRunner.class);
 
     public ResourceCentricBlockJUnit4ClassRunner(Class<?> klass)
             throws InitializationError {

@@ -39,7 +39,7 @@ public interface GetItemApi {
      *
      * @return the (non-null) result of item retrieval.
      */
-    public GetItemOutcome getItemOutcome(PrimaryKey primaryKey);
+    GetItemOutcome getItemOutcome(PrimaryKey primaryKey);
 
     /**
      * Retrieves an item and the associated information by primary key when the
@@ -47,7 +47,7 @@ public interface GetItemApi {
      *
      * @return the (non-null) result of item retrieval.
      */
-    public GetItemOutcome getItemOutcome(KeyAttribute... primaryKeyComponents);
+    GetItemOutcome getItemOutcome(KeyAttribute... primaryKeyComponents);
 
     /**
      * Retrieves an item and the associated information by primary key when the
@@ -55,7 +55,7 @@ public interface GetItemApi {
      *
      * @return the (non-null) result of item retrieval.
      */
-    public GetItemOutcome getItemOutcome(String hashKeyName, Object hashKeyValue);
+    GetItemOutcome getItemOutcome(String hashKeyName, Object hashKeyValue);
 
     /**
      * Retrieves an item and the associated information by primary key when the
@@ -64,8 +64,8 @@ public interface GetItemApi {
      *
      * @return the (non-null) result of item retrieval.
      */
-    public GetItemOutcome getItemOutcome(String hashKeyName, Object hashKeyValue,
-                                         String rangeKeyName, Object rangeKeyValue);
+    GetItemOutcome getItemOutcome(String hashKeyName, Object hashKeyValue,
+                                  String rangeKeyName, Object rangeKeyValue);
 
     /**
      * Retrieves an item and the associated information using projection
@@ -80,8 +80,8 @@ public interface GetItemApi {
      *
      * @return the (non-null) result of item retrieval.
      */
-    public GetItemOutcome getItemOutcome(PrimaryKey primaryKey,
-                                         String projectionExpression, Map<String, String> nameMap);
+    GetItemOutcome getItemOutcome(PrimaryKey primaryKey,
+                                  String projectionExpression, Map<String, String> nameMap);
 
     /**
      * Retrieves an item and the associated information via the specified hash
@@ -89,8 +89,8 @@ public interface GetItemApi {
      *
      * @return the (non-null) result of item retrieval.
      */
-    public GetItemOutcome getItemOutcome(String hashKeyName, Object hashKeyValue,
-                                         String projectionExpression, Map<String, String> nameMap);
+    GetItemOutcome getItemOutcome(String hashKeyName, Object hashKeyValue,
+                                  String projectionExpression, Map<String, String> nameMap);
 
     /**
      * Retrieves an item and the associated information via the specified hash
@@ -98,9 +98,9 @@ public interface GetItemApi {
      *
      * @return the (non-null) result of item retrieval.
      */
-    public GetItemOutcome getItemOutcome(String hashKeyName, Object hashKeyValue,
-                                         String rangeKeyName, Object rangeKeyValue,
-                                         String projectionExpression, Map<String, String> nameMap);
+    GetItemOutcome getItemOutcome(String hashKeyName, Object hashKeyValue,
+                                  String rangeKeyName, Object rangeKeyValue,
+                                  String projectionExpression, Map<String, String> nameMap);
 
     /**
      * Retrieves an item via the specified hash key using projection expression.
@@ -108,8 +108,8 @@ public interface GetItemApi {
      *
      * @return the retrieved item; or null if the item doesn't exist.
      */
-    public Item getItem(String hashKeyName, Object hashKeyValue,
-                        String projectionExpression, Map<String, String> nameMap);
+    Item getItem(String hashKeyName, Object hashKeyValue,
+                 String projectionExpression, Map<String, String> nameMap);
 
     /**
      * Retrieves an item via the specified hash key and range key using
@@ -117,9 +117,9 @@ public interface GetItemApi {
      *
      * @return the retrieved item; or null if the item doesn't exist.
      */
-    public Item getItem(String hashKeyName, Object hashKeyValue,
-                        String rangeKeyName, Object rangeKeyValue,
-                        String projectionExpression, Map<String, String> nameMap);
+    Item getItem(String hashKeyName, Object hashKeyValue,
+                 String rangeKeyName, Object rangeKeyValue,
+                 String projectionExpression, Map<String, String> nameMap);
 
     /**
      * Retrieves an item and the associated information by specifying all the
@@ -127,7 +127,7 @@ public interface GetItemApi {
      *
      * @return the (non-null) result of item retrieval.
      */
-    public GetItemOutcome getItemOutcome(GetItemSpec spec);
+    GetItemOutcome getItemOutcome(GetItemSpec spec);
 
     /**
      * Retrieves an item by primary key; or null if the item doesn't exist.
@@ -135,14 +135,14 @@ public interface GetItemApi {
      *
      * @return the retrieved item; or null if the item doesn't exist.
      */
-    public Item getItem(PrimaryKey primaryKey);
+    Item getItem(PrimaryKey primaryKey);
 
     /**
      * Retrieves an item by primary key. Incurs network access.
      *
      * @return the retrieved item; or null if the item doesn't exist.
      */
-    public Item getItem(KeyAttribute... primaryKeyComponents);
+    Item getItem(KeyAttribute... primaryKeyComponents);
 
     /**
      * Retrieves an item by primary key when the primary key is a hash-only key.
@@ -150,7 +150,7 @@ public interface GetItemApi {
      *
      * @return the retrieved item; or null if the item doesn't exist.
      */
-    public Item getItem(String hashKeyName, Object hashKey);
+    Item getItem(String hashKeyName, Object hashKey);
 
     /**
      * Retrieves an item by primary key when the primary key consists of both a
@@ -158,8 +158,8 @@ public interface GetItemApi {
      *
      * @return the retrieved item; or null if the item doesn't exist.
      */
-    public Item getItem(String hashKeyName, Object hashKeyValue,
-                        String rangeKeyName, Object rangeKeyValue);
+    Item getItem(String hashKeyName, Object hashKeyValue,
+                 String rangeKeyName, Object rangeKeyValue);
 
     /**
      * Retrieves an item using projection expression. Incurs network access.
@@ -173,13 +173,13 @@ public interface GetItemApi {
      *
      * @return the retrieved item; or null if the item doesn't exist.
      */
-    public Item getItem(PrimaryKey primaryKey, String projectionExpression,
-                        Map<String, String> nameMap);
+    Item getItem(PrimaryKey primaryKey, String projectionExpression,
+                 Map<String, String> nameMap);
 
     /**
      * Retrieves an item by specifying all the details. Incurs network access.
      *
      * @return the retrieved item; or null if the item doesn't exist.
      */
-    public Item getItem(GetItemSpec spec);
+    Item getItem(GetItemSpec spec);
 }

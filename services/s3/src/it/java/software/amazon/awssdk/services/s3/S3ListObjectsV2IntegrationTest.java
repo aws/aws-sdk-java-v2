@@ -27,6 +27,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -34,7 +35,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import software.amazon.awssdk.sync.RequestBody;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -42,6 +42,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.sync.RequestBody;
 
 /**
  * Integration tests for the listObjectsV2 operation in the Amazon S3 Java
@@ -63,7 +64,7 @@ public class S3ListObjectsV2IntegrationTest extends S3IntegrationTestBase {
     /**
      * The name of the bucket created, used, and deleted by these tests.
      */
-    private static String bucketName = "list-objects-integ-test-" + new Date().getTime();
+    private static String bucketName = "list-objects-integ-test-" + Instant.now().toEpochMilli();
     /**
      * List of all keys created  by these tests.
      */
@@ -332,7 +333,7 @@ public class S3ListObjectsV2IntegrationTest extends S3IntegrationTestBase {
 
             // Verify that the last modified date is within an hour
             assertNotNull(obj.lastModified());
-            long offset = obj.lastModified().getTime() - new Date().getTime();
+            long offset = obj.lastModified().toEpochMilli() - Instant.now().toEpochMilli();
             assertTrue(offset < ONE_HOUR_IN_MILLISECONDS);
 
             assertTrue(obj.storageClass().length() > 1);

@@ -32,6 +32,6 @@ public interface DryRunSupportedRequest<X extends AmazonWebServiceRequest> {
      * Returns the marshaled request configured with additional parameters to
      * enable operation dry-run.
      */
-    public Request<X> getDryRunRequest();
+    Request<X> getDryRunRequest();
 
 }

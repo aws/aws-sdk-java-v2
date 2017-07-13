@@ -32,8 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.SdkClientException;
@@ -208,7 +208,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
             DynamoDbMapper.class.getName() + "/" + VersionInfoUtils.getVersion();
     private static final String USER_AGENT_BATCH_OPERATION =
             DynamoDbMapper.class.getName() + "_batch_operation/" + VersionInfoUtils.getVersion();
-    private static final Log log = LogFactory.getLog(DynamoDbMapper.class);
+    private static final Logger log = LoggerFactory.getLogger(DynamoDbMapper.class);
     private final DynamoDBClient db;
     private final DynamoDbMapperModelFactory models;
     private final S3Link.Factory s3Links;
@@ -1763,7 +1763,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
         private final DynamoDbMapperConfig mapperConfig;
         private final String tableName;
 
-        public TransformerParameters(
+        TransformerParameters(
                 final DynamoDbMapperTableModel<T> model,
                 final Map<String, AttributeValue> attributeValues,
                 final boolean partialUpdate,
@@ -1842,17 +1842,17 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
             this.exception = excetpion;
         }
 
-        private final boolean isRequestEntityTooLarge() {
+        private boolean isRequestEntityTooLarge() {
             return exception instanceof AmazonServiceException &&
                    RetryUtils.isRequestEntityTooLargeException((AmazonServiceException) exception);
         }
 
-        private final boolean isThrottling() {
+        private boolean isThrottling() {
             return exception instanceof AmazonServiceException &&
                    RetryUtils.isThrottlingException((AmazonServiceException) exception);
         }
 
-        private final int size() {
+        private int size() {
             int size = 0;
             for (final List<WriteRequest> values : unprocessedItems.values()) {
                 size += values.size();
@@ -2332,10 +2332,10 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
         private final AttributeValue newValue;
         private final Object target;
 
-        public ValueUpdate(
-                DynamoDbMapperFieldModel<Object, Object> field,
-                AttributeValue newValue,
-                Object target) {
+        ValueUpdate(
+            DynamoDbMapperFieldModel<Object, Object> field,
+            AttributeValue newValue,
+            Object target) {
 
             this.field = field;
             this.newValue = newValue;

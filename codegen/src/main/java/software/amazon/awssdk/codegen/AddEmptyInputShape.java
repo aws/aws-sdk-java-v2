@@ -41,7 +41,7 @@ final class AddEmptyInputShape implements IntermediateModelShapeProcessor {
     private final NamingStrategy namingStrategy;
     private final CustomizationConfig customizationConfig;
 
-    public AddEmptyInputShape(IntermediateModelBuilder builder) {
+    AddEmptyInputShape(IntermediateModelBuilder builder) {
         this.serviceModel = builder.getService();
         this.namingStrategy = builder.getNamingStrategy();
         this.customizationConfig = builder.getCustomConfig();

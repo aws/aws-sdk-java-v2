@@ -19,8 +19,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.NotThreadSafe;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
@@ -44,8 +44,7 @@ import software.amazon.awssdk.internal.io.Releasable;
 @NotThreadSafe
 @SdkProtectedApi
 public class ResettableInputStream extends ReleasableInputStream {
-    private static final Log log = LogFactory
-            .getLog(ResettableInputStream.class);
+    private static final Logger log = LoggerFactory.getLogger(ResettableInputStream.class);
     private final File file; // null if the file is not known
     private FileInputStream fis; // never null
     private FileChannel fileChannel; // never null

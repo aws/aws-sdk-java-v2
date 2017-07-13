@@ -3,6 +3,8 @@ package software.amazon.awssdk.protocol.tests;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,11 +13,12 @@ import java.util.Map;
 import org.junit.Test;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.SimpleStruct;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
- * Verifies that the collections inside of models are immutable.
+ * Verifies that the models are actually immutable.
  */
-public class ImmutableModelCollectionsTest {
+public class ImmutableModelTest {
     @Test
     public void mapsAreImmutable() {
         Map<String, String> map = new HashMap<>();
@@ -58,5 +61,21 @@ public class ImmutableModelCollectionsTest {
         assertThat(request.mapOfStringToIntegerList().get("key")).doesNotContain(2);
         assertThatExceptionOfType(UnsupportedOperationException.class)
                 .isThrownBy(() -> request.mapOfStringToIntegerList().get("key").add(2));
+    }
+
+    @Test
+    public void byteBuffersAreImmutable() {
+        ByteBuffer buffer = ByteBuffer.wrap("Hello".getBytes(StandardCharsets.UTF_8));
+
+        buffer.position(1);
+
+        AllTypesRequest request = AllTypesRequest.builder().blobArg(buffer).build();
+
+        buffer.array()[1] = ' ';
+
+        assertThat(request.blobArg()).as("Check new read-only blob each time").isNotSameAs(request.blobArg());
+        assertThat(request.blobArg().isReadOnly()).as("Check read-only").isTrue();
+        assertThat(BinaryUtils.copyAllBytesFrom(request.blobArg()))
+                .as("Check copy contents").containsExactly('e', 'l', 'l', 'o');
     }
 }

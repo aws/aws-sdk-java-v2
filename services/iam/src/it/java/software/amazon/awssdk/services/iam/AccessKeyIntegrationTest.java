@@ -16,12 +16,10 @@
 package software.amazon.awssdk.services.iam;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.SdkGlobalTime;
 import software.amazon.awssdk.services.iam.model.AccessKeyMetadata;
 import software.amazon.awssdk.services.iam.model.CreateAccessKeyRequest;
 import software.amazon.awssdk.services.iam.model.CreateAccessKeyResponse;
@@ -53,7 +51,7 @@ public class AccessKeyIntegrationTest extends IntegrationTestBase {
                                                            .userName(username).build());
             keyId = response.accessKey().accessKeyId();
             assertEquals(System.currentTimeMillis() / MILLISECONDS_IN_DAY,
-                         response.accessKey().createDate().getTime()
+                         response.accessKey().createDate().toEpochMilli()
                          / MILLISECONDS_IN_DAY);
         } catch (Exception e) {
             e.printStackTrace();

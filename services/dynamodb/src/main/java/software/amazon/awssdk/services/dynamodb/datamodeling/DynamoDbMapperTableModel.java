@@ -346,13 +346,13 @@ public final class DynamoDbMapperTableModel<T> implements DynamoDbTypeConverter<
     /**
      * The table model properties.
      */
-    static interface Properties<T> {
-        public String tableName();
+    interface Properties<T> {
+        String tableName();
 
-        static final class Immutable<T> implements Properties<T> {
+        final class Immutable<T> implements Properties<T> {
             private final String tableName;
 
-            public Immutable(final Properties<T> properties) {
+            Immutable(final Properties<T> properties) {
                 this.tableName = properties.tableName();
             }
 
@@ -373,7 +373,7 @@ public final class DynamoDbMapperTableModel<T> implements DynamoDbTypeConverter<
         private final Properties properties;
         private final Class<T> targetType;
 
-        public Builder(Class<T> targetType, Properties<T> properties) {
+        Builder(Class<T> targetType, Properties<T> properties) {
             this.versions = new LinkedHashMap<String, DynamoDbMapperFieldModel<T, Object>>(4);
             this.fields = new LinkedHashMap<String, DynamoDbMapperFieldModel<T, Object>>();
             this.keys = new EnumMap<KeyType, DynamoDbMapperFieldModel<T, Object>>(KeyType.class);

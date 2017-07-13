@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.dynamodb.datamodeling;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperFieldModel.DynamoDbAttributeType;
 import software.amazon.awssdk.services.dynamodb.datamodeling.StandardAnnotationMaps.TypedMap;
@@ -125,14 +124,14 @@ final class ConvertibleType<T> {
     /**
      * Gets the target custom type-converter.
      */
-    final <S> DynamoDbTypeConverter<S, T> typeConverter() {
+    <S> DynamoDbTypeConverter<S, T> typeConverter() {
         return (DynamoDbTypeConverter<S, T>) this.typeConverter;
     }
 
     /**
      * Gets the overriding attribute type.
      */
-    final DynamoDbAttributeType attributeType() {
+    DynamoDbAttributeType attributeType() {
         return this.attributeType;
     }
 
@@ -140,7 +139,7 @@ final class ConvertibleType<T> {
      * Gets the getter method.
      */
     @Deprecated
-    final Method getter() {
+    Method getter() {
         return this.getter;
     }
 
@@ -148,56 +147,56 @@ final class ConvertibleType<T> {
      * Gets the setter method.
      */
     @Deprecated
-    final Method setter() {
+    Method setter() {
         return this.setter;
     }
 
     /**
      * Gets the scalar parameter types.
      */
-    final <U> ConvertibleType<U> param(final int index) {
+    <U> ConvertibleType<U> param(final int index) {
         return this.params.length > index ? (ConvertibleType<U>) this.params[index] : null;
     }
 
     /**
      * Returns true if the types match.
      */
-    final boolean is(ScalarAttributeType scalarAttributeType, Vector vector) {
+    boolean is(ScalarAttributeType scalarAttributeType, Vector vector) {
         return param(0) != null && param(0).is(scalarAttributeType) && is(vector);
     }
 
     /**
      * Returns true if the types match.
      */
-    final boolean is(ScalarAttributeType scalarAttributeType) {
+    boolean is(ScalarAttributeType scalarAttributeType) {
         return Scalar.of(targetType()).is(scalarAttributeType);
     }
 
     /**
      * Returns true if the types match.
      */
-    final boolean is(Scalar scalar) {
+    boolean is(Scalar scalar) {
         return scalar.is(targetType());
     }
 
     /**
      * Returns true if the types match.
      */
-    final boolean is(Vector vector) {
+    boolean is(Vector vector) {
         return vector.is(targetType());
     }
 
     /**
      * Returns true if the types match.
      */
-    final boolean is(Class<?> type) {
+    boolean is(Class<?> type) {
         return type.isAssignableFrom(targetType());
     }
 
     /**
      * Gets the raw scalar type.
      */
-    final Class<T> targetType() {
+    Class<T> targetType() {
         return this.targetType;
     }
 

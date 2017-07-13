@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -84,7 +85,7 @@ public class IonRoundtripTest {
                 generator.writeValue((String) null);
                 generator.writeValue((BigInteger) null);
                 generator.writeValue((BigDecimal) null);
-                generator.writeValue((Date) null);
+                generator.writeValue((Instant) null);
                 generator.writeValue((ByteBuffer) null);
             }
 
@@ -271,10 +272,10 @@ public class IonRoundtripTest {
         TIMESTAMP {
             @Override
             public void generate(SdkIonGenerator generator) {
-                generator.writeValue(new Date(0));
+                generator.writeValue(Instant.ofEpochMilli(0));
                 // Note: dates too far in the future are rejected by Ion
-                generator.writeValue(new Date(Integer.MAX_VALUE));
-                generator.writeValue(new Date(Integer.MIN_VALUE));
+                generator.writeValue(Instant.ofEpochMilli(Integer.MAX_VALUE));
+                generator.writeValue(Instant.ofEpochMilli(Integer.MIN_VALUE));
             }
 
             @Override

@@ -24,8 +24,8 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import software.amazon.awssdk.services.dynamodb.DynamoDBMapperIntegrationTestBase;
-import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
+import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig;
 import software.amazon.awssdk.services.dynamodb.pojos.KeyAndVal;
 
 /**

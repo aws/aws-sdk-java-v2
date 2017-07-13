@@ -41,7 +41,7 @@ final class IonParser extends JsonParser {
     private boolean shouldSkipContainer;
     private boolean closed;
 
-    public IonParser(IonReader reader, boolean shouldCloseReader) {
+    IonParser(IonReader reader, boolean shouldCloseReader) {
         super(Feature.collectDefaults());
         this.reader = reader;
         this.shouldCloseReader = shouldCloseReader;

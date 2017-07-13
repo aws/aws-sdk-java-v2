@@ -21,10 +21,10 @@ import static software.amazon.awssdk.http.AmazonHttpClient.THROTTLED_RETRY_COST;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Optional;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.ResetException;
 import software.amazon.awssdk.Response;
@@ -53,7 +53,7 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
 
     public static final String HEADER_SDK_RETRY_INFO = "amz-sdk-retry";
 
-    private static final Log log = LogFactory.getLog(RetryableStage.class);
+    private static final Logger log = LoggerFactory.getLogger(RetryableStage.class);
 
     private final RequestPipeline<SdkHttpFullRequest, Response<OutputT>> requestPipeline;
 
@@ -100,12 +100,12 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
     private static int parseClockSkewOffset(HttpResponse httpResponse) {
         Optional<String> dateHeader = Optional.ofNullable(httpResponse.getHeader("Date"));
         try {
-            Date serverDate = dateHeader
+            Instant serverDate = dateHeader
                     .filter(h -> !h.isEmpty())
                     .map(DateUtils::parseRfc822Date)
                     .orElseThrow(() -> new RuntimeException(
                             "Unable to parse clock skew offset from response. Server Date header missing"));
-            long diff = System.currentTimeMillis() - serverDate.getTime();
+            long diff = System.currentTimeMillis() - serverDate.toEpochMilli();
             return (int) (diff / 1000);
         } catch (RuntimeException e) {
             log.warn("Unable to parse clock skew offset from response: " + dateHeader.orElse(""), e);

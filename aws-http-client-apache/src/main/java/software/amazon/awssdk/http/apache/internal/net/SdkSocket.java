@@ -18,11 +18,11 @@ package software.amazon.awssdk.http.apache.internal.net;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketAddress;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SdkSocket extends DelegateSocket {
-    private static final Log log = LogFactory.getLog(SdkSocket.class);
+    private static final Logger log = LoggerFactory.getLogger(SdkSocket.class);
 
     public SdkSocket(Socket sock) {
         super(sock);
@@ -41,29 +41,29 @@ public class SdkSocket extends DelegateSocket {
     @Override
     public void connect(SocketAddress endpoint) throws IOException {
         if (log.isDebugEnabled()) {
-            log.debug("connecting to: " + endpoint);
+            log.debug("connecting to: {}", endpoint);
         }
         sock.connect(endpoint);
         if (log.isDebugEnabled()) {
-            log.debug("connected to: " + endpoint());
+            log.debug("connected to: {}", endpoint());
         }
     }
 
     @Override
     public void connect(SocketAddress endpoint, int timeout) throws IOException {
         if (log.isDebugEnabled()) {
-            log.debug("connecting to: " + endpoint);
+            log.debug("connecting to: {}", endpoint);
         }
         sock.connect(endpoint, timeout);
         if (log.isDebugEnabled()) {
-            log.debug("connected to: " + endpoint());
+            log.debug("connected to: {}", endpoint());
         }
     }
 
     @Override
     public void close() throws IOException {
         if (log.isDebugEnabled()) {
-            log.debug("closing " + endpoint());
+            log.debug("closing {}", endpoint());
         }
         sock.close();
     }
@@ -71,7 +71,7 @@ public class SdkSocket extends DelegateSocket {
     @Override
     public void shutdownInput() throws IOException {
         if (log.isDebugEnabled()) {
-            log.debug("shutting down input of " + endpoint());
+            log.debug("shutting down input of {}", endpoint());
         }
         sock.shutdownInput();
     }
@@ -79,7 +79,7 @@ public class SdkSocket extends DelegateSocket {
     @Override
     public void shutdownOutput() throws IOException {
         if (log.isDebugEnabled()) {
-            log.debug("shutting down output of " + endpoint());
+            log.debug("shutting down output of {}", endpoint());
         }
         sock.shutdownOutput();
     }

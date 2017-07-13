@@ -75,22 +75,22 @@ public @interface DynamoDbMarshalling {
     /**
      * Marshalling type converter.
      */
-    static final class Converter<T> implements DynamoDbTypeConverter<String, T> {
+    final class Converter<T> implements DynamoDbTypeConverter<String, T> {
         private final Class<DynamoDbMarshaller<T>> marshallerClass;
         private final Class<T> targetType;
 
-        public Converter(final Class<T> targetType, final DynamoDbMarshalling annotation) {
+        Converter(final Class<T> targetType, final DynamoDbMarshalling annotation) {
             this.marshallerClass = (Class<DynamoDbMarshaller<T>>) annotation.marshallerClass();
             this.targetType = targetType;
         }
 
         @Override
-        public final String convert(final T object) {
+        public String convert(final T object) {
             return marshaller().marshall(object);
         }
 
         @Override
-        public final T unconvert(final String object) {
+        public T unconvert(final String object) {
             return marshaller().unmarshall(targetType, object);
         }
 

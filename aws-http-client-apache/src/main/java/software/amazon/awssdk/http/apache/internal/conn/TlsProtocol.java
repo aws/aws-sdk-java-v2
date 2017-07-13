@@ -31,7 +31,7 @@ enum TlsProtocol {
     ;
     private final String protocolName;
 
-    private TlsProtocol(String protocolName) {
+    TlsProtocol(String protocolName) {
         this.protocolName = protocolName;
     }
 

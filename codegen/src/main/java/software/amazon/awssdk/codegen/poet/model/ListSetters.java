@@ -35,7 +35,7 @@ class ListSetters extends AbstractMemberSetters {
     private final TypeProvider typeProvider;
     private final PoetExtensions poetExtensions;
 
-    public ListSetters(IntermediateModel intermediateModel,
+    ListSetters(IntermediateModel intermediateModel,
                        ShapeModel shapeModel,
                        MemberModel memberModel,
                        TypeProvider typeProvider) {
@@ -47,12 +47,14 @@ class ListSetters extends AbstractMemberSetters {
     public List<MethodSpec> fluentDeclarations(TypeName returnType) {
         List<MethodSpec> fluentDeclarations = new ArrayList<>();
 
+        String setterDocumentation = memberModel().getFluentSetterDocumentation();
+
         fluentDeclarations.add(fluentSetterDeclaration(memberAsParameter(), returnType)
-                .addJavadoc("$L", memberModel().getFluentSetterDocumentation())
+                .addJavadoc("$L", setterDocumentation)
                 .build());
 
         fluentDeclarations.add(fluentSetterDeclaration(ParameterSpec.builder(asArray(), fieldName()).build(), returnType)
-                .addJavadoc("$L", memberModel().getVarargSetterDocumentation())
+                .addJavadoc("$L", setterDocumentation)
                 .varargs(true)
                 .build());
 
@@ -60,7 +62,7 @@ class ListSetters extends AbstractMemberSetters {
             fluentDeclarations.add(fluentSetterDeclaration(ParameterSpec.builder(
                     asArrayOfModeledEnum(), fieldName()).build(), returnType)
                     .varargs(true)
-                    .addJavadoc("$L", memberModel().getVarargSetterDocumentation())
+                    .addJavadoc("$L", setterDocumentation)
                     .build());
         }
 

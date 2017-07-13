@@ -196,7 +196,7 @@ public class Principal {
         /**
          * The service which has the right to assume the role.
          */
-        private Services(String serviceId) {
+        Services(String serviceId) {
             this.serviceId = serviceId;
         }
 
@@ -225,7 +225,7 @@ public class Principal {
     /**
      * Web identity providers, such as Login with Amazon, Facebook, or Google.
      */
-    public static enum WebIdentityProviders {
+    public enum WebIdentityProviders {
 
         Facebook("graph.facebook.com"),
         Google("accounts.google.com"),
@@ -237,7 +237,7 @@ public class Principal {
         /**
          * The web identity provider which has the right to assume the role.
          */
-        private WebIdentityProviders(String webIdentityProvider) {
+        WebIdentityProviders(String webIdentityProvider) {
             this.webIdentityProvider = webIdentityProvider;
         }
 

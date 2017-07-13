@@ -18,7 +18,6 @@ package software.amazon.awssdk.internal.region.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 import java.util.regex.Pattern;
-import software.amazon.awssdk.AmazonWebServiceClient;
 import software.amazon.awssdk.util.ValidationUtils;
 
 /**
@@ -29,17 +28,17 @@ public class Partition {
     /**
      * The name of the partition.
      */
-    private final String partition;
+    private String partition;
 
     /**
      * Supported regions.
      */
-    private final Map<String, PartitionRegion> regions;
+    private Map<String, PartitionRegion> regions;
 
     /**
      * Supported services;
      */
-    private final Map<String, Service> services;
+    private Map<String, Service> services;
 
     /**
      * description of the partition.
@@ -61,6 +60,8 @@ public class Partition {
      */
     private Endpoint defaults;
 
+    public Partition() {}
+
     public Partition(@JsonProperty(value = "partition") String partition,
                      @JsonProperty(value = "regions") Map<String, PartitionRegion>
                              regions,
@@ -76,6 +77,10 @@ public class Partition {
      */
     public String getPartition() {
         return partition;
+    }
+
+    public void setPartition(String partition) {
+        this.partition = partition;
     }
 
     /**
@@ -141,11 +146,19 @@ public class Partition {
         return regions;
     }
 
+    public void setRegions(Map<String, PartitionRegion> regions) {
+        this.regions = regions;
+    }
+
     /**
      * Returns the set of services supported by the partition.
      */
     public Map<String, Service> getServices() {
         return services;
+    }
+
+    public void setServices(Map<String, Service> services) {
+        this.services = services;
     }
 
     /**
@@ -161,13 +174,6 @@ public class Partition {
         return p.matcher(region).matches();
     }
 
-    /**
-     * returns true if any of the services in the partition has a custom endpoint
-     * like s3 having s3-external-1.
-     * TODO Remove this support as part of next major version.
-     * @Deprecated use the {@link AmazonWebServiceClient#setEndpoint(String)} method
-     *     for custom endpoints.
-     */
     @Deprecated
     private boolean hasServiceEndpoint(String endpoint) {
         for (Service s : services.values()) {

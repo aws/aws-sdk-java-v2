@@ -19,8 +19,9 @@ public class SubTypeOne implements StructuredPojo, ToCopyableBuilder<SubTypeOne.
     }
 
     /**
+     * Returns the value of the SubTypeOneMember property for this object.
      *
-     * @return
+     * @return The value of the SubTypeOneMember property for this object.
      */
     public String subTypeOneMember() {
         return subTypeOneMember;
@@ -86,8 +87,10 @@ public class SubTypeOne implements StructuredPojo, ToCopyableBuilder<SubTypeOne.
 
     public interface Builder extends CopyableBuilder<Builder, SubTypeOne> {
         /**
+         * Sets the value of the SubTypeOneMember property for this object.
          *
          * @param subTypeOneMember
+         *        The new value for the SubTypeOneMember property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder subTypeOneMember(String subTypeOneMember);

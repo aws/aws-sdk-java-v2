@@ -23,9 +23,9 @@ import org.junit.Test;
 import software.amazon.awssdk.services.dynamodb.DynamoDBMapperIntegrationTestBase;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbAttribute;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbHashKey;
+import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMappingException;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbTable;
-import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 
 /**
  * Tests inheritance behavior in DynamoDB mapper.

@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.Request;
 import software.amazon.awssdk.annotation.ThreadSafe;
 import software.amazon.awssdk.metrics.internal.cloudwatch.spi.AwsMetricTransformerFactory;
@@ -51,9 +51,9 @@ public class DynamoDbRequestMetricTransformer implements RequestMetricTransforme
         } catch (SecurityException | NoSuchMethodException | IllegalAccessException e) {
             // Ignored or expected.
         } catch (InvocationTargetException e) {
-            LogFactory.getLog(getClass()).debug("", e.getCause());
+            LoggerFactory.getLogger(getClass()).debug("", e.getCause());
         } catch (Exception e) {
-            LogFactory.getLog(getClass()).debug("", e);
+            LoggerFactory.getLogger(getClass()).debug("", e);
         }
         return null;
     }
@@ -92,7 +92,7 @@ public class DynamoDbRequestMetricTransformer implements RequestMetricTransforme
                                   .build());
                 // table specific
                 dims.add(Dimension.builder()
-                                  .name(DynamoDBDimensions.TableName.name())
+                                  .name(DynamoDbDimensions.TableName.name())
                                   .value(tableName)
                                   .build());
                 MetricDatum datum = MetricDatum.builder()

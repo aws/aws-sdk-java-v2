@@ -64,29 +64,29 @@ public @interface DynamoDbConvertedBool {
     /**
      * Enumeration of the supported format options.
      */
-    public static enum Format {
+    enum Format {
         true_false, T_F, Y_N
     }
 
     /**
      * Boolean type converter.
      */
-    static final class Converter implements DynamoDbTypeConverter<String, Boolean> {
+    final class Converter implements DynamoDbTypeConverter<String, Boolean> {
         private final String valueTrue;
         private final String valueFalse;
 
-        public Converter(Class<Boolean> targetType, DynamoDbConvertedBool annotation) {
+        Converter(Class<Boolean> targetType, DynamoDbConvertedBool annotation) {
             this.valueTrue = annotation.value().name().split("_")[0];
             this.valueFalse = annotation.value().name().split("_")[1];
         }
 
         @Override
-        public final String convert(final Boolean object) {
+        public String convert(final Boolean object) {
             return Boolean.TRUE.equals(object) ? valueTrue : valueFalse;
         }
 
         @Override
-        public final Boolean unconvert(final String object) {
+        public Boolean unconvert(final String object) {
             return valueTrue.equals(object) ? Boolean.TRUE : Boolean.FALSE;
         }
     }

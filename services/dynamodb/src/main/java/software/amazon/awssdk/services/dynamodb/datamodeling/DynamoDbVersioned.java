@@ -21,7 +21,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.math.BigInteger;
 import java.util.Arrays;
-
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.StandardTypeConverters.Scalar;
 
@@ -61,76 +60,76 @@ public @interface DynamoDbVersioned {
     /**
      * Version auto-generator.
      */
-    static final class Generator<T> extends DynamoDbAutoGenerator.AbstractGenerator<T> {
+    final class Generator<T> extends DynamoDbAutoGenerator.AbstractGenerator<T> {
         private final Sequence<T> sequence;
 
-        public Generator(Class<T> targetType, DynamoDbVersioned annotation) {
+        Generator(Class<T> targetType, DynamoDbVersioned annotation) {
             super(DynamoDbAutoGenerateStrategy.ALWAYS);
             this.sequence = Sequences.of(targetType);
         }
 
         @Override
-        public final T generate(final T currentValue) {
+        public T generate(final T currentValue) {
             return currentValue == null ? sequence.init() : sequence.next(currentValue);
         }
 
-        private static enum Sequences {
+        private enum Sequences {
             BIG_INTEGER(Scalar.BIG_INTEGER, new Sequence<BigInteger>() {
                 @Override
-                public final BigInteger init() {
+                public BigInteger init() {
                     return BigInteger.ONE;
                 }
 
                 @Override
-                public final BigInteger next(final BigInteger o) {
+                public BigInteger next(final BigInteger o) {
                     return o.add(BigInteger.ONE);
                 }
             }),
 
             BYTE(Scalar.BYTE, new Sequence<Byte>() {
                 @Override
-                public final Byte init() {
+                public Byte init() {
                     return Byte.valueOf((byte) 1);
                 }
 
                 @Override
-                public final Byte next(final Byte o) {
+                public Byte next(final Byte o) {
                     return (byte) ((o + 1) % Byte.MAX_VALUE);
                 }
             }),
 
             INTEGER(Scalar.INTEGER, new Sequence<Integer>() {
                 @Override
-                public final Integer init() {
+                public Integer init() {
                     return Integer.valueOf(1);
                 }
 
                 @Override
-                public final Integer next(final Integer o) {
+                public Integer next(final Integer o) {
                     return o + 1;
                 }
             }),
 
             LONG(Scalar.LONG, new Sequence<Long>() {
                 @Override
-                public final Long init() {
+                public Long init() {
                     return Long.valueOf(1L);
                 }
 
                 @Override
-                public final Long next(final Long o) {
+                public Long next(final Long o) {
                     return o + 1L;
                 }
             }),
 
             SHORT(Scalar.SHORT, new Sequence<Short>() {
                 @Override
-                public final Short init() {
+                public Short init() {
                     return Short.valueOf((short) 1);
                 }
 
                 @Override
-                public final Short next(final Short o) {
+                public Short next(final Short o) {
                     return (short) (o + 1);
                 }
             });
@@ -138,12 +137,12 @@ public @interface DynamoDbVersioned {
             private final Sequence<?> sequence;
             private final Scalar scalar;
 
-            private Sequences(final Scalar scalar, final Sequence<?> sequence) {
+            Sequences(final Scalar scalar, final Sequence<?> sequence) {
                 this.sequence = sequence;
                 this.scalar = scalar;
             }
 
-            private static final <T> Sequence<T> of(final Class<T> targetType) {
+            private static <T> Sequence<T> of(final Class<T> targetType) {
                 for (final Sequences s : Sequences.values()) {
                     if (s.scalar.is(targetType)) {
                         return (Sequence<T>) s.sequence;
@@ -155,10 +154,10 @@ public @interface DynamoDbVersioned {
             }
         }
 
-        static interface Sequence<T> {
-            public T init();
+        interface Sequence<T> {
+            T init();
 
-            public T next(final T o);
+            T next(T o);
         }
     }
 

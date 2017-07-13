@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.apigateway;
 
 import java.io.IOException;
 import org.junit.BeforeClass;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.test.AwsTestBase;
 

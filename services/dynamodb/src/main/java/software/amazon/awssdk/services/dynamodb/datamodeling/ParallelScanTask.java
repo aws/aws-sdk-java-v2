@@ -256,7 +256,7 @@ public class ParallelScanTask {
     /**
      * Enumeration of the possible states of the scan on a segment.
      */
-    private static enum SegmentScanstate {
+    private enum SegmentScanstate {
         /** The scan on the segment is waiting for resources to execute and has not started yet. */
         Waiting,
 

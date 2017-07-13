@@ -30,5 +30,5 @@ public interface RegionMetadataProvider {
      * @param region the region to search for
      * @return the corresponding region, if it exists or derived.
      */
-    RegionMetadata getRegionMetadata(final Region region);
+    RegionMetadata getRegionMetadata(Region region);
 }

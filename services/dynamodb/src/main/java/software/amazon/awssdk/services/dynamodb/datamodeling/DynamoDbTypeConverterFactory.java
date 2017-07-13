@@ -45,7 +45,7 @@ public abstract class DynamoDbTypeConverterFactory {
      * Returns the standard type-converter factory. To override, the factory,
      * @see DynamoDbTypeConverterFactory#override
      */
-    public static final DynamoDbTypeConverterFactory standard() {
+    public static DynamoDbTypeConverterFactory standard() {
         return StandardTypeConverters.factory();
     }
 
@@ -114,7 +114,7 @@ public abstract class DynamoDbTypeConverterFactory {
     private static class OverrideFactory extends DelegateFactory {
         private final ConverterMap overrides;
 
-        public OverrideFactory(DynamoDbTypeConverterFactory defaults, ConverterMap overrides) {
+        OverrideFactory(DynamoDbTypeConverterFactory defaults, ConverterMap overrides) {
             super(defaults);
             this.overrides = overrides;
         }

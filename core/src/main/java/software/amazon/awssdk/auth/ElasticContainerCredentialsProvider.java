@@ -17,12 +17,13 @@ package software.amazon.awssdk.auth;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
 import software.amazon.awssdk.internal.CredentialsEndpointProvider;
 import software.amazon.awssdk.retry.internal.CredentialsEndpointRetryPolicy;
-import software.amazon.awssdk.utils.Logger;
 
 /**
  * {@link AwsCredentialsProvider} implementation that loads credentials from the Amazon Elastic Container Service.
@@ -31,7 +32,7 @@ import software.amazon.awssdk.utils.Logger;
  * environment. If the environment variable is not set, this credentials provider will always return null.</p>
  */
 public class ElasticContainerCredentialsProvider implements AwsCredentialsProvider, AutoCloseable {
-    private static final Logger LOG = Logger.loggerFor(ElasticContainerCredentialsProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(ElasticContainerCredentialsProvider.class);
 
     /**
      * The client to use to fetch the Amazon ECS credentials.

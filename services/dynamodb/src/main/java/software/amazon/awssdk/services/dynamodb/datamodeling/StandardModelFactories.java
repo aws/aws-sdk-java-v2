@@ -33,8 +33,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperFieldModel.DynamoDbAttributeType;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperFieldModel.Reflect;
@@ -52,20 +52,20 @@ import software.amazon.awssdk.util.ImmutableObjectUtils;
 @SdkInternalApi
 final class StandardModelFactories {
 
-    private static final Log LOG = LogFactory.getLog(StandardModelFactories.class);
+    private static final Logger log = LoggerFactory.getLogger(StandardModelFactories.class);
 
     /**
      * Creates the standard {@link DynamoDbMapperModelFactory} factory.
      */
-    static final DynamoDbMapperModelFactory of(S3Link.Factory s3Links) {
+    static DynamoDbMapperModelFactory of(S3Link.Factory s3Links) {
         return new StandardModelFactory(s3Links);
     }
 
     /**
      * Creates a new set of conversion rules based on the configuration.
      */
-    private static final <T> RuleFactory<T> rulesOf(DynamoDbMapperConfig config, S3Link.Factory s3Links,
-                                                    DynamoDbMapperModelFactory models) {
+    private static <T> RuleFactory<T> rulesOf(DynamoDbMapperConfig config, S3Link.Factory s3Links,
+                                              DynamoDbMapperModelFactory models) {
         final boolean ver1 = (config.getConversionSchema() == ConversionSchemas.V1);
         final boolean ver2 = (config.getConversionSchema() == ConversionSchemas.V2);
         final boolean v2Compatible = (config.getConversionSchema() == ConversionSchemas.V2_COMPATIBLE);
@@ -95,7 +95,7 @@ final class StandardModelFactories {
     /**
      * Attribute value conversion.
      */
-    static interface Rule<T> {
+    interface Rule<T> {
         boolean isAssignableFrom(ConvertibleType<?> type);
 
         DynamoDbTypeConverter<AttributeValue, T> newConverter(ConvertibleType<T> type);
@@ -106,7 +106,7 @@ final class StandardModelFactories {
     /**
      * Attribute value conversion factory.
      */
-    static interface RuleFactory<T> {
+    interface RuleFactory<T> {
         Rule<T> getRule(ConvertibleType<T> type);
     }
 
@@ -234,7 +234,7 @@ final class StandardModelFactories {
          */
         private DynamoDbTypeConverter<AttributeValue, T> getConverter(ConvertibleType<T> type) {
             return new DelegateConverter<AttributeValue, T>(getRule(type).newConverter(type)) {
-                public final AttributeValue convert(T o) {
+                public AttributeValue convert(T o) {
                     return o == null ? AttributeValue.builder().nul(true).build() : super.convert(o);
                 }
             };
@@ -477,7 +477,7 @@ final class StandardModelFactories {
 
             @Override
             public DynamoDbTypeConverter<AttributeValue, Collection<T>> newConverter(ConvertibleType<Collection<T>> type) {
-                LOG.warn("Marshaling a set of non-String objects to a DynamoDB "
+                log.warn("Marshaling a set of non-String objects to a DynamoDB "
                          + "StringSet. You won't be able to read these objects back "
                          + "out of DynamoDB unless you REALLY know what you're doing: "
                          + "it's probably a bug. If you DO know what you're doing feel"
@@ -703,11 +703,11 @@ final class StandardModelFactories {
             @Override
             public DynamoDbTypeConverter<AttributeValue, T> newConverter(final ConvertibleType<T> type) {
                 return joinAll(new DynamoDbTypeConverter<Map<String, AttributeValue>, T>() {
-                    public final Map<String, AttributeValue> convert(final T o) {
+                    public Map<String, AttributeValue> convert(final T o) {
                         return models.getTableFactory(config).getTable(type.targetType()).convert(o);
                     }
 
-                    public final T unconvert(final Map<String, AttributeValue> o) {
+                    public T unconvert(final Map<String, AttributeValue> o) {
                         return models.getTableFactory(config).getTable(type.targetType()).unconvert(o);
                     }
                 }, type.<Map<String, AttributeValue>>typeConverter());

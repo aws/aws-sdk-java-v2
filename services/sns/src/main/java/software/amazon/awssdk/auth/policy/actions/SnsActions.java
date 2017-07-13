@@ -178,7 +178,7 @@ public enum SnsActions implements Action {
 
     private final String action;
 
-    private SnsActions(String action) {
+    SnsActions(String action) {
         this.action = action;
     }
 

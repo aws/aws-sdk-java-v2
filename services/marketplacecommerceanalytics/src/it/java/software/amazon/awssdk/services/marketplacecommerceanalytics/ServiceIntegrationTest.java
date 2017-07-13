@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.marketplacecommerceanalytics;
 
 import java.io.IOException;
-import java.util.Date;
+import java.time.Instant;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -132,11 +132,10 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
     @Test(expected = AmazonServiceException.class)
     public void test() {
         client.generateDataSet(GenerateDataSetRequest.builder()
-                                                     .dataSetPublicationDate(new Date())
+                                                     .dataSetPublicationDate(Instant.now())
                                                      .roleNameArn(roleArn).destinationS3BucketName(BUCKET_NAME)
                                                      .snsTopicArn(topicArn)
                                                      .destinationS3BucketName(BUCKET_NAME).destinationS3Prefix("some-prefix")
-                                                     .dataSetPublicationDate(new Date())
                                                      .dataSetType(DataSetType.Customer_subscriber_hourly_monthly_subscriptions)
                                                      .build());
     }

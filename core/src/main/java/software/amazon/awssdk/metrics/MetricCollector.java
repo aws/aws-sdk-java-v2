@@ -73,11 +73,11 @@ public abstract class MetricCollector {
     /**
      * Can be used to serve as a factory for the request metric collector.
      */
-    public static interface Factory {
+    public interface Factory {
         /**
          * Returns an instance of the collector; or null if if failed to create
          * one.
          */
-        public MetricCollector getInstance();
+        MetricCollector getInstance();
     }
 }

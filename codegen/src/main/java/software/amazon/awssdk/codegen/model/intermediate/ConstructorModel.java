@@ -18,16 +18,14 @@ package software.amazon.awssdk.codegen.model.intermediate;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import software.amazon.awssdk.codegen.internal.Constants;
-import software.amazon.awssdk.codegen.internal.DocumentationUtils;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 
-public class ConstructorModel extends DocumentationModel {
+@ReviewBeforeRelease("If we get rid of 'simple constructors' for simple models, this can be deleted.")
+public class ConstructorModel {
 
-    private final String modelClassName;
     private final List<ArgumentModel> arguments = new LinkedList<ArgumentModel>();
 
     public ConstructorModel(String modelClassName) {
-        this.modelClassName = modelClassName;
     }
 
     public List<ArgumentModel> getArguments() {
@@ -55,27 +53,5 @@ public class ConstructorModel extends DocumentationModel {
         }
 
         return builder.toString();
-    }
-
-    @Override
-    public String getDocumentation() {
-        StringBuilder docBuilder = new StringBuilder("/**");
-        docBuilder.append(documentation != null ? documentation
-                                                : String.format(DocumentationUtils.CONSTRUCTOR_DOC, modelClassName));
-
-        for (ArgumentModel arg : arguments) {
-            docBuilder.append(Constants.LF);
-            docBuilder.append("@param " + arg.getName() + " "
-                              + DocumentationUtils.stripHtmlTags(arg.getDocumentation()));
-        }
-
-        docBuilder.append("*/");
-        return docBuilder.toString();
-    }
-
-    @Override
-    public void setDocumentation(String documentation) {
-        throw new UnsupportedOperationException(
-                "Documentation for ConstructorModel is not allowed to be manually set.");
     }
 }

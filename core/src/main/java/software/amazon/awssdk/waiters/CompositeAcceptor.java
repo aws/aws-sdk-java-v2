@@ -36,7 +36,7 @@ class CompositeAcceptor<OutputT> {
      * @param acceptors List of acceptors defined for each waiter. It shouldn't
      *                  be null or empty
      */
-    public CompositeAcceptor(List<WaiterAcceptor<OutputT>> acceptors) {
+    CompositeAcceptor(List<WaiterAcceptor<OutputT>> acceptors) {
         this.acceptors = ValidationUtils.assertNotEmpty(acceptors, "acceptors");
     }
 

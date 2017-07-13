@@ -401,5 +401,8 @@
           <property name="message" value="Use SystemSetting instead of System.getenv and System.getProperty"/>
           <property name="ignoreComments" value="true"/>
         </module>
+
+        <!-- Checks for redundant public modifier on interfaces and other redundant modifiers -->
+        <module name="RedundantModifier" />
     </module>
 </module>

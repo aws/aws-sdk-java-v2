@@ -50,8 +50,8 @@ public class BinaryUtils {
 
     /**
      * Converts byte data to a Base64-encoded string.
-     *
      * @param data
+     *
      *            data to Base64 encode.
      * @return encoded Base64 string.
      */

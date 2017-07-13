@@ -43,11 +43,11 @@ enum MachineMetric implements MetricType {
     private final boolean includeZeroValue;
     private final MetricName metricName;
 
-    private MachineMetric(Dim dimension, MetricName metricName) {
+    MachineMetric(Dim dimension, MetricName metricName) {
         this(dimension, metricName, Constants.INCLUDES_ZERO_VALUES);
     }
 
-    private MachineMetric(Dim dimension, MetricName metricName, boolean includeZeroValue) {
+    MachineMetric(Dim dimension, MetricName metricName, boolean includeZeroValue) {
         this.dimension = dimension;
         this.metricName = metricName;
         this.includeZeroValue = includeZeroValue;
@@ -73,7 +73,7 @@ enum MachineMetric implements MetricType {
     /**
      * Machine metric names.
      */
-    private static enum MetricName {
+    private enum MetricName {
         JvmMetric,
         OSMetric,;
     }
@@ -81,7 +81,7 @@ enum MachineMetric implements MetricType {
     /**
      * Dimensions.
      */
-    private static enum Dim {
+    private enum Dim {
         Memory,
         Threads,
         FileDescriptors,;

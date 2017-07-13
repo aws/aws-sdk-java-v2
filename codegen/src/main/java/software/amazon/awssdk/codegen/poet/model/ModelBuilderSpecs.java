@@ -41,7 +41,7 @@ class ModelBuilderSpecs {
     private final PoetExtensions poetExtensions;
     private final AccessorsFactory accessorsFactory;
 
-    public ModelBuilderSpecs(IntermediateModel intermediateModel, ShapeModel shapeModel,
+    ModelBuilderSpecs(IntermediateModel intermediateModel, ShapeModel shapeModel,
                              ShapeModelSpec shapeModelSpec,
                              TypeProvider typeProvider) {
         this.intermediateModel = intermediateModel;

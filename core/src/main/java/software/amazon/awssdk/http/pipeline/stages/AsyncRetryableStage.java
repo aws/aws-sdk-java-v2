@@ -22,13 +22,13 @@ import static software.amazon.awssdk.http.pipeline.stages.RetryableStage.HEADER_
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.ResetException;
 import software.amazon.awssdk.Response;
@@ -54,7 +54,7 @@ import software.amazon.awssdk.util.DateUtils;
  */
 public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> {
 
-    private static final Log log = LogFactory.getLog(AsyncRetryableStage.class);
+    private static final Logger log = LoggerFactory.getLogger(AsyncRetryableStage.class);
 
     private final RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> requestPipeline;
     private final ScheduledExecutorService retrySubmitter;
@@ -103,12 +103,12 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
     private static int parseClockSkewOffset(HttpResponse httpResponse) {
         Optional<String> dateHeader = Optional.ofNullable(httpResponse.getHeader("Date"));
         try {
-            Date serverDate = dateHeader
+            Instant serverDate = dateHeader
                     .filter(h -> !h.isEmpty())
                     .map(DateUtils::parseRfc822Date)
                     .orElseThrow(() -> new RuntimeException(
                             "Unable to parse clock skew offset from response. Server Date header missing"));
-            long diff = System.currentTimeMillis() - serverDate.getTime();
+            long diff = System.currentTimeMillis() - serverDate.toEpochMilli();
             return (int) (diff / 1000);
         } catch (RuntimeException e) {
             log.warn("Unable to parse clock skew offset from response: " + dateHeader.orElse(""), e);

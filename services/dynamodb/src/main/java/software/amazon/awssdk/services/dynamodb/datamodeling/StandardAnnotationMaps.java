@@ -32,7 +32,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperFieldModel.DynamoDbAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
@@ -46,7 +45,7 @@ final class StandardAnnotationMaps {
     /**
      * Gets all the DynamoDB annotations for a given class.
      */
-    static final <T> TableMap<T> of(Class<T> clazz) {
+    static <T> TableMap<T> of(Class<T> clazz) {
         final TableMap<T> annotations = new TableMap<T>(clazz);
         annotations.putAll(clazz);
         return annotations;
@@ -56,7 +55,7 @@ final class StandardAnnotationMaps {
      * Gets all the DynamoDB annotations; method annotations override field
      * level annotations which override class/type level annotations.
      */
-    static final <T> FieldMap<T> of(Method getter, String defaultName) {
+    static <T> FieldMap<T> of(Method getter, String defaultName) {
         final Class<T> targetType = (Class<T>) getter.getReturnType();
         final String fieldName = StandardBeanProperties.fieldNameOf(getter);
 
@@ -88,14 +87,14 @@ final class StandardAnnotationMaps {
         try {
             if (annotation != null) {
                 try {
-                    Constructor<T> c = clazz.getConstructor(Class.class, annotation.annotationType());
+                    Constructor<T> c = clazz.getDeclaredConstructor(Class.class, annotation.annotationType());
                     return c.newInstance(targetType, annotation);
                 } catch (final NoSuchMethodException no) {
                     // Ignored or expected.
                 }
             }
             try {
-                return clazz.getConstructor(Class.class).newInstance(targetType);
+                return clazz.getDeclaredConstructor(Class.class).newInstance(targetType);
             } catch (final NoSuchMethodException no) {
                 // Ignored or expected.
             }

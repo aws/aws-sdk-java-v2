@@ -19,10 +19,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.InputStreamEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
@@ -34,7 +34,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  */
 public class RepeatableInputStreamRequestEntity extends BasicHttpEntity {
 
-    private static final Log LOG = LogFactory.getLog(RepeatableInputStreamRequestEntity.class);
+    private static final Logger log = LoggerFactory.getLogger(RepeatableInputStreamRequestEntity.class);
 
     /**
      * True if the request entity hasn't been written out yet
@@ -98,7 +98,7 @@ public class RepeatableInputStreamRequestEntity extends BasicHttpEntity {
         try {
             return Long.parseLong(contentLength);
         } catch (NumberFormatException nfe) {
-            LOG.warn("Unable to parse content length from request. Buffering contents in memory.");
+            log.warn("Unable to parse content length from request. Buffering contents in memory.");
             return -1;
         }
     }

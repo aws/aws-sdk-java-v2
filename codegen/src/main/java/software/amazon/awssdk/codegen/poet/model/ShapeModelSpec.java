@@ -32,7 +32,7 @@ class ShapeModelSpec {
     private final TypeProvider typeProvider;
     private final PoetExtensions poetExtensions;
 
-    public ShapeModelSpec(ShapeModel shapeModel, TypeProvider typeProvider, PoetExtensions poetExtensions) {
+    ShapeModelSpec(ShapeModel shapeModel, TypeProvider typeProvider, PoetExtensions poetExtensions) {
         this.shapeModel = shapeModel;
         this.typeProvider = typeProvider;
         this.poetExtensions = poetExtensions;

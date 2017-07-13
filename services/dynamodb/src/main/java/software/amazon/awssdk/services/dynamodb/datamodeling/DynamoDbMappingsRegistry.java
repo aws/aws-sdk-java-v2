@@ -46,7 +46,7 @@ final class DynamoDbMappingsRegistry {
      * Gets the default instance.
      * @return The default instance.
      */
-    static final DynamoDbMappingsRegistry instance() {
+    static DynamoDbMappingsRegistry instance() {
         return INSTANCE;
     }
 
@@ -55,7 +55,7 @@ final class DynamoDbMappingsRegistry {
      * @param clazz The class.
      * @return The mapping definition.
      */
-    final Mappings mappingsOf(final Class<?> clazz) {
+    Mappings mappingsOf(final Class<?> clazz) {
         if (!mappings.containsKey(clazz)) {
             mappings.putIfAbsent(clazz, new Mappings(clazz));
         }
@@ -76,7 +76,7 @@ final class DynamoDbMappingsRegistry {
             }
         }
 
-        final Collection<Mapping> mappings() {
+        Collection<Mapping> mappings() {
             return byNames.values();
         }
     }
@@ -91,19 +91,19 @@ final class DynamoDbMappingsRegistry {
             this.bean = bean;
         }
 
-        final Method getter() {
+        Method getter() {
             return bean.type().getter();
         }
 
-        final boolean isPrimaryKey() {
+        boolean isPrimaryKey() {
             return bean.properties().keyType() != null;
         }
 
-        final boolean isVersion() {
+        boolean isVersion() {
             return bean.properties().versioned();
         }
 
-        final String getAttributeName() {
+        String getAttributeName() {
             return bean.properties().attributeName();
         }
     }

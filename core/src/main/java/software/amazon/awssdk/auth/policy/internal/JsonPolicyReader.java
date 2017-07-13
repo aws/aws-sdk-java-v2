@@ -340,7 +340,7 @@ public class JsonPolicyReader {
 
         private String actionName;
 
-        public NamedAction(String actionName) {
+        NamedAction(String actionName) {
             this.actionName = actionName;
         }
 
