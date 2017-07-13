@@ -22,7 +22,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;

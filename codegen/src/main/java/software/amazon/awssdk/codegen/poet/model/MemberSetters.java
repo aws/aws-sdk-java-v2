@@ -17,7 +17,6 @@ package software.amazon.awssdk.codegen.poet.model;
 
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
-
 import java.util.List;
 
 /**

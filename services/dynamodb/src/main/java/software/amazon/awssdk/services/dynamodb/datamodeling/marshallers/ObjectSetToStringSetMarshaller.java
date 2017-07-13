@@ -18,8 +18,8 @@ package software.amazon.awssdk.services.dynamodb.datamodeling.marshallers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.dynamodb.datamodeling.ArgumentMarshaller.StringSetAttributeMarshaller;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -33,8 +33,8 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 public class ObjectSetToStringSetMarshaller
         implements StringSetAttributeMarshaller {
 
-    private static final Log LOG =
-            LogFactory.getLog(ObjectSetToStringSetMarshaller.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(ObjectSetToStringSetMarshaller.class);
 
     private static final ObjectSetToStringSetMarshaller INSTANCE =
             new ObjectSetToStringSetMarshaller();
@@ -50,7 +50,7 @@ public class ObjectSetToStringSetMarshaller
     public AttributeValue marshall(Object obj) {
         Set<?> set = (Set<?>) obj;
 
-        LOG.warn("Marshaling a set of non-String objects to a DynamoDB "
+        log.warn("Marshaling a set of non-String objects to a DynamoDB "
                  + "StringSet. You won't be able to read these objects back "
                  + "out of DynamoDB unless you REALLY know what you're doing: "
                  + "it's probably a bug. If you DO know what you're doing feel"

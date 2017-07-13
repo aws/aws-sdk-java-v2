@@ -19,8 +19,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.time.Instant;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.util.DateUtils;
 import software.amazon.awssdk.utils.Base64Utils;
@@ -30,7 +30,7 @@ import software.amazon.awssdk.utils.Base64Utils;
  */
 public class SimpleTypeStaxUnmarshallers {
     /** Shared logger. */
-    private static Log log = LogFactory.getLog(SimpleTypeUnmarshallers.class);
+    private static Logger log = LoggerFactory.getLogger(SimpleTypeUnmarshallers.class);
 
     /**
      * Unmarshaller for String values.

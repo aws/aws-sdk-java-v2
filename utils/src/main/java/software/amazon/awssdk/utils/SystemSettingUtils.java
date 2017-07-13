@@ -18,12 +18,14 @@ package software.amazon.awssdk.utils;
 import static software.amazon.awssdk.utils.OptionalUtils.firstPresent;
 
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A set of static utility methods for shared code in {@link SystemSetting}.
  */
 final class SystemSettingUtils {
-    private static final Logger LOG = Logger.loggerFor(SystemSettingUtils.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SystemSettingUtils.class);
 
     private SystemSettingUtils() {}
 
@@ -58,9 +60,8 @@ final class SystemSettingUtils {
             return Optional.ofNullable(setting.environmentVariable()).map(System::getenv);
             // CHECKSTYLE:ON
         } catch (SecurityException e) {
-            LOG.debug(() -> "Unable to load the environment variable '" + setting.environmentVariable() + "' because the "
-                            + "security manager did not allow the SDK to read this system property. This setting will be "
-                            + "assumed to be null.", e);
+            LOG.debug("Unable to load the environment variable '{}' because the security manager did not allow the SDK" +
+                      " to read this system property. This setting will be assumed to be null", setting.environmentVariable(), e);
             return Optional.empty();
         }
     }

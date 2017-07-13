@@ -15,16 +15,7 @@
 
 package software.amazon.awssdk.services.simpledb;
 
-import org.junit.Test;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.services.simpledb.model.BatchPutAttributesRequest;
-import software.amazon.awssdk.services.simpledb.model.CreateDomainRequest;
-import software.amazon.awssdk.services.simpledb.model.DeleteAttributesRequest;
-import software.amazon.awssdk.services.simpledb.model.DeleteDomainRequest;
-import software.amazon.awssdk.services.simpledb.model.DomainMetadataRequest;
-import software.amazon.awssdk.services.simpledb.model.GetAttributesRequest;
-import software.amazon.awssdk.services.simpledb.model.PutAttributesRequest;
-import software.amazon.awssdk.services.simpledb.model.SelectRequest;
 
 /**
  * Tests that constructors provided by the SimpleDB model classes are available. This test is

@@ -23,12 +23,10 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.auth.AbstractAwsSigner;
 import software.amazon.awssdk.auth.Aws4Signer;
@@ -49,7 +47,7 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
     private static final String CHUNK_SIGNATURE_HEADER = ";chunk-signature=";
     private static final int SIGNATURE_LENGTH = 64;
     private static final byte[] FINAL_CHUNK = new byte[0];
-    private static final Log log = LogFactory.getLog(AwsChunkedEncodingInputStream.class);
+    private static final Logger log = LoggerFactory.getLogger(AwsChunkedEncodingInputStream.class);
 
     private InputStream is = null;
     private final int maxBufferSize;

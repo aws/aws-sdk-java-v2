@@ -18,7 +18,6 @@ package software.amazon.awssdk.auth.policy;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.junit.After;
 import org.junit.Test;
 import software.amazon.awssdk.auth.policy.Statement.Effect;

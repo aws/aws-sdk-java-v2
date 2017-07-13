@@ -23,10 +23,11 @@ import static org.junit.Assert.fail;
 
 import java.util.Iterator;
 import java.util.List;
-import org.apache.log4j.Logger;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AmazonServiceException.ErrorType;
 import software.amazon.awssdk.SdkGlobalTime;
 import software.amazon.awssdk.auth.StaticCredentialsProvider;
@@ -64,6 +65,7 @@ import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 import software.amazon.awssdk.services.cloudformation.model.StackSummary;
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackResponse;
+import software.amazon.awssdk.util.json.Jackson;
 
 /**
  * Tests of the Stack APIs : CloudFormation
@@ -74,7 +76,7 @@ public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
 
     /** The initial stack policy which allows access to all resources. */
     private static final Policy INIT_STACK_POLICY;
-    private static Logger LOG = Logger.getLogger(StackIntegrationTests.class);
+    private static Logger LOG = LoggerFactory.getLogger(StackIntegrationTests.class);
     private static final int PAGINATION_THRESHOLD = 120;
     private static String testStackName;
     private static String testStackId;
@@ -263,7 +265,7 @@ public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
             assertNotNull(e.resourceStatus());
             assertNotNull(e.resourceType());
             assertNotNull(e.timestamp());
-            LOG.debug(e);
+            LOG.debug(Jackson.toJsonPrettyString(e));
         }
     }
 

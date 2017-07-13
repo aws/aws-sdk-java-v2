@@ -19,8 +19,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.annotation.SdkInternalApi;
 
 /**
  * Unit tests for methods of {@link StringUtils}.

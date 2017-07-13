@@ -15,9 +15,7 @@
 
 package software.amazon.awssdk.http;
 
-import java.net.URI;
 import java.util.List;
-import software.amazon.awssdk.AmazonWebServiceClient;
 import software.amazon.awssdk.annotation.NotThreadSafe;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.auth.AwsCredentials;
@@ -40,7 +38,6 @@ import software.amazon.awssdk.util.AwsRequestMetricsFullSupport;
 public class ExecutionContext {
     private final AwsRequestMetrics awsRequestMetrics;
     private final List<RequestHandler> requestHandlers;
-    private final AmazonWebServiceClient awsClient;
     private final SignerProvider signerProvider;
 
     private boolean retryCapacityConsumed;
@@ -63,24 +60,9 @@ public class ExecutionContext {
         this(builder().withSignerProvider(new NoOpSignerProvider()));
     }
 
-    @Deprecated
-    public ExecutionContext(List<RequestHandler> requestHandlers, boolean isMetricEnabled,
-                            AmazonWebServiceClient awsClient) {
-        this.requestHandlers = requestHandlers;
-        awsRequestMetrics = isMetricEnabled ? new AwsRequestMetricsFullSupport() : new AwsRequestMetrics();
-        this.awsClient = awsClient;
-        this.signerProvider = new SignerProvider() {
-            @Override
-            public Signer getSigner(SignerProviderContext context) {
-                return getSignerByUri(context.getUri());
-            }
-        };
-    }
-
     private ExecutionContext(final Builder builder) {
         this.requestHandlers = builder.requestHandlers;
         this.awsRequestMetrics = builder.useRequestMetrics ? new AwsRequestMetricsFullSupport() : new AwsRequestMetrics();
-        this.awsClient = builder.awsClient;
         this.signerProvider = builder.signerProvider;
     }
 
@@ -94,10 +76,6 @@ public class ExecutionContext {
 
     public AwsRequestMetrics getAwsRequestMetrics() {
         return awsRequestMetrics;
-    }
-
-    protected AmazonWebServiceClient getAwsClient() {
-        return awsClient;
     }
 
     /**
@@ -135,14 +113,6 @@ public class ExecutionContext {
      */
     public Signer getSigner(SignerProviderContext context) {
         return signerProvider.getSigner(context);
-    }
-
-    /**
-     * Returns the signer for the given uri. Note S3 in particular overrides this method.
-     */
-    @Deprecated
-    public Signer getSignerByUri(URI uri) {
-        return awsClient == null ? null : awsClient.getSignerByUri(uri);
     }
 
     /**
@@ -184,7 +154,6 @@ public class ExecutionContext {
 
         private boolean useRequestMetrics;
         private List<RequestHandler> requestHandlers;
-        private AmazonWebServiceClient awsClient;
         private SignerProvider signerProvider = new NoOpSignerProvider();
 
         private Builder() {
@@ -213,19 +182,6 @@ public class ExecutionContext {
 
         public Builder withRequestHandlers(final List<RequestHandler> requestHandlers) {
             setRequestHandlers(requestHandlers);
-            return this;
-        }
-
-        public AmazonWebServiceClient getAwsClient() {
-            return awsClient;
-        }
-
-        public void setAwsClient(final AmazonWebServiceClient awsClient) {
-            this.awsClient = awsClient;
-        }
-
-        public Builder withAwsClient(final AmazonWebServiceClient awsClient) {
-            setAwsClient(awsClient);
             return this;
         }
 

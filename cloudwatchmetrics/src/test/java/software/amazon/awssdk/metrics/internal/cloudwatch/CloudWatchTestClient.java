@@ -16,7 +16,6 @@ package software.amazon.awssdk.metrics.internal.cloudwatch;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;

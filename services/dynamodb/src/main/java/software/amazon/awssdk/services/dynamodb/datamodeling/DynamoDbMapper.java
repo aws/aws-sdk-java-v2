@@ -32,8 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.SdkClientException;
@@ -208,7 +208,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
             DynamoDbMapper.class.getName() + "/" + VersionInfoUtils.getVersion();
     private static final String USER_AGENT_BATCH_OPERATION =
             DynamoDbMapper.class.getName() + "_batch_operation/" + VersionInfoUtils.getVersion();
-    private static final Log log = LogFactory.getLog(DynamoDbMapper.class);
+    private static final Logger log = LoggerFactory.getLogger(DynamoDbMapper.class);
     private final DynamoDBClient db;
     private final DynamoDbMapperModelFactory models;
     private final S3Link.Factory s3Links;

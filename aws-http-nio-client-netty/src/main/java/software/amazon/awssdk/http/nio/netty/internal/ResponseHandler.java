@@ -34,14 +34,15 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.utils.Logger;
 
 @Sharable
 class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
-    private static final Logger log = Logger.loggerFor(ResponseHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(ResponseHandler.class);
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelContext, HttpObject msg) throws Exception {
@@ -88,7 +89,7 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
-        log.error(() -> "Exception processing request: " + requestContext.sdkRequest(), cause);
+        log.error("Exception processing request: {}", requestContext.sdkRequest(), cause);
         requestContext.handler().exceptionOccurred(cause);
         requestContext.channelPool().release(ctx.channel());
         ctx.fireExceptionCaught(cause);

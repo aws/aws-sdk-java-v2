@@ -19,8 +19,8 @@ import com.fasterxml.jackson.core.JsonFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.AmazonServiceException.ErrorType;
 import software.amazon.awssdk.annotation.SdkInternalApi;
@@ -35,7 +35,7 @@ import software.amazon.awssdk.runtime.transform.JsonErrorUnmarshaller;
 @SdkInternalApi
 public class JsonErrorResponseHandler implements HttpResponseHandler<AmazonServiceException> {
 
-    private static final Log LOG = LogFactory.getLog(JsonErrorResponseHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(JsonErrorResponseHandler.class);
 
     private final List<JsonErrorUnmarshaller> unmarshallers;
     private final ErrorCodeParser errorCodeParser;
@@ -107,7 +107,7 @@ public class JsonErrorResponseHandler implements HttpResponseHandler<AmazonServi
                 try {
                     return unmarshaller.unmarshall(jsonContent.getJsonNode());
                 } catch (Exception e) {
-                    LOG.info("Unable to unmarshall exception content", e);
+                    log.info("Unable to unmarshall exception content", e);
                     return null;
                 }
             }

@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.regions.providers;
 
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.regions.Region;
@@ -49,7 +49,7 @@ public class InstanceProfileRegionProvider extends AwsRegionProvider {
         try {
             return EC2MetadataUtils.getEC2InstanceRegion();
         } catch (AmazonClientException sce) {
-            LogFactory.getLog(InstanceProfileRegionProvider.class)
+            LoggerFactory.getLogger(InstanceProfileRegionProvider.class)
                       .debug("Ignoring failure to retrieve the region: " + sce.getMessage());
             return null;
         }

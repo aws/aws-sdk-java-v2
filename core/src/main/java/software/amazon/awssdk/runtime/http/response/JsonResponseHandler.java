@@ -19,8 +19,8 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import java.io.IOException;
 import java.util.Map;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.http.HttpResponse;
@@ -46,7 +46,7 @@ public class JsonResponseHandler<T> implements HttpResponseHandler<T> {
     /**
      * Shared logger for profiling information
      */
-    private static final Log log = LogFactory.getLog("software.amazon.awssdk.request");
+    private static final Logger log = LoggerFactory.getLogger("software.amazon.awssdk.request");
     private final JsonFactory jsonFactory;
     private final boolean needsConnectionLeftOpen;
     private final boolean isPayloadJson;

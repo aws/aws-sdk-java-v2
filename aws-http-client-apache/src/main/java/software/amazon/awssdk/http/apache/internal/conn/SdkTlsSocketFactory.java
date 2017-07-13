@@ -24,18 +24,18 @@ import java.util.List;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Used to enforce the preferred TLS protocol during SSL handshake.
  */
 public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
 
-    private static final Log LOG = LogFactory.getLog(SdkTlsSocketFactory.class);
+    private static final Logger log = LoggerFactory.getLogger(SdkTlsSocketFactory.class);
     private final SSLContext sslContext;
 
     public SdkTlsSocketFactory(final SSLContext sslContext, final HostnameVerifier hostnameVerifier) {
@@ -54,9 +54,10 @@ public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
     protected final void prepareSocket(final SSLSocket socket) {
         String[] supported = socket.getSupportedProtocols();
         String[] enabled = socket.getEnabledProtocols();
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("socket.getSupportedProtocols(): " + Arrays.toString(supported)
-                      + ", socket.getEnabledProtocols(): " + Arrays.toString(enabled));
+        if (log.isDebugEnabled()) {
+            log.debug("socket.getSupportedProtocols(): {}, socket.getEnabledProtocols(): {}",
+                      Arrays.toString(supported),
+                      Arrays.toString(enabled));
         }
         List<String> target = new ArrayList<String>();
         if (supported != null) {
@@ -82,8 +83,8 @@ public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
         if (target.size() > 0) {
             String[] enabling = target.toArray(new String[target.size()]);
             socket.setEnabledProtocols(enabling);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("TLS protocol enabled for SSL handshake: " + Arrays.toString(enabling));
+            if (log.isDebugEnabled()) {
+                log.debug("TLS protocol enabled for SSL handshake: {}", Arrays.toString(enabling));
             }
         }
     }
@@ -107,8 +108,8 @@ public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
             final InetSocketAddress remoteAddress,
             final InetSocketAddress localAddress,
             final HttpContext context) throws IOException {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("connecting to " + remoteAddress.getAddress() + ":" + remoteAddress.getPort());
+        if (log.isDebugEnabled()) {
+            log.debug("Connecting to {}:{}", remoteAddress.getAddress(), remoteAddress.getPort());
         }
         Socket connectedSocket;
         return super.connectSocket(connectTimeout, socket, host, remoteAddress, localAddress, context);

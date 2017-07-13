@@ -32,7 +32,6 @@ import software.amazon.awssdk.services.iotdataplane.model.DeleteThingShadowReque
 import software.amazon.awssdk.services.iotdataplane.model.DeleteThingShadowResponse;
 import software.amazon.awssdk.services.iotdataplane.model.GetThingShadowRequest;
 import software.amazon.awssdk.services.iotdataplane.model.GetThingShadowResponse;
-import software.amazon.awssdk.services.iotdataplane.model.InternalFailureException;
 import software.amazon.awssdk.services.iotdataplane.model.InvalidRequestException;
 import software.amazon.awssdk.services.iotdataplane.model.PublishRequest;
 import software.amazon.awssdk.services.iotdataplane.model.ResourceNotFoundException;

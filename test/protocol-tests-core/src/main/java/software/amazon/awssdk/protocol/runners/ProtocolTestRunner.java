@@ -20,19 +20,20 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.protocol.model.TestCase;
 import software.amazon.awssdk.protocol.reflect.ClientReflector;
 import software.amazon.awssdk.protocol.wiremock.WireMockUtils;
 import software.amazon.awssdk.util.IdempotentUtils;
-import software.amazon.awssdk.utils.Logger;
 
 /**
  * Runs a list of test cases (either marshalling or unmarshalling).
  */
 public class ProtocolTestRunner {
 
-    private static final Logger log = Logger.loggerFor(ProtocolTestRunner.class);
+    private static final Logger log = LoggerFactory.getLogger(ProtocolTestRunner.class);
     private static final ObjectMapper MAPPER = new ObjectMapper()
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .enable(JsonParser.Feature.ALLOW_COMMENTS);
@@ -61,7 +62,7 @@ public class ProtocolTestRunner {
 
     public void runTests(List<TestCase> tests) throws Exception {
         for (TestCase testCase : tests) {
-            log.info(() -> "Running test: " + testCase.getDescription());
+            log.info("Running test: {}", testCase.getDescription());
             switch (testCase.getWhen().getAction()) {
                 case MARSHALL:
                     marshallingTestRunner.runTest(testCase);

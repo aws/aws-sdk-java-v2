@@ -21,7 +21,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
 import org.junit.After;
 import org.junit.Test;
 import software.amazon.awssdk.services.emr.model.ActionOnFailure;

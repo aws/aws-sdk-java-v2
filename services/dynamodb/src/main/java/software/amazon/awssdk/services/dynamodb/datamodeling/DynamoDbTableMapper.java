@@ -19,8 +19,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
@@ -133,7 +133,7 @@ import software.amazon.awssdk.services.dynamodb.model.TableDescription;
  */
 public final class DynamoDbTableMapper<T extends Object, H extends Object, R extends Object> {
 
-    private static final Log LOG = LogFactory.getLog(DynamoDbTableMapper.class);
+    private static final Logger log = LoggerFactory.getLogger(DynamoDbTableMapper.class);
 
     private final DynamoDbMapperTableModel<T> model;
     private final DynamoDbMapperFieldModel<T, H> hk;
@@ -477,8 +477,8 @@ public final class DynamoDbTableMapper<T extends Object, H extends Object, R ext
         try {
             createTable(throughput);
         } catch (final ResourceInUseException e) {
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("Table already exists, no need to create", e);
+            if (log.isTraceEnabled()) {
+                log.trace("Table already exists, no need to create", e);
             }
             return false;
         }
@@ -508,8 +508,8 @@ public final class DynamoDbTableMapper<T extends Object, H extends Object, R ext
         try {
             deleteTable();
         } catch (final ResourceNotFoundException e) {
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("Table does not exist, no need to delete", e);
+            if (log.isTraceEnabled()) {
+                log.trace("Table does not exist, no need to delete", e);
             }
             return false;
         }

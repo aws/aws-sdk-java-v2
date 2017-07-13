@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.customization.CodegenCustomizationProcessor;
 import software.amazon.awssdk.codegen.customization.processors.DefaultCustomizationProcessor;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
@@ -46,7 +48,6 @@ import software.amazon.awssdk.codegen.model.service.Waiters;
 import software.amazon.awssdk.codegen.naming.DefaultNamingStrategy;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.util.StringUtils;
-import software.amazon.awssdk.utils.Logger;
 
 /**
  * Builds an intermediate model to be used by the templates from the service model and
@@ -54,7 +55,7 @@ import software.amazon.awssdk.utils.Logger;
  */
 public class IntermediateModelBuilder {
 
-    private static final Logger log = Logger.loggerFor(IntermediateModelBuilder.class);
+    private static final Logger log = LoggerFactory.getLogger(IntermediateModelBuilder.class);
     private final CustomizationConfig customConfig;
     private final BasicCodeGenConfig codeGenConfig;
     private final ServiceModel service;
@@ -94,9 +95,9 @@ public class IntermediateModelBuilder {
         // Note: This needs to come before any pre/post processing of the
         // models, as the transformer must have access to the original shapes,
         // before any customizations have been applied (which modifies them).
-        log.info(() -> "Applying customizations to examples...");
+        log.info("Applying customizations to examples...");
         new ExamplesCustomizer(service, customConfig).applyCustomizationsToExamples(examples);
-        log.info(() -> "Examples customized.");
+        log.info("Examples customized.");
 
         CodegenCustomizationProcessor customization = DefaultCustomizationProcessor
                 .getProcessorFor(customConfig);
@@ -117,7 +118,7 @@ public class IntermediateModelBuilder {
                                             Collections.unmodifiableMap(shapes)));
         }
 
-        log.info(() -> shapes.size() + " shapes found in total.");
+        log.info("{} shapes found in total.", shapes.size());
 
         IntermediateModel fullModel = new IntermediateModel(
                 constructMetadata(service, codeGenConfig, customConfig), operations, shapes,
@@ -125,11 +126,11 @@ public class IntermediateModelBuilder {
 
         customization.postprocess(fullModel);
 
-        log.info(() -> fullModel.getShapes().size() + " shapes remained after applying customizations.");
+        log.info("{} shapes remained after applying customizations.", fullModel.getShapes().size());
 
         Map<String, ShapeModel> trimmedShapes = removeUnusedShapes(fullModel);
 
-        log.info(() -> trimmedShapes.size() + " shapes remained after removing unused shapes.");
+        log.info("{} shapes remained after removing unused shapes.", trimmedShapes.size());
 
         IntermediateModel trimmedModel = new IntermediateModel(fullModel.getMetadata(),
                                                                fullModel.getOperations(),

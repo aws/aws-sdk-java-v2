@@ -25,8 +25,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.Response;
 import software.amazon.awssdk.handlers.AwsHandlerKeys;
@@ -70,7 +70,7 @@ public class MessageMD5ChecksumHandler extends RequestHandler {
     private static final String MESSAGE_BODY = "message body";
     private static final String MESSAGE_ATTRIBUTES = "message attributes";
 
-    private static final Log log = LogFactory.getLog(MessageMD5ChecksumHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(MessageMD5ChecksumHandler.class);
 
     /**
      * Throw an exception if the MD5 checksums returned in the SendMessageResponse do not match the

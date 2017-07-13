@@ -23,8 +23,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.Optional;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.ResetException;
 import software.amazon.awssdk.Response;
@@ -53,7 +53,7 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
 
     public static final String HEADER_SDK_RETRY_INFO = "amz-sdk-retry";
 
-    private static final Log log = LogFactory.getLog(RetryableStage.class);
+    private static final Logger log = LoggerFactory.getLogger(RetryableStage.class);
 
     private final RequestPipeline<SdkHttpFullRequest, Response<OutputT>> requestPipeline;
 

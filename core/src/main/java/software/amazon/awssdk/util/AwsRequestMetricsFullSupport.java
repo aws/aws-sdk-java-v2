@@ -20,8 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotation.NotThreadSafe;
 import software.amazon.awssdk.metrics.AwsSdkMetrics;
 import software.amazon.awssdk.metrics.RequestMetricCollector;
@@ -41,7 +41,7 @@ import software.amazon.awssdk.metrics.spi.TimingInfo;
 @NotThreadSafe
 public class AwsRequestMetricsFullSupport extends AwsRequestMetrics {
     /* Latency Logger. */
-    private static final Log LATENCY_LOGGER = LogFactory.getLog("software.amazon.awssdk.latency");
+    private static final Logger LATENCY_LOGGER = LoggerFactory.getLogger("software.amazon.awssdk.latency");
     private static final Object KEY_VALUE_SEPARATOR = "=";
     private static final Object COMMA_SEPARATOR = ", ";
     /* Stores some key value pairs. */
@@ -102,7 +102,7 @@ public class AwsRequestMetricsFullSupport extends AwsRequestMetrics {
         TimingInfo event = eventsBeingProfiled.get(eventName);
         /* Somebody tried to end an event that was not started. */
         if (event == null) {
-            LogFactory.getLog(getClass()).warn("Trying to end an event which was never started: " + eventName);
+            LoggerFactory.getLogger(getClass()).warn("Trying to end an event which was never started: " + eventName);
             return;
         }
         event.endTiming();

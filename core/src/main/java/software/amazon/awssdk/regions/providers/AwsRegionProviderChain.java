@@ -18,8 +18,8 @@ package software.amazon.awssdk.regions.providers;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.auth.AwsCredentialsProviderChain;
 import software.amazon.awssdk.regions.Region;
@@ -30,7 +30,7 @@ import software.amazon.awssdk.regions.Region;
  */
 public class AwsRegionProviderChain extends AwsRegionProvider {
 
-    private static final Log LOG = LogFactory.getLog(AwsCredentialsProviderChain.class);
+    private static final Logger log = LoggerFactory.getLogger(AwsCredentialsProviderChain.class);
 
     private final List<AwsRegionProvider> providers;
 
@@ -49,8 +49,7 @@ public class AwsRegionProviderChain extends AwsRegionProvider {
                 }
             } catch (Exception e) {
                 // Ignore any exceptions and move onto the next provider
-                LOG.debug("Unable to load region from " + provider.toString() +
-                          ": " + e.getMessage());
+                log.debug("Unable to load region from {}:{}", provider.toString(), e.getMessage());
             }
         }
 

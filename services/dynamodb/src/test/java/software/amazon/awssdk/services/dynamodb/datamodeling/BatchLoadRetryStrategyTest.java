@@ -15,7 +15,11 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -29,8 +33,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
-import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.BatchLoadRetryStrategy;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper.BatchGetItemException;
+import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.BatchLoadRetryStrategy;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;

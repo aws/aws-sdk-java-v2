@@ -18,13 +18,12 @@ package software.amazon.awssdk.utils;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.util.function.Supplier;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.LoggerFactory;
 
 public final class Logger {
-    private final Log log;
+    private final org.slf4j.Logger log;
 
-    Logger(Log log) {
+    Logger(org.slf4j.Logger log) {
         this.log = log;
     }
 
@@ -151,8 +150,6 @@ public final class Logger {
                 return log.isInfoEnabled();
             case "warn":
                 return log.isWarnEnabled();
-            case "fatal":
-                return log.isFatalEnabled();
             default:
                 throw new IllegalArgumentException("Unknown log level: " + lowerLogLevel);
         }
@@ -164,6 +161,6 @@ public final class Logger {
      * @return a Logger instance
      */
     public static Logger loggerFor(Class<?> clz) {
-        return new Logger(LogFactory.getLog(clz));
+        return new Logger(LoggerFactory.getLogger(clz));
     }
 }

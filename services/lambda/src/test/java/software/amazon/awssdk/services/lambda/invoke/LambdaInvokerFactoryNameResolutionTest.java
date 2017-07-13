@@ -23,7 +23,6 @@ import static org.mockito.Mockito.when;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;

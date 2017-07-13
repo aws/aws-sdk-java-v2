@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.util;
 
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AbortedException;
 import software.amazon.awssdk.AmazonClientException;
 
@@ -45,7 +45,7 @@ public enum Throwables {
             t = cause;
         }
         // Too bad.  Return the original exception.
-        LogFactory.getLog(Throwables.class).debug(
+        LoggerFactory.getLogger(Throwables.class).debug(
                 "Possible circular reference detected on " + orig.getClass()
                 + ": [" + orig + "]");
         return orig;

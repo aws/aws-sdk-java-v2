@@ -1,10 +1,9 @@
 package software.amazon.awssdk.codegen.poet.model;
 
-import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
-
 import java.util.HashMap;
 import java.util.Map;
+import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 
 class TestMemberModels {
     private final IntermediateModel intermediateModel;
