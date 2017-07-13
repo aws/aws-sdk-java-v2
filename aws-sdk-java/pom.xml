@@ -431,12 +431,57 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <artifactId>core</artifactId>
+            <artifactId>dynamodb</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <artifactId>codegen</artifactId>
+            <artifactId>athena</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>codestar</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>dax</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>ec2</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>glacier</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>greengrass</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>lexmodelbuilding</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>marketplaceentitlement</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>mechanicalturkrequester</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>workdocs</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
         </dependency>
