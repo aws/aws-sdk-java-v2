@@ -21,6 +21,7 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import java.util.Optional;
 import java.util.concurrent.ThreadFactory;
+import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -57,10 +58,17 @@ public final class DefaultEventLoopGroupFactory
     public EventLoopGroup create() {
         int numThreads = numberOfThreads == null ? 0 : numberOfThreads;
         if (Epoll.isAvailable()) {
-            return new EpollEventLoopGroup(numThreads, threadFactory);
+            return new EpollEventLoopGroup(numThreads, resolveThreadFactory());
         } else {
-            return new NioEventLoopGroup(numThreads, threadFactory);
+            return new NioEventLoopGroup(numThreads, resolveThreadFactory());
         }
+    }
+
+    private ThreadFactory resolveThreadFactory() {
+        return threadFactory != null ? threadFactory :
+                new ThreadFactoryBuilder()
+                        .threadNamePrefix("aws-java-sdk-NettyEventLoop")
+                        .build();
     }
 
     @Override

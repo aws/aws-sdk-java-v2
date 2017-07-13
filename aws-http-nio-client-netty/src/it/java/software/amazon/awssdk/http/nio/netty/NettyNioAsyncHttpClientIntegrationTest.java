@@ -56,6 +56,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+import org.assertj.core.api.Condition;
 import org.junit.AfterClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -110,6 +111,17 @@ public class NettyNioAsyncHttpClientIntegrationTest {
         customClient.close();
 
         Mockito.verify(threadFactory, atLeastOnce()).newThread(Mockito.any());
+    }
+
+    @Test
+    public void defaultThreadFactoryUsesHelpfulName() throws Exception {
+        // Make a request to ensure a thread is primed
+        makeSimpleRequest(client);
+
+        String expectedPattern = "aws-java-sdk-NettyEventLoop-\\d+-\\d+";
+        assertThat(Thread.getAllStackTraces().keySet())
+                .areAtLeast(1, new Condition<>(t -> t.getName().matches(expectedPattern),
+                                               "Matches default thread pattern: `%s`", expectedPattern));
     }
 
     @Test
