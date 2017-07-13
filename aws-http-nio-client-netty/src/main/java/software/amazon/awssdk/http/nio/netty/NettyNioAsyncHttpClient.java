@@ -51,6 +51,7 @@ import software.amazon.awssdk.http.nio.netty.internal.NonManagedEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.RequestAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
 import software.amazon.awssdk.http.nio.netty.internal.RunnableRequest;
+import software.amazon.awssdk.http.nio.netty.internal.SharedEventLoopGroup;
 import software.amazon.awssdk.utils.AttributeMap;
 
 @SdkInternalApi
@@ -69,7 +70,7 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                             .map(e -> e.map(NonManagedEventLoopGroup::new,
                                             EventLoopGroupFactory::create))
                             // TODO Use a shared event loop group for all service clients
-                            .orElse(EventLoopGroupFactory.builder().build().create());
+                            .orElse(SharedEventLoopGroup.get());
         this.pools = createChannelPoolMap(serviceDefaults,
                                           factory.maxConnectionsPerEndpoint().orElse(serviceDefaults.getMaxConnections()));
     }
