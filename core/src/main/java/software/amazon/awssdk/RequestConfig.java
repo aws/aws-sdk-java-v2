@@ -31,12 +31,6 @@ import software.amazon.awssdk.metrics.RequestMetricCollector;
 @SdkProtectedApi
 public abstract class RequestConfig {
 
-    /**
-     * No op implementation to initalize request config in {@link DefaultRequest}.
-     */
-    public static final RequestConfig NO_OP = new AmazonWebServiceRequestAdapter(
-            AmazonWebServiceRequest.NOOP);
-
     public abstract ProgressListener getProgressListener();
 
     public abstract RequestMetricCollector getRequestMetricsCollector();
@@ -69,5 +63,13 @@ public abstract class RequestConfig {
      * RetryPolicy}.
      */
     public abstract Object getOriginalRequest();
+
+    /**
+     *
+     * @return Returns an empty, no-op implementation of request config.
+     */
+    public static RequestConfig empty() {
+        return new AmazonWebServiceRequestAdapter(AmazonWebServiceRequest.NOOP);
+    }
 
 }

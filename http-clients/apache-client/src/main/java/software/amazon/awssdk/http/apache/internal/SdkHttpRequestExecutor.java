@@ -39,7 +39,7 @@ public class SdkHttpRequestExecutor extends HttpRequestExecutor {
             final HttpClientConnection conn,
             final HttpContext context)
             throws IOException, HttpException {
-        AwsRequestMetrics awsRequestMetrics = (AwsRequestMetrics) context.getAttribute(AwsRequestMetrics.class.getSimpleName());
+        AwsRequestMetrics awsRequestMetrics = (AwsRequestMetrics) context.getAttribute(AwsRequestMetrics.CONTEXT_KEY);
 
         if (awsRequestMetrics == null) {
             return super.doSendRequest(request, conn, context);
@@ -70,7 +70,7 @@ public class SdkHttpRequestExecutor extends HttpRequestExecutor {
             final HttpContext context)
             throws HttpException, IOException {
         AwsRequestMetrics awsRequestMetrics = (AwsRequestMetrics) context
-                .getAttribute(AwsRequestMetrics.class.getSimpleName());
+                .getAttribute(AwsRequestMetrics.CONTEXT_KEY);
         if (awsRequestMetrics == null) {
             return super.doReceiveResponse(request, conn, context);
         }
