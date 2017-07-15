@@ -106,7 +106,7 @@ public class MoveParametersToBodyStageTest {
     private RequestExecutionContext requestContext(SdkHttpFullRequest.Builder mutableRequest) {
         return RequestExecutionContext.builder()
                                       .executionContext(ExecutionContext.builder().build())
-                                      .requestConfig(RequestConfig.NO_OP)
+                                      .requestConfig(RequestConfig.empty())
                                       .build();
     }
 }

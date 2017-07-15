@@ -462,7 +462,7 @@ public class AmazonHttpClient implements AutoCloseable {
 
         private RequestExecutionContext createRequestExecutionDependencies() {
             return RequestExecutionContext.builder()
-                                          .requestConfig(requestConfig == null ? RequestConfig.NO_OP : requestConfig)
+                                          .requestConfig(requestConfig == null ? RequestConfig.empty() : requestConfig)
                                           .executionContext(executionContext)
                                           .build();
         }

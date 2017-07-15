@@ -93,7 +93,7 @@ class ApacheHttpClient implements SdkHttpClient {
         captureConnectionPoolMetrics(awsRequestMetrics);
 
         Map<String, Object> metricsContext = new HashMap<>();
-        metricsContext.put(AwsRequestMetrics.class.getSimpleName(), awsRequestMetrics);
+        metricsContext.put(AwsRequestMetrics.CONTEXT_KEY, awsRequestMetrics);
 
         final HttpClientContext localRequestContext = ApacheUtils
                 .newClientContext(requestConfig.proxyConfiguration(), metricsContext);

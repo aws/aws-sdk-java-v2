@@ -34,6 +34,9 @@ import java.util.List;
  * request/response cycle.
  */
 public class AwsRequestMetrics {
+
+    public static final String CONTEXT_KEY = AwsRequestMetrics.class.getSimpleName();
+
     protected final TimingInfo timingInfo;
 
     /**

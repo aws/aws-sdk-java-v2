@@ -59,7 +59,7 @@ public final class PollyClientPresigners {
         marshallIntoRequest(synthesizeSpeechPresignRequest, request);
         Date expirationDate = synthesizeSpeechPresignRequest.getExpirationDate() == null ?
                               getDefaultExpirationDate() : synthesizeSpeechPresignRequest.getExpirationDate();
-        return presignerFacade.presign(request.build(), RequestConfig.NO_OP, expirationDate);
+        return presignerFacade.presign(request.build(), RequestConfig.empty(), expirationDate);
     }
 
     private void marshallIntoRequest(SynthesizeSpeechPresignRequest synthesizeSpeechRequest, SdkHttpFullRequest.Builder request) {
