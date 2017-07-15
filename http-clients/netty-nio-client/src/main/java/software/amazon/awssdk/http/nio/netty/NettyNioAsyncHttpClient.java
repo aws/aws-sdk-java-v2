@@ -24,8 +24,11 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.pool.AbstractChannelPoolMap;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolMap;
@@ -47,6 +50,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelPipelineInitializer;
+import software.amazon.awssdk.http.nio.netty.internal.DelegatingEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.NonManagedEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.RequestAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
@@ -69,7 +73,6 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         this.group = factory.eventLoopGroupConfiguration().toEither()
                             .map(e -> e.map(NonManagedEventLoopGroup::new,
                                             EventLoopGroupFactory::create))
-                            // TODO Use a shared event loop group for all service clients
                             .orElse(SharedEventLoopGroup.get());
         this.pools = createChannelPoolMap(serviceDefaults,
                                           factory.maxConnectionsPerEndpoint().orElse(serviceDefaults.getMaxConnections()));
@@ -83,7 +86,7 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                 final Bootstrap bootstrap =
                         new Bootstrap()
                                 .group(group)
-                                .channel(NioSocketChannel.class)
+                                .channel(resolveSocketChannelClass())
                                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, serviceDefaults.getConnectionTimeout())
                                 .remoteAddress(addressFor(key));
                 SslContext sslContext = sslContext(key.getScheme());
@@ -113,6 +116,24 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     @Override
     public void close() {
         group.shutdownGracefully();
+    }
+
+    /**
+     * Depending on the EventLoopGroup used we may need to use a different socket channel.
+     */
+    @ReviewBeforeRelease("Perhaps we should make the customer provide both event loop group" +
+                         "and channel in some kind of wrapper class to avoid having to do this.")
+    private Class<? extends Channel> resolveSocketChannelClass() {
+        EventLoopGroup unwrapped = group;
+        // Keep unwrapping until it's not a DelegatingEventLoopGroup
+        while (unwrapped instanceof DelegatingEventLoopGroup) {
+            unwrapped = ((DelegatingEventLoopGroup) unwrapped).getDelegate();
+            if (unwrapped instanceof EpollEventLoopGroup) {
+                return EpollSocketChannel.class;
+            }
+        }
+        // None of the wrapped event loop groups were Epoll so assume Nio.
+        return NioSocketChannel.class;
     }
 
     private static URI stripPath(URI uri) {
