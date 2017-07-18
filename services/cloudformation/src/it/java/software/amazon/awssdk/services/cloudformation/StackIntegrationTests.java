@@ -30,6 +30,7 @@ import org.junit.Test;
 import software.amazon.awssdk.AmazonServiceException.ErrorType;
 import software.amazon.awssdk.SdkGlobalTime;
 import software.amazon.awssdk.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.policy.Action;
 import software.amazon.awssdk.auth.policy.Policy;
 import software.amazon.awssdk.auth.policy.Resource;
 import software.amazon.awssdk.auth.policy.Statement;
@@ -81,7 +82,7 @@ public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
 
     static {
         INIT_STACK_POLICY = new Policy().withStatements(new Statement(Effect.Allow).withActions(
-                new NamedAction("Update:*")).withResources(new Resource("*")));
+                new Action("Update:*")).withResources(new Resource("*")));
     }
 
     // Create a stack to be used by the other tests.
@@ -230,7 +231,7 @@ public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
         waitForStackToChangeStatus(StackStatus.CREATE_IN_PROGRESS);
 
         Policy DENY_ALL_POLICY = new Policy().withStatements(new Statement(Effect.Deny).withActions(
-                new NamedAction("Update:*")).withResources(new Resource("*")));
+                new Action("Update:*")).withResources(new Resource("*")));
         cf.setStackPolicy(SetStackPolicyRequest.builder().stackName(testStackName).stackPolicyBody(
                 DENY_ALL_POLICY.toJson()).build());
 

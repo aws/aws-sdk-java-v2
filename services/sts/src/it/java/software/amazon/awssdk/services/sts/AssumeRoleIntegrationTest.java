@@ -23,11 +23,11 @@ import org.junit.Test;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.AwsCredentials;
 import software.amazon.awssdk.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.policy.Action;
 import software.amazon.awssdk.auth.policy.Policy;
 import software.amazon.awssdk.auth.policy.Resource;
 import software.amazon.awssdk.auth.policy.Statement;
 import software.amazon.awssdk.auth.policy.Statement.Effect;
-import software.amazon.awssdk.auth.policy.actions.SecurityTokenServiceActions;
 import software.amazon.awssdk.services.iam.model.AccessKeyMetadata;
 import software.amazon.awssdk.services.iam.model.CreateAccessKeyRequest;
 import software.amazon.awssdk.services.iam.model.CreateAccessKeyResponse;
@@ -51,6 +51,8 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
     private static final int SESSION_DURATION = 60 * 60;
     private static final String ROLE_ARN = "arn:aws:iam::599169622985:role/java-test-role";
     private static final String USER_NAME = "user-" + System.currentTimeMillis();
+    private static final String ALL_SECURITY_TOKEN_SERVICE_ACTIONS = "sts:*";
+    private static final String ASSUME_ROLE = "sts:AssumeRole";
 
     @AfterClass
     public static void tearDown() {
@@ -99,8 +101,8 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
     @Test
     public void testAssumeRole() throws InterruptedException {
         Statement statement = new Statement(Effect.Allow)
-                .withActions(SecurityTokenServiceActions.AllSecurityTokenServiceActions)
-                .withResources(new Resource("*"));
+                .withActions(new Action(ALL_SECURITY_TOKEN_SERVICE_ACTIONS))
+                                   .withResources(new Resource("*"));
         AssumeRoleRequest assumeRoleRequest = AssumeRoleRequest.builder()
                                                                .durationSeconds(SESSION_DURATION)
                                                                .roleArn(ROLE_ARN)
@@ -122,7 +124,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
 
         String policyDoc = new Policy()
                 .withStatements(new Statement(Effect.Allow)
-                                        .withActions(SecurityTokenServiceActions.AssumeRole)
+                                        .withActions(new Action(ASSUME_ROLE))
                                         .withResources(new Resource("*")))
                 .toJson();
 

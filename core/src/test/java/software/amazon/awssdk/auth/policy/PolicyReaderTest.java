@@ -44,7 +44,7 @@ public class PolicyReaderTest {
         policy.withStatements(new Statement(Effect.Allow)
                                       .withResources(new Resource("resource"))
                                       .withPrincipals(new Principal("accountId1"), new Principal("accountId2"))
-                                      .withActions(new TestAction("action")));
+                                      .withActions(new Action("action")));
 
         policy = Policy.fromJson(policy.toJson());
         assertEquals(1, policy.getStatements().size());
@@ -61,7 +61,7 @@ public class PolicyReaderTest {
 
         policy = new Policy();
         policy.withStatements(new Statement(Effect.Allow).withResources(new Resource("resource")).withPrincipals(new Principal(Services.AmazonEC2), new Principal(Services.AmazonElasticTranscoder))
-                                                         .withActions(new TestAction("action")));
+                                                         .withActions(new Action("action")));
         policy = Policy.fromJson(policy.toJson());
         assertEquals(1, policy.getStatements().size());
         statements = new LinkedList<Statement>(policy.getStatements());
@@ -77,7 +77,7 @@ public class PolicyReaderTest {
 
         policy = new Policy();
         policy.withStatements(new Statement(Effect.Allow).withResources(new Resource("resource")).withPrincipals(Principal.ALL)
-                                                         .withActions(new TestAction("action")));
+                                                         .withActions(new Action("action")));
         policy = Policy.fromJson(policy.toJson());
         assertEquals(1, policy.getStatements().size());
         statements = new LinkedList<Statement>(policy.getStatements());
@@ -91,7 +91,7 @@ public class PolicyReaderTest {
 
         policy = new Policy();
         policy.withStatements(new Statement(Effect.Allow).withResources(new Resource("resource")).withPrincipals(Principal.ALL_USERS, Principal.ALL_SERVICES, Principal.ALL_WEB_PROVIDERS)
-                                                         .withActions(new TestAction("action")));
+                                                         .withActions(new Action("action")));
         policy = Policy.fromJson(policy.toJson());
         assertEquals(1, policy.getStatements().size());
         statements = new LinkedList<Statement>(policy.getStatements());
@@ -110,7 +110,7 @@ public class PolicyReaderTest {
         policy.withStatements(new Statement(Effect.Allow)
                                       .withResources(new Resource("arn:aws:sqs:us-east-1:987654321000:MyQueue"))
                                       .withPrincipals(Principal.ALL_USERS)
-                                      .withActions(new TestAction("foo"))
+                                      .withActions(new Action("foo"))
                                       .withConditions(
                                               new StringCondition(StringComparisonType.StringNotLike, "key1", "foo"),
                                               new StringCondition(StringComparisonType.StringNotLike, "key1", "bar")));
@@ -163,7 +163,7 @@ public class PolicyReaderTest {
                 new Statement(Effect.Allow)
                         .withId("0")
                         .withPrincipals(Principal.ALL_USERS)
-                        .withActions(new TestAction("action1"))
+                        .withActions(new Action("action1"))
                         .withResources(new Resource("resource"))
                         .withConditions(
                                 new IpAddressCondition("192.168.143.0/24"),
@@ -171,7 +171,7 @@ public class PolicyReaderTest {
                 new Statement(Effect.Deny)
                         .withId("1")
                         .withPrincipals(Principal.ALL_USERS)
-                        .withActions(new TestAction("action2"))
+                        .withActions(new Action("action2"))
                         .withResources(new Resource("resource"))
                         .withConditions(new IpAddressCondition("10.1.2.0/24")));
 
@@ -356,18 +356,6 @@ public class PolicyReaderTest {
                                                            .getPrincipals().get(0).getId());
         assertEquals("Service", statements.get(0).getPrincipals().get(0)
                                           .getProvider());
-    }
-
-    private class TestAction implements Action {
-        private final String name;
-
-        public TestAction(String name) {
-            this.name = name;
-        }
-
-        public String getActionName() {
-            return name;
-        }
     }
 
 }

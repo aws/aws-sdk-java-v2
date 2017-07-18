@@ -103,10 +103,7 @@ public class CustomizationConfig {
      * Specify shapes to be renamed.
      */
     private Map<String, String> renameShapes;
-    /**
-     * Configuration for generating policy action enums.
-     */
-    private AuthPolicyActions authPolicyActions;
+
     /**
      * Custom service and intermediate model metadata properties.
      */
@@ -313,14 +310,6 @@ public class CustomizationConfig {
 
     public void setSimpleMethods(Map<String, SimpleMethodFormsWrapper> simpleMethods) {
         this.simpleMethods = simpleMethods;
-    }
-
-    public AuthPolicyActions getAuthPolicyActions() {
-        return authPolicyActions;
-    }
-
-    public void setAuthPolicyActions(AuthPolicyActions policyActions) {
-        this.authPolicyActions = policyActions;
     }
 
     public boolean isRequiredParamValidationEnabled() {
