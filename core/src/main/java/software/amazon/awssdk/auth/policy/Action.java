@@ -30,12 +30,14 @@ package software.amazon.awssdk.auth.policy;
  * <p>
  * Free form access control policy actions may include a wildcard (*) to match
  * multiple actions.
- * <p>
- * This class is not intended to be directly implemented, instead developers
- * should see the classes available in software.amazon.awssdk.auth.policy.actions for
- * more information on the available actions for each service.
  */
-public interface Action {
+public class Action {
+
+    private final String name;
+
+    public Action(String name) {
+        this.name = name;
+    }
 
     /**
      * Returns the name of this action. For example, 'sqs:SendMessage' is the
@@ -44,5 +46,7 @@ public interface Action {
      *
      * @return The name of this action.
      */
-    String getActionName();
+    public String getActionName() {
+        return name;
+    }
 }

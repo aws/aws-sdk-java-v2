@@ -71,9 +71,6 @@
   "exceptionUnmarshaller": {
       "mainTemplate" : "/templates/query/exception-unmarshaller.ftl"
   },
-  "policyActionClass" : {
-    "mainTemplate" : "/templates/common/auth-policy-action-class.ftl"
-  },
   "packageInfo" : {
     "mainTemplate" : "/templates/common/package-info.ftl"
   },

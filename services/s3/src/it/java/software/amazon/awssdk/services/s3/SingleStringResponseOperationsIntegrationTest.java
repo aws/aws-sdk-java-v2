@@ -86,7 +86,7 @@ public final class SingleStringResponseOperationsIntegrationTest extends S3Integ
             new Statement(Statement.Effect.Deny)
                 .withPrincipals(new Principal("*"))
                 .withResources(new Resource("arn:aws:s3:::" + bucketName + "/*"))
-                .withActions((Action) () -> "s3:GetObject"))
+                .withActions(new Action("s3:GetObject")))
                            .toJson();
     }
 }
