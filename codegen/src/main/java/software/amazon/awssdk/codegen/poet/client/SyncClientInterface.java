@@ -109,7 +109,10 @@ public final class SyncClientInterface implements ClassSpec {
     }
 
     private Iterable<MethodSpec> operations() {
-        return model.getOperations().values().stream().map(this::operationMethodSpec).collect(toList());
+        return model.getOperations().values().stream()
+                    .map(this::operationMethodSpec)
+                    .flatMap(List::stream)
+                    .collect(toList());
     }
 
     private MethodSpec serviceMetadata() {
@@ -120,8 +123,23 @@ public final class SyncClientInterface implements ClassSpec {
                          .build();
     }
 
-    private MethodSpec operationMethodSpec(OperationModel opModel) {
-        return operationMethodSignature(model, opModel)
+    private List<MethodSpec> operationMethodSpec(OperationModel opModel) {
+        List<MethodSpec> methods = new ArrayList<>();
+
+        if (opModel.getInputShape().isSimpleMethod()) {
+            methods.add(simpleMethod(opModel));
+        }
+
+        methods.add(operationMethodSignature(model, opModel)
+                .addModifiers(Modifier.DEFAULT)
+                .addStatement("throw new $T()", UnsupportedOperationException.class)
+                .build());
+
+        return methods;
+    }
+
+    private MethodSpec simpleMethod(OperationModel opModel) {
+        return operationSimpleMethodSignature(model, opModel)
                 .addModifiers(Modifier.DEFAULT)
                 .addStatement("throw new $T()", UnsupportedOperationException.class)
                 .build();
@@ -134,21 +152,41 @@ public final class SyncClientInterface implements ClassSpec {
         ClassName requestType = ClassName.get(model.getMetadata().getFullModelPackageName(),
                                               opModel.getInput().getVariableType());
 
-        final MethodSpec.Builder method = MethodSpec.methodBuilder(opModel.getMethodName())
+        final MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(opModel.getMethodName())
                                                     .returns(returnType)
                                                     .addModifiers(Modifier.PUBLIC)
                                                     .addParameter(requestType, opModel.getInput().getVariableName())
                                                     .addJavadoc(opModel.getSyncDocumentation(model, opModel))
                                                     .addExceptions(getExceptionClasses(model, opModel));
 
+        streamingMethod(methodBuilder, opModel);
+
+        return methodBuilder;
+    }
+
+    public static MethodSpec.Builder operationSimpleMethodSignature(IntermediateModel model, OperationModel opModel) {
+        TypeName returnType = opModel.hasStreamingOutput() ? STREAMING_TYPE_VARIABLE :
+                ClassName.get(model.getMetadata().getFullModelPackageName(), opModel.getReturnType().getReturnType());
+
+        final MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(opModel.getMethodName())
+                                                    .returns(returnType)
+                                                    .addModifiers(Modifier.PUBLIC)
+                                                    .addJavadoc(opModel.getSyncDocumentation(model, opModel))
+                                                    .addExceptions(getExceptionClasses(model, opModel));
+
+        streamingMethod(methodBuilder, opModel);
+
+        return methodBuilder;
+    }
+
+    private static void streamingMethod(MethodSpec.Builder methodBuilder, OperationModel opModel) {
         if (opModel.hasStreamingInput()) {
-            method.addParameter(ClassName.get(RequestBody.class), "requestBody");
+            methodBuilder.addParameter(ClassName.get(RequestBody.class), "requestBody");
         }
         if (opModel.hasStreamingOutput()) {
-            method.addTypeVariable(STREAMING_TYPE_VARIABLE);
-            method.addParameter(ClassName.get(StreamingResponseHandler.class), "streamingHandler");
+            methodBuilder.addTypeVariable(STREAMING_TYPE_VARIABLE);
+            methodBuilder.addParameter(ClassName.get(StreamingResponseHandler.class), "streamingHandler");
         }
-        return method;
     }
 
     private static List<ClassName> getExceptionClasses(IntermediateModel model, OperationModel opModel) {

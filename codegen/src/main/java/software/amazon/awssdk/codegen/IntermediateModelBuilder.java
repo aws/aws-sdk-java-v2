@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import software.amazon.awssdk.codegen.customization.CodegenCustomizationProcessor;
 import software.amazon.awssdk.codegen.customization.processors.DefaultCustomizationProcessor;
+import software.amazon.awssdk.codegen.internal.Constants;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.BasicCodeGenConfig;
@@ -99,7 +100,7 @@ public class IntermediateModelBuilder {
         log.info(() -> "Examples customized.");
 
         CodegenCustomizationProcessor customization = DefaultCustomizationProcessor
-                .getProcessorFor(customConfig);
+            .getProcessorFor(customConfig);
 
         customization.preprocess(service);
 
@@ -120,8 +121,8 @@ public class IntermediateModelBuilder {
         log.info(() -> shapes.size() + " shapes found in total.");
 
         IntermediateModel fullModel = new IntermediateModel(
-                constructMetadata(service, codeGenConfig, customConfig), operations, shapes,
-                customConfig, examples, waiters, authorizers);
+            constructMetadata(service, codeGenConfig, customConfig), operations, shapes,
+            customConfig, examples, waiters, authorizers);
 
         customization.postprocess(fullModel);
 
@@ -143,6 +144,8 @@ public class IntermediateModelBuilder {
         linkOperationsToInputOutputShapes(trimmedModel);
         linkCustomAuthorizationToRequestShapes(trimmedModel);
 
+        setSimpleMethods(trimmedModel);
+
         return trimmedModel;
     }
 
@@ -156,7 +159,7 @@ public class IntermediateModelBuilder {
             if (entry.getValue().getMembers() != null) {
                 for (MemberModel member : entry.getValue().getMembers()) {
                     member.setShape(
-                            Utils.findShapeModelByC2jNameIfExists(model, member.getC2jShape()));
+                        Utils.findShapeModelByC2jNameIfExists(model, member.getC2jShape()));
                 }
             }
         }
@@ -190,28 +193,49 @@ public class IntermediateModelBuilder {
         }
 
         model.getOperations().values().stream()
-                .filter(OperationModel::isAuthenticated)
-                .forEach(operation -> {
-                    Operation c2jOperation = service.getOperation(operation.getOperationName());
+             .filter(OperationModel::isAuthenticated)
+             .forEach(operation -> {
+                 Operation c2jOperation = service.getOperation(operation.getOperationName());
 
-                    ShapeModel shape = operation.getInputShape();
-                    if (shape == null) {
-                        throw new RuntimeException(String.format("Operation %s has unknown input shape",
-                                operation.getOperationName()));
-                    }
-                    if (AuthType.CUSTOM.equals(c2jOperation.getAuthType())) {
-                        AuthorizerModel auth = model.getCustomAuthorizers().get(c2jOperation.getAuthorizer());
-                        if (auth == null) {
-                            throw new RuntimeException(String.format("Required custom auth not defined: %s",
-                                    c2jOperation.getAuthorizer()));
-                        }
-                        shape.setRequestSignerClassFqcn(model.getMetadata().getAuthPolicyPackageName() + '.' +
-                                                        auth.getInterfaceName());
-                    } else if (AuthType.IAM.equals(c2jOperation.getAuthType())) {
-                        model.getMetadata().setRequiresIamSigners(true);
-                        shape.setRequestSignerClassFqcn("software.amazon.awssdk.opensdk.protect.auth.IamRequestSigner");
-                    }
-                });
+                 ShapeModel shape = operation.getInputShape();
+                 if (shape == null) {
+                     throw new RuntimeException(String.format("Operation %s has unknown input shape",
+                                                              operation.getOperationName()));
+                 }
+                 if (AuthType.CUSTOM.equals(c2jOperation.getAuthType())) {
+                     AuthorizerModel auth = model.getCustomAuthorizers().get(c2jOperation.getAuthorizer());
+                     if (auth == null) {
+                         throw new RuntimeException(String.format("Required custom auth not defined: %s",
+                                                                  c2jOperation.getAuthorizer()));
+                     }
+                     shape.setRequestSignerClassFqcn(model.getMetadata().getAuthPolicyPackageName() + '.' +
+                                                     auth.getInterfaceName());
+                 } else if (AuthType.IAM.equals(c2jOperation.getAuthType())) {
+                     model.getMetadata().setRequiresIamSigners(true);
+                     shape.setRequestSignerClassFqcn("software.amazon.awssdk.opensdk.protect.auth.IamRequestSigner");
+                 }
+             });
+    }
+
+    private void setSimpleMethods(IntermediateModel model) {
+        model.getOperations().entrySet().stream().forEach(m -> {
+
+            ShapeModel inputShape = m.getValue().getInputShape();
+            String methodName = m.getValue().getMethodName();
+            CustomizationConfig config = model.getCustomizationConfig();
+
+            if (inputShape.getRequired() == null
+                && !config.getBlacklistedSimpleMethods().contains(methodName)
+                && !m.getValue().hasStreamingInput()
+                && !m.getValue().hasStreamingOutput()) {
+                if (!methodName.matches(Constants.APPROVED_SIMPLE_METHOD_VERBS) &&
+                    !config.getVerifiedSimpleMethods().contains(methodName)) {
+                    throw new RuntimeException("Simple method encountered that is not approved or blacklisted: " + methodName);
+                }
+
+                inputShape.setSimpleMethod(true);
+            }
+        });
     }
 
     public CustomizationConfig getCustomConfig() {

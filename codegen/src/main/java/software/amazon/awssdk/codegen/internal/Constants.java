@@ -77,4 +77,6 @@ public class Constants {
 
     public static final String AWS_DOCS_HOST = "docs.aws.amazon.com";
 
+    public static final String APPROVED_SIMPLE_METHOD_VERBS = "(get|list|describe|lookup|batchGet).*";
+
 }

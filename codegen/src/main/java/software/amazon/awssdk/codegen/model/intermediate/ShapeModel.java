@@ -44,6 +44,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     private boolean hasStatusCodeMember;
     private boolean hasStreamingMember;
     private boolean wrapper;
+    private boolean simpleMethod;
     private String requestSignerClassFqcn;
 
     private List<MemberModel> members;
@@ -219,6 +220,14 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     public void setWrapper(boolean wrapper) {
         this.wrapper = wrapper;
+    }
+
+    public boolean isSimpleMethod() {
+        return simpleMethod;
+    }
+
+    public void setSimpleMethod(boolean simpleMethod) {
+        this.simpleMethod = simpleMethod;
     }
 
     public ShapeModel withHasStatusCodeMember(boolean hasStatusCodeMember) {

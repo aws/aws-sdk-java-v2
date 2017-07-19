@@ -83,17 +83,17 @@ public final class AsyncClientClass extends AsyncClientInterface {
                          .addModifiers(Modifier.PROTECTED)
                          .addParameter(AwsAsyncClientParams.class, "clientParams")
                          .addStatement(
-                                 "this.$N = new $T(new $T()\n" +
-                                 ".withAsyncClientParams($N)\n" +
-                                 ".withClientParams($N)\n" +
-                                 ".withCalculateCrc32FromCompressedDataEnabled($L))",
-                                 "clientHandler",
-                                 // TODO this will likely differ for APIG clients
-                                 SdkAsyncClientHandler.class,
-                                 ClientHandlerParams.class,
-                                 "clientParams",
-                                 "clientParams",
-                                 model.getCustomizationConfig().isCalculateCrc32FromCompressedData())
+                             "this.$N = new $T(new $T()\n" +
+                             ".withAsyncClientParams($N)\n" +
+                             ".withClientParams($N)\n" +
+                             ".withCalculateCrc32FromCompressedDataEnabled($L))",
+                             "clientHandler",
+                             // TODO this will likely differ for APIG clients
+                             SdkAsyncClientHandler.class,
+                             ClientHandlerParams.class,
+                             "clientParams",
+                             "clientParams",
+                             model.getCustomizationConfig().isCalculateCrc32FromCompressedData())
                          .addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name)
                          .build();
     }
@@ -106,18 +106,18 @@ public final class AsyncClientClass extends AsyncClientInterface {
                          .addParameter(AwsAsyncClientParams.class, "clientParams")
                          .addParameter(advancedConfiguration, "advancedConfiguration")
                          .addStatement(
-                                 "this.$N = new $T(new $T()\n" +
-                                 ".withAsyncClientParams($N)\n" +
-                                 ".withClientParams($N)\n" +
-                                 ".withCalculateCrc32FromCompressedDataEnabled($L)" +
-                                 ".withServiceAdvancedConfiguration(advancedConfiguration))",
-                                 "clientHandler",
-                                 // TODO this will likely differ for APIG clients
-                                 SdkAsyncClientHandler.class,
-                                 ClientHandlerParams.class,
-                                 "clientParams",
-                                 "clientParams",
-                                 model.getCustomizationConfig().isCalculateCrc32FromCompressedData())
+                             "this.$N = new $T(new $T()\n" +
+                             ".withAsyncClientParams($N)\n" +
+                             ".withClientParams($N)\n" +
+                             ".withCalculateCrc32FromCompressedDataEnabled($L)" +
+                             ".withServiceAdvancedConfiguration(advancedConfiguration))",
+                             "clientHandler",
+                             // TODO this will likely differ for APIG clients
+                             SdkAsyncClientHandler.class,
+                             ClientHandlerParams.class,
+                             "clientParams",
+                             "clientParams",
+                             model.getCustomizationConfig().isCalculateCrc32FromCompressedData())
                          .addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name)
                          .build();
     }
@@ -132,13 +132,25 @@ public final class AsyncClientClass extends AsyncClientInterface {
     }
 
     @Override
-    protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel) {
-        return builder
-                .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(Override.class)
-                .addCode(protocolSpec.asyncResponseHandler(opModel))
-                .addCode(protocolSpec.errorResponseHandler(opModel))
-                .addCode(protocolSpec.asyncExecutionHandler(opModel));
+    protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel, boolean simpleMethod) {
+        if (simpleMethod) {
+            return simpleOperationBody(builder, opModel);
+        }
+
+        return builder.addModifiers(Modifier.PUBLIC)
+                      .addAnnotation(Override.class)
+                      .addCode(protocolSpec.asyncResponseHandler(opModel))
+                      .addCode(protocolSpec.errorResponseHandler(opModel))
+                      .addCode(protocolSpec.asyncExecutionHandler(opModel));
+
+    }
+
+    private MethodSpec.Builder simpleOperationBody(MethodSpec.Builder builder, OperationModel opModel) {
+        return builder.addModifiers(Modifier.PUBLIC)
+                      .addAnnotation(Override.class)
+                      .addCode("return $N($N.builder().build());",
+                          opModel.getMethodName(),
+                          opModel.getInput().getVariableType());
     }
 
     @Override
