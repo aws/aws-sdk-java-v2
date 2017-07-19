@@ -35,7 +35,10 @@ public class RuntimeHttpUtils {
 
     private static final String AWS_EXECUTION_ENV_PREFIX = "exec-env/";
 
-    public static String getUserAgent(final LegacyClientConfiguration config, final String userAgentMarker) {
+    public static String getUserAgent(final LegacyClientConfiguration config,
+                                      final String userAgentMarker,
+                                      final String clientName,
+                                      final String clientType) {
         String userDefinedPrefix = config != null ? config.getUserAgentPrefix() : "";
         String userDefinedSuffix = config != null ? config.getUserAgentSuffix() : "";
         String awsExecutionEnvironment = AwsSystemSetting.AWS_EXECUTION_ENV.getStringValue().orElse(null);
@@ -44,6 +47,14 @@ public class RuntimeHttpUtils {
 
         if (!LegacyClientConfiguration.DEFAULT_USER_AGENT.equals(userDefinedPrefix)) {
             userAgent.append(COMMA).append(LegacyClientConfiguration.DEFAULT_USER_AGENT);
+        }
+
+        if (StringUtils.hasValue(clientName)) {
+            userAgent.append(SPACE).append(clientName);
+        }
+
+        if (StringUtils.hasValue(clientType)) {
+            userAgent.append(SPACE).append(clientType);
         }
 
         if (StringUtils.hasValue(userDefinedSuffix)) {

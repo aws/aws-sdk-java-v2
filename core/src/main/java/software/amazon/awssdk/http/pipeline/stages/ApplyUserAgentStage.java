@@ -17,7 +17,6 @@ package software.amazon.awssdk.http.pipeline.stages;
 
 import static software.amazon.awssdk.http.AmazonHttpClient.HEADER_USER_AGENT;
 
-import java.util.StringJoiner;
 import software.amazon.awssdk.LegacyClientConfiguration;
 import software.amazon.awssdk.RequestClientOptions;
 import software.amazon.awssdk.RequestExecutionContext;
@@ -48,22 +47,16 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
             throws Exception {
         RequestClientOptions opts = context.requestConfig().getRequestClientOptions();
         if (opts != null) {
-            String ua = RuntimeHttpUtils.getUserAgent(config, opts.getClientMarker(RequestClientOptions.Marker.USER_AGENT));
-            StringJoiner joiner = new StringJoiner(" ");
-            joiner.add(ua);
-            joiner.add(clientName);
-            joiner.add(clientType);
-
-            return request.header(HEADER_USER_AGENT, joiner.toString());
+            return request.header(HEADER_USER_AGENT, RuntimeHttpUtils.getUserAgent(config,
+                                                                                   opts.getClientMarker(
+                                                                                       RequestClientOptions.Marker.USER_AGENT),
+                                                                                   clientName,
+                                                                                   clientType));
         } else {
-            String ua = RuntimeHttpUtils.getUserAgent(config, null);
-            StringJoiner joiner = new StringJoiner(" ");
-            joiner.add(ua);
-            joiner.add(clientName);
-            joiner.add(clientType);
-
-
-            return request.header(HEADER_USER_AGENT, joiner.toString());
+            return request.header(HEADER_USER_AGENT, RuntimeHttpUtils.getUserAgent(config,
+                                                                                   null,
+                                                                                   clientName,
+                                                                                   clientType));
         }
     }
 }
