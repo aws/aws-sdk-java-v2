@@ -43,11 +43,12 @@ public class NettyHttpContentSubscriber extends HandlerSubscriber<HttpContent> {
     protected void complete() {
         EventExecutor executor = channel.eventLoop();
         executor.execute(() -> channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
-                .addListener((ChannelFutureListener) future -> removeFromPipeline()));
+                                      .addListener((ChannelFutureListener) future -> removeFromPipeline()));
     }
 
     @Override
     protected void error(Throwable error) {
+        super.onError(error);
         removeFromPipeline();
     }
 
