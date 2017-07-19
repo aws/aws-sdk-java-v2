@@ -75,6 +75,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 @SdkProtectedApi
 public abstract class DefaultClientBuilder<B extends ClientBuilder<B, C>, C>
         implements ClientBuilder<B, C> {
+
     private static final String DEFAULT_ENDPOINT_PROTOCOL = "https";
     private static final AwsRegionProvider DEFAULT_REGION_PROVIDER = new DefaultAwsRegionProviderChain();
     private static final SdkHttpClientFactory DEFAULT_HTTP_CLIENT_FACTORY = new DefaultSdkHttpClientFactory();
@@ -401,6 +402,11 @@ public abstract class DefaultClientBuilder<B extends ClientBuilder<B, C>, C>
         public void close() throws Exception {
             // Do nothing, this client is managed by the customer.
         }
+
+        @Override
+        public String clientName() {
+            return delegate.clientName();
+        }
     }
 
     /**
@@ -430,6 +436,11 @@ public abstract class DefaultClientBuilder<B extends ClientBuilder<B, C>, C>
         @Override
         public void close() throws Exception {
             // Do nothing, this client is managed by the customer.
+        }
+
+        @Override
+        public String clientName() {
+            return delegate.clientName();
         }
     }
 

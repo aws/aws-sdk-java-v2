@@ -32,4 +32,5 @@ public interface SdkHttpClient extends AutoCloseable, ConfigurationProvider {
      */
     AbortableCallable<SdkHttpFullResponse> prepareRequest(SdkHttpFullRequest request, SdkRequestContext requestContext);
 
+    String clientName();
 }

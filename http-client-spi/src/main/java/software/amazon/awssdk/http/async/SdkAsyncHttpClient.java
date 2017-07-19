@@ -36,4 +36,6 @@ public interface SdkAsyncHttpClient extends AutoCloseable, ConfigurationProvider
                                      SdkRequestContext context,
                                      SdkHttpRequestProvider requestProvider,
                                      SdkHttpResponseHandler handler);
+
+    String clientName();
 }

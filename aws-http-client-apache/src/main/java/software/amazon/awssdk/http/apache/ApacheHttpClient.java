@@ -49,6 +49,8 @@ import software.amazon.awssdk.utils.AttributeMap;
 @SdkInternalApi
 class ApacheHttpClient implements SdkHttpClient {
 
+    private static final String CLIENT_NAME = "Apache";
+
     private final ApacheHttpRequestFactory apacheHttpRequestFactory = new ApacheHttpRequestFactory();
     private final ConnectionManagerAwareHttpClient httpClient;
     private final ApacheHttpRequestConfig requestConfig;
@@ -151,5 +153,10 @@ class ApacheHttpClient implements SdkHttpClient {
     private Map<String, List<String>> transformHeaders(HttpResponse apacheHttpResponse) {
         return Stream.of(apacheHttpResponse.getAllHeaders())
                      .collect(groupingBy(Header::getName, mapping(Header::getValue, toList())));
+    }
+
+    @Override
+    public String clientName() {
+        return CLIENT_NAME;
     }
 }
