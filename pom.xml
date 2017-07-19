@@ -64,6 +64,7 @@
         <module>http-client-spi</module>
         <module>aws-http-client-apache</module>
         <module>aws-http-nio-client-netty</module>
+        <module>aws-http-client-url-connection</module>
         <module>codegen-maven-plugin</module>
         <module>jmespath-java</module>
         <module>bundle</module>
