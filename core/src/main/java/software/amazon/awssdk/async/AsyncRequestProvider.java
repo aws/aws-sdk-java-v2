@@ -51,13 +51,15 @@ public interface AsyncRequestProvider extends Publisher<ByteBuffer> {
     long contentLength();
 
     /**
-     * Creates an {@link AsyncRequestProvider} that produces data from the contents of a file.
+     * Creates an {@link AsyncRequestProvider} that produces data from the contents of a file. See
+     * {@link FileAsyncRequestProvider#builder} to create a customized provider implementation.
      *
      * @param path Path to file to read from.
      * @return Implementation of {@link AsyncRequestProvider} that reads data from the specified file.
+     * @see FileAsyncRequestProvider
      */
     static AsyncRequestProvider fromFile(Path path) {
-        return new FileAsyncRequestProvider(path);
+        return FileAsyncRequestProvider.builder().path(path).build();
     }
 
 }

@@ -58,10 +58,10 @@ public interface StreamingResponseHandler<ResponseT, ReturnT> {
      * @param <ResponseT> Type of unmarshalled response POJO. Ignored by handler.
      * @return Null.
      */
-    static <ResponseT> StreamingResponseHandler<ResponseT, Void> toFile(Path path) {
+    static <ResponseT> StreamingResponseHandler<ResponseT, ResponseT> toFile(Path path) {
         return (resp, in) -> {
             Files.copy(in, path);
-            return null;
+            return resp;
         };
     }
 
@@ -73,10 +73,10 @@ public interface StreamingResponseHandler<ResponseT, ReturnT> {
      * @param <ResponseT>  Type of unmarshalled response POJO. Ignored by handler.
      * @return Null.
      */
-    static <ResponseT> StreamingResponseHandler<ResponseT, Void> toOutputStream(OutputStream outputStream) {
+    static <ResponseT> StreamingResponseHandler<ResponseT, ResponseT> toOutputStream(OutputStream outputStream) {
         return (resp, in) -> {
             IoUtils.copy(in, outputStream);
-            return null;
+            return resp;
         };
     }
 }

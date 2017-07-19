@@ -33,13 +33,14 @@ import software.amazon.awssdk.annotation.SdkInternalApi;
 /**
  * {@link AsyncResponseHandler} that writes the data to the specified file.
  *
- * @param <ResponseT> Response POJO type. Not used.
+ * @param <ResponseT> Response POJO type. Returned on {@link #complete()}.
  */
 @SdkInternalApi
-class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<ResponseT, Void> {
+class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<ResponseT, ResponseT> {
 
     private final Path path;
     private AsynchronousFileChannel fileChannel;
+    private volatile ResponseT response;
 
     FileAsyncResponseHandler(Path path) {
         this.path = path;
@@ -51,6 +52,7 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
 
     @Override
     public void responseReceived(ResponseT response) {
+        this.response = response;
     }
 
     @Override
@@ -75,9 +77,9 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
     }
 
     @Override
-    public Void complete() {
+    public ResponseT complete() {
         invokeSafely(fileChannel::close);
-        return null;
+        return response;
     }
 
     /**
