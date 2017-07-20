@@ -2,15 +2,15 @@
   "version":"2.0",
   "metadata":{
     "apiVersion":"2016-03-11",
-    "endpointPrefix":"jsonrpc",
+    "endpointPrefix":"restjson",
     "jsonVersion":"1.1",
-    "protocol":"json",
+    "protocol":"rest-json",
     "serviceAbbreviation":"JsonProtocolTests",
     "serviceFullName":"AWS DR Tools JSON Protocol Tests",
     "signatureVersion":"v4",
     "targetPrefix":"ProtocolTestsJsonRpcService",
     "timestampFormat":"unixTimestamp",
-    "uid":"jsonrpc-2016-03-11"
+    "uid":"restjson-2016-03-11"
   },
   "operations":{
     "AllTypes":{
@@ -40,6 +40,22 @@
         "method":"POST",
         "requestUri":"/"
       }
+    },
+    "StreamingInputOperation":{
+      "name":"StreamingInputOperation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/streamingInputOperation"
+      },
+      "input":{"shape":"StructureWithStreamingMember"}
+    },
+    "StreamingOutputOperation":{
+      "name":"StreamingOutputOperation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/streamingOutputOperation"
+      },
+      "output":{"shape":"StructureWithStreamingMember"}
     }
   },
   "shapes":{
@@ -181,6 +197,10 @@
         "StringMember":{"shape":"String"}
       }
     },
+    "StreamType":{
+      "type":"blob",
+      "streaming":true
+    },
     "String":{"type":"string"},
     "StructWithNestedBlobType":{
       "type":"structure",
@@ -193,6 +213,13 @@
       "members":{
         "NestedTimestamp":{"shape":"Timestamp"}
       }
+    },
+    "StructureWithStreamingMember":{
+      "type":"structure",
+      "members":{
+        "StreamingMember":{"shape":"StreamType"}
+      },
+      "payload":"StreamingMember"
     },
     "SubTypeOne":{
       "type":"structure",
