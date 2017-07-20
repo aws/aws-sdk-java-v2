@@ -32,14 +32,11 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
 
     private final LegacyClientConfiguration config;
     private final String clientName;
-    private final String clientType;
 
     public ApplyUserAgentStage(HttpClientDependencies dependencies,
-                               String clientName,
-                               String clientType) {
+                               String clientName) {
         this.config = dependencies.config();
         this.clientName = clientName;
-        this.clientType = clientType;
     }
 
     @Override
@@ -50,13 +47,11 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
             return request.header(HEADER_USER_AGENT, RuntimeHttpUtils.getUserAgent(config,
                                                                                    opts.getClientMarker(
                                                                                        RequestClientOptions.Marker.USER_AGENT),
-                                                                                   clientName,
-                                                                                   clientType));
+                                                                                   clientName));
         } else {
             return request.header(HEADER_USER_AGENT, RuntimeHttpUtils.getUserAgent(config,
                                                                                    null,
-                                                                                   clientName,
-                                                                                   clientType));
+                                                                                   clientName));
         }
     }
 }

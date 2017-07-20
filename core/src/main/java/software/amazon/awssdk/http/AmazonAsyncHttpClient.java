@@ -287,8 +287,7 @@ public class AmazonAsyncHttpClient implements AutoCloseable {
                         .then(MakeRequestMutable::new)
                         .then(ApplyTransactionIdStage::new)
                         .then(() -> new ApplyUserAgentStage(httpClientDependencies,
-                                                            httpClientDependencies.sdkAsyncHttpClient().clientName(),
-                                                            CLIENT_TYPE))
+                                                            httpClientDependencies.sdkAsyncHttpClient().clientName()))
                         .then(MergeCustomHeadersStage::new)
                         .then(MergeCustomQueryParamsStage::new)
                         .then(MoveParametersToBodyStage::new)
