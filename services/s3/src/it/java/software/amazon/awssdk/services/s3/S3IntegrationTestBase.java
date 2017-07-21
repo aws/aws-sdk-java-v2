@@ -19,6 +19,7 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.test.AwsTestBase;
 import software.amazon.awssdk.test.util.RandomTempFile;
+import software.amazon.awssdk.util.json.Jackson;
 
 /**
  * Base class for S3 integration tests. Loads AWS credentials from a properties

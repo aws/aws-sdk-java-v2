@@ -15,9 +15,8 @@
 
 package software.amazon.awssdk.regions;
 
-import static java.util.stream.Collectors.toList;
-
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.internal.region.model.CredentialScope;
@@ -70,11 +69,15 @@ public class PartitionServiceMetadata implements ServiceMetadata {
 
     @Override
     public List<Region> regions() {
-        return servicePartitionData.values().stream()
-                                   .filter(s -> s.getServices().containsKey(service))
-                                   .flatMap(s -> s.getRegions().keySet()
-                                                  .stream()
-                                                  .map(Region::of))
-                                   .collect(toList());
+        List<Region> regions = new ArrayList<>();
+        servicePartitionData.entrySet().stream()
+                                   .forEach(p -> {
+                                       Service serviceData = p.getValue().getServices().get(service);
+                                       if (serviceData != null) {
+                                           serviceData.getEndpoints().keySet().stream().forEach(r -> regions.add(Region.of(r)));
+                                       }
+                                   });
+
+        return regions;
     }
 }

@@ -41,10 +41,14 @@ public class AwsModelSpecTest {
     @BeforeClass
     public static void setUp() throws URISyntaxException, IOException {
         serviceModelFile = new File(AwsModelSpecTest.class.getResource("service-2.json").getFile());
+        File customizationConfigFile = new File(AwsModelSpecTest.class
+                .getResource("customization.config")
+                .getFile());
+
         intermediateModel = new IntermediateModelBuilder(
                 C2jModels.builder()
                         .serviceModel(ModelLoaderUtils.loadModel(ServiceModel.class, serviceModelFile))
-                        .customizationConfig(CustomizationConfig.DEFAULT)
+                        .customizationConfig(ModelLoaderUtils.loadModel(CustomizationConfig.class, customizationConfigFile))
                         .build())
                 .build();
     }

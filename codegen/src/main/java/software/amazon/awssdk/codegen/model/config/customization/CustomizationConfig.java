@@ -103,10 +103,7 @@ public class CustomizationConfig {
      * Specify shapes to be renamed.
      */
     private Map<String, String> renameShapes;
-    /**
-     * Configuration for generating policy action enums.
-     */
-    private AuthPolicyActions authPolicyActions;
+
     /**
      * Custom service and intermediate model metadata properties.
      */
@@ -186,6 +183,17 @@ public class CustomizationConfig {
      * for an example.
      */
     private String serviceSpecificHttpConfig;
+
+    /**
+     * APIs that have no required arguments in their model but can't be called via a simple method
+     */
+    private List<String> blacklistedSimpleMethods = new ArrayList<>();
+
+    /**
+     * APIs that are not Get/List/Describe APIs that have been verified that they are able
+     * to be used through simple methods
+     */
+    private List<String> verifiedSimpleMethods = new ArrayList<>();
 
     private CustomizationConfig() {
     }
@@ -302,14 +310,6 @@ public class CustomizationConfig {
 
     public void setSimpleMethods(Map<String, SimpleMethodFormsWrapper> simpleMethods) {
         this.simpleMethods = simpleMethods;
-    }
-
-    public AuthPolicyActions getAuthPolicyActions() {
-        return authPolicyActions;
-    }
-
-    public void setAuthPolicyActions(AuthPolicyActions policyActions) {
-        this.authPolicyActions = policyActions;
     }
 
     public boolean isRequiredParamValidationEnabled() {
@@ -471,5 +471,21 @@ public class CustomizationConfig {
 
     public void setServiceSpecificHttpConfig(String serviceSpecificHttpConfig) {
         this.serviceSpecificHttpConfig = serviceSpecificHttpConfig;
+    }
+
+    public List<String> getBlacklistedSimpleMethods() {
+        return blacklistedSimpleMethods;
+    }
+
+    public void setBlacklistedSimpleMethods(List<String> blackListedSimpleMethods) {
+        this.blacklistedSimpleMethods = blackListedSimpleMethods;
+    }
+
+    public List<String> getVerifiedSimpleMethods() {
+        return verifiedSimpleMethods;
+    }
+
+    public void setVerifiedSimpleMethods(List<String> verifiedSimpleMethods) {
+        this.verifiedSimpleMethods = verifiedSimpleMethods;
     }
 }

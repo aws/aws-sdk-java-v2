@@ -22,6 +22,7 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.poet.builder.SyncClientBuilderClass;
 import software.amazon.awssdk.codegen.poet.builder.SyncClientBuilderInterface;
+import software.amazon.awssdk.codegen.poet.client.ClientSimpleMethodsIntegrationTests;
 import software.amazon.awssdk.codegen.poet.client.SyncClientClass;
 import software.amazon.awssdk.codegen.poet.client.SyncClientInterface;
 
@@ -39,7 +40,8 @@ public class SyncClientGeneratorTasks extends BaseGeneratorTasks {
         return Arrays.asList(createClientClassTask(),
                              createClientBuilderTask(),
                              createClientInterfaceTask(),
-                             createClientBuilderInterfaceTask());
+                             createClientBuilderInterfaceTask(),
+                             createClientSimpleMethodsTest());
     }
 
     private GeneratorTask createClientClassTask() throws IOException {
@@ -56,5 +58,9 @@ public class SyncClientGeneratorTasks extends BaseGeneratorTasks {
 
     private GeneratorTask createClientBuilderInterfaceTask() throws IOException {
         return createPoetGeneratorTask(new SyncClientBuilderInterface(model));
+    }
+
+    private GeneratorTask createClientSimpleMethodsTest() throws IOException {
+        return createPoetGeneratorTestTask(new ClientSimpleMethodsIntegrationTests(model));
     }
 }

@@ -21,12 +21,12 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.AmazonServiceException;
+import software.amazon.awssdk.auth.policy.Action;
 import software.amazon.awssdk.auth.policy.Policy;
 import software.amazon.awssdk.auth.policy.Principal;
 import software.amazon.awssdk.auth.policy.Resource;
 import software.amazon.awssdk.auth.policy.Statement;
 import software.amazon.awssdk.auth.policy.Statement.Effect;
-import software.amazon.awssdk.auth.policy.actions.SQSActions;
 import software.amazon.awssdk.auth.policy.conditions.ConditionFactory;
 import software.amazon.awssdk.services.sns.SNSClient;
 import software.amazon.awssdk.services.sns.model.SubscribeRequest;
@@ -199,7 +199,7 @@ public class Topics {
         policy.getStatements().add(new Statement(Effect.Allow)
                                            .withId("topic-subscription-" + snsTopicArn)
                                            .withPrincipals(Principal.ALL_USERS)
-                                           .withActions(SQSActions.SendMessage)
+                                           .withActions(new Action("sqs:SendMessage"))
                                            .withResources(new Resource(sqsQueueArn))
                                            .withConditions(ConditionFactory.newSourceArnCondition(snsTopicArn)));
 

@@ -22,12 +22,16 @@ import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputResponse;
+import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersRequest;
+import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersResponse;
 import software.amazon.awssdk.services.json.model.InvalidInputException;
 import software.amazon.awssdk.services.json.model.JsonException;
 import software.amazon.awssdk.services.json.transform.APostOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.APostOperationResponseUnmarshaller;
 import software.amazon.awssdk.services.json.transform.APostOperationWithOutputRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.APostOperationWithOutputResponseUnmarshaller;
+import software.amazon.awssdk.services.json.transform.GetWithoutRequiredMembersRequestMarshaller;
+import software.amazon.awssdk.services.json.transform.GetWithoutRequiredMembersResponseUnmarshaller;
 
 /**
  * Internal implementation of {@link JsonClient}.
@@ -45,7 +49,7 @@ final class DefaultJsonClient implements JsonClient {
 
     protected DefaultJsonClient(AwsSyncClientParams clientParams) {
         this.clientHandler = new SdkClientHandler(new ClientHandlerParams().withClientParams(clientParams)
-                                                                           .withCalculateCrc32FromCompressedDataEnabled(false));
+                .withCalculateCrc32FromCompressedDataEnabled(false));
         this.clientParams = clientParams;
         this.protocolFactory = init();
     }
@@ -72,7 +76,7 @@ final class DefaultJsonClient implements JsonClient {
      */
     @Override
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
-                                                                                                     SdkBaseException, SdkClientException, JsonException {
+            SdkBaseException, SdkClientException, JsonException {
 
         HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory.createResponseHandler(
                 new JsonOperationMetadata().withPayloadJson(true), new APostOperationResponseUnmarshaller());
@@ -80,8 +84,8 @@ final class DefaultJsonClient implements JsonClient {
         HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                             .withInput(aPostOperationRequest).withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
+                .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                .withInput(aPostOperationRequest).withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
     }
 
     /**
@@ -107,7 +111,7 @@ final class DefaultJsonClient implements JsonClient {
     @Override
     public APostOperationWithOutputResponse aPostOperationWithOutput(
             APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, SdkBaseException,
-                                                                                    SdkClientException, JsonException {
+            SdkClientException, JsonException {
 
         HttpResponseHandler<APostOperationWithOutputResponse> responseHandler = protocolFactory.createResponseHandler(
                 new JsonOperationMetadata().withPayloadJson(true), new APostOperationWithOutputResponseUnmarshaller());
@@ -116,9 +120,72 @@ final class DefaultJsonClient implements JsonClient {
 
         return clientHandler
                 .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                                 .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                 .withInput(aPostOperationWithOutputRequest)
-                                 .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
+                        .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                        .withInput(aPostOperationWithOutputRequest)
+                        .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
+    }
+
+    /**
+     * <p>
+     * Performs a post operation to the query service and has no output
+     * </p>
+     *
+     * @param getWithoutRequiredMembersRequest
+     * @return Result of the GetWithoutRequiredMembers operation returned by the service.
+     * @throws InvalidInputException
+     *         The request was rejected because an invalid or out-of-range value was supplied for an input parameter.
+     * @throws SdkBaseException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc)
+     * @throws JsonException
+     *         Base exception for all service exceptions. Unknown exceptions will be thrown as an instance of this type
+     * @sample JsonClient.GetWithoutRequiredMembers
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public GetWithoutRequiredMembersResponse getWithoutRequiredMembers() throws InvalidInputException, SdkBaseException,
+            SdkClientException, JsonException {
+        return getWithoutRequiredMembers(GetWithoutRequiredMembersRequest.builder().build());
+    }
+
+    /**
+     * <p>
+     * Performs a post operation to the query service and has no output
+     * </p>
+     *
+     * @param getWithoutRequiredMembersRequest
+     * @return Result of the GetWithoutRequiredMembers operation returned by the service.
+     * @throws InvalidInputException
+     *         The request was rejected because an invalid or out-of-range value was supplied for an input parameter.
+     * @throws SdkBaseException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc)
+     * @throws JsonException
+     *         Base exception for all service exceptions. Unknown exceptions will be thrown as an instance of this type
+     * @sample JsonClient.GetWithoutRequiredMembers
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public GetWithoutRequiredMembersResponse getWithoutRequiredMembers(
+            GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) throws InvalidInputException, SdkBaseException,
+            SdkClientException, JsonException {
+
+        HttpResponseHandler<GetWithoutRequiredMembersResponse> responseHandler = protocolFactory.createResponseHandler(
+                new JsonOperationMetadata().withPayloadJson(true), new GetWithoutRequiredMembersResponseUnmarshaller());
+
+        HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
+
+        return clientHandler
+                .execute(new ClientExecutionParams<GetWithoutRequiredMembersRequest, GetWithoutRequiredMembersResponse>()
+                        .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                        .withInput(getWithoutRequiredMembersRequest)
+                        .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory)));
     }
 
     private HttpResponseHandler<AmazonServiceException> createErrorResponseHandler() {
@@ -127,18 +194,18 @@ final class DefaultJsonClient implements JsonClient {
 
     private software.amazon.awssdk.protocol.json.SdkJsonProtocolFactory init() {
         return new SdkJsonProtocolFactory(new JsonClientMetadata()
-                                                  .withProtocolVersion("1.1")
-                                                  .withSupportsCbor(false)
-                                                  .withSupportsIon(false)
-                                                  .withBaseServiceExceptionClass(software.amazon.awssdk.services.json.model.JsonException.class)
-                                                  .addErrorMetadata(
-                                                          new JsonErrorShapeMetadata().withErrorCode("InvalidInput").withModeledClass(InvalidInputException.class)));
+                .withProtocolVersion("1.1")
+                .withSupportsCbor(false)
+                .withSupportsIon(false)
+                .withBaseServiceExceptionClass(software.amazon.awssdk.services.json.model.JsonException.class)
+                .addErrorMetadata(
+                        new JsonErrorShapeMetadata().withErrorCode("InvalidInput").withModeledClass(InvalidInputException.class)));
     }
 
     public AcmClientPresigners presigners() {
         return new AcmClientPresigners(PresignerParams.builder().endpoint(clientParams.getEndpoint())
-                                                      .credentialsProvider(clientParams.getCredentialsProvider()).signerProvider(clientParams.getSignerProvider())
-                                                      .build());
+                .credentialsProvider(clientParams.getCredentialsProvider()).signerProvider(clientParams.getSignerProvider())
+                .build());
     }
 
     @Override

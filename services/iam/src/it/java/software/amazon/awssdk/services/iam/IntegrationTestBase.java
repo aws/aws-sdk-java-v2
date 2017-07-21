@@ -47,5 +47,4 @@ public class IntegrationTestBase extends AwsTestBase {
                        .build();
         System.out.println(iam);
     }
-
 }
