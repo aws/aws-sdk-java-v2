@@ -87,7 +87,7 @@ abstract class PresignRequestHandler<T extends AmazonWebServiceRequest> extends 
             return request;
         }
 
-        String destinationRegion = AwsHostNameUtils.parseRegion(request.getEndpoint().getHost(), SERVICE_NAME);
+        String destinationRegion = AwsHostNameUtils.parseRegion(request.getEndpoint().toASCIIString(), SERVICE_NAME);
 
         SdkHttpFullRequest requestToPresign =
                 presignableRequest.marshall()

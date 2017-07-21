@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.util;
 
+import static software.amazon.awssdk.util.SdkHttpUtils.urlEncode;
+
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -35,7 +37,9 @@ public class RuntimeHttpUtils {
 
     private static final String AWS_EXECUTION_ENV_PREFIX = "exec-env/";
 
-    public static String getUserAgent(final LegacyClientConfiguration config, final String userAgentMarker) {
+    public static String getUserAgent(final LegacyClientConfiguration config,
+                                      final String userAgentMarker,
+                                      final String clientName) {
         String userDefinedPrefix = config != null ? config.getUserAgentPrefix() : "";
         String userDefinedSuffix = config != null ? config.getUserAgentSuffix() : "";
         String awsExecutionEnvironment = AwsSystemSetting.AWS_EXECUTION_ENV.getStringValue().orElse(null);
@@ -44,6 +48,10 @@ public class RuntimeHttpUtils {
 
         if (!LegacyClientConfiguration.DEFAULT_USER_AGENT.equals(userDefinedPrefix)) {
             userAgent.append(COMMA).append(LegacyClientConfiguration.DEFAULT_USER_AGENT);
+        }
+
+        if (StringUtils.hasValue(clientName)) {
+            userAgent.append(SPACE).append(urlEncode(clientName, false));
         }
 
         if (StringUtils.hasValue(userDefinedSuffix)) {
@@ -119,7 +127,7 @@ public class RuntimeHttpUtils {
                                           boolean removeLeadingSlashInResourcePath,
                                           boolean urlEncode) {
         String resourcePath = urlEncode ?
-                SdkHttpUtils.urlEncode(request.getResourcePath(), true)
+                urlEncode(request.getResourcePath(), true)
                 : request.getResourcePath();
 
         // Removed the padding "/" that was already added into the request's resource path.
@@ -144,9 +152,9 @@ public class RuntimeHttpUtils {
             for (String value : entry.getValue()) {
                 queryParams = queryParams.length() > 0 ? queryParams
                         .append("&") : queryParams.append("?");
-                queryParams.append(SdkHttpUtils.urlEncode(entry.getKey(), false))
+                queryParams.append(urlEncode(entry.getKey(), false))
                            .append("=")
-                           .append(SdkHttpUtils.urlEncode(value, false));
+                           .append(urlEncode(value, false));
             }
         }
         url.append(queryParams.toString());
@@ -175,7 +183,7 @@ public class RuntimeHttpUtils {
                                           boolean removeLeadingSlashInResourcePath,
                                           boolean urlEncode) {
         String resourcePath = urlEncode ?
-                SdkHttpUtils.urlEncode(request.getResourcePath(), true)
+                urlEncode(request.getResourcePath(), true)
                 : request.getResourcePath();
 
         // Removed the padding "/" that was already added into the request's resource path.
@@ -200,9 +208,9 @@ public class RuntimeHttpUtils {
             for (String value : entry.getValue()) {
                 queryParams = queryParams.length() > 0 ? queryParams
                         .append("&") : queryParams.append("?");
-                queryParams.append(SdkHttpUtils.urlEncode(entry.getKey(), false))
+                queryParams.append(urlEncode(entry.getKey(), false))
                            .append("=")
-                           .append(SdkHttpUtils.urlEncode(value, false));
+                           .append(urlEncode(value, false));
             }
         }
         url.append(queryParams.toString());

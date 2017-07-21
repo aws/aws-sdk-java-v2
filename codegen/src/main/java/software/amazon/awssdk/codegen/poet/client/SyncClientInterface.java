@@ -58,7 +58,7 @@ public final class SyncClientInterface implements ClassSpec {
         Builder classBuilder = PoetUtils.createInterfaceBuilder(className)
                                         .addSuperinterface(AutoCloseable.class)
                                         .addJavadoc(getJavadoc())
-                                        .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
+                                        .addField(FieldSpec.builder(String.class, "SIGNING_NAME")
                                                            .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
                                                            .initializer("$S", model.getMetadata().getSigningName())
                                                            .build())

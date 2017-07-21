@@ -57,6 +57,8 @@ import software.amazon.awssdk.utils.AttributeMap;
 @SdkInternalApi
 final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
+    private static final String CLIENT_NAME = "NettyNio";
+
     private final EventLoopGroup group;
     private final RequestAdapter requestAdapter = new RequestAdapter();
     private final ChannelPoolMap<URI, ChannelPool> pools;
@@ -169,5 +171,10 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             return key == USE_STRICT_HOSTNAME_VERIFICATION ? Optional.empty() :
                     Optional.ofNullable(serviceDefaults.get(key));
         }
+    }
+
+    @Override
+    public String clientName() {
+        return CLIENT_NAME;
     }
 }

@@ -101,6 +101,8 @@ public class AmazonHttpClient implements AutoCloseable {
      */
     static final int THROTTLED_RETRIES = 100;
 
+    private static final String CLIENT_TYPE = "Sync";
+
     /**
      * A request metric collector used specifically for this httpClientSettings client; or null if
      * there is none. This collector, if specified, always takes precedence over the one specified
@@ -424,7 +426,8 @@ public class AmazonHttpClient implements AutoCloseable {
                         // Start of mutating request
                         .then(MakeRequestMutable::new)
                         .then(ApplyTransactionIdStage::new)
-                        .then(ApplyUserAgentStage::new)
+                        .then(() -> new ApplyUserAgentStage(httpClientDependencies,
+                                                            httpClientDependencies.sdkHttpClient().clientName()))
                         .then(MergeCustomHeadersStage::new)
                         .then(MergeCustomQueryParamsStage::new)
                         .then(MoveParametersToBodyStage::new)

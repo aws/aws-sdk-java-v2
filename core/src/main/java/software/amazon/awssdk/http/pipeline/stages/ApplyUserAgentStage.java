@@ -31,9 +31,12 @@ import software.amazon.awssdk.util.RuntimeHttpUtils;
 public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
 
     private final LegacyClientConfiguration config;
+    private final String clientName;
 
-    public ApplyUserAgentStage(HttpClientDependencies dependencies) {
+    public ApplyUserAgentStage(HttpClientDependencies dependencies,
+                               String clientName) {
         this.config = dependencies.config();
+        this.clientName = clientName;
     }
 
     @Override
@@ -41,10 +44,14 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
             throws Exception {
         RequestClientOptions opts = context.requestConfig().getRequestClientOptions();
         if (opts != null) {
-            return request.header(HEADER_USER_AGENT, RuntimeHttpUtils
-                    .getUserAgent(config, opts.getClientMarker(RequestClientOptions.Marker.USER_AGENT)));
+            return request.header(HEADER_USER_AGENT, RuntimeHttpUtils.getUserAgent(config,
+                                                                                   opts.getClientMarker(
+                                                                                       RequestClientOptions.Marker.USER_AGENT),
+                                                                                   clientName));
         } else {
-            return request.header(HEADER_USER_AGENT, RuntimeHttpUtils.getUserAgent(config, null));
+            return request.header(HEADER_USER_AGENT, RuntimeHttpUtils.getUserAgent(config,
+                                                                                   null,
+                                                                                   clientName));
         }
     }
 }

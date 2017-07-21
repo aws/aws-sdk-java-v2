@@ -57,6 +57,8 @@ import software.amazon.awssdk.util.CapacityManager;
 @SdkProtectedApi
 public class AmazonAsyncHttpClient implements AutoCloseable {
 
+    private static final String CLIENT_TYPE = "Async";
+
     /**
      * A request metric collector used specifically for this httpClientSettings client; or null if
      * there is none. This collector, if specified, always takes precedence over the one specified
@@ -284,7 +286,8 @@ public class AmazonAsyncHttpClient implements AutoCloseable {
                         .first(BeforeRequestHandlersStage::new)
                         .then(MakeRequestMutable::new)
                         .then(ApplyTransactionIdStage::new)
-                        .then(ApplyUserAgentStage::new)
+                        .then(() -> new ApplyUserAgentStage(httpClientDependencies,
+                                                            httpClientDependencies.sdkAsyncHttpClient().clientName()))
                         .then(MergeCustomHeadersStage::new)
                         .then(MergeCustomQueryParamsStage::new)
                         .then(MoveParametersToBodyStage::new)
