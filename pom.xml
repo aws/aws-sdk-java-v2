@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.0.0-preview-1</version>
+    <version>2.0.0-preview-2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -62,9 +62,7 @@
         <module>codegen</module>
         <module>metrics-spi</module>
         <module>http-client-spi</module>
-        <module>aws-http-client-apache</module>
-        <module>aws-http-nio-client-netty</module>
-        <module>aws-http-client-url-connection</module>
+        <module>http-clients</module>
         <module>codegen-maven-plugin</module>
         <module>jmespath-java</module>
         <module>bundle</module>
