@@ -31,8 +31,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.SdkClientException;
@@ -68,7 +68,7 @@ public class EC2MetadataUtils {
     private static final int DEFAULT_QUERY_RETRIES = 3;
     private static final int MINIMUM_RETRY_WAIT_TIME_MILLISECONDS = 250;
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final Log log = LogFactory.getLog(EC2MetadataUtils.class);
+    private static final Logger log = LoggerFactory.getLogger(EC2MetadataUtils.class);
     private static Map<String, String> cache = new ConcurrentHashMap<String, String>();
 
     static {

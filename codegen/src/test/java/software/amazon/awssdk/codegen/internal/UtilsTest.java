@@ -1,13 +1,12 @@
 package software.amazon.awssdk.codegen.internal;
 
-import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.Test;
 
 public class UtilsTest {
     final Map<String,String> capitalizedToUncapitalized = new HashMap<String,String>() {{

@@ -27,12 +27,14 @@ public class Partitions {
     /**
      * the version of json schema for the partition metadata.
      */
-    private final String version;
+    private String version;
 
     /**
      * list of partitions.
      */
-    private final List<Partition> partitions;
+    private List<Partition> partitions;
+
+    public Partitions() {}
 
     public Partitions(@JsonProperty(value = "version") String version,
                       @JsonProperty(value = "partitions") List<Partition> partitions) {
@@ -47,10 +49,18 @@ public class Partitions {
         return version;
     }
 
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
     /**
      * returns the list of all partitions loaded from the partition metadata document.
      */
     public List<Partition> getPartitions() {
         return partitions;
+    }
+
+    public void setPartitions(List<Partition> partitions) {
+        this.partitions = partitions;
     }
 }

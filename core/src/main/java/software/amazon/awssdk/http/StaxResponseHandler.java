@@ -23,8 +23,8 @@ import java.util.Map;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.ResponseMetadata;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
@@ -53,7 +53,7 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
     /**
      * Shared logger for profiling information.
      */
-    private static final Log log = LogFactory.getLog("software.amazon.awssdk.request");
+    private static final Logger log = LoggerFactory.getLogger("software.amazon.awssdk.request");
     /**
      * Shared factory for creating XML event readers.
      */

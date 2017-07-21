@@ -156,7 +156,6 @@ public class EmailIntegrationTest extends IntegrationTestBase {
             IdentityDkimAttributes attributes = result.dkimAttributes().get(testDomain);
             assertFalse(attributes.dkimEnabled());
             assertEquals(VerificationStatus.NotStarted.toString(), attributes.dkimVerificationStatus());
-            assertThat(attributes.dkimTokens(), hasSize(0));
 
             VerifyDomainDkimResponse dkim = email.verifyDomainDkim(VerifyDomainDkimRequest.builder().domain(testDomain).build());
             Thread.sleep(5 * 1000);

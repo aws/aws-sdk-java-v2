@@ -30,8 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.dynamodb.datamodeling.ArgumentMarshaller.BinaryAttributeMarshaller;
 import software.amazon.awssdk.services.dynamodb.datamodeling.ArgumentMarshaller.BinarySetAttributeMarshaller;
 import software.amazon.awssdk.services.dynamodb.datamodeling.ArgumentMarshaller.BooleanAttributeMarshaller;
@@ -142,8 +142,8 @@ public final class ConversionSchemas {
      */
     public static final ConversionSchema V2 = v2Builder("V2ConversionSchema").build();
     static final ConversionSchema DEFAULT = V2_COMPATIBLE;
-    private static final Log LOGGER =
-            LogFactory.getLog(ConversionSchemas.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(ConversionSchemas.class);
 
     ConversionSchemas() {
         throw new UnsupportedOperationException();
@@ -307,9 +307,9 @@ public final class ConversionSchemas {
 
     private static Class<?> unwrapGenericSetParam(Type setType) {
         if (!(setType instanceof ParameterizedType)) {
-            LOGGER.warn("Set type " + setType + " is not a "
-                        + "ParameterizedType, using default marshaler and "
-                        + "unmarshaler!");
+            log.warn("Set type " + setType + " is not a "
+                     + "ParameterizedType, using default marshaler and "
+                     + "unmarshaler!");
             return Object.class;
         }
 
@@ -317,9 +317,9 @@ public final class ConversionSchemas {
         Type[] arguments = ptype.getActualTypeArguments();
 
         if (arguments.length != 1) {
-            LOGGER.warn("Set type " + setType + " does not have exactly one "
-                        + "type argument, using default marshaler and "
-                        + "unmarshaler!");
+            log.warn("Set type " + setType + " does not have exactly one "
+                     + "type argument, using default marshaler and "
+                     + "unmarshaler!");
             return Object.class;
         }
 

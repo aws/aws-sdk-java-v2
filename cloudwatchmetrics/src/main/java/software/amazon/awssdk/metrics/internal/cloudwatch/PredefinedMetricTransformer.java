@@ -21,8 +21,8 @@ import static software.amazon.awssdk.metrics.internal.cloudwatch.spi.RequestMetr
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.Request;
 import software.amazon.awssdk.annotation.ThreadSafe;
@@ -53,7 +53,7 @@ import software.amazon.awssdk.services.cloudwatch.model.StandardUnit;
 public class PredefinedMetricTransformer {
     static final boolean INCLUDE_REQUEST_TYPE = true;
     static final boolean EXCLUDE_REQUEST_TYPE = !INCLUDE_REQUEST_TYPE;
-    private static final Log log = LogFactory.getLog(PredefinedMetricTransformer.class);
+    private static final Logger log = LoggerFactory.getLogger(PredefinedMetricTransformer.class);
 
     /**
      * Returns a non-null list of metric datum for the metrics collected for the
@@ -134,7 +134,7 @@ public class PredefinedMetricTransformer {
         }
         int requestCount = counter.intValue();
         if (requestCount < 1) {
-            LogFactory.getLog(getClass()).debug(
+            LoggerFactory.getLogger(getClass()).debug(
                     "request count must be at least one");
             return Collections.emptyList();
         }
@@ -286,7 +286,7 @@ public class PredefinedMetricTransformer {
         }
         int count = counter.intValue();
         if (count < 1) {
-            LogFactory.getLog(getClass()).debug("Count must be at least one");
+            LoggerFactory.getLogger(getClass()).debug("Count must be at least one");
             return Collections.emptyList();
         }
         final List<MetricDatum> result = new ArrayList<MetricDatum>();

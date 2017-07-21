@@ -16,17 +16,12 @@
 package software.amazon.awssdk.services.glacier.transfer;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
-import software.amazon.awssdk.LegacyClientConfiguration;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.services.glacier.GlacierIntegrationTestBase;
 import software.amazon.awssdk.test.util.RandomTempFile;
 

@@ -33,9 +33,6 @@ import software.amazon.awssdk.client.ClientHandler;
 import software.amazon.awssdk.client.ClientHandlerParams;
 import software.amazon.awssdk.client.ClientExecutionParams;
 import software.amazon.awssdk.opensdk.protect.client.SdkClientHandler;
-<#if customizationConfig.serviceClientHoldInputStream>
-import software.amazon.awssdk.util.ServiceClientHolderInputStream;
-</#if>
 import ${serviceBaseExceptionFqcn};
 
 

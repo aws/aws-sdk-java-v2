@@ -21,8 +21,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.services.sqs.SQSAsyncClient;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
@@ -46,7 +46,7 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
  */
 public class ReceiveQueueBuffer {
 
-    private static Log log = LogFactory.getLog(ReceiveQueueBuffer.class);
+    private static Logger log = LoggerFactory.getLogger(ReceiveQueueBuffer.class);
     /** shutdown buffer does not retrieve any more messages from sqs. */
     volatile boolean shutDown = false;
     private final QueueBufferConfig config;

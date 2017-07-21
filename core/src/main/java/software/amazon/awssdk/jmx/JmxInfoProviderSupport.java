@@ -22,7 +22,7 @@ import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.jmx.spi.JmxInfoProvider;
 
 public class JmxInfoProviderSupport implements JmxInfoProvider {
@@ -40,7 +40,7 @@ public class JmxInfoProviderSupport implements JmxInfoProvider {
             long[] fdCounts = {openFdCount, maxFdCount};
             return fdCounts;
         } catch (Exception e) {
-            LogFactory.getLog(SdkMBeanRegistrySupport.class).debug(
+            LoggerFactory.getLogger(SdkMBeanRegistrySupport.class).debug(
                     "Failed to retrieve file descriptor info", e);
         }
         return null;

@@ -20,9 +20,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Daemon thread to periodically check connection pools for idle connections.
@@ -47,7 +47,7 @@ public final class IdleConnectionReaper extends Thread {
     /**
      * Shared log for any errors during connection reaping.
      */
-    private static final Log LOG = LogFactory.getLog(IdleConnectionReaper.class);
+    private static final Logger log = LoggerFactory.getLogger(IdleConnectionReaper.class);
     /**
      * The period between invocations of the idle connection reaper.
      */
@@ -169,7 +169,7 @@ public final class IdleConnectionReaper extends Thread {
     public void run() {
         while (true) {
             if (shuttingDown) {
-                LOG.debug("Shutting down reaper thread.");
+                log.debug("Shutting down reaper thread.");
                 return;
             }
             try {
@@ -182,11 +182,11 @@ public final class IdleConnectionReaper extends Thread {
                     try {
                         entry.getKey().closeIdleConnections(entry.getValue(), TimeUnit.MILLISECONDS);
                     } catch (Exception t) {
-                        LOG.warn("Unable to close idle connections", t);
+                        log.warn("Unable to close idle connections", t);
                     }
                 }
             } catch (Throwable t) {
-                LOG.debug("Reaper thread: ", t);
+                log.debug("Reaper thread: ", t);
             }
         }
     }

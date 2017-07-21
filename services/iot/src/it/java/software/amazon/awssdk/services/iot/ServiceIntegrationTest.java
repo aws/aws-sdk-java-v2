@@ -32,13 +32,13 @@ import software.amazon.awssdk.services.iotdataplane.model.DeleteThingShadowReque
 import software.amazon.awssdk.services.iotdataplane.model.DeleteThingShadowResponse;
 import software.amazon.awssdk.services.iotdataplane.model.GetThingShadowRequest;
 import software.amazon.awssdk.services.iotdataplane.model.GetThingShadowResponse;
-import software.amazon.awssdk.services.iotdataplane.model.InternalFailureException;
 import software.amazon.awssdk.services.iotdataplane.model.InvalidRequestException;
 import software.amazon.awssdk.services.iotdataplane.model.PublishRequest;
 import software.amazon.awssdk.services.iotdataplane.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.iotdataplane.model.UpdateThingShadowRequest;
 import software.amazon.awssdk.services.iotdataplane.model.UpdateThingShadowResponse;
 import software.amazon.awssdk.test.AwsIntegrationTestBase;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 public class ServiceIntegrationTest extends AwsIntegrationTestBase {
 
@@ -52,8 +52,8 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
         return ByteBuffer.wrap(payloadString.getBytes(StandardCharsets.UTF_8));
     }
 
-    private static JsonNode getPaylaodAsJsonNode(ByteBuffer payload) throws IOException {
-        return new ObjectMapper().readTree(payload.duplicate().array());
+    private static JsonNode getPayloadAsJsonNode(ByteBuffer payload) throws IOException {
+        return new ObjectMapper().readTree(BinaryUtils.toStream(payload));
     }
 
     private static void assertPayloadNonEmpty(ByteBuffer payload) {
@@ -71,8 +71,8 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
      *            as what we sent) plus additional metadata in the JSON document
      */
     private static void assertPayloadIsValid(ByteBuffer originalPayload, ByteBuffer returnedPayload) throws Exception {
-        JsonNode originalJson = getPaylaodAsJsonNode(originalPayload);
-        JsonNode returnedJson = getPaylaodAsJsonNode(returnedPayload);
+        JsonNode originalJson = getPayloadAsJsonNode(originalPayload);
+        JsonNode returnedJson = getPayloadAsJsonNode(returnedPayload);
         assertEquals(originalJson.get(STATE_FIELD_NAME), returnedJson.get(STATE_FIELD_NAME));
     }
 

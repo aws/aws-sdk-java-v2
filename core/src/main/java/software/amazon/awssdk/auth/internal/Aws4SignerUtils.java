@@ -15,8 +15,9 @@
 
 package software.amazon.awssdk.auth.internal;
 
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Utility methods that is used by the different AWS Signer implementations.
@@ -24,11 +25,11 @@ import org.joda.time.format.DateTimeFormatter;
  */
 public final class Aws4SignerUtils {
 
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormat
-            .forPattern("yyyyMMdd").withZoneUTC();
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter
+            .ofPattern("yyyyMMdd").withZone(ZoneId.of("UTC"));
 
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormat
-            .forPattern("yyyyMMdd'T'HHmmss'Z'").withZoneUTC();
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter
+            .ofPattern("yyyyMMdd'T'HHmmss'Z'").withZone(ZoneId.of("UTC"));
 
     /**
      * Returns a string representation of the given date time in yyyyMMdd
@@ -37,7 +38,7 @@ public final class Aws4SignerUtils {
      * For example, given a time "1416863450581", this method returns "20141124"
      */
     public static String formatDateStamp(long timeMilli) {
-        return DATE_FORMATTER.print(timeMilli);
+        return DATE_FORMATTER.format(Instant.ofEpochMilli(timeMilli));
     }
 
     /**
@@ -48,6 +49,6 @@ public final class Aws4SignerUtils {
      * "20141124T211050Z"
      */
     public static String formatTimestamp(long timeMilli) {
-        return TIME_FORMATTER.print(timeMilli);
+        return TIME_FORMATTER.format(Instant.ofEpochMilli(timeMilli));
     }
 }

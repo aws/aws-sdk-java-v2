@@ -19,14 +19,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
-import software.amazon.awssdk.utils.Logger;
 
 public class ModelLoaderUtils {
 
-    public static final Logger log = Logger.loggerFor(ModelLoaderUtils.class);
+    public static final Logger log = LoggerFactory.getLogger(ModelLoaderUtils.class);
 
     public static ServiceModel loadModel(String modelLocation) {
         return loadConfigurationModel(ServiceModel.class, modelLocation);
@@ -40,13 +41,13 @@ public class ModelLoaderUtils {
      * @return Marshalled configuration class
      */
     public static <T> T loadConfigurationModel(Class<T> clzz, String configurationFileLocation) {
-        log.info(() -> "Loading config file " + configurationFileLocation);
+        log.info("Loading config file {}", configurationFileLocation);
         InputStream fileContents = null;
         try {
             fileContents = getRequiredResourceAsStream(configurationFileLocation);
             return Jackson.load(clzz, fileContents);
         } catch (IOException e) {
-            log.error(() -> "Failed to read the configuration file " + configurationFileLocation);
+            log.error("Failed to read the configuration file {}", configurationFileLocation);
             throw new RuntimeException(e);
         } finally {
             if (fileContents != null) {
@@ -68,7 +69,7 @@ public class ModelLoaderUtils {
         try {
             return Jackson.load(clzz, file);
         } catch (IOException e) {
-            log.error(() -> "Failed to read the configuration file " + file.getAbsolutePath());
+            log.error("Failed to read the configuration file {}", file.getAbsolutePath());
             throw new RuntimeException(e);
         }
     }

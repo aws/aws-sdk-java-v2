@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.internal.http;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.http.HttpResponse;
@@ -28,7 +28,7 @@ import software.amazon.ion.IonType;
 
 @SdkInternalApi
 public class IonErrorCodeParser implements ErrorCodeParser {
-    private static final Log log = LogFactory.getLog(IonErrorCodeParser.class);
+    private static final Logger log = LoggerFactory.getLogger(IonErrorCodeParser.class);
 
     private static final String TYPE_PREFIX = "aws-type:";
     private static final String X_AMZN_REQUEST_ID_HEADER = "x-amzn-RequestId";

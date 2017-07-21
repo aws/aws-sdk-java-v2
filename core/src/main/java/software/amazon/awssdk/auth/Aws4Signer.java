@@ -28,8 +28,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
 import software.amazon.awssdk.auth.internal.Aws4SignerRequestParams;
@@ -51,7 +51,7 @@ import software.amazon.awssdk.utils.BinaryUtils;
 public class Aws4Signer extends AbstractAwsSigner
         implements ServiceAwareSigner, RegionAwareSigner, Presigner {
 
-    private static final Log LOG = LogFactory.getLog(Aws4Signer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Aws4Signer.class);
 
     private static final int SIGNER_CACHE_MAX_SIZE = 300;
     private static final FifoCache<SignerKey> SIGNER_CACHE = new FifoCache<>(SIGNER_CACHE_MAX_SIZE);

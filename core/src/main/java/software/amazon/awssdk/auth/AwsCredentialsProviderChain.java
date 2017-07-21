@@ -21,9 +21,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.utils.IoUtils;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -42,7 +43,7 @@ import software.amazon.awssdk.utils.Validate;
  * providers in the chain that need to be closed.</p>
  */
 public final class AwsCredentialsProviderChain implements AwsCredentialsProvider, AutoCloseable {
-    private static final Logger LOG = Logger.loggerFor(AwsCredentialsProviderChain.class);
+    private static final Logger log = LoggerFactory.getLogger(AwsCredentialsProviderChain.class);
 
     private final List<AwsCredentialsProvider> credentialsProviders;
 
@@ -86,13 +87,13 @@ public final class AwsCredentialsProviderChain implements AwsCredentialsProvider
             try {
                 AwsCredentials credentials = provider.getCredentials();
 
-                LOG.debug(() -> "Loading credentials from " + provider.toString());
+                log.debug("Loading credentials from {}", provider.toString());
 
                 lastUsedProvider = provider;
                 return credentials;
             } catch (RuntimeException e) {
                 // Ignore any exceptions and move onto the next provider
-                LOG.debug(() -> "Unable to load credentials from " + provider.toString() + ": " + e.getMessage(), e);
+                log.debug("Unable to load credentials from {}:{}", provider.toString(), e.getMessage(), e);
             }
         }
 

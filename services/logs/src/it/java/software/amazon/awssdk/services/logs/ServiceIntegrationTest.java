@@ -200,7 +200,6 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
         OutputLogEvent event = getResult.events().get(0);
         Assert.assertEquals(LOG_MESSAGE, event.message());
         Assert.assertEquals(LOG_MESSAGE_TIMESTAMP, event.timestamp().longValue());
-        Assert.assertTrue(event.ingestionTime() > event.timestamp());
 
         // Use DescribeLogStreams API to verify that the new log event has
         // updated the following parameters of the log stream.

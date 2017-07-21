@@ -19,10 +19,9 @@ import java.io.InputStream;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.jar.JarInputStream;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotation.ThreadSafe;
-import software.amazon.awssdk.internal.config.InternalConfig;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.JavaSystemSetting;
 
@@ -33,8 +32,12 @@ import software.amazon.awssdk.utils.JavaSystemSetting;
 public class VersionInfoUtils {
     /** The AWS SDK version info file with SDK versioning info. */
     static final String VERSION_INFO_FILE = "/software/amazon/awssdk/sdk/versionInfo.properties";
+
+    private static final String UA_STRING = "aws-sdk-{platform}/{version} {os.name}/{os.version} {java.vm.name}/{java.vm.version}"
+                                            + "/{java.version}{language.and.region}{additional.languages}";
+
     /** Shared logger for any issues while loading version information. */
-    private static final Log log = LogFactory.getLog(VersionInfoUtils.class);
+    private static final Logger log = LoggerFactory.getLogger(VersionInfoUtils.class);
     private static final String UNKNOWN = "unknown";
     /** SDK version info. */
     private static volatile String version;
@@ -138,12 +141,7 @@ public class VersionInfoUtils {
 
     static String userAgent() {
 
-        String ua = InternalConfig.Factory.getInternalConfig()
-                                          .getUserAgentTemplate();
-
-        if (ua == null) {
-            return "aws-sdk-java";
-        }
+        String ua = UA_STRING;
 
         ua = ua
                 .replace("{platform}", StringUtils.lowerCase(getPlatform()))

@@ -18,7 +18,7 @@ package software.amazon.awssdk.internal.io;
 import static software.amazon.awssdk.utils.IoUtils.closeQuietly;
 
 import java.io.Closeable;
-import org.apache.commons.logging.Log;
+import org.slf4j.Logger;
 
 /**
  * Used for releasing a resource.
@@ -74,7 +74,7 @@ public interface Releasable {
      * <code>ResettableInputStream#disableClose()</code>, so that the release method
      * becomes the only way to truly close the opened file.
      */
-    static void release(Closeable is, Log log) {
+    static void release(Closeable is, Logger log) {
         closeQuietly(is, log);
         if (is instanceof Releasable) {
             Releasable r = (Releasable) is;

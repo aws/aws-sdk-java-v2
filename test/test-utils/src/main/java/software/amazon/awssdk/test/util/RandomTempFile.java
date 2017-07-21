@@ -20,8 +20,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.utils.JavaSystemSetting;
-import software.amazon.awssdk.utils.Logger;
 
 /**
  * Extension of File that creates a temporary file with a specified name in
@@ -34,7 +35,7 @@ import software.amazon.awssdk.utils.Logger;
  */
 public class RandomTempFile extends File {
 
-    private static final Logger log = Logger.loggerFor(RandomTempFile.class);
+    private static final Logger log = LoggerFactory.getLogger(RandomTempFile.class);
     private static final long serialVersionUID = -8232143353692832238L;
 
     /** Java temp dir where all temp files will be created. */
@@ -83,7 +84,7 @@ public class RandomTempFile extends File {
               + filename);
         this.binaryData = binaryData;
         createFile(sizeInBytes);
-        log.debug(() -> "RandomTempFile " + this + " created.");
+        log.debug("RandomTempFile {} created", this);
     }
 
     public RandomTempFile(File root, String filename, long sizeInBytes) throws IOException {

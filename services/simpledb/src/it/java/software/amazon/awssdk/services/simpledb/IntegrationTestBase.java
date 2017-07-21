@@ -26,9 +26,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.BeforeClass;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.simpledb.model.Attribute;
 import software.amazon.awssdk.services.simpledb.model.CreateDomainRequest;
@@ -52,7 +52,7 @@ import software.amazon.awssdk.test.AwsTestBase;
  * @author fulghum@amazon.com
  */
 public abstract class IntegrationTestBase extends AwsTestBase {
-    private static final Log log = LogFactory.getLog(IntegrationTestBase.class);
+    private static final Logger log = LoggerFactory.getLogger(IntegrationTestBase.class);
     /**
      * System property allowing users to explicitly override where the AWS account info should be
      * loaded from.

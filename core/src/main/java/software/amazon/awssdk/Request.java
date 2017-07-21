@@ -101,9 +101,7 @@ public interface Request<T> extends SignableRequest<T> {
     /**
      * @return The name of the Amazon service this request is for. This is used
      *         as the service name set in request metrics and service
-     *         exceptions. This is NOT the same as the service name returned by
-     *         {@link AmazonWebServiceClient#getServiceName()} which is used for
-     *         signing purpose.
+     *         exceptions.
      *
      * @see {@link AmazonServiceException#getServiceName()}
      * @see {@link AwsRequestMetrics.Field#ServiceName}

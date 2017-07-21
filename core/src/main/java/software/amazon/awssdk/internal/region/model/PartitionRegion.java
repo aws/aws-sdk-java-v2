@@ -26,7 +26,9 @@ public class PartitionRegion {
     /**
      * description of the region.
      */
-    private final String description;
+    private String description;
+
+    public PartitionRegion() {}
 
     public PartitionRegion(@JsonProperty(value = "description") String description) {
         this.description = Validate.notNull(description, "Region description");
@@ -34,5 +36,9 @@ public class PartitionRegion {
 
     public String getDescription() {
         return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

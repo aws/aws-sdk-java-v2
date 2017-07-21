@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.jmx.spi;
 
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.LoggerFactory;
 
 /**
  * SPI used to register MBeans and can survive the absence of JMX.
@@ -65,9 +65,8 @@ public interface SdkMBeanRegistry {
                 Class<?> c = Class.forName("software.amazon.awssdk.jmx.SdkMBeanRegistrySupport");
                 rego = (SdkMBeanRegistry) c.newInstance();
             } catch (Exception e) {
-                LogFactory
-                        .getLog(SdkMBeanRegistry.class)
-                        .debug("Failed to load the JMX implementation module - JMX is disabled", e);
+                LoggerFactory.getLogger(SdkMBeanRegistry.class)
+                          .debug("Failed to load the JMX implementation module - JMX is disabled", e);
                 rego = NONE;
             }
             REGISTRY = rego;

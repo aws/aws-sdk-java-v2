@@ -17,8 +17,8 @@ package software.amazon.awssdk.opensdk.internal.protocol;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import java.util.List;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
@@ -38,7 +38,7 @@ import software.amazon.awssdk.util.ValidationUtils;
 @SdkInternalApi
 public class ApiGatewayErrorResponseHandler implements HttpResponseHandler<SdkBaseException> {
 
-    private static final Log LOG = LogFactory.getLog(ApiGatewayErrorResponseHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ApiGatewayErrorResponseHandler.class);
 
     private final List<ApiGatewayErrorUnmarshaller> unmarshallers;
     private final JsonFactory jsonFactory;

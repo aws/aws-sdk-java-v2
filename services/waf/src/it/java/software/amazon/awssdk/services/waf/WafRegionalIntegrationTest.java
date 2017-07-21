@@ -17,8 +17,8 @@ package software.amazon.awssdk.services.waf;
 
 import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.waf.model.WAFNonexistentItemException;
 import software.amazon.awssdk.services.waf.model.ListResourcesForWebACLRequest;
+import software.amazon.awssdk.services.waf.model.WAFNonexistentItemException;
 import software.amazon.awssdk.services.wafregional.WAFRegionalClient;
 import software.amazon.awssdk.test.AwsIntegrationTestBase;
 

@@ -17,8 +17,6 @@ package software.amazon.awssdk.auth;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import software.amazon.awssdk.internal.config.InternalConfig;
-import software.amazon.awssdk.internal.config.SignerConfig;
 
 /** Signer factory. */
 public final class SignerFactory {
@@ -98,10 +96,14 @@ public final class SignerFactory {
      * name and region.
      */
     private static Signer lookupAndCreateSigner(String serviceName, String regionName) {
-        InternalConfig config = InternalConfig.Factory.getInternalConfig();
-        SignerConfig signerConfig =
-                config.getSignerConfig(serviceName, regionName);
-        String signerType = signerConfig.getSignerType();
+        String signerType;
+
+        if (serviceName.equals("sdb")) {
+            signerType = "QueryStringSignerType";
+        } else {
+            signerType = "AWS4SignerType";
+        }
+
         return createSigner(signerType, serviceName);
     }
 

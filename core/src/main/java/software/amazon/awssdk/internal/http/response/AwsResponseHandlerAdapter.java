@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.internal.http.response;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AmazonWebServiceResponse;
 import software.amazon.awssdk.AmazonWebServiceResult;
 import software.amazon.awssdk.annotation.SdkInternalApi;
@@ -39,9 +39,9 @@ public class AwsResponseHandlerAdapter<T> implements HttpResponseHandler<T> {
      * Logger used for the purpose of logging the AWS request id extracted either from the
      * httpClientSettings header response or from the response body.
      */
-    private static final Log REQUEST_ID_LOG = LogFactory.getLog("software.amazon.awssdk.requestId");
+    private static final Logger REQUEST_ID_LOG = LoggerFactory.getLogger("software.amazon.awssdk.requestId");
 
-    private static final Log REQUEST_LOG = AmazonHttpClient.REQUEST_LOG;
+    private static final Logger REQUEST_LOG = AmazonHttpClient.REQUEST_LOG;
 
     private final HttpResponseHandler<AmazonWebServiceResponse<T>> delegate;
     private final AwsRequestMetrics awsRequestMetrics;

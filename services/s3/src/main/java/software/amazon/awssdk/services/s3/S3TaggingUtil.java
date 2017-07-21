@@ -29,17 +29,18 @@ public class S3TaggingUtil {
 
         Tagging taggingClone = tagging.toBuilder().build();
 
-        Tag firstTag = taggingClone.tagSet().remove(0);
+        Tag firstTag = taggingClone.tagSet().get(0);
         tagBuilder.append(SdkHttpUtils.urlEncode(firstTag.key(), false));
         tagBuilder.append("=");
         tagBuilder.append(SdkHttpUtils.urlEncode(firstTag.value(), false));
 
-        taggingClone.tagSet().forEach(t -> {
+        for (int i = 1; i < taggingClone.tagSet().size(); i++) {
+            Tag t = taggingClone.tagSet().get(i);
             tagBuilder.append("&");
             tagBuilder.append(SdkHttpUtils.urlEncode(t.key(), false));
             tagBuilder.append("=");
             tagBuilder.append(SdkHttpUtils.urlEncode(t.value(), false));
-        });
+        }
 
         return tagBuilder.toString();
     }

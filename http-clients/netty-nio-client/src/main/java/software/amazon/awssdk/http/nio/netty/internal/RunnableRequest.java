@@ -27,12 +27,13 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.function.Supplier;
 import org.reactivestreams.Subscriber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.async.AbortableRunnable;
-import software.amazon.awssdk.utils.Logger;
 
 public final class RunnableRequest implements AbortableRunnable {
 
-    private static final Logger log = Logger.loggerFor(RunnableRequest.class);
+    private static final Logger log = LoggerFactory.getLogger(RunnableRequest.class);
     private final RequestContext context;
     private volatile Channel channel;
 
@@ -77,7 +78,7 @@ public final class RunnableRequest implements AbortableRunnable {
     }
 
     private void makeRequest(HttpRequest request, Subscriber<ByteBuffer> subscriber) {
-        log.debug(() -> "Writing request: " + request);
+        log.debug("Writing request: {}", request);
         channel.write(request).addListener(wireCall -> {
             if (!wireCall.isSuccess()) {
                 handleFailure(() -> "Failed to make request to " + endpoint(), wireCall.cause());
@@ -92,7 +93,7 @@ public final class RunnableRequest implements AbortableRunnable {
     }
 
     private void handleFailure(Supplier<String> msg, Throwable cause) {
-        log.error(msg, cause);
+        log.error(msg.get(), cause);
         context.handler().exceptionOccurred(cause);
         if (channel != null) {
             context.channelPool().release(channel);

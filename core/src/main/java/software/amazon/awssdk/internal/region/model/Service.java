@@ -27,7 +27,7 @@ public class Service {
     /**
      * endpoint configuration for every region in a partition.
      */
-    private final Map<String, Endpoint> endpoints;
+    private Map<String, Endpoint> endpoints;
 
     /**
      * default endpoint configuration for a service across all regions in the
@@ -45,6 +45,8 @@ public class Service {
      */
     private boolean isRegionalized;
 
+    public Service() {}
+
     public Service(@JsonProperty(value = "endpoints") Map<String, Endpoint> endpoints) {
         this.endpoints = ValidationUtils.assertNotNull(endpoints, "endpoints");
     }
@@ -55,6 +57,10 @@ public class Service {
      */
     public Map<String, Endpoint> getEndpoints() {
         return endpoints;
+    }
+
+    public void setEndpoints(Map<String, Endpoint> endpoints) {
+        this.endpoints = endpoints;
     }
 
     /**
@@ -99,7 +105,7 @@ public class Service {
      * sets the regionalized property for a service..
      */
     @JsonProperty(value = "isRegionalized")
-    public void setRegionalized(boolean regionalized) {
+    public void setIsRegionalized(boolean regionalized) {
         isRegionalized = regionalized;
     }
 

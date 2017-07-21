@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.dynamodb.datamodeling;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.util.json.Jackson;
 
 public class S3LinkIdTest {

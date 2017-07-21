@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Instant;
-import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.protocol.json.SdkJsonGenerator;

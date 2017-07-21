@@ -15,16 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-
-import java.util.AbstractMap;
-import java.util.Map;
 import org.junit.Test;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 
 /**
  * Tests on using convenient map setters.

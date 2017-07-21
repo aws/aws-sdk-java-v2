@@ -16,10 +16,8 @@
 package software.amazon.awssdk.services.s3.auth;
 
 import java.net.URI;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.RegionAwareSigner;
 import software.amazon.awssdk.auth.Signer;
 import software.amazon.awssdk.runtime.auth.SignerProvider;
@@ -28,7 +26,7 @@ import software.amazon.awssdk.util.AwsHostNameUtils;
 
 public class S3SignerProvider extends SignerProvider {
 
-    private static Log log = LogFactory.getLog(S3SignerProvider.class);
+    private static Logger log = LoggerFactory.getLogger(S3SignerProvider.class);
 
     private Signer signer;
 

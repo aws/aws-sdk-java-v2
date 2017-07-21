@@ -20,9 +20,11 @@ import com.fasterxml.jackson.core.JsonToken;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import java.util.Date;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.util.DateUtils;
 
 @SdkInternalApi
 public class SimpleTypeCborUnmarshallers {
@@ -205,6 +207,25 @@ public class SimpleTypeCborUnmarshallers {
         public ByteBuffer unmarshall(JsonUnmarshallerContext unmarshallerContext) throws Exception {
             return ByteBuffer.wrap(unmarshallerContext.getJsonParser().getBinaryValue());
 
+        }
+    }
+
+    public static class InstantCborUnmarshaller implements Unmarshaller<Instant, JsonUnmarshallerContext> {
+        private static final InstantCborUnmarshaller INSTANCE = new InstantCborUnmarshaller();
+
+        public static InstantCborUnmarshaller getInstance() {
+            return INSTANCE;
+        }
+
+        public Instant unmarshall(JsonUnmarshallerContext unmarshallerContext) throws Exception {
+            Date date =  DateUtils.parseServiceSpecificDate(unmarshallerContext
+                    .readText());
+
+            if (date == null) {
+                return null;
+            }
+
+            return date.toInstant();
         }
     }
 

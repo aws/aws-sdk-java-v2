@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
@@ -34,7 +34,7 @@ import software.amazon.awssdk.utils.IoUtils;
 @SdkInternalApi
 public final class EC2CredentialsUtils {
 
-    private static final Log LOG = LogFactory.getLog(EC2CredentialsUtils.class);
+    private static final Logger log = LoggerFactory.getLogger(EC2CredentialsUtils.class);
 
     private static volatile EC2CredentialsUtils instance;
 
@@ -130,10 +130,10 @@ public final class EC2CredentialsUtils {
                                              CredentialsEndpointRetryParameters.builder().withException(ioException).build())) {
                     throw ioException;
                 }
-                LOG.debug("An IOException occured when connecting to service endpoint: " + endpoint +
-                          "\n Retrying to connect again.");
+                log.debug("An IOException occurred when connecting to endpoint: {} \n Retrying to connect again", endpoint);
+
             } finally {
-                IoUtils.closeQuietly(inputStream, LOG);
+                IoUtils.closeQuietly(inputStream, log);
             }
         }
 
@@ -155,7 +155,7 @@ public final class EC2CredentialsUtils {
                     responseMessage = message.asText();
                 }
             } catch (RuntimeException exception) {
-                LOG.debug("Unable to parse error stream", exception);
+                log.debug("Unable to parse error stream", exception);
             }
         }
 

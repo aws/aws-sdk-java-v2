@@ -15,12 +15,12 @@
 
 package software.amazon.awssdk.http.apache;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
@@ -38,7 +38,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 @SdkInternalApi
 class ApacheHttpClientFactory {
 
-    private static final Log LOG = LogFactory.getLog(ApacheHttpClientFactory.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ApacheHttpClientFactory.class);
 
     private final ApacheConnectionManagerFactory cmFactory = new ApacheConnectionManagerFactory();
 
@@ -62,6 +62,7 @@ class ApacheHttpClientFactory {
                .setKeepAliveStrategy(buildKeepAliveStrategy(configuration))
                .disableRedirectHandling()
                .disableAutomaticRetries()
+               .setUserAgent("") // SDK will set the user agent header in the pipeline. Don't let Apache waste time
                .setConnectionManager(ClientConnectionManagerFactory.wrap(cm));
 
         addProxyConfig(builder, configuration.proxyConfiguration());
