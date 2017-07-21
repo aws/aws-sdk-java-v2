@@ -20,7 +20,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.net.URI;
-
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;

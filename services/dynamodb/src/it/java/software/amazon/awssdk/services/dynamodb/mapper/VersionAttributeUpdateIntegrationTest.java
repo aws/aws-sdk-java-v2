@@ -32,13 +32,13 @@ import software.amazon.awssdk.services.dynamodb.DynamoDBMapperIntegrationTestBas
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbAttribute;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbDeleteExpression;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbHashKey;
+import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.SaveBehavior;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMappingException;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbSaveExpression;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbTable;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbVersionAttribute;
-import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalOperator;

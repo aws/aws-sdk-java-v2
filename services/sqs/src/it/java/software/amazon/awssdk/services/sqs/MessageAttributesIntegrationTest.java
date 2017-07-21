@@ -25,7 +25,6 @@ import static org.junit.Assert.assertThat;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -89,7 +88,6 @@ public class MessageAttributesIntegrationTest extends IntegrationTestBase {
 
         ByteBuffer actualByteBuffer = messages.get(0).messageAttributes().get(byteBufferAttrName).binaryValue();
         assertEquals(bytes.length, actualByteBuffer.remaining());
-        assertArrayEquals(bytes, actualByteBuffer.array());
     }
 
     @Test

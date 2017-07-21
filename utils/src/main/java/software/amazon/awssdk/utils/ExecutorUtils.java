@@ -22,12 +22,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utilities that make it easier to create, use and destroy {@link ExecutorService}s.
  */
 public class ExecutorUtils {
-    private static Logger LOG = Logger.loggerFor(ExecutorUtils.class);
+    private static Logger LOG = LoggerFactory.getLogger(ExecutorUtils.class);
 
     private ExecutorUtils() {}
 
@@ -72,12 +74,12 @@ public class ExecutorUtils {
                 executorService.shutdownNow();
 
                 if (!executorService.awaitTermination(halfMaxWaitDurationInMillis, TimeUnit.MILLISECONDS)) {
-                    LOG.warn(() -> "Executor service did not shut down after " + maxWaitDuration.toMillis() + "ms.");
+                    LOG.warn("Executor service did not shut down after {} ms.", maxWaitDuration.toMillis());
                 }
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            LOG.warn(() -> "Interrupted while waiting for the executor service to shut down.");
+            LOG.warn("Interrupted while waiting for the executor service to shut down.");
         }
     }
 }

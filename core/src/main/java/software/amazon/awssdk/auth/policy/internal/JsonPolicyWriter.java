@@ -25,8 +25,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.policy.Action;
@@ -46,7 +46,7 @@ import software.amazon.awssdk.utils.IoUtils;
 public class JsonPolicyWriter {
 
     /** Logger used to log exceptions that occurs while writing the Json policy.*/
-    private static final Log log = LogFactory.getLog("software.amazon.awssdk.auth.policy");
+    private static final Logger log = LoggerFactory.getLogger("software.amazon.awssdk.auth.policy");
     /** The JSON Generator to generator a JSON string.*/
     private JsonGenerator generator = null;
     /** The output writer to which the JSON String is written.*/

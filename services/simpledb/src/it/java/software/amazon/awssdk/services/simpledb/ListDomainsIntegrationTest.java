@@ -20,8 +20,13 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+import java.util.Date;
 import java.util.List;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.services.simpledb.model.CreateDomainRequest;
+import software.amazon.awssdk.services.simpledb.model.DeleteDomainRequest;
 import software.amazon.awssdk.services.simpledb.model.InvalidParameterValueException;
 import software.amazon.awssdk.services.simpledb.model.ListDomainsRequest;
 import software.amazon.awssdk.services.simpledb.model.ListDomainsResponse;
@@ -36,6 +41,24 @@ import software.amazon.awssdk.services.simpledb.model.ListDomainsResponse;
  */
 public class ListDomainsIntegrationTest extends IntegrationTestBase {
 
+    private static String DOMAIN_NAME_1 = "listDomainsIntegrationTest-" + new Date().getTime();
+
+    private static String DOMAIN_NAME_2 = "listDomainsIntegrationTest2-" + new Date().getTime();
+
+
+    @BeforeClass
+    public static void setup() {
+        sdb.createDomain(CreateDomainRequest.builder().domainName(DOMAIN_NAME_1).build());
+        sdb.createDomain(CreateDomainRequest.builder().domainName(DOMAIN_NAME_2).build());
+    }
+
+    @AfterClass
+    public static void cleanup() {
+        sdb.deleteDomain(DeleteDomainRequest.builder().domainName(DOMAIN_NAME_1).build());
+        sdb.deleteDomain(DeleteDomainRequest.builder().domainName(DOMAIN_NAME_2).build());
+    }
+
+
     /**
      * Tests that the listDomains operation returns a list of domain names, correctly limited by the
      * max domains parameter.
@@ -43,8 +66,8 @@ public class ListDomainsIntegrationTest extends IntegrationTestBase {
     @Test
     public void testListDomainsMaxDomains() throws Exception {
         ListDomainsRequest request = ListDomainsRequest.builder()
-                .maxNumberOfDomains(new Integer(1))
-                .build();
+                                                       .maxNumberOfDomains(new Integer(1))
+                                                       .build();
 
         ListDomainsResponse listDomains = sdb.listDomains(request);
         assertNotNull(listDomains);
@@ -70,8 +93,8 @@ public class ListDomainsIntegrationTest extends IntegrationTestBase {
     @Test
     public void testListDomainsNextToken() throws Exception {
         ListDomainsRequest request = ListDomainsRequest.builder()
-                .maxNumberOfDomains(new Integer(1))
-                .build();
+                                                       .maxNumberOfDomains(new Integer(1))
+                                                       .build();
 
         ListDomainsResponse listDomainsResult = sdb.listDomains(request);
 
@@ -82,10 +105,10 @@ public class ListDomainsIntegrationTest extends IntegrationTestBase {
             return;
         }
 
-        String firstDomainName = (String) listDomainsResult.domainNames().get(0);
+        String firstDomainName = listDomainsResult.domainNames().get(0);
 
         request = request.toBuilder().nextToken(listDomainsResult.nextToken()).build();
-        String secondDomainName = (String) sdb.listDomains(request).domainNames().get(0);
+        String secondDomainName = sdb.listDomains(request).domainNames().get(0);
 
         assertFalse(firstDomainName.equals(secondDomainName));
     }
@@ -97,8 +120,8 @@ public class ListDomainsIntegrationTest extends IntegrationTestBase {
     @Test
     public void testListDomainsInvalidParameterValueException() throws Exception {
         ListDomainsRequest request = ListDomainsRequest.builder()
-                .maxNumberOfDomains(new Integer(-1))
-                .build();
+                                                       .maxNumberOfDomains(new Integer(-1))
+                                                       .build();
 
         try {
             sdb.listDomains(request);

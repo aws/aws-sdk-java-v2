@@ -20,7 +20,6 @@ import static software.amazon.awssdk.utils.FunctionalUtils.safeFunction;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;

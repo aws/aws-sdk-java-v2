@@ -1,11 +1,7 @@
 {
-  // AWS Java SDK internal configuration
   "defaultSigner": {
     "signerType": "AWS4SignerType"
   },
-  // "regionSigners" configuration takes precedence over
-  // the "serviceSigners" configuration,
-  // but not the "serviceRegionSigners" configuration
   "serviceSigners": [
     {
       "key": "importexport",
@@ -77,12 +73,6 @@
       }
     }
   ],
-  // AWS http client internal configuration.
-  // Currently, only those http client with class name not following the usual
-  // convention of (Amazon|AWS).*(JavaClient|Client)
-  // needs to be explicitly configured.  Otherwise, the service name of an
-  // http client not explicitly configured will be derived automatically from
-  // the class name by removing the prefix and suffix as necessary.
   "httpClients": [
     {
       "key": "AmazonSimpleWorkflowClient",
@@ -119,7 +109,6 @@
       "config": {
         "serviceName": "email",
         "regionMetadataServiceName": "email"
-        // for region metadata
       }
     },
     {
@@ -162,16 +151,13 @@
       "key": "AmazonDynamoDBStreamsClient",
       "config": {
         "serviceName": "dynamodb",
-        // for v4 signing
         "regionMetadataServiceName": "streams.dynamodb"
-        // for region metadata
       }
     },
     {
       "key": "AWSIotClient",
       "config": {
         "regionMetadataServiceName": "iot"
-        // for region metadata
       }
     }
   ],

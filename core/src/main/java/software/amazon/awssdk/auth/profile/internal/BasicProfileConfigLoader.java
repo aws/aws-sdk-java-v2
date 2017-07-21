@@ -24,8 +24,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.util.StringUtils;
@@ -38,7 +38,7 @@ import software.amazon.awssdk.util.StringUtils;
 public class BasicProfileConfigLoader {
 
     public static final BasicProfileConfigLoader INSTANCE = new BasicProfileConfigLoader();
-    private static final Log LOG = LogFactory.getLog(BasicProfileConfigLoader.class);
+    private static final Logger log = LoggerFactory.getLogger(BasicProfileConfigLoader.class);
 
     private BasicProfileConfigLoader() {
     }
@@ -80,7 +80,7 @@ public class BasicProfileConfigLoader {
             Map<String, String> properties = entry.getValue();
 
             if (profileName.startsWith("profile ")) {
-                LOG.warn(
+                log.warn(
                         "The legacy profile format requires the 'profile ' prefix before the profile name. " +
                         "The latest code does not require such prefix, and will consider it as part of the profile name. " +
                         "Please remove the prefix if you are seeing this warning.");

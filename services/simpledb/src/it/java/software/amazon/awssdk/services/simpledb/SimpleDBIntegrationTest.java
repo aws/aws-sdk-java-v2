@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.simpledb;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -395,7 +397,15 @@ public class SimpleDBIntegrationTest extends IntegrationTestBase {
             // Ignored or expected.
         }
 
-        assertFalse(doAttributesExistForItem(sdb, FOO_ITEM.name(), domainName, attributeNames));
+        GetAttributesRequest getRequest = GetAttributesRequest.builder()
+                .domainName(domainName)
+                .attributeNames(attributeNames)
+                .itemName(FOO_ITEM.name())
+                .consistentRead(Boolean.TRUE)
+                .build();
+
+        GetAttributesResponse getResult = sdb.getAttributes(getRequest);
+        assertThat(getResult.attributes(), equalTo(null));
     }
 
     /**
@@ -416,8 +426,15 @@ public class SimpleDBIntegrationTest extends IntegrationTestBase {
         // Assert none of the items are still in the domain
         for (int i = 0; i < ITEM_LIST.size(); i++) {
             ReplaceableItem expectedItem = (ReplaceableItem) ITEM_LIST.get(i);
-            assertFalse(doAttributesExistForItem(sdb, expectedItem.name(), domainName,
-                                                 newAttributeNameList(expectedItem.attributes())));
+            GetAttributesRequest getRequest = GetAttributesRequest.builder()
+                .domainName(domainName)
+                .attributeNames(newAttributeNameList(expectedItem.attributes()))
+                .itemName(expectedItem.name())
+                .consistentRead(Boolean.TRUE)
+                .build();
+
+        GetAttributesResponse getResult = sdb.getAttributes(getRequest);
+        assertThat(getResult.attributes(), equalTo(null));
         }
     }
 

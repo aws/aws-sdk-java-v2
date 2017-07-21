@@ -7,8 +7,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.TemporalAmount;
-import java.util.Calendar;
 import java.util.List;
 import org.junit.After;
 import org.junit.Before;

@@ -11,7 +11,6 @@ import com.google.inject.Stage;
 import cucumber.api.guice.CucumberModules;
 import cucumber.runtime.java.guice.InjectorSource;
 
-import software.amazon.awssdk.AmazonWebServiceClient;
 import ${metadata.fullClientPackageName}.${metadata.syncClient};
 
 /**

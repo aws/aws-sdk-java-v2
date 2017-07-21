@@ -25,7 +25,6 @@ import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketInventoryConfigurationRequest;
@@ -42,6 +41,7 @@ import software.amazon.awssdk.services.s3.model.InventorySchedule;
 import software.amazon.awssdk.services.s3.model.ListBucketInventoryConfigurationsRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketInventoryConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.sync.RequestBody;
 import software.amazon.awssdk.test.util.RandomTempFile;
 
 public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTestBase {

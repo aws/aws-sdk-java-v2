@@ -38,16 +38,6 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
  */
 public class MapperSaveConfigIntegrationTest extends MapperSaveConfigTestBase {
 
-    @AfterClass
-    public static void teatDown() throws Exception {
-        try {
-            //            dynamo.deleteTable(new DeleteTableRequest(tableName));
-
-        } catch (Exception e) {
-            // Ignored or expected.
-        }
-    }
-
     /*********************************************
      **          UPDATE (default)               **
      *********************************************/

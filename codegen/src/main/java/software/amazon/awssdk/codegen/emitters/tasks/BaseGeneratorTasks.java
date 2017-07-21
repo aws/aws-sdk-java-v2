@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import org.apache.commons.logging.Log;
+import org.slf4j.Logger;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
@@ -34,7 +34,7 @@ public abstract class BaseGeneratorTasks implements Iterable<GeneratorTask> {
     protected final String testDirectory;
     protected final IntermediateModel model;
     protected final Freemarker freemarker;
-    protected final Log log;
+    protected final Logger log;
 
     public BaseGeneratorTasks(GeneratorTaskParams dependencies) {
         this.baseDirectory = dependencies.getPathProvider().getSourceDirectory();

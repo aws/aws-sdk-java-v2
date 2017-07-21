@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.utils.Base64Utils;
 
 /**
@@ -54,7 +54,7 @@ public class Md5Utils {
             try {
                 bis.close();
             } catch (Exception e) {
-                LogFactory.getLog(Md5Utils.class).debug(
+                LoggerFactory.getLogger(Md5Utils.class).debug(
                         "Unable to close input stream of hash candidate: " + e);
             }
         }

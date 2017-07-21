@@ -19,10 +19,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ssm.model.CreateDocumentRequest;
 import software.amazon.awssdk.services.ssm.model.CreateDocumentResponse;
 import software.amazon.awssdk.services.ssm.model.DeleteDocumentRequest;
@@ -37,7 +37,7 @@ import software.amazon.awssdk.utils.IoUtils;
 
 public class SSMServiceIntegrationTest extends IntegrationTestBase {
 
-    private static final Log LOG = LogFactory.getLog(SSMServiceIntegrationTest.class);
+    private static final Logger log = LoggerFactory.getLogger(SSMServiceIntegrationTest.class);
     private static final String DOCUMENT_LOCATION = "documentContent.json";
     private static final String DOCUMENT_NAME = "my-document-" + System.currentTimeMillis();
 
@@ -46,7 +46,7 @@ public class SSMServiceIntegrationTest extends IntegrationTestBase {
         try {
             ssm.deleteDocument(DeleteDocumentRequest.builder().name(DOCUMENT_NAME).build());
         } catch (Exception e) {
-            LOG.error("Failed to delete config document.", e);
+            log.error("Failed to delete config document.", e);
         }
     }
 

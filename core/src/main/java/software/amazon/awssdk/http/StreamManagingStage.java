@@ -22,8 +22,8 @@ import static software.amazon.awssdk.utils.IoUtils.closeQuietly;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.RequestConfig;
 import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.Response;
@@ -44,7 +44,7 @@ import software.amazon.awssdk.util.UnreliableFilterInputStream;
  */
 public class StreamManagingStage<OutputT> implements RequestPipeline<SdkHttpFullRequest, Response<OutputT>> {
 
-    private static final Log log = LogFactory.getLog(StreamManagingStage.class);
+    private static final Logger log = LoggerFactory.getLogger(StreamManagingStage.class);
 
     private final RequestPipeline<SdkHttpFullRequest, Response<OutputT>> wrapped;
 

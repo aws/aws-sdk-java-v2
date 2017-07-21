@@ -18,6 +18,8 @@ package software.amazon.awssdk.codegen.customization.processors;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.customization.CodegenCustomizationProcessor;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.ShapeSubstitution;
@@ -29,7 +31,6 @@ import software.amazon.awssdk.codegen.model.service.Member;
 import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
-import software.amazon.awssdk.utils.Logger;
 
 /**
  * This processor internally keeps track of all the structure members whose
@@ -38,7 +39,7 @@ import software.amazon.awssdk.utils.Logger;
  */
 final class ShapeSubstitutionsProcessor implements CodegenCustomizationProcessor {
 
-    private static Logger log = Logger.loggerFor(ShapeSubstitutionsProcessor.class);
+    private static Logger log = LoggerFactory.getLogger(ShapeSubstitutionsProcessor.class);
 
     private final Map<String, ShapeSubstitution> shapeSubstitutions;
 
@@ -315,17 +316,17 @@ final class ShapeSubstitutionsProcessor implements CodegenCustomizationProcessor
     }
 
     private void trackShapeMemberSubstitution(String shapeName, String memberName, String originalShape) {
-        log.info(() -> String.format("%s -> {%s -> %s}", shapeName, memberName, originalShape));
+        log.info("{} -> ({} -> {})", shapeName, memberName, originalShape);
         if (!substitutedShapeMemberReferences.containsKey(shapeName)) {
-            substitutedShapeMemberReferences.put(shapeName, new HashMap<String, String>());
+            substitutedShapeMemberReferences.put(shapeName, new HashMap<>());
         }
         substitutedShapeMemberReferences.get(shapeName).put(memberName, originalShape);
     }
 
     private void trackListMemberSubstitution(String shapeName, String listTypeMemberName, String nestedListMemberOriginalShape) {
-        log.info(() -> String.format("%s -> {%s -> %s}", shapeName, listTypeMemberName, nestedListMemberOriginalShape));
+        log.info("{} -> ({} -> {})", shapeName, listTypeMemberName, nestedListMemberOriginalShape);
         if (!substitutedListMemberReferences.containsKey(shapeName)) {
-            substitutedListMemberReferences.put(shapeName, new HashMap<String, String>());
+            substitutedListMemberReferences.put(shapeName, new HashMap<>());
         }
         substitutedListMemberReferences.get(shapeName).put(listTypeMemberName, nestedListMemberOriginalShape);
     }

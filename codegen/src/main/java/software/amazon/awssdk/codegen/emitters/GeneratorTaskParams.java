@@ -16,8 +16,8 @@
 package software.amazon.awssdk.codegen.emitters;
 
 import java.util.function.Consumer;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.emitters.tasks.SharedModelsTaskParamsValidator;
 import software.amazon.awssdk.codegen.internal.Freemarker;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -33,7 +33,7 @@ public class GeneratorTaskParams {
     private final IntermediateModel model;
     private final GeneratorPathProvider pathProvider;
     private final PoetExtensions poetExtensions;
-    private final Log log = LogFactory.getLog(GeneratorTaskParams.class);
+    private final Logger log = LoggerFactory.getLogger(GeneratorTaskParams.class);
 
     private GeneratorTaskParams(Freemarker freemarker,
                                 IntermediateModel model,
@@ -82,7 +82,7 @@ public class GeneratorTaskParams {
     /**
      * @return Logger
      */
-    public Log getLog() {
+    public Logger getLog() {
         return log;
     }
 }

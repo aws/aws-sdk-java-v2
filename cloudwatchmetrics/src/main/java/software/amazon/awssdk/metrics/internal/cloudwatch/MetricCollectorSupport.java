@@ -17,8 +17,8 @@ package software.amazon.awssdk.metrics.internal.cloudwatch;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotation.ThreadSafe;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.RequestMetricCollector;
@@ -33,7 +33,7 @@ import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
  */
 @ThreadSafe
 public class MetricCollectorSupport extends MetricCollector {
-    protected static final Log log = LogFactory.getLog(MetricCollectorSupport.class);
+    protected static final Logger log = LoggerFactory.getLogger(MetricCollectorSupport.class);
     private static volatile MetricCollectorSupport singleton;
     private final RequestMetricCollectorSupport requestMetricCollector;
     private final ServiceMetricCollectorSupport serviceMetricCollector;
