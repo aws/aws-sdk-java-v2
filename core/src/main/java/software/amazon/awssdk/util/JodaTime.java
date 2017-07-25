@@ -204,7 +204,7 @@ public enum JodaTime {
                     return version;
                 }
             } catch (Exception e) {
-                LoggerFactory.getLogger(JodaTime.class).debug("FYI", e);
+                LoggerFactory.getLogger(LazyHolder.class).debug("FYI", e);
             }
             return null;
         }

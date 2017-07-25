@@ -41,9 +41,9 @@ public class CredentialsLegacyConfigLocationProvider extends AwsDirectoryBasePat
     public File getLocation() {
         File legacyConfigProfiles = new File(getAwsDirectory(), LEGACY_CONFIG_PROFILES_FILENAME);
         if (legacyConfigProfiles.exists() && legacyConfigProfiles.isFile()) {
-            log.warn("Found the legacy config profiles file at [" +
-                     legacyConfigProfiles.getAbsolutePath() +
-                     "]. Please move it to the latest default location [~/.aws/credentials].");
+            log.warn("Found the legacy config profiles file at [{}]. " +
+                     "Please move it to the latest default location [~/.aws/credentials]",
+                     legacyConfigProfiles.getAbsolutePath());
             return legacyConfigProfiles;
         }
         return null;

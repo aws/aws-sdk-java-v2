@@ -307,9 +307,7 @@ public final class ConversionSchemas {
 
     private static Class<?> unwrapGenericSetParam(Type setType) {
         if (!(setType instanceof ParameterizedType)) {
-            log.warn("Set type " + setType + " is not a "
-                     + "ParameterizedType, using default marshaler and "
-                     + "unmarshaler!");
+            log.warn("Set type {} is not a ParameterizedType, using default marshaller and unmarshaller", setType);
             return Object.class;
         }
 
@@ -317,9 +315,7 @@ public final class ConversionSchemas {
         Type[] arguments = ptype.getActualTypeArguments();
 
         if (arguments.length != 1) {
-            log.warn("Set type " + setType + " does not have exactly one "
-                     + "type argument, using default marshaler and "
-                     + "unmarshaler!");
+            log.warn("Set type {} does not have exactly one type argument, using default marshaller and unmarshaller", setType);
             return Object.class;
         }
 
