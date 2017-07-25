@@ -23,8 +23,9 @@ import java.io.IOException;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import org.joda.time.DateTimeZone;
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ClassesTest {
     private static final boolean VERBOSE = false;
@@ -41,7 +42,8 @@ public class ClassesTest {
 
     @Test
     public void jarFileOf() throws IOException {
-        JarFile jf = Classes.jarFileOf(DateTimeZone.class);
+        JarFile jf = Classes.jarFileOf(ObjectMapper.class);
+        assertNotNull(jf);
         Manifest mf = jf.getManifest();
         Attributes attrs = mf.getMainAttributes();
         String name = attrs.getValue("Bundle-Name");

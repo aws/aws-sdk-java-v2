@@ -21,13 +21,14 @@ import static org.junit.Assert.fail;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URL;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
-import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.auth.Aws4Signer;
@@ -62,7 +63,7 @@ public class SynthesizeSpeechPresignTest {
         c.setTimeZone(TimeZone.getTimeZone("UTC"));
         // 20161107T173933Z
         // Note: month is 0-based
-        c.set(2016, 10, 7, 17, 39, 33);
+        c.set(2016, Calendar.NOVEMBER, 7, 17, 39, 33);
         return c.getTime();
     }
 
@@ -116,9 +117,10 @@ public class SynthesizeSpeechPresignTest {
 
     @Test
     public void multipleLexiconNamesInRequest_CanonicalizesCorrectly() {
+        ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(SIGNER_DATE.toInstant(), ZoneOffset.UTC).plusMinutes(30);
         final URL url = presigners.getPresignedSynthesizeSpeechUrl(
                 new SynthesizeSpeechPresignRequest()
-                        .withExpirationDate(new DateTime(SIGNER_DATE).plusMinutes(30).toDate())
+                        .withExpirationDate(Date.from(zonedDateTime.toInstant()))
                         .withText("S3 is an AWS service")
                         .withOutputFormat(OutputFormat.Mp3)
                         .withLexiconNames("FooLexicon", "AwsLexicon")

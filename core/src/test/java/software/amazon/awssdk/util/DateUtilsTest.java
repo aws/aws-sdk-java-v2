@@ -15,30 +15,35 @@
 
 package software.amazon.awssdk.util;
 
+import static java.time.ZoneOffset.UTC;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static software.amazon.awssdk.util.DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.Locale;
 import java.util.SimpleTimeZone;
-import org.joda.time.DateTime;
-import org.joda.time.IllegalFieldValueException;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Test;
 import software.amazon.awssdk.protocol.json.SdkJsonGenerator;
 import software.amazon.awssdk.protocol.json.StructuredJsonGenerator;
 
 public class DateUtilsTest {
     private static final boolean DEBUG = false;
+    private static final int MAX_MILLIS_YEAR = 292278994;
 
     @Test
-    public void tt0031561767() throws ParseException {
+    public void tt0031561767() {
         String input = "Fri, 16 May 2014 23:56:46 GMT";
         Instant date = DateUtils.parseRfc822Date(input);
         assertEquals(input, DateUtils.formatRfc822Date(date));
@@ -100,7 +105,7 @@ public class DateUtilsTest {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
         String formatted = sdf.format(date);
-        String alternative = DateUtils.ISO_8601_DATE_FORMAT.print(date.getTime());
+        String alternative = DateTimeFormatter.ISO_DATE_TIME.format(ZonedDateTime.ofInstant(date.toInstant(), UTC));
         assertEquals(formatted, alternative);
 
         Date expectedDate = sdf.parse(formatted);
@@ -114,7 +119,7 @@ public class DateUtilsTest {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
         sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
         String formatted = sdf.format(date);
-        String alternative = DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT.print(date.getTime());
+        String alternative = ALTERNATE_ISO_8601_DATE_FORMAT.format(ZonedDateTime.ofInstant(date.toInstant(), UTC));
         assertEquals(formatted, alternative);
 
         Date expectedDate = sdf.parse(formatted);
@@ -128,12 +133,12 @@ public class DateUtilsTest {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
         sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
         String expected = sdf.format(date);
-        String actual = DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT.print(date.getTime());
+        String actual = ALTERNATE_ISO_8601_DATE_FORMAT.format(ZonedDateTime.ofInstant(date.toInstant(), UTC));;
         assertEquals(expected, actual);
 
         Date expectedDate = sdf.parse(expected);
-        DateTime actualDateTime = DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT.parseDateTime(actual);
-        assertEquals(expectedDate, new Date(actualDateTime.getMillis()));
+        ZonedDateTime actualDateTime = ZonedDateTime.parse(actual, ALTERNATE_ISO_8601_DATE_FORMAT);
+        assertEquals(expectedDate, new Date(actualDateTime.toInstant().toEpochMilli()));
     }
 
     @Test
@@ -144,17 +149,18 @@ public class DateUtilsTest {
         sdf.parse(input);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void invalidDate() throws ParseException {
+    @Test(expected = DateTimeParseException.class)
+    public void invalidDate() {
         final String input = "2014-03-06T14:28:58.000Z.000Z";
         DateUtils.parseIso8601Date(input);
     }
 
     @Test
-    public void test() throws ParseException {
+    public void test() {
         Date date = new Date();
         System.out.println("         formatISO8601Date: " + DateUtils.formatIso8601Date(date));
-        System.out.println("alternateIso8601DateFormat: " + DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT.print(date.getTime()));
+        System.out.println("alternateIso8601DateFormat: " +
+                               ALTERNATE_ISO_8601_DATE_FORMAT.format(ZonedDateTime.ofInstant(date.toInstant(), UTC)));
     }
 
     @Test
@@ -171,28 +177,25 @@ public class DateUtilsTest {
         if (DEBUG) {
             System.out.println("formatted: " + formatted);
         }
-        assertEquals(edgeCase, formatted);
+        assertEquals("+" + edgeCase, formatted);
         Date parsed = DateUtils.parseIso8601Date(edgeCase);
         if (DEBUG) {
             System.out.println("parsed: " + parsed);
         }
         assertEquals(expected, parsed);
         String reformatted = DateUtils.formatIso8601Date(parsed);
-        assertEquals(edgeCase, reformatted);
+        assertEquals("+" + edgeCase, reformatted);
     }
 
-    @Test(expected = IllegalFieldValueException.class)
-    public void testIssue233JodaTimeLimit() throws ParseException {
+    @Test
+    public void testIssue233JavaTimeLimit() {
         // https://github.com/aws/aws-sdk-java/issues/233
-        String s = DateUtils.ISO_8601_DATE_FORMAT.print(Long.MAX_VALUE);
+        String s = ALTERNATE_ISO_8601_DATE_FORMAT.format(
+                        ZonedDateTime.ofInstant(Instant.ofEpochMilli(Long.MAX_VALUE), UTC));
         System.out.println("s: " + s);
-        try {
-            DateTime dt = DateUtils.ISO_8601_DATE_FORMAT.parseDateTime(s);
-            fail("Unexpected success: " + dt);
-        } catch (IllegalFieldValueException ex) {
-            // expected
-            throw ex;
-        }
+
+        ZonedDateTime parsed = ZonedDateTime.parse(s, DateTimeFormatter.ISO_DATE_TIME);
+        assertTrue(parsed.getYear() == MAX_MILLIS_YEAR);
     }
 
     @Test
@@ -200,32 +203,30 @@ public class DateUtilsTest {
         // https://github.com/aws/aws-sdk-java/issues/233
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
-        String edgeCase = "292278994-08-17T07:12:55.807Z";
-        String testCase = "292278993-08-17T07:12:55.807Z";
+        String edgeCase = String.valueOf(MAX_MILLIS_YEAR) + "-08-17T07:12:55.807Z";
+        String testCase = String.valueOf(MAX_MILLIS_YEAR - 1) +"-08-17T07:12:55.807Z";
         Date od = sdf.parse(edgeCase);
         Date testd = sdf.parse(testCase);
         long diff = od.getTime() - testd.getTime();
-        assertTrue(diff == 365L * 24 * 60 * 60 * 1000);
+        assertTrue(diff == TimeUnit.DAYS.toMillis(365));
     }
 
-    @Test
-    public void testIssue233Overflows() throws ParseException {
-        String[] cases = {
-            // 1 milli second passed the max time
-            "292278994-08-17T07:12:55.808Z",
-            // 1 year passed the max year
-            "292278995-01-17T07:12:55.807Z",
-        };
-        for (String edgeCase : cases) {
-            try {
-                Date parsed = DateUtils.parseIso8601Date(edgeCase);
-                fail("Unexpected success: " + parsed);
-            } catch (IllegalArgumentException ex) {
-                String msg = ex.getMessage();
-                assertTrue(msg
-                                   .contains("must be in the range [-292275054,292278993]"));
-            }
-        }
+    // Does not fit Long.MAX_VALUE
+    @Test(expected = ArithmeticException.class)
+    public void testIssue233OverflowMillisecond() {
+        Date date = DateUtils.parseIso8601Date(String.format("%d-08-17T07:12:55.808Z", MAX_MILLIS_YEAR));
+        date.toInstant().toEpochMilli();
+    }
+
+    @Test(expected = DateTimeParseException.class)
+    public void testIssue233OverflowYear() {
+        DateUtils.parseIso8601Date(String.format("%d-08-17T07:12:55.808Z", MAX_MILLIS_YEAR + 1));
+    }
+
+    @Test(expected = ArithmeticException.class)
+    public void testIssue233OverflowSignedYear() {
+        Date date = DateUtils.parseIso8601Date(String.format("+%d-08-17T07:12:55.808Z", MAX_MILLIS_YEAR + 1));
+        date.toInstant().toEpochMilli();
     }
 
     /**
@@ -243,8 +244,7 @@ public class DateUtilsTest {
         String serverSpecificDateFormat = DateUtils
                 .formatServiceSpecificDate(new Date(dateInMilliSeconds));
 
-        Date parsedDate = DateUtils.parseServiceSpecificDate(String
-                                                                     .valueOf(serverSpecificDateFormat));
+        Date parsedDate = DateUtils.parseServiceSpecificDate(String.valueOf(serverSpecificDateFormat));
 
         assertEquals(Long.valueOf(dateInMilliSeconds),
                      Long.valueOf(parsedDate.getTime()));
@@ -294,8 +294,9 @@ public class DateUtilsTest {
     public void numberOfDaysSinceEpoch() {
         final long now = System.currentTimeMillis();
         final long days = DateUtils.numberOfDaysSinceEpoch(now);
-        final int oneDayMilli = 24 * 60 * 60 * 1000;
-        assertTrue(now > days * oneDayMilli);
-        assertTrue((now - days * oneDayMilli) <= oneDayMilli);
+        final long oneDayMilli = TimeUnit.DAYS.toMillis(1);
+        // Could be equal at 00:00:00.
+        assertTrue(now >= TimeUnit.DAYS.toMillis(days));
+        assertTrue((now - TimeUnit.DAYS.toMillis(days)) <= oneDayMilli);
     }
 }

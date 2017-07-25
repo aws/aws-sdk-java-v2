@@ -19,6 +19,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -32,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
-import org.joda.time.DateTime;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.util.DateUtils;
@@ -124,7 +125,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
          */
         CALENDAR(ScalarAttributeType.S, new ConverterMap(Calendar.class, null)
                 .with(Date.class, ToCalendar.FROM_DATE)
-                .with(DateTime.class, ToCalendar.FROM_DATE.join(ToDate.FROM_DATETIME))
+                .with(ZonedDateTime.class, ToCalendar.FROM_DATE.join(ToDate.FROM_ZONEDDATETIME))
                 .with(Long.class, ToCalendar.FROM_DATE.join(ToDate.FROM_LONG))
                 .with(String.class, ToCalendar.FROM_DATE.join(ToDate.FROM_STRING))
         ),
@@ -148,7 +149,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
          */
         DATE(ScalarAttributeType.S, new ConverterMap(Date.class, null)
                 .with(Calendar.class, ToDate.FROM_CALENDAR)
-                .with(DateTime.class, ToDate.FROM_DATETIME)
+                .with(ZonedDateTime.class, ToDate.FROM_ZONEDDATETIME)
                 .with(Long.class, ToDate.FROM_LONG)
                 .with(String.class, ToDate.FROM_STRING)
         ),
@@ -156,11 +157,11 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
         /**
          * {@link DateTime}
          */
-        DATE_TIME(/*ScalarAttributeType.S*/null, new ConverterMap(DateTime.class, null)
-                .with(Calendar.class, ToDateTime.FROM_DATE.join(ToDate.FROM_CALENDAR))
-                .with(Date.class, ToDateTime.FROM_DATE)
-                .with(Long.class, ToDateTime.FROM_DATE.join(ToDate.FROM_LONG))
-                .with(String.class, ToDateTime.FROM_DATE.join(ToDate.FROM_STRING))
+        DATE_TIME(/*ScalarAttributeType.S*/null, new ConverterMap(ZonedDateTime.class, null)
+                .with(Calendar.class, ToDateTime.FROM_ZONEDDATETIME.join(ToDate.FROM_CALENDAR))
+                .with(Date.class, ToDateTime.FROM_ZONEDDATETIME)
+                .with(Long.class, ToDateTime.FROM_ZONEDDATETIME.join(ToDate.FROM_LONG))
+                .with(String.class, ToDateTime.FROM_ZONEDDATETIME.join(ToDate.FROM_STRING))
         ),
 
         /**
@@ -199,7 +200,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
          */
         LONG(ScalarAttributeType.N, new ConverterMap(Long.class, Long.TYPE)
                 .with(Date.class, ToLong.FROM_DATE)
-                .with(DateTime.class, ToLong.FROM_DATE.join(ToDate.FROM_DATETIME))
+                .with(ZonedDateTime.class, ToLong.FROM_DATE.join(ToDate.FROM_ZONEDDATETIME))
                 .with(Number.class, ToLong.FROM_NUMBER)
                 .with(String.class, ToLong.FROM_STRING)
         ),
@@ -687,10 +688,10 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
             }
         };
 
-        private static final ToDate<DateTime> FROM_DATETIME = new ToDate<DateTime>() {
+        private static final ToDate<ZonedDateTime> FROM_ZONEDDATETIME = new ToDate<ZonedDateTime>() {
             @Override
-            public Date convert(final DateTime o) {
-                return o.toDate();
+            public Date convert(final ZonedDateTime o) {
+                return Date.from(o.toInstant());
             }
         };
 
@@ -710,12 +711,12 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
     }
 
     /**
-     * {@link DateTime} conversion functions.
+     * {@link java.time.ZonedDateTime} conversion functions.
      */
-    private abstract static class ToDateTime<T> extends Converter<DateTime, T> {
-        private static final ToDateTime<Date> FROM_DATE = new ToDateTime<Date>() {
-            public DateTime convert(final Date o) {
-                return new DateTime(o);
+    private abstract static class ToDateTime<T> extends Converter<ZonedDateTime, T> {
+        private static final ToDateTime<Date> FROM_ZONEDDATETIME = new ToDateTime<Date>() {
+            public ZonedDateTime convert(final Date o) {
+                return ZonedDateTime.ofInstant(o.toInstant(), ZoneOffset.UTC);
             }
         };
     }
