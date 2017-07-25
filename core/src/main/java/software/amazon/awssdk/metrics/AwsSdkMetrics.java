@@ -370,7 +370,7 @@ public enum AwsSdkMetrics {
                 }
             }
             if (registered) {
-                log.debug("Admin mbean registered under " + registeredAdminMbeanName);
+                log.debug("Admin mbean registered under {}", registeredAdminMbeanName);
             }
             return registered;
         }
