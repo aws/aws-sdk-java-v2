@@ -224,7 +224,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                             ClassName.get("software.amazon.awssdk.services.s3", "AwsS3V4Signer"),
                             ClassName.get("software.amazon.awssdk.services.s3", "AwsS3V4Signer"),
                             model.getMetadata().getSigningName(),
-                            ClassName.get("software.amazon.awssdk.services.s3.auth", "S3SignerProvider"));
+                            StaticSignerProvider.class);
     }
 
     @Override
