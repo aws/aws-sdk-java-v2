@@ -46,6 +46,11 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.burt</groupId>
+            <artifactId>jmespath-jackson</artifactId>
+            <version>0.2.0</version>
+        </dependency>
+        <dependency>
             <artifactId>org.eclipse.jdt.core</artifactId>
             <groupId>org.eclipse.jdt</groupId>
             <version>3.10.0</version>
@@ -64,10 +69,6 @@
             <groupId>com.squareup</groupId>
             <artifactId>javapoet</artifactId>
             <version>1.8.0</version>
-        </dependency>
-        <dependency>
-            <artifactId>jmespath-java</artifactId>
-            <groupId>software.amazon.awssdk</groupId>
         </dependency>
         <dependency>
             <artifactId>commons-lang3</artifactId>
