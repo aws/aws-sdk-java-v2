@@ -83,9 +83,6 @@ public class SendEmptyListIntegrationTest extends AwsIntegrationTestBase {
     @After
     public void tearDown() {
         cf.deleteStack(DeleteStackRequest.builder().stackName(stackName).build());
-        cf.waiters()
-          .stackDeleteComplete()
-          .run(getWaiterParameters(stackName));
     }
 
     @Test
