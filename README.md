@@ -41,7 +41,7 @@ dependencies.
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bom</artifactId>
-      <version>2.0.0-preview-1</version>
+      <version>2.0.0-preview-2</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -78,13 +78,6 @@ information about installing the SDK through other means.
 * Provides first class support for non-blocking IO in Async clients.
 
 ## Building From Source
-
-The SDK currently requires some Python dependencies at build time. First you must [install](https://www.python.org/downloads/) Python 2.7 or later and the jmespath Python module.
-After installing Python, you can install the jmespath module using the following command.
-
-```sh
-pip install -Iv jmespath==0.9.3
-```
 
 Once you check out the code from GitHub, you can build it using Maven. To disable the GPG-signing
 in the build, use:
