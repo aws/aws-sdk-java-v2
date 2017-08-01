@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.retry.v2;
 
-import software.amazon.awssdk.Request;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.SdkInternalApi;
@@ -60,7 +59,7 @@ public class RetryPolicyContext {
     }
 
     /**
-     * @return The marshalled request. See {@link Request#addHandlerContext(HandlerContextKey, Object)} for a mechanism to store
+     * @return The marshalled request. See {@link SdkHttpFullRequest#handlerContext(HandlerContextKey)} for a mechanism to store
      *     request level state across invocations of the retry policy.
      */
     public SdkHttpFullRequest request() {

@@ -173,16 +173,4 @@ public class EmptyHttpRequest implements Request<Object> {
         return new AmazonWebServiceRequest() {
         };
     }
-
-
-    @Override
-    public <X> void addHandlerContext(HandlerContextKey<X> key, X value) {
-
-    }
-
-    @Override
-    public <X> X getHandlerContext(HandlerContextKey<X> key) {
-        return null;
-    }
-
 }
