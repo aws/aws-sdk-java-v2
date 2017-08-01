@@ -38,11 +38,40 @@ public class TimerExceptionHandlingStage<OutputT> implements RequestToResponsePi
     public Response<OutputT> execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         try {
             return requestPipeline.execute(request, context);
-        } catch (IOException ioe) {
-            if (context.getClientExecutionTrackerTask().hasTimeoutExpired()) {
+        } catch (Exception e) {
+            if (isTimeoutCausedException(context, e)) {
                 throw new InterruptedException();
             }
-            throw ioe;
+            throw e;
         }
+    }
+
+    /**
+     * Detects if the exception thrown was triggered by the execution timeout.
+     *
+     * @param context {@link RequestExecutionContext} object.
+     * @param e       Exception thrown by request pipeline.
+     * @return True if the exception was caused by the execution timeout, false if not.
+     */
+    private boolean isTimeoutCausedException(RequestExecutionContext context, Exception e) {
+        return isIoException(e) && context.getClientExecutionTrackerTask().hasTimeoutExpired();
+    }
+
+    /**
+     * Detects if this exception is an {@link IOException} or was caused by an {@link IOException}. Will unwrap the exception
+     * until an {@link IOException} is found or the cause it empty.
+     *
+     * @param e Exception to test.
+     * @return True if exception was caused by an {@link IOException}, false otherwise.
+     */
+    private boolean isIoException(Exception e) {
+        Throwable cur = e;
+        while (cur != null) {
+            if (cur instanceof IOException) {
+                return true;
+            }
+            cur = cur.getCause();
+        }
+        return false;
     }
 }

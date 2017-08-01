@@ -43,6 +43,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.sync.RequestBody;
+import software.amazon.awssdk.test.util.RandomTempFile;
 
 /**
  * Integration tests for the listObjectsV2 operation in the Amazon S3 Java
@@ -110,7 +111,7 @@ public class S3ListObjectsV2IntegrationTest extends S3IntegrationTestBase {
      */
     private static void createKey(String key) throws Exception {
 
-        File file = getRandomTempFile("list-objects-integ-test-" + new Date().getTime(), CONTENT_LENGTH);
+        File file = new RandomTempFile("list-objects-integ-test-" + new Date().getTime(), CONTENT_LENGTH);
 
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(bucketName)

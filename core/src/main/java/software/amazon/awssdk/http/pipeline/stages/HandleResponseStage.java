@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.util.Optional;
 import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.Response;
+import software.amazon.awssdk.RetryableException;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.event.ProgressEventType;
@@ -96,7 +97,7 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
             publishProgress(listener, ProgressEventType.HTTP_RESPONSE_COMPLETED_EVENT);
 
             return awsResponse;
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException | InterruptedException | RetryableException e) {
             throw e;
         } catch (Exception e) {
             String errorMessage =
@@ -143,7 +144,14 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
                         // Always close on failed requests. Close on successful unless streaming operation.
                         .filter(i -> didRequestFail || !successResponseHandler.needsConnectionLeftOpen());
         if (inputStreamOptional.isPresent()) {
-            inputStreamOptional.get().close();
+            try {
+                inputStreamOptional.get().close();
+            } catch (Exception e) {
+                // We don't want failure to close to hide the original exception.
+                if (!didRequestFail) {
+                    throw e;
+                }
+            }
         }
     }
 

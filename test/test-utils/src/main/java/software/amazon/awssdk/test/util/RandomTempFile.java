@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.utils.JavaSystemSetting;
@@ -43,6 +44,35 @@ public class RandomTempFile extends File {
 
     /** Flag controlling whether binary or character data is used. */
     private final boolean binaryData;
+
+    /**
+     * Creates, and fills, a temp file with a randomly generated name and specified size of random ASCII data.
+     *
+     * @param sizeInBytes The amount of random ASCII data, in bytes, for the new temp
+     *                    file.
+     * @throws IOException If any problems were encountered creating the new temp file.
+     */
+    public RandomTempFile(int sizeInBytes) throws IOException {
+        this(UUID.randomUUID().toString(), sizeInBytes, false);
+    }
+
+    /**
+     * Creates, and fills, a temp file with the specified name and specified
+     * size of random ASCII data.
+     *
+     * @param filename
+     *            The name for the new temporary file, within the Java temp
+     *            directory as declared in the JRE's system properties.
+     * @param sizeInBytes
+     *            The amount of random ASCII data, in bytes, for the new temp
+     *            file.
+     *
+     * @throws IOException
+     *             If any problems were encountered creating the new temp file.
+     */
+    public RandomTempFile(String filename, int sizeInBytes) throws IOException {
+        this(filename, sizeInBytes, false);
+    }
 
 
     /**
@@ -112,6 +142,20 @@ public class RandomTempFile extends File {
             outputStream.close();
             inputStream.close();
         }
+    }
+
+    @Override
+    public boolean delete() {
+        if (!super.delete()) {
+            throw new RuntimeException("Could not delete: " + getAbsolutePath());
+        }
+        return true;
+    }
+
+    public static File randomUncreatedFile() {
+        File random = new File(TEMP_DIR, UUID.randomUUID().toString());
+        random.deleteOnExit();
+        return random;
     }
 
 }

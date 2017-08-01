@@ -25,6 +25,7 @@ import java.time.Instant;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.ResetException;
 import software.amazon.awssdk.Response;
@@ -146,10 +147,14 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
                         releaseRetryCapacity();
                         return response;
                     } else {
-                        setRetriedException(handleSdkException(response));
+                        setRetriedException(handleUnmarshalledException(response));
                     }
-                } catch (IOException ioe) {
-                    setRetriedException(handleIoException(ioe));
+                } catch (AmazonServiceException e) {
+                    // TODO This can be cleaned up a bit if we have separate hierarchies for service and client exceptions
+                    // as we can just catch the client exception below.
+                    throw e;
+                } catch (SdkBaseException | IOException e) {
+                    setRetriedException(handleThrownException(e));
                 }
             }
         }
@@ -195,7 +200,7 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
             this.retriedException = Optional.of(e);
         }
 
-        private SdkBaseException handleSdkException(Response<OutputT> response) {
+        private SdkBaseException handleUnmarshalledException(Response<OutputT> response) {
             SdkBaseException exception = response.getException();
             if (!shouldRetry(response.getHttpResponse(), exception)) {
                 throw exception;
@@ -211,12 +216,12 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
             return exception;
         }
 
-        private SdkBaseException handleIoException(IOException ioe) {
-            SdkClientException sdkClientException = new SdkClientException(
-                    "Unable to execute HTTP request: " + ioe.getMessage(), ioe);
+        private SdkBaseException handleThrownException(Exception e) {
+            SdkClientException sdkClientException = e instanceof SdkClientException ?
+                    (SdkClientException) e : new SdkClientException("Unable to execute HTTP request: " + e.getMessage(), e);
             boolean willRetry = shouldRetry(null, sdkClientException);
             if (log.isDebugEnabled()) {
-                log.debug(sdkClientException.getMessage() + (willRetry ? " Request will be retried." : ""), ioe);
+                log.debug(sdkClientException.getMessage() + (willRetry ? " Request will be retried." : ""), e);
             }
             if (!willRetry) {
                 throw sdkClientException;

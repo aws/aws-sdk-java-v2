@@ -20,6 +20,8 @@ import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.LegacyClientConfiguration;
+import software.amazon.awssdk.NonRetryableException;
+import software.amazon.awssdk.RetryableException;
 
 /**
  * This class includes a set of pre-defined retry policies, including default
@@ -163,6 +165,17 @@ public class PredefinedRetryPolicies {
         public boolean shouldRetry(AmazonWebServiceRequest originalRequest,
                                    AmazonClientException exception,
                                    int retriesAttempted) {
+
+            // Always retry when wrapped with RetryableException
+            if (exception.getCause() instanceof RetryableException) {
+                return true;
+            }
+
+            // Never retry when wrapped with NonRetryableException
+            if (exception.getCause() instanceof NonRetryableException) {
+                return false;
+            }
+
             // Always retry on client exceptions caused by IOException
             if (exception.getCause() instanceof IOException) {
                 return true;

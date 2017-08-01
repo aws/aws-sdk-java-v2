@@ -29,6 +29,7 @@ import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.sync.RequestBody;
+import software.amazon.awssdk.test.util.RandomTempFile;
 
 public class UserMetadataIntegrationTest extends S3IntegrationTestBase {
 
@@ -58,7 +59,7 @@ public class UserMetadataIntegrationTest extends S3IntegrationTestBase {
                                                                                                .build())
                                            .build());
 
-        file = getRandomTempFile("user-metadata-integ-test-" + new Date().getTime(), CONTENT_LENGTH);
+        file = new RandomTempFile("user-metadata-integ-test-" + new Date().getTime(), CONTENT_LENGTH);
     }
 
     @AfterClass

@@ -15,6 +15,10 @@
 
 package software.amazon.awssdk.runtime.transform;
 
+import static software.amazon.awssdk.http.AmazonHttpClient.checkInterrupted;
+
+import software.amazon.awssdk.NonRetryableException;
+import software.amazon.awssdk.RetryableException;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
@@ -42,13 +46,19 @@ public class UnmarshallingStreamingResponseHandler<ResponseT, ReturnT> implement
     @Override
     public ReturnT handle(HttpResponse response) throws Exception {
         ResponseT unmarshalled = unmarshaller.apply(response);
-        ReturnT toReturn = streamHandler.apply(unmarshalled, new AbortableInputStream(response.getContent(), response));
-        response.getContent().close();
-        return toReturn;
+        try {
+            return streamHandler.apply(unmarshalled, new AbortableInputStream(response.getContent(), response));
+        } catch (RetryableException | InterruptedException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new NonRetryableException(e);
+        } finally {
+            checkInterrupted();
+        }
     }
 
     @Override
     public boolean needsConnectionLeftOpen() {
-        return false;
+        return streamHandler.needsConnectionLeftOpen();
     }
 }
