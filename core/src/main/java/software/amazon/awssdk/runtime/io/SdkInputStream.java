@@ -17,7 +17,7 @@ package software.amazon.awssdk.runtime.io;
 
 import java.io.IOException;
 import java.io.InputStream;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AbortedException;
 import software.amazon.awssdk.internal.io.Releasable;
 import software.amazon.awssdk.runtime.MetricAware;
@@ -55,7 +55,7 @@ public abstract class SdkInputStream extends InputStream implements
             try {
                 abort();    // execute subclass specific abortion logic
             } catch (IOException e) {
-                LogFactory.getLog(getClass()).debug("FYI", e);
+                LoggerFactory.getLogger(getClass()).debug("FYI", e);
             }
             throw new AbortedException();
         }

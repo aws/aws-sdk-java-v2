@@ -29,11 +29,6 @@
         <scope>test</scope>
         <version>${awsjavasdk.version}</version>
     </dependency>
-    <dependency>
-        <artifactId>jmespath-java</artifactId>
-        <groupId>software.amazon.awssdk</groupId>
-        <optional>false</optional>
-    </dependency>
 </dependencies>
     </profile>
   </profiles>

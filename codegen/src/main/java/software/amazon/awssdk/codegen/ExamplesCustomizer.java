@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.config.customization.ModifyModelShapeModifier;
 import software.amazon.awssdk.codegen.model.config.customization.ShapeModifier;
@@ -35,14 +37,13 @@ import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.Output;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
-import software.amazon.awssdk.utils.Logger;
 
 /**
  * Transforms the examples so that they are in line with any shape related
  * customizations for the given service.
  */
 public class ExamplesCustomizer {
-    private static final Logger log = Logger.loggerFor(ExamplesCustomizer.class);
+    private static final Logger log = LoggerFactory.getLogger(ExamplesCustomizer.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private final ServiceModel serviceModel;
     private final CustomizationConfig customizationConfig;
@@ -79,7 +80,7 @@ public class ExamplesCustomizer {
             return null;
         }
 
-        log.info(() -> String.format("Customizing operation example : %s", example.getId()));
+        log.info("Customizing operation example {}", example.getId());
 
         Input input = operation.getInput();
         if (input != null) {
@@ -139,12 +140,12 @@ public class ExamplesCustomizer {
                                                   + " member '%s' as shape '%s' produced null value. Original"
                                                   + " value: %s", shapeName, shapeSub.getEmitFromMember(),
                                                   substituteShapeName, valueNode.toString());
-                    log.error(() -> errMsg);
+                    log.error(errMsg);
                 }
             }
             String logMsg = String.format("Substituting shape %s with %s. %s -> %s", shapeName,
                                           substituteShapeName, valueNode.toString(), Objects.toString(substituteValue));
-            log.info(() -> logMsg);
+            log.info(logMsg);
 
             return applyCustomizationsToShapeJson(substituteShapeName, substituteShape, substituteValue);
         } else {

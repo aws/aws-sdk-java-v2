@@ -26,13 +26,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.junit.Ignore;
 import org.junit.Test;
-import software.amazon.awssdk.services.sqs.buffered.SqsBufferedAsyncClient;
 import software.amazon.awssdk.services.sqs.buffered.QueueBufferConfig;
+import software.amazon.awssdk.services.sqs.buffered.SqsBufferedAsyncClient;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.CreateQueueResponse;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
@@ -79,9 +76,6 @@ public class BufferedSqsPerfIntegrationTest extends IntegrationTestBase {
         config.setMaxDoneReceiveBatches(100);
         SQSAsyncClient buffSqs = new SqsBufferedAsyncClient(sqsAsync, config);
 
-        BasicConfigurator.resetConfiguration();
-        Logger logger = Logger.getRootLogger();
-        logger.setLevel(Level.ERROR);
         ExecutorService exec = Executors.newCachedThreadPool();
 
         CreateQueueResponse createRes = buffSqs.createQueue(CreateQueueRequest.builder().queueName(queueName).build()).join();

@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utility methods for doing reflection.
@@ -494,11 +494,9 @@ public final class ReflectionUtils {
             // Ignored or expected.
         }
 
-        LogFactory.getLog(ReflectionUtils.class).warn(
-                "No accessor for property '"
-                + propertyName + "' " + "found in class "
-                + target.getClass().getName());
-
+        LoggerFactory.getLogger(ReflectionUtils.class).warn("No accessor for property '{}' found in class {}",
+                                                            propertyName,
+                                                            target.getClass().getName());
         return null;
     }
 

@@ -19,8 +19,8 @@ import static software.amazon.awssdk.event.SdkProgressPublisher.publishResponseC
 
 import java.io.InputStream;
 import java.util.Optional;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.event.ProgressInputStream;
 import software.amazon.awssdk.event.ProgressListener;
@@ -35,7 +35,7 @@ import software.amazon.awssdk.utils.Pair;
 public class InstrumentHttpResponseContentStage
         implements RequestPipeline<Pair<SdkHttpFullRequest, HttpResponse>, Pair<SdkHttpFullRequest, HttpResponse>> {
 
-    private static final Log log = LogFactory.getLog(InstrumentHttpResponseContentStage.class);
+    private static final Logger log = LoggerFactory.getLogger(InstrumentHttpResponseContentStage.class);
 
     @Override
     public Pair<SdkHttpFullRequest, HttpResponse> execute(Pair<SdkHttpFullRequest, HttpResponse> input,

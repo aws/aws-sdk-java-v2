@@ -18,14 +18,12 @@ package software.amazon.awssdk.codegen.poet.model;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Locale;
-
+import org.junit.BeforeClass;
+import org.junit.Test;
 import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.IntermediateModelBuilder;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
@@ -41,10 +39,14 @@ public class AwsModelSpecTest {
     @BeforeClass
     public static void setUp() throws URISyntaxException, IOException {
         serviceModelFile = new File(AwsModelSpecTest.class.getResource("service-2.json").getFile());
+        File customizationConfigFile = new File(AwsModelSpecTest.class
+                .getResource("customization.config")
+                .getFile());
+
         intermediateModel = new IntermediateModelBuilder(
                 C2jModels.builder()
                         .serviceModel(ModelLoaderUtils.loadModel(ServiceModel.class, serviceModelFile))
-                        .customizationConfig(CustomizationConfig.DEFAULT)
+                        .customizationConfig(ModelLoaderUtils.loadModel(CustomizationConfig.class, customizationConfigFile))
                         .build())
                 .build();
     }

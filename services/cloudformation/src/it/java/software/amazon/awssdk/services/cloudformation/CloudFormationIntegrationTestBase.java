@@ -110,20 +110,4 @@ public class CloudFormationIntegrationTestBase extends AwsTestBase {
         s3.deleteBucket(DeleteBucketRequest.builder().bucket(bucketName).build());
     }
 
-    /**
-     * An auxiliary class to help instantiate the action object.
-     */
-    protected static class NamedAction implements Action {
-
-        private String actionName;
-
-        public NamedAction(String actionName) {
-            this.actionName = actionName;
-        }
-
-        public String getActionName() {
-            return actionName;
-        }
-    }
-
 }

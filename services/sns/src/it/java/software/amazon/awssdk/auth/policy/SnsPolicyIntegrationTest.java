@@ -18,7 +18,6 @@ package software.amazon.awssdk.auth.policy;
 import org.junit.After;
 import org.junit.Test;
 import software.amazon.awssdk.auth.policy.Statement.Effect;
-import software.amazon.awssdk.auth.policy.actions.SnsActions;
 import software.amazon.awssdk.auth.policy.conditions.SnsConditionFactory;
 import software.amazon.awssdk.services.sns.IntegrationTestBase;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
@@ -49,7 +48,7 @@ public class SnsPolicyIntegrationTest extends IntegrationTestBase {
 
         Policy policy = new Policy()
                 .withStatements(new Statement(Effect.Allow)
-                                        .withActions(SnsActions.Subscribe)
+                                        .withActions(new Action("sns:Subscribe"))
                                         .withPrincipals(Principal.ALL_USERS)
                                         .withResources(new Resource(topicArn))
                                         .withConditions(

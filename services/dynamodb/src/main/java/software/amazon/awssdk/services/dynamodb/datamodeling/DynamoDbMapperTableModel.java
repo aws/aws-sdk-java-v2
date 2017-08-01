@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex;
@@ -190,9 +191,11 @@ public final class DynamoDbMapperTableModel<T> implements DynamoDbTypeConverter<
                 .projection(Projection.builder()
                         .projectionType(gsi.projection().projectionType())
                         .build());
+        List<KeySchemaElement> keySchemas = new ArrayList<>();
         for (final KeySchemaElement key : gsi.keySchema()) {
-            copyBuilder.keySchema(KeySchemaElement.builder().attributeName(key.attributeName()).keyType(key.keyType()).build());
+            keySchemas.add(KeySchemaElement.builder().attributeName(key.attributeName()).keyType(key.keyType()).build());
         }
+        copyBuilder.keySchema(keySchemas);
         return copyBuilder.build();
     }
 
@@ -226,12 +229,15 @@ public final class DynamoDbMapperTableModel<T> implements DynamoDbTypeConverter<
                 .projection(Projection.builder()
                         .projectionType(lsi.projection().projectionType())
                         .build());
+
+        List<KeySchemaElement> keySchemas = new ArrayList<>();
         for (final KeySchemaElement key : lsi.keySchema()) {
-            copyBuilder.keySchema(KeySchemaElement.builder()
-                    .attributeName(key.attributeName())
-                    .keyType(key.keyType())
-                    .build());
+            keySchemas.add(KeySchemaElement.builder()
+                                           .attributeName(key.attributeName())
+                                           .keyType(key.keyType())
+                                           .build());
         }
+        copyBuilder.keySchema(keySchemas);
         return copyBuilder.build();
     }
 
@@ -419,11 +425,17 @@ public final class DynamoDbMapperTableModel<T> implements DynamoDbTypeConverter<
                                 targetType.getSimpleName() + "[" + field.name() + "]; no HASH key for GSI " + indexName
                         );
                     }
+
+                    List<KeySchemaElement> keySchemas = new ArrayList<>();
+                    keySchemas.addAll(gsi.keySchema());
+
+                    keySchemas.add(KeySchemaElement.builder()
+                                            .attributeName(field.name())
+                                            .keyType(RANGE).build());
+
                     map.put(indexName,
                             gsi.toBuilder()
-                                    .keySchema(KeySchemaElement.builder()
-                                            .attributeName(field.name())
-                                            .keyType(RANGE).build()).build());
+                                    .keySchema(keySchemas).build());
                 }
             }
             if (map.isEmpty()) {

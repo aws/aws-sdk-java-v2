@@ -32,8 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.SdkClientException;
@@ -208,7 +208,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
             DynamoDbMapper.class.getName() + "/" + VersionInfoUtils.getVersion();
     private static final String USER_AGENT_BATCH_OPERATION =
             DynamoDbMapper.class.getName() + "_batch_operation/" + VersionInfoUtils.getVersion();
-    private static final Log log = LogFactory.getLog(DynamoDbMapper.class);
+    private static final Logger log = LoggerFactory.getLogger(DynamoDbMapper.class);
     private final DynamoDBClient db;
     private final DynamoDbMapperModelFactory models;
     private final S3Link.Factory s3Links;
@@ -1700,21 +1700,22 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
         config = mergeConfig(config);
         final DynamoDbMapperTableModel<T> model = getTableModel(clazz, config);
 
+        List<KeySchemaElement> keySchemas = new ArrayList<>();
+        keySchemas.add(KeySchemaElement.builder().attributeName(model.hashKey().name()).keyType(HASH).build());
+
         final CreateTableRequest.Builder requestBuilder = CreateTableRequest.builder()
-                .tableName(getTableName(clazz, config))
-                .keySchema(KeySchemaElement.builder()
-                        .attributeName(model.hashKey().name())
-                        .keyType(HASH)
-                        .build());
-        //.keySchema(new KeySchemaElement(model.hashKey().name(), HASH));
+                .tableName(getTableName(clazz, config));
+
         if (model.rangeKeyIfExists() != null) {
-            requestBuilder.keySchema(KeySchemaElement.builder()
-                    .attributeName(model.rangeKey().name())
-                    .keyType(RANGE)
-                    .build());
+            keySchemas.add(KeySchemaElement.builder()
+                                           .attributeName(model.rangeKey().name())
+                                           .keyType(RANGE)
+                                           .build());
         }
         requestBuilder.globalSecondaryIndexes(model.globalSecondaryIndexes())
             .localSecondaryIndexes(model.localSecondaryIndexes());
+
+        List<AttributeDefinition> attributeDefinitions = new ArrayList<>();
         for (final DynamoDbMapperFieldModel<T, Object> field : model.fields()) {
             if (field.keyType() != null || field.indexed()) {
                 AttributeDefinition attributeDefinition = AttributeDefinition.builder()
@@ -1722,9 +1723,12 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
                         .attributeName(field.name())
                         .build();
 
-                requestBuilder.attributeDefinitions(attributeDefinition);
+                attributeDefinitions.add(attributeDefinition);
             }
         }
+
+        requestBuilder.keySchema(keySchemas);
+        requestBuilder.attributeDefinitions(attributeDefinitions);
         return requestBuilder.build();
     }
 

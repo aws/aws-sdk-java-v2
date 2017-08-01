@@ -25,7 +25,7 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import software.amazon.awssdk.log.InternalLogFactory;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utilities for accessing joda-time.
@@ -204,7 +204,7 @@ public enum JodaTime {
                     return version;
                 }
             } catch (Exception e) {
-                InternalLogFactory.getLog(JodaTime.class).debug("FYI", e);
+                LoggerFactory.getLogger(LazyHolder.class).debug("FYI", e);
             }
             return null;
         }

@@ -17,8 +17,8 @@ package software.amazon.awssdk.runtime.io;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotation.NotThreadSafe;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.internal.io.Releasable;
@@ -40,8 +40,7 @@ import software.amazon.awssdk.internal.io.Releasable;
 @NotThreadSafe
 @SdkProtectedApi
 public class ReleasableInputStream extends SdkFilterInputStream {
-    private static final Log log = LogFactory
-            .getLog(ReleasableInputStream.class);
+    private static final Logger log = LoggerFactory.getLogger(ReleasableInputStream.class);
     /**
      * True if the close method is disabled; false otherwise. Default is false.
      * In case the close method is disabled, caller would be responsible to

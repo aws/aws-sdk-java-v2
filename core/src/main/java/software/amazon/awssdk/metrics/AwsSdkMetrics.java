@@ -20,8 +20,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.DefaultCredentialsProvider;
@@ -171,7 +171,9 @@ public enum AwsSdkMetrics {
      * </pre>
      */
     public static final String HOST_METRIC_NAME = "hostMetricName";
-    private static final Log LOG = LogFactory.getLog(AwsSdkMetrics.class);
+
+    private static final Logger log = LoggerFactory.getLogger(AwsSdkMetrics.class);
+
     private static final String MBEAN_OBJECT_NAME =
             "software.amazon.awssdk.management:type=" + AwsSdkMetrics.class.getSimpleName();
     private static final String DEFAULT_METRIC_COLLECTOR_FACTORY =
@@ -295,10 +297,10 @@ public enum AwsSdkMetrics {
                             } else if (HOST_METRIC_NAME.equals(key)) {
                                 hostMetricName = value;
                             } else {
-                                LogFactory.getLog(AwsSdkMetrics.class).debug("Ignoring unrecognized parameter: " + part);
+                                log.debug("Ignoring unrecognized parameter:{}", part);
                             }
                         } catch (RuntimeException e) {
-                            LogFactory.getLog(AwsSdkMetrics.class).debug("Ignoring failure", e);
+                            log.debug("Ignoring failure", e);
                         }
                     }
                 }
@@ -315,7 +317,7 @@ public enum AwsSdkMetrics {
         try {
             registerMetricAdminMBean();
         } catch (Exception ex) {
-            LogFactory.getLog(AwsSdkMetrics.class).warn("", ex);
+            log.warn(ex.getMessage(), ex);
         }
     }
 
@@ -368,7 +370,7 @@ public enum AwsSdkMetrics {
                 }
             }
             if (registered) {
-                LOG.debug("Admin mbean registered under " + registeredAdminMbeanName);
+                log.debug("Admin mbean registered under {}", registeredAdminMbeanName);
             }
             return registered;
         }
@@ -590,8 +592,7 @@ public enum AwsSdkMetrics {
                     return true;
                 }
             } catch (IllegalAccessException | InstantiationException | ClassNotFoundException | RuntimeException e) {
-                LogFactory.getLog(AwsSdkMetrics.class)
-                          .warn("Failed to enable the default metrics", e);
+                log.warn("Failed to enable the default metrics", e);
             } finally {
                 dirtyEnabling = false;
             }
@@ -671,7 +672,7 @@ public enum AwsSdkMetrics {
             }
         }
         SecurityException ex = new SecurityException();
-        LogFactory.getLog(AwsSdkMetrics.class).warn("Illegal attempt to access the credential provider", ex);
+        log.warn("Illegal attempt to access the credential provider", ex);
         throw ex;
     }
 

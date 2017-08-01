@@ -19,9 +19,7 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import software.amazon.awssdk.internal.config.HostRegexToRegionMapping;
-import software.amazon.awssdk.internal.config.InternalConfig;
-import software.amazon.awssdk.log.InternalLogFactory;
+import org.slf4j.LoggerFactory;
 
 public class AwsHostNameUtils {
 
@@ -77,10 +75,6 @@ public class AwsHostNameUtils {
 
         if (host == null) {
             throw new IllegalArgumentException("hostname cannot be null");
-        }
-        String regionNameInInternalConfig = parseRegionNameByInternalConfig(host);
-        if (regionNameInInternalConfig != null) {
-            return regionNameInInternalConfig;
         }
 
         if (host.endsWith(".amazonaws.com")) {
@@ -159,24 +153,11 @@ public class AwsHostNameUtils {
             region = "us-gov-west-1";
         }
 
-        return region;
-    }
-
-    /**
-     * @return the configured region name if the given host name matches any of
-     *         the host-to-region mappings in the internal config; otherwise
-     *         return null.
-     */
-    private static String parseRegionNameByInternalConfig(String host) {
-        InternalConfig internConfig = InternalConfig.Factory.getInternalConfig();
-
-        for (HostRegexToRegionMapping mapping : internConfig.getHostRegexToRegionMappings()) {
-            if (mapping.isHostNameMatching(host)) {
-                return mapping.getRegionName();
-            }
+        if ("s3".equals(region)) {
+            region = fragment.substring(index + 4);
         }
 
-        return null;
+        return region;
     }
 
     /**
@@ -237,8 +218,8 @@ public class AwsHostNameUtils {
             InetAddress localhost = InetAddress.getLocalHost();
             return localhost.getHostName();
         } catch (Exception e) {
-            InternalLogFactory.getLog(AwsHostNameUtils.class)
-                              .debug(
+            LoggerFactory.getLogger(AwsHostNameUtils.class)
+                      .debug(
                                       "Failed to determine the local hostname; fall back to "
                                       + "use \"localhost\".", e);
             return "localhost";

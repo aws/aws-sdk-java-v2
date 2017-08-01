@@ -483,7 +483,7 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
         assertNotNull(policyDescriptions.get(0).policyTypeName());
 
         // Remove the policy from the listener
-        elb.setLoadBalancerPoliciesOfListener(SetLoadBalancerPoliciesOfListenerRequest.builder().loadBalancerName(loadBalancerName).loadBalancerPort(80).build());
+        elb.setLoadBalancerPoliciesOfListener(SetLoadBalancerPoliciesOfListenerRequest.builder().loadBalancerName(loadBalancerName).loadBalancerPort(80).policyNames().build());
         assertFalse(doesLoadBalancerHaveListenerWithPolicy(loadBalancerName,
                                                            policyName));
 

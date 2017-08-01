@@ -15,6 +15,12 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.isA;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -25,15 +31,13 @@ import org.easymock.IExpectationSetters;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
-import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.BatchWriteRetryStrategy;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper.FailedBatch;
+import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.BatchWriteRetryStrategy;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.PutRequest;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
-
-import static org.easymock.EasyMock.*;
 
 public class BatchWriteRetryStrategyTest {
 

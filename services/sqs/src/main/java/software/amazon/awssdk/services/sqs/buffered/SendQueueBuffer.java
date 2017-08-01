@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.services.sqs.SQSAsyncClient;
@@ -57,7 +57,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
  * complete.
  */
 public class SendQueueBuffer {
-    private static Log log = LogFactory.getLog(SendQueueBuffer.class);
+    private static Logger log = LoggerFactory.getLogger(SendQueueBuffer.class);
     /** Config settings for this buffer. */
     private final QueueBufferConfig config;
 

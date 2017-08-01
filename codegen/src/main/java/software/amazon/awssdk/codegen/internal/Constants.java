@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.codegen.internal;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Constants {
 
@@ -73,8 +73,10 @@ public class Constants {
 
     public static final String LF = System.lineSeparator();
 
-    public static final Log LOGGER = LogFactory.getLog("software.amazon.awssdk.javasdk.codegen");
+    public static final Logger LOGGER = LoggerFactory.getLogger("software.amazon.awssdk.javasdk.codegen");
 
     public static final String AWS_DOCS_HOST = "docs.aws.amazon.com";
+
+    public static final String APPROVED_SIMPLE_METHOD_VERBS = "(get|list|describe|lookup|batchGet).*";
 
 }

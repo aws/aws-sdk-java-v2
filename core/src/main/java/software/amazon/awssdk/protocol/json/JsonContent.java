@@ -19,8 +19,8 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.http.HttpResponse;
@@ -33,7 +33,7 @@ import software.amazon.awssdk.utils.IoUtils;
 @ReviewBeforeRelease("Do we need this? It isn't well encapsulated because of storing non-copied arrays.")
 public class JsonContent {
 
-    private static final Log LOG = LogFactory.getLog(JsonContent.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JsonContent.class);
 
     private final byte[] rawContent;
     private final JsonNode jsonNode;

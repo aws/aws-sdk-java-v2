@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.0.0-preview-1</version>
+        <version>2.0.0-preview-3-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -133,13 +133,13 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <artifactId>aws-http-client-apache</artifactId>
+            <artifactId>apache-client</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <artifactId>aws-http-nio-client-netty</artifactId>
+            <artifactId>netty-nio-client</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
             <scope>runtime</scope>
@@ -151,8 +151,9 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <artifactId>jmespath-java</artifactId>
-            <groupId>software.amazon.awssdk</groupId>
+            <groupId>io.burt</groupId>
+            <artifactId>jmespath-jackson</artifactId>
+            <version>0.2.0</version>
         </dependency>
     </dependencies>
 

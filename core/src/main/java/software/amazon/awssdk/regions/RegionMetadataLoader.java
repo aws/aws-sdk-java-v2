@@ -15,11 +15,7 @@
 
 package software.amazon.awssdk.regions;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
+import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.InputStream;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
@@ -46,15 +42,6 @@ public class RegionMetadataLoader {
      */
     private static final String PARTITIONS_OVERRIDE_RESOURCE_PATH =
             "software/amazon/awssdk/partitions/override/endpoints.json";
-
-    /**
-     * Jackson object mapper that is used for parsing the partition files.
-     */
-    private static final ObjectMapper MAPPER = new ObjectMapper()
-            .disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS)
-            .disable(MapperFeature.ALLOW_FINAL_FIELDS_AS_MUTATORS)
-            .enable(JsonParser.Feature.ALLOW_COMMENTS)
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     /**
      * classloader to to be used for loading the partitions.
@@ -103,10 +90,11 @@ public class RegionMetadataLoader {
     private static Partitions loadPartitionFromStream(InputStream stream, String location) {
 
         try {
+            return JSON.std.with(JSON.Feature.FAIL_ON_UNKNOWN_BEAN_PROPERTY)
+                           .with(JSON.Feature.USE_IS_GETTERS)
+                           .beanFrom(Partitions.class, stream);
 
-            return MAPPER.readValue(stream, Partitions.class);
-
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new SdkClientException("Error while loading partitions " +
                                          "file from " + location, e);
         } finally {

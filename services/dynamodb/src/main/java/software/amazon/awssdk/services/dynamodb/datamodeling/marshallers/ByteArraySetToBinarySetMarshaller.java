@@ -19,7 +19,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
 import software.amazon.awssdk.services.dynamodb.datamodeling.ArgumentMarshaller.BinarySetAttributeMarshaller;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 

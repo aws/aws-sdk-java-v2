@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.time.Instant;
+import java.util.Date;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.util.DateUtils;
@@ -172,8 +173,14 @@ public class SimpleTypeJsonUnmarshallers {
 
         public Instant unmarshall(JsonUnmarshallerContext unmarshallerContext)
                 throws Exception {
-            return DateUtils.parseServiceSpecificDate(unmarshallerContext
-                    .readText()).toInstant();
+            Date date =  DateUtils.parseServiceSpecificDate(unmarshallerContext
+                    .readText());
+
+            if (date == null) {
+                return null;
+            }
+
+            return date.toInstant();
         }
     }
 

@@ -18,11 +18,9 @@ package software.amazon.awssdk.auth.policy;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.junit.After;
 import org.junit.Test;
 import software.amazon.awssdk.auth.policy.Statement.Effect;
-import software.amazon.awssdk.auth.policy.actions.SQSActions;
 import software.amazon.awssdk.auth.policy.conditions.DateCondition;
 import software.amazon.awssdk.auth.policy.conditions.DateCondition.DateComparisonType;
 import software.amazon.awssdk.services.sqs.IntegrationTestBase;
@@ -59,7 +57,7 @@ public class SqsPolicyIntegrationTest extends IntegrationTestBase {
         queueUrl = sqsAsync.createQueue(CreateQueueRequest.builder().queueName(queueName).build()).join().queueUrl();
 
         Policy policy = new Policy().withStatements(new Statement(Effect.Allow).withPrincipals(Principal.ALL_USERS)
-                .withActions(SQSActions.SendMessage, SQSActions.ReceiveMessage)
+                .withActions(new Action("sqs:SendMessage"), new Action("sqs:ReceiveMessage"))
                 .withResources(new SqsQueueResource(ACCOUNT_ID, queueName))
                 .withConditions(new DateCondition(DateComparisonType.DateLessThan,
                         new Date())));

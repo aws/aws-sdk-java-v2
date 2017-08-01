@@ -18,8 +18,8 @@ package software.amazon.awssdk.metrics.internal.cloudwatch;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotation.ThreadSafe;
 import software.amazon.awssdk.metrics.AwsSdkMetrics;
 import software.amazon.awssdk.metrics.ByteThroughputProvider;
@@ -42,7 +42,7 @@ import software.amazon.awssdk.services.cloudwatch.model.StandardUnit;
  */
 @ThreadSafe
 public class ServiceMetricCollectorSupport extends ServiceMetricCollector {
-    protected static final Log log = LogFactory.getLog(ServiceMetricCollectorSupport.class);
+    protected static final Logger log = LoggerFactory.getLogger(ServiceMetricCollectorSupport.class);
     static final double NANO_PER_SEC = TimeUnit.SECONDS.toNanos(1);
     private final BlockingQueue<MetricDatum> queue;
 

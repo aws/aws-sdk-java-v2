@@ -20,6 +20,7 @@ import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import software.amazon.awssdk.annotation.SdkInternalApi;
@@ -52,6 +53,7 @@ class SdkStructuredCborFactory {
             .put(Byte.class, SimpleTypeCborUnmarshallers.ByteCborUnmarshaller.getInstance())
             .put(Date.class, SimpleTypeCborUnmarshallers.DateCborUnmarshaller.getInstance())
             .put(ByteBuffer.class, SimpleTypeCborUnmarshallers.ByteBufferCborUnmarshaller.getInstance())
+            .put(Instant.class, SimpleTypeCborUnmarshallers.InstantCborUnmarshaller.getInstance())
             .put(Short.class, SimpleTypeCborUnmarshallers.ShortCborUnmarshaller.getInstance()).build();
 
     public static final SdkStructuredJsonFactory SDK_CBOR_FACTORY = new SdkStructuredJsonFactoryImpl(

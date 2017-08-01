@@ -139,9 +139,6 @@ public class LegacyClientConfiguration {
      * Returns the protocol (HTTP or HTTPS) to use when connecting to Amazon Web Services.
      * <p>
      * The default configuration is to use HTTPS for all requests for increased security.
-     * <p>
-     * Individual clients can also override this setting by explicitly including the protocol as
-     * part of the endpoint URL when calling {@link AmazonWebServiceClient#setEndpoint(String)}.
      *
      * @return The protocol to use when connecting to Amazon Web Services.
      */
@@ -153,10 +150,7 @@ public class LegacyClientConfiguration {
      * Sets the protocol (i.e. HTTP or HTTPS) to use when connecting to Amazon Web Services.
      * <p>
      * The default configuration is to use HTTPS for all requests for increased security.
-     * <p>
-     * Individual clients can also override this setting by explicitly including the protocol as
-     * part of the endpoint URL when calling {@link AmazonWebServiceClient#setEndpoint(String)}.
-     *
+
      * @param protocol
      *            The protocol to use when connecting to Amazon Web Services.
      */
@@ -170,9 +164,6 @@ public class LegacyClientConfiguration {
      * together.
      * <p>
      * The default configuration is to use HTTPS for all requests for increased security.
-     * <p>
-     * Individual clients can also override this setting by explicitly including the protocol as
-     * part of the endpoint URL when calling {@link AmazonWebServiceClient#setEndpoint(String)}.
      *
      * @param protocol
      *            The protocol to use when connecting to Amazon Web Services.

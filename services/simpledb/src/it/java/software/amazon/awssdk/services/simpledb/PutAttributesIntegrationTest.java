@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.simpledb;
 
 import static org.junit.Assert.fail;
 
-import java.util.ArrayList;
 import org.junit.Test;
 import software.amazon.awssdk.services.simpledb.model.MissingParameterException;
 import software.amazon.awssdk.services.simpledb.model.NoSuchDomainException;

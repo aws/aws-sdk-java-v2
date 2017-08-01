@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.metrics.internal.cloudwatch.spi;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service specific metric transformer factory.
@@ -67,7 +67,7 @@ public enum AwsMetricTransformerFactory {
      * @param fqcn fully qualified class name.
      */
     private RequestMetricTransformer loadRequestMetricTransformer(String fqcn) {
-        Log log = LogFactory.getLog(AwsMetricTransformerFactory.class);
+        Logger log = LoggerFactory.getLogger(AwsMetricTransformerFactory.class);
         if (log.isDebugEnabled()) {
             log.debug("Loading " + fqcn);
         }

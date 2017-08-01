@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import org.apache.commons.logging.Log;
+import org.slf4j.Logger;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
@@ -31,12 +31,14 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 public abstract class BaseGeneratorTasks implements Iterable<GeneratorTask> {
 
     protected final String baseDirectory;
+    protected final String testDirectory;
     protected final IntermediateModel model;
     protected final Freemarker freemarker;
-    protected final Log log;
+    protected final Logger log;
 
     public BaseGeneratorTasks(GeneratorTaskParams dependencies) {
         this.baseDirectory = dependencies.getPathProvider().getSourceDirectory();
+        this.testDirectory = dependencies.getPathProvider().getTestDirectory();
         this.model = dependencies.getModel();
         this.freemarker = dependencies.getFreemarker();
         this.log = dependencies.getLog();
@@ -56,6 +58,11 @@ public abstract class BaseGeneratorTasks implements Iterable<GeneratorTask> {
 
     protected final GeneratorTask createPoetGeneratorTask(ClassSpec classSpec) throws IOException {
         String targetDirectory = baseDirectory + '/' + Utils.packageToDirectory(classSpec.className().packageName());
+        return new PoetGeneratorTask(targetDirectory, model.getFileHeader(), classSpec);
+    }
+
+    protected final GeneratorTask createPoetGeneratorTestTask(ClassSpec classSpec) throws IOException {
+        String targetDirectory = testDirectory + '/' + Utils.packageToDirectory(classSpec.className().packageName());
         return new PoetGeneratorTask(targetDirectory, model.getFileHeader(), classSpec);
     }
 

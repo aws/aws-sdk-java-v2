@@ -24,11 +24,11 @@ import org.junit.BeforeClass;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbAttribute;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbHashKey;
+import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.SaveBehavior;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbRangeKey;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbTable;
-import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
@@ -96,16 +96,14 @@ public class MapperSaveConfigTestBase extends DynamoDBIntegrationTestBase {
                 .keySchema(
                         KeySchemaElement.builder().attributeName(
                                 hashKeyName).keyType(
-                                KeyType.HASH).build())
-                .keySchema(
+                                KeyType.HASH).build(),
                         KeySchemaElement.builder().attributeName(
                                 rangeKeyName).keyType(
                                 KeyType.RANGE).build())
                 .attributeDefinitions(
                         AttributeDefinition.builder().attributeName(
                                 hashKeyName).attributeType(
-                                ScalarAttributeType.S).build())
-                .attributeDefinitions(
+                                ScalarAttributeType.S).build(),
                         AttributeDefinition.builder().attributeName(
                                 rangeKeyName).attributeType(
                                 ScalarAttributeType.N).build())

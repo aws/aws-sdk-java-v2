@@ -16,8 +16,8 @@
 package software.amazon.awssdk.metrics.internal.cloudwatch;
 
 import java.util.concurrent.BlockingQueue;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataRequest;
@@ -30,7 +30,7 @@ class MetricUploaderThread extends Thread {
     private static final String USER_AGENT = MetricUploaderThread.class.getName() + "/" + VersionInfoUtils.getVersion();
     private static final String THREAD_NAME = "java-sdk-metric-uploader";
     private final CloudWatchClient cloudwatchClient;
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private final BlockingRequestBuilder qIterator;
     private volatile boolean cancelled;
 
@@ -53,7 +53,7 @@ class MetricUploaderThread extends Thread {
                 Iterable<PutMetricDataRequest> requests = qIterator.nextUploadUnits();
                 for (PutMetricDataRequest req : requests) {
                     appendUserAgent(req);
-                    log.debug(req);
+                    log.debug("{}", req);
                     cloudwatchClient.putMetricData(req);
                     Thread.yield();
                 }

@@ -21,13 +21,12 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.0.0-preview-1</version>
+        <version>2.0.0-preview-3-SNAPSHOT</version>
     </parent>
     <artifactId>simpledb</artifactId>
     <name>AWS Java SDK :: Services :: Amazon SimpleDB</name>
     <description>The AWS Java SDK for Amazon SimpleDB module holds the client classes that are used for communicating
-        with Amazon SimpleDB
-        Service
+        with Amazon SimpleDB Service
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
 </project>

@@ -19,12 +19,13 @@ import java.util.concurrent.TimeUnit;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.util.ValidationUtils;
-import software.amazon.awssdk.utils.Logger;
 
 public class RetryRule implements TestRule {
 
-    private static final Logger log = Logger.loggerFor(RetryRule.class);
+    private static final Logger log = LoggerFactory.getLogger(RetryRule.class);
     private int maxRetryAttempts;
     private long delay;
     private TimeUnit timeUnit;
@@ -54,7 +55,7 @@ public class RetryRule implements TestRule {
                     if (attempts > maxRetryAttempts) {
                         throw e;
                     }
-                    log.warn(() -> "Test failed. Retrying with delay of: " + delay + " " + timeUnit);
+                    log.warn("Test failed. Retrying with delay of: {} {}", delay, timeUnit);
                     timeUnit.sleep(delay);
                     retry(base, ++attempts);
                 }

@@ -128,6 +128,11 @@ public class SqsBufferedAsyncClient implements SQSAsyncClient {
     }
 
     @Override
+    public CompletableFuture<ListQueuesResponse> listQueues() {
+        return listQueues(ListQueuesRequest.builder().build());
+    }
+
+    @Override
     public CompletableFuture<ListQueuesResponse> listQueues(ListQueuesRequest listQueuesRequest) {
         ResultConverter.appendUserAgent(listQueuesRequest, USER_AGENT);
         return realSqs.listQueues(listQueuesRequest);

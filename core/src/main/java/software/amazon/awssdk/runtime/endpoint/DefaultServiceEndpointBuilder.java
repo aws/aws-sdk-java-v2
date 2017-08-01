@@ -54,7 +54,7 @@ public class DefaultServiceEndpointBuilder extends ServiceEndpointBuilder {
 
     private URI withProtocol(URI endpointWithoutProtocol) throws IllegalArgumentException {
         try {
-            return new URI(String.format("%s://%s", protocol, endpointWithoutProtocol));
+            return new URI(protocol + "://" + endpointWithoutProtocol);
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException(e);
         }

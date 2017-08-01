@@ -29,11 +29,11 @@ import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbAutoGenerat
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbHashKey;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbIndexHashKey;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbIndexRangeKey;
+import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMappingException;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbRangeKey;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbSaveExpression;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbTable;
-import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;

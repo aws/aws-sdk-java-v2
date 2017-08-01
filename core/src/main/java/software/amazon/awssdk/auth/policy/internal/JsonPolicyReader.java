@@ -166,10 +166,10 @@ public class JsonPolicyReader {
 
         if (actionNodes.isArray()) {
             for (JsonNode action : actionNodes) {
-                actions.add(new NamedAction(action.asText()));
+                actions.add(new Action(action.asText()));
             }
         } else {
-            actions.add(new NamedAction(actionNodes.asText()));
+            actions.add(new Action(actionNodes.asText()));
         }
         return actions;
     }
@@ -331,23 +331,6 @@ public class JsonPolicyReader {
      */
     private boolean isNotNull(Object object) {
         return null != object;
-    }
-
-    /**
-     * An auxiliary class to help instantiate the action object.
-     */
-    private static class NamedAction implements Action {
-
-        private String actionName;
-
-        NamedAction(String actionName) {
-            this.actionName = actionName;
-        }
-
-        public String getActionName() {
-            return actionName;
-        }
-
     }
 
 }

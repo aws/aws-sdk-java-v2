@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.jmx.spi.JmxInfoProvider;
 import software.amazon.awssdk.metrics.AwsSdkMetrics;
 import software.amazon.awssdk.metrics.spi.MetricType;
@@ -150,13 +150,13 @@ class MachineMetricFactory {
         try {
             addThreadMetrics(targetList, customSet);
         } catch (Throwable t) {
-            LogFactory.getLog(getClass()).debug("Ignoring thread metrics", t);
+            LoggerFactory.getLogger(getClass()).debug("Ignoring thread metrics", t);
         }
         // File descriptor usage
         try {
             addFileDescriptorMetrics(targetList, customSet);
         } catch (Throwable t) {
-            LogFactory.getLog(getClass()).debug("Ignoring file descriptor metrics", t);
+            LoggerFactory.getLogger(getClass()).debug("Ignoring file descriptor metrics", t);
         }
         return targetList;
     }

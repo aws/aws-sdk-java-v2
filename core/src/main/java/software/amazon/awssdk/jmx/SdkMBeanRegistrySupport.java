@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.jmx;
 
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.jmx.spi.SdkMBeanRegistry;
 import software.amazon.awssdk.metrics.MetricAdmin;
 
@@ -27,7 +27,7 @@ public class SdkMBeanRegistrySupport implements SdkMBeanRegistry {
         try {
             return MBeans.registerMBean(objectName, new MetricAdmin());
         } catch (Exception ex) {
-            LogFactory.getLog(SdkMBeanRegistrySupport.class).warn("", ex);
+            LoggerFactory.getLogger(SdkMBeanRegistrySupport.class).warn("", ex);
         }
         return false;
     }
@@ -37,7 +37,7 @@ public class SdkMBeanRegistrySupport implements SdkMBeanRegistry {
         try {
             return MBeans.unregisterMBean(objectName);
         } catch (Exception ex) {
-            LogFactory.getLog(SdkMBeanRegistrySupport.class).warn("", ex);
+            LoggerFactory.getLogger(SdkMBeanRegistrySupport.class).warn("", ex);
         }
         return false;
     }

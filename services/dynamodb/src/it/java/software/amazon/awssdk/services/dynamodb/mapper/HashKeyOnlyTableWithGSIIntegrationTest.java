@@ -26,9 +26,9 @@ import software.amazon.awssdk.services.dynamodb.DynamoDBMapperIntegrationTestBas
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbHashKey;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbIndexHashKey;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbIndexRangeKey;
+import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbQueryExpression;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbTable;
-import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.datamodeling.PaginatedQueryList;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;

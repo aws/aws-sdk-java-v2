@@ -19,8 +19,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
@@ -42,7 +42,7 @@ import software.amazon.awssdk.utils.IoUtils;
  */
 @SdkProtectedApi
 public class DefaultErrorResponseHandler implements HttpResponseHandler<AmazonServiceException> {
-    private static final Log LOG = LogFactory.getLog(DefaultErrorResponseHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(DefaultErrorResponseHandler.class);
 
     /**
      * The list of error response unmarshallers to try to apply to error responses.
@@ -111,7 +111,7 @@ public class DefaultErrorResponseHandler implements HttpResponseHandler<AmazonSe
         try {
             return IoUtils.toString(content);
         } catch (Exception e) {
-            LOG.info(String.format("Unable to read input stream to string (%s)", idString), e);
+            log.info(String.format("Unable to read input stream to string (%s)", idString), e);
             throw e;
         }
     }
@@ -120,7 +120,7 @@ public class DefaultErrorResponseHandler implements HttpResponseHandler<AmazonSe
         try {
             return XpathUtils.documentFrom(xml);
         } catch (Exception e) {
-            LOG.info(String.format("Unable to parse HTTP response (%s) content to XML document '%s' ", idString, xml), e);
+            log.info("Unable to parse HTTP response ({}) content to XML document '{}' ", idString, xml, e);
             throw e;
         }
     }
@@ -137,7 +137,7 @@ public class DefaultErrorResponseHandler implements HttpResponseHandler<AmazonSe
                 idString.append("Request Id:").append(errorResponse.getHeaders().get(X_AMZN_REQUEST_ID_HEADER));
             }
         } catch (NullPointerException npe) {
-            LOG.info("Error getting Request or Invocation ID from response", npe);
+            log.info("Error getting Request or Invocation ID from response", npe);
         }
         return idString.length() > 0 ? idString.toString() : "Unknown";
     }

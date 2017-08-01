@@ -16,7 +16,6 @@
 package software.amazon.awssdk.services.dynamodb.datamodeling.unmarshallers;
 
 import java.lang.reflect.Method;
-
 import software.amazon.awssdk.services.dynamodb.datamodeling.ArgumentUnmarshaller;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMappingException;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
