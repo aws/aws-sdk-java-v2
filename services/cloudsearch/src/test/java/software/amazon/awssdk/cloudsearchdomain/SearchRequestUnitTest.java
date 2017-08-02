@@ -22,6 +22,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
+import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.IOException;
 import java.net.URI;
@@ -41,7 +43,7 @@ public class SearchRequestUnitTest {
     private static final AwsCredentials CREDENTIALS = new AwsCredentials("access", "secret");
 
     @Rule
-    public WireMockRule wireMockRule = new WireMockRule(0);
+    public WireMockRule wireMockRule = new WireMockRule(new WireMockConfiguration().port(0).notifier(new ConsoleNotifier(true)));
 
     private CloudSearchDomainClient searchClient;
 

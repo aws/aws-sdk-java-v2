@@ -18,13 +18,15 @@ package software.amazon.awssdk.internal.http.response;
 import software.amazon.awssdk.AmazonWebServiceResponse;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 
 public class EmptyAWSResponseHandler implements
                                      HttpResponseHandler<AmazonWebServiceResponse<Object>> {
 
 
     @Override
-    public AmazonWebServiceResponse<Object> handle(HttpResponse response)
+    public AmazonWebServiceResponse<Object> handle(HttpResponse response,
+                                                   ExecutionAttributes executionAttributes)
             throws Exception {
         return new AmazonWebServiceResponse<Object>();
     }

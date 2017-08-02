@@ -18,9 +18,10 @@ package software.amazon.awssdk.internal.http.response;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.handlers.AwsHandlerKeys;
+import software.amazon.awssdk.handlers.AwsExecutionAttributes;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 
 /**
@@ -39,20 +40,21 @@ public class AwsErrorResponseHandler implements HttpResponseHandler<SdkBaseExcep
     }
 
     @Override
-    public AmazonServiceException handle(HttpResponse response) throws Exception {
-        final AmazonServiceException ase = (AmazonServiceException) handleAse(response);
+    public AmazonServiceException handle(HttpResponse response,
+                                         ExecutionAttributes executionAttributes) throws Exception {
+        final AmazonServiceException ase = (AmazonServiceException) handleAse(response, executionAttributes);
         ase.setStatusCode(response.getStatusCode());
-        ase.setServiceName(response.getRequest().handlerContext(AwsHandlerKeys.SERVICE_NAME));
+        ase.setServiceName(executionAttributes.getAttribute(AwsExecutionAttributes.SERVICE_NAME));
         awsRequestMetrics.addPropertyWith(AwsRequestMetrics.Field.AWSRequestID, ase.getRequestId())
                          .addPropertyWith(AwsRequestMetrics.Field.AWSErrorCode, ase.getErrorCode())
                          .addPropertyWith(AwsRequestMetrics.Field.StatusCode, ase.getStatusCode());
         return ase;
     }
 
-    private SdkBaseException handleAse(HttpResponse response) throws Exception {
+    private SdkBaseException handleAse(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
         final int statusCode = response.getStatusCode();
         try {
-            return delegate.handle(response);
+            return delegate.handle(response, executionAttributes);
         } catch (InterruptedException e) {
             throw e;
         } catch (Exception e) {

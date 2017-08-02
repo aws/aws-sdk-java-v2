@@ -18,6 +18,7 @@ package software.amazon.awssdk.internal.http.response;
 import software.amazon.awssdk.AmazonWebServiceResponse;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 
 /**
  * ResponseHandler implementation to return an empty response
@@ -27,7 +28,8 @@ public class DummyResponseHandler implements HttpResponseHandler<AmazonWebServic
     private boolean needsConnectionLeftOpen = false;
 
     @Override
-    public AmazonWebServiceResponse<String> handle(HttpResponse response) throws Exception {
+    public AmazonWebServiceResponse<String> handle(HttpResponse response,
+                                                   ExecutionAttributes executionAttributes) throws Exception {
         return new AmazonWebServiceResponse<String>() {
         };
     }

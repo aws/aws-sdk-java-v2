@@ -17,9 +17,9 @@ package software.amazon.awssdk.http.pipeline.stages;
 
 import static software.amazon.awssdk.http.AmazonHttpClient.HEADER_USER_AGENT;
 
-import software.amazon.awssdk.LegacyClientConfiguration;
 import software.amazon.awssdk.RequestClientOptions;
 import software.amazon.awssdk.RequestExecutionContext;
+import software.amazon.awssdk.config.ClientConfiguration;
 import software.amazon.awssdk.http.HttpClientDependencies;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.pipeline.MutableRequestToRequestPipeline;
@@ -30,10 +30,10 @@ import software.amazon.awssdk.util.RuntimeHttpUtils;
  */
 public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
 
-    private final LegacyClientConfiguration config;
+    private final ClientConfiguration clientConfig;
 
     public ApplyUserAgentStage(HttpClientDependencies dependencies) {
-        this.config = dependencies.config();
+        this.clientConfig = dependencies.clientConfiguration();
     }
 
     @Override
@@ -42,9 +42,9 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         RequestClientOptions opts = context.requestConfig().getRequestClientOptions();
         if (opts != null) {
             return request.header(HEADER_USER_AGENT, RuntimeHttpUtils
-                    .getUserAgent(config, opts.getClientMarker(RequestClientOptions.Marker.USER_AGENT)));
+                    .getUserAgent(clientConfig, opts.getClientMarker(RequestClientOptions.Marker.USER_AGENT)));
         } else {
-            return request.header(HEADER_USER_AGENT, RuntimeHttpUtils.getUserAgent(config, null));
+            return request.header(HEADER_USER_AGENT, RuntimeHttpUtils.getUserAgent(clientConfig, null));
         }
     }
 }

@@ -20,6 +20,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.Collections;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,13 +30,20 @@ import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.Request;
+import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.ExecutionContext;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.interceptor.InterceptorContext;
 import software.amazon.awssdk.internal.AmazonWebServiceRequestAdapter;
+import software.amazon.awssdk.internal.auth.NoOpSignerProvider;
 import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
+import software.amazon.awssdk.util.AwsRequestMetricsFullSupport;
+import utils.HttpTestUtils;
 
 /**
  * Tests that {@link AmazonHttpClient} passes the correct context information into the configured RetryPolicy.
@@ -60,17 +68,16 @@ public class AmazonHttpClientRetryPolicyTest extends RetryPolicyTestBase {
         retryCondition = new ContextDataCollectionRetryCondition();
         backoffStrategy = new ContextDataCollectionBackoffStrategy();
         // Reset the RetryPolicy
-        clientConfiguration.setRetryPolicy(
-                new RetryPolicy(retryCondition,
-                                backoffStrategy,
-                                EXPECTED_RETRY_COUNT, // max error retry
-                                false));              // ignore the maxErrorRetry in ClientConfiguration level
+        RetryPolicy retryPolicy = new RetryPolicy(retryCondition,
+                                                  backoffStrategy,
+                                                  EXPECTED_RETRY_COUNT, // max error retry
+                                                  false);
 
         when(sdkHttpClient.prepareRequest(any(), any())).thenReturn(abortableCallable);
-        testedClient = AmazonHttpClient.builder()
-                                       .sdkHttpClient(sdkHttpClient)
-                                       .clientConfiguration(clientConfiguration)
-                                       .build();
+        testedClient = HttpTestUtils.testClientBuilder()
+                                    .httpClient(sdkHttpClient)
+                                    .retryPolicy(retryPolicy)
+                                    .build();
     }
 
     /**
@@ -87,10 +94,8 @@ public class AmazonHttpClientRetryPolicyTest extends RetryPolicyTestBase {
                                                                      .statusText(statusText)
                                                                      .build());
 
-        // The ExecutionContext should collect the expected RequestCount
-        ExecutionContext context = new ExecutionContext(true);
-
         Request<?> testedRepeatableRequest = getSampleRequestWithRepeatableContent(originalRequest);
+        ExecutionContext context = createExecutionContext(originalRequest);
 
         // It should keep retrying until it reaches the max retry limit and
         // throws the simulated ASE.
@@ -121,7 +126,7 @@ public class AmazonHttpClientRetryPolicyTest extends RetryPolicyTestBase {
                                   EXPECTED_RETRY_COUNT);
 
         // request count = retries + 1
-        assertRequestCountEquals(EXPECTED_RETRY_COUNT + 1, context.getAwsRequestMetrics());
+        assertRequestCountEquals(EXPECTED_RETRY_COUNT + 1, context.awsRequestMetrics());
     }
 
     /**
@@ -135,10 +140,8 @@ public class AmazonHttpClientRetryPolicyTest extends RetryPolicyTestBase {
 
         when(abortableCallable.call()).thenThrow(simulatedIoException);
 
-        // The ExecutionContext should collect the expected RequestCount
-        ExecutionContext context = new ExecutionContext(true);
-
         Request<?> testedRepeatableRequest = getSampleRequestWithRepeatableContent(originalRequest);
+        ExecutionContext context = createExecutionContext(originalRequest);
 
         // It should keep retrying until it reaches the max retry limit and
         // throws the an ACE containing the simulated IOException.
@@ -167,7 +170,7 @@ public class AmazonHttpClientRetryPolicyTest extends RetryPolicyTestBase {
                                   EXPECTED_RETRY_COUNT);
 
         // request count = retries + 1
-        assertRequestCountEquals(EXPECTED_RETRY_COUNT + 1, context.getAwsRequestMetrics());
+        assertRequestCountEquals(EXPECTED_RETRY_COUNT + 1, context.awsRequestMetrics());
     }
 
     /**
@@ -184,11 +187,9 @@ public class AmazonHttpClientRetryPolicyTest extends RetryPolicyTestBase {
                                                                      .statusText(statusText)
                                                                      .build());
 
-        // The ExecutionContext should collect the expected RequestCount
-        ExecutionContext context = new ExecutionContext(true);
-
         // A non-repeatable request
         Request<?> testedNonRepeatableRequest = getSampleRequestWithNonRepeatableContent(originalRequest);
+        ExecutionContext context = createExecutionContext(originalRequest);
 
         // It should fail directly and throw the ASE, without consulting the
         // custom shouldRetry(..) method.
@@ -214,7 +215,7 @@ public class AmazonHttpClientRetryPolicyTest extends RetryPolicyTestBase {
                                   null,
                                   EXPECTED_RETRY_COUNT);
         // request count = retries + 1
-        assertRequestCountEquals(EXPECTED_RETRY_COUNT + 1, context.getAwsRequestMetrics());
+        assertRequestCountEquals(EXPECTED_RETRY_COUNT + 1, context.awsRequestMetrics());
     }
 
     /**
@@ -228,11 +229,9 @@ public class AmazonHttpClientRetryPolicyTest extends RetryPolicyTestBase {
 
         when(abortableCallable.call()).thenThrow(simulatedIOException);
 
-        // The ExecutionContext should collect the expected RequestCount
-        ExecutionContext context = new ExecutionContext(true);
-
         // A non-repeatable request
         Request<?> testedRepeatableRequest = getSampleRequestWithNonRepeatableContent(originalRequest);
+        ExecutionContext context = createExecutionContext(originalRequest);
 
         // It should fail directly and throw an ACE containing the simulated
         // IOException, without consulting the
@@ -259,7 +258,7 @@ public class AmazonHttpClientRetryPolicyTest extends RetryPolicyTestBase {
                                   EXPECTED_RETRY_COUNT);
 
         // request count = retries + 1
-        assertRequestCountEquals(EXPECTED_RETRY_COUNT + 1, context.getAwsRequestMetrics());
+        assertRequestCountEquals(EXPECTED_RETRY_COUNT + 1, context.awsRequestMetrics());
     }
 
     /**
@@ -272,10 +271,9 @@ public class AmazonHttpClientRetryPolicyTest extends RetryPolicyTestBase {
         NullPointerException simulatedNPE = new NullPointerException("fake NullPointerException");
         when(abortableCallable.call()).thenThrow(simulatedNPE);
 
-        // The ExecutionContext should collect the expected RequestCount
-        ExecutionContext context = new ExecutionContext(true);
-
+        // The OldExecutionContext should collect the expected RequestCount
         Request<?> testedRepeatableRequest = getSampleRequestWithRepeatableContent(originalRequest);
+        ExecutionContext context = createExecutionContext(originalRequest);
 
         // It should fail directly and throw the simulated NPE, without
         // consulting the custom shouldRetry(..) method.
@@ -301,7 +299,17 @@ public class AmazonHttpClientRetryPolicyTest extends RetryPolicyTestBase {
                                   0);
 
         // The captured RequestCount should be 1
-        assertRequestCountEquals(1, context.getAwsRequestMetrics());
+        assertRequestCountEquals(1, context.awsRequestMetrics());
+    }
+
+    private ExecutionContext createExecutionContext(SdkRequest request) {
+        return ExecutionContext.builder()
+                               .awsRequestMetrics(new AwsRequestMetricsFullSupport())
+                               .signerProvider(new NoOpSignerProvider())
+                               .interceptorChain(new ExecutionInterceptorChain(Collections.emptyList()))
+                               .executionAttributes(new ExecutionAttributes())
+                               .interceptorContext(InterceptorContext.builder().request(request).build())
+                               .build();
     }
 
     private void assertRequestCountEquals(int expectedCount, AwsRequestMetrics actualMetrics) {

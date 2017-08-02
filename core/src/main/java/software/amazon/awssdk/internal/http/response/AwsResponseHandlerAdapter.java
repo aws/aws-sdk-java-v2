@@ -24,6 +24,7 @@ import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpMetadata;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 
 /**
@@ -57,8 +58,8 @@ public class AwsResponseHandlerAdapter<T> implements HttpResponseHandler<T> {
     }
 
     @Override
-    public T handle(HttpResponse response) throws Exception {
-        final AmazonWebServiceResponse<T> awsResponse = delegate.handle(response);
+    public T handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
+        final AmazonWebServiceResponse<T> awsResponse = delegate.handle(response, executionAttributes);
 
         if (awsResponse == null) {
             throw new RuntimeException("Unable to unmarshall response metadata. Response Code: "

@@ -16,8 +16,11 @@
 package software.amazon.awssdk.client;
 
 import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.SdkRequest;
+import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.config.SyncClientConfiguration;
 import software.amazon.awssdk.internal.AmazonWebServiceRequestAdapter;
 import software.amazon.awssdk.internal.http.response.AwsErrorResponseHandler;
 import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
@@ -31,12 +34,14 @@ public class SdkClientHandler extends ClientHandler {
 
     private final ClientHandler delegateHandler;
 
-    public SdkClientHandler(ClientHandlerParams handlerParams) {
-        this.delegateHandler = new ClientHandlerImpl(handlerParams);
+    public SdkClientHandler(SyncClientConfiguration syncClientConfiguration,
+                            ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
+        super(syncClientConfiguration, serviceAdvancedConfiguration);
+        this.delegateHandler = new SyncClientHandlerImpl(syncClientConfiguration, serviceAdvancedConfiguration);
     }
 
     @Override
-    public <InputT, OutputT> OutputT execute(
+    public <InputT extends SdkRequest, OutputT> OutputT execute(
             ClientExecutionParams<InputT, OutputT> executionParams) {
         return delegateHandler.execute(
                 addRequestConfig(executionParams)
@@ -51,7 +56,7 @@ public class SdkClientHandler extends ClientHandler {
         delegateHandler.close();
     }
 
-    private <InputT, OutputT> ClientExecutionParams<InputT, OutputT> addRequestConfig(
+    private <InputT extends SdkRequest, OutputT> ClientExecutionParams<InputT, OutputT> addRequestConfig(
             ClientExecutionParams<InputT, OutputT> params) {
         return params.withRequestConfig(new AmazonWebServiceRequestAdapter((AmazonWebServiceRequest) params.getInput()));
     }

@@ -35,7 +35,7 @@ public class GlobalClientConfigurationDefaultsTest {
     @Test
     public void globalDefaultsIncludeExpectedValues() {
         // The global defaults should include every field except for those defined by the builder or the service. Specifically,
-        // all required Client*Configuration values should be set, but not endpoints, signers, etc.
+        // all required Client*Configuration values should be set, but not endpoints, credential providers, etc.
 
         GlobalClientConfigurationDefaults globalDefaults = new GlobalClientConfigurationDefaults();
 

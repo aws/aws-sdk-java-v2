@@ -15,10 +15,14 @@
 
 package software.amazon.awssdk.opensdk;
 
+import software.amazon.awssdk.SdkRequest;
+
 /**
  * Base class for all request objects.
+ * @deprecated To be replaced by {@link SdkRequest}.
  */
-public abstract class BaseRequest implements Cloneable {
+@Deprecated
+public abstract class BaseRequest extends SdkRequest implements Cloneable {
 
     private SdkRequestConfig sdkRequestConfig = SdkRequestConfig.builder().build();
 

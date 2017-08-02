@@ -24,11 +24,15 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import org.junit.Test;
+import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.Protocol;
 import software.amazon.awssdk.auth.AwsCredentials;
-import software.amazon.awssdk.handlers.AwsHandlerKeys;
+import software.amazon.awssdk.handlers.AwsExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullRequestAdapter;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.interceptor.InterceptorContext;
 import software.amazon.awssdk.internal.AmazonWebServiceRequestAdapter;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.runtime.endpoint.DefaultServiceEndpointBuilder;
@@ -36,21 +40,21 @@ import software.amazon.awssdk.services.rds.model.CopyDBSnapshotRequest;
 import software.amazon.awssdk.services.rds.transform.CopyDBSnapshotRequestMarshaller;
 
 /**
- * Unit Tests for {@link PresignRequestHandler}
+ * Unit Tests for {@link RdsPresignInterceptor}
  */
 public class PresignRequestHandlerTest {
     private static final AwsCredentials CREDENTIALS = new AwsCredentials("foo", "bar");
     private static final Region DESTINATION_REGION = Region.of("us-west-2");
 
-    private static PresignRequestHandler<CopyDBSnapshotRequest> presignHandler = new CopyDbSnapshotPresignHandler();
+    private static RdsPresignInterceptor<CopyDBSnapshotRequest> presignInterceptor = new CopyDbSnapshotPresignInterceptor();
     private final CopyDBSnapshotRequestMarshaller marshaller = new CopyDBSnapshotRequestMarshaller();
 
     @Test
     public void testSetsPresignedUrl() throws URISyntaxException {
         CopyDBSnapshotRequest request = makeTestRequest();
-        presignHandler.beforeRequest(marshallRequest(request));
+        SdkHttpFullRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
 
-        assertNotNull(request.preSignedUrl());
+        assertNotNull(presignedRequest.getParameters().get("PreSignedUrl").get(0));
     }
 
     @Test
@@ -72,9 +76,9 @@ public class PresignRequestHandlerTest {
         // Note: month is 0-based
         c.set(2016, 11, 21, 18, 7, 35);
 
-        PresignRequestHandler<CopyDBSnapshotRequest> handler = new CopyDbSnapshotPresignHandler(c.getTime());
+        RdsPresignInterceptor<CopyDBSnapshotRequest> interceptor = new CopyDbSnapshotPresignInterceptor(c.getTime());
 
-        handler.beforeRequest(marshallRequest(request));
+        SdkHttpFullRequest presignedRequest = modifyHttpRequest(interceptor, request, marshallRequest(request));
 
         final String expectedPreSignedUrl = "https://rds.us-east-1.amazonaws.com/?" +
                 "Action=CopyDBSnapshot" +
@@ -90,7 +94,7 @@ public class PresignRequestHandlerTest {
                 "&X-Amz-Credential=foo%2F20161221%2Fus-east-1%2Frds%2Faws4_request" +
                 "&X-Amz-Signature=f839ca3c728dc96e7c978befeac648296b9f778f6724073de4217173859d13d9";
 
-        assertEquals(expectedPreSignedUrl, request.preSignedUrl());
+        assertEquals(expectedPreSignedUrl, presignedRequest.getParameters().get("PreSignedUrl").get(0));
     }
 
     @Test
@@ -101,18 +105,18 @@ public class PresignRequestHandlerTest {
                 .build();
 
 
-        presignHandler.beforeRequest(marshallRequest(request));
+        SdkHttpFullRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
 
-        assertEquals("PRESIGNED", request.preSignedUrl());
+        assertEquals("PRESIGNED", presignedRequest.getParameters().get("PreSignedUrl").get(0));
     }
 
     @Test
     public void testSkipsPresigningIfSourceRegionNotSet() throws URISyntaxException {
         CopyDBSnapshotRequest request = CopyDBSnapshotRequest.builder().build();
 
-        presignHandler.beforeRequest(marshallRequest(request));
+        SdkHttpFullRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
 
-        assertNull(request.preSignedUrl());
+        assertNull(presignedRequest.getParameters().get("PreSignedUrl"));
     }
 
     @Test
@@ -123,17 +127,17 @@ public class PresignRequestHandlerTest {
         Region destination = Region.of("us-west-2");
         SdkHttpFullRequest marshalled = marshallRequest(request);
 
-        final SdkHttpFullRequest presignedRequest = presignHandler.beforeRequest(marshalled);
+        final SdkHttpFullRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshalled);
 
-        final URI presignedUrl = new URI(request.preSignedUrl());
+        final URI presignedUrl = new URI(presignedRequest.getParameters().get("PreSignedUrl").get(0));
         assertTrue(presignedUrl.toString().contains("DestinationRegion=" + destination.value()));
     }
 
     @Test
     public void testSourceRegionRemovedFromOriginalRequest() throws URISyntaxException {
-        SdkHttpFullRequest marshalled = marshallRequest(makeTestRequest());
-
-        SdkHttpFullRequest actual = presignHandler.beforeRequest(marshalled);
+        CopyDBSnapshotRequest request = makeTestRequest();
+        SdkHttpFullRequest marshalled = marshallRequest(request);
+        SdkHttpFullRequest actual = modifyHttpRequest(presignInterceptor, request, marshalled);
 
         assertFalse(actual.getParameters().containsKey("SourceRegion"));
     }
@@ -144,9 +148,13 @@ public class PresignRequestHandlerTest {
                          .endpoint(new DefaultServiceEndpointBuilder("rds", Protocol.HTTPS.toString())
                                            .withRegion(DESTINATION_REGION)
                                            .getServiceEndpoint())
-                         .handlerContext(AwsHandlerKeys.AWS_CREDENTIALS, CREDENTIALS)
-                         .handlerContext(AwsHandlerKeys.REQUEST_CONFIG, new AmazonWebServiceRequestAdapter(request))
                          .build();
+    }
+
+    private ExecutionAttributes executionAttributes(AmazonWebServiceRequest request) {
+        return new ExecutionAttributes().putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, CREDENTIALS)
+                                        .putAttribute(AwsExecutionAttributes.REQUEST_CONFIG,
+                                                      new AmazonWebServiceRequestAdapter(request));
     }
 
     private CopyDBSnapshotRequest makeTestRequest() {
@@ -156,5 +164,12 @@ public class PresignRequestHandlerTest {
                 .sourceRegion("us-east-1")
                 .kmsKeyId("arn:aws:kms:us-west-2:123456789012:key/11111111-2222-3333-4444-555555555555")
                 .build();
+    }
+
+    private SdkHttpFullRequest modifyHttpRequest(ExecutionInterceptor interceptor,
+                                                 AmazonWebServiceRequest request,
+                                                 SdkHttpFullRequest httpRequest) {
+        InterceptorContext context = InterceptorContext.builder().request(request).httpRequest(httpRequest).build();
+        return interceptor.modifyHttpRequest(context, executionAttributes(request));
     }
 }

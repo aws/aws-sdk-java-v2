@@ -24,7 +24,7 @@ import org.junit.Test;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.auth.AwsCredentials;
 import software.amazon.awssdk.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.global.handlers.TestGlobalRequestHandler;
+import software.amazon.awssdk.global.handlers.TestGlobalExecutionInterceptor;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
 
@@ -32,31 +32,31 @@ public class GlobalRequestHandlerTest {
 
     @Before
     public void setup() {
-        TestGlobalRequestHandler.reset();
+        TestGlobalExecutionInterceptor.reset();
     }
 
     @Test
     @Ignore // FIXME: Fails with "region cannot be null"
     public void clientCreatedWithConstructor_RegistersGlobalHandlers() {
-        assertFalse(TestGlobalRequestHandler.wasCalled());
+        assertFalse(TestGlobalExecutionInterceptor.wasCalled());
         DynamoDBClient client = DynamoDBClient.builder()
                 .credentialsProvider(new StaticCredentialsProvider(new AwsCredentials("akid", "skid")))
                 .region(Region.US_WEST_2)
                 .build();
         callApi(client);
-        assertTrue(TestGlobalRequestHandler.wasCalled());
+        assertTrue(TestGlobalExecutionInterceptor.wasCalled());
     }
 
     @Test
     @Ignore // FIXME: Fails with "region cannot be null"
     public void clientCreatedWithBuilder_RegistersGlobalHandlers() {
-        assertFalse(TestGlobalRequestHandler.wasCalled());
+        assertFalse(TestGlobalExecutionInterceptor.wasCalled());
         DynamoDBClient client = DynamoDBClient.builder()
                 .credentialsProvider(new StaticCredentialsProvider(new AwsCredentials("akid", "skid")))
                 .region(Region.US_WEST_2)
                 .build();
         callApi(client);
-        assertTrue(TestGlobalRequestHandler.wasCalled());
+        assertTrue(TestGlobalExecutionInterceptor.wasCalled());
     }
 
     private void callApi(DynamoDBClient client) {

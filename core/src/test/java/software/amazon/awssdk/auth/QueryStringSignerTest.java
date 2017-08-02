@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import org.junit.Test;
-import software.amazon.awssdk.http.DefaultSdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 
@@ -47,60 +46,56 @@ public class QueryStringSignerTest {
 
     @Test
     public void testRequestResourcePath() throws Exception {
-        SdkHttpFullRequest request = DefaultSdkHttpFullRequest
-                .builder()
-                .httpMethod(SdkHttpMethod.POST)
-                .endpoint(URI.create("http://foo.amazon.com"))
-                .queryParameter("foo", "bar")
-                .resourcePath("foo/bar")
-                .build();
+        SdkHttpFullRequest request = SdkHttpFullRequest.builder()
+                                                       .httpMethod(SdkHttpMethod.POST)
+                                                       .endpoint(URI.create("http://foo.amazon.com"))
+                                                       .queryParameter("foo", "bar")
+                                                       .resourcePath("foo/bar")
+                                                       .build();
 
-        request = signer.sign(request, credentials);
+        request = SignerTestUtils.signRequest(signer, request, credentials);
 
         assertSignature(EXPECTED_SIGNATURE, request.getParameters());
     }
 
     @Test
     public void testRequestAndEndpointResourcePath() throws Exception {
-        SdkHttpFullRequest request = DefaultSdkHttpFullRequest
-                .builder()
-                .httpMethod(SdkHttpMethod.POST)
-                .endpoint(URI.create("http://foo.amazon.com/foo"))
-                .queryParameter("foo", "bar")
-                .resourcePath("/bar")
-                .build();
+        SdkHttpFullRequest request = SdkHttpFullRequest.builder()
+                                                       .httpMethod(SdkHttpMethod.POST)
+                                                       .endpoint(URI.create("http://foo.amazon.com/foo"))
+                                                       .queryParameter("foo", "bar")
+                                                       .resourcePath("/bar")
+                                                       .build();
 
-        request = signer.sign(request, credentials);
+        request = SignerTestUtils.signRequest(signer, request, credentials);
 
         assertSignature(EXPECTED_SIGNATURE, request.getParameters());
     }
 
     @Test
     public void testRequestAndEndpointResourcePathNoSlash() throws Exception {
-        SdkHttpFullRequest request = DefaultSdkHttpFullRequest
-                .builder()
-                .httpMethod(SdkHttpMethod.POST)
-                .endpoint(URI.create("http://foo.amazon.com/foo"))
-                .queryParameter("foo", "bar")
-                .resourcePath("bar")
-                .build();
+        SdkHttpFullRequest request = SdkHttpFullRequest.builder()
+                                                       .httpMethod(SdkHttpMethod.POST)
+                                                       .endpoint(URI.create("http://foo.amazon.com/foo"))
+                                                       .queryParameter("foo", "bar")
+                                                       .resourcePath("bar")
+                                                       .build();
 
-        request = signer.sign(request, credentials);
+        request = SignerTestUtils.signRequest(signer, request, credentials);
 
         assertSignature(EXPECTED_SIGNATURE, request.getParameters());
     }
 
     @Test
     public void testAnonymous() throws Exception {
-        SdkHttpFullRequest request = DefaultSdkHttpFullRequest
-                .builder()
-                .httpMethod(SdkHttpMethod.POST)
-                .endpoint(URI.create("http://foo.amazon.com"))
-                .queryParameter("foo", "bar")
-                .resourcePath("bar")
-                .build();
+        SdkHttpFullRequest request = SdkHttpFullRequest.builder()
+                                                       .httpMethod(SdkHttpMethod.POST)
+                                                       .endpoint(URI.create("http://foo.amazon.com"))
+                                                       .queryParameter("foo", "bar")
+                                                       .resourcePath("bar")
+                                                       .build();
 
-        request = signer.sign(request, new AnonymousCredentialsProvider().getCredentials());
+        request = SignerTestUtils.signRequest(signer, request, new AnonymousCredentialsProvider().getCredentials());
 
         assertNull(request.getParameters().get("Signature"));
     }

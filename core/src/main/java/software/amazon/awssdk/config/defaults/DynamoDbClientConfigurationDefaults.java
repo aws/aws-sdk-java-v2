@@ -19,6 +19,7 @@ import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.config.ClientConfiguration;
 import software.amazon.awssdk.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.retry.PredefinedRetryPolicies;
+import software.amazon.awssdk.retry.RetryPolicyAdapter;
 
 /**
  * A DynamoDB-specific decorator for a {@link ClientConfiguration} that adds default values optimal for communicating with
@@ -30,6 +31,7 @@ public class DynamoDbClientConfigurationDefaults extends ClientConfigurationDefa
     @Override
     protected void applyOverrideDefaults(ClientOverrideConfiguration.Builder builder) {
         ClientOverrideConfiguration configuration = builder.build();
-        builder.retryPolicy(applyDefault(configuration.retryPolicy(), () -> PredefinedRetryPolicies.DYNAMODB_DEFAULT));
+        builder.retryPolicy(applyDefault(configuration.retryPolicy(), () ->
+                new RetryPolicyAdapter(PredefinedRetryPolicies.DYNAMODB_DEFAULT)));
     }
 }

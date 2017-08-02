@@ -18,11 +18,13 @@ package software.amazon.awssdk.internal.http.response;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 
 public class NullErrorResponseHandler implements HttpResponseHandler<AmazonServiceException> {
 
     @Override
-    public AmazonServiceException handle(HttpResponse response) throws Exception {
+    public AmazonServiceException handle(HttpResponse response,
+                                         ExecutionAttributes executionAttributes) throws Exception {
         return new AmazonServiceException(null);
     }
 

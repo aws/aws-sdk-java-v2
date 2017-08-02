@@ -27,6 +27,6 @@ final class DefaultJsonAsyncClientBuilder extends DefaultJsonBaseClientBuilder<J
     implements JsonAsyncClientBuilder {
     @Override
     protected final JsonAsyncClient buildClient() {
-        return new DefaultJsonAsyncClient(super.asyncClientConfiguration().asLegacyAsyncClientParams());
+        return new DefaultJsonAsyncClient(super.asyncClientConfiguration());
     }
 }

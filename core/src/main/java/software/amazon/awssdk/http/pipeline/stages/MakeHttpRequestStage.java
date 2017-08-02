@@ -22,7 +22,7 @@ import software.amazon.awssdk.event.ProgressEventType;
 import software.amazon.awssdk.event.ProgressListener;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.AmazonHttpClient;
-import software.amazon.awssdk.http.HttpClientDependencies;
+import software.amazon.awssdk.http.HttpSyncClientDependencies;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -38,8 +38,8 @@ public class MakeHttpRequestStage
 
     private final SdkHttpClient sdkHttpClient;
 
-    public MakeHttpRequestStage(HttpClientDependencies dependencies) {
-        this.sdkHttpClient = dependencies.sdkHttpClient();
+    public MakeHttpRequestStage(HttpSyncClientDependencies dependencies) {
+        this.sdkHttpClient = dependencies.syncClientConfiguration().httpClient();
     }
 
     /**
@@ -63,7 +63,7 @@ public class MakeHttpRequestStage
                                                           .metrics(context.awsRequestMetrics())
                                                           .build());
 
-        context.getClientExecutionTrackerTask().setCurrentHttpRequest(requestCallable);
+        context.clientExecutionTrackerTask().setCurrentHttpRequest(requestCallable);
         return requestCallable.call();
     }
 }

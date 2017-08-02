@@ -19,7 +19,6 @@ import software.amazon.awssdk.Request;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.http.HandlerContextKey;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**

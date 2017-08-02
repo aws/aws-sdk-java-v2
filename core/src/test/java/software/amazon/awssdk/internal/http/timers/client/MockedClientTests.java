@@ -27,14 +27,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.LegacyClientConfiguration;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.internal.http.response.NullResponseHandler;
 import software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
-import software.amazon.awssdk.internal.http.timers.TimeoutTestConstants;
+import software.amazon.awssdk.retry.PredefinedRetryPolicies;
+import utils.HttpTestUtils;
 
 /**
  * These tests don't actually start up a mock server. They use a partially mocked Apache HTTP client
@@ -59,14 +59,10 @@ public class MockedClientTests {
 
     @Test
     public void clientExecutionTimeoutEnabled_RequestCompletesWithinTimeout_TaskCanceled() throws Exception {
-        LegacyClientConfiguration config = new LegacyClientConfiguration()
-                .withClientExecutionTimeout(TimeoutTestConstants.CLIENT_EXECUTION_TIMEOUT)
-                .withMaxErrorRetry(0);
-
-        AmazonHttpClient httpClient = AmazonHttpClient.builder()
-                .clientConfiguration(config)
-                .sdkHttpClient(sdkHttpClient)
-                .build();
+        AmazonHttpClient httpClient = HttpTestUtils.testClientBuilder()
+                                                   .httpClient(sdkHttpClient)
+                                                   .retryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
+                                                   .build();
 
         try {
             ClientExecutionAndRequestTimerTestUtils

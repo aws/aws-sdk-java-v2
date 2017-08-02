@@ -27,6 +27,6 @@ final class DefaultJsonClientBuilder extends DefaultJsonBaseClientBuilder<JsonCl
                                                                                                                 JsonClientBuilder {
     @Override
     protected final JsonClient buildClient() {
-        return new DefaultJsonClient(super.syncClientConfiguration().asLegacySyncClientParams());
+        return new DefaultJsonClient(super.syncClientConfiguration());
     }
 }

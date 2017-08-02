@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.RequestClientOptions;
 import software.amazon.awssdk.RequestConfig;
+import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.event.ProgressListener;
@@ -89,7 +90,7 @@ public final class AmazonWebServiceRequestAdapter extends RequestConfig {
     }
 
     @Override
-    public Object getOriginalRequest() {
+    public SdkRequest getOriginalRequest() {
         return request;
     }
 }
