@@ -91,7 +91,6 @@ public class ClientHandlerImpl extends ClientHandler {
             try {
                 request = executionParams.getMarshaller().marshall(tryBeforeMarshalling(inputT));
                 request.setAwsRequestMetrics(awsRequestMetrics);
-                request.addHandlerContext(AwsHandlerKeys.SERVICE_ADVANCED_CONFIG, serviceAdvancedConfiguration);
             } finally {
                 awsRequestMetrics.endEvent(AwsRequestMetrics.Field.RequestMarshallTime);
             }
@@ -99,6 +98,7 @@ public class ClientHandlerImpl extends ClientHandler {
             SdkHttpFullRequest marshalled =
                     SdkHttpFullRequestAdapter.toMutableHttpFullRequest(request)
                                              .handlerContext(AwsHandlerKeys.REQUEST_CONFIG, executionParams.getRequestConfig())
+                                             .handlerContext(AwsHandlerKeys.SERVICE_ADVANCED_CONFIG, serviceAdvancedConfiguration)
                                              .endpoint(endpoint)
                                              .build();
             response = invoke(marshalled,
