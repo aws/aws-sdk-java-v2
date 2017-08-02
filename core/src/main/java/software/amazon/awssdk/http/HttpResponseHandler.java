@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.http;
 
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 
 /**
  * Responsible for handling an HTTP response and returning an object of type T.
@@ -26,6 +28,7 @@ import software.amazon.awssdk.annotation.SdkProtectedApi;
  *            The output of this response handler.
  */
 @SdkProtectedApi
+@FunctionalInterface
 public interface HttpResponseHandler<T> {
 
     String X_AMZN_REQUEST_ID_HEADER = "x-amzn-RequestId";
@@ -35,15 +38,16 @@ public interface HttpResponseHandler<T> {
      * Individual implementations may choose to handle the response however they
      * need to, and return any type that they need to.
      *
-     * @param response
-     *            The HTTP response to handle, as received from an AWS service.
-     *
+     * @param response The HTTP response to handle, as received from an AWS service.
+     * @param executionAttributes The attributes attached to this particular execution.
      * @return An object of type T, as defined by individual implementations.
      *
      * @throws Exception
      *             If any problems are encountered handling the response.
      */
-    T handle(HttpResponse response) throws Exception;
+    @ReviewBeforeRelease("This should not use the legacy HTTP response representation. "
+                         + "Also, can it throw something more specific?")
+    T handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception;
 
     /**
      * Indicates if this response handler requires that the underlying HTTP
@@ -52,7 +56,7 @@ public interface HttpResponseHandler<T> {
      * <p>
      * For example, if the object returned by this response handler manually
      * manages the stream of data from the HTTP connection, and doesn't read all
-     * the data from the connection in the {@link #handle(HttpResponse)} method,
+     * the data from the connection in the {@link #handle(HttpResponse, ExecutionAttributes)} method,
      * this method can be used to prevent the underlying connection from being
      * prematurely closed.
      * <p>
@@ -65,6 +69,7 @@ public interface HttpResponseHandler<T> {
      *         connection be left open, and not automatically closed, otherwise
      *         false.
      */
-    boolean needsConnectionLeftOpen();
-
+    default boolean needsConnectionLeftOpen() {
+        return false;
+    }
 }

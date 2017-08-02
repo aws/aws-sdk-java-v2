@@ -31,6 +31,7 @@ import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.async.AsyncResponseHandler;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.http.async.UnmarshallingAsyncResponseHandler;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.runtime.transform.StaxUnmarshallerContext;
 import software.amazon.awssdk.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.runtime.transform.UnmarshallingStreamingResponseHandler;
@@ -88,9 +89,9 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
 
 
     /**
-     * @see HttpResponseHandler#handle(HttpResponse)
+     * @see HttpResponseHandler#handle(HttpResponse, ExecutionAttributes)
      */
-    public T handle(HttpResponse response) throws Exception {
+    public T handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
         log.trace("Parsing service response XML");
         InputStream content = response.getContent();
         if (content == null) {

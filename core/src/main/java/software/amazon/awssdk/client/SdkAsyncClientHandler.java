@@ -17,8 +17,11 @@ package software.amazon.awssdk.client;
 
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.SdkRequest;
+import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.config.AsyncClientConfiguration;
 import software.amazon.awssdk.internal.AmazonWebServiceRequestAdapter;
 import software.amazon.awssdk.internal.http.response.AwsErrorResponseHandler;
 import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
@@ -32,12 +35,14 @@ public class SdkAsyncClientHandler extends AsyncClientHandler {
 
     private final AsyncClientHandler delegateHandler;
 
-    public SdkAsyncClientHandler(ClientHandlerParams handlerParams) {
-        this.delegateHandler = new AsyncClientHandlerImpl(handlerParams);
+    public SdkAsyncClientHandler(AsyncClientConfiguration asyncClientConfiguration,
+                                 ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
+        super(asyncClientConfiguration, serviceAdvancedConfiguration);
+        this.delegateHandler = new AsyncClientHandlerImpl(asyncClientConfiguration, serviceAdvancedConfiguration);
     }
 
     @Override
-    public <InputT, OutputT> CompletableFuture<OutputT> execute(
+    public <InputT extends SdkRequest, OutputT> CompletableFuture<OutputT> execute(
             ClientExecutionParams<InputT, OutputT> executionParams) {
         return delegateHandler.execute(
                 addRequestConfig(executionParams)
@@ -52,7 +57,7 @@ public class SdkAsyncClientHandler extends AsyncClientHandler {
         delegateHandler.close();
     }
 
-    private <InputT, OutputT> ClientExecutionParams<InputT, OutputT> addRequestConfig(
+    private <InputT extends SdkRequest, OutputT> ClientExecutionParams<InputT, OutputT> addRequestConfig(
             ClientExecutionParams<InputT, OutputT> params) {
         return params.withRequestConfig(new AmazonWebServiceRequestAdapter((AmazonWebServiceRequest) params.getInput()));
     }

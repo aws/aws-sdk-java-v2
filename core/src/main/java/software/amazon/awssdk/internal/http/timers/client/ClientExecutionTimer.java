@@ -50,7 +50,7 @@ public class ClientExecutionTimer implements AutoCloseable {
      * @return Implementation of {@link ClientExecutionAbortTrackerTaskImpl} to query the state of
      *         the task, provide it with up to date context, and cancel it if appropriate
      */
-    public ClientExecutionAbortTrackerTask startTimer(int clientExecutionTimeoutMillis) {
+    public ClientExecutionAbortTrackerTask startTimer(long clientExecutionTimeoutMillis) {
         if (isTimeoutDisabled(clientExecutionTimeoutMillis)) {
             return NoOpClientExecutionAbortTrackerTask.INSTANCE;
         } else if (executor == null) {
@@ -89,14 +89,14 @@ public class ClientExecutionTimer implements AutoCloseable {
         }
     }
 
-    private ClientExecutionAbortTrackerTask scheduleTimerTask(int clientExecutionTimeoutMillis) {
+    private ClientExecutionAbortTrackerTask scheduleTimerTask(long clientExecutionTimeoutMillis) {
         ClientExecutionAbortTask timerTask = new ClientExecutionAbortTaskImpl(Thread.currentThread());
         ScheduledFuture<?> timerTaskFuture = executor.schedule(timerTask, clientExecutionTimeoutMillis,
                                                                TimeUnit.MILLISECONDS);
         return new ClientExecutionAbortTrackerTaskImpl(timerTask, timerTaskFuture);
     }
 
-    private boolean isTimeoutDisabled(int clientExecutionTimeoutMillis) {
+    private boolean isTimeoutDisabled(long clientExecutionTimeoutMillis) {
         return clientExecutionTimeoutMillis <= 0;
     }
 

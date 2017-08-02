@@ -31,7 +31,6 @@ import software.amazon.awssdk.config.ImmutableSyncClientConfiguration;
 import software.amazon.awssdk.config.MutableClientConfiguration;
 import software.amazon.awssdk.config.defaults.ClientConfigurationDefaults;
 import software.amazon.awssdk.config.defaults.GlobalClientConfigurationDefaults;
-import software.amazon.awssdk.handlers.HandlerChainFactory;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientFactory;
@@ -174,6 +173,24 @@ public abstract class DefaultClientBuilder<B extends ClientBuilder<B, C>, C>
         return new ImmutableSyncClientConfiguration(configuration);
     }
 
+    /**
+     * Return an async client configuration object, populated with the following chain of priorities.
+     * <ol>
+     * <li>Customer Configuration</li>
+     * <li>Builder-Specific Default Configuration</li>
+     * <li>Service-Specific Default Configuration</li>
+     * <li>Global Default Configuration</li>
+     * </ol>
+     */
+    protected final ImmutableAsyncClientConfiguration asyncClientConfiguration() {
+        MutableClientConfiguration configuration = mutableClientConfiguration.clone();
+        builderDefaults().applyAsyncDefaults(configuration);
+        serviceDefaults().applyAsyncDefaults(configuration);
+        new GlobalClientConfigurationDefaults().applyAsyncDefaults(configuration);
+        applySdkAsyncHttpClient(configuration);
+        return new ImmutableAsyncClientConfiguration(configuration);
+    }
+
     private void applySdkHttpClient(MutableClientConfiguration config) {
         config.httpClient(resolveSdkHttpClient());
     }
@@ -196,24 +213,6 @@ public abstract class DefaultClientBuilder<B extends ClientBuilder<B, C>, C>
                 .map(e -> e.map(NonManagedSdkAsyncHttpClient::new,
                     factory -> factory.createHttpClientWithDefaults(serviceSpecificHttpConfig())))
                 .orElseGet(() -> defaultAsyncHttpClientFactory.createHttpClientWithDefaults(serviceSpecificHttpConfig()));
-    }
-
-    /**
-     * Return an async client configuration object, populated with the following chain of priorities.
-     * <ol>
-     * <li>Customer Configuration</li>
-     * <li>Builder-Specific Default Configuration</li>
-     * <li>Service-Specific Default Configuration</li>
-     * <li>Global Default Configuration</li>
-     * </ol>
-     */
-    protected final ImmutableAsyncClientConfiguration asyncClientConfiguration() {
-        MutableClientConfiguration configuration = mutableClientConfiguration.clone();
-        builderDefaults().applyAsyncDefaults(configuration);
-        serviceDefaults().applyAsyncDefaults(configuration);
-        new GlobalClientConfigurationDefaults().applyAsyncDefaults(configuration);
-        applySdkAsyncHttpClient(configuration);
-        return new ImmutableAsyncClientConfiguration(configuration);
     }
 
     /**
@@ -244,14 +243,6 @@ public abstract class DefaultClientBuilder<B extends ClientBuilder<B, C>, C>
             @Override
             protected ScheduledExecutorService getAsyncExecutorDefault() {
                 return Optional.ofNullable(asyncExecutorProvider).map(ExecutorProvider::get).orElse(null);
-            }
-
-            /**
-             * Add the global request handlers.
-             */
-            @Override
-            protected void applyOverrideDefaults(ClientOverrideConfiguration.Builder builder) {
-                new HandlerChainFactory().getGlobalHandlers().forEach(builder::addRequestListener);
             }
         };
     }

@@ -24,7 +24,7 @@ import software.amazon.awssdk.http.SdkHttpMetadata;
  *
  * @param <T> Type of {@link ResponseMetadata}.
  */
-public class AmazonWebServiceResult<T extends ResponseMetadata> {
+public class AmazonWebServiceResult<T extends ResponseMetadata> extends SdkResponse {
 
     private T sdkResponseMetadata;
 

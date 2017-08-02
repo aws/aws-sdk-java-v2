@@ -18,6 +18,7 @@ package software.amazon.awssdk.opensdk.internal.protocol;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpMetadata;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.opensdk.BaseResult;
 import software.amazon.awssdk.opensdk.SdkResponseMetadata;
 
@@ -31,8 +32,8 @@ public class ApiGatewayResponseHandler<T extends BaseResult> implements
     }
 
     @Override
-    public T handle(HttpResponse httpResponse) throws Exception {
-        T result = delegate.handle(httpResponse);
+    public T handle(HttpResponse httpResponse, ExecutionAttributes executionAttributes) throws Exception {
+        T result = delegate.handle(httpResponse, executionAttributes);
         result.sdkResponseMetadata(new SdkResponseMetadata(SdkHttpMetadata.from(httpResponse)));
         return result;
     }

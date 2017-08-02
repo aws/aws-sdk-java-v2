@@ -39,7 +39,7 @@ public class TimerExceptionHandlingStage<OutputT> implements RequestToResponsePi
         try {
             return requestPipeline.execute(request, context);
         } catch (IOException ioe) {
-            if (context.getClientExecutionTrackerTask().hasTimeoutExpired()) {
+            if (context.clientExecutionTrackerTask().hasTimeoutExpired()) {
                 throw new InterruptedException();
             }
             throw ioe;

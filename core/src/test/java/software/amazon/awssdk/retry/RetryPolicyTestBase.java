@@ -26,7 +26,9 @@ import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.DefaultRequest;
 import software.amazon.awssdk.LegacyClientConfiguration;
 import software.amazon.awssdk.Request;
+import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.util.StringInputStream;
 
 /**
@@ -36,7 +38,7 @@ public class RetryPolicyTestBase {
 
     protected static final AmazonWebServiceRequest originalRequest = new TestAmazonWebServiceRequest();
     protected static final HttpResponseHandler<AmazonServiceException> errorResponseHandler = new TestHttpResponseHandler();
-    protected static LegacyClientConfiguration clientConfiguration = new LegacyClientConfiguration();
+
     /**
      * The retry condition and back-off strategy implementations that record all
      * the context data passed into shouldRetry and calculateSleepTime methods.
@@ -167,7 +169,8 @@ public class RetryPolicyTestBase {
 
         @Override
         public AmazonServiceException handle(
-                software.amazon.awssdk.http.HttpResponse response) throws Exception {
+                HttpResponse response,
+                ExecutionAttributes executionAttributes) throws Exception {
             AmazonServiceException ase = new AmazonServiceException("Fake service exception.");
             ase.setStatusCode(response.getStatusCode());
             ase.setErrorCode(response.getStatusText());

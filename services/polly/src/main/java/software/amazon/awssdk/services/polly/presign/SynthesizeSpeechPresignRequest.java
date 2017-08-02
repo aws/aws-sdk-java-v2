@@ -18,6 +18,8 @@ package software.amazon.awssdk.services.polly.presign;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
+import software.amazon.awssdk.SdkRequest;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.services.polly.model.OutputFormat;
 import software.amazon.awssdk.services.polly.model.SpeechMarkType;
@@ -27,7 +29,8 @@ import software.amazon.awssdk.services.polly.model.VoiceId;
 /**
  * Presigning input for {@link PollyClientPresigners#getPresignedSynthesizeSpeechUrl(SynthesizeSpeechPresignRequest)}.
  */
-public class SynthesizeSpeechPresignRequest implements Serializable {
+@ReviewBeforeRelease("Immutable? Generate?")
+public class SynthesizeSpeechPresignRequest extends SdkRequest implements Serializable {
 
     private Date expirationDate;
 

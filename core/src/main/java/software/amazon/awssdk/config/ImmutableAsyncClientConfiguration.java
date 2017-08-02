@@ -15,19 +15,9 @@
 
 package software.amazon.awssdk.config;
 
-import java.net.URI;
-import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
-import software.amazon.awssdk.LegacyClientConfiguration;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.client.AwsAsyncClientParams;
-import software.amazon.awssdk.handlers.RequestHandler;
-import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
-import software.amazon.awssdk.runtime.auth.SignerProvider;
 
 /**
  * An implementation of {@link AsyncClientConfiguration} that is guaranteed to be immutable and thread-safe.
@@ -35,12 +25,12 @@ import software.amazon.awssdk.runtime.auth.SignerProvider;
 @SdkInternalApi
 public final class ImmutableAsyncClientConfiguration extends ImmutableClientConfiguration implements AsyncClientConfiguration {
 
-    private final ScheduledExecutorService asyncExecutor;
+    private final ScheduledExecutorService asyncExecutorService;
     private final SdkAsyncHttpClient asyncHttpClient;
 
     public ImmutableAsyncClientConfiguration(AsyncClientConfiguration configuration) {
         super(configuration);
-        this.asyncExecutor = configuration.asyncExecutorService();
+        this.asyncExecutorService = configuration.asyncExecutorService();
         this.asyncHttpClient = configuration.asyncHttpClient();
 
         validate();
@@ -52,65 +42,11 @@ public final class ImmutableAsyncClientConfiguration extends ImmutableClientConf
 
     @Override
     public ScheduledExecutorService asyncExecutorService() {
-        return asyncExecutor;
+        return asyncExecutorService;
     }
 
     @Override
     public SdkAsyncHttpClient asyncHttpClient() {
         return asyncHttpClient;
-    }
-
-    /**
-     * Convert this asynchronous client configuration into a legacy-style client params object.
-     */
-    @Deprecated
-    @ReviewBeforeRelease("We should no longer need the client params object by GA.")
-    public AwsAsyncClientParams asLegacyAsyncClientParams() {
-        return new AwsAsyncClientParams() {
-            @Override
-            public ScheduledExecutorService getExecutor() {
-                return asyncExecutor;
-            }
-
-            @Override
-            public AwsCredentialsProvider getCredentialsProvider() {
-                return credentialsProvider();
-            }
-
-            @Override
-            public LegacyClientConfiguration getClientConfiguration() {
-                return asLegacyConfiguration();
-            }
-
-            @Override
-            public RequestMetricCollector getRequestMetricCollector() {
-                return overrideConfiguration().requestMetricCollector();
-            }
-
-            @Override
-            public List<RequestHandler> getRequestHandlers() {
-                return overrideConfiguration().requestListeners();
-            }
-
-            @Override
-            public SignerProvider getSignerProvider() {
-                return overrideConfiguration().advancedOption(AdvancedClientOption.SIGNER_PROVIDER);
-            }
-
-            @Override
-            public SdkHttpClient sdkHttpClient() {
-                throw new UnsupportedOperationException("Sync HTTP client should not be used for async clients");
-            }
-
-            @Override
-            public SdkAsyncHttpClient getAsyncHttpClient() {
-                return asyncHttpClient();
-            }
-
-            @Override
-            public URI getEndpoint() {
-                return endpoint();
-            }
-        };
     }
 }

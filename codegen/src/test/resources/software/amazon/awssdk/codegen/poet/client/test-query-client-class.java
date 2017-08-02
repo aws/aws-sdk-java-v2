@@ -8,11 +8,11 @@ import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.client.AwsSyncClientParams;
 import software.amazon.awssdk.client.ClientExecutionParams;
 import software.amazon.awssdk.client.ClientHandler;
-import software.amazon.awssdk.client.ClientHandlerParams;
 import software.amazon.awssdk.client.SdkClientHandler;
+import software.amazon.awssdk.config.ClientConfiguration;
+import software.amazon.awssdk.config.SyncClientConfiguration;
 import software.amazon.awssdk.http.DefaultErrorResponseHandler;
 import software.amazon.awssdk.http.StaxResponseHandler;
 import software.amazon.awssdk.runtime.transform.StandardErrorUnmarshaller;
@@ -42,15 +42,14 @@ final class DefaultQueryClient implements QueryClient {
 
     private final List<Unmarshaller<AmazonServiceException, Node>> exceptionUnmarshallers;
 
-    private final AwsSyncClientParams clientParams;
+    private final ClientConfiguration clientConfiguration;
 
     private volatile QueryClientWaiters waiters;
 
-    protected DefaultQueryClient(AwsSyncClientParams clientParams) {
-        this.clientHandler = new SdkClientHandler(new ClientHandlerParams().withClientParams(clientParams)
-                                                                           .withCalculateCrc32FromCompressedDataEnabled(false));
-        this.clientParams = clientParams;
+    protected DefaultQueryClient(SyncClientConfiguration clientConfiguration) {
+        this.clientHandler = new SdkClientHandler(clientConfiguration, null);
         this.exceptionUnmarshallers = init();
+        this.clientConfiguration = clientConfiguration;
     }
 
     /**

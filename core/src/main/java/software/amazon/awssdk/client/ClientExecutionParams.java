@@ -18,6 +18,7 @@ package software.amazon.awssdk.client;
 import software.amazon.awssdk.Request;
 import software.amazon.awssdk.RequestConfig;
 import software.amazon.awssdk.SdkBaseException;
+import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.NotThreadSafe;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
@@ -36,7 +37,7 @@ import software.amazon.awssdk.runtime.transform.Marshaller;
 @SdkProtectedApi
 @NotThreadSafe
 @ReviewBeforeRelease("Using old style withers/getters")
-public class ClientExecutionParams<InputT, OutputT> {
+public class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
 
     private InputT input;
     private AsyncRequestProvider asyncRequestProvider;
@@ -111,15 +112,6 @@ public class ClientExecutionParams<InputT, OutputT> {
 
     public ClientExecutionParams<InputT, OutputT> withAsyncRequestProvider(AsyncRequestProvider asyncRequestProvider) {
         this.asyncRequestProvider = asyncRequestProvider;
-        return this;
-    }
-
-    public ServiceAdvancedConfiguration getServiceAdvancedConfiguration() {
-        return serviceAdvancedConfiguration;
-    }
-
-    public ClientExecutionParams<InputT, OutputT> withServiceAdvancedConfiguration(ServiceAdvancedConfiguration serviceConfig) {
-        this.serviceAdvancedConfiguration = serviceConfig;
         return this;
     }
 }

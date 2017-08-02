@@ -15,13 +15,14 @@
 
 package software.amazon.awssdk.opensdk.protect.client;
 
+import software.amazon.awssdk.SdkRequest;
+import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.ThreadSafe;
 import software.amazon.awssdk.client.ClientExecutionParams;
 import software.amazon.awssdk.client.ClientHandler;
-import software.amazon.awssdk.client.ClientHandlerImpl;
-import software.amazon.awssdk.client.ClientHandlerParams;
-import software.amazon.awssdk.opensdk.BaseRequest;
+import software.amazon.awssdk.client.SyncClientHandlerImpl;
+import software.amazon.awssdk.config.SyncClientConfiguration;
 
 /**
  * Client handler for Open SDK generated clients. Handles exception translation and delegates to the default implementation of
@@ -33,12 +34,14 @@ public class SdkClientHandler extends ClientHandler {
 
     private final ClientHandler delegateHandler;
 
-    public SdkClientHandler(ClientHandlerParams handlerParams) {
-        this.delegateHandler = new ClientHandlerImpl(handlerParams);
+    public SdkClientHandler(SyncClientConfiguration clientConfiguration,
+                            ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
+        super(clientConfiguration, serviceAdvancedConfiguration);
+        this.delegateHandler = new SyncClientHandlerImpl(clientConfiguration, serviceAdvancedConfiguration);
     }
 
     @Override
-    public <InputT, OutputT> OutputT execute(
+    public <InputT extends SdkRequest, OutputT> OutputT execute(
             ClientExecutionParams<InputT, OutputT> executionParams) {
         return delegateHandler.execute(addRequestConfig(executionParams));
     }
@@ -48,9 +51,10 @@ public class SdkClientHandler extends ClientHandler {
         delegateHandler.close();
     }
 
-    private <InputT, OutputT>
+    private <InputT extends SdkRequest, OutputT>
         ClientExecutionParams<InputT, OutputT> addRequestConfig(ClientExecutionParams<InputT, OutputT> params) {
-        return params.withRequestConfig(new RequestConfigAdapter((BaseRequest) params.getInput()));
+        // TODO: Request configuration when we do API gateway generated clients
+        return params.withRequestConfig(null);
     }
 
 }

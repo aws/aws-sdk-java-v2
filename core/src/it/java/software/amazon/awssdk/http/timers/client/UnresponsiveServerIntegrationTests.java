@@ -32,21 +32,27 @@ import java.time.Duration;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.LegacyClientConfiguration;
 import software.amazon.awssdk.TestPreConditions;
+import software.amazon.awssdk.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.config.MutableClientConfiguration;
 import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.UnresponsiveMockServerTestBase;
 import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
 import software.amazon.awssdk.http.exception.ClientExecutionTimeoutException;
+import software.amazon.awssdk.internal.http.timers.TimeoutTestConstants;
 import software.amazon.awssdk.retry.FixedTimeBackoffStrategy;
 import software.amazon.awssdk.retry.PredefinedRetryPolicies;
 import software.amazon.awssdk.retry.RetryPolicy;
+import software.amazon.awssdk.retry.RetryPolicyAdapter;
+import utils.HttpTestUtils;
 
 public class UnresponsiveServerIntegrationTests extends UnresponsiveMockServerTestBase {
 
-    private static final Duration LONGER_SOCKET_TIMEOUT = Duration.ofMillis(CLIENT_EXECUTION_TIMEOUT * PRECISION_MULTIPLIER);
-    private static final Duration SHORTER_SOCKET_TIMEOUT = Duration.ofMillis(CLIENT_EXECUTION_TIMEOUT / PRECISION_MULTIPLIER);
+    private static final Duration LONGER_SOCKET_TIMEOUT =
+            Duration.ofMillis(CLIENT_EXECUTION_TIMEOUT.toMillis() * PRECISION_MULTIPLIER);
+    private static final Duration SHORTER_SOCKET_TIMEOUT =
+            Duration.ofMillis(CLIENT_EXECUTION_TIMEOUT.toMillis() / PRECISION_MULTIPLIER);
 
     private AmazonHttpClient httpClient;
 
@@ -57,10 +63,7 @@ public class UnresponsiveServerIntegrationTests extends UnresponsiveMockServerTe
 
     @Test(timeout = TEST_TIMEOUT)
     public void clientExecutionTimeoutDisabled_SocketTimeoutExceptionIsThrown_NoThreadsCreated() {
-        httpClient = AmazonHttpClient.builder()
-                                     .sdkHttpClient(createClientWithSocketTimeout(SHORTER_SOCKET_TIMEOUT))
-                                     .clientConfiguration(new LegacyClientConfiguration().withMaxErrorRetry(0))
-                                     .build();
+        httpClient = HttpTestUtils.testClientBuilder().httpClient(createClientWithSocketTimeout(SHORTER_SOCKET_TIMEOUT)).build();
 
         try {
             httpClient.requestExecutionBuilder().request(newGetRequest()).execute();
@@ -81,17 +84,23 @@ public class UnresponsiveServerIntegrationTests extends UnresponsiveMockServerTe
     @Test(timeout = TEST_TIMEOUT)
     public void interruptCausedBySomethingOtherThanTimer_PropagatesInterruptToCaller() {
         Duration socketTimeout = Duration.ofMillis(100);
-        httpClient = AmazonHttpClient.builder()
-                                     .sdkHttpClient(createClientWithSocketTimeout(socketTimeout))
-                                     .clientConfiguration(new LegacyClientConfiguration()
-                                                                  .withClientExecutionTimeout(CLIENT_EXECUTION_TIMEOUT)
-                                                                  .withRetryPolicy(
-                                                                          new RetryPolicy(
-                                                                                  PredefinedRetryPolicies.DEFAULT_RETRY_CONDITION,
-                                                                                  new FixedTimeBackoffStrategy(
-                                                                                          CLIENT_EXECUTION_TIMEOUT),
-                                                                                  1, false)))
-                                     .build();
+
+        RetryPolicyAdapter retryPolicy = new RetryPolicyAdapter(
+                new RetryPolicy(PredefinedRetryPolicies.DEFAULT_RETRY_CONDITION,
+                                new FixedTimeBackoffStrategy(CLIENT_EXECUTION_TIMEOUT.toMillis()),
+                                1, false));
+
+        ClientOverrideConfiguration overrideConfiguration =
+                ClientOverrideConfiguration.builder()
+                                           .totalExecutionTimeout(TimeoutTestConstants.CLIENT_EXECUTION_TIMEOUT)
+                                           .retryPolicy(retryPolicy)
+                                           .build();
+
+        MutableClientConfiguration clientConfig = new MutableClientConfiguration()
+                .httpClient(HttpTestUtils.testSdkHttpClient())
+                .overrideConfiguration(overrideConfiguration);
+
+        httpClient = AmazonHttpClient.builder().syncClientConfiguration(clientConfig).build();
 
         // We make sure the first connection has failed due to the socket timeout before
         // interrupting so we know that we are sleeping per the backoff strategy. Apache HTTP
@@ -110,12 +119,7 @@ public class UnresponsiveServerIntegrationTests extends UnresponsiveMockServerTe
     @Test(timeout = TEST_TIMEOUT)
     public void clientExecutionTimeoutEnabled_WithLongerSocketTimeout_ThrowsClientExecutionTimeoutException()
             throws IOException {
-        httpClient = AmazonHttpClient.builder()
-                                     .sdkHttpClient(createClientWithSocketTimeout(LONGER_SOCKET_TIMEOUT))
-                                     .clientConfiguration(new LegacyClientConfiguration()
-                                                                  .withClientExecutionTimeout(CLIENT_EXECUTION_TIMEOUT)
-                                                                  .withMaxErrorRetry(0))
-                                     .build();
+        httpClient = HttpTestUtils.testClientBuilder().httpClient(createClientWithSocketTimeout(LONGER_SOCKET_TIMEOUT)).build();
 
         try {
             httpClient.requestExecutionBuilder().request(newGetRequest()).execute();
@@ -136,12 +140,7 @@ public class UnresponsiveServerIntegrationTests extends UnresponsiveMockServerTe
     @Test(timeout = TEST_TIMEOUT)
     public void clientExecutionTimeoutEnabled_WithShorterSocketTimeout_ThrowsSocketTimeoutException()
             throws IOException {
-        httpClient = AmazonHttpClient.builder()
-                                     .sdkHttpClient(createClientWithSocketTimeout(SHORTER_SOCKET_TIMEOUT))
-                                     .clientConfiguration(new LegacyClientConfiguration()
-                                                                  .withClientExecutionTimeout(CLIENT_EXECUTION_TIMEOUT)
-                                                                  .withMaxErrorRetry(0))
-                                     .build();
+        httpClient = HttpTestUtils.testClientBuilder().httpClient(createClientWithSocketTimeout(SHORTER_SOCKET_TIMEOUT)).build();
 
         try {
             httpClient.requestExecutionBuilder().request(newGetRequest()).execute();

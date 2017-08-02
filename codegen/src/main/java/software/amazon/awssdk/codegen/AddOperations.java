@@ -168,8 +168,7 @@ final class AddOperations {
             if (output != null) {
                 final String outputShapeName = getResultShapeName(op, c2jShapes);
                 final Shape outputShape = c2jShapes.get(outputShapeName);
-                final String responseClassName = outputShape.isWrapper() ?
-                                                 outputShapeName : namingStrategy.getResponseClassName(operationName);
+                final String responseClassName = namingStrategy.getResponseClassName(operationName);
                 final String documentation = getOperationDocumentation(output, outputShape);
 
                 operationModel.setReturnType(

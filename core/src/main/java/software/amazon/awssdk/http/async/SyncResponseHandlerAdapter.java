@@ -26,12 +26,13 @@ import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.util.Throwables;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * Adapts an {@link HttpResponseHandler} to the asynchronous {@link SdkHttpResponseHandler}. Buffers
- * all content into a {@link ByteArrayInputStream} then invokes the {@link HttpResponseHandler#handle(HttpResponse)}
+ * all content into a {@link ByteArrayInputStream} then invokes the {@link HttpResponseHandler#handle}
  * method.
  *
  * @param <T> Type that the response handler produces.
@@ -41,17 +42,20 @@ public class SyncResponseHandlerAdapter<T> implements SdkHttpResponseHandler<T> 
     private final HttpResponseHandler<T> responseHandler;
     private ByteArrayOutputStream baos;
     private final Function<SdkHttpFullResponse, HttpResponse> httpResponseAdapter;
-    private HttpResponse httpResponse;
+    private final ExecutionAttributes executionAttributes;
+    private SdkHttpFullResponse.Builder httpResponse;
 
     public SyncResponseHandlerAdapter(HttpResponseHandler<T> responseHandler,
-                                      Function<SdkHttpFullResponse, HttpResponse> httpResponseAdapter) {
+                                      Function<SdkHttpFullResponse, HttpResponse> httpResponseAdapter,
+                                      ExecutionAttributes executionAttributes) {
         this.responseHandler = responseHandler;
         this.httpResponseAdapter = httpResponseAdapter;
+        this.executionAttributes = executionAttributes;
     }
 
     @Override
     public void headersReceived(SdkHttpResponse response) {
-        this.httpResponse = httpResponseAdapter.apply((SdkHttpFullResponse) response);
+        this.httpResponse = ((SdkHttpFullResponse) response).toBuilder();
     }
 
     @Override
@@ -75,9 +79,9 @@ public class SyncResponseHandlerAdapter<T> implements SdkHttpResponseHandler<T> 
         try {
             // Once we've buffered all the content we can invoke the response handler
             if (baos != null) {
-                httpResponse.setContent(new ByteArrayInputStream(baos.toByteArray()));
+                httpResponse.content(new ByteArrayInputStream(baos.toByteArray()));
             }
-            return responseHandler.handle(httpResponse);
+            return responseHandler.handle(httpResponseAdapter.apply(httpResponse.build()), executionAttributes);
         } catch (Exception e) {
             throw Throwables.failure(e);
         }

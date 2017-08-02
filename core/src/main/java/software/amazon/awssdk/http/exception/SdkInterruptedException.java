@@ -15,21 +15,34 @@
 
 package software.amazon.awssdk.http.exception;
 
+import java.io.InputStream;
+import java.util.Optional;
 import software.amazon.awssdk.Response;
 import software.amazon.awssdk.annotation.SdkPublicApi;
+import software.amazon.awssdk.http.HttpResponse;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 @SdkPublicApi
 public class SdkInterruptedException extends InterruptedException {
 
     private static final long serialVersionUID = 8194951388566545094L;
 
-    private final transient Response<?> response;
+    private final transient InputStream responseStream;
 
     public SdkInterruptedException(Response<?> response) {
-        this.response = response;
+        this.responseStream = Optional.ofNullable(response)
+                                      .map(Response::getHttpResponse)
+                                      .map(HttpResponse::getContent)
+                                      .orElse(null);
     }
 
-    public Response<?> getResponse() {
-        return response;
+    public SdkInterruptedException(SdkHttpFullResponse response) {
+        this.responseStream = Optional.ofNullable(response)
+                                      .map(SdkHttpFullResponse::getContent)
+                                      .orElse(null);
+    }
+
+    public Optional<InputStream> getResponseStream() {
+        return Optional.ofNullable(responseStream);
     }
 }

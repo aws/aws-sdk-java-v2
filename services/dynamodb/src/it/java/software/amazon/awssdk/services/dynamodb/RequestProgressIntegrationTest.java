@@ -32,6 +32,7 @@ import software.amazon.awssdk.event.SdkProgressPublisher;
 import software.amazon.awssdk.event.request.Progress;
 import software.amazon.awssdk.retry.PredefinedRetryPolicies;
 import software.amazon.awssdk.retry.RetryPolicy;
+import software.amazon.awssdk.retry.RetryPolicyAdapter;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
@@ -75,7 +76,7 @@ public class RequestProgressIntegrationTest extends DynamoDBTestBase {
             Assert.fail("Interrupted when waiting for the progress listener callbacks to return. "
                         + e.getMessage());
         } catch (ExecutionException e) {
-            Assert.fail("Error when executing the progress listner callbacks. "
+            Assert.fail("Error when executing the progress listener callbacks. "
                         + e.getCause().getMessage());
         }
     }
@@ -122,7 +123,7 @@ public class RequestProgressIntegrationTest extends DynamoDBTestBase {
 
         DynamoDBClient ddb_NoRetry = DynamoDBClient.builder()
                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                .overrideConfiguration(ClientOverrideConfiguration.builder().retryPolicy(retryPolicy).build())
+                .overrideConfiguration(ClientOverrideConfiguration.builder().retryPolicy(new RetryPolicyAdapter(retryPolicy)).build())
                 .build();
 
         try {
@@ -149,7 +150,8 @@ public class RequestProgressIntegrationTest extends DynamoDBTestBase {
 
         DynamoDBClient ddb_OneRetry = DynamoDBClient.builder()
                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                .overrideConfiguration(ClientOverrideConfiguration.builder().retryPolicy(retryPolicy).build())
+                .overrideConfiguration(ClientOverrideConfiguration.builder().retryPolicy(new RetryPolicyAdapter(retryPolicy))
+                                                                  .build())
                 .build();
 
         ExceptionReporter listener = ExceptionReporter.wrap(new ProgressListenerWithEventCodeVerification(

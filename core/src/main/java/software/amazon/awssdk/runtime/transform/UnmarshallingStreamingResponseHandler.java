@@ -18,6 +18,7 @@ package software.amazon.awssdk.runtime.transform;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.sync.StreamingResponseHandler;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeFunction;
 
@@ -40,7 +41,7 @@ public class UnmarshallingStreamingResponseHandler<ResponseT, ReturnT> implement
     }
 
     @Override
-    public ReturnT handle(HttpResponse response) throws Exception {
+    public ReturnT handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
         ResponseT unmarshalled = unmarshaller.apply(response);
         ReturnT toReturn = streamHandler.apply(unmarshalled, new AbortableInputStream(response.getContent(), response));
         response.getContent().close();

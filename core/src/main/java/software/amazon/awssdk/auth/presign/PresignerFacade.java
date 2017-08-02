@@ -20,11 +20,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.RequestConfig;
+import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.annotation.Immutable;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.Presigner;
+import software.amazon.awssdk.handlers.AwsExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.interceptor.InterceptorContext;
 import software.amazon.awssdk.runtime.auth.SignerProvider;
 import software.amazon.awssdk.runtime.auth.SignerProviderContext;
 import software.amazon.awssdk.util.CredentialUtils;
@@ -46,20 +51,29 @@ public final class PresignerFacade {
         this.signerProvider = presignerParams.signerProvider();
     }
 
-    public URL presign(SdkHttpFullRequest request, RequestConfig requestConfig, Date expirationDate) {
+    @ReviewBeforeRelease("Can this be cleaned up with the signer refactor?")
+    public URL presign(SdkRequest request, SdkHttpFullRequest httpRequest, RequestConfig requestConfig, Date expirationDate) {
         final Presigner presigner = (Presigner) signerProvider.getSigner(SignerProviderContext.builder()
                                                                                               .withIsRedirect(false)
-                                                                                              .withRequest(request)
-                                                                                              .withUri(request.getEndpoint())
+                                                                                              .withRequest(httpRequest)
+                                                                                              .withUri(httpRequest.getEndpoint())
                                                                                               .build());
-        SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
+        SdkHttpFullRequest.Builder mutableHttpRequest = httpRequest.toBuilder();
         if (requestConfig != null) {
-            addCustomQueryParams(mutableRequest, requestConfig);
-            addCustomHeaders(mutableRequest, requestConfig);
+            addCustomQueryParams(mutableHttpRequest, requestConfig);
+            addCustomHeaders(mutableHttpRequest, requestConfig);
         }
-        final AwsCredentialsProvider credentialsProvider = resolveCredentials(requestConfig);
-        SdkHttpFullRequest signed = presigner.presignRequest(mutableRequest.build(),
-                                                             credentialsProvider.getCredentials(), expirationDate);
+        AwsCredentialsProvider credentialsProvider = resolveCredentials(requestConfig);
+
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        executionAttributes.putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, credentialsProvider.getCredentials());
+
+        SdkHttpFullRequest signed = presigner.presign(InterceptorContext.builder()
+                                                                        .request(request)
+                                                                        .httpRequest(mutableHttpRequest.build())
+                                                                        .build(),
+                                                      executionAttributes,
+                                                      expirationDate);
         return RuntimeHttpUtils.convertRequestToUrl(signed, true, false);
     }
 

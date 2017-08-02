@@ -27,6 +27,7 @@ import org.xml.sax.SAXException;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.util.StringUtils;
 import software.amazon.awssdk.util.XpathUtils;
@@ -63,7 +64,8 @@ public class DefaultErrorResponseHandler implements HttpResponseHandler<AmazonSe
     }
 
     @Override
-    public AmazonServiceException handle(HttpResponse errorResponse) throws Exception {
+    public AmazonServiceException handle(HttpResponse errorResponse,
+                                         ExecutionAttributes executionAttributes) throws Exception {
         AmazonServiceException ase = createAse(errorResponse);
         if (ase == null) {
             throw new SdkClientException("Unable to unmarshall error response from service");
