@@ -29,6 +29,7 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.async.AsyncRequestProvider;
 import software.amazon.awssdk.async.AsyncResponseHandler;
 import software.amazon.awssdk.auth.DefaultCredentialsProvider;
+import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
@@ -153,7 +154,7 @@ public class AsyncClientInterface implements ClassSpec {
         ClassName responsePojoType = ClassName.get(modelPackage, opModel.getReturnType().getReturnType());
         return MethodSpec.methodBuilder(opModel.getMethodName())
                          .returns(getAsyncReturnType(opModel, responsePojoType))
-                         .addJavadoc(opModel.getAsyncDocumentation(model, opModel));
+                         .addJavadoc(opModel.getDocs(model, ClientType.ASYNC));
     }
 
     /**

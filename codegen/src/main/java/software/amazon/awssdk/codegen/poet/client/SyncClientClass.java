@@ -173,10 +173,6 @@ public class SyncClientClass implements ClassSpec {
     private List<MethodSpec> operationMethodSpecs(OperationModel opModel) {
         List<MethodSpec> methods = new ArrayList<>();
 
-        if (opModel.getInputShape().isSimpleMethod()) {
-            methods.add(simpleMethod(opModel));
-        }
-
         methods.add(SyncClientInterface.operationMethodSignature(model, opModel)
                                   .addAnnotation(Override.class)
                                   .addCode(protocolSpec.responseHandler(opModel))
@@ -185,15 +181,6 @@ public class SyncClientClass implements ClassSpec {
                                   .build());
 
         return methods;
-    }
-
-    private MethodSpec simpleMethod(OperationModel opModel) {
-        return SyncClientInterface.operationSimpleMethodSignature(model, opModel)
-                                  .addAnnotation(Override.class)
-                                  .addCode("return $N($N.builder().build());",
-                                         opModel.getMethodName(),
-                                         opModel.getInput().getVariableType())
-                                  .build();
     }
 
     private MethodSpec waiters() {

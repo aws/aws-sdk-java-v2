@@ -129,7 +129,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
      */
     @Test
     public void handlerSquashsInterrupt_DoesNotThrowClientTimeoutException() throws Exception {
-        RequestCountingResponseHandler<GetObjectRequest, ?> handler = new RequestCountingResponseHandler<>(
+        RequestCountingResponseHandler<GetObjectResponse, ?> handler = new RequestCountingResponseHandler<>(
                 (resp, in) -> {
                     try {
                         Thread.sleep(10_000);

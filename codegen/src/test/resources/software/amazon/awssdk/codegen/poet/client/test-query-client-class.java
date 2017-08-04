@@ -66,9 +66,9 @@ final class DefaultQueryClient implements QueryClient {
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
      * @throws SdkClientException
-     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc)
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
      * @throws QueryException
-     *         Base exception for all service exceptions. Unknown exceptions will be thrown as an instance of this type
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample QueryClient.APostOperation
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
@@ -100,9 +100,9 @@ final class DefaultQueryClient implements QueryClient {
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
      * @throws SdkClientException
-     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc)
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
      * @throws QueryException
-     *         Base exception for all service exceptions. Unknown exceptions will be thrown as an instance of this type
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample QueryClient.APostOperationWithOutput
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/APostOperationWithOutput"
      *      target="_top">AWS API Documentation</a>

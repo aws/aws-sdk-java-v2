@@ -64,7 +64,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * </p>
      *
      * @param aPostOperationRequest
-     * @return A Java Future containing the result of the APostOperation operation returned by the service. <br/>
+     * @return A Java Future containing the result of the APostOperation operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
      *         <ul>
@@ -73,10 +73,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
      *         client). Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
-     *         credentials, etc</li>
+     *         credentials, etc.</li>
      *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
-     *         of this</li >
-     *         <ul>
+     *         of this type.</li>
+     *         </ul>
      * @sample JsonAsyncClient.APostOperation
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
@@ -100,7 +100,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * </p>
      *
      * @param aPostOperationWithOutputRequest
-     * @return A Java Future containing the result of the APostOperationWithOutput operation returned by the service. <br/>
+     * @return A Java Future containing the result of the APostOperationWithOutput operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
      *         <ul>
@@ -109,10 +109,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
      *         client). Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
-     *         credentials, etc</li>
+     *         credentials, etc.</li>
      *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
-     *         of this</li >
-     *         <ul>
+     *         of this type.</li>
+     *         </ul>
      * @sample JsonAsyncClient.APostOperationWithOutput
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperationWithOutput"
      *      target="_top">AWS API Documentation</a>
@@ -139,7 +139,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * </p>
      *
      * @param getWithoutRequiredMembersRequest
-     * @return A Java Future containing the result of the GetWithoutRequiredMembers operation returned by the service. <br/>
+     * @return A Java Future containing the result of the GetWithoutRequiredMembers operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
      *         <ul>
@@ -148,10 +148,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
      *         client). Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
-     *         credentials, etc</li>
+     *         credentials, etc.</li>
      *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
-     *         of this</li >
-     *         <ul>
+     *         of this type.</li>
+     *         </ul>
      * @sample JsonAsyncClient.GetWithoutRequiredMembers
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
      *      target="_top">AWS API Documentation</a>
@@ -167,7 +167,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * </p>
      *
      * @param getWithoutRequiredMembersRequest
-     * @return A Java Future containing the result of the GetWithoutRequiredMembers operation returned by the service. <br/>
+     * @return A Java Future containing the result of the GetWithoutRequiredMembers operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
      *         <ul>
@@ -176,10 +176,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
      *         client). Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
-     *         credentials, etc</li>
+     *         credentials, etc.</li>
      *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
-     *         of this</li >
-     *         <ul>
+     *         of this type.</li>
+     *         </ul>
      * @sample JsonAsyncClient.GetWithoutRequiredMembers
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
      *      target="_top">AWS API Documentation</a>
@@ -209,8 +209,18 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *        size of the content is expected to be known up front. See {@link AsyncRequestProvider} for specific
      *        details on implementing this interface as well as links to precanned implementations for common scenarios
      *        like uploading from a file. The service documentation for the request content is as follows 'This be a
-     *        stream'.
-     * @return A Java Future containing the result of the StreamingInputOperation operation returned by the service.
+     *        stream'
+     * @return A Java Future containing the result of the StreamingInputOperation operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
+     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
      * @sample JsonAsyncClient.StreamingInputOperation
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
      *      target="_top">AWS API Documentation</a>
@@ -238,8 +248,18 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      *        The response handler for processing the streaming response in a non-blocking manner. See
      *        {@link AsyncResponseHandler} for details on how this callback should be implemented and for links to
      *        precanned implementations for common scenarios like downloading to a file. The service documentation for
-     *        the streamed content is as follows 'This be a stream'.
-     * @return A future to the transformed result of the AsyncResponseHandler.
+     *        the response content is as follows 'This be a stream'.
+     * @return A future to the transformed result of the AsyncResponseHandler.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
+     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
      * @sample JsonAsyncClient.StreamingOutputOperation
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
@@ -280,4 +300,3 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         return protocolFactory.createErrorResponseHandler(new JsonErrorResponseMetadata());
     }
 }
-
