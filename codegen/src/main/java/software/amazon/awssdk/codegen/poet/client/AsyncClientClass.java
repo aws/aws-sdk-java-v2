@@ -99,7 +99,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private MethodSpec closeMethod() {
         return MethodSpec.methodBuilder("close")
                          .addAnnotation(Override.class)
-                         .addException(Exception.class)
                          .addModifiers(Modifier.PUBLIC)
                          .addStatement("$N.close()", "clientHandler")
                          .build();

@@ -21,13 +21,14 @@ import software.amazon.awssdk.SdkGlobalTime;
 import software.amazon.awssdk.config.ClientConfiguration;
 import software.amazon.awssdk.internal.http.timers.client.ClientExecutionTimer;
 import software.amazon.awssdk.util.CapacityManager;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * Client scoped dependencies of {@link AmazonHttpClient}. May be injected into constructors of {@link
  * software.amazon.awssdk.http.pipeline.RequestPipeline} implementations by
  * {@link software.amazon.awssdk.http.pipeline.RequestPipelineBuilder}.
  */
-public abstract class HttpClientDependencies implements AutoCloseable {
+public abstract class HttpClientDependencies implements SdkAutoCloseable {
     private final ClientConfiguration clientConfiguration;
     private final CapacityManager capacityManager;
     private final ClientExecutionTimer clientExecutionTimer;
@@ -79,7 +80,7 @@ public abstract class HttpClientDependencies implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         this.clientExecutionTimer.close();
     }
 

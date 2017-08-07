@@ -259,7 +259,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         clientHandler.close();
     }
 

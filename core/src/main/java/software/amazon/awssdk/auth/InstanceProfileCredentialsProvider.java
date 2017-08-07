@@ -23,11 +23,12 @@ import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.internal.CredentialsEndpointProvider;
 import software.amazon.awssdk.internal.EC2CredentialsUtils;
 import software.amazon.awssdk.util.EC2MetadataUtils;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * Credentials provider implementation that loads credentials from the Amazon EC2 Instance Metadata Service.
  */
-public class InstanceProfileCredentialsProvider implements AwsCredentialsProvider, AutoCloseable {
+public class InstanceProfileCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
     /**
      * The client to use to fetch the Amazon ECS credentials.
      */

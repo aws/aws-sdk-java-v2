@@ -100,7 +100,7 @@ public class SyncClientHandlerImpl extends ClientHandler {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         client.close();
     }
 

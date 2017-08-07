@@ -20,12 +20,13 @@ import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.config.ClientConfiguration;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * Client interface to invoke an API.
  */
 @SdkProtectedApi
-public abstract class AsyncClientHandler extends BaseClientHandler implements AutoCloseable {
+public abstract class AsyncClientHandler extends BaseClientHandler implements SdkAutoCloseable {
 
     AsyncClientHandler(ClientConfiguration clientConfiguration,
                        ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
