@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.utils;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -106,5 +108,13 @@ public class StringUtilsTest {
                 FOO_UNCAP, StringUtils.uncapitalize(StringUtils.capitalize(FOO_UNCAP)));
         assertEquals("capitalize(uncapitalize(String)) failed",
                 FOO_CAP, StringUtils.capitalize(StringUtils.uncapitalize(FOO_CAP)));
+    }
+
+    @Test
+    public void testRemoveLastCharacter() {
+        assertThat(StringUtils.removeLastCharacter("blah")).isEqualTo("bla");
+        assertThat(StringUtils.removeLastCharacter("b")).isEqualTo("");
+        assertThatThrownBy(() -> StringUtils.removeLastCharacter("")).isInstanceOf(IndexOutOfBoundsException.class);
+        assertThatThrownBy(() -> StringUtils.removeLastCharacter(null)).isInstanceOf(NullPointerException.class);
     }
 }

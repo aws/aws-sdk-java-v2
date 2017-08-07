@@ -603,4 +603,8 @@ public class StringUtils {
         }
         return new String(newCodePoints, 0, outOffset);
     }
+
+    public static String removeLastCharacter(final String str) {
+        return str.substring(0, str.length() - 1);
+    }
 }
