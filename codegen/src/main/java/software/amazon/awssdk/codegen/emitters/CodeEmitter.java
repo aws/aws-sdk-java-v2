@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.codegen.emitters;
 
+import software.amazon.awssdk.utils.FunctionalUtils;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
+
 /**
  * Submits generator tasks to executor.
  */
-public class CodeEmitter implements AutoCloseable {
-
+public class CodeEmitter implements SdkAutoCloseable {
     private final Iterable<GeneratorTask> generatorTasks;
     private final GeneratorTaskExecutor taskExecutor;
 
@@ -37,8 +39,8 @@ public class CodeEmitter implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
-        taskExecutor.waitForCompletion();
+    public void close() {
+        FunctionalUtils.invokeSafely(taskExecutor::waitForCompletion);
         taskExecutor.shutdown();
     }
 

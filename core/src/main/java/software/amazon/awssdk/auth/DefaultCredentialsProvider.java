@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.auth;
 
+import software.amazon.awssdk.utils.SdkAutoCloseable;
+
 /**
  * AWS credentials provider chain that looks for credentials in this order:
  * <ol>
@@ -32,7 +34,7 @@ package software.amazon.awssdk.auth;
  * @see ElasticContainerCredentialsProvider
  * @see InstanceProfileCredentialsProvider
  */
-public class DefaultCredentialsProvider implements AwsCredentialsProvider, AutoCloseable {
+public class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
     /**
      * As a minor optimization, we reuse the same underlying provider chain for all calls to
      * {@link #DefaultCredentialsProvider()}. This is done because we reuse this chain in every client by default, and reusing

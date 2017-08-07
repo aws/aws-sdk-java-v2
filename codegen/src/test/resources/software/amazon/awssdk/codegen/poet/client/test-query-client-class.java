@@ -142,7 +142,7 @@ final class DefaultQueryClient implements QueryClient {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         clientHandler.close();
     }
 }

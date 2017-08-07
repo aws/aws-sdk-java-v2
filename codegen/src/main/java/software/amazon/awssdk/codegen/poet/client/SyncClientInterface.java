@@ -41,6 +41,7 @@ import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.sync.RequestBody;
 import software.amazon.awssdk.sync.StreamingResponseHandler;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public final class SyncClientInterface implements ClassSpec {
 
@@ -57,7 +58,7 @@ public final class SyncClientInterface implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         Builder classBuilder = PoetUtils.createInterfaceBuilder(className)
-                                        .addSuperinterface(AutoCloseable.class)
+                                        .addSuperinterface(SdkAutoCloseable.class)
                                         .addJavadoc(getJavadoc())
                                         .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
                                                            .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)

@@ -62,7 +62,7 @@ final class UrlConnectionHttpClient implements SdkHttpClient {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
 
     }
 

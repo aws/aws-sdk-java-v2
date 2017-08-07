@@ -402,6 +402,14 @@
           <property name="ignoreComments" value="true"/>
         </module>
 
+        <!-- Checks that we don't implement AutoCloseable/Closeable -->
+        <module name="Regexp">
+            <property name="format" value="(class|interface).*(implements|extends).*[^\w](Closeable|AutoCloseable)[^\w]"/>
+            <property name="illegalPattern" value="true"/>
+            <property name="message" value="Use SdkAutoCloseable instead of Closeable/AutoCloseable"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
         <!-- Checks for redundant public modifier on interfaces and other redundant modifiers -->
         <module name="RedundantModifier" />
     </module>
