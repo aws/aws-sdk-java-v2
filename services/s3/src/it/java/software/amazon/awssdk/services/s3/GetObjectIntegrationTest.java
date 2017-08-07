@@ -54,7 +54,7 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET)
                                      .key(KEY)
-                                     .build(), RequestBody.of(file));
+                                     .build(), file.toPath());
     }
 
     @AfterClass
@@ -65,8 +65,7 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
 
     @Test
     public void toInputStream() throws Exception {
-        try (ResponseInputStream<GetObjectResponse> content =
-                     s3.getObject(getObjectRequest, StreamingResponseHandler.toInputStream())) {
+        try (ResponseInputStream<GetObjectResponse> content = s3.getObject(getObjectRequest)) {
             assertMd5MatchesEtag(content, content.response());
         }
     }
@@ -75,7 +74,7 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
     public void toFile() throws Exception {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
         try {
-            GetObjectResponse response = s3.getObject(getObjectRequest, StreamingResponseHandler.toFile(path));
+            GetObjectResponse response = s3.getObject(getObjectRequest, path);
             assertMd5MatchesEtag(new FileInputStream(path.toFile()), response);
         } finally {
             path.toFile().delete();

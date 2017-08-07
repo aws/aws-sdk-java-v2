@@ -21,7 +21,6 @@ import static software.amazon.awssdk.codegen.internal.DocumentationUtils.stripHt
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import software.amazon.awssdk.codegen.model.intermediate.DocumentationBuilder;
 import software.amazon.awssdk.codegen.model.intermediate.DocumentationModel;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;

@@ -19,6 +19,7 @@ package software.amazon.awssdk.codegen.model.intermediate;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
+import software.amazon.awssdk.codegen.docs.DocumentationBuilder;
 
 
 public class DocumentationBuilderTest {

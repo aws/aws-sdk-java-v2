@@ -17,7 +17,6 @@ package software.amazon.awssdk.codegen.docs;
 
 import java.util.Map;
 import software.amazon.awssdk.codegen.internal.ImmutableMapParameter;
-import software.amazon.awssdk.codegen.model.intermediate.DocumentationBuilder;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 

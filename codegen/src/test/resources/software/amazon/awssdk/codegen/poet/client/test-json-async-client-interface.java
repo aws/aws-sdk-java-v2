@@ -1,59 +1,43 @@
 package software.amazon.awssdk.services.json;
 
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Generated;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.async.AsyncRequestProvider;
 import software.amazon.awssdk.async.AsyncResponseHandler;
-import software.amazon.awssdk.client.AsyncClientHandler;
-import software.amazon.awssdk.client.ClientExecutionParams;
-import software.amazon.awssdk.client.SdkAsyncClientHandler;
-import software.amazon.awssdk.config.AsyncClientConfiguration;
-import software.amazon.awssdk.http.HttpResponseHandler;
-import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
-import software.amazon.awssdk.protocol.json.JsonClientMetadata;
-import software.amazon.awssdk.protocol.json.JsonErrorResponseMetadata;
-import software.amazon.awssdk.protocol.json.JsonErrorShapeMetadata;
-import software.amazon.awssdk.protocol.json.JsonOperationMetadata;
-import software.amazon.awssdk.protocol.json.SdkJsonProtocolFactory;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputResponse;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersRequest;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersResponse;
-import software.amazon.awssdk.services.json.model.InvalidInputException;
 import software.amazon.awssdk.services.json.model.StreamingInputOperationRequest;
 import software.amazon.awssdk.services.json.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationResponse;
-import software.amazon.awssdk.services.json.transform.APostOperationRequestMarshaller;
-import software.amazon.awssdk.services.json.transform.APostOperationResponseUnmarshaller;
-import software.amazon.awssdk.services.json.transform.APostOperationWithOutputRequestMarshaller;
-import software.amazon.awssdk.services.json.transform.APostOperationWithOutputResponseUnmarshaller;
-import software.amazon.awssdk.services.json.transform.GetWithoutRequiredMembersRequestMarshaller;
-import software.amazon.awssdk.services.json.transform.GetWithoutRequiredMembersResponseUnmarshaller;
-import software.amazon.awssdk.services.json.transform.StreamingInputOperationRequestMarshaller;
-import software.amazon.awssdk.services.json.transform.StreamingInputOperationResponseUnmarshaller;
-import software.amazon.awssdk.services.json.transform.StreamingOutputOperationRequestMarshaller;
-import software.amazon.awssdk.services.json.transform.StreamingOutputOperationResponseUnmarshaller;
 
 /**
- * Internal implementation of {@link JsonAsyncClient}.
+ * Service client for accessing Json Service asynchronously. This can be created using the static {@link #builder()}
+ * method.
  *
- * @see JsonAsyncClient#builder()
+ * A service that is implemented using the query protocol
  */
 @Generated("software.amazon.awssdk:codegen")
-@SdkInternalApi
-final class DefaultJsonAsyncClient implements JsonAsyncClient {
-    private final AsyncClientHandler clientHandler;
+public interface JsonAsyncClient extends AutoCloseable {
+    /**
+     * Create a {@link JsonAsyncClient} with the region loaded from the
+     * {@link software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from the
+     * {@link software.amazon.awssdk.auth.DefaultCredentialsProvider}.
+     */
+    static JsonAsyncClient create() {
+        return builder().build();
+    }
 
-    private final SdkJsonProtocolFactory protocolFactory;
-
-    protected DefaultJsonAsyncClient(AsyncClientConfiguration clientConfiguration) {
-        this.clientHandler = new SdkAsyncClientHandler(clientConfiguration, null);
-        this.protocolFactory = init();
+    /**
+     * Create a builder that can be used to configure and create a {@link JsonAsyncClient}.
+     */
+    static JsonAsyncClientBuilder builder() {
+        return new DefaultJsonAsyncClientBuilder();
     }
 
     /**
@@ -79,17 +63,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
      */
-    @Override
-    public CompletableFuture<APostOperationResponse> aPostOperation(APostOperationRequest aPostOperationRequest) {
-
-        HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true), new APostOperationResponseUnmarshaller());
-
-        HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
-
-        return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                                             .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
-                                             .withErrorResponseHandler(errorResponseHandler).withInput(aPostOperationRequest));
+    default CompletableFuture<APostOperationResponse> aPostOperation(APostOperationRequest aPostOperationRequest) {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -115,20 +90,9 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperationWithOutput"
      *      target="_top">AWS API Documentation</a>
      */
-    @Override
-    public CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
+    default CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
             APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
-
-        HttpResponseHandler<APostOperationWithOutputResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true), new APostOperationWithOutputResponseUnmarshaller());
-
-        HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
-
-        return clientHandler
-                .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                                 .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
-                                 .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                 .withInput(aPostOperationWithOutputRequest));
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -154,20 +118,9 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
      *      target="_top">AWS API Documentation</a>
      */
-    @Override
-    public CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
+    default CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
             GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) {
-
-        HttpResponseHandler<GetWithoutRequiredMembersResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true), new GetWithoutRequiredMembersResponseUnmarshaller());
-
-        HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
-
-        return clientHandler
-                .execute(new ClientExecutionParams<GetWithoutRequiredMembersRequest, GetWithoutRequiredMembersResponse>()
-                                 .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory))
-                                 .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                 .withInput(getWithoutRequiredMembersRequest));
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -195,19 +148,9 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
      *      target="_top">AWS API Documentation</a>
      */
-    @Override
-    public CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
+    default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
             StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestProvider requestProvider) {
-
-        HttpResponseHandler<StreamingInputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true), new StreamingInputOperationResponseUnmarshaller());
-
-        HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
-
-        return clientHandler.execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
-                                             .withMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
-                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                             .withAsyncRequestProvider(requestProvider).withInput(streamingInputOperationRequest));
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -234,39 +177,92 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
-    @Override
-    public <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
+    default <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
             StreamingOutputOperationRequest streamingOutputOperationRequest,
             AsyncResponseHandler<StreamingOutputOperationResponse, ReturnT> asyncResponseHandler) {
-
-        SdkHttpResponseHandler<ReturnT> responseHandler = protocolFactory.createAsyncStreamingResponseHandler(
-                new StreamingOutputOperationResponseUnmarshaller(), asyncResponseHandler);
-
-        HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
-
-        return clientHandler.execute(new ClientExecutionParams<StreamingOutputOperationRequest, ReturnT>()
-                                             .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
-                                             .withAsyncResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                             .withInput(streamingOutputOperationRequest));
+        throw new UnsupportedOperationException();
     }
 
-    @Override
-    public void close() throws Exception {
-        clientHandler.close();
+    /**
+     * <p>
+     * Performs a post operation to the query service and has no output
+     * </p>
+     *
+     * @return A Java Future containing the result of the GetWithoutRequiredMembers operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>InvalidInputException The request was rejected because an invalid or out-of-range value was supplied
+     *         for an input parameter.</li>
+     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
+     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.GetWithoutRequiredMembers
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers() {
+        return getWithoutRequiredMembers(GetWithoutRequiredMembersRequest.builder().build());
     }
 
-    private software.amazon.awssdk.protocol.json.SdkJsonProtocolFactory init() {
-        return new SdkJsonProtocolFactory(new JsonClientMetadata()
-                                                  .withProtocolVersion("1.1")
-                                                  .withSupportsCbor(false)
-                                                  .withSupportsIon(false)
-                                                  .withBaseServiceExceptionClass(software.amazon.awssdk.services.json.model.JsonException.class)
-                                                  .withContentTypeOverride("")
-                                                  .addErrorMetadata(
-                                                          new JsonErrorShapeMetadata().withErrorCode("InvalidInput").withModeledClass(InvalidInputException.class)));
+    /**
+     * Some operation with a streaming input
+     *
+     * @param streamingInputOperationRequest
+     * @param path
+     *        {@link Path} to file containing data to send to the service. File will be read entirely and may be read
+     *        multiple times in the event of a retry. If the file does not exist or the current user does not have
+     *        access to read it then an exception will be thrown. The service documentation for the request content is
+     *        as follows 'This be a stream'
+     * @return A Java Future containing the result of the StreamingInputOperation operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
+     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.StreamingInputOperation
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
+            StreamingInputOperationRequest streamingInputOperationRequest, Path path) {
+        return streamingInputOperation(streamingInputOperationRequest, AsyncRequestProvider.fromFile(path));
     }
 
-    private HttpResponseHandler<AmazonServiceException> createErrorResponseHandler() {
-        return protocolFactory.createErrorResponseHandler(new JsonErrorResponseMetadata());
+    /**
+     * Some operation with a streaming output
+     *
+     * @param streamingOutputOperationRequest
+     * @param path
+     *        {@link Path} to file that response contents will be written to. The file must not exist or this method
+     *        will throw an exception. If the file is not writable by the current user then an exception will be thrown.
+     *        The service documentation for the response content is as follows 'This be a stream'.
+     * @return A future to the transformed result of the AsyncResponseHandler.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
+     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.StreamingOutputOperation
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<StreamingOutputOperationResponse> streamingOutputOperation(
+            StreamingOutputOperationRequest streamingOutputOperationRequest, Path path) {
+        return streamingOutputOperation(streamingOutputOperationRequest, AsyncResponseHandler.toFile(path));
     }
 }

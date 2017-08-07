@@ -106,25 +106,13 @@ public final class AsyncClientClass extends AsyncClientInterface {
     }
 
     @Override
-    protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel, boolean simpleMethod) {
-        if (simpleMethod) {
-            return simpleOperationBody(builder, opModel);
-        }
-
+    protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel) {
         return builder.addModifiers(Modifier.PUBLIC)
                       .addAnnotation(Override.class)
                       .addCode(protocolSpec.asyncResponseHandler(opModel))
                       .addCode(protocolSpec.errorResponseHandler(opModel))
                       .addCode(protocolSpec.asyncExecutionHandler(opModel));
 
-    }
-
-    private MethodSpec.Builder simpleOperationBody(MethodSpec.Builder builder, OperationModel opModel) {
-        return builder.addModifiers(Modifier.PUBLIC)
-                      .addAnnotation(Override.class)
-                      .addCode("return $N($N.builder().build());",
-                          opModel.getMethodName(),
-                          opModel.getInput().getVariableType());
     }
 
     @Override
