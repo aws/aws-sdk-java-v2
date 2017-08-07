@@ -73,7 +73,7 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         this.group = factory.eventLoopGroupConfiguration().toEither()
                             .map(e -> e.map(NonManagedEventLoopGroup::new,
                                             EventLoopGroupFactory::create))
-                            .orElse(SharedEventLoopGroup.get());
+                            .orElseGet(SharedEventLoopGroup::get);
         this.pools = createChannelPoolMap(serviceDefaults,
                                           factory.maxConnectionsPerEndpoint().orElse(serviceDefaults.getMaxConnections()));
     }
