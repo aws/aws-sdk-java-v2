@@ -25,7 +25,9 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.http.HttpAsyncClientDependencies;
 import software.amazon.awssdk.http.HttpClientDependencies;
+import software.amazon.awssdk.http.HttpSyncClientDependencies;
 
 /**
  * Builder for a {@link RequestPipeline}.
@@ -35,16 +37,17 @@ import software.amazon.awssdk.http.HttpClientDependencies;
  */
 @Immutable
 @SdkInternalApi
-public class RequestPipelineBuilder<InputT, OutputT> {
+public class RequestPipelineBuilder<InputT, OutputT, D extends HttpClientDependencies> {
 
-    private final Function<HttpClientDependencies, RequestPipeline<InputT, OutputT>> pipelineFactory;
+    private final Function<D, RequestPipeline<InputT, OutputT>> pipelineFactory;
 
-    private RequestPipelineBuilder(Function<HttpClientDependencies, RequestPipeline<InputT, OutputT>> pipelineFactory) {
+    RequestPipelineBuilder(Function<D, RequestPipeline<InputT, OutputT>> pipelineFactory) {
         this.pipelineFactory = pipelineFactory;
     }
 
     /**
-     * Factory method to create a {@link RequestPipelineBuilder} with an initial pipeline stage.
+     * Factory method to create a {@link RequestPipelineBuilder} with an initial pipeline stage. Stages in this pipeline will only
+     * be able to accept an {@link HttpAsyncClientDependencies} or {@link HttpClientDependencies}.
      *
      * @param pipelineFactory Factory that can produce a {@link RequestPipeline}. Should take an {@link HttpClientDependencies}
      *                        object as the first parameter to the factory method.
@@ -53,13 +56,14 @@ public class RequestPipelineBuilder<InputT, OutputT> {
      * @return RequestPipelineBuilder composed of that initial stage.
      * @see #build(HttpClientDependencies)
      */
-    public static <InputT, OutputT> RequestPipelineBuilder<InputT, OutputT> first(
-            Function<HttpClientDependencies, RequestPipeline<InputT, OutputT>> pipelineFactory) {
+    public static <InputT, OutputT> RequestPipelineBuilder<InputT, OutputT, HttpAsyncClientDependencies>
+            firstAsync(Function<HttpAsyncClientDependencies, RequestPipeline<InputT, OutputT>> pipelineFactory) {
         return new RequestPipelineBuilder<>(pipelineFactory);
     }
 
     /**
-     * Factory method to create a {@link RequestPipelineBuilder} with an initial pipeline stage.
+     * Factory method to create a {@link RequestPipelineBuilder} with an initial pipeline stage.Stages in this pipeline will only
+     * be able to accept an {@link HttpAsyncClientDependencies} or {@link HttpClientDependencies}.
      *
      * @param pipelineFactory Factory that can produce a {@link RequestPipeline}. Use this overload when the factory does not
      *                        need {@link HttpClientDependencies} and should instead take no arguments.
@@ -68,8 +72,40 @@ public class RequestPipelineBuilder<InputT, OutputT> {
      * @return RequestPipelineBuilder composed of that initial stage.
      * @see #build(HttpClientDependencies)
      */
-    public static <InputT, OutputT> RequestPipelineBuilder<InputT, OutputT> first(
-            Supplier<RequestPipeline<InputT, OutputT>> pipelineFactory) {
+    public static <InputT, OutputT> RequestPipelineBuilder<InputT, OutputT, HttpAsyncClientDependencies>
+            firstAsync(Supplier<RequestPipeline<InputT, OutputT>> pipelineFactory) {
+        return new RequestPipelineBuilder<>(d -> pipelineFactory.get());
+    }
+
+    /**
+     * Factory method to create a {@link RequestPipelineBuilder} with an initial pipeline stage. Stages in this pipeline will only
+     * be able to accept an {@link HttpSyncClientDependencies} or {@link HttpClientDependencies}.
+     *
+     * @param pipelineFactory Factory that can produce a {@link RequestPipeline}. Should take an {@link HttpClientDependencies}
+     *                        object as the first parameter to the factory method.
+     * @param <InputT>        Input type of pipeline
+     * @param <OutputT>       Output type of pipeline.
+     * @return RequestPipelineBuilder composed of that initial stage.
+     * @see #build(HttpClientDependencies)
+     */
+    public static <InputT, OutputT> RequestPipelineBuilder<InputT, OutputT, HttpSyncClientDependencies>
+            firstSync(Function<HttpSyncClientDependencies, RequestPipeline<InputT, OutputT>> pipelineFactory) {
+        return new RequestPipelineBuilder<>(pipelineFactory);
+    }
+
+    /**
+     * Factory method to create a {@link RequestPipelineBuilder} with an initial pipeline stage. Stages in this pipeline will only
+     * be able to accept an {@link HttpSyncClientDependencies} or {@link HttpClientDependencies}.
+     *
+     * @param pipelineFactory Factory that can produce a {@link RequestPipeline}. Use this overload when the factory does not
+     *                        need {@link HttpClientDependencies} and should instead take no arguments.
+     * @param <InputT>        Input type of pipeline
+     * @param <OutputT>       Output type of pipeline.
+     * @return RequestPipelineBuilder composed of that initial stage.
+     * @see #build(HttpClientDependencies)
+     */
+    public static <InputT, OutputT> RequestPipelineBuilder<InputT, OutputT, HttpSyncClientDependencies>
+            firstSync(Supplier<RequestPipeline<InputT, OutputT>> pipelineFactory) {
         return new RequestPipelineBuilder<>(d -> pipelineFactory.get());
     }
 
@@ -84,8 +120,8 @@ public class RequestPipelineBuilder<InputT, OutputT> {
      * @return A new RequestPipelineBuilder composed of the previous stages and the new stage.
      * @see #build(HttpClientDependencies)
      */
-    public <NewOutputT> RequestPipelineBuilder<InputT, NewOutputT> then(
-            Function<HttpClientDependencies, RequestPipeline<OutputT, NewOutputT>> pipelineFactory) {
+    public <NewOutputT> RequestPipelineBuilder<InputT, NewOutputT, D> then(
+            Function<D, RequestPipeline<OutputT, NewOutputT>> pipelineFactory) {
         return new RequestPipelineBuilder<>(r -> new ComposingRequestPipelineStage<>(this.pipelineFactory.apply(r),
                                                                                      pipelineFactory.apply(r)));
     }
@@ -101,8 +137,8 @@ public class RequestPipelineBuilder<InputT, OutputT> {
      */
     @SuppressWarnings("unchecked")
     public static <InputT, OutputT>
-            Function<HttpClientDependencies, RequestPipeline<CompletableFuture<InputT>, CompletableFuture<OutputT>>>
-            async(Function<HttpClientDependencies, RequestPipeline<InputT, OutputT>> pipelineFactory) {
+            Function<HttpAsyncClientDependencies, RequestPipeline<CompletableFuture<InputT>, CompletableFuture<OutputT>>>
+            async(Function<HttpAsyncClientDependencies, RequestPipeline<InputT, OutputT>> pipelineFactory) {
         return httpClientDependencies -> new AsyncRequestPipelineWrapper(pipelineFactory.apply(httpClientDependencies));
     }
 
@@ -112,7 +148,7 @@ public class RequestPipelineBuilder<InputT, OutputT> {
      * @see #async(Supplier)
      */
     public static <InputT, OutputT>
-            Function<HttpClientDependencies, RequestPipeline<CompletableFuture<InputT>, CompletableFuture<OutputT>>>
+            Function<HttpAsyncClientDependencies, RequestPipeline<CompletableFuture<InputT>, CompletableFuture<OutputT>>>
             async(Supplier<RequestPipeline<InputT, OutputT>> pipelineFactory) {
         return async(toFunction(pipelineFactory));
     }
@@ -128,7 +164,7 @@ public class RequestPipelineBuilder<InputT, OutputT> {
      * @return A new RequestPipelineBuilder composed of the previous stages and the new stage.
      * @see #build(HttpClientDependencies)
      */
-    public <NewOutputT> RequestPipelineBuilder<InputT, NewOutputT> then(
+    public <NewOutputT> RequestPipelineBuilder<InputT, NewOutputT, D> then(
             Supplier<RequestPipeline<OutputT, NewOutputT>> pipelineFactory) {
         return new RequestPipelineBuilder<>(r -> new ComposingRequestPipelineStage<>(this.pipelineFactory.apply(r),
                                                                                      pipelineFactory.get()));
@@ -146,8 +182,8 @@ public class RequestPipelineBuilder<InputT, OutputT> {
      * @return A new RequestPipelineBuilder that wraps around the pipeline currently being constructed.
      * @see #build(HttpClientDependencies)
      */
-    public <NewInputT, NewOutputT> RequestPipelineBuilder<NewInputT, NewOutputT> wrap(
-            BiFunction<HttpClientDependencies, RequestPipeline<InputT, OutputT>,
+    public <NewInputT, NewOutputT> RequestPipelineBuilder<NewInputT, NewOutputT, D> wrap(
+            BiFunction<D, RequestPipeline<InputT, OutputT>,
                     RequestPipeline<NewInputT, NewOutputT>> wrappedFactory) {
         return new RequestPipelineBuilder<>(r -> wrappedFactory.apply(r, this.pipelineFactory.apply(r)));
     }
@@ -164,7 +200,7 @@ public class RequestPipelineBuilder<InputT, OutputT> {
      * @return A new RequestPipelineBuilder that wraps around the pipeline currently being constructed.
      * @see #build(HttpClientDependencies)
      */
-    public <NewInputT, NewOutputT> RequestPipelineBuilder<NewInputT, NewOutputT> wrap(
+    public <NewInputT, NewOutputT> RequestPipelineBuilder<NewInputT, NewOutputT, D> wrap(
             Function<RequestPipeline<InputT, OutputT>,
                     RequestPipeline<NewInputT, NewOutputT>> wrappedFactory) {
         return new RequestPipelineBuilder<>(d -> wrappedFactory.apply(this.pipelineFactory.apply(d)));
@@ -177,7 +213,7 @@ public class RequestPipelineBuilder<InputT, OutputT> {
      * @return Constructed {@link RequestPipeline}.
      * @see RequestPipeline#execute(Object, RequestExecutionContext)
      */
-    public RequestPipeline<InputT, OutputT> build(HttpClientDependencies dependencies) {
+    public RequestPipeline<InputT, OutputT> build(D dependencies) {
         return pipelineFactory.apply(dependencies);
     }
 

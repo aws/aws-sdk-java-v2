@@ -20,22 +20,25 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import java.nio.ByteBuffer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.handlers.AwsHandlerKeys;
+import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.handlers.AwsExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * Implementation of {@link SdkHttpRequestProvider} that provides all it's data at once. Useful for
  * non streaming operations that are already marshalled into memory.
  */
+@SdkInternalApi
 public class SimpleRequestProvider implements SdkHttpRequestProvider {
 
     private final byte[] content;
     private final int length;
 
-    public SimpleRequestProvider(SdkHttpFullRequest request) {
+    public SimpleRequestProvider(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
         if (request.getContent() != null) {
-            request.getContent().mark(getReadLimit(request));
+            request.getContent().mark(getReadLimit(executionAttributes));
             this.content = invokeSafely(() -> IoUtils.toByteArray(request.getContent()));
             invokeSafely(() -> request.getContent().reset());
         } else {
@@ -44,8 +47,8 @@ public class SimpleRequestProvider implements SdkHttpRequestProvider {
         this.length = content.length;
     }
 
-    private int getReadLimit(SdkHttpFullRequest request) {
-        return request.handlerContext(AwsHandlerKeys.REQUEST_CONFIG).getRequestClientOptions().getReadLimit();
+    private int getReadLimit(ExecutionAttributes executionAttributes) {
+        return executionAttributes.getAttribute(AwsExecutionAttributes.REQUEST_CONFIG).getRequestClientOptions().getReadLimit();
     }
 
     @Override

@@ -34,9 +34,11 @@ import org.mockito.MockitoAnnotations;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.AmazonServiceException.ErrorType;
 import software.amazon.awssdk.DefaultRequest;
+import software.amazon.awssdk.handlers.AwsExecutionAttributes;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequestAdapter;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.internal.http.JsonErrorCodeParser;
 import software.amazon.awssdk.runtime.http.JsonErrorMessageParser;
 import software.amazon.awssdk.runtime.transform.JsonErrorUnmarshaller;
@@ -79,7 +81,7 @@ public class JsonErrorResponseHandlerTest {
                                                        JsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER,
                                                        new JsonFactory());
 
-        AmazonServiceException ase = responseHandler.handle(httpResponse);
+        AmazonServiceException ase = responseHandler.handle(httpResponse, new ExecutionAttributes());
 
         assertNotNull(ase);
     }
@@ -89,7 +91,7 @@ public class JsonErrorResponseHandlerTest {
                                                                                       Exception {
         expectUnmarshallerDoesNotMatch();
 
-        AmazonServiceException ase = responseHandler.handle(httpResponse);
+        AmazonServiceException ase = responseHandler.handle(httpResponse, new ExecutionAttributes());
 
         assertNotNull(ase);
     }
@@ -99,7 +101,9 @@ public class JsonErrorResponseHandlerTest {
         httpResponse.setStatusCode(500);
         httpResponse.setContent(null);
 
-        AmazonServiceException ase = responseHandler.handle(httpResponse);
+        ExecutionAttributes attributes =
+                new ExecutionAttributes().putAttribute(AwsExecutionAttributes.SERVICE_NAME, SERVICE_NAME);
+        AmazonServiceException ase = responseHandler.handle(httpResponse, attributes);
 
         // We assert these common properties are set again to make sure that code path is exercised
         // for unknown AmazonServiceExceptions as well
@@ -114,7 +118,7 @@ public class JsonErrorResponseHandlerTest {
         httpResponse.setStatusCode(500);
         httpResponse.setContent(new StringInputStream(""));
 
-        AmazonServiceException ase = responseHandler.handle(httpResponse);
+        AmazonServiceException ase = responseHandler.handle(httpResponse, new ExecutionAttributes());
 
         assertNotNull(ase);
     }
@@ -124,7 +128,7 @@ public class JsonErrorResponseHandlerTest {
                                                                                       Exception {
         expectUnmarshallerMatches();
 
-        AmazonServiceException ase = responseHandler.handle(httpResponse);
+        AmazonServiceException ase = responseHandler.handle(httpResponse, new ExecutionAttributes());
 
         assertNotNull(ase);
         assertEquals(ERROR_CODE, ase.getErrorCode());
@@ -136,7 +140,7 @@ public class JsonErrorResponseHandlerTest {
         expectUnmarshallerMatches();
         when(unmarshaller.unmarshall(anyObject())).thenThrow(new RuntimeException());
 
-        AmazonServiceException ase = responseHandler.handle(httpResponse);
+        AmazonServiceException ase = responseHandler.handle(httpResponse, new ExecutionAttributes());
 
         assertNotNull(ase);
         assertEquals(ERROR_CODE, ase.getErrorCode());
@@ -149,7 +153,9 @@ public class JsonErrorResponseHandlerTest {
         when(unmarshaller.unmarshall(anyObject()))
                 .thenReturn(new CustomException("error"));
 
-        AmazonServiceException ase = responseHandler.handle(httpResponse);
+        ExecutionAttributes attributes =
+                new ExecutionAttributes().putAttribute(AwsExecutionAttributes.SERVICE_NAME, SERVICE_NAME);
+        AmazonServiceException ase = responseHandler.handle(httpResponse, attributes);
 
         assertEquals(ERROR_CODE, ase.getErrorCode());
         assertEquals(400, ase.getStatusCode());
@@ -164,7 +170,7 @@ public class JsonErrorResponseHandlerTest {
         when(unmarshaller.unmarshall(anyObject()))
                 .thenReturn(new CustomException("error"));
 
-        AmazonServiceException ase = responseHandler.handle(httpResponse);
+        AmazonServiceException ase = responseHandler.handle(httpResponse, new ExecutionAttributes());
 
         assertEquals(ErrorType.Service, ase.getErrorType());
     }
@@ -177,7 +183,7 @@ public class JsonErrorResponseHandlerTest {
         when(unmarshaller.unmarshall(anyObject()))
                 .thenReturn(new CustomException("error"));
 
-        AmazonServiceException ase = responseHandler.handle(httpResponse);
+        AmazonServiceException ase = responseHandler.handle(httpResponse, new ExecutionAttributes());
 
         assertEquals("1234", ase.getRequestId());
     }
@@ -195,7 +201,7 @@ public class JsonErrorResponseHandlerTest {
         when(unmarshaller.unmarshall(anyObject()))
                 .thenReturn(new CustomException("error"));
 
-        AmazonServiceException ase = responseHandler.handle(httpResponse);
+        AmazonServiceException ase = responseHandler.handle(httpResponse, new ExecutionAttributes());
 
         assertEquals("1234", ase.getRequestId());
     }
@@ -213,7 +219,7 @@ public class JsonErrorResponseHandlerTest {
         when(unmarshaller.unmarshall(anyObject()))
                 .thenReturn(new CustomException("error"));
 
-        AmazonServiceException ase = responseHandler.handle(httpResponse);
+        AmazonServiceException ase = responseHandler.handle(httpResponse, new ExecutionAttributes());
         assertThat(ase.getHttpHeaders(), hasEntry("FooHeader", "FooValue"));
         assertThat(ase.getHttpHeaders(),
                    hasEntry(HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER, "1234"));

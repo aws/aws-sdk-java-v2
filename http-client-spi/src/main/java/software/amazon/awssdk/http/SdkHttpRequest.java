@@ -18,6 +18,7 @@ package software.amazon.awssdk.http;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 
 public interface SdkHttpRequest extends SdkHttpHeaders {
 
@@ -35,6 +36,7 @@ public interface SdkHttpRequest extends SdkHttpHeaders {
      *
      * @return A map of all parameters in this request.
      */
+    @ReviewBeforeRelease("Should this be 'query parameters'? It took me a while to figure out what an HTTP parameter was.")
     Map<String, List<String>> getParameters();
 
     /**
@@ -52,13 +54,4 @@ public interface SdkHttpRequest extends SdkHttpHeaders {
      * @return The HTTP method to use when sending this request.
      */
     SdkHttpMethod getHttpMethod();
-
-    /**
-     * Gets context from the request.
-     *
-     * @param key Key of context to retrieve.
-     * @param <T> Type of context value.
-     * @return Context value if present, null otherwise.
-     */
-    <T> T handlerContext(HandlerContextKey<T> key);
 }

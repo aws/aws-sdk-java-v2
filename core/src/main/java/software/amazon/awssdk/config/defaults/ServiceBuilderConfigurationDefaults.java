@@ -16,6 +16,7 @@
 package software.amazon.awssdk.config.defaults;
 
 import static software.amazon.awssdk.config.AdvancedClientOption.SIGNER_PROVIDER;
+import static software.amazon.awssdk.config.InternalAdvancedClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -23,7 +24,8 @@ import java.util.List;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.handlers.HandlerChainFactory;
+import software.amazon.awssdk.handlers.ClasspathInterceptorChainFactory;
+import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.runtime.auth.SignerProvider;
 
 /**
@@ -35,11 +37,13 @@ public class ServiceBuilderConfigurationDefaults extends ClientConfigurationDefa
     private final Supplier<SignerProvider> defaultSignerProvider;
     private final Supplier<URI> defaultEndpoint;
     private final List<String> requestHandlerPaths;
+    private final Boolean crc32FromCompressedDataEnabled;
 
     private ServiceBuilderConfigurationDefaults(Builder builder) {
         this.defaultSignerProvider = builder.defaultSignerProvider;
         this.defaultEndpoint = builder.defaultEndpoint;
         this.requestHandlerPaths = new ArrayList<>(builder.requestHandlerPaths);
+        this.crc32FromCompressedDataEnabled = builder.crc32FromCompressedDataEnabled;
     }
 
     public static Builder builder() {
@@ -49,10 +53,25 @@ public class ServiceBuilderConfigurationDefaults extends ClientConfigurationDefa
     @Override
     protected void applyOverrideDefaults(ClientOverrideConfiguration.Builder builder) {
         ClientOverrideConfiguration config = builder.build();
-        builder.advancedOption(SIGNER_PROVIDER,
-                               applyDefault(config.advancedOption(SIGNER_PROVIDER), defaultSignerProvider));
-        HandlerChainFactory chainFactory = new HandlerChainFactory();
-        requestHandlerPaths.forEach(path -> chainFactory.newRequestHandlerChain(path).forEach(builder::addRequestListener));
+
+        if (defaultSignerProvider != null) {
+            builder.advancedOption(SIGNER_PROVIDER,
+                                   applyDefault(config.advancedOption(SIGNER_PROVIDER), defaultSignerProvider));
+        }
+
+        if (crc32FromCompressedDataEnabled != null) {
+            Boolean currentValue = config.advancedOption(CRC32_FROM_COMPRESSED_DATA_ENABLED);
+            builder.advancedOption(CRC32_FROM_COMPRESSED_DATA_ENABLED,
+                                   applyDefault(currentValue, () -> crc32FromCompressedDataEnabled));
+        }
+
+        ClasspathInterceptorChainFactory chainFactory = new ClasspathInterceptorChainFactory();
+
+        // Add service interceptors before the ones currently configured.
+        List<ExecutionInterceptor> serviceInterceptors = new ArrayList<>();
+        requestHandlerPaths.forEach(p -> serviceInterceptors.addAll(chainFactory.getInterceptors(p)));
+        serviceInterceptors.addAll(config.lastExecutionInterceptors());
+        builder.lastExecutionInterceptors(serviceInterceptors);
     }
 
     @Override
@@ -65,6 +84,7 @@ public class ServiceBuilderConfigurationDefaults extends ClientConfigurationDefa
         private Supplier<SignerProvider> defaultSignerProvider;
         private Supplier<URI> defaultEndpoint;
         private List<String> requestHandlerPaths = new ArrayList<>();
+        private Boolean crc32FromCompressedDataEnabled = false;
 
         private Builder() {}
 
@@ -75,6 +95,11 @@ public class ServiceBuilderConfigurationDefaults extends ClientConfigurationDefa
 
         public Builder defaultEndpoint(Supplier<URI> endpoint) {
             this.defaultEndpoint = endpoint;
+            return this;
+        }
+
+        public Builder crc32FromCompressedDataEnabled(Boolean crc32FromCompressedDataEnabled) {
+            this.crc32FromCompressedDataEnabled = crc32FromCompressedDataEnabled;
             return this;
         }
 

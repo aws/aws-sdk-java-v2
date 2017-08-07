@@ -17,7 +17,6 @@ package software.amazon.awssdk.retry;
 
 import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.LegacyClientConfiguration;
 import software.amazon.awssdk.annotation.Immutable;
 
 /**
@@ -50,7 +49,6 @@ public final class RetryPolicy {
 
     /**
      * Whether this retry policy should honor the max error retry set in ClientConfiguration.
-     * @see LegacyClientConfiguration#setMaxErrorRetry(int)
      */
     private final boolean honorMaxErrorRetryInClientConfig;
 
@@ -71,8 +69,7 @@ public final class RetryPolicy {
      *            Maximum number of retry attempts for failed requests.
      * @param honorMaxErrorRetryInClientConfig
      *            Whether this retry policy should honor the max error retry set
-     *            by {@link LegacyClientConfiguration#setMaxErrorRetry(int)}
-     * @see LegacyClientConfiguration
+     *            in configuration
      * @see PredefinedRetryPolicies
      */
     public RetryPolicy(RetryCondition retryCondition,
@@ -130,7 +127,6 @@ public final class RetryPolicy {
      *
      * @return Whether this retry policy should honor the max error retry set in
      *         ClientConfiguration
-     * @see LegacyClientConfiguration#setMaxErrorRetry(int)
      */
     public boolean isMaxErrorRetryInClientConfigHonored() {
         return honorMaxErrorRetryInClientConfig;

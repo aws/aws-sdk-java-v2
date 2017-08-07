@@ -7,10 +7,9 @@ import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.async.AsyncRequestProvider;
 import software.amazon.awssdk.async.AsyncResponseHandler;
 import software.amazon.awssdk.client.AsyncClientHandler;
-import software.amazon.awssdk.client.AwsAsyncClientParams;
 import software.amazon.awssdk.client.ClientExecutionParams;
-import software.amazon.awssdk.client.ClientHandlerParams;
 import software.amazon.awssdk.client.SdkAsyncClientHandler;
+import software.amazon.awssdk.config.AsyncClientConfiguration;
 import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.protocol.json.JsonClientMetadata;
@@ -52,9 +51,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
     private final SdkJsonProtocolFactory protocolFactory;
 
-    protected DefaultJsonAsyncClient(AwsAsyncClientParams clientParams) {
-        this.clientHandler = new SdkAsyncClientHandler(new ClientHandlerParams().withAsyncClientParams(clientParams)
-                                                                                .withClientParams(clientParams).withCalculateCrc32FromCompressedDataEnabled(false));
+    protected DefaultJsonAsyncClient(AsyncClientConfiguration clientConfiguration) {
+        this.clientHandler = new SdkAsyncClientHandler(clientConfiguration, null);
         this.protocolFactory = init();
     }
 

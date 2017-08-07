@@ -17,6 +17,8 @@ package software.amazon.awssdk.auth;
 
 import java.util.Date;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.interceptor.Context;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 
 /**
  * A request signer that has special-case logic to presign requests, generating
@@ -28,11 +30,10 @@ public interface Presigner {
      * header. This method is expected to modify the passed-in request to
      * add the signature.
      *
-     * @param request      The request to sign.
-     * @param credentials  The credentials to sign it with.
-     * @param expiration   The time when this presigned URL will expire.
+     * @param signingRequest The data required for performing the signing
+     * @param expiration    The time when this presigned URL will expire.
      */
-    SdkHttpFullRequest presignRequest(SdkHttpFullRequest request,
-                                      AwsCredentials credentials,
-                                      Date expiration);
+    SdkHttpFullRequest presign(Context.BeforeTransmission execution,
+                               ExecutionAttributes executionAttributes,
+                               Date expiration);
 }

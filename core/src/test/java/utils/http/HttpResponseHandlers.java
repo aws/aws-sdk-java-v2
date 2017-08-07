@@ -23,29 +23,15 @@ import software.amazon.awssdk.utils.IoUtils;
 public class HttpResponseHandlers {
 
     public static HttpResponseHandler<AmazonWebServiceResponse<String>> stringResponseHandler() {
-        return responseHandler(new FunctionWithException<HttpResponse, String>() {
-            @Override
-            public String apply(HttpResponse in) throws Exception {
-                return IoUtils.toString(in.getContent());
-            }
-        });
+        return responseHandler(in -> IoUtils.toString(in.getContent()));
     }
 
     public static <T> HttpResponseHandler<AmazonWebServiceResponse<T>> responseHandler(
             final FunctionWithException<HttpResponse, T> handle) {
-        return new HttpResponseHandler<AmazonWebServiceResponse<T>>() {
-
-            @Override
-            public AmazonWebServiceResponse<T> handle(HttpResponse response) throws Exception {
-                AmazonWebServiceResponse<T> resp = new AmazonWebServiceResponse<T>();
-                resp.setResult(handle.apply(response));
-                return resp;
-            }
-
-            @Override
-            public boolean needsConnectionLeftOpen() {
-                return false;
-            }
+        return (response, executionAttributes) -> {
+            AmazonWebServiceResponse<T> resp = new AmazonWebServiceResponse<T>();
+            resp.setResult(handle.apply(response));
+            return resp;
         };
     }
 

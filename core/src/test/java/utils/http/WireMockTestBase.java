@@ -28,6 +28,7 @@ import software.amazon.awssdk.Request;
 import software.amazon.awssdk.http.HttpMethodName;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.internal.http.response.JsonErrorResponseHandler;
 
 /**
@@ -52,7 +53,7 @@ public abstract class WireMockTestBase {
 
     protected HttpResponseHandler<AmazonServiceException> stubErrorHandler() throws Exception {
         HttpResponseHandler<AmazonServiceException> errorHandler = mock(JsonErrorResponseHandler.class);
-        when(errorHandler.handle(any(HttpResponse.class))).thenReturn(mockException());
+        when(errorHandler.handle(any(HttpResponse.class), any(ExecutionAttributes.class))).thenReturn(mockException());
         return errorHandler;
     }
 

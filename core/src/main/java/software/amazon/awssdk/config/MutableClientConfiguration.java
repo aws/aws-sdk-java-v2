@@ -36,7 +36,7 @@ public final class MutableClientConfiguration
     private ClientOverrideConfiguration overrideConfiguration = ClientOverrideConfiguration.builder().build();
     private AwsCredentialsProvider credentialsProvider;
     private URI endpoint;
-    private SdkHttpClient sdkHttpClient;
+    private SdkHttpClient httpClient;
     private SdkAsyncHttpClient asyncHttpClient;
 
     // AsyncClientConfiguration
@@ -84,11 +84,11 @@ public final class MutableClientConfiguration
 
     @Override
     public SdkHttpClient httpClient() {
-        return sdkHttpClient;
+        return httpClient;
     }
 
     public MutableClientConfiguration httpClient(SdkHttpClient sdkHttpClient) {
-        this.sdkHttpClient = sdkHttpClient;
+        this.httpClient = sdkHttpClient;
         return this;
     }
 

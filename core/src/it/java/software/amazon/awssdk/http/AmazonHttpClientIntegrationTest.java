@@ -23,12 +23,18 @@ import static com.github.tomakehurst.wiremock.client.WireMock.optionsRequestedFo
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static utils.HttpTestUtils.builderWithDefaultClient;
+import static software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.executionContext;
 
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.LegacyClientConfiguration;
 import software.amazon.awssdk.Request;
+import software.amazon.awssdk.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.config.MutableClientConfiguration;
+import software.amazon.awssdk.config.defaults.GlobalClientConfigurationDefaults;
+import software.amazon.awssdk.internal.http.response.ErrorDuringUnmarshallingResponseHandler;
+import software.amazon.awssdk.internal.http.response.NullErrorResponseHandler;
+import software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
+import utils.HttpTestUtils;
 import utils.http.WireMockTestBase;
 
 public class AmazonHttpClientIntegrationTest extends WireMockTestBase {
@@ -47,7 +53,7 @@ public class AmazonHttpClientIntegrationTest extends WireMockTestBase {
         Request<?> request = newGetRequest(OPERATION);
 
         AmazonHttpClient sut = createClient(HEADER, CONFIG_HEADER_VALUE);
-        sut.requestExecutionBuilder().request(request).execute();
+        sendRequest(request, sut);
 
         verify(getRequestedFor(urlPathEqualTo(OPERATION)).withHeader(HEADER, matching(CONFIG_HEADER_VALUE)));
     }
@@ -58,8 +64,7 @@ public class AmazonHttpClientIntegrationTest extends WireMockTestBase {
         request.getOriginalRequest().putCustomRequestHeader(HEADER, REQUEST_HEADER_VALUE);
 
         AmazonHttpClient sut = createClient(HEADER, CONFIG_HEADER_VALUE);
-
-        sut.requestExecutionBuilder().request(request).execute();
+        sendRequest(request, sut);
 
         verify(getRequestedFor(urlPathEqualTo(OPERATION)).withHeader(HEADER, matching(REQUEST_HEADER_VALUE)));
     }
@@ -69,18 +74,21 @@ public class AmazonHttpClientIntegrationTest extends WireMockTestBase {
         Request<?> request = newRequest(OPERATION);
         request.setHttpMethod(HttpMethodName.OPTIONS);
 
-        AmazonHttpClient sut = builderWithDefaultClient()
-                .clientConfiguration(new LegacyClientConfiguration())
-                .build();
-        sut.requestExecutionBuilder().request(request).execute();
+        AmazonHttpClient sut = HttpTestUtils.testAmazonHttpClient();
+        sendRequest(request, sut);
 
         verify(optionsRequestedFor(urlPathEqualTo(OPERATION)));
     }
 
+    private void sendRequest(Request<?> request, AmazonHttpClient sut) {
+        sut.requestExecutionBuilder()
+           .request(request)
+           .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
+           .errorResponseHandler(new NullErrorResponseHandler())
+           .execute();
+    }
+
     private AmazonHttpClient createClient(String headerName, String headerValue) {
-        LegacyClientConfiguration clientConfiguration = new LegacyClientConfiguration().withHeader(headerName, headerValue);
-        return builderWithDefaultClient()
-                .clientConfiguration(clientConfiguration)
-                .build();
+        return HttpTestUtils.testClientBuilder().additionalHeader(headerName, headerValue).build();
     }
 }

@@ -1,2 +1,2 @@
 software.amazon.awssdk.services.glacier.internal.AcceptJsonRequestHandler
-software.amazon.awssdk.services.glacier.internal.GlacierRequestHandler
+software.amazon.awssdk.services.glacier.internal.GlacierExecutionInterceptor

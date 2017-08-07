@@ -16,11 +16,8 @@
 package software.amazon.awssdk.http;
 
 import static software.amazon.awssdk.http.pipeline.RequestPipelineBuilder.async;
-import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ScheduledExecutorService;
-import software.amazon.awssdk.LegacyClientConfiguration;
 import software.amazon.awssdk.Request;
 import software.amazon.awssdk.RequestConfig;
 import software.amazon.awssdk.RequestExecutionContext;
@@ -29,14 +26,16 @@ import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.annotation.ThreadSafe;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.config.AsyncClientConfiguration;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.http.pipeline.RequestPipelineBuilder;
+import software.amazon.awssdk.http.pipeline.stages.AfterExecutionInterceptorsStage;
 import software.amazon.awssdk.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.http.pipeline.stages.ApplyUserAgentStage;
+import software.amazon.awssdk.http.pipeline.stages.AsyncExecutionFailureExceptionReportingStage;
 import software.amazon.awssdk.http.pipeline.stages.AsyncRetryableStage;
-import software.amazon.awssdk.http.pipeline.stages.BeforeRequestHandlersStage;
+import software.amazon.awssdk.http.pipeline.stages.BeforeTransmissionExecutionInterceptorsStage;
 import software.amazon.awssdk.http.pipeline.stages.MakeAsyncHttpRequestStage;
 import software.amazon.awssdk.http.pipeline.stages.MakeRequestImmutable;
 import software.amazon.awssdk.http.pipeline.stages.MakeRequestMutable;
@@ -49,8 +48,6 @@ import software.amazon.awssdk.http.pipeline.stages.UnwrapResponseContainer;
 import software.amazon.awssdk.internal.http.timers.client.ClientExecutionTimer;
 import software.amazon.awssdk.metrics.AwsSdkMetrics;
 import software.amazon.awssdk.metrics.RequestMetricCollector;
-import software.amazon.awssdk.retry.RetryPolicyAdapter;
-import software.amazon.awssdk.retry.v2.RetryPolicy;
 import software.amazon.awssdk.util.CapacityManager;
 
 @ThreadSafe
@@ -66,11 +63,21 @@ public class AmazonAsyncHttpClient implements AutoCloseable {
      */
     private final RequestMetricCollector requestMetricCollector;
 
-    private final HttpClientDependencies httpClientDependencies;
+    private final HttpAsyncClientDependencies httpClientDependencies;
 
-    private AmazonAsyncHttpClient(HttpClientDependencies httpClientDependencies, RequestMetricCollector requestMetricCollector) {
-        this.httpClientDependencies = paramNotNull(httpClientDependencies, "HttpClientDependencies");
-        this.requestMetricCollector = requestMetricCollector;
+    private AmazonAsyncHttpClient(Builder builder) {
+        this.httpClientDependencies = HttpAsyncClientDependencies.builder()
+                                                                 .clientExecutionTimer(new ClientExecutionTimer())
+                                                                 .asyncClientConfiguration(builder.asyncClientConfiguration)
+                                                                 .capacityManager(createCapacityManager())
+                                                                 .build();
+        this.requestMetricCollector = builder.asyncClientConfiguration.overrideConfiguration().requestMetricCollector();
+    }
+
+    private CapacityManager createCapacityManager() {
+        // When enabled, total retry capacity is computed based on retry cost and desired number of retries.
+        // TODO: Allow customers to configure throttled retries (https://github.com/aws/aws-sdk-java-v2/issues/17)
+        return new CapacityManager(AmazonHttpClient.THROTTLED_RETRY_COST * AmazonHttpClient.THROTTLED_RETRIES);
     }
 
     public static Builder builder() {
@@ -169,71 +176,18 @@ public class AmazonAsyncHttpClient implements AutoCloseable {
     }
 
     public static class Builder {
-
-        private LegacyClientConfiguration clientConfig;
-        private RetryPolicy retryPolicy;
-        private RequestMetricCollector requestMetricCollector;
-        private boolean calculateCrc32FromCompressedData;
-        private SdkAsyncHttpClient sdkAsyncHttpClient;
-        private ScheduledExecutorService executorService;
+        private AsyncClientConfiguration asyncClientConfiguration;
 
         private Builder() {
         }
 
-        public Builder clientConfiguration(LegacyClientConfiguration clientConfig) {
-            this.clientConfig = clientConfig;
-            return this;
-        }
-
-        public Builder retryPolicy(RetryPolicy retryPolicy) {
-            this.retryPolicy = retryPolicy;
-            return this;
-        }
-
-        public Builder requestMetricCollector(RequestMetricCollector requestMetricCollector) {
-            this.requestMetricCollector = requestMetricCollector;
-            return this;
-        }
-
-        public Builder calculateCrc32FromCompressedData(boolean calculateCrc32FromCompressedData) {
-            this.calculateCrc32FromCompressedData = calculateCrc32FromCompressedData;
-            return this;
-        }
-
-        public Builder sdkAsyncHttpClient(SdkAsyncHttpClient sdkAsyncHttpClient) {
-            this.sdkAsyncHttpClient = sdkAsyncHttpClient;
-            return this;
-        }
-
-        public Builder asyncExecutor(ScheduledExecutorService executorService) {
-            this.executorService = executorService;
+        public Builder asyncClientConfiguration(AsyncClientConfiguration asyncClientConfiguration) {
+            this.asyncClientConfiguration = asyncClientConfiguration;
             return this;
         }
 
         public AmazonAsyncHttpClient build() {
-            return new AmazonAsyncHttpClient(
-                    HttpClientDependencies.builder()
-                                          .clientExecutionTimer(new ClientExecutionTimer())
-                                          .config(clientConfig)
-                                          .retryCapacity(createCapacityManager())
-                                          .retryPolicy(resolveRetryPolicy())
-                                          .calculateCrc32FromCompressedData(calculateCrc32FromCompressedData)
-                                          .sdkAsyncHttpClient(sdkAsyncHttpClient)
-                                          .asyncExecutorService(executorService)
-                                          .build(),
-                    requestMetricCollector);
-        }
-
-        private CapacityManager createCapacityManager() {
-            // When enabled, total retry capacity is computed based on retry cost
-            // and desired number of retries.
-            int throttledRetryMaxCapacity = clientConfig.useThrottledRetries()
-                    ? AmazonHttpClient.THROTTLED_RETRY_COST * AmazonHttpClient.THROTTLED_RETRIES : -1;
-            return new CapacityManager(throttledRetryMaxCapacity);
-        }
-
-        private RetryPolicy resolveRetryPolicy() {
-            return retryPolicy == null ? new RetryPolicyAdapter(clientConfig.getRetryPolicy(), clientConfig) : retryPolicy;
+            return new AmazonAsyncHttpClient(this);
         }
     }
 
@@ -243,7 +197,7 @@ public class AmazonAsyncHttpClient implements AutoCloseable {
         private SdkHttpFullRequest request;
         private RequestConfig requestConfig;
         private SdkHttpResponseHandler<? extends SdkBaseException> errorResponseHandler;
-        private ExecutionContext executionContext = new ExecutionContext();
+        private ExecutionContext executionContext;
 
         @Override
         public RequestExecutionBuilder requestProvider(SdkHttpRequestProvider requestProvider) {
@@ -281,22 +235,24 @@ public class AmazonAsyncHttpClient implements AutoCloseable {
         public <OutputT> CompletableFuture<OutputT> execute(SdkHttpResponseHandler<OutputT> responseHandler) {
             try {
                 return RequestPipelineBuilder
-                        .first(BeforeRequestHandlersStage::new)
-                        .then(MakeRequestMutable::new)
-                        .then(ApplyTransactionIdStage::new)
-                        .then(ApplyUserAgentStage::new)
-                        .then(MergeCustomHeadersStage::new)
-                        .then(MergeCustomQueryParamsStage::new)
-                        .then(MoveParametersToBodyStage::new)
-                        .then(MakeRequestImmutable::new)
-                        .then(ReportRequestContentLengthStage::new)
-                        .then(RequestPipelineBuilder
-                                      .first(SigningStage::new)
+                        .firstAsync(RequestPipelineBuilder
+                                .firstAsync(MakeRequestMutable::new)
+                                .then(ApplyTransactionIdStage::new)
+                                .then(ApplyUserAgentStage::new)
+                                .then(MergeCustomHeadersStage::new)
+                                .then(MergeCustomQueryParamsStage::new)
+                                .then(MoveParametersToBodyStage::new)
+                                .then(MakeRequestImmutable::new)
+                                .then(ReportRequestContentLengthStage::new)
+                                .then(RequestPipelineBuilder
+                                      .firstAsync(SigningStage::new)
+                                      .then(BeforeTransmissionExecutionInterceptorsStage::new)
                                       .then(d -> new MakeAsyncHttpRequestStage<>(responseHandler, errorResponseHandler, d))
-                                      // TODO BeforeUnmarshallingStage
                                       .wrap(AsyncRetryableStage::new)
                                       ::build)
-                        .then(async(() -> new UnwrapResponseContainer<>()))
+                                .then(async(() -> new UnwrapResponseContainer<>()))
+                                .then(async(() -> new AfterExecutionInterceptorsStage<>()))::build)
+                        .wrap(AsyncExecutionFailureExceptionReportingStage::new)
                         .build(httpClientDependencies)
                         .execute(request, createRequestExecutionDependencies());
             } catch (RuntimeException e) {

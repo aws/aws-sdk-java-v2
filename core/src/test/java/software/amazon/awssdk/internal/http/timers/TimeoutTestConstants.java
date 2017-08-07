@@ -15,13 +15,15 @@
 
 package software.amazon.awssdk.internal.http.timers;
 
+import java.time.Duration;
+
 /**
  * Constants relevant for request timeout and client execution timeout tests
  */
 public class TimeoutTestConstants {
 
     public static final int TEST_TIMEOUT = 25 * 1000;
-    public static final int CLIENT_EXECUTION_TIMEOUT = 5 * 1000;
+    public static final Duration CLIENT_EXECUTION_TIMEOUT = Duration.ofSeconds(5);
     public static final int SLOW_REQUEST_HANDLER_TIMEOUT = 100;
 
     /**

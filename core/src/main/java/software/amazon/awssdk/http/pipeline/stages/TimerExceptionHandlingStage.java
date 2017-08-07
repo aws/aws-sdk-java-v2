@@ -54,7 +54,7 @@ public class TimerExceptionHandlingStage<OutputT> implements RequestToResponsePi
      * @return True if the exception was caused by the execution timeout, false if not.
      */
     private boolean isTimeoutCausedException(RequestExecutionContext context, Exception e) {
-        return isIoException(e) && context.getClientExecutionTrackerTask().hasTimeoutExpired();
+        return isIoException(e) && context.clientExecutionTrackerTask().hasTimeoutExpired();
     }
 
     /**

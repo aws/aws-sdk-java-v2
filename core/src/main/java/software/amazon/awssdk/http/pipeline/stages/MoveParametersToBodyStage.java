@@ -22,7 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.handlers.AwsHandlerKeys;
+import software.amazon.awssdk.handlers.AwsExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.pipeline.MutableRequestToRequestPipeline;
@@ -33,14 +33,15 @@ import software.amazon.awssdk.util.SdkHttpUtils;
 public final class MoveParametersToBodyStage implements MutableRequestToRequestPipeline {
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder input, RequestExecutionContext context) {
-        if (shouldPutParamsInBody(input)) {
+        if (shouldPutParamsInBody(input, context)) {
             return putParams(input);
         }
         return input;
     }
 
-    private boolean shouldPutParamsInBody(SdkHttpFullRequest.Builder input) {
-        return notSimpleDb(input) &&
+    private boolean shouldPutParamsInBody(SdkHttpFullRequest.Builder input,
+                                          RequestExecutionContext context) {
+        return notSimpleDb(context) &&
                input.getHttpMethod() == SdkHttpMethod.POST &&
                input.getContent() == null &&
                input.getParameters() != null &&
@@ -53,8 +54,8 @@ public final class MoveParametersToBodyStage implements MutableRequestToRequestP
                          " make the SigV2 signer be aware that params are being moved into the body and move them back out" +
                          " and unencode and sign them as query params. We did a similiar thing in the V4 signer in 1.11.x" +
                          " but I'd rather have the grossness in the legacy signer implementation")
-    private boolean notSimpleDb(SdkHttpFullRequest.Builder input) {
-        return !"SimpleDBClient".equals(input.handlerContext(AwsHandlerKeys.SERVICE_NAME));
+    private boolean notSimpleDb(RequestExecutionContext context) {
+        return !"SimpleDBClient".equals(context.executionAttributes().getAttribute(AwsExecutionAttributes.SERVICE_NAME));
     }
 
     private SdkHttpFullRequest.Builder putParams(SdkHttpFullRequest.Builder input) {

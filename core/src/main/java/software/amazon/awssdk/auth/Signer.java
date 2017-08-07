@@ -16,19 +16,20 @@
 package software.amazon.awssdk.auth;
 
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.interceptor.Context;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 
 /**
- * A strategy for applying cryptographic signatures to a request, proving
- * that the request was made by someone in posession of the given set of
- * credentials without transmitting the secret key over the wire.
+ * A strategy for applying cryptographic signatures to a request, proving that the request was made by someone in possession of
+ * the given set of credentials without transmitting the secret key over the wire.
  */
 public interface Signer {
     /**
-     * Sign the given request with the given set of credentials. Modifies the
-     * passed-in request to apply the signature.
+     * Sign the given request with the given set of credentials. Modifies the passed-in request to apply the signature.
      *
-     * @param request      The request to sign.
-     * @param credentials  The credentials to sign the request with.
+     * @param execution The immutable state of the execution right before transmission, including the request to sign.
+     * @param executionAttributes Additional mutable attributes attached to the execution.
+     * @return The signed request.
      */
-    SdkHttpFullRequest sign(SdkHttpFullRequest request, AwsCredentials credentials);
+    SdkHttpFullRequest sign(Context.BeforeTransmission execution, ExecutionAttributes executionAttributes);
 }

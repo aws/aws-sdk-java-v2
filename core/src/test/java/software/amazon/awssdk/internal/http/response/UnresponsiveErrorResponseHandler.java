@@ -18,6 +18,7 @@ package software.amazon.awssdk.internal.http.response;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 
 /**
  * Response Handler implementation that hangs forever
@@ -25,7 +26,8 @@ import software.amazon.awssdk.http.HttpResponseHandler;
 public class UnresponsiveErrorResponseHandler implements HttpResponseHandler<AmazonServiceException> {
 
     @Override
-    public AmazonServiceException handle(HttpResponse response) throws Exception {
+    public AmazonServiceException handle(HttpResponse response,
+                                         ExecutionAttributes executionAttributes) throws Exception {
         Thread.sleep(Long.MAX_VALUE);
         return null;
     }

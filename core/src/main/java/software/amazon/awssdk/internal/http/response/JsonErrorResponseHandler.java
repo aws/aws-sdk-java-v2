@@ -24,9 +24,10 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.AmazonServiceException.ErrorType;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.handlers.AwsHandlerKeys;
+import software.amazon.awssdk.handlers.AwsExecutionAttributes;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.internal.http.ErrorCodeParser;
 import software.amazon.awssdk.protocol.json.JsonContent;
 import software.amazon.awssdk.runtime.http.JsonErrorMessageParser;
@@ -59,7 +60,8 @@ public class JsonErrorResponseHandler implements HttpResponseHandler<AmazonServi
     }
 
     @Override
-    public AmazonServiceException handle(HttpResponse response) throws Exception {
+    public AmazonServiceException handle(HttpResponse response,
+                                         ExecutionAttributes executionAttributes) throws Exception {
         JsonContent jsonContent = JsonContent.createJsonContent(response, jsonFactory);
         String errorCode = errorCodeParser.parseErrorCode(response, jsonContent);
         AmazonServiceException ase = createException(errorCode, jsonContent);
@@ -72,7 +74,7 @@ public class JsonErrorResponseHandler implements HttpResponseHandler<AmazonServi
         }
 
         ase.setErrorCode(errorCode);
-        ase.setServiceName(response.getRequest().handlerContext(AwsHandlerKeys.SERVICE_NAME));
+        ase.setServiceName(executionAttributes.getAttribute(AwsExecutionAttributes.SERVICE_NAME));
         ase.setStatusCode(response.getStatusCode());
         ase.setErrorType(getErrorTypeFromStatusCode(response.getStatusCode()));
         ase.setRawResponse(jsonContent.getRawContent());

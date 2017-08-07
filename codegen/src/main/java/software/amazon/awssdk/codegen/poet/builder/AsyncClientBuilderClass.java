@@ -64,7 +64,7 @@ public class AsyncClientBuilderClass implements ClassSpec {
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                          .returns(clientInterfaceName)
-                         .addCode("return new $T(super.asyncClientConfiguration().asLegacyAsyncClientParams() $L);",
+                         .addCode("return new $T(super.asyncClientConfiguration() $L);",
                                   clientClassName, advancedConfigParam)
                          .build();
     }

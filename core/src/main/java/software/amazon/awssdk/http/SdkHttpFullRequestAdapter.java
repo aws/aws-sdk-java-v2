@@ -21,13 +21,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.Request;
-import software.amazon.awssdk.handlers.AwsHandlerKeys;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 
 /**
  * Adapts a {@link Request} to the new {@link SdkHttpFullRequest} interface.
- *
- * TODO this should eventually be removed and SdkHttpFullRequest should completely replace Request
  */
+@ReviewBeforeRelease("This should eventually be removed and SdkHttpFullRequest should completely replace Request")
 public class SdkHttpFullRequestAdapter {
 
     public static SdkHttpFullRequest toHttpFullRequest(Request<?> request) {
@@ -35,16 +34,13 @@ public class SdkHttpFullRequestAdapter {
     }
 
     public static SdkHttpFullRequest.Builder toMutableHttpFullRequest(Request<?> request) {
-        return DefaultSdkHttpFullRequest
-                .builder()
-                .content(request.getContent())
-                .httpMethod(SdkHttpMethod.fromValue(request.getHttpMethod().name()))
-                .headers(adaptHeaders(request.getHeaders()))
-                .queryParameters(request.getParameters())
-                .endpoint(request.getEndpoint())
-                .resourcePath(request.getResourcePath())
-                // TODO find a better place to set this
-                .handlerContext(AwsHandlerKeys.SERVICE_NAME, request.getServiceName());
+        return SdkHttpFullRequest.builder()
+                                 .content(request.getContent())
+                                 .httpMethod(SdkHttpMethod.fromValue(request.getHttpMethod().name()))
+                                 .headers(adaptHeaders(request.getHeaders()))
+                                 .queryParameters(request.getParameters())
+                                 .endpoint(request.getEndpoint())
+                                 .resourcePath(request.getResourcePath());
     }
 
     private static Map<String, List<String>> adaptHeaders(Map<String, String> headers) {
