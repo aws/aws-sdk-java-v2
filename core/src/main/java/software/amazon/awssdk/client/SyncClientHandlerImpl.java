@@ -68,8 +68,8 @@ public class SyncClientHandlerImpl extends ClientHandler {
 
             @Override
             public ReturnT handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
-                OutputT resp = runAfterUnmarshallingInterceptors(
-                        executionParams.getResponseHandler().handle(response, executionAttributes), executionContext);
+                OutputT resp = interceptorCalling(executionParams.getResponseHandler(), executionContext)
+                        .handle(response, executionAttributes);
                 return streamingResponseHandler.apply(resp, new AbortableInputStream(response.getContent(), response));
             }
 
@@ -85,7 +85,8 @@ public class SyncClientHandlerImpl extends ClientHandler {
     public <InputT extends SdkRequest, OutputT extends SdkResponse> OutputT execute(
             ClientExecutionParams<InputT, OutputT> executionParams) {
         ExecutionContext executionContext = createExecutionContext(executionParams.getRequestConfig());
-        return execute(executionParams, executionContext, executionParams.getResponseHandler());
+        return execute(executionParams, executionContext, interceptorCalling(executionParams.getResponseHandler(),
+                                                                             executionContext));
     }
 
     private <InputT extends SdkRequest, OutputT, ReturnT> ReturnT execute(

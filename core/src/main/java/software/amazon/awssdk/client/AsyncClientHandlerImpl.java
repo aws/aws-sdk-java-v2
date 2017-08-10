@@ -77,9 +77,10 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
             ClientExecutionParams<InputT, OutputT> executionParams) {
         ExecutionContext executionContext = createExecutionContext(executionParams.getRequestConfig());
         return execute(executionParams, executionContext,
-            responseAdapter -> new SyncResponseHandlerAdapter<>(executionParams.getResponseHandler(),
-                                                                           responseAdapter,
-                                                                           executionContext.executionAttributes()));
+            responseAdapter -> new SyncResponseHandlerAdapter<>(
+                               interceptorCalling(executionParams.getResponseHandler(), executionContext),
+                               responseAdapter,
+                               executionContext.executionAttributes()));
     }
 
     /**
@@ -334,13 +335,11 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
 
         @Override
         public void headersReceived(SdkHttpResponse response) {
-            SdkHttpFullResponse sdkHttpFullResponse = beforeUnmarshalling((SdkHttpFullResponse) response, executionContext);
-            HttpResponse httpResponse = SdkHttpResponseAdapter.adapt(false, null, sdkHttpFullResponse);
+            HttpResponse httpResponse = SdkHttpResponseAdapter.adapt(false, null, ((SdkHttpFullResponse) response));
             try {
                 // TODO would be better to pass in AwsExecutionAttributes to the async response handler so we can
                 // provide them to HttpResponseHandler
-                OutputT resp = runAfterUnmarshallingInterceptors(
-                        responseHandler.handle(httpResponse, null), executionContext);
+                OutputT resp = interceptorCalling(responseHandler, executionContext).handle(httpResponse, null);
                 asyncResponseHandler.responseReceived(resp);
             } catch (Exception e) {
                 throw Throwables.failure(e);
