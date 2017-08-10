@@ -39,7 +39,7 @@ public interface ToCopyableBuilder<B extends CopyableBuilder<B, T>, T extends To
      * @param modifier A function that mutates this immutable object using the provided builder.
      * @return A new copy of this object with the requested modifications.
      */
-    default T copy(Consumer<B> modifier) {
+    default T copy(Consumer<? super B> modifier) {
         return toBuilder().apply(b -> {
             modifier.accept(b);
             return b;
