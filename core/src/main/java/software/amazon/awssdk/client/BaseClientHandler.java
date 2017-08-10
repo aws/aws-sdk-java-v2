@@ -17,6 +17,7 @@ package software.amazon.awssdk.client;
 
 import software.amazon.awssdk.Request;
 import software.amazon.awssdk.RequestConfig;
+import software.amazon.awssdk.SdkResponse;
 import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.config.AdvancedClientOption;
@@ -162,5 +163,21 @@ abstract class BaseClientHandler {
                                                                       executionContext.executionAttributes());
         executionContext.interceptorContext(interceptorContext);
         return interceptorContext.httpRequest();
+    }
+
+    protected <OutputT extends SdkResponse> OutputT runAfterUnmarshallingInterceptors(OutputT response,
+                                                                                      ExecutionContext context) {
+        // Update interceptor context to include response
+        InterceptorContext interceptorContext =
+                context.interceptorContext().copy(b -> b.response(response));
+
+        context.interceptorChain().afterUnmarshalling(interceptorContext, context.executionAttributes());
+
+        interceptorContext = context.interceptorChain().modifyResponse(interceptorContext, context.executionAttributes());
+
+        // Store updated context
+        context.interceptorContext(interceptorContext);
+
+        return (OutputT) interceptorContext.response();
     }
 }

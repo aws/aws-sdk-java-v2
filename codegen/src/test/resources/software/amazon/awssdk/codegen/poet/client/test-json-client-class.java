@@ -90,7 +90,8 @@ final class DefaultJsonClient implements JsonClient {
                                                                                                      SdkBaseException, SdkClientException, JsonException {
 
         HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true), new APostOperationResponseUnmarshaller());
+                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
+                new APostOperationResponseUnmarshaller());
 
         HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
 
@@ -125,7 +126,8 @@ final class DefaultJsonClient implements JsonClient {
                                                                                     SdkClientException, JsonException {
 
         HttpResponseHandler<APostOperationWithOutputResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true), new APostOperationWithOutputResponseUnmarshaller());
+                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
+                new APostOperationWithOutputResponseUnmarshaller());
 
         HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
 
@@ -162,7 +164,8 @@ final class DefaultJsonClient implements JsonClient {
                                                                                       SdkClientException, JsonException {
 
         HttpResponseHandler<GetWithoutRequiredMembersResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true), new GetWithoutRequiredMembersResponseUnmarshaller());
+                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
+                new GetWithoutRequiredMembersResponseUnmarshaller());
 
         HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
 
@@ -205,7 +208,8 @@ final class DefaultJsonClient implements JsonClient {
                                                                    RequestBody requestBody) throws SdkBaseException, SdkClientException, JsonException {
 
         HttpResponseHandler<StreamingInputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true), new StreamingInputOperationResponseUnmarshaller());
+                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
+                new StreamingInputOperationResponseUnmarshaller());
 
         HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
 
@@ -243,17 +247,22 @@ final class DefaultJsonClient implements JsonClient {
      */
     @Override
     public <ReturnT> ReturnT streamingOutputOperation(StreamingOutputOperationRequest streamingOutputOperationRequest,
-                                                      StreamingResponseHandler<StreamingOutputOperationResponse, ReturnT> streamingHandler) throws SdkBaseException,
-                                                                                                                                                   SdkClientException, JsonException {
-        HttpResponseHandler<ReturnT> responseHandler = protocolFactory.createStreamingResponseHandler(
-                new StreamingOutputOperationResponseUnmarshaller(), streamingHandler);
+                                                      StreamingResponseHandler<StreamingOutputOperationResponse, ReturnT> streamingResponseHandler)
+            throws SdkBaseException, SdkClientException, JsonException {
+
+        HttpResponseHandler<StreamingOutputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
+                new JsonOperationMetadata().withPayloadJson(false).withHasStreamingSuccessResponse(true),
+                new StreamingOutputOperationResponseUnmarshaller());
 
         HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
 
-        return clientHandler.execute(new ClientExecutionParams<StreamingOutputOperationRequest, ReturnT>()
-                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                             .withInput(streamingOutputOperationRequest)
-                                             .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)));
+        return clientHandler
+                .execute(
+                        new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
+                                .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                .withInput(streamingOutputOperationRequest)
+                                .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)),
+                        streamingResponseHandler);
     }
 
     private HttpResponseHandler<AmazonServiceException> createErrorResponseHandler() {

@@ -29,12 +29,9 @@ import software.amazon.awssdk.ResponseMetadata;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.async.AsyncResponseHandler;
-import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
-import software.amazon.awssdk.http.async.UnmarshallingAsyncResponseHandler;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.runtime.transform.StaxUnmarshallerContext;
 import software.amazon.awssdk.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.runtime.transform.UnmarshallingStreamingResponseHandler;
 import software.amazon.awssdk.runtime.transform.VoidStaxUnmarshaller;
 import software.amazon.awssdk.sync.StreamingResponseHandler;
 import software.amazon.awssdk.util.StringUtils;
@@ -149,38 +146,27 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
     }
 
     /**
-     * Creates an synchronous {@link HttpResponseHandler} that unmarshalls the resposne POJO thne passes the HTTP content to the
-     * given {@link StreamingResponseHandler}.
+     * Creates an synchronous {@link HttpResponseHandler} that unmarshalls into the response POJO while leaving the
+     * connection open for further processing (by a {@link StreamingResponseHandler} or {@link AsyncResponseHandler}
+     * for example).
      *
-     * @param unmarshaller     Unmarshaller for response POJO.
-     * @param streamingHandler Customer provided response handler.
-     * @param <ResponseT>      Response POJO type.
-     * @param <ReturnT>        Return type of customer provided response handler.
+     * @param unmarshaller Unmarshaller for response POJO.
+     * @param <ResponseT>  Response POJO type.
      */
-    public static <ResponseT, ReturnT> HttpResponseHandler<ReturnT> createStreamingResponseHandler(
-            Unmarshaller<ResponseT, StaxUnmarshallerContext> unmarshaller,
-            StreamingResponseHandler<ResponseT, ReturnT> streamingHandler) {
+    public static <ResponseT> HttpResponseHandler<ResponseT> createStreamingResponseHandler(
+            Unmarshaller<ResponseT, StaxUnmarshallerContext> unmarshaller) {
         UnsafeFunction<HttpResponse, ResponseT> unmarshallFunction = response -> unmarshallStreaming(unmarshaller, response);
-        return new UnmarshallingStreamingResponseHandler<>(streamingHandler, unmarshallFunction);
-    }
+        return new HttpResponseHandler<ResponseT>() {
+            @Override
+            public ResponseT handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
+                return unmarshallFunction.apply(response);
+            }
 
-    /**
-     * Creates an async {@link SdkHttpResponseHandler} from the given unmarshaller and customer provided {@link
-     * AsyncResponseHandler}.
-     *
-     * @param unmarshaller         Unmarshaller for POJO response type.
-     * @param asyncResponseHandler Customer provided response handler to consume HTTP content.
-     * @param <ResponseT>          Response POJO type.
-     * @param <ReturnT>            Return type of customer provided response handler.
-     * @return SdkHttpResponseHandler that first unmarshalls the POJO and then provides the content.
-     */
-    public static <ResponseT, ReturnT> SdkHttpResponseHandler<ReturnT> createStreamingAsyncResponseHandler(
-            Unmarshaller<ResponseT, StaxUnmarshallerContext> unmarshaller,
-            AsyncResponseHandler<ResponseT, ReturnT> asyncResponseHandler) {
-        return new UnmarshallingAsyncResponseHandler<>(asyncResponseHandler, sdkHttpResponse -> {
-            HttpResponse httpResponse = SdkHttpResponseAdapter.adapt(false, null, (SdkHttpFullResponse) sdkHttpResponse);
-            return unmarshallStreaming(unmarshaller, httpResponse);
-        });
+            @Override
+            public boolean needsConnectionLeftOpen() {
+                return true;
+            }
+        };
     }
 
     /**

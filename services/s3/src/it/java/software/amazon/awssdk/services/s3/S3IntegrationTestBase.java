@@ -20,6 +20,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.BucketLocationConstraint;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.test.AwsTestBase;
 import utils.BucketNamingStrategy;
 import utils.S3TestUtils;
@@ -37,6 +38,8 @@ public class S3IntegrationTestBase extends AwsTestBase {
      */
     protected static S3Client s3;
 
+    protected static S3AsyncClient s3Async;
+
     /**
      * Loads the AWS account info for the integration tests and creates an S3
      * client for tests to use.
@@ -44,6 +47,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
     @BeforeClass
     public static void setUp() throws Exception {
         s3 = s3ClientBuilder().build();
+        s3Async = s3AsyncClientBuilder().build();
     }
 
     protected static S3ClientBuilder s3ClientBuilder() {
@@ -52,15 +56,29 @@ public class S3IntegrationTestBase extends AwsTestBase {
                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
     }
 
+    protected static S3AsyncClientBuilder s3AsyncClientBuilder() {
+        return S3AsyncClient.builder()
+                            .region(Region.US_WEST_2)
+                            .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
+    }
+
     protected static void createBucket(String bucketName) {
-        s3.createBucket(
-                CreateBucketRequest.builder()
-                                   .bucket(bucketName)
-                                   .createBucketConfiguration(
-                                           CreateBucketConfiguration.builder()
-                                                                    .locationConstraint(BucketLocationConstraint.UsWest2)
-                                                                    .build())
-                                   .build());
+        try {
+            s3.createBucket(
+                    CreateBucketRequest.builder()
+                                       .bucket(bucketName)
+                                       .createBucketConfiguration(
+                                               CreateBucketConfiguration.builder()
+                                                                        .locationConstraint(BucketLocationConstraint.UsWest2)
+                                                                        .build())
+                                       .build());
+        } catch (S3Exception e) {
+            if (e.getErrorCode().equals("BucketAlreadyOwnedByYou")) {
+                System.err.printf("%s bucket already exists, likely leaked by a previous run\n", bucketName);
+            } else {
+                throw e;
+            }
+        }
     }
 
     protected static void deleteBucketAndAllContents(String bucketName) {

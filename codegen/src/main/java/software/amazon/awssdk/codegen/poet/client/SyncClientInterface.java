@@ -196,7 +196,7 @@ public final class SyncClientInterface implements ClassSpec {
             methodBuilder.addTypeVariable(STREAMING_TYPE_VARIABLE);
             ParameterizedTypeName streamingResponseHandlerType = ParameterizedTypeName
                     .get(ClassName.get(StreamingResponseHandler.class), responseType, STREAMING_TYPE_VARIABLE);
-            methodBuilder.addParameter(streamingResponseHandlerType, "streamingHandler");
+            methodBuilder.addParameter(streamingResponseHandlerType, "streamingResponseHandler");
         }
     }
 

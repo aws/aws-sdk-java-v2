@@ -109,7 +109,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
     protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel) {
         return builder.addModifiers(Modifier.PUBLIC)
                       .addAnnotation(Override.class)
-                      .addCode(protocolSpec.asyncResponseHandler(opModel))
+                      .addCode(protocolSpec.responseHandler(opModel))
                       .addCode(protocolSpec.errorResponseHandler(opModel))
                       .addCode(protocolSpec.asyncExecutionHandler(opModel));
 

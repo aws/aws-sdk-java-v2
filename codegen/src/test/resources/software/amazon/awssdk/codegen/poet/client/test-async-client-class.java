@@ -11,7 +11,6 @@ import software.amazon.awssdk.client.ClientExecutionParams;
 import software.amazon.awssdk.client.SdkAsyncClientHandler;
 import software.amazon.awssdk.config.AsyncClientConfiguration;
 import software.amazon.awssdk.http.HttpResponseHandler;
-import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.protocol.json.JsonErrorResponseMetadata;
 import software.amazon.awssdk.protocol.json.JsonErrorShapeMetadata;
@@ -83,7 +82,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     public CompletableFuture<APostOperationResponse> aPostOperation(APostOperationRequest aPostOperationRequest) {
 
         HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true), new APostOperationResponseUnmarshaller());
+                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
+                new APostOperationResponseUnmarshaller());
 
         HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
 
@@ -120,7 +120,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
 
         HttpResponseHandler<APostOperationWithOutputResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true), new APostOperationWithOutputResponseUnmarshaller());
+                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
+                new APostOperationWithOutputResponseUnmarshaller());
 
         HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
 
@@ -159,7 +160,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) {
 
         HttpResponseHandler<GetWithoutRequiredMembersResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true), new GetWithoutRequiredMembersResponseUnmarshaller());
+                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
+                new GetWithoutRequiredMembersResponseUnmarshaller());
 
         HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
 
@@ -200,7 +202,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestProvider requestProvider) {
 
         HttpResponseHandler<StreamingInputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true), new StreamingInputOperationResponseUnmarshaller());
+                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
+                new StreamingInputOperationResponseUnmarshaller());
 
         HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
 
@@ -239,15 +242,17 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             StreamingOutputOperationRequest streamingOutputOperationRequest,
             AsyncResponseHandler<StreamingOutputOperationResponse, ReturnT> asyncResponseHandler) {
 
-        SdkHttpResponseHandler<ReturnT> responseHandler = protocolFactory.createAsyncStreamingResponseHandler(
-                new StreamingOutputOperationResponseUnmarshaller(), asyncResponseHandler);
+        HttpResponseHandler<StreamingOutputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
+                new JsonOperationMetadata().withPayloadJson(false).withHasStreamingSuccessResponse(true),
+                new StreamingOutputOperationResponseUnmarshaller());
 
         HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
 
-        return clientHandler.execute(new ClientExecutionParams<StreamingOutputOperationRequest, ReturnT>()
-                                             .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
-                                             .withAsyncResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                             .withInput(streamingOutputOperationRequest));
+        return clientHandler.execute(
+                new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
+                        .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
+                        .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                        .withInput(streamingOutputOperationRequest), asyncResponseHandler);
     }
 
     @Override

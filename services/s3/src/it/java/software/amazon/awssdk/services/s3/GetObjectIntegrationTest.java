@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static utils.S3TestUtils.assertMd5MatchesEtag;
 
 import java.io.ByteArrayInputStream;
@@ -26,10 +27,12 @@ import java.nio.file.Path;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.services.s3.GetObjectAsyncIntegrationTest.AssertingExecutionInterceptor;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.sync.RequestBody;
 import software.amazon.awssdk.sync.ResponseInputStream;
 import software.amazon.awssdk.sync.StreamingResponseHandler;
 import software.amazon.awssdk.test.util.RandomTempFile;
@@ -86,6 +89,25 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         GetObjectResponse response = s3.getObject(getObjectRequest, StreamingResponseHandler.toOutputStream(baos));
         assertMd5MatchesEtag(new ByteArrayInputStream(baos.toByteArray()), response);
+    }
+
+    @Test
+    public void customResponseHandler_InterceptorRecievesResponsePojo() throws Exception {
+        try (S3Client clientWithInterceptor = createClientWithInterceptor(new AssertingExecutionInterceptor())) {
+            String result = clientWithInterceptor.getObject(getObjectRequest, (resp, in) -> {
+                assertThat(resp.metadata()).hasEntrySatisfying("x-amz-assert",
+                                                               s -> assertThat(s).isEqualTo("injected-value"));
+                return "result";
+            });
+            assertThat(result).isEqualTo("result");
+        }
+    }
+
+    private S3Client createClientWithInterceptor(ExecutionInterceptor interceptor) {
+        return s3ClientBuilder().overrideConfiguration(ClientOverrideConfiguration.builder()
+                                                                                  .addLastExecutionInterceptor(interceptor)
+                                                                                  .build())
+                                .build();
     }
 
 }

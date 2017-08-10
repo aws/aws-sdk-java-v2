@@ -17,6 +17,7 @@ package software.amazon.awssdk.client;
 
 import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.SdkRequest;
+import software.amazon.awssdk.SdkResponse;
 import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.ThreadSafe;
@@ -24,6 +25,7 @@ import software.amazon.awssdk.config.SyncClientConfiguration;
 import software.amazon.awssdk.internal.AmazonWebServiceRequestAdapter;
 import software.amazon.awssdk.internal.http.response.AwsErrorResponseHandler;
 import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
+import software.amazon.awssdk.sync.StreamingResponseHandler;
 
 /**
  * Client handler for SDK clients.
@@ -41,14 +43,17 @@ public class SdkClientHandler extends ClientHandler {
     }
 
     @Override
-    public <InputT extends SdkRequest, OutputT> OutputT execute(
+    public <InputT extends SdkRequest, OutputT extends SdkResponse> OutputT execute(
             ClientExecutionParams<InputT, OutputT> executionParams) {
-        return delegateHandler.execute(
-                addRequestConfig(executionParams)
-                        // TODO this is a hack to get the build working. Also doesn't deal with AwsResponseHandlerAdapter
-                        .withErrorResponseHandler(
-                                new AwsErrorResponseHandler(executionParams.getErrorResponseHandler(), new AwsRequestMetrics())));
+        return delegateHandler.execute(addRequestConfig(executionParams));
 
+    }
+
+    @Override
+    public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> ReturnT execute(
+            ClientExecutionParams<InputT, OutputT> executionParams,
+            StreamingResponseHandler<OutputT, ReturnT> streamingResponseHandler) {
+        return delegateHandler.execute(addRequestConfig(executionParams), streamingResponseHandler);
     }
 
     @Override
@@ -58,7 +63,10 @@ public class SdkClientHandler extends ClientHandler {
 
     private <InputT extends SdkRequest, OutputT> ClientExecutionParams<InputT, OutputT> addRequestConfig(
             ClientExecutionParams<InputT, OutputT> params) {
-        return params.withRequestConfig(new AmazonWebServiceRequestAdapter((AmazonWebServiceRequest) params.getInput()));
+        return params.withRequestConfig(new AmazonWebServiceRequestAdapter((AmazonWebServiceRequest) params.getInput()))
+                     // TODO this is a hack to get the build working. Also doesn't deal with AwsResponseHandlerAdapter
+                     .withErrorResponseHandler(
+                             new AwsErrorResponseHandler(params.getErrorResponseHandler(), new AwsRequestMetrics()));
     }
 
 }

@@ -234,8 +234,8 @@ public interface JsonClient extends AutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default <ReturnT> ReturnT streamingOutputOperation(StreamingOutputOperationRequest streamingOutputOperationRequest,
-                                                       StreamingResponseHandler<StreamingOutputOperationResponse, ReturnT> streamingHandler) throws SdkBaseException,
-                                                                                                                                                    SdkClientException, JsonException {
+                                                       StreamingResponseHandler<StreamingOutputOperationResponse, ReturnT> streamingResponseHandler)
+            throws SdkBaseException, SdkClientException, JsonException {
         throw new UnsupportedOperationException();
     }
 
