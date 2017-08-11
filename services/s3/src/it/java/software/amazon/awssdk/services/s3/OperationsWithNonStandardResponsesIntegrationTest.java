@@ -36,7 +36,7 @@ import software.amazon.awssdk.services.s3.model.GetBucketPolicyRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketRequestPaymentRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketPolicyRequest;
 
-public final class SingleStringResponseOperationsIntegrationTest extends S3IntegrationTestBase {
+public final class OperationsWithNonStandardResponsesIntegrationTest extends S3IntegrationTestBase {
 
     /**
      * The name of the bucket created, used, and deleted by these tests.

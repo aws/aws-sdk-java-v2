@@ -44,7 +44,13 @@ public class ${shape.shapeName}Unmarshaller implements Unmarshaller<${shape.shap
         int originalDepth = context.getCurrentDepth();
         int targetDepth = originalDepth + 1;
 
-<#if shape.hasPayloadMember>
+<#if shape.customization.hasStaxTargetDepthOffset() >
+    <#if shape.customization.staxTargetDepthOffset == 0 >
+        <#-- if it's zero we can skip applying the offset -->
+    <#else>
+        if (context.isStartOfDocument()) targetDepth += ${shape.customization.staxTargetDepthOffset};
+    </#if>
+<#elseif shape.hasPayloadMember>
     <#-- Do not adjust stax context if we need to read raw payload data -->
 <#elseif shape.wrapper>
     <#-- For query (elasticache, rds, redshift) protocol, if the return type of certain operation is wrapped, -->
