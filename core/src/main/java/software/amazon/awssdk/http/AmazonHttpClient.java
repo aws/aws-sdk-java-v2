@@ -65,10 +65,11 @@ import software.amazon.awssdk.internal.http.timers.client.ClientExecutionTimer;
 import software.amazon.awssdk.metrics.AwsSdkMetrics;
 import software.amazon.awssdk.metrics.RequestMetricCollector;
 import software.amazon.awssdk.util.CapacityManager;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @ThreadSafe
 @SdkProtectedApi
-public class AmazonHttpClient implements AutoCloseable {
+public class AmazonHttpClient implements SdkAutoCloseable {
 
     public static final String HEADER_USER_AGENT = "User-Agent";
 
@@ -149,7 +150,7 @@ public class AmazonHttpClient implements AutoCloseable {
      * make more requests.
      */
     @Override
-    public void close() throws Exception {
+    public void close() {
         httpClientDependencies.close();
     }
 

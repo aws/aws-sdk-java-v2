@@ -38,7 +38,7 @@ public class HttpAsyncClientDependencies extends HttpClientDependencies {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         super.close();
         IoUtils.closeQuietly(asyncClientConfiguration.asyncHttpClient(), null);
         asyncClientConfiguration.asyncExecutorService().shutdown();

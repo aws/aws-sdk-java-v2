@@ -222,7 +222,7 @@ public class SqsBufferedAsyncClient implements SQSAsyncClient {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         realSqs.close();
     }
 

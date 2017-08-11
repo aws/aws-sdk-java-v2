@@ -207,7 +207,6 @@ public class SyncClientClass implements ClassSpec {
                          .addAnnotation(Override.class)
                          .addStatement("clientHandler.close()")
                          .addModifiers(Modifier.PUBLIC)
-                         .addException(Exception.class)
                          .build();
     }
 

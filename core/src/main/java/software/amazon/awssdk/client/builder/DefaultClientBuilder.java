@@ -389,7 +389,7 @@ public abstract class DefaultClientBuilder<B extends ClientBuilder<B, C>, C>
         }
 
         @Override
-        public void close() throws Exception {
+        public void close() {
             // Do nothing, this client is managed by the customer.
         }
     }
@@ -419,7 +419,7 @@ public abstract class DefaultClientBuilder<B extends ClientBuilder<B, C>, C>
         }
 
         @Override
-        public void close() throws Exception {
+        public void close() {
             // Do nothing, this client is managed by the customer.
         }
     }

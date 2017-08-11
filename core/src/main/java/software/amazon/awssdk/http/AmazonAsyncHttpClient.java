@@ -49,10 +49,11 @@ import software.amazon.awssdk.internal.http.timers.client.ClientExecutionTimer;
 import software.amazon.awssdk.metrics.AwsSdkMetrics;
 import software.amazon.awssdk.metrics.RequestMetricCollector;
 import software.amazon.awssdk.util.CapacityManager;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @ThreadSafe
 @SdkProtectedApi
-public class AmazonAsyncHttpClient implements AutoCloseable {
+public class AmazonAsyncHttpClient implements SdkAutoCloseable {
 
     /**
      * A request metric collector used specifically for this httpClientSettings client; or null if
@@ -91,7 +92,7 @@ public class AmazonAsyncHttpClient implements AutoCloseable {
      * make more requests.
      */
     @Override
-    public void close() throws Exception {
+    public void close() {
         httpClientDependencies.close();
     }
 

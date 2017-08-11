@@ -22,6 +22,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -34,7 +35,7 @@ import software.amazon.awssdk.utils.Validate;
  *
  * This should be created using {@link #builder(Supplier)}.
  */
-public final class CachedSupplier<T> implements Supplier<T>, AutoCloseable {
+public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     /**
      * Maximum time to wait for a blocking refresh lock before calling refresh again. This is to rate limit how many times we call
      * refresh. In the ideal case, refresh always occurs in a timely fashion and only one thread actually does the refresh.
@@ -191,7 +192,7 @@ public final class CachedSupplier<T> implements Supplier<T>, AutoCloseable {
      * @see NonBlocking
      */
     @FunctionalInterface
-    public interface PrefetchStrategy extends AutoCloseable {
+    public interface PrefetchStrategy extends SdkAutoCloseable {
         /**
          * Execute the provided value updater to update the cache. The specific implementation defines how this is invoked.
          */
