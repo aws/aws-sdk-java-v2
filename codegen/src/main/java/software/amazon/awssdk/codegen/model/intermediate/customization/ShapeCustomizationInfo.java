@@ -15,12 +15,17 @@
 
 package software.amazon.awssdk.codegen.model.intermediate.customization;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class ShapeCustomizationInfo {
 
     private ArtificialResultWrapper artificialResultWrapper;
     private boolean skipGeneratingModelClass;
     private boolean skipGeneratingMarshaller;
     private boolean skipGeneratingUnmarshaller;
+    private String customUnmarshallerFqcn;
+    private int staxTargetDepthOffset;
+    private boolean hasStaxTargetDepthOffset = false;
 
     public ArtificialResultWrapper getArtificialResultWrapper() {
         return artificialResultWrapper;
@@ -55,4 +60,25 @@ public class ShapeCustomizationInfo {
         this.skipGeneratingUnmarshaller = skipGeneratingUnmarshaller;
     }
 
+    public String getCustomUnmarshallerFqcn() {
+        return customUnmarshallerFqcn;
+    }
+
+    public void setCustomUnmarshallerFqcn(String customUnmarshallerFqcn) {
+        this.customUnmarshallerFqcn = customUnmarshallerFqcn;
+    }
+
+    public Integer getStaxTargetDepthOffset() {
+        return staxTargetDepthOffset;
+    }
+
+    public void setStaxTargetDepthOffset(int staxTargetDepthOffset) {
+        hasStaxTargetDepthOffset = true;
+        this.staxTargetDepthOffset = staxTargetDepthOffset;
+    }
+
+    @JsonIgnore
+    public boolean hasStaxTargetDepthOffset() {
+        return hasStaxTargetDepthOffset;
+    }
 }

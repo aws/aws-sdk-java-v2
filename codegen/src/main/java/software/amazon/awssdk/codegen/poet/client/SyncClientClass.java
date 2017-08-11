@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet.client;
 
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.getCustomResponseHandler;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -145,10 +146,12 @@ public class SyncClientClass implements ClassSpec {
 
     private List<MethodSpec> operationMethodSpecs(OperationModel opModel) {
         List<MethodSpec> methods = new ArrayList<>();
+        ClassName returnType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
 
         methods.add(SyncClientInterface.operationMethodSignature(model, opModel)
                                   .addAnnotation(Override.class)
-                                  .addCode(protocolSpec.responseHandler(opModel))
+                                  .addCode(getCustomResponseHandler(opModel, returnType)
+                                               .orElseGet(() -> protocolSpec.responseHandler(opModel)))
                                   .addCode(protocolSpec.errorResponseHandler(opModel))
                                   .addCode(protocolSpec.executionHandler(opModel))
                                   .build());

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.customization.processors;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import software.amazon.awssdk.codegen.customization.CodegenCustomizationProcessor;
@@ -80,7 +81,6 @@ final class ShapeModifiersProcessor implements CodegenCustomizationProcessor {
 
     @Override
     public void postprocess(IntermediateModel intermediateModel) {
-
         if (shapeModifiers == null) {
             return;
         }
@@ -93,34 +93,38 @@ final class ShapeModifiersProcessor implements CodegenCustomizationProcessor {
                 continue;
             }
 
-            ShapeModel shapeModel = null;
-            try {
-                shapeModel = Utils.findShapeModelByC2jName(
-                        intermediateModel, key);
-            } catch (IllegalArgumentException e) {
+            List<ShapeModel> shapeModels = Utils.findShapesByC2jName(intermediateModel, key);
+            if (shapeModels.isEmpty()) {
                 throw new IllegalStateException(String.format(
-                        "Cannot find c2j shape [%s] in the intermediate model when processing " +
-                        "customization config shapeModifiers.%s",
-                        key, key), e);
+                    "Cannot find c2j shape [%s] in the intermediate model when processing " +
+                    "customization config shapeModifiers.%s",
+                    key, key));
             }
 
-            if (modifier.isExcludeShape()) {
-                shapeModel.getCustomization().setSkipGeneratingModelClass(true);
-                shapeModel.getCustomization().setSkipGeneratingMarshaller(true);
-                shapeModel.getCustomization().setSkipGeneratingUnmarshaller(true);
-            } else if (modifier.getModify() != null) {
-                // Modifies properties of a member in shape or shape enum.
-                // This customization currently support modifying enum name
-                // and marshall/unmarshall location of a member in the Shape.
-                for (Map<String, ModifyModelShapeModifier> modifies : modifier.getModify()) {
-                    for (Entry<String, ModifyModelShapeModifier> memberEntry : modifies.entrySet()) {
-                        String enumToModify = memberEntry.getKey();
-                        ModifyModelShapeModifier modifyModel = memberEntry.getValue();
-
-                        postprocessModifyMemberProperty(shapeModel, enumToModify, modifyModel);
-                    }
+            shapeModels.forEach(shapeModel -> {
+                if (modifier.getStaxTargetDepthOffset() != null) {
+                    shapeModel.getCustomization().setStaxTargetDepthOffset(modifier.getStaxTargetDepthOffset());
                 }
-            }
+
+                if (modifier.getCustomUnmarshallerFqcn() != null) {
+                    shapeModel.getCustomization().setCustomUnmarshallerFqcn(modifier.getCustomUnmarshallerFqcn());
+                    shapeModel.getCustomization().setSkipGeneratingUnmarshaller(true);
+                }
+
+                if (modifier.isExcludeShape()) {
+                    shapeModel.getCustomization().setSkipGeneratingModelClass(true);
+                    shapeModel.getCustomization().setSkipGeneratingMarshaller(true);
+                    shapeModel.getCustomization().setSkipGeneratingUnmarshaller(true);
+                } else if (modifier.getModify() != null) {
+                    // Modifies properties of a member in shape or shape enum.
+                    // This customization currently support modifying enum name
+                    // and marshall/unmarshall location of a member in the Shape.
+
+                    modifier.getModify().stream().flatMap(m -> m.entrySet().stream()).forEach(memberEntry ->
+                        postprocessModifyMemberProperty(shapeModel, memberEntry.getKey(), memberEntry.getValue())
+                    );
+                }
+            });
         }
     }
 
