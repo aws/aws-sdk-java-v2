@@ -494,11 +494,9 @@ public final class ReflectionUtils {
             // Ignored or expected.
         }
 
-        LoggerFactory.getLogger(ReflectionUtils.class).warn(
-                "No accessor for property '"
-                + propertyName + "' " + "found in class "
-                + target.getClass().getName());
-
+        LoggerFactory.getLogger(ReflectionUtils.class).warn("No accessor for property '{}' found in class {}",
+                                                            propertyName,
+                                                            target.getClass().getName());
         return null;
     }
 

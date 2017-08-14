@@ -1,1 +1,1 @@
-software.amazon.awssdk.services.ec2.transform.EC2RequestHandler
+software.amazon.awssdk.services.ec2.transform.EC2Interceptor

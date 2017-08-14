@@ -23,11 +23,11 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import software.amazon.awssdk.RequestConfig;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.auth.SdkClock;
 import software.amazon.awssdk.auth.presign.PresignerFacade;
 import software.amazon.awssdk.auth.presign.PresignerParams;
-import software.amazon.awssdk.http.DefaultSdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.services.polly.model.SynthesizeSpeechRequest;
@@ -54,15 +54,16 @@ public final class PollyClientPresigners {
      * Presign a {@link SynthesizeSpeechRequest} to be vended to consumers. The expiration time of the presigned URL is
      * {@value #SYNTHESIZE_SPEECH_DEFAULT_EXPIRATION_MINUTES} from generation time.
      */
+    @ReviewBeforeRelease("Refactor as part of siging changes.")
     public URL getPresignedSynthesizeSpeechUrl(SynthesizeSpeechPresignRequest synthesizeSpeechPresignRequest) {
-        SdkHttpFullRequest.Builder request = DefaultSdkHttpFullRequest.builder()
-                .endpoint(endpoint)
-                .resourcePath("/v1/speech")
-                .httpMethod(SdkHttpMethod.GET);
+        SdkHttpFullRequest.Builder request = SdkHttpFullRequest.builder()
+                                                               .endpoint(endpoint)
+                                                               .resourcePath("/v1/speech")
+                                                               .httpMethod(SdkHttpMethod.GET);
         marshallIntoRequest(synthesizeSpeechPresignRequest, request);
         Date expirationDate = synthesizeSpeechPresignRequest.getExpirationDate() == null ?
                               getDefaultExpirationDate() : synthesizeSpeechPresignRequest.getExpirationDate();
-        return presignerFacade.presign(request.build(), RequestConfig.NO_OP, expirationDate);
+        return presignerFacade.presign(synthesizeSpeechPresignRequest, request.build(), RequestConfig.empty(), expirationDate);
     }
 
     private void marshallIntoRequest(SynthesizeSpeechPresignRequest synthesizeSpeechRequest, SdkHttpFullRequest.Builder request) {

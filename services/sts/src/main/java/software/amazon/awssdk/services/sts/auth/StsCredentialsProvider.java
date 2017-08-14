@@ -25,6 +25,7 @@ import software.amazon.awssdk.auth.AwsCredentials;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.services.sts.STSClient;
 import software.amazon.awssdk.services.sts.model.Credentials;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
@@ -38,7 +39,7 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  */
 @ThreadSafe
 @SdkInternalApi
-abstract class StsCredentialsProvider implements AwsCredentialsProvider, AutoCloseable {
+abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
     /**
      * The STS client that should be used for periodically updating the session credentials in the background.
      */

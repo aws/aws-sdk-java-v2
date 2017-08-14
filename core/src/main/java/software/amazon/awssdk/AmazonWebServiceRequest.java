@@ -32,7 +32,7 @@ import software.amazon.awssdk.metrics.RequestMetricCollector;
  * Base class for all user facing web service requests.
  */
 @NotThreadSafe
-public abstract class AmazonWebServiceRequest implements Cloneable, ReadLimitInfo {
+public abstract class AmazonWebServiceRequest extends SdkRequest implements Cloneable, ReadLimitInfo {
 
     public static final AmazonWebServiceRequest NOOP = new AmazonWebServiceRequest() {
     };
@@ -210,6 +210,7 @@ public abstract class AmazonWebServiceRequest implements Cloneable, ReadLimitInf
      *            The value of the header to add
      * @return the previous value for the name if it was set, null otherwise
      */
+    @ReviewBeforeRelease("Mutable method on immutable object.")
     public String putCustomRequestHeader(String name, String value) {
         if (customRequestHeaders == null) {
             customRequestHeaders = new HashMap<String, String>();

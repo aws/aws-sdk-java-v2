@@ -87,7 +87,7 @@ public interface AsyncResponseHandler<ResponseT, ReturnT> {
      * @param <ResponseT> Pojo Response type.
      * @return AsyncResponseHandler instance.
      */
-    static <ResponseT> AsyncResponseHandler<ResponseT, Void> toFile(Path path) {
+    static <ResponseT> AsyncResponseHandler<ResponseT, ResponseT> toFile(Path path) {
         return new FileAsyncResponseHandler<>(path);
     }
 

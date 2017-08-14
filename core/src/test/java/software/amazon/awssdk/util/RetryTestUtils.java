@@ -29,7 +29,7 @@ public class RetryTestUtils {
     public static void assertExpectedRetryCount(final int expectedRetryAttempts, final ExecutionContext context) {
         Assert.assertEquals(
                 expectedRetryAttempts + 1, // request count = retries + 1
-                context.getAwsRequestMetrics()
+                context.awsRequestMetrics()
                        .getTimingInfo().getCounter(AwsRequestMetrics.Field.RequestCount.toString()).intValue());
     }
 

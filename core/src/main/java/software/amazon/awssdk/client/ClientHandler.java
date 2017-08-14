@@ -15,13 +15,22 @@
 
 package software.amazon.awssdk.client;
 
+import software.amazon.awssdk.SdkRequest;
+import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.config.ClientConfiguration;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * Client interface to invoke an API.
  */
 @SdkProtectedApi
-public abstract class ClientHandler implements AutoCloseable {
+public abstract class ClientHandler extends BaseClientHandler implements SdkAutoCloseable {
+
+    public ClientHandler(ClientConfiguration clientConfiguration,
+                  ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
+        super(clientConfiguration, serviceAdvancedConfiguration);
+    }
 
     /**
      * Execute's a web service request. Handles marshalling and unmarshalling of data and making the
@@ -32,5 +41,6 @@ public abstract class ClientHandler implements AutoCloseable {
      * @param <OutputT>        Output POJO type
      * @return Unmarshalled output POJO type.
      */
-    public abstract <InputT, OutputT> OutputT execute(ClientExecutionParams<InputT, OutputT> executionParams);
+    public abstract <InputT extends SdkRequest, OutputT> OutputT execute(
+            ClientExecutionParams<InputT, OutputT> executionParams);
 }

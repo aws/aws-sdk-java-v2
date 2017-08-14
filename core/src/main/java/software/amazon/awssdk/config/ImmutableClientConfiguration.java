@@ -16,11 +16,6 @@
 package software.amazon.awssdk.config;
 
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Optional;
-import software.amazon.awssdk.LegacyClientConfiguration;
-import software.amazon.awssdk.Protocol;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.utils.Validate;
@@ -33,7 +28,6 @@ public abstract class ImmutableClientConfiguration implements ClientConfiguratio
     private final ClientOverrideConfiguration overrideConfiguration;
     private final AwsCredentialsProvider credentialsProvider;
     private final URI endpoint;
-    private final LegacyClientConfiguration legacyConfiguration;
 
     /**
      * Copy the provided client configuration into an immutable version.
@@ -44,8 +38,6 @@ public abstract class ImmutableClientConfiguration implements ClientConfiguratio
         this.endpoint = configuration.endpoint();
 
         validate();
-
-        this.legacyConfiguration = initializeLegacyConfiguration();
     }
 
     /**
@@ -88,56 +80,5 @@ public abstract class ImmutableClientConfiguration implements ClientConfiguratio
     @Override
     public URI endpoint() {
         return endpoint;
-    }
-
-    /**
-     * Convert this client configuration into a legacy-style configuration object.
-     */
-    @Deprecated
-    @ReviewBeforeRelease("This should be removed once we remove our reliance on the legacy client configuration object.")
-    public LegacyClientConfiguration asLegacyConfiguration() {
-        return this.legacyConfiguration;
-    }
-
-    /**
-     * Convert this client configuration to a {@link LegacyClientConfiguration}.
-     */
-    private LegacyClientConfiguration initializeLegacyConfiguration() {
-        LegacyClientConfiguration configuration = new LegacyClientConfiguration();
-
-        copyOverrideConfiguration(configuration, overrideConfiguration());
-
-        configuration.setProtocol(schemeToProtocol(endpoint().getScheme()).orElse(Protocol.HTTPS));
-
-        return configuration;
-    }
-
-    private void copyOverrideConfiguration(LegacyClientConfiguration configuration,
-                                          ClientOverrideConfiguration overrideConfiguration) {
-        Optional.ofNullable(overrideConfiguration.totalExecutionTimeout())
-                .ifPresent(d -> configuration.setClientExecutionTimeout(Math.toIntExact(d.toMillis())));
-
-        Optional.ofNullable(overrideConfiguration.gzipEnabled())
-                .ifPresent(configuration::setUseGzip);
-
-        overrideConfiguration.additionalHttpHeaders().forEach((header, values) -> {
-            if (values.size() > 1) {
-                throw new IllegalArgumentException("Multiple values under the same header are not supported at this time.");
-            }
-            values.forEach(value -> configuration.addHeader(header, value));
-        });
-
-        Optional.ofNullable(overrideConfiguration.advancedOption(AdvancedClientOption.USER_AGENT_PREFIX))
-                .ifPresent(configuration::setUserAgentPrefix);
-
-        Optional.ofNullable(overrideConfiguration.advancedOption(AdvancedClientOption.USER_AGENT_SUFFIX))
-                .ifPresent(configuration::setUserAgentSuffix);
-
-        Optional.ofNullable(overrideConfiguration.retryPolicy())
-                .ifPresent(configuration::setRetryPolicy);
-    }
-
-    private Optional<Protocol> schemeToProtocol(String scheme) {
-        return Arrays.stream(Protocol.values()).filter(p -> scheme.equals(p.toString())).findFirst();
     }
 }

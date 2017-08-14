@@ -15,24 +15,22 @@
 
 package software.amazon.awssdk.http.timers.client;
 
-import static software.amazon.awssdk.internal.http.request.RequestHandlerTestUtils.buildRequestHandlerList;
-import static software.amazon.awssdk.internal.http.timers.TimeoutTestConstants.CLIENT_EXECUTION_TIMEOUT;
 import static software.amazon.awssdk.internal.http.timers.TimeoutTestConstants.SLOW_REQUEST_HANDLER_TIMEOUT;
 import static software.amazon.awssdk.internal.http.timers.TimeoutTestConstants.TEST_TIMEOUT;
-import static utils.HttpTestUtils.builderWithDefaultClient;
 
-import java.util.List;
+import java.util.Arrays;
 import org.junit.Test;
-import software.amazon.awssdk.LegacyClientConfiguration;
-import software.amazon.awssdk.handlers.RequestHandler;
 import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.ExecutionContext;
 import software.amazon.awssdk.http.MockServerTestBase;
 import software.amazon.awssdk.http.exception.ClientExecutionTimeoutException;
 import software.amazon.awssdk.http.server.MockServer;
-import software.amazon.awssdk.internal.http.request.SlowRequestHandler;
+import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.internal.http.request.SlowExecutionInterceptor;
 import software.amazon.awssdk.internal.http.response.DummyResponseHandler;
 import software.amazon.awssdk.internal.http.response.UnresponsiveResponseHandler;
+import utils.HttpTestUtils;
 
 public class DummySuccessfulResponseServerIntegrationTests extends MockServerTestBase {
 
@@ -48,47 +46,36 @@ public class DummySuccessfulResponseServerIntegrationTests extends MockServerTes
     @Test(timeout = TEST_TIMEOUT, expected = ClientExecutionTimeoutException.class)
     public void clientExecutionTimeoutEnabled_SlowResponseHandler_ThrowsClientExecutionTimeoutException()
             throws Exception {
-        httpClient = builderWithDefaultClient()
-                                     .clientConfiguration(
-                                             new LegacyClientConfiguration().withClientExecutionTimeout(CLIENT_EXECUTION_TIMEOUT))
-                                     .build();
+        httpClient = HttpTestUtils.testAmazonHttpClient();
         requestBuilder().execute(new UnresponsiveResponseHandler());
     }
 
     @Test(timeout = TEST_TIMEOUT, expected = ClientExecutionTimeoutException.class)
     public void clientExecutionTimeoutEnabled_SlowAfterResponseRequestHandler_ThrowsClientExecutionTimeoutException()
             throws Exception {
-        httpClient = builderWithDefaultClient()
-                                     .clientConfiguration(
-                                             new LegacyClientConfiguration().withClientExecutionTimeout(CLIENT_EXECUTION_TIMEOUT))
-                                     .build();
+        httpClient = HttpTestUtils.testAmazonHttpClient();
 
-        List<RequestHandler> requestHandlers = buildRequestHandlerList(
-                new SlowRequestHandler().withAfterResponseWaitInSeconds(SLOW_REQUEST_HANDLER_TIMEOUT));
-
-        requestBuilder().executionContext(withHandlers(requestHandlers)).execute(new DummyResponseHandler());
+        ExecutionInterceptor interceptor =
+                new SlowExecutionInterceptor().afterTransmissionWaitInSeconds(SLOW_REQUEST_HANDLER_TIMEOUT);
+        requestBuilder().executionContext(withInterceptors(interceptor)).execute(new DummyResponseHandler());
     }
 
     @Test(timeout = TEST_TIMEOUT, expected = ClientExecutionTimeoutException.class)
     public void clientExecutionTimeoutEnabled_SlowBeforeRequestRequestHandler_ThrowsClientExecutionTimeoutException()
             throws Exception {
-        httpClient = builderWithDefaultClient()
-                                     .clientConfiguration(
-                                             new LegacyClientConfiguration().withClientExecutionTimeout(CLIENT_EXECUTION_TIMEOUT))
-                                     .build();
+        httpClient = HttpTestUtils.testAmazonHttpClient();
 
-        List<RequestHandler> requestHandlers = buildRequestHandlerList(
-                new SlowRequestHandler().withBeforeRequestWaitInSeconds(SLOW_REQUEST_HANDLER_TIMEOUT));
-
-        requestBuilder().executionContext(withHandlers(requestHandlers)).execute(new DummyResponseHandler());
+        ExecutionInterceptor interceptor =
+                new SlowExecutionInterceptor().beforeTransmissionWaitInSeconds(SLOW_REQUEST_HANDLER_TIMEOUT);
+        requestBuilder().executionContext(withInterceptors(interceptor)).execute(new DummyResponseHandler());
     }
 
     private AmazonHttpClient.RequestExecutionBuilder requestBuilder() {
         return httpClient.requestExecutionBuilder().request(newGetRequest());
     }
 
-    private ExecutionContext withHandlers(List<RequestHandler> requestHandlers) {
-        return ExecutionContext.builder().withRequestHandlers(requestHandlers).build();
+    private ExecutionContext withInterceptors(ExecutionInterceptor... requestHandlers) {
+        return ExecutionContext.builder().interceptorChain(new ExecutionInterceptorChain(Arrays.asList(requestHandlers))).build();
     }
 
 }

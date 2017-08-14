@@ -25,6 +25,7 @@ import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpMetadata;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.opensdk.SdkErrorHttpMetadata;
 import software.amazon.awssdk.opensdk.internal.BaseException;
 import software.amazon.awssdk.protocol.json.JsonContent;
@@ -52,12 +53,8 @@ public class ApiGatewayErrorResponseHandler implements HttpResponseHandler<SdkBa
     }
 
     @Override
-    public boolean needsConnectionLeftOpen() {
-        return false;
-    }
-
-    @Override
-    public SdkBaseException handle(HttpResponse response) throws Exception {
+    public SdkBaseException handle(HttpResponse response,
+                                   ExecutionAttributes executionAttributes) throws Exception {
         JsonContent jsonContent = JsonContent.createJsonContent(response, jsonFactory);
         BaseException exception = createException(response.getStatusCode(), jsonContent);
 

@@ -18,9 +18,11 @@ package software.amazon.awssdk.internal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.RequestClientOptions;
 import software.amazon.awssdk.RequestConfig;
+import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.event.ProgressListener;
@@ -32,10 +34,17 @@ import software.amazon.awssdk.metrics.RequestMetricCollector;
 @SdkInternalApi
 public final class AmazonWebServiceRequestAdapter extends RequestConfig {
 
+    /**
+     * {@link Class#getSimpleName()} is a little expensive. Cache the result for request objects we come across.
+     */
+    private static final Map<Class<?>, String> SIMPLE_NAME_CACHE = new ConcurrentHashMap<>();
+
     private final AmazonWebServiceRequest request;
+    private final String simpleName;
 
     public AmazonWebServiceRequestAdapter(AmazonWebServiceRequest request) {
         this.request = request;
+        this.simpleName = SIMPLE_NAME_CACHE.computeIfAbsent(request.getClass(), Class::getSimpleName);
     }
 
     @Override
@@ -56,13 +65,13 @@ public final class AmazonWebServiceRequestAdapter extends RequestConfig {
     @Override
     public Map<String, String> getCustomRequestHeaders() {
         return (request.getCustomRequestHeaders() == null) ? Collections.<String, String>emptyMap() :
-               request.getCustomRequestHeaders();
+                request.getCustomRequestHeaders();
     }
 
     @Override
     public Map<String, List<String>> getCustomQueryParameters() {
         return (request.getCustomQueryParameters() == null) ? Collections.<String, List<String>>emptyMap() :
-               request.getCustomQueryParameters();
+                request.getCustomQueryParameters();
     }
 
     @Override
@@ -77,11 +86,11 @@ public final class AmazonWebServiceRequestAdapter extends RequestConfig {
 
     @Override
     public String getRequestType() {
-        return request.getClass().getSimpleName();
+        return simpleName;
     }
 
     @Override
-    public Object getOriginalRequest() {
+    public SdkRequest getOriginalRequest() {
         return request;
     }
 }

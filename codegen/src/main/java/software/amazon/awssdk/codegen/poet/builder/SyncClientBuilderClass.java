@@ -65,7 +65,7 @@ public class SyncClientBuilderClass implements ClassSpec {
                              .addAnnotation(Override.class)
                              .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                              .returns(clientInterfaceName)
-                             .addCode("return new $T(super.syncClientConfiguration().asLegacySyncClientParams() $L);",
+                             .addCode("return new $T(super.syncClientConfiguration() $L);",
                                       clientClassName, advancedConfigParam)
                              .build();
     }

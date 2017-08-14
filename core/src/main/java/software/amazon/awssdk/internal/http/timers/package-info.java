@@ -15,7 +15,7 @@
 
 /**
  * Classes for the request timeout and client execution timeout features. See
- * {@link software.amazon.awssdk.LegacyClientConfiguration} and {@link software.amazon.awssdk.AmazonWebServiceRequest} for
+ * {@link software.amazon.awssdk.config.ClientConfiguration} and {@link software.amazon.awssdk.AmazonWebServiceRequest} for
  * more information on enabling these features. All classes within this package are internal and
  * should not be used outside the SDK.
  */

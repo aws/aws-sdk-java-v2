@@ -16,6 +16,7 @@
 package software.amazon.awssdk.utils.builder;
 
 import java.util.function.UnaryOperator;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 
 /**
  * A mutable object that can be used to create an immutable object of type T.
@@ -54,6 +55,8 @@ public interface SdkBuilder<B extends SdkBuilder<B, T>, T> {
      * @return B the mutated builder instance
      */
     @SuppressWarnings("unchecked")
+    @ReviewBeforeRelease("Why does the user have to return a builder if they're just modifying it? "
+                         + "That makes this harder to use.")
     default B apply(UnaryOperator<B> function) {
         return function.apply((B) this);
     }

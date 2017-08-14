@@ -24,7 +24,7 @@ package software.amazon.awssdk;
  * @param <T>
  *            The type of result contained by this response.
  */
-public class AmazonWebServiceResponse<T> {
+public class AmazonWebServiceResponse<T> extends SdkResponse {
 
     /** The result contained by this response. */
     private T result;

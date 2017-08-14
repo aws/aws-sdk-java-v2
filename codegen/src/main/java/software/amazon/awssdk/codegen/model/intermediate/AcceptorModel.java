@@ -19,10 +19,9 @@ import static software.amazon.awssdk.utils.StringUtils.upperCase;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.math.BigDecimal;
+import java.util.StringJoiner;
 import org.apache.commons.lang3.StringEscapeUtils;
-import software.amazon.awssdk.codegen.JmesPathCodeGenVisitor;
-import software.amazon.awssdk.codegen.internal.Utils;
-import software.amazon.awssdk.jmespath.JmesPathExpression;
+import software.amazon.awssdk.utils.StringUtils;
 
 public class AcceptorModel {
 
@@ -33,19 +32,6 @@ public class AcceptorModel {
     private String state;
 
     private JsonNode expected;
-
-    private JmesPathExpression ast;
-
-    public String getAst() {
-        if (ast != null) {
-            return ast.accept(new JmesPathCodeGenVisitor(), null);
-        }
-        return null;
-    }
-
-    public void setAst(JmesPathExpression ast) {
-        this.ast = ast;
-    }
 
     public String getState() {
         return state;
@@ -64,7 +50,14 @@ public class AcceptorModel {
     }
 
     public String getArgument() {
-        return argument;
+        String[] unformatted = argument.split("\\.");
+        StringJoiner formatted = new StringJoiner(".");
+
+        for (String format : unformatted) {
+            formatted.add(StringUtils.uncapitalize(format));
+        }
+
+        return formatted.toString();
     }
 
     public void setArgument(String argument) {
@@ -80,7 +73,7 @@ public class AcceptorModel {
     }
 
     public String getExpectedAsCamelCase() {
-        return Utils.capitialize(this.expected.asText().replaceAll("\\W", ""));
+        return StringUtils.capitalize(this.expected.asText().replaceAll("\\W", ""));
     }
 
     public String getExpectedAsEscapedJson() {

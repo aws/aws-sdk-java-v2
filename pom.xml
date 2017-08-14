@@ -64,7 +64,6 @@
         <module>http-client-spi</module>
         <module>http-clients</module>
         <module>codegen-maven-plugin</module>
-        <module>jmespath-java</module>
         <module>bundle</module>
         <module>build-tools</module>
         <module>test/protocol-tests</module>
@@ -120,11 +119,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
-                <artifactId>jmespath-java</artifactId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
             <dependency>
                 <groupId>org.unitils</groupId>
                 <artifactId>unitils-core</artifactId>
@@ -224,11 +218,6 @@
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-handler</artifactId>
-                <version>${netty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-transport-native-epoll</artifactId>
                 <version>${netty.version}</version>
             </dependency>
             <dependency>
@@ -541,6 +530,7 @@
                                         <include>**/*IntegTest.java</include>
                                         <include>**/RunCucumberTest.java</include>
                                     </includes>
+                                    <trimStackTrace>false</trimStackTrace>
                                 </configuration>
                             </execution>
                         </executions>

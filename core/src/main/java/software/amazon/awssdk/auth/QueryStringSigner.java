@@ -15,13 +15,17 @@
 
 package software.amazon.awssdk.auth;
 
+import static software.amazon.awssdk.handlers.AwsExecutionAttributes.AWS_CREDENTIALS;
+import static software.amazon.awssdk.handlers.AwsExecutionAttributes.TIME_OFFSET;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.handlers.AwsHandlerKeys;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.interceptor.Context;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.util.CredentialUtils;
 
 /**
@@ -43,46 +47,35 @@ public class QueryStringSigner extends AbstractAwsSigner {
      * @param request     request to be signed.
      * @param credentials The credentials used to use to sign the request.
      */
-    public SdkHttpFullRequest sign(SdkHttpFullRequest request, AwsCredentials credentials)
-            throws SdkClientException {
-        return sign(request.toBuilder(), SigningAlgorithm.HmacSHA256, credentials).build();
-    }
-
-    /**
-     * This signer will add following authentication parameters to the request:
-     *
-     * AWSAccessKeyId SignatureVersion SignatureMethod Timestamp Signature
-     *
-     * @param mutableRequest request to be signed.
-     * @param algorithm      signature algorithm. "HmacSHA256" is recommended.
-     */
-    private SdkHttpFullRequest.Builder sign(SdkHttpFullRequest.Builder mutableRequest,
-                                            SigningAlgorithm algorithm, AwsCredentials credentials)
+    public SdkHttpFullRequest sign(Context.BeforeTransmission execution, ExecutionAttributes executionAttributes)
             throws SdkClientException {
         // annonymous credentials, don't sign
-        if (CredentialUtils.isAnonymous(credentials)) {
-            return mutableRequest;
+        if (CredentialUtils.isAnonymous(executionAttributes.getAttribute(AWS_CREDENTIALS))) {
+            return execution.httpRequest();
         }
 
-        AwsCredentials sanitizedCredentials = sanitizeCredentials(credentials);
+        SdkHttpFullRequest.Builder mutableRequest = execution.httpRequest().toBuilder();
+
+        AwsCredentials sanitizedCredentials = sanitizeCredentials(executionAttributes.getAttribute(AWS_CREDENTIALS));
         mutableRequest.queryParameter("AWSAccessKeyId", sanitizedCredentials.accessKeyId());
         mutableRequest.queryParameter("SignatureVersion", "2");
 
-        int timeOffset = mutableRequest.handlerContext(AwsHandlerKeys.TIME_OFFSET) == null ? 0 :
-                mutableRequest.handlerContext(AwsHandlerKeys.TIME_OFFSET);
+        int timeOffset = executionAttributes.getAttribute(TIME_OFFSET) == null ? 0 :
+                         executionAttributes.getAttribute(TIME_OFFSET);
         mutableRequest.queryParameter("Timestamp", getFormattedTimestamp(timeOffset));
 
         if (sanitizedCredentials instanceof AwsSessionCredentials) {
             addSessionCredentials(mutableRequest, (AwsSessionCredentials) sanitizedCredentials);
         }
 
-        mutableRequest.queryParameter("SignatureMethod", algorithm.toString());
+        mutableRequest.queryParameter("SignatureMethod", SigningAlgorithm.HmacSHA256.toString());
         String stringToSign = calculateStringToSignV2(mutableRequest);
 
         String signatureValue = signAndBase64Encode(stringToSign,
-                                                    sanitizedCredentials.secretAccessKey(), algorithm);
+                                                    sanitizedCredentials.secretAccessKey(),
+                                                    SigningAlgorithm.HmacSHA256);
         mutableRequest.queryParameter("Signature", signatureValue);
-        return mutableRequest;
+        return mutableRequest.build();
     }
 
     /**
@@ -93,14 +86,10 @@ public class QueryStringSigner extends AbstractAwsSigner {
      * @throws SdkClientException If the string to sign cannot be calculated.
      */
     private String calculateStringToSignV2(SdkHttpRequest request) throws SdkClientException {
-        return new StringBuilder().append("POST")
-                .append("\n")
-                .append(getCanonicalizedEndpoint(request.getEndpoint()))
-                .append("\n")
-                .append(getCanonicalizedResourcePath(request))
-                .append("\n")
-                .append(getCanonicalizedQueryString(request.getParameters()))
-                .toString();
+        return "POST" + "\n" +
+               getCanonicalizedEndpoint(request.getEndpoint()) + "\n" +
+               getCanonicalizedResourcePath(request) + "\n" +
+               getCanonicalizedQueryString(request.getParameters());
     }
 
     private String getCanonicalizedResourcePath(SdkHttpRequest request) {

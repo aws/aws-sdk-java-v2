@@ -23,7 +23,6 @@ import java.util.Map;
 import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.ReadLimitInfo;
 import software.amazon.awssdk.Request;
-import software.amazon.awssdk.http.HandlerContextKey;
 import software.amazon.awssdk.http.HttpMethodName;
 import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 
@@ -173,16 +172,4 @@ public class EmptyHttpRequest implements Request<Object> {
         return new AmazonWebServiceRequest() {
         };
     }
-
-
-    @Override
-    public <X> void addHandlerContext(HandlerContextKey<X> key, X value) {
-
-    }
-
-    @Override
-    public <X> X getHandlerContext(HandlerContextKey<X> key) {
-        return null;
-    }
-
 }

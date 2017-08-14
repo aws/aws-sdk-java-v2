@@ -60,9 +60,8 @@ class TimingInfoFullSupport extends TimingInfo {
         if (ti.isEndTimeKnown()) {
             timings.add(ti);
         } else {
-            LoggerFactory.getLogger(getClass()).debug(
-                    "Skip submeasurement timing info with no end time for "
-                    + subMeasurementName);
+            LoggerFactory.getLogger(getClass()).debug("Skip submeasurement timing info with no end time for {}",
+                                                      subMeasurementName);
         }
     }
 

@@ -103,7 +103,9 @@ public class BaseClientBuilderClass implements ClassSpec {
 
     private MethodSpec serviceDefaultsMethod() {
         String requestHandlerDirectory = Utils.packageToDirectory(model.getMetadata().getFullClientPackageName());
-        String requestHandlerPath = String.format("/%s/request.handler2s", requestHandlerDirectory);
+        String requestHandlerPath = String.format("%s/execution.interceptors", requestHandlerDirectory);
+
+        boolean crc32FromCompressedDataEnabled = model.getCustomizationConfig().isCalculateCrc32FromCompressedData();
 
         return MethodSpec.methodBuilder("serviceDefaults")
                          .addAnnotation(Override.class)
@@ -113,6 +115,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addCode("         .defaultSignerProvider(this::defaultSignerProvider)\n")
                          .addCode("         .addRequestHandlerPath($S)\n", requestHandlerPath)
                          .addCode("         .defaultEndpoint(this::defaultEndpoint)\n")
+                         .addCode("         .crc32FromCompressedDataEnabled($L)\n", crc32FromCompressedDataEnabled)
                          .addCode("         .build();\n")
                          .build();
     }
@@ -224,7 +227,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                             ClassName.get("software.amazon.awssdk.services.s3", "AwsS3V4Signer"),
                             ClassName.get("software.amazon.awssdk.services.s3", "AwsS3V4Signer"),
                             model.getMetadata().getSigningName(),
-                            ClassName.get("software.amazon.awssdk.services.s3.auth", "S3SignerProvider"));
+                            StaticSignerProvider.class);
     }
 
     @Override

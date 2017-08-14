@@ -16,13 +16,22 @@
 package software.amazon.awssdk.client;
 
 import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.SdkRequest;
+import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.config.ClientConfiguration;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * Client interface to invoke an API.
  */
 @SdkProtectedApi
-public abstract class AsyncClientHandler implements AutoCloseable {
+public abstract class AsyncClientHandler extends BaseClientHandler implements SdkAutoCloseable {
+
+    AsyncClientHandler(ClientConfiguration clientConfiguration,
+                       ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
+        super(clientConfiguration, serviceAdvancedConfiguration);
+    }
 
     /**
      * Execute's a web service request. Handles marshalling and unmarshalling of data and making the
@@ -33,5 +42,6 @@ public abstract class AsyncClientHandler implements AutoCloseable {
      * @param <OutputT>       Output POJO type
      * @return Unmarshalled output POJO type.
      */
-    public abstract <InputT, OutputT> CompletableFuture<OutputT> execute(ClientExecutionParams<InputT, OutputT> executionParams);
+    public abstract <InputT extends SdkRequest, OutputT> CompletableFuture<OutputT> execute(
+            ClientExecutionParams<InputT, OutputT> executionParams);
 }

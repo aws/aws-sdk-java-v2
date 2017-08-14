@@ -36,8 +36,9 @@ import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.event.ProgressEventType;
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.handlers.AwsHandlerKeys;
+import software.amazon.awssdk.handlers.AwsExecutionAttributes;
 import software.amazon.awssdk.http.AmazonHttpClient;
+import software.amazon.awssdk.http.HttpAsyncClientDependencies;
 import software.amazon.awssdk.http.HttpClientDependencies;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -62,12 +63,12 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
     private final CapacityManager retryCapacity;
     private final RetryPolicy retryPolicy;
 
-    public AsyncRetryableStage(HttpClientDependencies dependencies,
+    public AsyncRetryableStage(HttpAsyncClientDependencies dependencies,
                                RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> requestPipeline) {
         this.dependencies = dependencies;
-        this.retrySubmitter = dependencies.executorService();
+        this.retrySubmitter = dependencies.asyncClientConfiguration().asyncExecutorService();
         this.retryCapacity = dependencies.retryCapacity();
-        this.retryPolicy = dependencies.retryPolicy();
+        this.retryPolicy = dependencies.asyncClientConfiguration().overrideConfiguration().retryPolicy();
         this.requestPipeline = requestPipeline;
     }
 
@@ -76,7 +77,8 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
         // add the service endpoint to the logs. You can infer service name from service endpoint
         context.awsRequestMetrics()
                .addPropertyWith(AwsRequestMetrics.Field.RequestType, context.requestConfig().getRequestType())
-               .addPropertyWith(AwsRequestMetrics.Field.ServiceName, request.handlerContext(AwsHandlerKeys.SERVICE_NAME))
+               .addPropertyWith(AwsRequestMetrics.Field.ServiceName,
+                                context.executionAttributes().getAttribute(AwsExecutionAttributes.SERVICE_NAME))
                .addPropertyWith(AwsRequestMetrics.Field.ServiceEndpoint, request.getEndpoint());
         return new RetryExecutor(request, context).execute();
     }
@@ -239,6 +241,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
              * Checking for clock skew error again because we don't want to set the global time offset
              * for every service exception.
              */
+
             if (RetryUtils.isClockSkewError(exception)) {
                 int clockSkew = parseClockSkewOffset(response.getHttpResponse());
                 dependencies.updateTimeOffset(clockSkew);
@@ -278,6 +281,8 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
 
         /**
          * Returns true if a failed request should be retried.
+         *
+         * TODO: Can a lot of the duplication between this and RetryableStage be removed?
          *
          * @param exception The client/service exception from the failed request.
          * @return True if the failed request should be retried.

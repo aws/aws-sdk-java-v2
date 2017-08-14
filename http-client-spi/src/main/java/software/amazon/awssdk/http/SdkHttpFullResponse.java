@@ -16,17 +16,19 @@
 package software.amazon.awssdk.http;
 
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Generic representation of an HTTP response.
  *
  * TODO should we allow HTTP impl authors to implement this or should they only use the builder?
  */
-public interface SdkHttpFullResponse extends SdkHttpResponse {
+public interface SdkHttpFullResponse
+        extends SdkHttpResponse, ToCopyableBuilder<SdkHttpFullResponse.Builder, SdkHttpFullResponse> {
 
     /**
      * Returns the input stream containing the response content. Instance of {@link AbortableInputStream}
@@ -43,58 +45,27 @@ public interface SdkHttpFullResponse extends SdkHttpResponse {
      * @return Builder instance to construct a {@link DefaultSdkHttpFullResponse}.
      */
     static Builder builder() {
-        return new Builder();
+        return new DefaultSdkHttpFullResponse.Builder();
     }
 
     /**
      * Builder for a {@link DefaultSdkHttpFullResponse}.
      */
-    final class Builder {
+    interface Builder extends CopyableBuilder<Builder, SdkHttpFullResponse> {
 
-        String statusText;
-        int statusCode;
-        AbortableInputStream content;
-        Map<String, List<String>> headers = new HashMap<>();
+        Builder statusText(String statusText);
 
-        private Builder() {
-        }
+        Builder statusCode(int statusCode);
 
-        public Builder statusText(String statusText) {
-            this.statusText = statusText;
-            return this;
-        }
-
-        public Builder statusCode(int statusCode) {
-            this.statusCode = statusCode;
-            return this;
-        }
-
-        public Builder content(AbortableInputStream content) {
-            this.content = content;
-            return this;
-        }
+        Builder content(AbortableInputStream content);
 
         @ReviewBeforeRelease("Should we only allow setting the AbortableInputStream?")
-        public Builder content(InputStream content) {
-            return content(new AbortableInputStream(content, () -> {
-            }));
-        }
+        Builder content(InputStream content);
 
-        public Builder headers(Map<String, List<String>> headers) {
-            this.headers.putAll(headers);
-            return this;
-        }
+        Builder headers(Map<String, List<String>> headers);
 
-        public Builder header(String headerName, List<String> headerValues) {
-            this.headers.put(headerName, headerValues);
-            return this;
-        }
-
-        /**
-         * @return An immutable {@link DefaultSdkHttpFullResponse} object.
-         */
-        public SdkHttpFullResponse build() {
-            return new DefaultSdkHttpFullResponse(this);
-        }
+        @ReviewBeforeRelease("This is completely different from the HTTP request. "
+                             + "This should be the same between both interfaces.")
+        Builder addHeader(String headerName, List<String> headerValues);
     }
 }

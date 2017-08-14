@@ -4,7 +4,7 @@
     "apiVersion": "2010-05-08",
     "endpointPrefix": "json-service",
     "globalEndpoint": "json-service.amazonaws.com",
-    "protocol": "json",
+    "protocol": "rest-json",
     "serviceAbbreviation": "Json Service",
     "serviceFullName": "Some Service That Uses Json Protocol",
     "signatureVersion": "v4",
@@ -63,6 +63,28 @@
         }
       ],
       "documentation": "<p>Performs a post operation to the query service and has modelled output</p>"
+    },
+    "StreamingInputOperation": {
+      "name": "StreamingInputOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/streamingInputOperation"
+      },
+      "input": {
+        "shape": "StructureWithStreamingMember"
+      },
+      "documentation": "Some operation with a streaming input"
+    },
+    "StreamingOutputOperation": {
+      "name": "StreamingOutputOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/streamingOutputOperation"
+      },
+      "output": {
+        "shape": "StructureWithStreamingMember"
+      },
+      "documentation": "Some operation with a streaming output"
     }
   },
   "shapes": {
@@ -168,6 +190,20 @@
     },
     "invalidInputMessage": {
       "type": "string"
+    },
+    "StreamType": {
+      "type": "blob",
+      "streaming": true
+    },
+    "StructureWithStreamingMember": {
+      "type": "structure",
+      "members": {
+        "StreamingMember": {
+          "shape": "StreamType",
+          "documentation": "This be a stream"
+        }
+      },
+      "payload": "StreamingMember"
     }
   },
   "documentation": "A service that is implemented using the query protocol"

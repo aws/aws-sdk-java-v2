@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http;
 
 import static org.junit.Assert.fail;
+import static software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.executionContext;
 
 import java.net.InetSocketAddress;
 import java.time.Duration;
@@ -27,9 +28,13 @@ import org.apache.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Test;
 import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.LegacyClientConfiguration;
 import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
 import software.amazon.awssdk.internal.http.request.EmptyHttpRequest;
+import software.amazon.awssdk.internal.http.response.ErrorDuringUnmarshallingResponseHandler;
+import software.amazon.awssdk.internal.http.response.NullErrorResponseHandler;
+import software.amazon.awssdk.retry.PredefinedRetryPolicies;
+import software.amazon.awssdk.retry.RetryPolicy;
+import utils.HttpTestUtils;
 
 /**
  * This test is to verify that the apache-httpclient library has fixed the bug where socket timeout configuration is
@@ -44,19 +49,23 @@ public class AmazonHttpClientSslHandshakeTimeoutIntegrationTest extends Unrespon
 
     @Test(timeout = 60 * 1000)
     public void testSslHandshakeTimeout() {
-        AmazonHttpClient httpClient = AmazonHttpClient.builder()
-                                                      .sdkHttpClient(ApacheSdkHttpClientFactory.builder()
-                                                                                               .socketTimeout(CLIENT_SOCKET_TO)
-                                                                                               .build()
-                                                                                               .createHttpClient())
-                                                      .clientConfiguration(new LegacyClientConfiguration().withMaxErrorRetry(0))
-                                                      .build();
+        AmazonHttpClient httpClient = HttpTestUtils.testClientBuilder()
+                                                   .clientExecutionTimeout(null)
+                                                   .retryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
+                                                   .httpClient(ApacheSdkHttpClientFactory.builder()
+                                                                                         .socketTimeout(CLIENT_SOCKET_TO)
+                                                                                         .build()
+                                                                                         .createHttpClient())
+                                                   .build();
 
         System.out.println("Sending request to localhost...");
 
         try {
+            EmptyHttpRequest request = new EmptyHttpRequest(server.getHttpsEndpoint(), HttpMethodName.GET);
             httpClient.requestExecutionBuilder()
-                      .request(new EmptyHttpRequest(server.getHttpsEndpoint(), HttpMethodName.GET))
+                      .request(request)
+                      .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
+                      .errorResponseHandler(new NullErrorResponseHandler())
                       .execute();
             fail("Client-side socket read timeout is expected!");
 

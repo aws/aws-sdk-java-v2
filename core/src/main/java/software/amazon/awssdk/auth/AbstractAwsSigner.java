@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.auth;
 
+import static software.amazon.awssdk.handlers.AwsExecutionAttributes.REQUEST_CONFIG;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
@@ -34,11 +36,11 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.RequestClientOptions;
+import software.amazon.awssdk.RequestConfig;
 import software.amazon.awssdk.SdkClientException;
+import software.amazon.awssdk.auth.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.event.ProgressInputStream;
-import software.amazon.awssdk.handlers.AwsHandlerKeys;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.runtime.io.SdkDigestInputStream;
 import software.amazon.awssdk.util.SdkHttpUtils;
 import software.amazon.awssdk.utils.Base64Utils;
@@ -250,9 +252,9 @@ public abstract class AbstractAwsSigner implements Signer {
         return result.toString();
     }
 
-    protected static int getReadLimit(SdkHttpRequest request) {
-        return Optional.ofNullable(request.handlerContext(AwsHandlerKeys.REQUEST_CONFIG))
-                       .flatMap(c -> Optional.ofNullable(c.getRequestClientOptions()))
+    protected static int getReadLimit(Aws4SignerRequestParams signerRequestParams) {
+        return Optional.ofNullable(signerRequestParams.executionAttributes().getAttribute(REQUEST_CONFIG))
+                       .map(RequestConfig::getRequestClientOptions)
                        .map(RequestClientOptions::getReadLimit)
                        .orElse(RequestClientOptions.DEFAULT_STREAM_BUFFER_SIZE);
     }

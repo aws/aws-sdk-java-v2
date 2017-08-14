@@ -32,7 +32,7 @@ import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.event.ProgressEventType;
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.handlers.AwsHandlerKeys;
+import software.amazon.awssdk.handlers.AwsExecutionAttributes;
 import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.HttpClientDependencies;
 import software.amazon.awssdk.http.HttpResponse;
@@ -65,7 +65,7 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
                           RequestPipeline<SdkHttpFullRequest, Response<OutputT>> requestPipeline) {
         this.dependencies = dependencies;
         this.retryCapacity = dependencies.retryCapacity();
-        this.retryPolicy = dependencies.retryPolicy();
+        this.retryPolicy = dependencies.clientConfiguration().overrideConfiguration().retryPolicy();
         this.requestPipeline = requestPipeline;
     }
 
@@ -73,7 +73,8 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
         // add the service endpoint to the logs. You can infer service name from service endpoint
         context.awsRequestMetrics()
                .addPropertyWith(AwsRequestMetrics.Field.RequestType, context.requestConfig().getRequestType())
-               .addPropertyWith(AwsRequestMetrics.Field.ServiceName, request.handlerContext(AwsHandlerKeys.SERVICE_NAME))
+               .addPropertyWith(AwsRequestMetrics.Field.ServiceName,
+                                context.executionAttributes().getAttribute(AwsExecutionAttributes.SERVICE_NAME))
                .addPropertyWith(AwsRequestMetrics.Field.ServiceEndpoint, request.getEndpoint());
         return new RetryExecutor(request, context).execute();
     }

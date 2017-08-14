@@ -23,6 +23,7 @@ import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.AmazonWebServiceResponse;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 
 public class NullResponseHandler implements HttpResponseHandler<AmazonWebServiceResponse<Object>> {
 
@@ -35,7 +36,8 @@ public class NullResponseHandler implements HttpResponseHandler<AmazonWebService
     }
 
     @Override
-    public AmazonWebServiceResponse<Object> handle(HttpResponse response) throws Exception {
+    public AmazonWebServiceResponse<Object> handle(HttpResponse response,
+                                                   ExecutionAttributes executionAttributes) throws Exception {
         return null;
     }
 

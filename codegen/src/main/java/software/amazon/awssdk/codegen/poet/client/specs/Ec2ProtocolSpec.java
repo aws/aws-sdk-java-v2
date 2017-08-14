@@ -15,40 +15,28 @@
 
 package software.amazon.awssdk.codegen.poet.client.specs;
 
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
-import com.squareup.javapoet.TypeName;
-import com.squareup.javapoet.TypeVariableName;
 import java.util.ArrayList;
 import java.util.List;
-import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.Request;
-import software.amazon.awssdk.client.ClientExecutionParams;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
-import software.amazon.awssdk.http.StaxResponseHandler;
-import software.amazon.awssdk.runtime.transform.VoidStaxUnmarshaller;
 
 public class Ec2ProtocolSpec extends QueryXmlProtocolSpec {
 
-    private final PoetExtensions poetExtensions;
-
     public Ec2ProtocolSpec(PoetExtensions poetExtensions) {
         super(poetExtensions);
-        this.poetExtensions = poetExtensions;
     }
 
     @Override
     public List<MethodSpec> additionalMethods() {
         List<MethodSpec> additionalMethods = new ArrayList<>();
 
-        additionalMethods.add(dryRunMethod());
+        // TODO: Implement support for dry run requests.
+        // additionalMethods.add(dryRunMethod());
 
         return additionalMethods;
     }
 
+    /*
     private MethodSpec dryRunMethod() {
         TypeVariableName typeVariableName = TypeVariableName.get("X", AmazonWebServiceRequest.class);
         ClassName dryRunResult = poetExtensions.getModelClass("DryRunResult");
@@ -95,4 +83,5 @@ public class Ec2ProtocolSpec extends QueryXmlProtocolSpec {
                 .build();
 
     }
+    */
 }

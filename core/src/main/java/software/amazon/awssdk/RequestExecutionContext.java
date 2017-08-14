@@ -15,17 +15,15 @@
 
 package software.amazon.awssdk;
 
-import static software.amazon.awssdk.utils.Validate.notNull;
-
-import java.util.Collections;
-import java.util.List;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.MetricsReportingCredentialsProvider;
-import software.amazon.awssdk.handlers.RequestHandler;
 import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.ExecutionContext;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.internal.http.timers.client.ClientExecutionAbortTrackerTask;
 import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 import software.amazon.awssdk.runtime.auth.SignerProvider;
@@ -39,23 +37,21 @@ public final class RequestExecutionContext {
 
     private final SdkHttpRequestProvider requestProvider;
     private final RequestConfig requestConfig;
-    private final AwsRequestMetrics awsRequestMetrics;
     private final AwsCredentialsProvider credentialsProvider;
-    private final List<RequestHandler> requestHandlers;
-    private final SignerProvider signerProvider;
+    private final ExecutionContext executionContext;
 
     private ClientExecutionAbortTrackerTask clientExecutionTrackerTask;
 
     private RequestExecutionContext(Builder builder) {
         this.requestProvider = builder.requestProvider;
-        this.requestConfig = notNull(builder.requestConfig, "RequestConfig must not be null");
-        this.requestHandlers = builder.resolveRequestHandlers();
-        this.awsRequestMetrics = builder.executionContext.getAwsRequestMetrics();
-        this.signerProvider = builder.executionContext.getSignerProvider();
+        this.requestConfig = Validate.paramNotNull(builder.requestConfig, "requestConfig");
+
+        this.executionContext = Validate.paramNotNull(builder.executionContext, "executionContext");
 
         AwsCredentialsProvider contextCredentialsProvider = builder.executionContext.getCredentialsProvider();
         this.credentialsProvider = contextCredentialsProvider != null
-                                   ? new MetricsReportingCredentialsProvider(contextCredentialsProvider, awsRequestMetrics)
+                                   ? new MetricsReportingCredentialsProvider(contextCredentialsProvider,
+                                                                             builder.executionContext.awsRequestMetrics())
                                    : new AnonymousCredentialsProvider();
     }
 
@@ -78,17 +74,27 @@ public final class RequestExecutionContext {
     }
 
     /**
-     * @return Request handlers to hook into request lifecycle.
+     * @return Execution interceptors to hook into execution lifecycle.
      */
-    public List<RequestHandler> requestHandlers() {
-        return Collections.unmodifiableList(requestHandlers);
+    public ExecutionInterceptorChain interceptorChain() {
+        return executionContext.interceptorChain();
+    }
+
+    public ExecutionAttributes executionAttributes() {
+        return executionContext.executionAttributes();
+    }
+
+    @ReviewBeforeRelease("We should combine RequestExecutionContext and ExecutionContext. There's no benefit to both of "
+                         + "these. Once that's done, this won't be needed.")
+    public ExecutionContext executionContext() {
+        return executionContext;
     }
 
     /**
      * @return AwsRequestMetrics object to report timing and events.
      */
     public AwsRequestMetrics awsRequestMetrics() {
-        return awsRequestMetrics;
+        return executionContext.awsRequestMetrics();
     }
 
     /**
@@ -102,13 +108,13 @@ public final class RequestExecutionContext {
      * @return SignerProvider used to obtain an instance of a {@link software.amazon.awssdk.auth.Signer}.
      */
     public SignerProvider signerProvider() {
-        return signerProvider;
+        return executionContext.signerProvider();
     }
 
     /**
      * @return Tracker task for the {@link software.amazon.awssdk.internal.http.timers.client.ClientExecutionTimer}.
      */
-    public ClientExecutionAbortTrackerTask getClientExecutionTrackerTask() {
+    public ClientExecutionAbortTrackerTask clientExecutionTrackerTask() {
         return clientExecutionTrackerTask;
     }
 
@@ -116,7 +122,7 @@ public final class RequestExecutionContext {
      * Sets the tracker task for the {@link software.amazon.awssdk.internal.http.timers.client.ClientExecutionTimer}. Should
      * be called once per request lifecycle.
      */
-    public void setClientExecutionTrackerTask(ClientExecutionAbortTrackerTask clientExecutionTrackerTask) {
+    public void clientExecutionTrackerTask(ClientExecutionAbortTrackerTask clientExecutionTrackerTask) {
         this.clientExecutionTrackerTask = clientExecutionTrackerTask;
     }
 
@@ -144,20 +150,8 @@ public final class RequestExecutionContext {
             return this;
         }
 
-        private List<RequestHandler> resolveRequestHandlers() {
-            Validate.notNull(executionContext, "Execution context must be initialized before resolving request handlers.");
-
-            List<RequestHandler> requestHandlers = executionContext.getRequestHandlers();
-            if (requestHandlers == null) {
-                return Collections.emptyList();
-            }
-            return requestHandlers;
-        }
-
         public RequestExecutionContext build() {
-            notNull(executionContext, "executionContext must not be null");
             return new RequestExecutionContext(this);
         }
-
     }
 }

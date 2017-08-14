@@ -34,6 +34,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public class AsyncClientInterface implements ClassSpec {
 
@@ -55,7 +56,7 @@ public class AsyncClientInterface implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         return PoetUtils.createInterfaceBuilder(className)
-                        .addSuperinterface(AutoCloseable.class)
+                        .addSuperinterface(SdkAutoCloseable.class)
                         .addJavadoc(getJavadoc())
                         .addMethod(create())
                         .addMethod(builder())

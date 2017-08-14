@@ -15,17 +15,89 @@
 
 package utils;
 
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import software.amazon.awssdk.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.config.MutableClientConfiguration;
+import software.amazon.awssdk.config.defaults.GlobalClientConfigurationDefaults;
 import software.amazon.awssdk.http.AmazonHttpClient;
+import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.loader.DefaultSdkHttpClientFactory;
+import software.amazon.awssdk.internal.http.timers.TimeoutTestConstants;
+import software.amazon.awssdk.retry.RetryPolicy;
+import software.amazon.awssdk.retry.RetryPolicyAdapter;
 import software.amazon.awssdk.utils.AttributeMap;
 
 public class HttpTestUtils {
+    public static SdkHttpClient testSdkHttpClient() {
+        return new DefaultSdkHttpClientFactory().createHttpClientWithDefaults(
+                AttributeMap.empty().merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
+    }
 
-    public static AmazonHttpClient.Builder builderWithDefaultClient() {
-        return AmazonHttpClient
-                .builder()
-                .sdkHttpClient(new DefaultSdkHttpClientFactory().createHttpClientWithDefaults(
-                        AttributeMap.empty().merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS)));
+    public static AmazonHttpClient testAmazonHttpClient() {
+        return testClientBuilder().httpClient(testSdkHttpClient()).build();
+    }
+
+    public static TestClientBuilder testClientBuilder() {
+        return new TestClientBuilder();
+    }
+
+    public static class TestClientBuilder {
+        private RetryPolicy retryPolicy;
+        private SdkHttpClient httpClient;
+        private Map<String, String> additionalHeaders = new HashMap<>();
+        private Duration clientExecutionTimeout = TimeoutTestConstants.CLIENT_EXECUTION_TIMEOUT;
+
+        public TestClientBuilder retryPolicy(RetryPolicy retryPolicy) {
+            this.retryPolicy = retryPolicy;
+            return this;
+        }
+
+        public TestClientBuilder httpClient(SdkHttpClient sdkHttpClient) {
+            this.httpClient = sdkHttpClient;
+            return this;
+        }
+
+        public TestClientBuilder additionalHeader(String key, String value) {
+            this.additionalHeaders.put(key, value);
+            return this;
+        }
+
+        public TestClientBuilder clientExecutionTimeout(Duration clientExecutionTimeout) {
+            this.clientExecutionTimeout = clientExecutionTimeout;
+            return this;
+        }
+
+        public AmazonHttpClient build() {
+            SdkHttpClient sdkHttpClient = this.httpClient != null ? this.httpClient : testSdkHttpClient();
+            ClientOverrideConfiguration overrideConfiguration =
+                    ClientOverrideConfiguration.builder()
+                                               .totalExecutionTimeout(clientExecutionTimeout)
+                                               .apply(this::configureRetryPolicy)
+                                               .apply(this::configureAdditionalHeaders)
+                                               .build();
+
+            MutableClientConfiguration clientConfig = new MutableClientConfiguration()
+                    .httpClient(sdkHttpClient)
+                    .overrideConfiguration(overrideConfiguration);
+
+            new GlobalClientConfigurationDefaults().applySyncDefaults(clientConfig);
+
+            return AmazonHttpClient.builder().syncClientConfiguration(clientConfig).build();
+        }
+
+        private ClientOverrideConfiguration.Builder configureAdditionalHeaders(ClientOverrideConfiguration.Builder builder) {
+            this.additionalHeaders.forEach(builder::addAdditionalHttpHeader);
+            return builder;
+        }
+
+        private ClientOverrideConfiguration.Builder configureRetryPolicy(ClientOverrideConfiguration.Builder builder) {
+            if (retryPolicy != null) {
+                builder.retryPolicy(new RetryPolicyAdapter(retryPolicy));
+            }
+            return builder;
+        }
     }
 }

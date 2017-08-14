@@ -512,12 +512,11 @@ public class Validate {
      * @param values  the optional values for the formatted exception message, null array not recommended
      * @throws IllegalArgumentException if argument is not of specified class
      */
-    public static String isInstanceOf(final Class<?> type, final Object obj, final String message, final Object... values) {
-        // TODO when breaking BC, consider returning obj
+    public static <T> T isInstanceOf(final Class<?> type, final T obj, final String message, final Object... values) {
         if (!type.isInstance(obj)) {
             throw new IllegalArgumentException(String.format(message, values));
         }
-        return message;
+        return obj;
     }
 
     // isAssignableFrom

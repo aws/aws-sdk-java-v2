@@ -1,3 +1,3 @@
-software.amazon.awssdk.services.sqs.QueueUrlHandler
-software.amazon.awssdk.services.sqs.internal.SqsRequestHandler
-software.amazon.awssdk.services.sqs.MessageMD5ChecksumHandler
+software.amazon.awssdk.services.sqs.QueueUrlInterceptor
+software.amazon.awssdk.services.sqs.internal.SqsExecutionInterceptor
+software.amazon.awssdk.services.sqs.MessageMD5ChecksumInterceptor

@@ -25,6 +25,7 @@ import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.internal.Crc32MismatchException;
 import software.amazon.awssdk.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.runtime.transform.JsonUnmarshallerContextImpl;
@@ -89,9 +90,9 @@ public class JsonResponseHandler<T> implements HttpResponseHandler<T> {
 
 
     /**
-     * @see HttpResponseHandler#handle(HttpResponse)
+     * @see HttpResponseHandler#handle(HttpResponse, ExecutionAttributes)
      */
-    public T handle(HttpResponse response) throws Exception {
+    public T handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
         log.trace("Parsing service response JSON");
 
         JsonParser jsonParser = null;

@@ -459,7 +459,6 @@ public final class DynamoDbTableMapper<T extends Object, H extends Object, R ext
                 gsi = gsi.toBuilder().provisionedThroughput(throughput).build();
                 modified.globalSecondaryIndexes(gsi);
             }
-            request = modified.build();
         }
         request = modified.build();
         return db.createTable(request).tableDescription();

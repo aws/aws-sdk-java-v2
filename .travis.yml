@@ -7,4 +7,4 @@ install: /bin/true
 notifications:
   email:
     - github-awsforjava@amazon.com
-script: sudo pip install -Iv jmespath==0.9.3 && mvn install
+script: mvn install

@@ -29,7 +29,9 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.util.AttributeKey;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +46,12 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     private static final Logger log = LoggerFactory.getLogger(ResponseHandler.class);
 
+    /**
+     * {@link AttributeKey} to keep track of whether we should close the connection after this request
+     * has completed.
+     */
+    private static final AttributeKey<Boolean> KEEP_ALIVE = AttributeKey.newInstance("KeepAlive");
+
     @Override
     protected void channelRead0(ChannelHandlerContext channelContext, HttpObject msg) throws Exception {
         RequestContext requestContext = channelContext.channel().attr(REQUEST_CONTEXT_KEY).get();
@@ -56,6 +64,7 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                                                              .statusCode(response.status().code())
                                                              .statusText(response.status().reasonPhrase())
                                                              .build();
+            channelContext.channel().attr(KEEP_ALIVE).set(HttpUtil.isKeepAlive(response));
             requestContext.handler().headersReceived(sdkResponse);
         }
 
@@ -71,6 +80,9 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
             }
             if (msg instanceof LastHttpContent) {
                 channelContext.pipeline().remove(publisher);
+                if (!channelContext.channel().attr(KEEP_ALIVE).get()) {
+                    channelContext.channel().close();
+                }
                 requestContext.channelPool().release(channelContext.channel());
             }
         }
