@@ -448,4 +448,3 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
     }
 
 }
-

@@ -64,6 +64,7 @@
         <module>codegen-maven-plugin</module>
         <module>bundle</module>
         <module>build-tools</module>
+        <module>test/dynamodbmapper-v1</module>
         <module>test/protocol-tests</module>
         <module>test/protocol-tests-core</module>
         <module>test/test-utils</module>

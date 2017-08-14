@@ -61,7 +61,7 @@ public abstract class PageBasedCollection<T, R> implements Iterable<T> {
      */
     protected void setLastLowLevelResult(R lowLevelResult) {
         this.lastLowLevelResult = lowLevelResult;
-        // deliver the event of receiving a low level result from the server side 
+        // deliver the event of receiving a low level result from the server side
         listener.onLowLevelResult(lowLevelResult);
     }
 

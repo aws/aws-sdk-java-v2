@@ -119,4 +119,3 @@ public class DynamoDbWaiterIntegrationTest extends AwsIntegrationTestBase {
     }
 
 }
-
