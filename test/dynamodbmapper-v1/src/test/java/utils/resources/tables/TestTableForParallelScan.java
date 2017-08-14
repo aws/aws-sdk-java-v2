@@ -25,9 +25,12 @@ import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import utils.test.resources.DynamoDBTableResource;
 import utils.test.util.DynamoDBTestBase;
 
-public class TempTableWithBinaryKey extends DynamoDBTableResource {
+/**
+ * Test table for {@link ParallelScanIntegrationTest}
+ */
+public class TestTableForParallelScan extends DynamoDBTableResource {
 
-    public static final String TEMP_BINARY_TABLE_NAME = "java-sdk-binary-" + System.currentTimeMillis();
+    public static final String TABLE_NAME = "java-sdk-parallel-scan";
     public static final String HASH_KEY_NAME = "hash";
     public static final Long READ_CAPACITY = 10L;
     public static final Long WRITE_CAPACITY = 5L;
@@ -41,18 +44,18 @@ public class TempTableWithBinaryKey extends DynamoDBTableResource {
 
     @Override
     protected CreateTableRequest getCreateTableRequest() {
-        CreateTableRequest request = CreateTableRequest.builder()
-                .tableName(TEMP_BINARY_TABLE_NAME)
+        CreateTableRequest createTableRequest = CreateTableRequest.builder()
+                .tableName(TABLE_NAME)
                 .keySchema(
                         KeySchemaElement.builder().attributeName(HASH_KEY_NAME)
                                               .keyType(KeyType.HASH).build())
                 .attributeDefinitions(
                         AttributeDefinition.builder().attributeName(
                                 HASH_KEY_NAME).attributeType(
-                                ScalarAttributeType.B).build())
+                                ScalarAttributeType.N).build())
                 .provisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT)
                 .build();
-        return request;
+        return createTableRequest;
     }
 
 }

@@ -42,7 +42,7 @@ public class BatchGetItemOutcome {
     }
 
     /**
-     * Returns a map of table name to the list of retrieved items 
+     * Returns a map of table name to the list of retrieved items
      */
     public Map<String, List<Item>> getTableItems() {
         Map<String, List<Map<String, AttributeValue>>> res =
