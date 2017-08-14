@@ -21,8 +21,8 @@ import static org.junit.Assert.fail;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URL;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -117,10 +117,10 @@ public class SynthesizeSpeechPresignTest {
 
     @Test
     public void multipleLexiconNamesInRequest_CanonicalizesCorrectly() {
-        ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(SIGNER_DATE.toInstant(), ZoneOffset.UTC).plusMinutes(30);
+        Instant instant = SIGNER_DATE.toInstant().plus(30, ChronoUnit.MINUTES);
         final URL url = presigners.getPresignedSynthesizeSpeechUrl(
                 new SynthesizeSpeechPresignRequest()
-                        .withExpirationDate(Date.from(zonedDateTime.toInstant()))
+                        .withExpirationDate(Date.from(instant))
                         .withText("S3 is an AWS service")
                         .withOutputFormat(OutputFormat.Mp3)
                         .withLexiconNames("FooLexicon", "AwsLexicon")

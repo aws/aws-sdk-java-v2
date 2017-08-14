@@ -42,7 +42,7 @@ public class DateCondition extends Condition {
     public DateCondition(DateComparisonType type, Date date) {
         super.type = type.toString();
         super.conditionKey = ConditionFactory.CURRENT_TIME_CONDITION_KEY;
-        super.values = Arrays.asList(new String[] {DateUtils.formatIso8601Date(date)});
+        super.values = Arrays.asList(new String[] {DateUtils.formatIso8601Date(date.toInstant())});
     }
 
     ;
