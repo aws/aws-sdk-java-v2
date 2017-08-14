@@ -24,8 +24,7 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import org.junit.Test;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
 
 public class ClassesTest {
     private static final boolean VERBOSE = false;
@@ -42,7 +41,7 @@ public class ClassesTest {
 
     @Test
     public void jarFileOf() throws IOException {
-        JarFile jf = Classes.jarFileOf(ObjectMapper.class);
+        JarFile jf = Classes.jarFileOf(Logger.class);
         assertNotNull(jf);
         Manifest mf = jf.getManifest();
         Attributes attrs = mf.getMainAttributes();

@@ -97,7 +97,7 @@ class EC2CredentialsProvider implements AwsCredentialsProvider, AutoCloseable {
             String expirationValue = node.asText().replaceAll("\\+0000$", "Z");
 
             try {
-                return DateUtils.parseIso8601Date(expirationValue).toInstant();
+                return DateUtils.parseIso8601Date(expirationValue);
             } catch (RuntimeException e) {
                 throw new IllegalStateException("Unable to parse credentials expiration date from Amazon EC2 instance.", e);
             }

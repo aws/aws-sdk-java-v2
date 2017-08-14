@@ -16,13 +16,11 @@
 package software.amazon.awssdk.util;
 
 import static java.time.ZoneOffset.UTC;
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
-import static java.time.temporal.ChronoField.HOUR_OF_DAY;
-import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
-import static java.time.temporal.ChronoField.NANO_OF_SECOND;
-import static java.time.temporal.ChronoField.SECOND_OF_MINUTE;
+import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
+import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -30,9 +28,9 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalAccessor;
 import java.util.Date;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
+
 import software.amazon.awssdk.SdkClientException;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.ThreadSafe;
 
 /**
@@ -49,28 +47,6 @@ public class DateUtils {
 
     private static final int AWS_DATE_MILLI_SECOND_PRECISION = 3;
 
-    public static final DateTimeFormatter ISO_8601_DATETIME_FORMAT =
-        new DateTimeFormatterBuilder()
-            .parseCaseInsensitive()
-            .append(ISO_LOCAL_DATE)
-            .appendLiteral('T')
-            .appendValue(HOUR_OF_DAY, 2)
-            .appendLiteral(':')
-            .appendValue(MINUTE_OF_HOUR, 2)
-            .appendLiteral(':')
-            .appendValue(SECOND_OF_MINUTE, 2)
-            .appendFraction(NANO_OF_SECOND, AWS_DATE_MILLI_SECOND_PRECISION, 9, true)
-            .appendLiteral('Z')
-            .toFormatter(Locale.US)
-            .withZone(UTC);
-
-    /** RFC 822 format. */
-    private static final DateTimeFormatter RFC_822_DATE_FORMAT =
-            new DateTimeFormatterBuilder()
-                        .parseCaseInsensitive()
-                        .appendPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'")
-                        .toFormatter(Locale.US)
-                        .withZone(UTC);
     /**
      * This is another ISO 8601 format that's used in clock skew error response
      */
@@ -92,7 +68,7 @@ public class DateUtils {
      *
      * @return The parsed Date object.
      */
-    public static Date parseIso8601Date(String dateString) {
+    public static Instant parseIso8601Date(String dateString) {
         // For EC2 Spot Fleet.
         if (dateString.endsWith("+0000")) {
             dateString = dateString
@@ -100,24 +76,22 @@ public class DateUtils {
                              .concat("Z");
         }
 
-        long millis;
         try {
-            millis = parseIso8601DateAsMillis(dateString, ISO_8601_DATETIME_FORMAT);
+            return parseIso8601DateAsInstant(dateString, ISO_DATE_TIME);
         } catch (DateTimeParseException e) {
-            millis = parseIso8601DateAsMillis(dateString, ALTERNATE_ISO_8601_DATE_FORMAT);
+            return parseIso8601DateAsInstant(dateString, ALTERNATE_ISO_8601_DATE_FORMAT);
         }
-        return new Date(millis);
     }
 
-    private static long parseIso8601DateAsMillis(final String dateString, DateTimeFormatter formatter) {
+    private static Instant parseIso8601DateAsInstant(final String dateString, DateTimeFormatter formatter) {
         // https://github.com/aws/aws-sdk-java/issues/233
         // Handling edge case: java time required '+' sign in front of the year 292278994 (or greater).
         boolean isSignRequired = dateString.startsWith(MIN_SIGNED_YEAR_PREFIX);
         if (isSignRequired) {
-            // Normal case: nothing special here
-            return parseMillis("+" + dateString, formatter);
+            return parseInstant("+" + dateString, formatter);
         }
-        return parseMillis(dateString, formatter);
+        // Normal case: nothing special here
+        return parseInstant(dateString, formatter);
     }
 
     /**
@@ -129,7 +103,7 @@ public class DateUtils {
      * @return The ISO 8601 string representing the specified date.
      */
     public static String formatIso8601Date(Date date) {
-        return ISO_8601_DATETIME_FORMAT.format(ZonedDateTime.ofInstant(date.toInstant(), UTC));
+        return ISO_DATE_TIME.format(ZonedDateTime.ofInstant(date.toInstant(), UTC));
     }
 
     /**
@@ -141,7 +115,7 @@ public class DateUtils {
      */
     @Deprecated
     public static String formatIso8601Date(ZonedDateTime date) {
-        return ISO_8601_DATETIME_FORMAT.format(date);
+        return ISO_DATE_TIME.format(date);
     }
 
     /**
@@ -152,24 +126,53 @@ public class DateUtils {
      *            The date string to parse.
      *
      * @return The parsed Date object.
+     * @deprecated use {@link #parseRfc1123Date(String)}. RFC-1123 updates RFC-822 changing the year from two digits to four.
      */
+    @Deprecated
     public static Instant parseRfc822Date(String dateString) {
-        if (dateString == null) {
-            return null;
-        }
-        return Instant.ofEpochMilli(parseMillis(dateString, RFC_822_DATE_FORMAT));
+        return parseRfc1123Date(dateString);
     }
 
     /**
-     * Formats the specified date as an RFC 822 string.
+     * Parses the specified date string as an RFC 1123 date and returns the Date
+     * object.
      *
-     * @param instant
+     * @param dateString
+     *            The date string to parse.
+     *
+     * @return The parsed Date object.
+     */
+    public static Instant parseRfc1123Date(String dateString) {
+        if (dateString == null) {
+            return null;
+        }
+        return parseInstant(dateString, RFC_1123_DATE_TIME);
+    }
+
+    /**
+     * Formats the specified date as an RFC 1123 string.
+     *
+     * @param temporalAccessor
      *            The date to format.
      *
-     * @return The RFC 822 string representing the specified date.
+     * @return The RFC 1123 string representing the specified date.
+     * @deprecated use {@link #formatRfc1123Date(TemporalAccessor)}.
      */
-    public static String formatRfc822Date(TemporalAccessor instant) {
-        return RFC_822_DATE_FORMAT.format(instant);
+    @Deprecated
+    public static String formatRfc822Date(TemporalAccessor temporalAccessor) {
+        return formatRfc1123Date(temporalAccessor);
+    }
+
+    /**
+     * Formats the specified date as an RFC 1123 string.
+     *
+     * @param temporalAccessor
+     *            The date to format.
+     *
+     * @return The RFC 1123 string representing the specified date.
+     */
+    public static String formatRfc1123Date(TemporalAccessor temporalAccessor) {
+        return RFC_1123_DATE_TIME.format(temporalAccessor);
     }
 
     /**
@@ -181,14 +184,17 @@ public class DateUtils {
      *
      * @return The parsed Date object.
      */
-    public static Date parseCompressedIso8601Date(String dateString) {
-        return new Date(parseMillis(dateString, COMPRESSED_ISO_8601_DATE_FORMAT));
+    @ReviewBeforeRelease(value = "Used in one test only.")
+    public static Instant parseCompressedIso8601Date(String dateString) {
+        return parseInstant(dateString, COMPRESSED_ISO_8601_DATE_FORMAT);
     }
 
     /**
      * Parses the given date string returned by the AWS service into a Date
      * object.
+     * @deprecated use {@link #parseServiceSpecificInstant(String)}.
      */
+    @Deprecated
     public static Date parseServiceSpecificDate(String dateString) {
         if (dateString == null) {
             return null;
@@ -204,7 +210,27 @@ public class DateUtils {
     }
 
     /**
+     * Parses the given date string returned by the AWS service into a Date
+     * object.
+     */
+    public static Instant parseServiceSpecificInstant(String dateString) {
+        if (dateString == null) {
+            return null;
+        }
+        try {
+            BigDecimal dateValue = new BigDecimal(dateString);
+            return Instant.ofEpochMilli(dateValue.scaleByPowerOfTen(
+                    AWS_DATE_MILLI_SECOND_PRECISION).longValue());
+        } catch (NumberFormatException nfe) {
+            throw new SdkClientException("Unable to parse date : "
+                                         + dateString, nfe);
+        }
+    }
+
+    /**
      * Formats the give date object into an AWS Service format.
+     *
+     * @deprecated use {@link #formatServiceSpecificDate(Instant)}.
      */
     public static String formatServiceSpecificDate(Date date) {
         if (date == null) {
@@ -215,6 +241,20 @@ public class DateUtils {
                         .toPlainString();
     }
 
+    /**
+     * Formats the give date object into an AWS Service format.
+     */
+    public static String formatServiceSpecificDate(Instant instant) {
+        if (instant == null) {
+            return null;
+        }
+        BigDecimal dateValue = BigDecimal.valueOf(instant.toEpochMilli());
+        return dateValue.scaleByPowerOfTen(0 - AWS_DATE_MILLI_SECOND_PRECISION)
+                   .toPlainString();
+    }
+
+    @Deprecated
+    @ReviewBeforeRelease("not used.")
     public static Date cloneDate(Date date) {
         return date == null ? null : new Date(date.getTime());
     }
@@ -222,12 +262,13 @@ public class DateUtils {
     /**
      * Returns the number of days since epoch with respect to the given number
      * of milliseconds since epoch.
+     * @deprecated use {@link Duration#ofMillis(long)} and {@link Duration#toDays()}.
      */
-    public static long numberOfDaysSinceEpoch(long milliSinceEpoch) {
-        return TimeUnit.MILLISECONDS.toDays(milliSinceEpoch);
+    public static Duration durationSinceEpoch(long milliSinceEpoch) {
+        return Duration.ofMillis(milliSinceEpoch);
     }
 
-    private static long parseMillis(String dateString, DateTimeFormatter formatter) {
-        return ZonedDateTime.parse(dateString, formatter).toInstant().toEpochMilli();
+    private static Instant parseInstant(String dateString, DateTimeFormatter formatter) {
+        return ZonedDateTime.parse(dateString, formatter).toInstant();
     }
 }

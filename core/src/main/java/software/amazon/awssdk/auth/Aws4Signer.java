@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,7 +41,6 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.internal.collections.FifoCache;
 import software.amazon.awssdk.util.CredentialUtils;
-import software.amazon.awssdk.util.DateUtils;
 import software.amazon.awssdk.util.SdkHttpUtils;
 import software.amazon.awssdk.util.StringUtils;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -328,9 +328,7 @@ public class Aws4Signer extends AbstractAwsSigner
 
         final String cacheKey = computeSigningCacheKeyName(credentials,
                                                            signerRequestParams);
-        final long daysSinceEpochSigningDate = DateUtils
-                .numberOfDaysSinceEpoch(signerRequestParams
-                                                .getSigningDateTimeMilli());
+        final long daysSinceEpochSigningDate = Duration.ofMillis(signerRequestParams.getSigningDateTimeMilli()).toDays();
 
         SignerKey signerKey = SIGNER_CACHE.get(cacheKey);
 

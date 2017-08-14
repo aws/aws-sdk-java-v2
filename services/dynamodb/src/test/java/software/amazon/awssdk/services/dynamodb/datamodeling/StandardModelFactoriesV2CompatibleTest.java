@@ -15,12 +15,15 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling;
 
+import static java.time.ZoneOffset.UTC;
 import static org.junit.Assert.assertEquals;
 
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
@@ -29,6 +32,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.UUID;
 import org.junit.Assert;
@@ -81,14 +85,18 @@ public class StandardModelFactoriesV2CompatibleTest {
 
     @Test
     public void testDate() {
-        assertEquals("1970-01-01T00:00:00.000Z",
-                     convert("getDate", new Date(0)).s());
+        assertEquals("1970-01-01T00:00:00.001Z",
+                     convert("getDate", new Date(1)).s());
+    }
 
+    @Test
+    public void testCalendar() {
         Calendar c = GregorianCalendar.getInstance();
         c.setTimeInMillis(0);
+        c.setTimeZone(TimeZone.getTimeZone("Z"));
 
-        assertEquals("1970-01-01T00:00:00.000Z",
-                     convert("getCalendar", c).s());
+        assertEquals("1970-01-01T00:00:00Z",
+            convert("getCalendar", c).s());
     }
 
     @Test
@@ -193,14 +201,14 @@ public class StandardModelFactoriesV2CompatibleTest {
 
     @Test
     public void testDateSet() {
-        assertEquals(Collections.singletonList("1970-01-01T00:00:00.000Z"),
-                     convert("getDateSet", Collections.singleton(new Date(0)))
+        assertEquals(Collections.singletonList("1970-01-01T00:00:00.001Z"),
+                     convert("getDateSet", Collections.singleton(new Date(1)))
                              .ss());
 
         Calendar c = GregorianCalendar.getInstance();
-        c.setTimeInMillis(0);
+        c.setTimeInMillis(1);
 
-        assertEquals(Collections.singletonList("1970-01-01T00:00:00.000Z"),
+        assertEquals(Collections.singletonList("1970-01-01T00:00:00.001Z"),
                      convert("getCalendarSet", Collections.singleton(c))
                              .ss());
     }

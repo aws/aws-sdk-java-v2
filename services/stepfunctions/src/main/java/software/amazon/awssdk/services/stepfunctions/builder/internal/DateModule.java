@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.stepfunctions.builder.internal;
 
 import static java.time.ZoneOffset.UTC;
-import static software.amazon.awssdk.util.DateUtils.ISO_8601_DATETIME_FORMAT;
+import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -44,7 +44,7 @@ public class DateModule {
                                   JsonGenerator jsonGenerator,
                                   SerializerProvider serializerProvider) throws
                                                                          IOException {
-                jsonGenerator.writeString(ISO_8601_DATETIME_FORMAT
+                jsonGenerator.writeString(ISO_DATE_TIME
                                               .format(ZonedDateTime.ofInstant(date.toInstant(), UTC)));
             }
         });
@@ -59,7 +59,7 @@ public class DateModule {
     }
 
     public static Date fromJson(String jsonText) {
-        return Date.from(ZonedDateTime.parse(jsonText, ISO_8601_DATETIME_FORMAT).toInstant());
+        return Date.from(ZonedDateTime.parse(jsonText, ISO_DATE_TIME).toInstant());
     }
 
 }

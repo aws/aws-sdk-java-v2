@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling.unmarshallers;
 
+import java.sql.Date;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -39,7 +40,7 @@ public class CalendarUnmarshaller extends SUnmarshaller {
     @Override
     public Object unmarshall(AttributeValue value) {
         Calendar cal = GregorianCalendar.getInstance();
-        cal.setTime(DateUtils.parseIso8601Date(value.s()));
+        cal.setTime(Date.from(DateUtils.parseIso8601Date(value.s())));
         return cal;
     }
 }
