@@ -288,7 +288,7 @@ final class DefaultJsonClient implements JsonClient {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         clientHandler.close();
     }
 }

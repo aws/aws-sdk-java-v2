@@ -57,7 +57,7 @@ public class SdkClientHandler extends ClientHandler {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         delegateHandler.close();
     }
 

@@ -53,7 +53,7 @@ public class CloudWatchTestClient implements CloudWatchClient {
     }
 
     @Override
-    public void close() throws Exception {
-        close();
+    public void close() {
+        
     }
 }

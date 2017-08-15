@@ -39,7 +39,7 @@ public class HttpSyncClientDependencies extends HttpClientDependencies {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         super.close();
         IoUtils.closeQuietly(syncClientConfiguration.httpClient(), null);
     }

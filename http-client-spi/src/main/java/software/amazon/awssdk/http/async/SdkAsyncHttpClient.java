@@ -19,8 +19,9 @@ import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.http.ConfigurationProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkRequestContext;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
-public interface SdkAsyncHttpClient extends AutoCloseable, ConfigurationProvider {
+public interface SdkAsyncHttpClient extends SdkAutoCloseable, ConfigurationProvider {
 
     /**
      * Create an {@link AbortableRunnable} that can be used to execute the HTTP request.

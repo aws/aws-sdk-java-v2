@@ -29,6 +29,7 @@ import software.amazon.awssdk.internal.EC2CredentialsUtils;
 import software.amazon.awssdk.util.ComparableUtils;
 import software.amazon.awssdk.util.DateUtils;
 import software.amazon.awssdk.util.json.Jackson;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
@@ -39,7 +40,7 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * an EC2 instance.
  */
 @SdkInternalApi
-class EC2CredentialsProvider implements AwsCredentialsProvider, AutoCloseable {
+class EC2CredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
     private final CredentialsEndpointProvider credentialsEndpointProvider;
     private final CachedSupplier<AwsCredentials> credentialsCache;
 

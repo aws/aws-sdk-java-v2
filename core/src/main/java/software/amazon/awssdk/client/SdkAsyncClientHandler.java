@@ -56,7 +56,7 @@ public class SdkAsyncClientHandler extends AsyncClientHandler {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         delegateHandler.close();
     }
 

@@ -176,7 +176,7 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         client.close();
     }
 
