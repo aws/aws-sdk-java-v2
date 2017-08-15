@@ -15,6 +15,7 @@ import software.amazon.awssdk.services.json.model.StreamingInputOperationRequest
 import software.amazon.awssdk.services.json.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationResponse;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * Service client for accessing Json Service asynchronously. This can be created using the static {@link #builder()}
@@ -23,7 +24,7 @@ import software.amazon.awssdk.services.json.model.StreamingOutputOperationRespon
  * A service that is implemented using the query protocol
  */
 @Generated("software.amazon.awssdk:codegen")
-public interface JsonAsyncClient extends AutoCloseable {
+public interface JsonAsyncClient extends SdkAutoCloseable {
     /**
      * Create a {@link JsonAsyncClient} with the region loaded from the
      * {@link software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from the

@@ -21,6 +21,7 @@ import software.amazon.awssdk.services.json.model.StreamingOutputOperationRespon
 import software.amazon.awssdk.sync.RequestBody;
 import software.amazon.awssdk.sync.ResponseInputStream;
 import software.amazon.awssdk.sync.StreamingResponseHandler;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * Service client for accessing Json Service. This can be created using the static {@link #builder()} method.
@@ -28,7 +29,7 @@ import software.amazon.awssdk.sync.StreamingResponseHandler;
  * A service that is implemented using the query protocol
  */
 @Generated("software.amazon.awssdk:codegen")
-public interface JsonClient extends AutoCloseable {
+public interface JsonClient extends SdkAutoCloseable {
     String SERVICE_NAME = "json-service";
 
     /**
