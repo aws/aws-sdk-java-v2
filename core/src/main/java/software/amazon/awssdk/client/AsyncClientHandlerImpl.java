@@ -24,18 +24,21 @@ import software.amazon.awssdk.Request;
 import software.amazon.awssdk.RequestConfig;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkRequest;
+import software.amazon.awssdk.SdkResponse;
 import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.annotation.ThreadSafe;
 import software.amazon.awssdk.async.AsyncRequestProvider;
+import software.amazon.awssdk.async.AsyncResponseHandler;
 import software.amazon.awssdk.config.AsyncClientConfiguration;
 import software.amazon.awssdk.config.InternalAdvancedClientOption;
 import software.amazon.awssdk.handlers.AwsExecutionAttributes;
 import software.amazon.awssdk.http.AmazonAsyncHttpClient;
 import software.amazon.awssdk.http.ExecutionContext;
 import software.amazon.awssdk.http.HttpResponse;
+import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -55,13 +58,13 @@ import software.amazon.awssdk.util.Throwables;
 @Immutable
 @ThreadSafe
 @SdkProtectedApi
-public class AsyncClientHandlerImpl extends AsyncClientHandler {
+class AsyncClientHandlerImpl extends AsyncClientHandler {
     private final AsyncClientConfiguration asyncClientConfiguration;
     private final AmazonAsyncHttpClient client;
 
     @ReviewBeforeRelease("Should this be migrated to use a builder, particularly because it crosses module boundaries?")
-    public AsyncClientHandlerImpl(AsyncClientConfiguration asyncClientConfiguration,
-                                  ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
+    AsyncClientHandlerImpl(AsyncClientConfiguration asyncClientConfiguration,
+                           ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
         super(asyncClientConfiguration, serviceAdvancedConfiguration);
         this.asyncClientConfiguration = asyncClientConfiguration;
         this.client = AmazonAsyncHttpClient.builder()
@@ -70,13 +73,52 @@ public class AsyncClientHandlerImpl extends AsyncClientHandler {
     }
 
     @Override
-    public <InputT extends SdkRequest, OutputT> CompletableFuture<OutputT> execute(
+    public <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<OutputT> execute(
             ClientExecutionParams<InputT, OutputT> executionParams) {
         ExecutionContext executionContext = createExecutionContext(executionParams.getRequestConfig());
+        return execute(executionParams, executionContext,
+            responseAdapter -> new SyncResponseHandlerAdapter<>(
+                               interceptorCalling(executionParams.getResponseHandler(), executionContext),
+                               responseAdapter,
+                               executionContext.executionAttributes()));
+    }
+
+    /**
+     * Adapter interface from {@link SdkHttpFullResponse} to {@link HttpResponse}
+     */
+    private interface HttpResponseAdapter extends Function<SdkHttpFullResponse, HttpResponse> {
+    }
+
+    /**
+     * Factory interface for obtaining an {@link SdkHttpResponseHandler} given an {@link HttpResponseAdapter}.
+     *
+     * @param <ReturnT> Type param for {@link SdkHttpResponseHandler}
+     */
+    private interface ResponseHandlerFactory<ReturnT> extends
+                                                      Function<HttpResponseAdapter, SdkHttpResponseHandler<ReturnT>> {
+    }
+
+    @Override
+    public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> CompletableFuture<ReturnT> execute(
+            ClientExecutionParams<InputT, OutputT> executionParams,
+            AsyncResponseHandler<OutputT, ReturnT> asyncResponseHandler) {
+
+        ExecutionContext context = createExecutionContext(executionParams.getRequestConfig());
+        ResponseHandlerFactory<ReturnT> sdkHttpResponseHandler = responseAdapter ->
+                new UnmarshallingSdkHttpResponseHandler<>(asyncResponseHandler, context, executionParams.getResponseHandler());
+
+        return execute(executionParams, context, sdkHttpResponseHandler);
+    }
+
+    private <InputT extends SdkRequest, OutputT, ReturnT> CompletableFuture<ReturnT> execute(
+            ClientExecutionParams<InputT, OutputT> executionParams,
+            ExecutionContext executionContext,
+            ResponseHandlerFactory<ReturnT> sdkHttpResponseHandlerFactory) {
         runBeforeExecutionInterceptors(executionContext);
         InputT inputT = runModifyRequestInterceptors(executionContext);
 
         AwsRequestMetrics awsRequestMetrics = executionContext.awsRequestMetrics();
+
         awsRequestMetrics.startEvent(AwsRequestMetrics.Field.ClientExecuteTime);
         Request<InputT> request;
 
@@ -103,21 +145,17 @@ public class AsyncClientHandlerImpl extends AsyncClientHandler {
         SdkHttpRequestProvider requestProvider = executionParams.getAsyncRequestProvider() != null ?
                 adaptAsyncRequestProvider(executionParams.getAsyncRequestProvider()) : null;
 
-        boolean calculateCrc32FromCompressedData =
-                asyncClientConfiguration.overrideConfiguration()
-                                        .advancedOption(InternalAdvancedClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED);
+        HttpResponseAdapter responseAdapter
+                = r -> SdkHttpResponseAdapter.adapt(isCalculateCrc32FromCompressedData(), marshalled, r);
 
-        Function<SdkHttpFullResponse, HttpResponse> responseAdapter
-                = r -> SdkHttpResponseAdapter.adapt(calculateCrc32FromCompressedData, marshalled, r);
-
-        SdkHttpResponseHandler<OutputT> responseHandler = resolveResponseHandler(executionParams, responseAdapter,
-                                                                                 executionContext);
+        SdkHttpResponseHandler<ReturnT> successResponseHandler = new InterceptorCallingHttpResponseHandler<>(
+                sdkHttpResponseHandlerFactory.apply(responseAdapter), executionContext);
 
         SdkHttpResponseHandler<? extends SdkBaseException> errorHandler =
                 resolveErrorResponseHandler(executionParams, responseAdapter, executionContext);
 
-        return invoke(marshalled, requestProvider, executionParams.getRequestConfig(), executionContext,
-                      responseHandler, errorHandler)
+        return invoke(marshalled, requestProvider, executionParams.getRequestConfig(),
+                      executionContext, successResponseHandler, errorHandler)
                 .handle((resp, err) -> {
                     try {
                         if (err != null) {
@@ -130,6 +168,11 @@ public class AsyncClientHandlerImpl extends AsyncClientHandler {
                         endClientExecution(awsRequestMetrics, executionParams.getRequestConfig(), request, resp);
                     }
                 });
+    }
+
+    private boolean isCalculateCrc32FromCompressedData() {
+        return asyncClientConfiguration.overrideConfiguration()
+                                       .advancedOption(InternalAdvancedClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED);
     }
 
     @Override
@@ -175,26 +218,6 @@ public class AsyncClientHandlerImpl extends AsyncClientHandler {
                 new SyncResponseHandlerAdapter<>(executionParams.getErrorResponseHandler(),
                                                  responseAdapter,
                                                  executionContext.executionAttributes());
-        return new InterceptorCallingHttpResponseHandler<>(result, executionContext);
-    }
-
-    /**
-     * Resolve the async response handler. If this operation has a streaming output then the customer
-     * must provide an {@link software.amazon.awssdk.async.AsyncResponseHandler} which will be adapted
-     * by the client implementation to a {@link SdkHttpResponseHandler} (unmarshalling is done in this
-     * adaption layer). If this operation does not have a streaming output we use {@link SyncResponseHandlerAdapter}
-     * to buffer all contents into memory then call out to the sync response handler ({@link
-     * software.amazon.awssdk.http.HttpResponseHandler}).
-     */
-    private <OutputT> SdkHttpResponseHandler<OutputT> resolveResponseHandler(
-            ClientExecutionParams<?, OutputT> executionParams,
-            Function<SdkHttpFullResponse, HttpResponse> responseAdapter,
-            ExecutionContext executionContext) {
-        SdkHttpResponseHandler<OutputT> result = executionParams.getResponseHandler() != null
-                                                 ? new SyncResponseHandlerAdapter<>(executionParams.getResponseHandler(),
-                                                                                    responseAdapter,
-                                                                                    executionContext.executionAttributes())
-                                                 : executionParams.getAsyncResponseHandler();
         return new InterceptorCallingHttpResponseHandler<>(result, executionContext);
     }
 
@@ -284,5 +307,58 @@ public class AsyncClientHandlerImpl extends AsyncClientHandler {
         context.interceptorContext(interceptorContext);
 
         return interceptorContext.httpResponse();
+    }
+
+    /**
+     * Adapter to {@link AsyncResponseHandler} that performs unmarshalling and calls {@link
+     * software.amazon.awssdk.interceptor.ExecutionInterceptor}
+     * callbacks.
+     *
+     * @param <OutputT> Unmarshalled POJO response type.
+     * @param <ReturnT> Return type of {@link AsyncResponseHandler}
+     */
+    private class UnmarshallingSdkHttpResponseHandler<OutputT extends SdkResponse, ReturnT>
+            implements SdkHttpResponseHandler<ReturnT> {
+
+        private final AsyncResponseHandler<OutputT, ReturnT> asyncResponseHandler;
+        private final ExecutionContext executionContext;
+        private final HttpResponseHandler<OutputT> responseHandler;
+
+        UnmarshallingSdkHttpResponseHandler(AsyncResponseHandler<OutputT, ReturnT> asyncResponseHandler,
+                                            ExecutionContext executionContext,
+                                            HttpResponseHandler<OutputT> responseHandler) {
+            this.asyncResponseHandler = asyncResponseHandler;
+            this.executionContext = executionContext;
+            this.responseHandler = responseHandler;
+        }
+
+
+        @Override
+        public void headersReceived(SdkHttpResponse response) {
+            HttpResponse httpResponse = SdkHttpResponseAdapter.adapt(false, null, ((SdkHttpFullResponse) response));
+            try {
+                // TODO would be better to pass in AwsExecutionAttributes to the async response handler so we can
+                // provide them to HttpResponseHandler
+                OutputT resp = interceptorCalling(responseHandler, executionContext).handle(httpResponse, null);
+                asyncResponseHandler.responseReceived(resp);
+            } catch (Exception e) {
+                throw Throwables.failure(e);
+            }
+        }
+
+        @Override
+        public void onStream(Publisher<ByteBuffer> publisher) {
+            asyncResponseHandler.onStream(publisher);
+        }
+
+        @Override
+        public void exceptionOccurred(Throwable throwable) {
+            asyncResponseHandler.exceptionOccurred(throwable);
+        }
+
+        @Override
+        public ReturnT complete() {
+            return asyncResponseHandler.complete();
+        }
     }
 }

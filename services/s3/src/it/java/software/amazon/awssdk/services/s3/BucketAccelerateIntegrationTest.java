@@ -44,6 +44,7 @@ import software.amazon.awssdk.sync.RequestBody;
 import software.amazon.awssdk.test.retry.AssertCallable;
 import software.amazon.awssdk.test.retry.RetryableAssertion;
 import software.amazon.awssdk.test.retry.RetryableParams;
+import software.amazon.awssdk.test.util.RandomTempFile;
 
 
 /**
@@ -162,7 +163,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
         }
 
         // PutObject
-        File uploadFile = getRandomTempFile(KEY_NAME, 1000);
+        File uploadFile = new RandomTempFile(KEY_NAME, 1000);
         accelerateClient.putObject(PutObjectRequest.builder()
                                                    .bucket(US_BUCKET_NAME)
                                                    .key(KEY_NAME)

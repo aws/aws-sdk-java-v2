@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import software.amazon.awssdk.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -31,6 +32,26 @@ import software.amazon.awssdk.utils.IoUtils;
  * the rest of the data exceeds the cost of establishing a new connection. If callers do not call abort and do not read all
  * of the data in the stream, then the content will be drained by the SDK and the underlying HTTP connection will be returned to
  * the connection pool (if applicable).
+ *
+ * <p>
+ * <h3>Retries</h3>
+ * Exceptions thrown from the handler's {@link #apply(Object, AbortableInputStream)} method are not automatically retried by the
+ * RetryPolicy of the client. Since we can't know if a handler implementation is idempotent or safe to retry, if you wish to
+ * retry on the event of a failure you must throw a {@link software.amazon.awssdk.RetryableException} from the handler. This
+ * exception can wrap the original exception that was thrown. Note that throwing a {@link
+ * software.amazon.awssdk.RetryableException} from the handler does not guarantee the request will be retried, retries are still
+ * limited by the max retry attempts and retry throttling feature of the {@link software.amazon.awssdk.retry.v2.RetryPolicy}.
+ * </p>
+ *
+ * <p>
+ * <h3>Thread Interrupts</h3>
+ * Implementations should have proper handling of Thread interrupts. For long running, non-interruptable tasks, it is recommended
+ * to check the thread interrupt status periodically and throw an {@link InterruptedException} if set. When an {@link
+ * InterruptedException} is thrown from a interruptable task, you should either re-interrupt the current thread or throw that
+ * {@link InterruptedException} from the {@link #apply(Object, AbortableInputStream)} method. Failure to do these things will
+ * prevent the total execution timeout from working (see {@link ClientOverrideConfiguration#totalExecutionTimeout()} and may
+ * prevent the SDK from stopping the request in a timely manner in the event the thread is interrupted externally.
+ * </p>
  *
  * @param <ResponseT> Type of unmarshalled POJO response.
  * @param <ReturnT>   Return type of the {@link #apply(Object, AbortableInputStream)} method. Implementations are free to perform
@@ -51,12 +72,22 @@ public interface StreamingResponseHandler<ResponseT, ReturnT> {
     ReturnT apply(ResponseT response, AbortableInputStream inputStream) throws Exception;
 
     /**
+     * Hook to allow connection to be left open after the SDK returns a response. Useful for returning the InputStream to
+     * the response content from the handler.
+     *
+     * @return True if connection (and InputStream) should be left open after the SDK returns a response, false otherwise.
+     */
+    default boolean needsConnectionLeftOpen() {
+        return false;
+    }
+
+    /**
      * Creates a response handler that writes all response content to the specified file. If the file already exists
      * then a {@link java.nio.file.FileAlreadyExistsException} will be thrown.
      *
      * @param path        Path to file to write to.
-     * @param <ResponseT> Type of unmarshalled response POJO. Ignored by handler.
-     * @return Null.
+     * @param <ResponseT> Type of unmarshalled response POJO.
+     * @return StreamingResponseHandler instance.
      */
     static <ResponseT> StreamingResponseHandler<ResponseT, ResponseT> toFile(Path path) {
         return (resp, in) -> {
@@ -70,13 +101,57 @@ public interface StreamingResponseHandler<ResponseT, ReturnT> {
      * the {@link OutputStream} is not closed or flushed after writing.
      *
      * @param outputStream Output stream to write data to.
-     * @param <ResponseT>  Type of unmarshalled response POJO. Ignored by handler.
-     * @return Null.
+     * @param <ResponseT>  Type of unmarshalled response POJO.
+     * @return StreamingResponseHandler instance.
      */
     static <ResponseT> StreamingResponseHandler<ResponseT, ResponseT> toOutputStream(OutputStream outputStream) {
         return (resp, in) -> {
             IoUtils.copy(in, outputStream);
             return resp;
         };
+    }
+
+    /**
+     * Creates a response handler that returns an unmanaged input stream with the response content. This input stream must
+     * be explicitly closed to release the connection. The unmarshalled response object can be obtained via the {@link
+     * ResponseInputStream#response} method.
+     *
+     * <p>
+     * Note that the returned stream is not subject to the retry policy or timeout settings (except for socket timeout)
+     * of the client. No retries will be performed in the event of a socket read failure or connection reset. Similarly,
+     * the total execution timeout (see {@link software.amazon.awssdk.config.ClientOverrideConfiguration#totalExecutionTimeout})
+     * will stop once the input stream has been returned by the SDK.
+     * </p>
+     *
+     * @param <ResponseT> Type of unmarshalled response POJO.
+     * @return StreamingResponseHandler instance.
+     */
+    static <ResponseT> StreamingResponseHandler<ResponseT, ResponseInputStream<ResponseT>> toInputStream() {
+        return unmanaged(ResponseInputStream::new);
+    }
+
+    /**
+     * Static helper method to create a response handler that allows the connection to be left open. Useful for creating a
+     * {@link StreamingResponseHandler} with a lambda or method reference rather than an anonymous inner class.
+     *
+     * @param handler     Handler to wrap.
+     * @param <ResponseT> Type of unmarshalled response POJO.
+     * @param <ReturnT>   Return type of handler.
+     * @return New {@link StreamingResponseHandler} which does not close the connection afterwards.
+     */
+    static <ResponseT, ReturnT> StreamingResponseHandler<ResponseT, ReturnT> unmanaged(
+            StreamingResponseHandler<ResponseT, ReturnT> handler) {
+        return new StreamingResponseHandler<ResponseT, ReturnT>() {
+            @Override
+            public ReturnT apply(ResponseT response, AbortableInputStream inputStream) throws Exception {
+                return handler.apply(response, inputStream);
+            }
+
+            @Override
+            public boolean needsConnectionLeftOpen() {
+                return true;
+            }
+        };
+
     }
 }

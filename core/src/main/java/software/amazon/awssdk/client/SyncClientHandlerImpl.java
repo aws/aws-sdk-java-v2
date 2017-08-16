@@ -19,6 +19,7 @@ import software.amazon.awssdk.Request;
 import software.amazon.awssdk.RequestConfig;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkRequest;
+import software.amazon.awssdk.SdkResponse;
 import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
@@ -26,12 +27,16 @@ import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.annotation.ThreadSafe;
 import software.amazon.awssdk.config.SyncClientConfiguration;
 import software.amazon.awssdk.handlers.AwsExecutionAttributes;
+import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.ExecutionContext;
+import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullRequestAdapter;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
+import software.amazon.awssdk.sync.StreamingResponseHandler;
 import software.amazon.awssdk.util.CredentialUtils;
 
 /**
@@ -55,16 +60,46 @@ public class SyncClientHandlerImpl extends ClientHandler {
     }
 
     @Override
-    public <InputT extends SdkRequest, OutputT> OutputT execute(
+    public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> ReturnT execute(
+            ClientExecutionParams<InputT, OutputT> executionParams,
+            StreamingResponseHandler<OutputT, ReturnT> streamingResponseHandler) {
+        ExecutionContext executionContext = createExecutionContext(executionParams.getRequestConfig());
+        HttpResponseHandler<ReturnT> httpResponseHandler = new HttpResponseHandler<ReturnT>() {
+
+            @Override
+            public ReturnT handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
+                OutputT resp = interceptorCalling(executionParams.getResponseHandler(), executionContext)
+                        .handle(response, executionAttributes);
+                return streamingResponseHandler.apply(resp, new AbortableInputStream(response.getContent(), response));
+            }
+
+            @Override
+            public boolean needsConnectionLeftOpen() {
+                return streamingResponseHandler.needsConnectionLeftOpen();
+            }
+        };
+        return execute(executionParams, executionContext, httpResponseHandler);
+    }
+
+    @Override
+    public <InputT extends SdkRequest, OutputT extends SdkResponse> OutputT execute(
             ClientExecutionParams<InputT, OutputT> executionParams) {
         ExecutionContext executionContext = createExecutionContext(executionParams.getRequestConfig());
+        return execute(executionParams, executionContext, interceptorCalling(executionParams.getResponseHandler(),
+                                                                             executionContext));
+    }
+
+    private <InputT extends SdkRequest, OutputT, ReturnT> ReturnT execute(
+            ClientExecutionParams<InputT, OutputT> executionParams,
+            ExecutionContext executionContext,
+            HttpResponseHandler<ReturnT> responseHandler) {
         runBeforeExecutionInterceptors(executionContext);
         InputT inputT = runModifyRequestInterceptors(executionContext);
 
         AwsRequestMetrics awsRequestMetrics = executionContext.awsRequestMetrics();
         awsRequestMetrics.startEvent(AwsRequestMetrics.Field.ClientExecuteTime);
         Request<InputT> request = null;
-        OutputT response = null;
+        ReturnT response = null;
 
         try {
             awsRequestMetrics.startEvent(AwsRequestMetrics.Field.RequestMarshallTime);
@@ -89,7 +124,7 @@ public class SyncClientHandlerImpl extends ClientHandler {
             response = invoke(marshalled,
                               executionParams.getRequestConfig(),
                               executionContext,
-                              executionParams.getResponseHandler(),
+                              responseHandler,
                               executionParams.getErrorResponseHandler());
             return response;
         } catch (RuntimeException e) {
@@ -137,4 +172,5 @@ public class SyncClientHandlerImpl extends ClientHandler {
                      .errorResponseHandler(errorResponseHandler)
                      .execute(responseHandler);
     }
+
 }

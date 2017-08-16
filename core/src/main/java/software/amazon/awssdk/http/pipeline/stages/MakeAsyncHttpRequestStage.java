@@ -23,7 +23,6 @@ import org.reactivestreams.Publisher;
 import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.Response;
 import software.amazon.awssdk.SdkBaseException;
-import software.amazon.awssdk.SdkResponse;
 import software.amazon.awssdk.event.ProgressEventType;
 import software.amazon.awssdk.event.ProgressListener;
 import software.amazon.awssdk.http.AmazonHttpClient;
@@ -41,7 +40,6 @@ import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.http.async.SimpleRequestProvider;
 import software.amazon.awssdk.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.interceptor.InterceptorContext;
 
 /**
  * Delegate to the HTTP implementation to make an HTTP request and receive the response.
@@ -82,14 +80,14 @@ public class MakeAsyncHttpRequestStage<OutputT>
         SdkHttpResponseHandler<Response<OutputT>> handler = new ResponseHandler(request, future, listener, context);
 
         SdkHttpRequestProvider requestProvider = context.requestProvider() == null
-                                                 ? new SimpleRequestProvider(request, context.executionAttributes())
-                                                 : context.requestProvider();
+                ? new SimpleRequestProvider(request, context.executionAttributes())
+                : context.requestProvider();
         // Set content length if it hasn't been set already.
         SdkHttpFullRequest requestWithContentLength = getRequestWithContentLength(request, requestProvider);
 
         sdkAsyncHttpClient.prepareRequest(requestWithContentLength, SdkRequestContext.builder()
-                                                                    .metrics(context.awsRequestMetrics())
-                                                                    .build(),
+                                                                                     .metrics(context.awsRequestMetrics())
+                                                                                     .build(),
                                           requestProvider,
                                           handler)
                           .run();
@@ -134,7 +132,7 @@ public class MakeAsyncHttpRequestStage<OutputT>
          * @param request  Request being made
          * @param future   Future to notify when response has been handled.
          * @param listener Listener to report HTTP end event.
-         * @param context The current request execution context
+         * @param context  The current request execution context
          */
         private ResponseHandler(SdkHttpFullRequest request,
                                 CompletableFuture<Response<OutputT>> future,
@@ -193,34 +191,12 @@ public class MakeAsyncHttpRequestStage<OutputT>
 
         private Response<OutputT> handleResponse(HttpResponse httpResponse) {
             if (isSuccess) {
-                OutputT response = callExecutionInterceptors(responseHandler.complete());
+                OutputT response = responseHandler.complete();
                 return Response.fromSuccess(response, httpResponse);
             } else {
                 return Response.fromFailure(errorResponseHandler.complete(), httpResponse);
             }
         }
 
-        private OutputT callExecutionInterceptors(OutputT legacyResponse) {
-            // TODO: Big hack. Drop this when we drop the Response<> type.
-            // TODO: This is very similar to the way things are done in the sync HTTP client. Is there any way we can avoid
-            // that duplication?
-            SdkResponse response = (SdkResponse) legacyResponse;
-
-            // Update interceptor context
-            InterceptorContext interceptorContext =
-                    context.executionContext().interceptorContext().copy(b -> b.response(response));
-
-            // interceptors.afterUnmarshalling
-            context.interceptorChain().afterUnmarshalling(interceptorContext, context.executionAttributes());
-
-            // interceptors.modifyResponse
-            interceptorContext = context.interceptorChain().modifyResponse(interceptorContext, context.executionAttributes());
-
-            // Store updated context
-            context.executionContext().interceptorContext(interceptorContext);
-
-            // Super-huge hack. Drop this when we drop the Response<> type.
-            return (OutputT) interceptorContext.response();
-        }
     }
 }

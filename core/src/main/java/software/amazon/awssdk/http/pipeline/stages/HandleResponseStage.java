@@ -22,9 +22,9 @@ import java.io.InputStream;
 import java.util.Optional;
 import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.Response;
+import software.amazon.awssdk.RetryableException;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.SdkResponse;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.event.ProgressEventType;
 import software.amazon.awssdk.event.ProgressListener;
@@ -32,7 +32,6 @@ import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.interceptor.InterceptorContext;
 import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 
 /**
@@ -69,32 +68,11 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
                                              RequestExecutionContext context)
             throws IOException, InterruptedException {
         if (httpResponse.isSuccessful()) {
-            OutputT response = callExecutionInterceptors(handleSuccessResponse(httpResponse, context), context);
+            OutputT response = handleSuccessResponse(httpResponse, context);
             return Response.fromSuccess(response, httpResponse);
         } else {
             return Response.fromFailure(handleErrorResponse(httpResponse, context), httpResponse);
         }
-    }
-
-    private OutputT callExecutionInterceptors(OutputT legacyResponse, RequestExecutionContext context) {
-        // Super-huge hack. Drop this when we drop the Response<> type.
-        SdkResponse response = (SdkResponse) legacyResponse;
-
-        // Update interceptor context
-        InterceptorContext interceptorContext =
-                context.executionContext().interceptorContext().copy(b -> b.response(response));
-
-        // interceptors.afterUnmarshalling
-        context.interceptorChain().afterUnmarshalling(interceptorContext, context.executionAttributes());
-
-        // interceptors.modifyResponse
-        interceptorContext = context.interceptorChain().modifyResponse(interceptorContext, context.executionAttributes());
-
-        // Store updated context
-        context.executionContext().interceptorContext(interceptorContext);
-
-        // Super-huge hack. Drop this when we drop the Response<> type.
-        return (OutputT) interceptorContext.response();
     }
 
     /**
@@ -122,7 +100,7 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
             publishProgress(listener, ProgressEventType.HTTP_RESPONSE_COMPLETED_EVENT);
 
             return awsResponse;
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException | InterruptedException | RetryableException e) {
             throw e;
         } catch (Exception e) {
             String errorMessage =
@@ -170,7 +148,14 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
                         // Always close on failed requests. Close on successful unless streaming operation.
                         .filter(i -> didRequestFail || !successResponseHandler.needsConnectionLeftOpen());
         if (inputStreamOptional.isPresent()) {
-            inputStreamOptional.get().close();
+            try {
+                inputStreamOptional.get().close();
+            } catch (Exception e) {
+                // We don't want failure to close to hide the original exception.
+                if (!didRequestFail) {
+                    throw e;
+                }
+            }
         }
     }
 

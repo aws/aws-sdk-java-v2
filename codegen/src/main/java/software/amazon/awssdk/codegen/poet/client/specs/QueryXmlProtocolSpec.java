@@ -15,15 +15,12 @@
 
 package software.amazon.awssdk.codegen.poet.client.specs;
 
-import static software.amazon.awssdk.codegen.poet.client.AsyncClientInterface.STREAMING_TYPE_VARIABLE;
-
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
-import com.squareup.javapoet.TypeVariableName;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +36,6 @@ import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.http.DefaultErrorResponseHandler;
 import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.StaxResponseHandler;
-import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.runtime.transform.StandardErrorUnmarshaller;
 import software.amazon.awssdk.runtime.transform.StreamingRequestMarshaller;
 import software.amazon.awssdk.runtime.transform.Unmarshaller;
@@ -96,16 +92,13 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
     @Override
     public CodeBlock responseHandler(OperationModel opModel) {
         ClassName unmarshaller = poetExtensions.getTransformClass(opModel.getReturnType().getReturnType() + "Unmarshaller");
-        ClassName returnType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
-
+        ClassName responseType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
 
         if (opModel.hasStreamingOutput()) {
-            final ParameterizedTypeName responseHandlerType = ParameterizedTypeName
-                    .get(ClassName.get(HttpResponseHandler.class), STREAMING_TYPE_VARIABLE);
             return CodeBlock.builder()
-                            .addStatement("\n\n$T responseHandler = $T.createStreamingResponseHandler(" +
-                                          "new $T(), streamingHandler)",
-                                          responseHandlerType,
+                            .addStatement("\n\n$T<$T> responseHandler = $T.createStreamingResponseHandler(new $T())",
+                                          HttpResponseHandler.class,
+                                          responseType,
                                           StaxResponseHandler.class,
                                           unmarshaller)
                             .build();
@@ -113,28 +106,11 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
         return CodeBlock.builder()
                         .addStatement("\n\n$T<$T> responseHandler = new $T<$T>(new $T())",
                                       StaxResponseHandler.class,
-                                      returnType,
+                                      responseType,
                                       StaxResponseHandler.class,
-                                      returnType,
+                                      responseType,
                                       unmarshaller)
                         .build();
-    }
-
-    @Override
-    public CodeBlock asyncResponseHandler(OperationModel opModel) {
-        if (opModel.hasStreamingOutput()) {
-            ClassName unmarshaller = poetExtensions.getTransformClass(opModel.getReturnType().getReturnType() + "Unmarshaller");
-            return CodeBlock.builder()
-                            .addStatement("$T<$T> responseHandler = $T.createStreamingAsyncResponseHandler(" +
-                                          "new $T(), asyncResponseHandler)",
-                                          SdkHttpResponseHandler.class,
-                                          STREAMING_TYPE_VARIABLE,
-                                          StaxResponseHandler.class,
-                                          unmarshaller)
-                            .build();
-        } else {
-            return responseHandler(opModel);
-        }
     }
 
     @Override
@@ -148,8 +124,7 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
 
     @Override
     public CodeBlock executionHandler(OperationModel opModel) {
-        TypeName returnType = opModel.hasStreamingOutput() ? STREAMING_TYPE_VARIABLE :
-                poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
+        TypeName responseType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
         ClassName marshaller = poetExtensions.getTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
         CodeBlock.Builder codeBlock = CodeBlock
@@ -160,7 +135,7 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
                      ".withInput($L)",
                      ClientExecutionParams.class,
                      requestType,
-                     returnType,
+                     responseType,
                      "responseHandler",
                      "errorResponseHandler",
                      opModel.getInput().getVariableName());
@@ -170,7 +145,8 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
                                  marshaller)
                             .build();
         }
-        return codeBlock.add(".withMarshaller(new $T()));", marshaller).build();
+        return codeBlock.add(".withMarshaller(new $T()) $L);", marshaller,
+                             opModel.hasStreamingOutput() ? ", streamingResponseHandler" : "").build();
     }
 
     @Override
@@ -181,21 +157,19 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
 
         String asyncRequestProvider = opModel.hasStreamingInput() ? ".withAsyncRequestProvider(requestProvider)"
                 : "";
-        TypeName returnType = opModel.hasStreamingOutput() ? TypeVariableName.get("ReturnT") : pojoResponseType;
-        String responseHandler = opModel.hasStreamingOutput() ? ".withAsyncResponseHandler(responseHandler)"
-                : ".withResponseHandler(responseHandler)";
         return CodeBlock.builder().add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n" +
                                        ".withMarshaller(new $T())" +
-                                       responseHandler +
+                                       ".withResponseHandler(responseHandler)" +
                                        ".withErrorResponseHandler($N)\n" +
                                        asyncRequestProvider +
-                                       ".withInput($L));",
+                                       ".withInput($L) $L);",
                                        ClientExecutionParams.class,
                                        requestType,
-                                       returnType,
+                                       pojoResponseType,
                                        marshaller,
                                        "errorResponseHandler",
-                                       opModel.getInput().getVariableName())
+                                       opModel.getInput().getVariableName(),
+                                       opModel.hasStreamingOutput() ? ", asyncResponseHandler" : "")
                         .build();
     }
 
