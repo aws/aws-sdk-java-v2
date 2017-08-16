@@ -17,6 +17,8 @@ package software.amazon.awssdk.utils;
 
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
+import java.util.function.BiFunction;
+
 /**
  * Simple struct of two values, possibly of different types.
  *
@@ -46,4 +48,16 @@ public final class Pair<LeftT, RightT> {
     public RightT right() {
         return this.right;
     }
+
+    /**
+     * Apply the function to both the left and right values and return the transformed result.
+     *
+     * @param function  Function to apply on the {@link Pair}
+     * @param <ReturnT> Transformed return type of {@link BiFunction}.
+     * @return Result of {@link BiFunction} applied on left and right values of the pair.
+     */
+    public <ReturnT> ReturnT apply(BiFunction<LeftT, RightT, ReturnT> function) {
+        return function.apply(left, right);
+    }
+
 }

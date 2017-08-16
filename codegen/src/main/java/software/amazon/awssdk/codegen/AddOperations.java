@@ -194,9 +194,6 @@ final class AddOperations {
                 }
             }
 
-            // TODO: find the stream input parameter
-            operationModel.setInputStreamPropertyName(null);
-
             javaOperationModels.put(operationName, operationModel);
         }
 

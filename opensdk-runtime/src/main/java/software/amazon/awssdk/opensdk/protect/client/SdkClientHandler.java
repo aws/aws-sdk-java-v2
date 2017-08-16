@@ -16,6 +16,7 @@
 package software.amazon.awssdk.opensdk.protect.client;
 
 import software.amazon.awssdk.SdkRequest;
+import software.amazon.awssdk.SdkResponse;
 import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.ThreadSafe;
@@ -23,6 +24,7 @@ import software.amazon.awssdk.client.ClientExecutionParams;
 import software.amazon.awssdk.client.ClientHandler;
 import software.amazon.awssdk.client.SyncClientHandlerImpl;
 import software.amazon.awssdk.config.SyncClientConfiguration;
+import software.amazon.awssdk.sync.StreamingResponseHandler;
 
 /**
  * Client handler for Open SDK generated clients. Handles exception translation and delegates to the default implementation of
@@ -41,9 +43,16 @@ public class SdkClientHandler extends ClientHandler {
     }
 
     @Override
-    public <InputT extends SdkRequest, OutputT> OutputT execute(
+    public <InputT extends SdkRequest, OutputT extends SdkResponse> OutputT execute(
             ClientExecutionParams<InputT, OutputT> executionParams) {
         return delegateHandler.execute(addRequestConfig(executionParams));
+    }
+
+    @Override
+    public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> ReturnT execute(
+            ClientExecutionParams<InputT, OutputT> executionParams,
+            StreamingResponseHandler<OutputT, ReturnT> streamingResponseHandler) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

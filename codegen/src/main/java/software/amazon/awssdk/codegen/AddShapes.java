@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.codegen;
 
-import static software.amazon.awssdk.codegen.internal.DocumentationUtils.generateGetterDocumentation;
-import static software.amazon.awssdk.codegen.internal.DocumentationUtils.generateSetterDocumentation;
 import static software.amazon.awssdk.codegen.internal.TypeUtils.LIST_DEFAULT_IMPL;
 import static software.amazon.awssdk.codegen.internal.TypeUtils.LIST_INTERFACE;
 import static software.amazon.awssdk.codegen.internal.TypeUtils.MAP_DEFAULT_IMPL;
@@ -161,13 +159,13 @@ abstract class AddShapes {
 
         final MemberModel memberModel = new MemberModel();
 
-        memberModel.withC2jName(c2jMemberName).withC2jShape(c2jShapeName)
-                .withName(capitialize(c2jMemberName)).withVariable(
-                new VariableModel(variableName, variableType, variableDeclarationType)
-                        .withDocumentation(c2jMemberDefinition.getDocumentation())).withSetterModel(
-                new VariableModel(variableName, variableType, variableDeclarationType)
-                        .withDocumentation(generateSetterDocumentation())).withGetterModel(
-                new ReturnTypeModel(variableType).withDocumentation(generateGetterDocumentation()));
+        memberModel.withC2jName(c2jMemberName)
+                   .withC2jShape(c2jShapeName)
+                   .withName(capitialize(c2jMemberName))
+                   .withVariable(new VariableModel(variableName, variableType, variableDeclarationType)
+                                         .withDocumentation(c2jMemberDefinition.getDocumentation()))
+                   .withSetterModel(new VariableModel(variableName, variableType, variableDeclarationType))
+                   .withGetterModel(new ReturnTypeModel(variableType));
         memberModel.setDocumentation(c2jMemberDefinition.getDocumentation());
         memberModel.setDeprecated(c2jMemberDefinition.isDeprecated());
         memberModel

@@ -17,6 +17,7 @@ package software.amazon.awssdk.client;
 
 import software.amazon.awssdk.Request;
 import software.amazon.awssdk.RequestConfig;
+import software.amazon.awssdk.SdkResponse;
 import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.config.AdvancedClientOption;
@@ -24,6 +25,7 @@ import software.amazon.awssdk.config.ClientConfiguration;
 import software.amazon.awssdk.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.handlers.AwsExecutionAttributes;
 import software.amazon.awssdk.http.ExecutionContext;
+import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptorChain;
@@ -38,18 +40,18 @@ abstract class BaseClientHandler {
     private final ServiceAdvancedConfiguration serviceAdvancedConfiguration;
 
     BaseClientHandler(ClientConfiguration clientConfiguration,
-                  ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
+                      ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
         this.clientConfiguration = clientConfiguration;
         this.serviceAdvancedConfiguration = serviceAdvancedConfiguration;
     }
 
     ExecutionContext createExecutionContext(RequestConfig requestConfig) {
         AwsRequestMetrics requestMetrics = isRequestMetricsEnabled(requestConfig) ? new AwsRequestMetricsFullSupport()
-                                                                                  : new AwsRequestMetrics();
+                : new AwsRequestMetrics();
 
         AwsCredentialsProvider credentialsProvider = requestConfig.getCredentialsProvider() != null
-                                                     ? requestConfig.getCredentialsProvider()
-                                                     : clientConfiguration.credentialsProvider();
+                ? requestConfig.getCredentialsProvider()
+                : clientConfiguration.credentialsProvider();
 
         ClientOverrideConfiguration overrideConfiguration = clientConfiguration.overrideConfiguration();
         ExecutionAttributes executionAttributes =
@@ -99,7 +101,7 @@ abstract class BaseClientHandler {
     private RequestMetricCollector clientRequestMetricCollector() {
         RequestMetricCollector clientLevelMetricCollector = clientConfiguration.overrideConfiguration().requestMetricCollector();
         return clientLevelMetricCollector != null ? clientLevelMetricCollector :
-               AwsSdkMetrics.getRequestMetricCollector();
+                AwsSdkMetrics.getRequestMetricCollector();
     }
 
 
@@ -107,9 +109,9 @@ abstract class BaseClientHandler {
      * Convenient method to end the client execution without logging the awsRequestMetrics.
      */
     void endClientExecution(AwsRequestMetrics awsRequestMetrics,
-                                    RequestConfig requestConfig,
-                                    Request<?> request,
-                                    Object response) {
+                            RequestConfig requestConfig,
+                            Request<?> request,
+                            Object response) {
         if (request != null) {
             awsRequestMetrics.endEvent(AwsRequestMetrics.Field.ClientExecuteTime);
             awsRequestMetrics.getTimingInfo().endTiming();
@@ -162,5 +164,27 @@ abstract class BaseClientHandler {
                                                                       executionContext.executionAttributes());
         executionContext.interceptorContext(interceptorContext);
         return interceptorContext.httpRequest();
+    }
+
+    private <OutputT extends SdkResponse> OutputT runAfterUnmarshallingInterceptors(OutputT response,
+                                                                                    ExecutionContext context) {
+        // Update interceptor context to include response
+        InterceptorContext interceptorContext =
+                context.interceptorContext().copy(b -> b.response(response));
+
+        context.interceptorChain().afterUnmarshalling(interceptorContext, context.executionAttributes());
+
+        interceptorContext = context.interceptorChain().modifyResponse(interceptorContext, context.executionAttributes());
+
+        // Store updated context
+        context.interceptorContext(interceptorContext);
+
+        return (OutputT) interceptorContext.response();
+    }
+
+    public <OutputT extends SdkResponse> HttpResponseHandler<OutputT> interceptorCalling(HttpResponseHandler<OutputT> delegate,
+                                                                                         ExecutionContext context) {
+        return (response, executionAttributes) ->
+                runAfterUnmarshallingInterceptors(delegate.handle(response, executionAttributes), context);
     }
 }

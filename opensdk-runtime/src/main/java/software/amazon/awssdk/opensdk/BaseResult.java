@@ -15,12 +15,13 @@
 
 package software.amazon.awssdk.opensdk;
 
+import software.amazon.awssdk.SdkResponse;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 
 /**
  * Base type for all response types.
  */
-public abstract class BaseResult {
+public abstract class BaseResult extends SdkResponse {
 
     private SdkResponseMetadata sdkResponseMetadata;
 

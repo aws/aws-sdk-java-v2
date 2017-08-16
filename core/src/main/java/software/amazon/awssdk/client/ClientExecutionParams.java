@@ -19,13 +19,11 @@ import software.amazon.awssdk.Request;
 import software.amazon.awssdk.RequestConfig;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkRequest;
-import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.NotThreadSafe;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.async.AsyncRequestProvider;
 import software.amazon.awssdk.http.HttpResponseHandler;
-import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.runtime.transform.Marshaller;
 
 /**
@@ -42,11 +40,9 @@ public class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private InputT input;
     private AsyncRequestProvider asyncRequestProvider;
     private Marshaller<Request<InputT>, InputT> marshaller;
-    private SdkHttpResponseHandler<OutputT> asyncResponseHandler;
     private HttpResponseHandler<OutputT> responseHandler;
     private HttpResponseHandler<? extends SdkBaseException> errorResponseHandler;
     private RequestConfig requestConfig;
-    private ServiceAdvancedConfiguration serviceAdvancedConfiguration;
 
     public Marshaller<Request<InputT>, InputT> getMarshaller() {
         return marshaller;
@@ -64,16 +60,6 @@ public class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
 
     public ClientExecutionParams<InputT, OutputT> withInput(InputT input) {
         this.input = input;
-        return this;
-    }
-
-    public SdkHttpResponseHandler<OutputT> getAsyncResponseHandler() {
-        return asyncResponseHandler;
-    }
-
-    public ClientExecutionParams<InputT, OutputT> withAsyncResponseHandler(
-            SdkHttpResponseHandler<OutputT> asyncResponseHandler) {
-        this.asyncResponseHandler = asyncResponseHandler;
         return this;
     }
 

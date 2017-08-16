@@ -401,8 +401,8 @@ public class AmazonHttpClient implements SdkAutoCloseable {
             // execution interceptor context. We should combine these two methods when we refactor the way request execution
             // contexts work.
             if (request != null && executionContext != null) {
-                executionContext = executionContext.copy(b -> b.interceptorContext(
-                        executionContext.interceptorContext().copy(ib -> ib.httpRequest(request))));
+                executionContext.interceptorContext(
+                        executionContext.interceptorContext().copy(ib -> ib.httpRequest(request)));
             }
 
             try {

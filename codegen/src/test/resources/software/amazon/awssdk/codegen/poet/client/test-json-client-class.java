@@ -78,9 +78,9 @@ final class DefaultJsonClient implements JsonClient {
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
      * @throws SdkClientException
-     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc)
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
      * @throws JsonException
-     *         Base exception for all service exceptions. Unknown exceptions will be thrown as an instance of this type
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.APostOperation
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
@@ -90,7 +90,8 @@ final class DefaultJsonClient implements JsonClient {
                                                                                                      SdkBaseException, SdkClientException, JsonException {
 
         HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true), new APostOperationResponseUnmarshaller());
+                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
+                new APostOperationResponseUnmarshaller());
 
         HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
 
@@ -112,9 +113,9 @@ final class DefaultJsonClient implements JsonClient {
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
      * @throws SdkClientException
-     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc)
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
      * @throws JsonException
-     *         Base exception for all service exceptions. Unknown exceptions will be thrown as an instance of this type
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.APostOperationWithOutput
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperationWithOutput"
      *      target="_top">AWS API Documentation</a>
@@ -125,7 +126,8 @@ final class DefaultJsonClient implements JsonClient {
                                                                                     SdkClientException, JsonException {
 
         HttpResponseHandler<APostOperationWithOutputResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true), new APostOperationWithOutputResponseUnmarshaller());
+                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
+                new APostOperationWithOutputResponseUnmarshaller());
 
         HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
 
@@ -149,35 +151,9 @@ final class DefaultJsonClient implements JsonClient {
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
      * @throws SdkClientException
-     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc)
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
      * @throws JsonException
-     *         Base exception for all service exceptions. Unknown exceptions will be thrown as an instance of this type
-     * @sample JsonClient.GetWithoutRequiredMembers
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
-     *      target="_top">AWS API Documentation</a>
-     */
-    @Override
-    public GetWithoutRequiredMembersResponse getWithoutRequiredMembers() throws InvalidInputException, SdkBaseException,
-                                                                                SdkClientException, JsonException {
-        return getWithoutRequiredMembers(GetWithoutRequiredMembersRequest.builder().build());
-    }
-
-    /**
-     * <p>
-     * Performs a post operation to the query service and has no output
-     * </p>
-     *
-     * @param getWithoutRequiredMembersRequest
-     * @return Result of the GetWithoutRequiredMembers operation returned by the service.
-     * @throws InvalidInputException
-     *         The request was rejected because an invalid or out-of-range value was supplied for an input parameter.
-     * @throws SdkBaseException
-     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
-     *         catch all scenarios.
-     * @throws SdkClientException
-     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc)
-     * @throws JsonException
-     *         Base exception for all service exceptions. Unknown exceptions will be thrown as an instance of this type
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.GetWithoutRequiredMembers
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
      *      target="_top">AWS API Documentation</a>
@@ -188,7 +164,8 @@ final class DefaultJsonClient implements JsonClient {
                                                                                       SdkClientException, JsonException {
 
         HttpResponseHandler<GetWithoutRequiredMembersResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true), new GetWithoutRequiredMembersResponseUnmarshaller());
+                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
+                new GetWithoutRequiredMembersResponseUnmarshaller());
 
         HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
 
@@ -213,8 +190,15 @@ final class DefaultJsonClient implements JsonClient {
      * </pre>
      *
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
-     *        The service documentation for the request content is as follows 'This be a stream'.
+     *        The service documentation for the request content is as follows 'This be a stream'
      * @return Result of the StreamingInputOperation operation returned by the service.
+     * @throws SdkBaseException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingInputOperation
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
      *      target="_top">AWS API Documentation</a>
@@ -224,7 +208,8 @@ final class DefaultJsonClient implements JsonClient {
                                                                    RequestBody requestBody) throws SdkBaseException, SdkClientException, JsonException {
 
         HttpResponseHandler<StreamingInputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true), new StreamingInputOperationResponseUnmarshaller());
+                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
+                new StreamingInputOperationResponseUnmarshaller());
 
         HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
 
@@ -246,26 +231,38 @@ final class DefaultJsonClient implements JsonClient {
      *        StreamingInputOperationRequest and an InputStream to the response content are provided as parameters to
      *        the callback. The callback may return a transformed type which will be the return value of this method.
      *        See {@link software.amazon.awssdk.runtime.transform.StreamingResponseHandler} for details on implementing
-     *        this interface and for links to precanned implementations for common scenarios like downloading to a file.
-     *        The service documentation for the response content is as follows 'This be a stream'.
+     *        this interface and for links to pre-canned implementations for common scenarios like downloading to a
+     *        file. The service documentation for the response content is as follows 'This be a stream'.
      * @return The transformed result of the StreamingResponseHandler.
+     * @throws SdkBaseException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingOutputOperation
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     @Override
     public <ReturnT> ReturnT streamingOutputOperation(StreamingOutputOperationRequest streamingOutputOperationRequest,
-                                                      StreamingResponseHandler<StreamingOutputOperationResponse, ReturnT> streamingHandler) throws SdkBaseException,
-                                                                                                                                                   SdkClientException, JsonException {
-        HttpResponseHandler<ReturnT> responseHandler = protocolFactory.createStreamingResponseHandler(
-                new StreamingOutputOperationResponseUnmarshaller(), streamingHandler);
+                                                      StreamingResponseHandler<StreamingOutputOperationResponse, ReturnT> streamingResponseHandler)
+            throws SdkBaseException, SdkClientException, JsonException {
+
+        HttpResponseHandler<StreamingOutputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
+                new JsonOperationMetadata().withPayloadJson(false).withHasStreamingSuccessResponse(true),
+                new StreamingOutputOperationResponseUnmarshaller());
 
         HttpResponseHandler<AmazonServiceException> errorResponseHandler = createErrorResponseHandler();
 
-        return clientHandler.execute(new ClientExecutionParams<StreamingOutputOperationRequest, ReturnT>()
-                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                             .withInput(streamingOutputOperationRequest)
-                                             .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)));
+        return clientHandler
+                .execute(
+                        new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
+                                .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                .withInput(streamingOutputOperationRequest)
+                                .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)),
+                        streamingResponseHandler);
     }
 
     private HttpResponseHandler<AmazonServiceException> createErrorResponseHandler() {
@@ -295,4 +292,3 @@ final class DefaultJsonClient implements JsonClient {
         clientHandler.close();
     }
 }
-

@@ -34,13 +34,6 @@ public interface ProtocolSpec {
 
     CodeBlock responseHandler(OperationModel opModel);
 
-    /**
-     * Response handler only differs for protocols that support streaming outputs (REST-JSON, REST-XML).
-     */
-    default CodeBlock asyncResponseHandler(OperationModel opModel) {
-        return responseHandler(opModel);
-    }
-
     CodeBlock errorResponseHandler(OperationModel opModel);
 
     CodeBlock executionHandler(OperationModel opModel);

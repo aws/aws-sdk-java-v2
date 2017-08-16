@@ -17,8 +17,10 @@ package software.amazon.awssdk.client;
 
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.SdkRequest;
+import software.amazon.awssdk.SdkResponse;
 import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.async.AsyncResponseHandler;
 import software.amazon.awssdk.config.ClientConfiguration;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
@@ -42,6 +44,21 @@ public abstract class AsyncClientHandler extends BaseClientHandler implements Sd
      * @param <OutputT>       Output POJO type
      * @return Unmarshalled output POJO type.
      */
-    public abstract <InputT extends SdkRequest, OutputT> CompletableFuture<OutputT> execute(
+    public abstract <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<OutputT> execute(
             ClientExecutionParams<InputT, OutputT> executionParams);
+
+    /**
+     * Execute's a streaming web service request. Handles marshalling and unmarshalling of data and making the
+     * underlying HTTP call(s).
+     *
+     * @param executionParams      Parameters specific to this invocation of an API.
+     * @param asyncResponseHandler Response handler to consume streaming data in an asynchronous fashion.
+     * @param <InputT>             Input POJO type
+     * @param <OutputT>            Output POJO type
+     * @param <ReturnT>            Transformed result returned by asyncResponseHandler.
+     * @return CompletableFuture containing transformed result type as returned by asyncResponseHandler.
+     */
+    public abstract <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> CompletableFuture<ReturnT> execute(
+            ClientExecutionParams<InputT, OutputT> executionParams,
+            AsyncResponseHandler<OutputT, ReturnT> asyncResponseHandler);
 }
