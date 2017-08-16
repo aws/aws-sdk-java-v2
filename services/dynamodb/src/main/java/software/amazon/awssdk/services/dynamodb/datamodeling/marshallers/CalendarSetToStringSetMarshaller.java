@@ -15,13 +15,14 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling.marshallers;
 
+import static software.amazon.awssdk.util.DateUtils.formatIso8601Date;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
 import software.amazon.awssdk.services.dynamodb.datamodeling.ArgumentMarshaller.StringSetAttributeMarshaller;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.util.DateUtils;
 
 /**
  * A marshaller that marshals sets of Java {@code Calendar} objects into
@@ -46,8 +47,8 @@ public class CalendarSetToStringSetMarshaller
         Set<Calendar> dates = (Set<Calendar>) obj;
 
         List<String> timestamps = new ArrayList<String>(dates.size());
-        for (Calendar date : dates) {
-            timestamps.add(DateUtils.formatIso8601Date(date.getTime()));
+        for (Calendar calendar : dates) {
+            timestamps.add(formatIso8601Date(calendar.toInstant()));
         }
 
         return AttributeValue.builder().ss(timestamps).build();

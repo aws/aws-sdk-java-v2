@@ -27,7 +27,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
-import java.util.Date;
 
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.ThreadSafe;
@@ -47,25 +46,13 @@ public class DateUtils {
     private static final int AWS_DATE_MILLI_SECOND_PRECISION = 3;
 
     /**
-     * This is another ISO 8601 format that's used in clock skew error response
-     */
-    private static final DateTimeFormatter COMPRESSED_ISO_8601_DATE_FORMAT =
-            new DateTimeFormatterBuilder()
-                        .parseCaseInsensitive()
-                        .appendPattern("yyyyMMdd'T'HHmmss'Z'")
-                        .toFormatter()
-                        .withZone(UTC);
-
-    private static final String MIN_SIGNED_YEAR_PREFIX = "292278994-";
-
-    /**
-     * Parses the specified date string as an ISO 8601 date (yyyy-MM-dd'T'HH:mm:ss.SSSZZ) and returns the Date
-     * object.
+     * Parses the specified date string as an ISO 8601 date (yyyy-MM-dd'T'HH:mm:ss.SSSZZ)
+     * and returns the {@link Instant} object.
      *
      * @param dateString
      *            The date string to parse.
      *
-     * @return The parsed Date object.
+     * @return The parsed Instant object.
      */
     public static Instant parseIso8601Date(String dateString) {
         // For EC2 Spot Fleet.
@@ -80,18 +67,6 @@ public class DateUtils {
         } catch (DateTimeParseException e) {
             return parseInstant(dateString, ALTERNATE_ISO_8601_DATE_FORMAT);
         }
-    }
-
-    /**
-     * Formats the specified date as an ISO 8601 string.
-     *
-     * @param date
-     *            The date to format.
-     *
-     * @return The ISO 8601 string representing the specified date.
-     */
-    public static String formatIso8601Date(Date date) {
-        return ISO_INSTANT.format(ZonedDateTime.ofInstant(date.toInstant(), UTC));
     }
 
     /**

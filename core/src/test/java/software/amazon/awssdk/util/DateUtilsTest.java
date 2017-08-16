@@ -17,7 +17,6 @@ package software.amazon.awssdk.util;
 
 import static java.time.ZoneOffset.UTC;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
-import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -28,6 +27,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -67,7 +67,7 @@ public class DateUtilsTest {
     public void formatIso8601Date() throws ParseException {
         Date date = Date.from(INSTANT);
         String expected = COMMON_DATE_FORMAT.format(date);
-        String actual = DateUtils.formatIso8601Date(date);
+        String actual = DateUtils.formatIso8601Date(date.toInstant());
         assertEquals(expected, actual);
 
         Instant expectedDate = COMMON_DATE_FORMAT.parse(expected).toInstant();
@@ -144,7 +144,7 @@ public class DateUtilsTest {
         if (DEBUG) {
             System.out.println("date: " + expected);
         }
-        String formatted = ISO_INSTANT.format(expected);
+        String formatted = DateUtils.formatIso8601Date(expected);
         if (DEBUG) {
             System.out.println("formatted: " + formatted);
         }
@@ -168,8 +168,8 @@ public class DateUtilsTest {
                 ZonedDateTime.ofInstant(Instant.ofEpochMilli(Long.MAX_VALUE), UTC));
         System.out.println("s: " + s);
 
-        Instant parsed = DateTimeFormatter.ISO_INSTANT.withZone(UTC).parse(s, Instant::from);
-        assertTrue(ZonedDateTime.ofInstant(parsed, UTC).getYear() == MAX_MILLIS_YEAR);
+        Instant parsed = DateUtils.parseIso8601Date(s);
+        assertEquals(ZonedDateTime.ofInstant(parsed, UTC).getYear(), MAX_MILLIS_YEAR);
     }
 
     @Test
@@ -200,7 +200,7 @@ public class DateUtilsTest {
         String serverSpecificDateFormat = DateUtils.formatServiceSpecificDate(instant);
         Instant parsed = DateUtils.parseServiceSpecificInstant(String.valueOf(serverSpecificDateFormat));
 
-        assertEquals(String.valueOf(instant.toEpochMilli()), String.valueOf(parsed.toEpochMilli()));
+        assertEquals(instant, parsed);
     }
 
     // See https://forums.aws.amazon.com/thread.jspa?threadID=158756
@@ -246,9 +246,9 @@ public class DateUtilsTest {
     public void numberOfDaysSinceEpoch() {
         final long now = System.currentTimeMillis();
         final long days = DateUtils.numberOfDaysSinceEpoch(now);
-        final long oneDayMilli = TimeUnit.DAYS.toMillis(1);
+        final long oneDayMilli = Duration.ofDays(1).toMillis();
         // Could be equal at 00:00:00.
-        assertTrue(now >= TimeUnit.DAYS.toMillis(days));
-        assertTrue((now - TimeUnit.DAYS.toMillis(days)) <= oneDayMilli);
+        assertTrue(now >=  Duration.ofDays(days).toMillis());
+        assertTrue((now -  Duration.ofDays(days).toMillis()) <= oneDayMilli);
     }
 }

@@ -950,7 +950,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
         private static final ToString<Date> FROM_DATE = new ToString<Date>() {
             @Override
             public String convert(final Date o) {
-                return DateUtils.formatIso8601Date(o);
+                return DateUtils.formatIso8601Date(o.toInstant());
             }
         };
 
