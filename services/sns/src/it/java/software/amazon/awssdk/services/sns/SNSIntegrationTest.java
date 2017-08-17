@@ -20,7 +20,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,7 +38,6 @@ import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.AmazonServiceException.ErrorType;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.services.sns.model.AddPermissionRequest;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.CreateTopicResponse;
@@ -171,8 +176,6 @@ public class SNSIntegrationTest extends IntegrationTestBase {
      * Tests that we can invoke operations on Cloudcast and correctly interpret the responses.
      */
     @Test
-    @ReviewBeforeRelease("This test uses a hardcoded certifacte. We should really download the cert from the SigningCertURL " +
-                         "in case SNS rotates their cert in the future.")
     public void testCloudcastOperations() throws Exception {
 
         // Create Topic
@@ -239,9 +242,8 @@ public class SNSIntegrationTest extends IntegrationTestBase {
         assertNotNull(messageDetails.get("Signature"));
 
         // Verify Message Signature
-        Certificate certificate = CertificateFactory.getInstance("X509")
-                                                    .generateCertificate(
-                                                            getClass().getResourceAsStream(SnsTestResources.PUBLIC_CERT));
+        Certificate certificate = getCertificate(messageDetails.get("SigningCertURL"));
+
         assertTrue(signatureChecker.verifyMessageSignature(message, certificate.getPublicKey()));
 
         // Add/Remove Permissions
@@ -420,4 +422,24 @@ public class SNSIntegrationTest extends IntegrationTestBase {
         return policy;
     }
 
+    private Certificate getCertificate(String certUrl) {
+        try {
+            return CertificateFactory.getInstance("X509").generateCertificate(getCertificateStream(certUrl));
+        } catch (CertificateException e) {
+            throw new RuntimeException("Unable to create certificate from " + certUrl, e);
+        }
+    }
+
+    private InputStream getCertificateStream(String certUrl) {
+        try {
+            URL cert = new URL(certUrl);
+            HttpURLConnection connection = (HttpURLConnection) cert.openConnection();
+            if (connection.getResponseCode() != 200) {
+                throw new RuntimeException("Received non 200 response when requesting certificate " + certUrl);
+            }
+            return connection.getInputStream();
+        } catch (IOException e) {
+            throw new UncheckedIOException("Unable to request certificate " + certUrl, e);
+        }
+    }
 }
