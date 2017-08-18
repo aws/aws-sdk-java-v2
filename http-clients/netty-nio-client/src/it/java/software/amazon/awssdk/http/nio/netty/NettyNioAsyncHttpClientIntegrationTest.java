@@ -56,6 +56,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+
+import io.netty.channel.nio.NioEventLoopGroup;
 import org.assertj.core.api.Condition;
 import org.junit.AfterClass;
 import org.junit.Rule;
@@ -155,10 +157,10 @@ public class NettyNioAsyncHttpClientIntegrationTest {
     public void customEventLoopGroup_NotClosedWhenClientIsClosed() throws Exception {
 
         ThreadFactory threadFactory = spy(new CustomThreadFactory());
-        EventLoopGroup eventLoopGroup = spy(DefaultEventLoopGroupFactory.builder()
-                                                                        .threadFactory(threadFactory)
-                                                                        .build()
-                                                                        .create());
+        // Cannot use DefaultEventLoopGroupFactory because the concrete
+        // implementation it creates is platform-dependent and could be a final
+        // (i.e. non-spyable) class.
+        EventLoopGroup eventLoopGroup = spy(new NioEventLoopGroup(0, threadFactory));
         EventLoopGroupConfiguration eventLoopGroupConfiguration =
                 EventLoopGroupConfiguration.builder()
                                            .eventLoopGroup(eventLoopGroup)

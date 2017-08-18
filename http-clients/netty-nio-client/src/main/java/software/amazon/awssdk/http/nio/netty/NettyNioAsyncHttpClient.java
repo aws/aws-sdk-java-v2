@@ -128,11 +128,11 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         // Keep unwrapping until it's not a DelegatingEventLoopGroup
         while (unwrapped instanceof DelegatingEventLoopGroup) {
             unwrapped = ((DelegatingEventLoopGroup) unwrapped).getDelegate();
-            if (unwrapped instanceof EpollEventLoopGroup) {
-                return EpollSocketChannel.class;
-            }
         }
-        // None of the wrapped event loop groups were Epoll so assume Nio.
+
+        if (unwrapped instanceof EpollEventLoopGroup) {
+            return EpollSocketChannel.class;
+        }
         return NioSocketChannel.class;
     }
 
