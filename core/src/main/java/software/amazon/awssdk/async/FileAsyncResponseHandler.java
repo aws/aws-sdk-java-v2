@@ -78,7 +78,9 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
 
     @Override
     public ResponseT complete() {
-        invokeSafely(fileChannel::close);
+        if (fileChannel != null) {
+            invokeSafely(fileChannel::close);
+        }
         return response;
     }
 
