@@ -18,9 +18,11 @@ package software.amazon.awssdk.test;
 import java.io.InputStream;
 import org.junit.BeforeClass;
 import software.amazon.awssdk.auth.AwsCredentials;
+import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.auth.ProfileCredentialsProvider;
+import software.amazon.awssdk.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.SystemPropertyCredentialsProvider;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -61,9 +63,18 @@ public abstract class AwsIntegrationTestBase {
 
     /**
      * @return AWSCredentials to use during tests. Setup by base fixture
+     * @deprecated by {@link #getCredentialsProvider()}
      */
+    @Deprecated
     protected static AwsCredentials getCredentials() {
         return credentials;
+    }
+
+    /**
+     * @return AwsCredentialsProvider to use during tests. Setup by base fixture
+     */
+    protected static AwsCredentialsProvider getCredentialsProvider() {
+        return new StaticCredentialsProvider(credentials);
     }
 
     /**

@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.Ignore;
 import org.junit.Test;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.services.sqs.model.ListQueuesRequest;
 
 /**
@@ -34,8 +33,8 @@ public class SqsConcurrentPerformanceIntegrationTest extends IntegrationTestBase
     @Test
     @Ignore
     public void testIdleConnectionReaping() throws Exception {
-        sqs = SQSAsyncClient.builder().credentialsProvider(new StaticCredentialsProvider(credentials)).build();
-        sqs = SQSAsyncClient.builder().credentialsProvider(new StaticCredentialsProvider(credentials)).build();
+        sqs = SQSAsyncClient.builder().credentialsProvider(getCredentialsProvider()).build();
+        sqs = SQSAsyncClient.builder().credentialsProvider(getCredentialsProvider()).build();
 
         List<WorkerThread> workers = new ArrayList<WorkerThread>();
         for (int i = 0; i < TOTAL_WORKER_THREADS; i++) {
