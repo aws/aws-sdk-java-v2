@@ -15,12 +15,14 @@
 
 package software.amazon.awssdk.services.sqs;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static software.amazon.awssdk.test.util.SdkAsserts.assertNotEmpty;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -28,6 +30,12 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.AmazonClientException;
+import software.amazon.awssdk.SdkResponse;
+import software.amazon.awssdk.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.interceptor.Context;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.sqs.model.DeleteQueueRequest;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
@@ -57,6 +65,41 @@ public class MessageAttributesIntegrationTest extends IntegrationTestBase {
     @After
     public void tearDown() throws Exception {
         sqsAsync.deleteQueue(DeleteQueueRequest.builder().queueUrl(queueUrl).build());
+    }
+
+    @Test
+    public void sendMessage_InvalidMd5_ThrowsException() {
+        try (SQSClient tamperingClient = SQSClient.builder()
+                                                  .credentialsProvider(getCredentialsProvider())
+                                                  .overrideConfiguration(ClientOverrideConfiguration
+                                                                                 .builder()
+                                                                                 .addLastExecutionInterceptor(
+                                                                                         new TamperingInterceptor())
+                                                                                 .build())
+                                                  .build()) {
+            tamperingClient.sendMessage(
+                    SendMessageRequest.builder()
+                                      .queueUrl(queueUrl)
+                                      .messageBody(MESSAGE_BODY)
+                                      .messageAttributes(createRandomAttributeValues(10))
+                                      .build());
+            fail("Expected AmazonClientException");
+        } catch (AmazonClientException e) {
+            assertThat(e.getMessage(), containsString("MD5 returned by SQS does not match"));
+        }
+    }
+
+    public static class TamperingInterceptor implements ExecutionInterceptor {
+
+        @Override
+        public SdkResponse modifyResponse(Context.ModifyResponse context, ExecutionAttributes executionAttributes) {
+            if (context.response() instanceof SendMessageResponse) {
+                return ((SendMessageResponse) context.response()).toBuilder()
+                                                                 .md5OfMessageBody("invalid-md5")
+                                                                 .build();
+            }
+            return context.response();
+        }
     }
 
     @Test
