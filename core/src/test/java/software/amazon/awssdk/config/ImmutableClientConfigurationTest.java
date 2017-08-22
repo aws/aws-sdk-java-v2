@@ -28,6 +28,7 @@ import software.amazon.awssdk.auth.DefaultCredentialsProvider;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.interceptor.Priority;
 import software.amazon.awssdk.internal.auth.NoOpSignerProvider;
 import software.amazon.awssdk.metrics.RequestMetricCollector;
 import software.amazon.awssdk.retry.v2.RetryPolicy;
@@ -97,7 +98,7 @@ public class ImmutableClientConfigurationTest {
                                           .advancedOption(AdvancedClientOption.SIGNER_PROVIDER, SIGNER_PROVIDER)
                                           .advancedOption(AdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION, false)
                                           .retryPolicy(RETRY_POLICY)
-                                          .addLastExecutionInterceptor(EXECUTION_INTERCEPTOR)
+                                          .addExecutionInterceptor(EXECUTION_INTERCEPTOR)
                                           .build();
     }
 }

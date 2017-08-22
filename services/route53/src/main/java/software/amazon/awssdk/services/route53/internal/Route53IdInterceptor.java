@@ -20,6 +20,7 @@ import software.amazon.awssdk.SdkResponse;
 import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.interceptor.Priority;
 import software.amazon.awssdk.services.route53.model.AliasTarget;
 import software.amazon.awssdk.services.route53.model.ChangeInfo;
 import software.amazon.awssdk.services.route53.model.ChangeResourceRecordSetsResponse;
@@ -47,6 +48,11 @@ import software.amazon.awssdk.services.route53.model.ResourceRecordSet;
  * partial resource path elements from IDs returned by Route 53.
  */
 public class Route53IdInterceptor implements ExecutionInterceptor {
+    @Override
+    public Priority priority() {
+        return Priority.SERVICE;
+    }
+
     @Override
     public SdkResponse modifyResponse(Context.ModifyResponse context, ExecutionAttributes executionAttributes) {
         SdkResponse response = context.response();

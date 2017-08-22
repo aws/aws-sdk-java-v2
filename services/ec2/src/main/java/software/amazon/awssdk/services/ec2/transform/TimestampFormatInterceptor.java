@@ -24,6 +24,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.interceptor.Priority;
 import software.amazon.awssdk.services.ec2.model.DescribeSpotFleetRequestHistoryRequest;
 import software.amazon.awssdk.services.ec2.model.RequestSpotFleetRequest;
 
@@ -39,6 +40,11 @@ public final class TimestampFormatInterceptor implements ExecutionInterceptor {
     private static final String START_TIME = "StartTime";
     private static final String VALID_FROM = "SpotFleetRequestConfig.ValidFrom";
     private static final String VALID_UNTIL = "SpotFleetRequestConfig.ValidUntil";
+
+    @Override
+    public Priority priority() {
+        return Priority.SERVICE;
+    }
 
     @Override
     public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {

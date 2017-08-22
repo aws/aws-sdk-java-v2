@@ -18,6 +18,7 @@ package software.amazon.awssdk.global.handlers;
 import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.interceptor.Priority;
 
 public class TestGlobalExecutionInterceptor implements ExecutionInterceptor {
 
@@ -29,6 +30,11 @@ public class TestGlobalExecutionInterceptor implements ExecutionInterceptor {
 
     public static boolean wasCalled() {
         return wasCalled;
+    }
+
+    @Override
+    public Priority priority() {
+        return Priority.USER;
     }
 
     @Override

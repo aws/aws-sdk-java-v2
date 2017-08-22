@@ -16,6 +16,7 @@
 package software.amazon.awssdk.interceptor;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 import software.amazon.awssdk.SdkRequest;
@@ -30,9 +31,9 @@ import software.amazon.awssdk.utils.Validate;
  * A wrapper for a list of {@link ExecutionInterceptor}s that ensures the interceptors are executed in the correct order as it
  * is documented in the {@link ExecutionInterceptor} documentation.
  *
- * Interceptors are invoked in forward order up to {@link #beforeTransmission} and in reverse order after (and including)
- * {@link #afterTransmission}. This ensures the last interceptors to modify the request are the first interceptors to see the
- * response.
+ * Interceptors are sorted in ascending order according to their {@link Priority}. Interceptors are invoked in order up to
+ * {@link #beforeTransmission} and in reverse order after (and including) {@link #afterTransmission}. This ensures the last
+ * interceptors to modify the request are the first interceptors to see the response.
  */
 @SdkInternalApi
 public class ExecutionInterceptorChain {
@@ -45,8 +46,14 @@ public class ExecutionInterceptorChain {
      */
     public ExecutionInterceptorChain(List<ExecutionInterceptor> interceptors) {
         this.interceptors = new ArrayList<>(Validate.paramNotNull(interceptors, "interceptors"));
+
+        // This sort must be stable in order to ensure that earlier interceptors in the list with a particular priority remain
+        // earlier in the list than other interceptors with that priority.
+        this.interceptors.sort(Comparator.comparing(ExecutionInterceptor::priority));
+
         LOG.debug(() -> "Creating an interceptor chain that will apply interceptors in the following order: " + interceptors);
     }
+
 
     public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
         interceptors.forEach(i -> i.beforeExecution(context, executionAttributes));

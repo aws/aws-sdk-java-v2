@@ -28,6 +28,7 @@ import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.interceptor.InterceptorContext;
+import software.amazon.awssdk.interceptor.Priority;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.EC2Client;
 import software.amazon.awssdk.services.ec2.model.CopySnapshotRequest;
@@ -39,6 +40,10 @@ import software.amazon.awssdk.util.SdkHttpUtils;
  * TODO: Is this actually right? What if a different interceptor modifies the message? Should this be treated as a signer?
  */
 public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
+    @Override
+    public Priority priority() {
+        return Priority.SERVICE;
+    }
 
     @Override
     public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {

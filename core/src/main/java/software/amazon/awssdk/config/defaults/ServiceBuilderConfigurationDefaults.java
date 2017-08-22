@@ -25,7 +25,6 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.handlers.ClasspathInterceptorChainFactory;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.runtime.auth.SignerProvider;
 
 /**
@@ -66,12 +65,9 @@ public class ServiceBuilderConfigurationDefaults extends ClientConfigurationDefa
         }
 
         ClasspathInterceptorChainFactory chainFactory = new ClasspathInterceptorChainFactory();
-
-        // Add service interceptors before the ones currently configured.
-        List<ExecutionInterceptor> serviceInterceptors = new ArrayList<>();
-        requestHandlerPaths.forEach(p -> serviceInterceptors.addAll(chainFactory.getInterceptors(p)));
-        serviceInterceptors.addAll(config.lastExecutionInterceptors());
-        builder.lastExecutionInterceptors(serviceInterceptors);
+        requestHandlerPaths.stream()
+                           .flatMap(p -> chainFactory.getInterceptors(p).stream())
+                           .forEach(builder::addExecutionInterceptor);
     }
 
     @Override

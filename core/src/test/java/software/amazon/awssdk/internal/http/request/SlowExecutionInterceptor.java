@@ -18,11 +18,16 @@ package software.amazon.awssdk.internal.http.request;
 import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.interceptor.Priority;
 
 /**
  * Implementation of {@link ExecutionInterceptor} with configurable wait times
  */
 public class SlowExecutionInterceptor implements ExecutionInterceptor {
+    @Override
+    public Priority priority() {
+        return Priority.USER;
+    }
 
     private int beforeTransmissionWait;
     private int afterTransmissionWait;

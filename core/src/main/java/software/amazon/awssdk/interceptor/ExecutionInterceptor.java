@@ -61,7 +61,7 @@ import software.amazon.awssdk.retry.v2.RetryPolicy;
  * <ol>
  *     <li><i>Override Configuration Interceptors</i> are the most common method for SDK users to register an interceptor. These
  *     interceptors are explicitly added to the client builder's override configuration when a client is created using the
- *     {@link software.amazon.awssdk.config.ClientOverrideConfiguration.Builder#addLastExecutionInterceptor(ExecutionInterceptor)}
+ *     {@link software.amazon.awssdk.config.ClientOverrideConfiguration.Builder#addExecutionInterceptor(ExecutionInterceptor)}
  *     method.</li>
  *
  *     <li><i>Global Interceptors</i> are interceptors loaded from the classpath for all clients. When any service client is
@@ -80,25 +80,12 @@ import software.amazon.awssdk.retry.v2.RetryPolicy;
  * <p>
  * <b>Interceptor Order</b>
  * The order in which interceptors are executed is sometimes relevant to the accuracy of the interceptor itself. For example, an
- * interceptor that adds a field to a message should be executed before an interceptor that reads and modifies that field.
- * Interceptor's order is determined by their method of registration. The following order is used:
- * <ol>
- *     <li><i>Global Interceptors</i>. Interceptors earlier in the classpath will be placed earlier in the interceptor order than
- *     interceptors later in the classpath. Interceptors earlier within a specific file on the classpath will be placed earlier in
- *     the order than interceptors later in the file.</li>
- *
- *     <li><i>Service Interceptors</i>. Interceptors earlier in the classpath will be placed earlier in the interceptor order than
- *     interceptors later in the classpath. Interceptors earlier within a specific file on the classpath will be placed earlier in
- *     the order than interceptors later in the file.</li>
- *
- *     <li><i>Override Configuration Interceptors</i>. Any interceptors registered using
- *     {@link software.amazon.awssdk.config.ClientOverrideConfiguration.Builder#addLastExecutionInterceptor(ExecutionInterceptor)}
- *     in the order they were added.</li>
- * </ol>
- * When a request is being processed (up to and including {@link #beforeTransmission}, interceptors are applied in forward-order,
- * according to the order described above. When a response is being processed (after and including {@link #afterTransmission},
- * interceptors are applied in reverse-order from the order described above. This means that the last interceptors to touch the
- * request are the first interceptors to touch the response.
+ * interceptor that adds an execution attribute should be executed before an interceptor that reads that attribute.<br />
+ * <br />
+ * When a request is being processed (up to and including {@link #beforeTransmission}, interceptors are applied in ascending order
+ * of {@link Priority}, retrieved via {@link #priority()}. When a response is being processed (after and including
+ * {@link #afterTransmission}, interceptors are applied in descending order of {@link Priority}. This means that the last
+ * interceptors to touch the request are the first interceptors to touch the response.
  * </p>
  *
  * <p>
@@ -110,6 +97,22 @@ import software.amazon.awssdk.retry.v2.RetryPolicy;
  * </p>
  */
 public interface ExecutionInterceptor {
+    /**
+     * The priority of this interceptor, specifying the order where it should appear in the {@link ExecutionInterceptorChain}.
+     *
+     * <p>This usually shouldn't be variable within the same instance of a client. It is only considered once when the interceptor
+     * is registered: at client creation time.</p>
+     *
+     * <p>Interceptor order usually does not matter and {@link Priority#USER} can be used. Priority only matters when there are
+     * dependencies between multiple interceptors (eg. Interceptor A must happen before Interceptor B, because A modifies the
+     * message in a way that B expects).</p>
+     *
+     * <p>See {@link ExecutionInterceptor} for more information about interceptor order.</p>
+     */
+    default Priority priority() {
+        return Priority.USER;
+    }
+
     /**
      * Read a request that has been given to a service client before it is modified by other interceptors.
      * {@link #beforeMarshalling} should be used in most circumstances for reading the request because it includes modifications

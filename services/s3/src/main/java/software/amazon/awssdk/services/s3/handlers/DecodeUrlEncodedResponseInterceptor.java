@@ -23,12 +23,17 @@ package software.amazon.awssdk.services.s3.handlers;
 
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.interceptor.Priority;
 //import software.amazon.awssdk.services.s3.model.ListObjectVersionsResponse;
 //import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 //import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 
 @ReviewBeforeRelease("Finish this and hook it up")
 public class DecodeUrlEncodedResponseInterceptor implements ExecutionInterceptor {
+    @Override
+    public Priority priority() {
+        return Priority.SERVICE;
+    }
 
     //    @Override
     //    public void afterResponse(Request<?> request, Response<?> response) {

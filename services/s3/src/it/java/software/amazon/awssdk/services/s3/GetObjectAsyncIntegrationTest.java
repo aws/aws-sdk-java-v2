@@ -34,6 +34,7 @@ import software.amazon.awssdk.http.async.SimpleSubscriber;
 import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.interceptor.Priority;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -115,7 +116,7 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
     private S3AsyncClient createClientWithInterceptor(ExecutionInterceptor assertingInterceptor) {
         return s3AsyncClientBuilder()
                 .overrideConfiguration(ClientOverrideConfiguration.builder()
-                                                                  .addLastExecutionInterceptor(assertingInterceptor)
+                                                                  .addExecutionInterceptor(assertingInterceptor)
                                                                   .build())
                 .build();
     }
@@ -127,6 +128,11 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
      * async.
      */
     public static class AssertingExecutionInterceptor implements ExecutionInterceptor {
+        @Override
+        public Priority priority() {
+            return Priority.USER;
+        }
+
         @Override
         public void afterUnmarshalling(Context.AfterUnmarshalling context, ExecutionAttributes executionAttributes) {
             // The response object should be the pojo. Not the result type of the AsyncResponseHandler
