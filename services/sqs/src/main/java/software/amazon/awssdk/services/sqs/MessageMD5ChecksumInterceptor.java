@@ -72,7 +72,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
     private static final Logger log = LoggerFactory.getLogger(MessageMD5ChecksumInterceptor.class);
 
     @Override
-    public void afterUnmarshalling(Context.AfterUnmarshalling context, ExecutionAttributes executionAttributes) {
+    public void afterExecution(Context.AfterExecution context, ExecutionAttributes executionAttributes) {
         Object response = context.response();
         Object originalRequest = context.request();
         if (response != null) {
