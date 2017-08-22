@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.sqs;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.AmazonClientException;
@@ -41,7 +42,7 @@ public class QueueUrlInterceptor implements ExecutionInterceptor {
     public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
         SdkHttpFullRequest request = context.httpRequest();
 
-        final Map<String, List<String>> requestParams = request.getParameters();
+        final Map<String, List<String>> requestParams = new HashMap<>(request.getParameters());
         final List<String> queueUrlParam = requestParams.get(QUEUE_URL_PARAMETER);
         if (queueUrlParam != null && !queueUrlParam.isEmpty()) {
             List<String> queueUrlParameter = requestParams.remove(QUEUE_URL_PARAMETER);
