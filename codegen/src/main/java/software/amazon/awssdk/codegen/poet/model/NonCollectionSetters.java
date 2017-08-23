@@ -73,10 +73,6 @@ class NonCollectionSetters extends AbstractMemberSetters {
 
         beanStyle.add(beanStyleAssignmentSetter());
 
-        if (memberModel().getEnumType() != null) {
-            beanStyle.add(beanStyleEnumToStringSetter());
-        }
-
         return beanStyle;
     }
 
@@ -103,12 +99,6 @@ class NonCollectionSetters extends AbstractMemberSetters {
     private MethodSpec fluentEnumToStringSetter(TypeName returnType) {
         return fluentSetterBuilder(modeledParam(), returnType)
                 .addCode(enumToStringAssignmentBody().toBuilder().addStatement("return this").build())
-                .build();
-    }
-
-    private MethodSpec beanStyleEnumToStringSetter() {
-        return beanStyleSetterBuilder(modeledParam())
-                .addCode(enumToStringAssignmentBody())
                 .build();
     }
 

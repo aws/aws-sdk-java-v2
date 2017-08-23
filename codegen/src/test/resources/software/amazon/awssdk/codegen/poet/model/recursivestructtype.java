@@ -276,11 +276,6 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
             this.recursiveList = RecursiveListTypeCopier.copy(recursiveList);
         }
 
-        @SafeVarargs
-        public final void setRecursiveList(RecursiveStructType... recursiveList) {
-            recursiveList(Arrays.asList(recursiveList));
-        }
-
         public final Map<String, RecursiveStructType> getRecursiveMap() {
             return recursiveMap;
         }
