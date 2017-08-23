@@ -88,11 +88,6 @@ class ListSetters extends AbstractMemberSetters {
         List<MethodSpec> beanStyle = new ArrayList<>();
 
         beanStyle.add(beanStyleCopySetter());
-        beanStyle.add(beanStyleVarargToListSetter());
-
-        if (memberModel().getEnumType() != null) {
-            beanStyle.add(beanStyleEnumVarargToListSetter());
-        }
 
         return beanStyle;
     }
@@ -128,14 +123,6 @@ class ListSetters extends AbstractMemberSetters {
                 .build();
     }
 
-    private MethodSpec beanStyleVarargToListSetter() {
-        return beanStyleSetterBuilder(ParameterSpec.builder(asArray(), fieldName()).build())
-                .varargs(true)
-                .addAnnotation(SafeVarargs.class)
-                .addCode(varargToListSetterBody())
-                .build();
-    }
-
     private MethodSpec fluentEnumVarargToListSetter(TypeName returnType) {
         return fluentSetterBuilder(ParameterSpec.builder(asArrayOfModeledEnum(), fieldName()).build(), returnType)
                 .varargs(true)
@@ -145,13 +132,6 @@ class ListSetters extends AbstractMemberSetters {
                 .build();
     }
 
-    private MethodSpec beanStyleEnumVarargToListSetter() {
-        return beanStyleSetterBuilder(ParameterSpec.builder(asArrayOfModeledEnum(), fieldName()).build())
-                .varargs(true)
-                .addAnnotation(SafeVarargs.class)
-                .addCode(enumVarargToListSetterBody())
-                .build();
-    }
 
     private CodeBlock varargToListSetterBody() {
         return CodeBlock.of("$1L($2T.asList($1L));", fieldName(), Arrays.class);

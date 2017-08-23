@@ -222,11 +222,6 @@ public class NestedContainersRequest extends AmazonWebServiceRequest implements
             this.listOfListOfStrings = ListOfListOfStringsCopier.copy(listOfListOfStrings);
         }
 
-        @SafeVarargs
-        public final void setListOfListOfStrings(Collection<String>... listOfListOfStrings) {
-            listOfListOfStrings(Arrays.asList(listOfListOfStrings));
-        }
-
         public final Collection<? extends Collection<? extends Collection<String>>> getListOfListOfListOfStrings() {
             return listOfListOfListOfStrings;
         }
@@ -248,11 +243,6 @@ public class NestedContainersRequest extends AmazonWebServiceRequest implements
         public final void setListOfListOfListOfStrings(
                 Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStrings) {
             this.listOfListOfListOfStrings = ListOfListOfListOfStringsCopier.copy(listOfListOfListOfStrings);
-        }
-
-        @SafeVarargs
-        public final void setListOfListOfListOfStrings(Collection<? extends Collection<String>>... listOfListOfListOfStrings) {
-            listOfListOfListOfStrings(Arrays.asList(listOfListOfListOfStrings));
         }
 
         public final Map<String, ? extends Collection<? extends Collection<String>>> getMapOfStringToListOfListOfStrings() {
