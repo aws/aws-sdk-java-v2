@@ -22,8 +22,8 @@ import software.amazon.awssdk.annotation.NotThreadSafe;
 import software.amazon.awssdk.config.ClientConfiguration;
 import software.amazon.awssdk.retry.PredefinedRetryPolicies;
 import software.amazon.awssdk.retry.RetryPolicy;
+import software.amazon.awssdk.util.UserAgentUtils;
 import software.amazon.awssdk.util.ValidationUtils;
-import software.amazon.awssdk.util.VersionInfoUtils;
 
 /**
  * Client configuration options such as proxy settings, user agent string, max retry attempts, etc.
@@ -43,7 +43,7 @@ public class LegacyClientConfiguration {
     public static final int DEFAULT_MAX_CONNECTIONS = 50;
 
     /** The default HTTP user agent header for AWS Java SDK clients. */
-    public static final String DEFAULT_USER_AGENT = VersionInfoUtils.getUserAgent();
+    public static final String DEFAULT_USER_AGENT = UserAgentUtils.getUserAgent();
 
     /**
      * Default request retry policy, including the maximum retry count of 3, the default retry

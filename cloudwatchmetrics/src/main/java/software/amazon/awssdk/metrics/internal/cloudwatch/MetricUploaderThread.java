@@ -21,13 +21,13 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataRequest;
-import software.amazon.awssdk.util.VersionInfoUtils;
+import software.amazon.awssdk.util.VersionInfo;
 
 /**
  * A internal daemon thread used to upload request metrics to Amazon CloudWatch.
  */
 class MetricUploaderThread extends Thread {
-    private static final String USER_AGENT = MetricUploaderThread.class.getName() + "/" + VersionInfoUtils.getVersion();
+    private static final String USER_AGENT = MetricUploaderThread.class.getName() + "/" + VersionInfo.SDK_VERSION;
     private static final String THREAD_NAME = "java-sdk-metric-uploader";
     private final CloudWatchClient cloudwatchClient;
     private final Logger log = LoggerFactory.getLogger(getClass());
