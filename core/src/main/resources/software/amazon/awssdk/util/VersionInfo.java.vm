@@ -15,25 +15,16 @@
 
 package software.amazon.awssdk.util;
 
-import static org.junit.Assert.assertNotNull;
+import javax.annotation.Generated;
 
-import org.junit.Test;
+@Generated("com.nativelibs4java:maven-velocity-plugin")
+public final class VersionInfo {
 
-public class VersionInfoUtilsTest {
-
-    @Test
-    public void getVersion() {
-        assertNotNull(VersionInfoUtils.getVersion());
-    }
-
-    @Test
-    public void OSGi() {
-        assertNotNull(VersionInfoUtils.class.getResource(VersionInfoUtils.VERSION_INFO_FILE));
-    }
-
-    @Test
-    public void userAgent() {
-        String userAgent = VersionInfoUtils.userAgent();
-        assertNotNull(userAgent);
-    }
+    /**
+     * Returns the current version for the AWS SDK in which this class is
+     * running. Version information is obtained from from the
+     * versionInfo.properties file which the AWS Java SDK build process
+     * generates.
+     */
+    public static final String SDK_VERSION = "${sdkVersion}";
 }

@@ -15,9 +15,7 @@
 
 package software.amazon.awssdk.util;
 
-import java.io.InputStream;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.jar.JarInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,64 +27,16 @@ import software.amazon.awssdk.utils.JavaSystemSetting;
  * Utility class for accessing AWS SDK versioning information.
  */
 @ThreadSafe
-public class VersionInfoUtils {
-    /** The AWS SDK version info file with SDK versioning info. */
-    static final String VERSION_INFO_FILE = "/software/amazon/awssdk/sdk/versionInfo.properties";
+public class UserAgentUtils {
 
     private static final String UA_STRING = "aws-sdk-{platform}/{version} {os.name}/{os.version} {java.vm.name}/{java.vm.version}"
                                             + "/{java.version}{language.and.region}{additional.languages}";
 
     /** Shared logger for any issues while loading version information. */
-    private static final Logger log = LoggerFactory.getLogger(VersionInfoUtils.class);
+    private static final Logger log = LoggerFactory.getLogger(UserAgentUtils.class);
     private static final String UNKNOWN = "unknown";
-    /** SDK version info. */
-    private static volatile String version;
-    /** SDK platform info. */
-    private static volatile String platform;
     /** User Agent info. */
     private static volatile String userAgent;
-
-    /**
-     * Returns the current version for the AWS SDK in which this class is
-     * running. Version information is obtained from from the
-     * versionInfo.properties file which the AWS Java SDK build process
-     * generates.
-     *
-     * @return The current version for the AWS SDK, if known, otherwise
-     *         returns a string indicating that the version information is
-     *         not available.
-     */
-    public static String getVersion() {
-        if (version == null) {
-            synchronized (VersionInfoUtils.class) {
-                if (version == null) {
-                    initializeVersion();
-                }
-            }
-        }
-        return version;
-    }
-
-    /**
-     * Returns the current platform for the AWS SDK in which this class is
-     * running. Version information is obtained from from the
-     * versionInfo.properties file which the AWS Java SDK build process
-     * generates.
-     *
-     * @return The current platform for the AWS SDK, if known, otherwise
-     *         returns a string indicating that the platform information is
-     *         not available.
-     */
-    public static String getPlatform() {
-        if (platform == null) {
-            synchronized (VersionInfoUtils.class) {
-                if (platform == null) {
-                    initializeVersion();
-                }
-            }
-        }
-        return platform;
-    }
 
     /**
      * @return Returns the User Agent string to be used when communicating with
@@ -95,39 +45,13 @@ public class VersionInfoUtils {
      */
     public static String getUserAgent() {
         if (userAgent == null) {
-            synchronized (VersionInfoUtils.class) {
+            synchronized (UserAgentUtils.class) {
                 if (userAgent == null) {
                     initializeUserAgent();
                 }
             }
         }
         return userAgent;
-    }
-
-    /**
-     * Loads the versionInfo.properties file from the AWS Java SDK and
-     * stores the information so that the file doesn't have to be read the
-     * next time the data is needed.
-     */
-    private static void initializeVersion() {
-        InputStream inputStream = ClassLoaderHelper.getResourceAsStream(
-                VERSION_INFO_FILE, true, VersionInfoUtils.class);
-        Properties versionInfoProperties = new Properties();
-        try {
-            if (inputStream == null) {
-                throw new Exception(VERSION_INFO_FILE + " not found on classpath");
-            }
-
-            versionInfoProperties.load(inputStream);
-            version = versionInfoProperties.getProperty("version");
-            platform = versionInfoProperties.getProperty("platform");
-        } catch (Exception e) {
-            log.info("Unable to load version information for the running SDK: " + e.getMessage());
-            version = "unknown-version";
-            platform = "java";
-        } finally {
-            IoUtils.closeQuietly(inputStream, log);
-        }
     }
 
     /**
@@ -144,8 +68,8 @@ public class VersionInfoUtils {
         String ua = UA_STRING;
 
         ua = ua
-                .replace("{platform}", StringUtils.lowerCase(getPlatform()))
-                .replace("{version}", getVersion())
+                .replace("{platform}", "java")
+                .replace("{version}", VersionInfo.SDK_VERSION)
                 .replace("{os.name}", replaceSpaces(JavaSystemSetting.OS_NAME.getStringValue().orElse(null)))
                 .replace("{os.version}", replaceSpaces(JavaSystemSetting.OS_VERSION.getStringValue().orElse(null)))
                 .replace("{java.vm.name}", replaceSpaces(JavaSystemSetting.JAVA_VM_NAME.getStringValue().orElse(null)))
