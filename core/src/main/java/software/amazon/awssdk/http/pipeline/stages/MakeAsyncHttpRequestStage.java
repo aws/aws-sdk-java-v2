@@ -20,6 +20,8 @@ import static software.amazon.awssdk.event.SdkProgressPublisher.publishProgress;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.Response;
 import software.amazon.awssdk.SdkBaseException;
@@ -40,12 +42,15 @@ import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.http.async.SimpleRequestProvider;
 import software.amazon.awssdk.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 
 /**
  * Delegate to the HTTP implementation to make an HTTP request and receive the response.
  */
 public class MakeAsyncHttpRequestStage<OutputT>
         implements RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> {
+
+    private static final Logger log = LoggerFactory.getLogger(MakeAsyncHttpRequestStage.class);
 
     private final SdkAsyncHttpClient sdkAsyncHttpClient;
     private final SdkHttpResponseHandler<OutputT> responseHandler;
@@ -77,7 +82,7 @@ public class MakeAsyncHttpRequestStage<OutputT>
                                                                     ProgressListener listener) throws Exception {
         CompletableFuture<Response<OutputT>> future = new CompletableFuture<>();
 
-        SdkHttpResponseHandler<Response<OutputT>> handler = new ResponseHandler(request, future, listener, context);
+        SdkHttpResponseHandler<Response<OutputT>> handler = new ResponseHandler(request, future, listener);
 
         SdkHttpRequestProvider requestProvider = context.requestProvider() == null
                 ? new SimpleRequestProvider(request, context.executionAttributes())
@@ -116,6 +121,20 @@ public class MakeAsyncHttpRequestStage<OutputT>
     }
 
     /**
+     * Runs a given {@link UnsafeRunnable} and logs an error without throwing.
+     *
+     * @param errorMsg Message to log with exception thrown.
+     * @param runnable Action to perform.
+     */
+    private static void runAndLogError(String errorMsg, UnsafeRunnable runnable) {
+        try {
+            runnable.run();
+        } catch (Exception e) {
+            log.error(errorMsg, e);
+        }
+    }
+
+    /**
      * Detects whether the response succeeded or failed and delegates to appropriate response handler.
      */
     private class ResponseHandler implements SdkHttpResponseHandler<Response<OutputT>> {
@@ -123,7 +142,6 @@ public class MakeAsyncHttpRequestStage<OutputT>
         private final ProgressListener listener;
         private final SdkHttpFullRequest request;
         private final CompletableFuture<Response<OutputT>> future;
-        private final RequestExecutionContext context;
 
         private volatile SdkHttpResponse response;
         private volatile boolean isSuccess = false;
@@ -132,16 +150,13 @@ public class MakeAsyncHttpRequestStage<OutputT>
          * @param request  Request being made
          * @param future   Future to notify when response has been handled.
          * @param listener Listener to report HTTP end event.
-         * @param context  The current request execution context
          */
         private ResponseHandler(SdkHttpFullRequest request,
                                 CompletableFuture<Response<OutputT>> future,
-                                ProgressListener listener,
-                                RequestExecutionContext context) {
+                                ProgressListener listener) {
             this.listener = listener;
             this.request = request;
             this.future = future;
-            this.context = context;
         }
 
         @Override
@@ -167,19 +182,25 @@ public class MakeAsyncHttpRequestStage<OutputT>
 
         @Override
         public void exceptionOccurred(Throwable throwable) {
-            responseHandler.exceptionOccurred(throwable);
+            runAndLogError("SdkHttpResponseHandler threw an exception.",
+                () -> responseHandler.exceptionOccurred(throwable));
             future.completeExceptionally(throwable);
         }
 
         @Override
         public Response<OutputT> complete() {
-            SdkHttpFullResponse httpFullResponse = (SdkHttpFullResponse) this.response;
+            try {
+                SdkHttpFullResponse httpFullResponse = (SdkHttpFullResponse) this.response;
 
-            publishProgress(listener, ProgressEventType.HTTP_REQUEST_COMPLETED_EVENT);
-            final HttpResponse httpResponse = SdkHttpResponseAdapter.adapt(false, request, httpFullResponse);
-            Response<OutputT> toReturn = handleResponse(httpResponse);
-            future.complete(toReturn);
-            return toReturn;
+                publishProgress(listener, ProgressEventType.HTTP_REQUEST_COMPLETED_EVENT);
+                final HttpResponse httpResponse = SdkHttpResponseAdapter.adapt(false, request, httpFullResponse);
+                Response<OutputT> toReturn = handleResponse(httpResponse);
+                future.complete(toReturn);
+                return toReturn;
+            } catch (Exception e) {
+                future.completeExceptionally(e);
+                throw e;
+            }
         }
 
         /**
