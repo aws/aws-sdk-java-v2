@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.urlconnection;
 
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.SOCKET_TIMEOUT;
+import static software.amazon.awssdk.utils.CollectionUtils.toMap;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 import static software.amazon.awssdk.utils.StringUtils.isNotBlank;
@@ -29,7 +30,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotation.SdkInternalApi;
@@ -104,10 +104,6 @@ final class UrlConnectionHttpClient implements SdkHttpClient {
         }
 
         return e.getValue().stream().map(v -> encode(e.getKey()) + "=" + encode(v));
-    }
-
-    private static <K, V> Collector<Map.Entry<K, V>, ?, Map<K, V>> toMap() {
-        return Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue);
     }
 
     private static String encode(String string) {

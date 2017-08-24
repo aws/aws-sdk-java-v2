@@ -49,7 +49,7 @@ class ModelBuilderSpecs {
         this.shapeModelSpec = shapeModelSpec;
         this.typeProvider = typeProvider;
         this.poetExtensions = new PoetExtensions(this.intermediateModel);
-        this.accessorsFactory = new AccessorsFactory(this.shapeModel, this.intermediateModel, this.typeProvider);
+        this.accessorsFactory = new AccessorsFactory(this.shapeModel, this.intermediateModel, this.typeProvider, poetExtensions);
     }
 
     public ClassName builderInterfaceName() {
@@ -84,7 +84,7 @@ class ModelBuilderSpecs {
                 .addSuperinterface(builderInterfaceName())
                 // TODO: Uncomment this once property shadowing is fixed
                 //.addSuperinterface(copyableBuilderSuperInterface())
-                .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
+                .addModifiers(Modifier.STATIC, Modifier.FINAL);
 
         builderClassBuilder.addFields(fields());
         builderClassBuilder.addMethod(noargConstructor());
@@ -120,7 +120,7 @@ class ModelBuilderSpecs {
 
         shapeModel.getNonStreamingMembers().forEach(m -> {
             String name = m.getVariable().getVariableName();
-            copyBuilderCtor.addStatement("$N(model.$N)", m.getSetterMethodName(), name);
+            copyBuilderCtor.addStatement("$N(model.$N)", m.getFluentSetterMethodName(), name);
         });
 
         if (exception()) {
@@ -134,9 +134,9 @@ class ModelBuilderSpecs {
         List<MethodSpec> accessors = new ArrayList<>();
         shapeModel.getNonStreamingMembers().stream()
                   .forEach(m -> {
-                      accessors.add(accessorsFactory.beanStyleGetters(m));
+                      accessors.add(accessorsFactory.beanStyleGetter(m));
                       accessors.addAll(accessorsFactory.fluentSetters(m, builderInterfaceName()));
-                      accessors.addAll(accessorsFactory.beanStyleSetters(m));
+                      accessors.add(accessorsFactory.beanStyleSetter(m));
                   });
 
         if (exception()) {

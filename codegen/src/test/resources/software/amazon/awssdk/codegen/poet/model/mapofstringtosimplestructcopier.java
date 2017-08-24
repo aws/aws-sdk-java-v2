@@ -1,7 +1,8 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import static java.util.stream.Collectors.toMap;
+
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Generated;
 import software.amazon.awssdk.runtime.StandardMemberCopier;
@@ -12,11 +13,15 @@ final class MapOfStringToSimpleStructCopier {
         if (mapOfStringToSimpleStructParam == null) {
             return null;
         }
-        Map<String, SimpleStruct> mapOfStringToSimpleStructParamCopy = new HashMap<>(mapOfStringToSimpleStructParam.size());
-        for (Map.Entry<String, SimpleStruct> e : mapOfStringToSimpleStructParam.entrySet()) {
-            mapOfStringToSimpleStructParamCopy.put(StandardMemberCopier.copy(e.getKey()), e.getValue());
-        }
+        Map<String, SimpleStruct> mapOfStringToSimpleStructParamCopy = mapOfStringToSimpleStructParam.entrySet().stream()
+                                                                                                     .collect(toMap(e -> StandardMemberCopier.copy(e.getKey()), Map.Entry::getValue));
         return Collections.unmodifiableMap(mapOfStringToSimpleStructParamCopy);
     }
-}
 
+    static Map<String, SimpleStruct> copyFromBuilder(Map<String, ? extends SimpleStruct.Builder> mapOfStringToSimpleStructParam) {
+        if (mapOfStringToSimpleStructParam == null) {
+            return null;
+        }
+        return copy(mapOfStringToSimpleStructParam.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().build())));
+    }
+}
