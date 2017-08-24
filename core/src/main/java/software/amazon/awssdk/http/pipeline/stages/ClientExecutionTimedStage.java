@@ -54,10 +54,11 @@ public class ClientExecutionTimedStage<OutputT> implements RequestToResponsePipe
     public Response<OutputT> execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         try {
             return executeWithTimer(request, context);
-        } catch (InterruptedException ie) {
-            throw handleInterruptedException(context, ie);
-        } catch (AbortedException ae) {
-            throw handleAbortedException(context, ae);
+        } catch (Exception e) {
+            throw translatePipelineException(context, e);
+        } finally {
+            // Don't let the flag to persist after we return control
+            Thread.interrupted();
         }
     }
 
@@ -75,6 +76,27 @@ public class ClientExecutionTimedStage<OutputT> implements RequestToResponsePipe
         } finally {
             context.clientExecutionTrackerTask().cancelTask();
         }
+    }
+
+    /**
+     * Take the given exception thrown from the wrapped pipeline and return a more appropriate
+     * timeout related exception based on its type and the the execution status.
+     *
+     * @param context The execution context.
+     * @param e The exception thrown from the inner pipeline.
+     * @return The translated exception.
+     */
+    private Exception translatePipelineException(RequestExecutionContext context, Exception e) {
+        if (e instanceof InterruptedException) {
+            return handleInterruptedException(context, (InterruptedException) e);
+        }
+
+        // InterruptedException was not rethrown and instead the interrupted flag was set
+        if (Thread.currentThread().isInterrupted() && context.clientExecutionTrackerTask().hasTimeoutExpired()) {
+            return new ClientExecutionTimeoutException();
+        }
+
+        return e;
     }
 
     /**
