@@ -108,14 +108,14 @@ public class SubTypeOne implements StructuredPojo, ToCopyableBuilder<SubTypeOne.
         Builder subTypeOneMember(String subTypeOneMember);
     }
 
-    private static final class BuilderImpl implements Builder {
+    static final class BuilderImpl implements Builder {
         private String subTypeOneMember;
 
         private BuilderImpl() {
         }
 
         private BuilderImpl(SubTypeOne model) {
-            setSubTypeOneMember(model.subTypeOneMember);
+            subTypeOneMember(model.subTypeOneMember);
         }
 
         public final String getSubTypeOneMember() {

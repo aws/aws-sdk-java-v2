@@ -108,14 +108,14 @@ public class BaseType implements StructuredPojo, ToCopyableBuilder<BaseType.Buil
         Builder baseMember(String baseMember);
     }
 
-    private static final class BuilderImpl implements Builder {
+    static final class BuilderImpl implements Builder {
         private String baseMember;
 
         private BuilderImpl() {
         }
 
         private BuilderImpl(BaseType model) {
-            setBaseMember(model.baseMember);
+            baseMember(model.baseMember);
         }
 
         public final String getBaseMember() {

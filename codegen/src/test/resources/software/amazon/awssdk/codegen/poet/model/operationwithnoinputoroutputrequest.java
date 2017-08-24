@@ -62,7 +62,7 @@ public class OperationWithNoInputOrOutputRequest extends AmazonWebServiceRequest
     public interface Builder extends CopyableBuilder<Builder, OperationWithNoInputOrOutputRequest> {
     }
 
-    private static final class BuilderImpl implements Builder {
+    static final class BuilderImpl implements Builder {
         private BuilderImpl() {
         }
 

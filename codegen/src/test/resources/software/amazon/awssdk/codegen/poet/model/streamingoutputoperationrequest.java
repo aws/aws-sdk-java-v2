@@ -62,7 +62,7 @@ public class StreamingOutputOperationRequest extends AmazonWebServiceRequest imp
     public interface Builder extends CopyableBuilder<Builder, StreamingOutputOperationRequest> {
     }
 
-    private static final class BuilderImpl implements Builder {
+    static final class BuilderImpl implements Builder {
         private BuilderImpl() {
         }
 

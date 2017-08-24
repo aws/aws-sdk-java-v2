@@ -1,7 +1,8 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import static java.util.stream.Collectors.toMap;
+
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Generated;
 import software.amazon.awssdk.runtime.StandardMemberCopier;
@@ -12,11 +13,16 @@ final class RecursiveMapTypeCopier {
         if (recursiveMapTypeParam == null) {
             return null;
         }
-        Map<String, RecursiveStructType> recursiveMapTypeParamCopy = new HashMap<>(recursiveMapTypeParam.size());
-        for (Map.Entry<String, RecursiveStructType> e : recursiveMapTypeParam.entrySet()) {
-            recursiveMapTypeParamCopy.put(StandardMemberCopier.copy(e.getKey()), e.getValue());
-        }
+        Map<String, RecursiveStructType> recursiveMapTypeParamCopy = recursiveMapTypeParam.entrySet().stream()
+                                                                                          .collect(toMap(e -> StandardMemberCopier.copy(e.getKey()), Map.Entry::getValue));
         return Collections.unmodifiableMap(recursiveMapTypeParamCopy);
     }
-}
 
+    static Map<String, RecursiveStructType> copyFromBuilder(
+        Map<String, ? extends RecursiveStructType.Builder> recursiveMapTypeParam) {
+        if (recursiveMapTypeParam == null) {
+            return null;
+        }
+        return copy(recursiveMapTypeParam.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().build())));
+    }
+}

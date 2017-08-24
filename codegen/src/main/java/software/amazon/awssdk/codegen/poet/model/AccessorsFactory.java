@@ -18,29 +18,30 @@ package software.amazon.awssdk.codegen.poet.model;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import java.util.List;
-import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.poet.PoetExtensions;
 
 class AccessorsFactory {
 
     private final ShapeModel shapeModel;
     private final TypeProvider typeProvider;
     private final IntermediateModel intermediateModel;
+    private final BeanGetterHelper getterHelper;
 
-    AccessorsFactory(ShapeModel shapeModel, IntermediateModel intermediateModel, TypeProvider typeProvider) {
+    AccessorsFactory(ShapeModel shapeModel,
+                     IntermediateModel intermediateModel,
+                     TypeProvider typeProvider,
+                     PoetExtensions poetExtensions) {
         this.shapeModel = shapeModel;
         this.typeProvider = typeProvider;
         this.intermediateModel = intermediateModel;
+        this.getterHelper = new BeanGetterHelper(poetExtensions, typeProvider);
     }
 
-    public MethodSpec beanStyleGetters(MemberModel memberModel) {
-        return MethodSpec.methodBuilder(memberModel.getBeanStyleGetterMethodName())
-            .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-            .returns(typeProvider.parameterType(memberModel))
-            .addStatement("return $N", memberModel.getVariable().getVariableName())
-            .build();
+    public MethodSpec beanStyleGetter(MemberModel memberModel) {
+        return getterHelper.beanStyleGetter(memberModel);
     }
 
     public List<MethodSpec> fluentSetterDeclarations(MemberModel memberModel, TypeName returnType) {
@@ -67,7 +68,7 @@ class AccessorsFactory {
         return new NonCollectionSetters(intermediateModel, shapeModel, memberModel, typeProvider).fluent(returnType);
     }
 
-    public List<MethodSpec> beanStyleSetters(MemberModel memberModel) {
+    public MethodSpec beanStyleSetter(MemberModel memberModel) {
         if (memberModel.isList()) {
             return new ListSetters(intermediateModel, shapeModel, memberModel, typeProvider).beanStyle();
         }

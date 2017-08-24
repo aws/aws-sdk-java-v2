@@ -118,14 +118,14 @@ public class StructWithNestedBlobType implements StructuredPojo,
         Builder nestedBlob(ByteBuffer nestedBlob);
     }
 
-    private static final class BuilderImpl implements Builder {
+    static final class BuilderImpl implements Builder {
         private ByteBuffer nestedBlob;
 
         private BuilderImpl() {
         }
 
         private BuilderImpl(StructWithNestedBlobType model) {
-            setNestedBlob(model.nestedBlob);
+            nestedBlob(model.nestedBlob);
         }
 
         public final ByteBuffer getNestedBlob() {

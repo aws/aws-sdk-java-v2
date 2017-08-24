@@ -30,7 +30,7 @@ public class EmptyModeledException extends JsonProtocolTestsException implements
         Builder message(String message);
     }
 
-    private static final class BuilderImpl implements Builder {
+    static final class BuilderImpl implements Builder {
         private String message;
 
         private BuilderImpl() {

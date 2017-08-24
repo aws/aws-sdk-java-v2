@@ -415,6 +415,17 @@ public class MemberModel extends DocumentationModel {
         return upperCase(this.name) + "_BINDING";
     }
 
+    @JsonIgnore
+    public boolean hasBuilder() {
+        return !(isSimple() || isList() || isMap());
+    }
+
+    @JsonIgnore
+    public boolean isCollectionWithBuilderMember() {
+        return (isList() && getListModel().getListMemberModel() != null && getListModel().getListMemberModel().hasBuilder()) ||
+               (isMap() && getMapModel().getValueModel() != null && getMapModel().getValueModel().hasBuilder());
+    }
+
     /**
      * Currently used only for JSON services.
      *

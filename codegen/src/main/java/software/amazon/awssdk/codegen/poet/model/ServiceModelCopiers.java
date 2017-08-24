@@ -43,10 +43,23 @@ public class ServiceModelCopiers {
         Map<ClassName, ClassSpec> memberSpecs = new HashMap<>();
         allShapeMembers().values().stream()
                 .filter(m -> !(canCopyReference(m) || canUseStandardCopier(m)))
-                .map(m -> new MemberCopierSpec(m, this, typeProvider))
+                .map(m -> new MemberCopierSpec(m, this, typeProvider, poetExtensions))
                 .forEach(spec -> memberSpecs.put(spec.className(), spec));
 
         return memberSpecs.values();
+    }
+
+    public boolean requiresBuilderCopier(MemberModel memberModel) {
+        if (memberModel.isList()) {
+            MemberModel type = memberModel.getListModel().getListMemberModel();
+            return type != null && type.hasBuilder();
+        }
+
+        if (memberModel.isMap()) {
+            MemberModel valueType = memberModel.getMapModel().getValueModel();
+            return valueType != null && valueType.hasBuilder();
+        }
+        return false;
     }
 
     public Optional<ClassName> copierClassFor(MemberModel memberModel) {
@@ -71,6 +84,10 @@ public class ServiceModelCopiers {
 
     public String copyMethodName() {
         return "copy";
+    }
+
+    public String builderCopyMethodName() {
+        return "copyFromBuilder";
     }
 
     private Map<String, MemberModel> allShapeMembers() {

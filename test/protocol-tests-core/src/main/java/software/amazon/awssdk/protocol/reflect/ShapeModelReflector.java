@@ -32,6 +32,7 @@ import java.util.stream.StreamSupport;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Transforms a JSON representation (using C2J member names) of a modeled POJO into that POJO.
@@ -134,7 +135,7 @@ public class ShapeModelReflector {
      */
     private Method getMemberSetter(Class<?> containingClass, MemberModel currentMember) throws
                                                                                         Exception {
-        return containingClass.getMethod("set" + currentMember.getName(),
+        return containingClass.getMethod(StringUtils.uncapitalize(currentMember.getName()),
                                          Class.forName(getFullyQualifiedType(currentMember)));
     }
 

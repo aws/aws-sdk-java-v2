@@ -17,7 +17,6 @@ package software.amazon.awssdk.utils;
 
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
-import static java.util.stream.Collectors.toMap;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,7 +24,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 
 @SdkProtectedApi
@@ -90,7 +92,7 @@ public class CollectionUtils {
      */
     public static <T, U> Map<T, List<U>> deepCopyMap(Map<T, ? extends List<U>> map, Supplier<Map<T, List<U>>> mapConstructor) {
         return map.entrySet().stream()
-                  .collect(toMap(Map.Entry::getKey, e -> new ArrayList<>(e.getValue()),
+                  .collect(Collectors.toMap(Map.Entry::getKey, e -> new ArrayList<>(e.getValue()),
                                  CollectionUtils::throwIllegalStateException, mapConstructor));
     }
 
@@ -107,8 +109,26 @@ public class CollectionUtils {
     public static <T, U> Map<T, List<U>> deepUnmodifiableMap(Map<T, ? extends List<U>> map,
                                                              Supplier<Map<T, List<U>>> mapConstructor) {
         return unmodifiableMap(map.entrySet().stream()
-                                  .collect(toMap(Map.Entry::getKey, e -> unmodifiableList(new ArrayList<>(e.getValue())),
-                                                 CollectionUtils::throwIllegalStateException, mapConstructor)));
+                                  .collect(Collectors.toMap(
+                                      Map.Entry::getKey,
+                                      e -> unmodifiableList(new ArrayList<>(e.getValue())),
+                                      CollectionUtils::throwIllegalStateException,
+                                      mapConstructor)));
+    }
+
+
+    /**
+     * Collect a stream of {@link Map.Entry} to a {@link Map} with the same key/value types
+     * @param <K> the key type
+     * @param <V> the value type
+     * @return a map
+     */
+    public static <K, V> Collector<Map.Entry<K, V>, ?, Map<K, V>> toMap() {
+        return Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue);
+    }
+
+    public static <K, VInT, VOutT> Map<K, VOutT> mapValues(Map<K, VInT> inputMap, Function<VInT, VOutT> mapper) {
+        return inputMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> mapper.apply(e.getValue())));
     }
 
     /**

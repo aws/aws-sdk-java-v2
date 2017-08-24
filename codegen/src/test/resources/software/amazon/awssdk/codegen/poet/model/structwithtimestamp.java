@@ -109,14 +109,14 @@ public class StructWithTimestamp implements StructuredPojo, ToCopyableBuilder<St
         Builder nestedTimestamp(Instant nestedTimestamp);
     }
 
-    private static final class BuilderImpl implements Builder {
+    static final class BuilderImpl implements Builder {
         private Instant nestedTimestamp;
 
         private BuilderImpl() {
         }
 
         private BuilderImpl(StructWithTimestamp model) {
-            setNestedTimestamp(model.nestedTimestamp);
+            nestedTimestamp(model.nestedTimestamp);
         }
 
         public final Instant getNestedTimestamp() {

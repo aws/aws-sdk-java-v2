@@ -108,14 +108,14 @@ public class SimpleStruct implements StructuredPojo, ToCopyableBuilder<SimpleStr
         Builder stringMember(String stringMember);
     }
 
-    private static final class BuilderImpl implements Builder {
+    static final class BuilderImpl implements Builder {
         private String stringMember;
 
         private BuilderImpl() {
         }
 
         private BuilderImpl(SimpleStruct model) {
-            setStringMember(model.stringMember);
+            stringMember(model.stringMember);
         }
 
         public final String getStringMember() {
