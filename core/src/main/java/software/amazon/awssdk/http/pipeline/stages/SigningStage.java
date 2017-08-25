@@ -53,7 +53,7 @@ public class SigningStage implements RequestToRequestPipeline {
      * Sign the request if the signer if provided and credentials are present.
      */
     private SdkHttpFullRequest signRequest(SdkHttpFullRequest request, RequestExecutionContext context) {
-        final AwsCredentials credentials = context.credentialsProvider().getCredentials();
+        final AwsCredentials credentials = context.executionAttributes().getAttribute(AwsExecutionAttributes.AWS_CREDENTIALS);
         updateInterceptorContext(request, context.executionContext());
         Signer signer = newSigner(request, context);
         if (shouldSign(signer, credentials)) {
