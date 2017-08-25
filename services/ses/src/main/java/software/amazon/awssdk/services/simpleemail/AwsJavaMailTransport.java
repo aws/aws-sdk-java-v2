@@ -43,7 +43,7 @@ import software.amazon.awssdk.services.ses.model.RawMessage;
 import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
 import software.amazon.awssdk.services.ses.model.SendRawEmailResponse;
 import software.amazon.awssdk.util.AwsHostNameUtils;
-import software.amazon.awssdk.util.VersionInfoUtils;
+import software.amazon.awssdk.util.VersionInfo;
 
 /**
  * A transport implementation using Amazon Web Service's E-mail Service. For
@@ -66,7 +66,7 @@ public class AwsJavaMailTransport extends Transport {
     public static final String AWS_SECRET_KEY_PROPERTY = "mail.aws.password";
     public static final String AWS_ACCESS_KEY_PROPERTY = "mail.aws.user";
 
-    private static final String USER_AGENT = AwsJavaMailTransport.class.getName() + "/" + VersionInfoUtils.getVersion();
+    private static final String USER_AGENT = AwsJavaMailTransport.class.getName() + "/" + VersionInfo.SDK_VERSION;
     private static final String ENDPOINT_PREFIX = "email";
 
     private SESClient emailService;

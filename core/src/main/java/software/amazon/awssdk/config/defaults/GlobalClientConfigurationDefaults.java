@@ -32,7 +32,7 @@ import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.metrics.RequestMetricCollector;
 import software.amazon.awssdk.retry.PredefinedRetryPolicies;
 import software.amazon.awssdk.retry.RetryPolicyAdapter;
-import software.amazon.awssdk.util.VersionInfoUtils;
+import software.amazon.awssdk.util.UserAgentUtils;
 
 /**
  * A decorator for {@link ClientConfiguration} that adds global default values. This is the lowest-priority configuration
@@ -51,7 +51,7 @@ public final class GlobalClientConfigurationDefaults extends ClientConfiguration
         builder.gzipEnabled(applyDefault(configuration.gzipEnabled(), () -> false));
 
         builder.advancedOption(USER_AGENT_PREFIX,
-                               applyDefault(configuration.advancedOption(USER_AGENT_PREFIX), VersionInfoUtils::getUserAgent));
+                               applyDefault(configuration.advancedOption(USER_AGENT_PREFIX), UserAgentUtils::getUserAgent));
         builder.advancedOption(USER_AGENT_SUFFIX, applyDefault(configuration.advancedOption(USER_AGENT_SUFFIX), () -> ""));
         builder.advancedOption(CRC32_FROM_COMPRESSED_DATA_ENABLED,
                                applyDefault(configuration.advancedOption(CRC32_FROM_COMPRESSED_DATA_ENABLED), () -> false));

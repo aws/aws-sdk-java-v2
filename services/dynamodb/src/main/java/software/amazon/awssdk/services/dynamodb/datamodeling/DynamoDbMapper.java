@@ -78,7 +78,7 @@ import software.amazon.awssdk.services.dynamodb.model.Select;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
-import software.amazon.awssdk.util.VersionInfoUtils;
+import software.amazon.awssdk.util.VersionInfo;
 
 /**
  * Object mapper for domain-object interaction with DynamoDB.
@@ -205,9 +205,9 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
      * User agent for requests made using the {@link DynamoDbMapper}.
      */
     private static final String USER_AGENT =
-            DynamoDbMapper.class.getName() + "/" + VersionInfoUtils.getVersion();
+        DynamoDbMapper.class.getName() + "/" + VersionInfo.SDK_VERSION;
     private static final String USER_AGENT_BATCH_OPERATION =
-            DynamoDbMapper.class.getName() + "_batch_operation/" + VersionInfoUtils.getVersion();
+            DynamoDbMapper.class.getName() + "_batch_operation/" + VersionInfo.SDK_VERSION;
     private static final Logger log = LoggerFactory.getLogger(DynamoDbMapper.class);
     private final DynamoDBClient db;
     private final DynamoDbMapperModelFactory models;
