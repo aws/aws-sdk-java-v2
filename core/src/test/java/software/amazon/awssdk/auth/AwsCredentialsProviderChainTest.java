@@ -78,6 +78,18 @@ public class AwsCredentialsProviderChainTest {
         assertEquals(2, provider2.getCredentialsCallCount);
     }
 
+    @Test
+    public void testNullProfileFileUsesNextProvider() {
+        ProfileCredentialsProvider provider = ProfileCredentialsProvider.builder().defaultProfilesConfigFileLocator(() -> null).build();
+
+        MockCredentialsProvider provider2 = new MockCredentialsProvider();
+
+        AwsCredentialsProviderChain chain = AwsCredentialsProviderChain.builder().credentialsProviders(provider, provider2).build();
+
+        chain.getCredentials();
+        assertEquals(1, provider2.getCredentialsCallCount);
+    }
+
 
     private static final class MockCredentialsProvider extends StaticCredentialsProvider {
         public int getCredentialsCallCount = 0;

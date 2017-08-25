@@ -118,6 +118,12 @@ public class SyncClientHandlerImplTest {
         verifyNoMoreInteractions(responseHandler); // No response handler calls
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void clientHandlerThrowsExceptionWhenCredentialProviderReturnsNull() {
+        when(credentialsProvider.getCredentials()).thenReturn(null);
+        syncClientHandler.execute(clientExecutionParams());
+    }
+
     private void expectRetrievalFromMocks() {
         when(credentialsProvider.getCredentials()).thenReturn(awsCredentials);
         when(requestConfig.getOriginalRequest()).thenReturn(request);
