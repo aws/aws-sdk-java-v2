@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>sdk-annotations</artifactId>
+    <artifactId>annotations</artifactId>
     <name>AWS Java SDK :: Annotations</name>
 
     <build>
