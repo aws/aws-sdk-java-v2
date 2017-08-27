@@ -40,7 +40,7 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>sdk-annotations</artifactId>
+            <artifactId>annotations</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
     </dependencies>

@@ -69,7 +69,7 @@
         <module>test/protocol-tests</module>
         <module>test/protocol-tests-core</module>
         <module>test/test-utils</module>
-        <module>sdk-annotations</module>
+        <module>annotations</module>
         <module>utils</module>
     </modules>
     <scm>
@@ -286,6 +286,7 @@
     </dependencyManagement>
 
     <build>
+        <finalName>aws-sdk-java-${project.artifactId}-${project.version}</finalName>
         <pluginManagement>
             <plugins>
                 <plugin>
