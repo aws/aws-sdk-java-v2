@@ -45,8 +45,8 @@ public class RuntimeHttpUtils {
 
         StringBuilder userAgent = new StringBuilder(software.amazon.awssdk.utils.StringUtils.trimToEmpty(userDefinedPrefix));
 
-        if (!VersionInfoUtils.getUserAgent().equals(userDefinedPrefix)) {
-            userAgent.append(COMMA).append(VersionInfoUtils.getUserAgent());
+        if (!UserAgentUtils.getUserAgent().equals(userDefinedPrefix)) {
+            userAgent.append(COMMA).append(UserAgentUtils.getUserAgent());
         }
 
         if (StringUtils.hasValue(userDefinedSuffix)) {

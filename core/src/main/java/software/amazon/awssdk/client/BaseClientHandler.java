@@ -19,6 +19,7 @@ import software.amazon.awssdk.Request;
 import software.amazon.awssdk.RequestConfig;
 import software.amazon.awssdk.SdkResponse;
 import software.amazon.awssdk.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.auth.AwsCredentials;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.config.AdvancedClientOption;
 import software.amazon.awssdk.config.ClientConfiguration;
@@ -34,6 +35,7 @@ import software.amazon.awssdk.metrics.AwsSdkMetrics;
 import software.amazon.awssdk.metrics.RequestMetricCollector;
 import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 import software.amazon.awssdk.util.AwsRequestMetricsFullSupport;
+import software.amazon.awssdk.utils.Validate;
 
 abstract class BaseClientHandler {
     private final ClientConfiguration clientConfiguration;
@@ -54,11 +56,16 @@ abstract class BaseClientHandler {
                 : clientConfiguration.credentialsProvider();
 
         ClientOverrideConfiguration overrideConfiguration = clientConfiguration.overrideConfiguration();
+
+        AwsCredentials credentials = credentialsProvider.getCredentials();
+
+        Validate.validState(credentials != null, "Credential providers must never return null.");
+
         ExecutionAttributes executionAttributes =
                 new ExecutionAttributes().putAttribute(AwsExecutionAttributes.SERVICE_ADVANCED_CONFIG,
                                                        serviceAdvancedConfiguration)
                                          .putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS,
-                                                       credentialsProvider.getCredentials())
+                                                       credentials)
                                          .putAttribute(AwsExecutionAttributes.REQUEST_CONFIG, requestConfig);
 
         return ExecutionContext.builder()

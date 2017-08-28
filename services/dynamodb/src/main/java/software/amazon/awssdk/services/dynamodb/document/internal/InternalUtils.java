@@ -41,7 +41,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValueUpdate;
 import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
 import software.amazon.awssdk.services.dynamodb.model.Condition;
 import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
-import software.amazon.awssdk.util.VersionInfoUtils;
+import software.amazon.awssdk.util.VersionInfo;
 
 /**
  * Internal utilities.  Not meant for general use.  May change without notice.
@@ -605,7 +605,7 @@ public enum InternalUtils {
      * Append the custom user-agent string.
      */
     public static <X extends AmazonWebServiceRequest> X applyUserAgent(X request) {
-        final String userAgent = "dynamodb-table-api/" + VersionInfoUtils.getVersion();
+        final String userAgent = "dynamodb-table-api/" + VersionInfo.SDK_VERSION;
 
         request.getRequestClientOptions().appendUserAgent(userAgent);
         return request;

@@ -135,6 +135,12 @@
         </dependency>
     </dependencies>
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -147,6 +153,26 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>com.nativelibs4java</groupId>
+                <artifactId>maven-velocity-plugin</artifactId>
+                <version>0.9</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <velocitySources>${basedir}/src/main/resources/software/amazon/awssdk/util</velocitySources>
+                    <resourcesOutputDirectory>${project.build.directory}/generated-sources/sdk/software/amazon/awssdk/util</resourcesOutputDirectory>
+                    <properties>
+                        <sdkVersion>${awsjavasdk.version}</sdkVersion>
+                    </properties>
+                </configuration>
             </plugin>
         </plugins>
 

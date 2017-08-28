@@ -82,7 +82,8 @@
         "ListOfBlobs":{"shape":"ListOfBlobsType"},
         "RecursiveStruct":{"shape":"RecursiveStructType"},
         "PolymorphicTypeWithSubTypes":{"shape":"BaseType"},
-        "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"}
+        "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"},
+        "EnumType":{"shape":"EnumType"}
       }
     },
     "BaseType":{
@@ -226,6 +227,12 @@
       "members":{
         "SubTypeOneMember":{"shape":"String"}
       }
+    },
+    "EnumType": {
+      "type":"string",
+      "enum": [
+        "EnumValue1", "EnumValue2"
+      ]
     },
     "Timestamp":{"type":"timestamp"}
   }

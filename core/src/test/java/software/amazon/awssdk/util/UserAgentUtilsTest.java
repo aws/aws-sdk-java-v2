@@ -15,13 +15,15 @@
 
 package software.amazon.awssdk.util;
 
-public enum SdkRuntime {
-    ;
+import static org.junit.Assert.assertNotNull;
 
-    /**
-     * Returns true if the current operation should abort; false otherwise.
-     */
-    public static boolean shouldAbort() {
-        return Thread.currentThread().isInterrupted();
+import org.junit.Test;
+
+public class UserAgentUtilsTest {
+
+    @Test
+    public void userAgent() {
+        String userAgent = UserAgentUtils.userAgent();
+        assertNotNull(userAgent);
     }
 }

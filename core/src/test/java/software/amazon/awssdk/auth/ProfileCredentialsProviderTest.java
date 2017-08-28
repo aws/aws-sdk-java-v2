@@ -22,6 +22,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.AwsSystemSetting;
+import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.auth.profile.ProfileResourceLoader;
 import software.amazon.awssdk.auth.profile.ProfilesConfigFile;
 
@@ -50,11 +51,12 @@ public class ProfileCredentialsProviderTest {
         Assert.assertEquals("defaultAccessKey", credentials.secretAccessKey());
     }
 
-    @Test
+    @Test(expected = SdkClientException.class)
     public void testNoProfileFile() {
         ProfileCredentialsProvider nullProvider =
                 ProfileCredentialsProvider.builder().defaultProfilesConfigFileLocator(() -> null).build();
-        Assert.assertNull(nullProvider.loadCredentials());
+
+        nullProvider.getCredentials();
     }
 
     @Test
