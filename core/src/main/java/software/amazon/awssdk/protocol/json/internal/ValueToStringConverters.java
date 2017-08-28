@@ -16,9 +16,9 @@
 package software.amazon.awssdk.protocol.json.internal;
 
 import java.time.Instant;
-import java.util.Date;
 import java.util.function.Function;
 import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.util.DateUtils;
 import software.amazon.awssdk.util.StringUtils;
 
 /**
@@ -57,5 +57,5 @@ public class ValueToStringConverters {
     /**
      * Marshalls date to an ISO8601 date string.
      */
-    public static final ValueToString<Instant> FROM_INSTANT = (Instant i) -> StringUtils.fromDate(Date.from(i));
+    public static final ValueToString<Instant> FROM_INSTANT = DateUtils::formatIso8601Date;
 }

@@ -42,7 +42,7 @@ public class DateSetUnmarshaller extends SsUnmarshaller {
         Set<Date> result = new HashSet<Date>();
 
         for (String s : value.ss()) {
-            result.add(DateUtils.parseIso8601Date(s));
+            result.add(Date.from(DateUtils.parseIso8601Date(s)));
         }
 
         return result;

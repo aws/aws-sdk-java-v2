@@ -145,7 +145,7 @@ public class XmlWriter {
      *         together.
      */
     public XmlWriter value(Date date) {
-        append(escapeXmlEntities(StringUtils.fromDate(date)));
+        append(escapeXmlEntities(DateUtils.formatIso8601Date(date.toInstant())));
         return this;
     }
 

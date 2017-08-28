@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
@@ -100,14 +101,18 @@ public class StandardModelFactoriesV2UnconvertTest {
 
     @Test
     public void testDate() {
-        assertEquals(new Date(0), unconvert("getDate", "setDate",
-                                            AttributeValue.builder().s("1970-01-01T00:00:00.000Z").build()));
+        Date date = Date.from(Instant.ofEpochMilli(0));
+        assertEquals(date, unconvert("getDate", "setDate",
+                                            AttributeValue.builder().s("1970-01-01T00:00:00Z").build()));
+    }
 
+    @Test
+    public void testCalendar() {
         Calendar c = GregorianCalendar.getInstance();
-        c.setTimeInMillis(0);
+        c.setTimeInMillis(1);
 
         assertEquals(c, unconvert("getCalendar", "setCalendar",
-                                  AttributeValue.builder().s("1970-01-01T00:00:00.000Z").build()));
+                                  AttributeValue.builder().s("1970-01-01T00:00:00.001Z").build()));
     }
 
     @Test

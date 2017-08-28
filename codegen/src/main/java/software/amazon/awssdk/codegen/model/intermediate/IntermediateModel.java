@@ -20,9 +20,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Map;
-import org.joda.time.DateTime;
+
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.util.ValidationUtils;
@@ -158,7 +159,7 @@ public final class IntermediateModel {
     }
 
     private String getCopyrightDateRange() {
-        final int currentYear = DateTime.now().getYear();
+        final int currentYear = ZonedDateTime.now().getYear();
         final int copyrightStartYear = currentYear - 5;
         return String.format("%d-%d", copyrightStartYear, currentYear);
     }

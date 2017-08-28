@@ -68,23 +68,23 @@
             },
             {
               "Variable": "$.timestamp",
-              "TimestampEquals": "2016-03-14T01:59:00.000Z"
+              "TimestampEquals": "2016-03-14T01:59:00Z"
             },
             {
               "Variable": "$.timestamp",
-              "TimestampGreaterThan": "2016-03-14T01:59:00.000Z"
+              "TimestampGreaterThan": "2016-03-14T01:59:00Z"
             },
             {
               "Variable": "$.timestamp",
-              "TimestampGreaterThanEquals": "2016-03-14T01:59:00.000Z"
+              "TimestampGreaterThanEquals": "2016-03-14T01:59:00Z"
             },
             {
               "Variable": "$.timestamp",
-              "TimestampLessThan": "2016-03-14T01:59:00.000Z"
+              "TimestampLessThan": "2016-03-14T01:59:00Z"
             },
             {
               "Variable": "$.timestamp",
-              "TimestampLessThanEquals": "2016-03-14T01:59:00.000Z"
+              "TimestampLessThanEquals": "2016-03-14T01:59:00Z"
             },
             {
               "Variable": "$.boolean",

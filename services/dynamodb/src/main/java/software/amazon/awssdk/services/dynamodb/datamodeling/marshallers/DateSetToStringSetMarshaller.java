@@ -47,7 +47,7 @@ public class DateSetToStringSetMarshaller
 
         List<String> timestamps = new ArrayList<String>(dates.size());
         for (Date date : dates) {
-            timestamps.add(DateUtils.formatIso8601Date(date));
+            timestamps.add(DateUtils.formatIso8601Date(date.toInstant()));
         }
 
         return AttributeValue.builder().ss(timestamps).build();

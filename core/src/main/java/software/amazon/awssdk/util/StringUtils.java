@@ -79,20 +79,20 @@ public class StringUtils {
      * @return An ISO 8601 timestamp string created from the specified date.
      */
     public static String fromDate(Date value) {
-        return DateUtils.formatIso8601Date(value);
+        return DateUtils.formatIso8601Date(value.toInstant());
     }
 
     /**
-     * Converts the specified date to an ISO 8601 timestamp string and returns
-     * it.
+     * Converts the specified instant to an ISO 8601 timestamp string and
+     * returns it.
      *
      * @param value
-     *            The date to format as an ISO 8601 timestamp string.
+     *            The instant to format as an ISO 8601 timestamp string.
      *
-     * @return An ISO 8601 timestamp string created from the specified date.
+     * @return An ISO 8601 timestamp string created from the specified instant.
      */
     public static String fromInstant(Instant value) {
-        return DateUtils.formatIso8601Date(Date.from(value));
+        return DateUtils.formatIso8601Date(value);
     }
 
     /**
