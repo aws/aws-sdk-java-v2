@@ -15,16 +15,17 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling;
 
+import static software.amazon.awssdk.services.dynamodb.datamodeling.StandardTypeConverters.Scalar.TIME_ZONE;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.Date;
 import java.util.TimeZone;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 /**
  * Annotation to format a timestamp object using Java's standard date and time
@@ -70,24 +71,24 @@ public @interface DynamoDbTypeConvertedTimestamp {
      * Timestamp format converter.
      */
     final class Converter<T> implements DynamoDbTypeConverter<String, T> {
-        private final DynamoDbTypeConverter<DateTime, T> converter;
+        private final DynamoDbTypeConverter<ZonedDateTime, T> converter;
         private final DateTimeFormatter formatter;
 
         Converter(Class<T> targetType, DynamoDbTypeConvertedTimestamp annotation) {
-            this.formatter = DateTimeFormat.forPattern(annotation.pattern()).withZone(
-                    DateTimeZone.forTimeZone(StandardTypeConverters.Scalar.TIME_ZONE.<TimeZone>convert(annotation.timeZone()))
-                                                                                     );
-            this.converter = StandardTypeConverters.factory().getConverter(DateTime.class, targetType);
+            this.formatter = new DateTimeFormatterBuilder()
+                                 .appendPattern(annotation.pattern()).toFormatter()
+                                 .withZone(TIME_ZONE.<TimeZone>convert(annotation.timeZone()).toZoneId());
+            this.converter = StandardTypeConverters.factory().getConverter(ZonedDateTime.class, targetType);
         }
 
         @Override
         public String convert(final T object) {
-            return formatter.print(converter.convert(object));
+            return formatter.format(converter.convert(object));
         }
 
         @Override
         public T unconvert(final String object) {
-            return converter.unconvert(formatter.parseDateTime(object));
+            return converter.unconvert(ZonedDateTime.parse(object, formatter));
         }
     }
 

@@ -107,7 +107,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
         try {
             Instant serverDate = dateHeader
                     .filter(h -> !h.isEmpty())
-                    .map(DateUtils::parseRfc822Date)
+                    .map(DateUtils::parseRfc1123Date)
                     .orElseThrow(() -> new RuntimeException(
                             "Unable to parse clock skew offset from response. Server Date header missing"));
             long diff = System.currentTimeMillis() - serverDate.toEpochMilli();

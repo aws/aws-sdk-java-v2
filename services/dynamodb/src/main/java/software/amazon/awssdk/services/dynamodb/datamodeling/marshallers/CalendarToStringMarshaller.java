@@ -15,10 +15,11 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling.marshallers;
 
+import static software.amazon.awssdk.util.DateUtils.formatIso8601Date;
+
 import java.util.Calendar;
 import software.amazon.awssdk.services.dynamodb.datamodeling.ArgumentMarshaller.StringAttributeMarshaller;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.util.DateUtils;
 
 /**
  * A marshaller that marshals Java {@code Calendar} objects into DynamoDB
@@ -38,7 +39,8 @@ public class CalendarToStringMarshaller implements StringAttributeMarshaller {
 
     @Override
     public AttributeValue marshall(Object obj) {
+        Calendar calendar = (Calendar) obj;
         return AttributeValue.builder().s(
-                DateUtils.formatIso8601Date(((Calendar) obj).getTime())).build();
+                formatIso8601Date(calendar.toInstant())).build();
     }
 }

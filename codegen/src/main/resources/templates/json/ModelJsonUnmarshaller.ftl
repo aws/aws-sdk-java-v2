@@ -30,7 +30,7 @@ public class ${shape.shapeName}Unmarshaller implements Unmarshaller<${shape.shap
             if (context.getHeader("${memberModel.http.unmarshallLocationName}") != null) {
                 context.setCurrentHeader("${memberModel.http.unmarshallLocationName}");
                 <#if memberModel.variable.simpleType == "Instant">
-                    ${shape.variable.variableName}Builder.${memberModel.fluentSetterMethodName}(software.amazon.awssdk.util.DateUtils.parseRfc822Date(context.readText()));
+                    ${shape.variable.variableName}Builder.${memberModel.fluentSetterMethodName}(software.amazon.awssdk.util.DateUtils.parseRfc1123Date(context.readText()));
                 <#else>
                     ${shape.variable.variableName}Builder.${memberModel.fluentSetterMethodName}(<@MemberUnmarshallerDeclarationMacro.content memberModel />.unmarshall(context));
                 </#if>

@@ -15,10 +15,13 @@
 
 package software.amazon.awssdk.services.polly.presign;
 
+import static java.time.ZoneOffset.UTC;
+
 import java.net.URI;
 import java.net.URL;
+import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.Date;
-import org.joda.time.DateTime;
 import software.amazon.awssdk.RequestConfig;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkInternalApi;
@@ -96,9 +99,9 @@ public final class PollyClientPresigners {
     }
 
     private Date getDefaultExpirationDate() {
-        return new DateTime(clock.currentTimeMillis())
-                .plusMinutes(SYNTHESIZE_SPEECH_DEFAULT_EXPIRATION_MINUTES)
-                .toDate();
+        return new Date(ZonedDateTime.ofInstant(Instant.ofEpochMilli(clock.currentTimeMillis()), UTC)
+                        .plusMinutes(SYNTHESIZE_SPEECH_DEFAULT_EXPIRATION_MINUTES)
+                        .toInstant().toEpochMilli());
     }
 
 }

@@ -79,13 +79,13 @@ public class StandardModelFactoriesV1Test {
 
     @Test
     public void testDate() {
-        assertEquals("1970-01-01T00:00:00.000Z",
-                     convert("getDate", new Date(0)).s());
+        assertEquals("1970-01-01T00:00:00.001Z",
+                     convert("getDate", new Date(1)).s());
 
         Calendar c = GregorianCalendar.getInstance();
-        c.setTimeInMillis(0);
+        c.setTimeInMillis(1);
 
-        assertEquals("1970-01-01T00:00:00.000Z",
+        assertEquals("1970-01-01T00:00:00.001Z",
                      convert("getCalendar", c).s());
     }
 
@@ -191,14 +191,14 @@ public class StandardModelFactoriesV1Test {
 
     @Test
     public void testDateSet() {
-        assertEquals(Collections.singletonList("1970-01-01T00:00:00.000Z"),
-                     convert("getDateSet", Collections.singleton(new Date(0)))
+        assertEquals(Collections.singletonList("1970-01-01T00:00:00.001Z"),
+                     convert("getDateSet", Collections.singleton(new Date(1)))
                              .ss());
 
         Calendar c = GregorianCalendar.getInstance();
-        c.setTimeInMillis(0);
+        c.setTimeInMillis(1);
 
-        assertEquals(Collections.singletonList("1970-01-01T00:00:00.000Z"),
+        assertEquals(Collections.singletonList("1970-01-01T00:00:00.001Z"),
                      convert("getCalendarSet", Collections.singleton(c))
                              .ss());
     }

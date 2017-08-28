@@ -133,7 +133,8 @@ public class EC2CredentialsProviderTest {
 
     private void stubForSuccessResonseWithCustomExpirationDate(Date expiration) {
         stubForSuccessResponseWithCustomBody("{\"AccessKeyId\":\"ACCESS_KEY_ID\",\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
-                                             + "\"Expiration\":\"" + DateUtils.formatIso8601Date(expiration) + "\"}");
+                                             + "\"Expiration\":\"" + DateUtils.formatIso8601Date(expiration.toInstant())
+                                             + "\"}");
     }
 
     private void stubForErrorResponse() {
