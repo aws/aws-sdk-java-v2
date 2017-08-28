@@ -26,6 +26,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.interceptor.Priority;
 
 /**
  * Custom request handler for SQS that processes the request before it gets routed to the client
@@ -37,6 +38,11 @@ import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 @ReviewBeforeRelease("Do we still want to do this?")
 public class QueueUrlInterceptor implements ExecutionInterceptor {
     private static final String QUEUE_URL_PARAMETER = "QueueUrl";
+    
+    @Override
+    public Priority priority() {
+        return Priority.SERVICE;
+    }
 
     @Override
     public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {

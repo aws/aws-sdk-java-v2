@@ -28,6 +28,7 @@ import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.interceptor.InterceptorContext;
+import software.amazon.awssdk.interceptor.Priority;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.runtime.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.util.AwsHostNameUtils;
@@ -42,6 +43,7 @@ import software.amazon.awssdk.utils.StringUtils;
  */
 abstract class RdsPresignInterceptor<T extends AmazonWebServiceRequest> implements ExecutionInterceptor {
     private static final String SERVICE_NAME = "rds";
+
     private static final String PARAM_SOURCE_REGION = "SourceRegion";
     private static final String PARAM_DESTINATION_REGION = "DestinationRegion";
     private static final String PARAM_PRESIGNED_URL = "PreSignedUrl";
@@ -69,6 +71,11 @@ abstract class RdsPresignInterceptor<T extends AmazonWebServiceRequest> implemen
         } else {
             this.signingOverrideDate = null;
         }
+    }
+
+    @Override
+    public Priority priority() {
+        return Priority.SERVICE;
     }
 
     @Override

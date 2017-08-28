@@ -21,6 +21,7 @@ import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.interceptor.Priority;
 import software.amazon.awssdk.services.machinelearning.model.CreateBatchPredictionRequest;
 import software.amazon.awssdk.services.machinelearning.model.CreateDataSourceFromRDSRequest;
 import software.amazon.awssdk.services.machinelearning.model.CreateDataSourceFromRedshiftRequest;
@@ -34,6 +35,10 @@ import software.amazon.awssdk.services.machinelearning.model.CreateMLModelReques
  */
 @ReviewBeforeRelease("They should be using the idempotency trait")
 public class RandomIdInterceptor implements ExecutionInterceptor {
+    @Override
+    public Priority priority() {
+        return Priority.SERVICE;
+    }
 
     @Override
     public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {

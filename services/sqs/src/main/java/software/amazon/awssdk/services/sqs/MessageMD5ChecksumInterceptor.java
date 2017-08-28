@@ -31,6 +31,7 @@ import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.interceptor.Priority;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
@@ -50,7 +51,6 @@ import software.amazon.awssdk.utils.BinaryUtils;
  * comparing the returned MD5 with the calculation according to the original request.
  */
 public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
-
     private static final int INTEGER_SIZE_IN_BYTES = 4;
     private static final byte STRING_TYPE_FIELD_INDEX = 1;
     private static final byte BINARY_TYPE_FIELD_INDEX = 2;
@@ -70,6 +70,11 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
     private static final String MESSAGE_ATTRIBUTES = "message attributes";
 
     private static final Logger log = LoggerFactory.getLogger(MessageMD5ChecksumInterceptor.class);
+
+    @Override
+    public Priority priority() {
+        return Priority.SERVICE;
+    }
 
     @Override
     public void afterExecution(Context.AfterExecution context, ExecutionAttributes executionAttributes) {

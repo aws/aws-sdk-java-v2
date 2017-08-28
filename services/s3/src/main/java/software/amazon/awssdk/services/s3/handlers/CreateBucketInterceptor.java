@@ -20,10 +20,15 @@ import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.interceptor.Priority;
 import software.amazon.awssdk.services.s3.BucketUtils;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
 public class CreateBucketInterceptor implements ExecutionInterceptor {
+    @Override
+    public Priority priority() {
+        return Priority.SERVICE;
+    }
 
     @Override
     @ReviewBeforeRelease("Automatically set location constraint to the bucket region if not provided. Also" +

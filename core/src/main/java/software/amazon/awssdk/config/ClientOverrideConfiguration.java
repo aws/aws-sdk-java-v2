@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.interceptor.Priority;
 import software.amazon.awssdk.metrics.RequestMetricCollector;
 import software.amazon.awssdk.retry.v2.RetryPolicy;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -43,7 +44,7 @@ public class ClientOverrideConfiguration
     private final Boolean gzipEnabled;
     private final RequestMetricCollector requestMetricCollector;
     private final RetryPolicy retryPolicy;
-    private final List<ExecutionInterceptor> lastExecutionInterceptors;
+    private final List<ExecutionInterceptor> executionInterceptors;
     private final AttributeMap advancedOptions;
 
     /**
@@ -56,7 +57,7 @@ public class ClientOverrideConfiguration
         this.gzipEnabled = builder.gzipEnabled;
         this.requestMetricCollector = builder.requestMetricCollector;
         this.retryPolicy = builder.retryPolicy;
-        this.lastExecutionInterceptors = Collections.unmodifiableList(new ArrayList<>(builder.lastExecutionInterceptors));
+        this.executionInterceptors = Collections.unmodifiableList(new ArrayList<>(builder.executionInterceptors));
         this.advancedOptions = builder.advancedOptions.build();
     }
 
@@ -69,7 +70,7 @@ public class ClientOverrideConfiguration
                                                               .gzipEnabled(gzipEnabled)
                                                               .requestMetricCollector(requestMetricCollector)
                                                               .retryPolicy(retryPolicy)
-                                                              .lastExecutionInterceptors(lastExecutionInterceptors);
+                                                              .executionInterceptors(executionInterceptors);
     }
 
     /**
@@ -169,13 +170,14 @@ public class ClientOverrideConfiguration
     }
 
     /**
-     * An immutable collection of {@link ExecutionInterceptor}s that should be hooked into the execution of each request, in the
-     * order that they should be applied.
+     * An immutable collection of {@link ExecutionInterceptor}s that should be hooked into the execution of each request.
      *
-     * @see Builder#lastExecutionInterceptors(List)
+     * Any interceptors with the same {@link Priority} should be executed in the order returned by this method.
+     *
+     * @see Builder#executionInterceptors(List)
      */
-    public List<ExecutionInterceptor> lastExecutionInterceptors() {
-        return lastExecutionInterceptors;
+    public List<ExecutionInterceptor> executionInterceptors() {
+        return executionInterceptors;
     }
 
     /**
@@ -267,28 +269,27 @@ public class ClientOverrideConfiguration
         Builder retryPolicy(RetryPolicy retryPolicy);
 
         /**
-         * Configure a list of execution interceptors that will have access to read and modify the request and response objcets as
+         * Configure a list of execution interceptors that will have access to read and modify the request and response objects as
          * they are processed by the SDK. These will replace any interceptors configured previously with this method or
-         * {@link #addLastExecutionInterceptor(ExecutionInterceptor)}.
+         * {@link #addExecutionInterceptor(ExecutionInterceptor)}.
          *
-         * The provided interceptors are executed in the order they are configured and are always later in the order than the ones
-         * automatically added by the SDK. See {@link ExecutionInterceptor} for a more detailed explanation of interceptor order.
+         * Any {@link ExecutionInterceptor}s given to this method with the same {@link Priority} will be executed in the order
+         * they are given.
          *
-         * @see ClientOverrideConfiguration#lastExecutionInterceptors()
+         * @see ClientOverrideConfiguration#executionInterceptors()
          */
-        Builder lastExecutionInterceptors(List<ExecutionInterceptor> executionInterceptors);
+        Builder executionInterceptors(List<ExecutionInterceptor> executionInterceptors);
 
         /**
          * Add an execution interceptor that will have access to read and modify the request and response objects as they are
          * processed by the SDK.
          *
-         * Interceptors added using this method are executed in the order they are configured and are always later in the order
-         * than the ones automatically added by the SDK. See {@link ExecutionInterceptor} for a more detailed explanation of
-         * interceptor order.
+         * Any {@link ExecutionInterceptor}s added via this method with the same {@link Priority} will be executed in the order
+         * they were added.
          *
-         * @see ClientOverrideConfiguration#lastExecutionInterceptors()
+         * @see ClientOverrideConfiguration#executionInterceptors()
          */
-        Builder addLastExecutionInterceptor(ExecutionInterceptor executionInterceptor);
+        Builder addExecutionInterceptor(ExecutionInterceptor executionInterceptor);
 
         /**
          * Configure an advanced override option. These values are used very rarely, and the majority of SDK customers can ignore
@@ -317,7 +318,7 @@ public class ClientOverrideConfiguration
         private Boolean gzipEnabled;
         private RequestMetricCollector requestMetricCollector;
         private RetryPolicy retryPolicy;
-        private List<ExecutionInterceptor> lastExecutionInterceptors = new ArrayList<>();
+        private List<ExecutionInterceptor> executionInterceptors = new ArrayList<>();
         private AttributeMap.Builder advancedOptions = AttributeMap.builder();
 
         @Override
@@ -388,20 +389,20 @@ public class ClientOverrideConfiguration
         }
 
         @Override
-        public Builder lastExecutionInterceptors(List<ExecutionInterceptor> executionInterceptors) {
-            this.lastExecutionInterceptors.clear();
-            this.lastExecutionInterceptors.addAll(executionInterceptors);
+        public Builder executionInterceptors(List<ExecutionInterceptor> executionInterceptors) {
+            this.executionInterceptors.clear();
+            this.executionInterceptors.addAll(executionInterceptors);
             return this;
         }
 
         @Override
-        public Builder addLastExecutionInterceptor(ExecutionInterceptor executionInterceptors) {
-            this.lastExecutionInterceptors.add(executionInterceptors);
+        public Builder addExecutionInterceptor(ExecutionInterceptor executionInterceptors) {
+            this.executionInterceptors.add(executionInterceptors);
             return this;
         }
 
-        public void setLastExecutionInterceptors(List<ExecutionInterceptor> executionInterceptors) {
-            lastExecutionInterceptors(executionInterceptors);
+        public void setExecutionInterceptors(List<ExecutionInterceptor> executionInterceptors) {
+            executionInterceptors(executionInterceptors);
         }
 
         @Override

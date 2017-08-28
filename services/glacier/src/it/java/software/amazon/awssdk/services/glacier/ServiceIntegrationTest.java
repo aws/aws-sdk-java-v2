@@ -25,6 +25,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.interceptor.Priority;
 import software.amazon.awssdk.services.glacier.model.ListVaultsRequest;
 import software.amazon.awssdk.test.AwsIntegrationTestBase;
 
@@ -40,7 +41,7 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
                               .credentialsProvider(getCredentialsProvider())
                               .overrideConfiguration(ClientOverrideConfiguration
                                                              .builder()
-                                                             .addLastExecutionInterceptor(capturingExecutionInterceptor)
+                                                             .addExecutionInterceptor(capturingExecutionInterceptor)
                                                              .build())
                               .build();
     }
@@ -62,6 +63,11 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
     public static class CapturingExecutionInterceptor implements ExecutionInterceptor {
 
         private SdkHttpFullRequest beforeTransmission;
+
+        @Override
+        public Priority priority() {
+            return Priority.USER;
+        }
 
         @Override
         public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {

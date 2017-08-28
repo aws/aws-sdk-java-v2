@@ -61,6 +61,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.interceptor.Priority;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
@@ -466,12 +467,17 @@ public class ExecutionInterceptorTest {
                       .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                       .credentialsProvider(new StaticCredentialsProvider(new AwsCredentials("akid", "skid")))
                       .overrideConfiguration(ClientOverrideConfiguration.builder()
-                                                                        .addLastExecutionInterceptor(interceptor)
+                                                                        .addExecutionInterceptor(interceptor)
                                                                         .build())
                       .build();
     }
 
     private static class MessageUpdatingInterceptor implements ExecutionInterceptor {
+        @Override
+        public Priority priority() {
+            return Priority.USER;
+        }
+
         @Override
         public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
             MembersInHeadersRequest request = (MembersInHeadersRequest) context.request();
@@ -500,7 +506,10 @@ public class ExecutionInterceptorTest {
     }
 
     private static class NoOpInterceptor implements ExecutionInterceptor {
-
+        @Override
+        public Priority priority() {
+            return Priority.USER;
+        }
     }
 
     private static class NoOpRequestProvider implements AsyncRequestProvider {

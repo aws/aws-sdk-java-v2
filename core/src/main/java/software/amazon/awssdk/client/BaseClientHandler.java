@@ -69,7 +69,7 @@ abstract class BaseClientHandler {
                                          .putAttribute(AwsExecutionAttributes.REQUEST_CONFIG, requestConfig);
 
         return ExecutionContext.builder()
-                               .interceptorChain(new ExecutionInterceptorChain(overrideConfiguration.lastExecutionInterceptors()))
+                               .interceptorChain(new ExecutionInterceptorChain(overrideConfiguration.executionInterceptors()))
                                .interceptorContext(InterceptorContext.builder()
                                                                      .request(requestConfig.getOriginalRequest())
                                                                      .build())

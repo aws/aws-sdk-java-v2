@@ -31,6 +31,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.interceptor.Priority;
 import software.amazon.awssdk.services.s3.model.GetBucketLocationRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketPolicyRequest;
 import software.amazon.awssdk.utils.IoUtils;
@@ -48,6 +49,10 @@ import software.amazon.awssdk.utils.IoUtils;
  * responses of these operations to include the required XML wrappers.
  */
 public final class SingleStringExecutionInterceptor implements ExecutionInterceptor {
+    @Override
+    public Priority priority() {
+        return Priority.SERVICE;
+    }
 
     @Override
     @ReviewBeforeRelease("Change to use instanceof on request object after request handlers refactor")

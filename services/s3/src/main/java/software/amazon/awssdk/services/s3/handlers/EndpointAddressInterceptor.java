@@ -27,6 +27,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.interceptor.Priority;
 import software.amazon.awssdk.services.s3.BucketUtils;
 import software.amazon.awssdk.services.s3.S3AdvancedConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -34,9 +35,13 @@ import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 
 public class EndpointAddressInterceptor implements ExecutionInterceptor {
-
     private static List<Class<?>> ACCELERATE_DISABLED_OPERATIONS = Arrays.asList(
             ListBucketsRequest.class, CreateBucketRequest.class, DeleteBucketRequest.class);
+
+    @Override
+    public Priority priority() {
+        return Priority.SERVICE;
+    }
 
     @Override
     public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {

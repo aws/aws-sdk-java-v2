@@ -36,6 +36,7 @@ import software.amazon.awssdk.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.interceptor.Priority;
 import software.amazon.awssdk.services.sqs.model.DeleteQueueRequest;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
@@ -73,7 +74,7 @@ public class MessageAttributesIntegrationTest extends IntegrationTestBase {
                                                   .credentialsProvider(getCredentialsProvider())
                                                   .overrideConfiguration(ClientOverrideConfiguration
                                                                                  .builder()
-                                                                                 .addLastExecutionInterceptor(
+                                                                                 .addExecutionInterceptor(
                                                                                          new TamperingInterceptor())
                                                                                  .build())
                                                   .build()) {
@@ -90,6 +91,10 @@ public class MessageAttributesIntegrationTest extends IntegrationTestBase {
     }
 
     public static class TamperingInterceptor implements ExecutionInterceptor {
+        @Override
+        public Priority priority() {
+            return Priority.USER;
+        }
 
         @Override
         public SdkResponse modifyResponse(Context.ModifyResponse context, ExecutionAttributes executionAttributes) {
