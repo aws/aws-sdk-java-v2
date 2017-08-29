@@ -572,7 +572,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
             sb.append("PolymorphicTypeWithoutSubTypes: ").append(polymorphicTypeWithoutSubTypes()).append(",");
         }
         if (enumType() != null) {
-            sb.append("EnumType: ").append(enumType()).append(",");
+            sb.append("EnumType: ").append(enumType());
         }
         sb.append("}");
         return sb.toString();

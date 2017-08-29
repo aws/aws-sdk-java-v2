@@ -73,7 +73,7 @@ public class SimpleStruct implements StructuredPojo, ToCopyableBuilder<SimpleStr
         StringBuilder sb = new StringBuilder();
         sb.append("{");
         if (stringMember() != null) {
-            sb.append("StringMember: ").append(stringMember()).append(",");
+            sb.append("StringMember: ").append(stringMember());
         }
         sb.append("}");
         return sb.toString();

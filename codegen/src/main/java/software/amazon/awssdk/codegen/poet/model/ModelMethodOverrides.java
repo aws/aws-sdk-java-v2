@@ -18,6 +18,8 @@ package software.amazon.awssdk.codegen.poet.model;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import javax.lang.model.element.Modifier;
+
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 
@@ -81,14 +83,28 @@ public class ModelMethodOverrides {
                                                                            StringBuilder.class)
                                                              .addStatement("sb.append(\"{\")");
 
-        shapeModel.getNonStreamingMembers()
-                  .forEach(m -> {
-                      String getterName = m.getFluentGetterMethodName();
-                      toStringMethodBuilder.beginControlFlow("if ($N() != null)", getterName)
-                                           .addStatement("sb.append(\"$N: \").append($N()).append(\",\")", m.getName(),
-                                                         getterName)
-                                           .endControlFlow();
-                  });
+
+        if (!shapeModel.getNonStreamingMembers().isEmpty()) {
+            int size = shapeModel.getNonStreamingMembers().size();
+
+            shapeModel.getNonStreamingMembers()
+                    .subList(0, size - 1)
+                    .forEach(m -> {
+                        String getterName = m.getFluentGetterMethodName();
+                        toStringMethodBuilder.beginControlFlow("if ($N() != null)", getterName)
+                                .addStatement("sb.append(\"$N: \").append($N()).append(\",\")", m.getName(),
+                                        getterName)
+                                .endControlFlow();
+                    });
+
+
+            // Do not append comma at end of statement for last member
+            MemberModel lastMember = shapeModel.getNonStreamingMembers().get(size - 1);
+            String getterName = lastMember.getFluentGetterMethodName();
+            toStringMethodBuilder.beginControlFlow("if ($N() != null)", getterName)
+                    .addStatement("sb.append(\"$N: \").append($N())", lastMember.getName(), getterName)
+                    .endControlFlow();
+        }
 
         toStringMethodBuilder.addStatement("sb.append(\"}\")");
         toStringMethodBuilder.addStatement("return sb.toString()");

@@ -149,7 +149,7 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
             sb.append("RecursiveList: ").append(recursiveList()).append(",");
         }
         if (recursiveMap() != null) {
-            sb.append("RecursiveMap: ").append(recursiveMap()).append(",");
+            sb.append("RecursiveMap: ").append(recursiveMap());
         }
         sb.append("}");
         return sb.toString();

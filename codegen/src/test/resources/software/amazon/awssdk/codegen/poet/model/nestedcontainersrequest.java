@@ -131,7 +131,7 @@ public class NestedContainersRequest extends AmazonWebServiceRequest implements
             sb.append("ListOfListOfListOfStrings: ").append(listOfListOfListOfStrings()).append(",");
         }
         if (mapOfStringToListOfListOfStrings() != null) {
-            sb.append("MapOfStringToListOfListOfStrings: ").append(mapOfStringToListOfListOfStrings()).append(",");
+            sb.append("MapOfStringToListOfListOfStrings: ").append(mapOfStringToListOfListOfStrings());
         }
         sb.append("}");
         return sb.toString();

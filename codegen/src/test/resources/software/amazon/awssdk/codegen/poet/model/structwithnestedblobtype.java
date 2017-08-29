@@ -79,7 +79,7 @@ public class StructWithNestedBlobType implements StructuredPojo,
         StringBuilder sb = new StringBuilder();
         sb.append("{");
         if (nestedBlob() != null) {
-            sb.append("NestedBlob: ").append(nestedBlob()).append(",");
+            sb.append("NestedBlob: ").append(nestedBlob());
         }
         sb.append("}");
         return sb.toString();
