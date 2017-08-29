@@ -24,7 +24,6 @@ import software.amazon.awssdk.annotation.ThreadSafe;
 import software.amazon.awssdk.config.SyncClientConfiguration;
 import software.amazon.awssdk.internal.AmazonWebServiceRequestAdapter;
 import software.amazon.awssdk.internal.http.response.AwsErrorResponseHandler;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 import software.amazon.awssdk.sync.StreamingResponseHandler;
 
 /**
@@ -66,7 +65,7 @@ public class SdkClientHandler extends ClientHandler {
         return params.withRequestConfig(new AmazonWebServiceRequestAdapter((AmazonWebServiceRequest) params.getInput()))
                      // TODO this is a hack to get the build working. Also doesn't deal with AwsResponseHandlerAdapter
                      .withErrorResponseHandler(
-                             new AwsErrorResponseHandler(params.getErrorResponseHandler(), new AwsRequestMetrics()));
+                             new AwsErrorResponseHandler(params.getErrorResponseHandler()));
     }
 
 }

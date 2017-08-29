@@ -46,24 +46,12 @@ import software.amazon.awssdk.http.pipeline.stages.ReportRequestContentLengthSta
 import software.amazon.awssdk.http.pipeline.stages.SigningStage;
 import software.amazon.awssdk.http.pipeline.stages.UnwrapResponseContainer;
 import software.amazon.awssdk.internal.http.timers.client.ClientExecutionTimer;
-import software.amazon.awssdk.metrics.AwsSdkMetrics;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
 import software.amazon.awssdk.util.CapacityManager;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @ThreadSafe
 @SdkProtectedApi
 public class AmazonAsyncHttpClient implements SdkAutoCloseable {
-
-    /**
-     * A request metric collector used specifically for this httpClientSettings client; or null if
-     * there is none. This collector, if specified, always takes precedence over the one specified
-     * at the AWS SDK level.
-     *
-     * @see AwsSdkMetrics
-     */
-    private final RequestMetricCollector requestMetricCollector;
-
     private final HttpAsyncClientDependencies httpClientDependencies;
 
     private AmazonAsyncHttpClient(Builder builder) {
@@ -72,7 +60,6 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                                                  .asyncClientConfiguration(builder.asyncClientConfiguration)
                                                                  .capacityManager(createCapacityManager())
                                                                  .build();
-        this.requestMetricCollector = builder.asyncClientConfiguration.overrideConfiguration().requestMetricCollector();
     }
 
     private CapacityManager createCapacityManager() {
@@ -94,14 +81,6 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
     @Override
     public void close() {
         httpClientDependencies.close();
-    }
-
-    /**
-     * Returns the httpClientSettings client specific request metric collector; or null if there is
-     * none.
-     */
-    public RequestMetricCollector getRequestMetricCollector() {
-        return requestMetricCollector;
     }
 
     /**

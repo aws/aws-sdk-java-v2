@@ -22,27 +22,16 @@ import java.security.MessageDigest;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.internal.io.Releasable;
 import software.amazon.awssdk.internal.io.SdkIoUtils;
-import software.amazon.awssdk.runtime.MetricAware;
 
 /**
  * Base class for AWS Java SDK specific {@link DigestInputStream}.
  */
 @SdkProtectedApi
-public class SdkDigestInputStream extends DigestInputStream implements
-                                                            MetricAware, Releasable {
+public class SdkDigestInputStream extends DigestInputStream implements Releasable {
     private static final int SKIP_BUF_SIZE = 2 * 1024;
 
     public SdkDigestInputStream(InputStream stream, MessageDigest digest) {
         super(stream, digest);
-    }
-
-    @Override
-    public final boolean isMetricActivated() {
-        if (in instanceof MetricAware) {
-            MetricAware metricAware = (MetricAware) in;
-            return metricAware.isMetricActivated();
-        }
-        return false;
     }
 
     // https://github.com/aws/aws-sdk-java/issues/232

@@ -19,7 +19,6 @@ import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
 import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 
@@ -73,7 +72,6 @@ public class DynamoDbMapperConfig {
     private final TableNameResolver tableNameResolver;
     private final ObjectTableNameResolver objectTableNameResolver;
     private final PaginationLoadingStrategy paginationLoadingStrategy;
-    private final RequestMetricCollector requestMetricCollector;
     private final ConversionSchema conversionschema;
     private final BatchWriteRetryStrategy batchWriteRetryStrategy;
     private final BatchLoadRetryStrategy batchLoadRetryStrategy;
@@ -89,87 +87,10 @@ public class DynamoDbMapperConfig {
         this.tableNameResolver = builder.tableNameResolver;
         this.objectTableNameResolver = builder.objectTableNameResolver;
         this.paginationLoadingStrategy = builder.paginationLoadingStrategy;
-        this.requestMetricCollector = builder.requestMetricCollector;
         this.conversionschema = builder.conversionschema;
         this.batchWriteRetryStrategy = builder.batchWriteRetryStrategy;
         this.batchLoadRetryStrategy = builder.batchLoadRetryStrategy;
         this.typeConverterFactory = builder.typeConverterFactory;
-    }
-
-    /**
-     * Legacy constructor, using default PaginationLoadingStrategy
-     * @deprecated in favor of the fluent {@link Builder}
-     * @see DynamoDBConfig#builder
-     **/
-    @Deprecated
-    public DynamoDbMapperConfig(
-            SaveBehavior saveBehavior,
-            ConsistentReads consistentReads,
-            TableNameOverride tableNameOverride) {
-
-        this(saveBehavior, consistentReads, tableNameOverride, null, null);
-    }
-
-    /**
-     * Constructs a new configuration object with the save behavior, consistent
-     * read behavior, and table name override given.
-     *
-     * @param saveBehavior
-     *            The {@link SaveBehavior} to use, or null for default.
-     * @param consistentReads
-     *            The {@link ConsistentReads} to use, or null for default.
-     * @param tableNameOverride
-     *            An override for the table name, or null for no override.
-     * @param paginationLoadingStrategy
-     *            The pagination loading strategy, or null for default.
-     * @deprecated in favor of the fluent {@code Builder}
-     * @see DynamoDBConfig#builder
-     */
-    @Deprecated
-    public DynamoDbMapperConfig(
-            SaveBehavior saveBehavior,
-            ConsistentReads consistentReads,
-            TableNameOverride tableNameOverride,
-            PaginationLoadingStrategy paginationLoadingStrategy) {
-        this(saveBehavior, consistentReads, tableNameOverride,
-             paginationLoadingStrategy, null);
-    }
-
-    /**
-     * Constructs a new configuration object with the save behavior, consistent
-     * read behavior, and table name override given.
-     *
-     * @param saveBehavior
-     *            The {@link SaveBehavior} to use, or null for default.
-     * @param consistentReads
-     *            The {@link ConsistentReads} to use, or null for default.
-     * @param tableNameOverride
-     *            An override for the table name, or null for no override.
-     * @param paginationLoadingStrategy
-     *            The pagination loading strategy, or null for default.
-     * @param requestMetricCollector
-     *            optional request metric collector
-     * @deprecated in favor of the fluent {@code Builder}
-     * @see DynamoDBConfig#builder
-     */
-    @Deprecated
-    public DynamoDbMapperConfig(
-            SaveBehavior saveBehavior,
-            ConsistentReads consistentReads,
-            TableNameOverride tableNameOverride,
-            PaginationLoadingStrategy paginationLoadingStrategy,
-            RequestMetricCollector requestMetricCollector) {
-
-        this(saveBehavior,
-             consistentReads,
-             tableNameOverride,
-             null,
-             null,
-             paginationLoadingStrategy,
-             requestMetricCollector,
-             DEFAULT.getConversionSchema(),
-             DEFAULT.batchWriteRetryStrategy(),
-             DEFAULT.batchLoadRetryStrategy());
     }
 
     private DynamoDbMapperConfig(
@@ -179,7 +100,6 @@ public class DynamoDbMapperConfig {
             TableNameResolver tableNameResolver,
             ObjectTableNameResolver objectTableNameResolver,
             PaginationLoadingStrategy paginationLoadingStrategy,
-            RequestMetricCollector requestMetricCollector,
             ConversionSchema conversionschema,
             BatchWriteRetryStrategy batchWriteRetryStrategy,
             BatchLoadRetryStrategy batchLoadRetryStrategy) {
@@ -190,7 +110,6 @@ public class DynamoDbMapperConfig {
         this.tableNameResolver = tableNameResolver;
         this.objectTableNameResolver = objectTableNameResolver;
         this.paginationLoadingStrategy = paginationLoadingStrategy;
-        this.requestMetricCollector = requestMetricCollector;
         this.conversionschema = conversionschema;
         this.batchWriteRetryStrategy = batchWriteRetryStrategy;
         this.batchLoadRetryStrategy = batchLoadRetryStrategy;
@@ -203,7 +122,7 @@ public class DynamoDbMapperConfig {
      */
     @Deprecated
     public DynamoDbMapperConfig(SaveBehavior saveBehavior) {
-        this(saveBehavior, null, null, null, null, null, null,
+        this(saveBehavior, null, null, null, null, null,
              DEFAULT.getConversionSchema(), DEFAULT.batchWriteRetryStrategy(), DEFAULT.batchLoadRetryStrategy());
     }
 
@@ -214,7 +133,7 @@ public class DynamoDbMapperConfig {
      */
     @Deprecated
     public DynamoDbMapperConfig(ConsistentReads consistentReads) {
-        this(null, consistentReads, null, null, null, null, null,
+        this(null, consistentReads, null, null, null, null,
              DEFAULT.getConversionSchema(), DEFAULT.batchWriteRetryStrategy(), DEFAULT.batchLoadRetryStrategy());
     }
 
@@ -224,7 +143,7 @@ public class DynamoDbMapperConfig {
      */
     @Deprecated
     public DynamoDbMapperConfig(TableNameOverride tableNameOverride) {
-        this(null, null, tableNameOverride, null, null, null, null,
+        this(null, null, tableNameOverride, null, null, null,
              DEFAULT.getConversionSchema(), DEFAULT.batchWriteRetryStrategy(), DEFAULT.batchLoadRetryStrategy());
     }
 
@@ -234,7 +153,7 @@ public class DynamoDbMapperConfig {
      */
     @Deprecated
     public DynamoDbMapperConfig(TableNameResolver tableNameResolver) {
-        this(null, null, null, tableNameResolver, null, null, null,
+        this(null, null, null, tableNameResolver, null, null,
              DEFAULT.getConversionSchema(), DEFAULT.batchWriteRetryStrategy(), DEFAULT.batchLoadRetryStrategy());
     }
 
@@ -244,7 +163,7 @@ public class DynamoDbMapperConfig {
      */
     @Deprecated
     public DynamoDbMapperConfig(ObjectTableNameResolver objectTableNameResolver) {
-        this(null, null, null, null, objectTableNameResolver, null, null,
+        this(null, null, null, null, objectTableNameResolver, null,
              DEFAULT.getConversionSchema(), DEFAULT.batchWriteRetryStrategy(), DEFAULT.batchLoadRetryStrategy());
     }
 
@@ -254,7 +173,7 @@ public class DynamoDbMapperConfig {
      */
     @Deprecated
     public DynamoDbMapperConfig(TableNameResolver tableNameResolver, ObjectTableNameResolver objectTableNameResolver) {
-        this(null, null, null, tableNameResolver, objectTableNameResolver, null, null,
+        this(null, null, null, tableNameResolver, objectTableNameResolver, null,
              DEFAULT.getConversionSchema(), DEFAULT.batchWriteRetryStrategy(), DEFAULT.batchLoadRetryStrategy());
     }
 
@@ -267,7 +186,7 @@ public class DynamoDbMapperConfig {
     public DynamoDbMapperConfig(
             PaginationLoadingStrategy paginationLoadingStrategy) {
 
-        this(null, null, null, null, null, paginationLoadingStrategy, null,
+        this(null, null, null, null, null, paginationLoadingStrategy,
              DEFAULT.getConversionSchema(), DEFAULT.batchWriteRetryStrategy(), DEFAULT.batchLoadRetryStrategy());
     }
 
@@ -277,7 +196,7 @@ public class DynamoDbMapperConfig {
      */
     @Deprecated
     public DynamoDbMapperConfig(ConversionSchema conversionschema) {
-        this(null, null, null, null, null, null, null,
+        this(null, null, null, null, null, null,
              conversionschema, DEFAULT.batchWriteRetryStrategy(), DEFAULT.batchLoadRetryStrategy());
     }
 
@@ -381,13 +300,6 @@ public class DynamoDbMapperConfig {
      */
     public PaginationLoadingStrategy getPaginationLoadingStrategy() {
         return paginationLoadingStrategy;
-    }
-
-    /**
-     * Returns the request metric collector or null if not specified.
-     */
-    public RequestMetricCollector getRequestMetricCollector() {
-        return requestMetricCollector;
     }
 
     /**
@@ -647,7 +559,6 @@ public class DynamoDbMapperConfig {
         private TableNameResolver tableNameResolver;
         private ObjectTableNameResolver objectTableNameResolver;
         private PaginationLoadingStrategy paginationLoadingStrategy;
-        private RequestMetricCollector requestMetricCollector;
         private ConversionSchema conversionschema;
         private BatchWriteRetryStrategy batchWriteRetryStrategy;
         private BatchLoadRetryStrategy batchLoadRetryStrategy;
@@ -698,9 +609,6 @@ public class DynamoDbMapperConfig {
             }
             if (o.paginationLoadingStrategy != null) {
                 paginationLoadingStrategy = o.paginationLoadingStrategy;
-            }
-            if (o.requestMetricCollector != null) {
-                requestMetricCollector = o.requestMetricCollector;
             }
             if (o.conversionschema != null) {
                 conversionschema = o.conversionschema;
@@ -872,31 +780,6 @@ public class DynamoDbMapperConfig {
             setPaginationLoadingStrategy(value);
             return this;
         }
-
-
-        /**
-         * @return the currently-configured request metric collector
-         */
-        public RequestMetricCollector getRequestMetricCollector() {
-            return requestMetricCollector;
-        }
-
-        /**
-         * @param value the new request metric collector
-         */
-        public void setRequestMetricCollector(RequestMetricCollector value) {
-            requestMetricCollector = value;
-        }
-
-        /**
-         * @param value the new request metric collector
-         * @return this builder
-         */
-        public Builder withRequestMetricCollector(RequestMetricCollector value) {
-            setRequestMetricCollector(value);
-            return this;
-        }
-
 
         /**
          * @return the current conversion schema

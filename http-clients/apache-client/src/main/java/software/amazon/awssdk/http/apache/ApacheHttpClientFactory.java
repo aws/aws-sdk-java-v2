@@ -19,13 +19,13 @@ import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.protocol.HttpRequestExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
 import software.amazon.awssdk.http.apache.internal.Defaults;
-import software.amazon.awssdk.http.apache.internal.SdkHttpRequestExecutor;
 import software.amazon.awssdk.http.apache.internal.SdkProxyRoutePlanner;
 import software.amazon.awssdk.http.apache.internal.conn.ClientConnectionManagerFactory;
 import software.amazon.awssdk.http.apache.internal.conn.SdkConnectionKeepAliveStrategy;
@@ -56,7 +56,7 @@ class ApacheHttpClientFactory {
         // from the reaper. See https://github.com/aws/aws-sdk-java/issues/722.
         final HttpClientConnectionManager cm = cmFactory.create(configuration, standardOptions);
 
-        builder.setRequestExecutor(new SdkHttpRequestExecutor())
+        builder.setRequestExecutor(new HttpRequestExecutor())
                // SDK handles decompression
                .disableContentCompression()
                .setKeepAliveStrategy(buildKeepAliveStrategy(configuration))

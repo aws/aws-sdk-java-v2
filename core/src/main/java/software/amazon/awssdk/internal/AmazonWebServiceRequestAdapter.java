@@ -26,7 +26,6 @@ import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
 
 /**
  * Adapts the configuration present in {@link AmazonWebServiceRequest} to {@link RequestConfig}.
@@ -50,11 +49,6 @@ public final class AmazonWebServiceRequestAdapter extends RequestConfig {
     @Override
     public ProgressListener getProgressListener() {
         return request.getGeneralProgressListener();
-    }
-
-    @Override
-    public RequestMetricCollector getRequestMetricsCollector() {
-        return request.getRequestMetricCollector();
     }
 
     @Override

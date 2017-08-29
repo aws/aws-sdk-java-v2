@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
 import software.amazon.awssdk.services.dynamodb.document.AttributeUpdate;
 import software.amazon.awssdk.services.dynamodb.document.Expected;
 import software.amazon.awssdk.services.dynamodb.document.KeyAttribute;
@@ -241,13 +240,6 @@ public class UpdateItemSpec extends AbstractSpecWithPrimaryKey<UpdateItemRequest
     @Override
     public UpdateItemSpec withProgressListener(ProgressListener progressListener) {
         setProgressListener(progressListener);
-        return this;
-    }
-
-    @Override
-    public UpdateItemSpec withRequestMetricCollector(
-            RequestMetricCollector requestMetricCollector) {
-        setRequestMetricCollector(requestMetricCollector);
         return this;
     }
 }

@@ -33,14 +33,12 @@ import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.event.ProgressEventType;
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.handlers.AwsExecutionAttributes;
 import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.HttpClientDependencies;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.http.pipeline.RequestToResponsePipeline;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 import software.amazon.awssdk.retry.RetryUtils;
 import software.amazon.awssdk.retry.v2.RetryPolicy;
 import software.amazon.awssdk.retry.v2.RetryPolicyContext;
@@ -71,12 +69,6 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
     }
 
     public Response<OutputT> execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
-        // add the service endpoint to the logs. You can infer service name from service endpoint
-        context.awsRequestMetrics()
-               .addPropertyWith(AwsRequestMetrics.Field.RequestType, context.requestConfig().getRequestType())
-               .addPropertyWith(AwsRequestMetrics.Field.ServiceName,
-                                context.executionAttributes().getAttribute(AwsExecutionAttributes.SERVICE_NAME))
-               .addPropertyWith(AwsRequestMetrics.Field.ServiceEndpoint, request.getEndpoint());
         return new RetryExecutor(request, context).execute();
     }
 
@@ -123,11 +115,10 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
         private final SdkHttpFullRequest request;
         private final RequestExecutionContext context;
         private final ProgressListener progressListener;
-        private final AwsRequestMetrics awsRequestMetrics;
 
         private Optional<SdkBaseException> retriedException;
         private RetryPolicyContext retryPolicyContext;
-        private int requestCount;
+        private int requestCount = 0;
         private long lastBackoffDelay;
         private boolean retryCapacityConsumed;
 
@@ -135,7 +126,6 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
             this.request = request;
             this.context = context;
             this.progressListener = context.requestConfig().getProgressListener();
-            this.awsRequestMetrics = context.awsRequestMetrics();
             this.retriedException = Optional.empty();
         }
 
@@ -175,7 +165,7 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
         private void beforeExecute() throws InterruptedException {
             retryCapacityConsumed = false;
             AmazonHttpClient.checkInterrupted();
-            context.awsRequestMetrics().setCounter(AwsRequestMetrics.Field.RequestCount, ++requestCount);
+            ++requestCount;
         }
 
         private Response<OutputT> doExecute() throws Exception {
@@ -261,7 +251,6 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
             if (!RetryUtils.isThrottlingException(exception)) {
                 // See if we have enough available retry capacity to be able to execute this retry attempt.
                 if (!retryCapacity.acquire(THROTTLED_RETRY_COST)) {
-                    awsRequestMetrics.incrementCounter(AwsRequestMetrics.Field.ThrottledRetryCount);
                     return false;
                 }
                 this.retryCapacityConsumed = true;
@@ -288,17 +277,12 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
         }
 
         /**
-         * Pause before the next retry and record metrics around retry behavior.
+         * Pause before the next retry and record progress around retry behavior.
          */
         private void pauseBeforeRetry() throws InterruptedException {
             // Notify the progress listener of the retry
             publishProgress(progressListener, ProgressEventType.CLIENT_REQUEST_RETRY_EVENT);
-            awsRequestMetrics.startEvent(AwsRequestMetrics.Field.RetryPauseTime);
-            try {
-                doPauseBeforeRetry();
-            } finally {
-                awsRequestMetrics.endEvent(AwsRequestMetrics.Field.RetryPauseTime);
-            }
+            doPauseBeforeRetry();
         }
 
         /**

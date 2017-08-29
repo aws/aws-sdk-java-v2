@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
 import software.amazon.awssdk.services.dynamodb.document.TableWriteItems;
 import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
@@ -77,13 +76,6 @@ public class BatchWriteItemSpec extends AbstractSpec<BatchWriteItemRequest> {
     @Override
     public BatchWriteItemSpec withProgressListener(ProgressListener progressListener) {
         setProgressListener(progressListener);
-        return this;
-    }
-
-    @Override
-    public BatchWriteItemSpec withRequestMetricCollector(
-            RequestMetricCollector requestMetricCollector) {
-        setRequestMetricCollector(requestMetricCollector);
         return this;
     }
 

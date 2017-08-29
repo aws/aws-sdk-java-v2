@@ -25,7 +25,6 @@ import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpMetadata;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 
 /**
  * Adapts an {@code HttpResponseHandler<AmazonWebServiceResponse<T>>} to an {@code HttpResponseHandler<T>} (unwrapped result)
@@ -45,16 +44,12 @@ public class AwsResponseHandlerAdapter<T> implements HttpResponseHandler<T> {
     private static final Logger REQUEST_LOG = AmazonHttpClient.REQUEST_LOG;
 
     private final HttpResponseHandler<AmazonWebServiceResponse<T>> delegate;
-    private final AwsRequestMetrics awsRequestMetrics;
 
     /**
      * @param delegate          Response handler to delegate to and unwrap
-     * @param awsRequestMetrics Request metrics
      */
-    public AwsResponseHandlerAdapter(HttpResponseHandler<AmazonWebServiceResponse<T>> delegate,
-                                     AwsRequestMetrics awsRequestMetrics) {
+    public AwsResponseHandlerAdapter(HttpResponseHandler<AmazonWebServiceResponse<T>> delegate) {
         this.delegate = delegate;
-        this.awsRequestMetrics = awsRequestMetrics;
     }
 
     @Override
@@ -70,9 +65,7 @@ public class AwsResponseHandlerAdapter<T> implements HttpResponseHandler<T> {
         final String awsRequestId = awsResponse.getRequestId();
 
         if (REQUEST_LOG.isDebugEnabled()) {
-            REQUEST_LOG
-                    .debug("Received successful response: " + response.getStatusCode() +
-                           ", AWS Request ID: " + awsRequestId);
+            REQUEST_LOG.debug("Received successful response: " + response.getStatusCode() + ", AWS Request ID: " + awsRequestId);
         }
 
         if (!logHeaderRequestId(response)) {
@@ -80,7 +73,6 @@ public class AwsResponseHandlerAdapter<T> implements HttpResponseHandler<T> {
             // it is not available from the response header.
             logResponseRequestId(awsRequestId);
         }
-        awsRequestMetrics.addProperty(AwsRequestMetrics.Field.AWSRequestID, awsRequestId);
         return fillInResponseMetadata(awsResponse, response);
     }
 

@@ -16,7 +16,6 @@
 package software.amazon.awssdk.services.dynamodb.document.spec;
 
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
 import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
 
 /**
@@ -64,13 +63,6 @@ public class ListTablesSpec extends AbstractCollectionSpec<ListTablesRequest> {
     @Override
     public ListTablesSpec withProgressListener(ProgressListener progressListener) {
         setProgressListener(progressListener);
-        return this;
-    }
-
-    @Override
-    public ListTablesSpec withRequestMetricCollector(
-            RequestMetricCollector requestMetricCollector) {
-        setRequestMetricCollector(requestMetricCollector);
         return this;
     }
 }

@@ -32,7 +32,6 @@ import software.amazon.awssdk.RequestClientOptions;
 import software.amazon.awssdk.auth.AwsCredentials;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
 import utils.model.EmptyAmazonWebServiceRequest;
 
 public class AmazonWebServiceRequestAdapterTest {
@@ -118,16 +117,6 @@ public class AmazonWebServiceRequestAdapterTest {
         AmazonWebServiceRequestAdapter adapter = new AmazonWebServiceRequestAdapter(request);
 
         assertEquals(listener, adapter.getProgressListener());
-    }
-
-    @Test
-    public void customMetricsCollectorSetInBaseRequest_IsSetOnAdapter() {
-        EmptyAmazonWebServiceRequest request = new EmptyAmazonWebServiceRequest();
-        RequestMetricCollector metricCollector = mock(RequestMetricCollector.class);
-        request.setRequestMetricCollector(metricCollector);
-        AmazonWebServiceRequestAdapter adapter = new AmazonWebServiceRequestAdapter(request);
-
-        assertEquals(metricCollector, adapter.getRequestMetricsCollector());
     }
 
     @Test

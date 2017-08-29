@@ -22,7 +22,6 @@ import software.amazon.awssdk.handlers.AwsExecutionAttributes;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 
 /**
  * Wrapper around protocol specific error handler to deal with some default scenarios and fill in common information.
@@ -31,12 +30,9 @@ import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 public class AwsErrorResponseHandler implements HttpResponseHandler<SdkBaseException> {
 
     private final HttpResponseHandler<? extends SdkBaseException> delegate;
-    private final AwsRequestMetrics awsRequestMetrics;
 
-    public AwsErrorResponseHandler(HttpResponseHandler<? extends SdkBaseException> errorResponseHandler,
-                                   AwsRequestMetrics awsRequestMetrics) {
+    public AwsErrorResponseHandler(HttpResponseHandler<? extends SdkBaseException> errorResponseHandler) {
         this.delegate = errorResponseHandler;
-        this.awsRequestMetrics = awsRequestMetrics;
     }
 
     @Override
@@ -45,9 +41,6 @@ public class AwsErrorResponseHandler implements HttpResponseHandler<SdkBaseExcep
         final AmazonServiceException ase = (AmazonServiceException) handleAse(response, executionAttributes);
         ase.setStatusCode(response.getStatusCode());
         ase.setServiceName(executionAttributes.getAttribute(AwsExecutionAttributes.SERVICE_NAME));
-        awsRequestMetrics.addPropertyWith(AwsRequestMetrics.Field.AWSRequestID, ase.getRequestId())
-                         .addPropertyWith(AwsRequestMetrics.Field.AWSErrorCode, ase.getErrorCode())
-                         .addPropertyWith(AwsRequestMetrics.Field.StatusCode, ase.getStatusCode());
         return ase;
     }
 

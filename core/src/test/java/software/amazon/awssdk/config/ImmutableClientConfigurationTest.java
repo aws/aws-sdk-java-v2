@@ -29,7 +29,6 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.internal.auth.NoOpSignerProvider;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
 import software.amazon.awssdk.retry.v2.RetryPolicy;
 import software.amazon.awssdk.retry.v2.RetryPolicyContext;
 
@@ -91,7 +90,6 @@ public class ImmutableClientConfigurationTest {
                                           .totalExecutionTimeout(Duration.ofSeconds(4))
                                           .gzipEnabled(true)
                                           .addAdditionalHttpHeader("header", "value")
-                                          .requestMetricCollector(RequestMetricCollector.NONE)
                                           .advancedOption(AdvancedClientOption.USER_AGENT_PREFIX, "userAgentPrefix")
                                           .advancedOption(AdvancedClientOption.USER_AGENT_SUFFIX, "userAgentSuffix")
                                           .advancedOption(AdvancedClientOption.SIGNER_PROVIDER, SIGNER_PROVIDER)

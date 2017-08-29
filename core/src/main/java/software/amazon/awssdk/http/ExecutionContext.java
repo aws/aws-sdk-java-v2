@@ -24,7 +24,6 @@ import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.interceptor.InterceptorContext;
 import software.amazon.awssdk.internal.http.timers.client.ClientExecutionAbortTrackerTask;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 import software.amazon.awssdk.runtime.auth.SignerProvider;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -37,7 +36,6 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @NotThreadSafe
 @SdkProtectedApi
 public class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Builder, ExecutionContext> {
-    private final AwsRequestMetrics awsRequestMetrics;
     private final SignerProvider signerProvider;
     private InterceptorContext interceptorContext;
     private final ExecutionInterceptorChain interceptorChain;
@@ -54,7 +52,6 @@ public class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Buil
     private ClientExecutionAbortTrackerTask clientExecutionTrackerTask;
 
     private ExecutionContext(final Builder builder) {
-        this.awsRequestMetrics = Validate.paramNotNull(builder.awsRequestMetrics, "awsRequestMetrics");
         this.signerProvider = Validate.paramNotNull(builder.signerProvider, "signerProvider");
         this.interceptorContext = Validate.paramNotNull(builder.interceptorContext, "interceptorContext");
         this.interceptorChain = Validate.paramNotNull(builder.interceptorChain, "interceptorChain");
@@ -82,10 +79,6 @@ public class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Buil
 
     public ExecutionAttributes executionAttributes() {
         return executionAttributes;
-    }
-
-    public AwsRequestMetrics awsRequestMetrics() {
-        return awsRequestMetrics;
     }
 
     /**
@@ -151,13 +144,11 @@ public class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Buil
         private ExecutionInterceptorChain interceptorChain;
         private ExecutionAttributes executionAttributes;
         private SignerProvider signerProvider;
-        private AwsRequestMetrics awsRequestMetrics;
 
         private Builder() {
         }
 
         public Builder(ExecutionContext executionContext) {
-            this.awsRequestMetrics = executionContext.awsRequestMetrics;
             this.signerProvider = executionContext.signerProvider;
             this.interceptorContext = executionContext.interceptorContext;
             this.interceptorChain = executionContext.interceptorChain;
@@ -166,11 +157,6 @@ public class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Buil
 
         public Builder interceptorContext(InterceptorContext interceptorContext) {
             this.interceptorContext = interceptorContext;
-            return this;
-        }
-
-        public Builder awsRequestMetrics(AwsRequestMetrics awsRequestMetrics) {
-            this.awsRequestMetrics = awsRequestMetrics;
             return this;
         }
 

@@ -26,7 +26,6 @@ import software.amazon.awssdk.async.AsyncResponseHandler;
 import software.amazon.awssdk.config.AsyncClientConfiguration;
 import software.amazon.awssdk.internal.AmazonWebServiceRequestAdapter;
 import software.amazon.awssdk.internal.http.response.AwsErrorResponseHandler;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 
 /**
  * Client handler for SDK clients.
@@ -65,7 +64,7 @@ public class SdkAsyncClientHandler extends AsyncClientHandler {
         return params.withRequestConfig(new AmazonWebServiceRequestAdapter((AmazonWebServiceRequest) params.getInput()))
                      .withErrorResponseHandler(
                              // TODO this is a hack to get the build working. Also doesn't deal with AwsResponseHandlerAdapter
-                             new AwsErrorResponseHandler(params.getErrorResponseHandler(), new AwsRequestMetrics()));
+                             new AwsErrorResponseHandler(params.getErrorResponseHandler()));
     }
 
 }

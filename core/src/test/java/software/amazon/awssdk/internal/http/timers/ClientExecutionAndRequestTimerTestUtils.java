@@ -36,7 +36,6 @@ import software.amazon.awssdk.internal.http.request.EmptyHttpRequest;
 import software.amazon.awssdk.internal.http.response.ErrorDuringUnmarshallingResponseHandler;
 import software.amazon.awssdk.internal.http.response.NullErrorResponseHandler;
 import software.amazon.awssdk.internal.http.timers.client.ClientExecutionTimer;
-import software.amazon.awssdk.util.AwsRequestMetricsFullSupport;
 
 /**
  * Useful asserts and utilities for verifying behavior or the client execution timeout and request
@@ -125,7 +124,6 @@ public class ClientExecutionAndRequestTimerTestUtils {
                                   .httpRequest(request)
                                   .build();
         return ExecutionContext.builder()
-                               .awsRequestMetrics(new AwsRequestMetricsFullSupport())
                                .signerProvider(new NoOpSignerProvider())
                                .interceptorChain(new ExecutionInterceptorChain(Collections.emptyList()))
                                .executionAttributes(new ExecutionAttributes())

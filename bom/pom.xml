@@ -259,11 +259,6 @@
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
-                <artifactId>cloudwatchmetrics</artifactId>
-                <groupId>software.amazon.awssdk</groupId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
                 <artifactId>codedeploy</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
