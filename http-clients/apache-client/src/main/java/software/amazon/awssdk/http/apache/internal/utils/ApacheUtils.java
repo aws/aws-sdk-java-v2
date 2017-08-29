@@ -18,7 +18,6 @@ package software.amazon.awssdk.http.apache.internal.utils;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
-import java.util.Map;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -69,16 +68,8 @@ public class ApacheUtils {
     /**
      * Returns a new HttpClientContext used for request execution.
      */
-    public static HttpClientContext newClientContext(ProxyConfiguration proxyConfiguration,
-                                                     Map<String, ?> attributes) {
+    public static HttpClientContext newClientContext(ProxyConfiguration proxyConfiguration) {
         final HttpClientContext clientContext = new HttpClientContext();
-
-        if (attributes != null && !attributes.isEmpty()) {
-            for (Map.Entry<String, ?> entry : attributes.entrySet()) {
-                clientContext.setAttribute(entry.getKey(), entry.getValue());
-            }
-        }
-
         addPreemptiveAuthenticationProxy(clientContext, proxyConfiguration);
         return clientContext;
 

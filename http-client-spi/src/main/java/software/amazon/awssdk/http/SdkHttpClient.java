@@ -29,7 +29,7 @@ public interface SdkHttpClient extends SdkAutoCloseable, ConfigurationProvider {
      * Create a {@link AbortableCallable} that can be used to execute the HTTP request.
      *
      * @param request        Representation of an HTTP request.
-     * @param requestContext Contains any extra dependencies needed like metrics object.
+     * @param requestContext Contains any extra dependencies needed.
      * @return Task that can execute an HTTP request and can be aborted.
      */
     AbortableCallable<SdkHttpFullResponse> prepareRequest(SdkHttpFullRequest request, SdkRequestContext requestContext);

@@ -41,7 +41,6 @@ import software.amazon.awssdk.http.pipeline.stages.ApplyUserAgentStage;
 import software.amazon.awssdk.http.pipeline.stages.BeforeTransmissionExecutionInterceptorsStage;
 import software.amazon.awssdk.http.pipeline.stages.BeforeUnmarshallingExecutionInterceptorsStage;
 import software.amazon.awssdk.http.pipeline.stages.ClientExecutionTimedStage;
-import software.amazon.awssdk.http.pipeline.stages.ExceptionReportingStage;
 import software.amazon.awssdk.http.pipeline.stages.ExecutionFailureExceptionReportingStage;
 import software.amazon.awssdk.http.pipeline.stages.HandleResponseStage;
 import software.amazon.awssdk.http.pipeline.stages.HttpResponseAdaptingStage;
@@ -62,8 +61,6 @@ import software.amazon.awssdk.internal.AmazonWebServiceRequestAdapter;
 import software.amazon.awssdk.internal.http.response.AwsErrorResponseHandler;
 import software.amazon.awssdk.internal.http.response.AwsResponseHandlerAdapter;
 import software.amazon.awssdk.internal.http.timers.client.ClientExecutionTimer;
-import software.amazon.awssdk.metrics.AwsSdkMetrics;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
 import software.amazon.awssdk.util.CapacityManager;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
@@ -102,15 +99,6 @@ public class AmazonHttpClient implements SdkAutoCloseable {
      */
     static final int THROTTLED_RETRIES = 100;
 
-    /**
-     * A request metric collector used specifically for this httpClientSettings client; or null if
-     * there is none. This collector, if specified, always takes precedence over the one specified
-     * at the AWS SDK level.
-     *
-     * @see AwsSdkMetrics
-     */
-    private final RequestMetricCollector requestMetricCollector;
-
     private final HttpSyncClientDependencies httpClientDependencies;
 
     private AmazonHttpClient(Builder builder) {
@@ -119,7 +107,6 @@ public class AmazonHttpClient implements SdkAutoCloseable {
                                                                 .syncClientConfiguration(builder.syncClientConfiguration)
                                                                 .capacityManager(createCapacityManager())
                                                                 .build();
-        this.requestMetricCollector = builder.syncClientConfiguration.overrideConfiguration().requestMetricCollector();
     }
 
     private CapacityManager createCapacityManager() {
@@ -160,13 +147,6 @@ public class AmazonHttpClient implements SdkAutoCloseable {
     @SdkTestInternalApi
     public ClientExecutionTimer getClientExecutionTimer() {
         return this.httpClientDependencies.clientExecutionTimer();
-    }
-
-    /**
-     * Returns the httpClientSettings client specific request metric collector; or null if there is none.
-     */
-    public RequestMetricCollector getRequestMetricCollector() {
-        return requestMetricCollector;
     }
 
     /**
@@ -231,12 +211,11 @@ public class AmazonHttpClient implements SdkAutoCloseable {
                          HttpResponseHandler<AmazonServiceException> errorResponseHandler,
                          ExecutionContext executionContext) {
         HttpResponseHandler<T> adaptedRespHandler = new AwsResponseHandlerAdapter<>(
-                getNonNullResponseHandler(responseHandler),
-                executionContext.awsRequestMetrics());
+                getNonNullResponseHandler(responseHandler));
         return requestExecutionBuilder()
                 .request(request)
                 .requestConfig(new AmazonWebServiceRequestAdapter(request.getOriginalRequest()))
-                .errorResponseHandler(new AwsErrorResponseHandler(errorResponseHandler, executionContext.awsRequestMetrics()))
+                .errorResponseHandler(new AwsErrorResponseHandler(errorResponseHandler))
                 .executionContext(executionContext)
                 .execute(adaptedRespHandler);
     }
@@ -428,7 +407,6 @@ public class AmazonHttpClient implements SdkAutoCloseable {
                                           .then(BeforeUnmarshallingExecutionInterceptorsStage::new)
                                           .then(() -> new HandleResponseStage<>(getNonNullResponseHandler(responseHandler),
                                                                                 getNonNullResponseHandler(errorResponseHandler)))
-                                          .wrap(ExceptionReportingStage::new)
                                           .wrap(TimerExceptionHandlingStage::new)
                                           .wrap(RetryableStage::new)::build)
                                 .wrap(StreamManagingStage::new)

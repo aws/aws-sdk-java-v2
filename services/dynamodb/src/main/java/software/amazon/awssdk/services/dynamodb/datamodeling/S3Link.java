@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.File;
 import java.io.OutputStream;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.AccessControlPolicy;
@@ -185,20 +184,6 @@ public class S3Link {
      *         returned by Amazon S3 for the newly created object.
      */
     public PutObjectResponse uploadFrom(final File source) {
-        return uploadFrom0(source, null);
-    }
-
-    /**
-     * Same as {@link #uploadFrom(File)} but allows specifying a
-     * request metric collector.
-     */
-    public PutObjectResponse uploadFrom(final File source,
-                                      RequestMetricCollector requestMetricCollector) {
-        return uploadFrom0(source, requestMetricCollector);
-    }
-
-    private PutObjectResponse uploadFrom0(final File source,
-                                          RequestMetricCollector requestMetricCollector) {
         return getAmazonS3Client().putObject(PutObjectRequest.builder()
                                                              .bucket(bucketName())
                                                              .key(getKey())
@@ -216,20 +201,6 @@ public class S3Link {
      *         returned by Amazon S3 for the newly created object.
      */
     public PutObjectResponse uploadFrom(final byte[] buffer) {
-        return uploadFrom0(buffer, null);
-    }
-
-    /**
-     * Same as {@link #uploadFrom(byte[])} but allows specifying a
-     * request metric collector.
-     */
-    public PutObjectResponse uploadFrom(final byte[] buffer,
-                                      RequestMetricCollector requestMetricCollector) {
-        return uploadFrom0(buffer, requestMetricCollector);
-    }
-
-    private PutObjectResponse uploadFrom0(final byte[] buffer,
-                                          RequestMetricCollector requestMetricCollector) {
         return getAmazonS3Client().putObject(PutObjectRequest.builder()
                                                              .bucket(bucketName())
                                                              .key(getKey())
@@ -248,23 +219,10 @@ public class S3Link {
      *            object represented by this S3Link.
      */
     public void setAcl(ObjectCannedACL acl) {
-        setAcl0(acl, null);
-    }
-
-    public void setAcl(ObjectCannedACL acl, RequestMetricCollector col) {
-        setAcl0(acl, col);
-    }
-
-    private void setAcl0(ObjectCannedACL acl, RequestMetricCollector col) {
         getAmazonS3Client().putObjectAcl(PutObjectAclRequest.builder().bucket(bucketName()).key(getKey()).acl(acl).build());
     }
 
-    public void setAcl(AccessControlPolicy acl,
-                       RequestMetricCollector requestMetricCollector) {
-        setAcl0(acl, requestMetricCollector);
-    }
-
-    private void setAcl0(AccessControlPolicy acl, RequestMetricCollector requestMetricCollector) {
+    public void setAcl(AccessControlPolicy acl) {
         getAmazonS3Client().putObjectAcl(PutObjectAclRequest.builder()
                                                             .accessControlPolicy(acl)
                                                             .bucket(bucketName())
@@ -282,27 +240,11 @@ public class S3Link {
      *     Returns null if constraints were specified but not met.
      */
     public GetObjectResponse downloadTo(final File destination) {
-        return downloadTo0(destination, null);
-    }
-
-    /**
-     * Same as {@link #downloadTo(File)} but allows specifying a
-     * request metric collector.
-     */
-    public GetObjectResponse downloadTo(final File destination,
-                                     RequestMetricCollector requestMetricCollector) {
-        return downloadTo0(destination, requestMetricCollector);
-    }
-
-    private GetObjectResponse downloadTo0(final File destination,
-                                          RequestMetricCollector requestMetricCollector) {
-        GetObjectResponse response = getAmazonS3Client().getObject(GetObjectRequest.builder()
-                                                                                   .bucket(bucketName())
-                                                                                   .key(getKey())
-                                                                                   .build(),
-                                                                   StreamingResponseHandler.toFile(destination.toPath()));
-
-        return response;
+        return getAmazonS3Client().getObject(GetObjectRequest.builder()
+                                                             .bucket(bucketName())
+                                                             .key(getKey())
+                                                             .build(),
+                                             StreamingResponseHandler.toFile(destination.toPath()));
     }
 
     /**
@@ -315,27 +257,11 @@ public class S3Link {
      * @return The object's metadata.
      */
     public GetObjectResponse downloadTo(final OutputStream output) {
-        return downloadTo0(output, null);
-    }
-
-    /**
-     * Same as {@link #downloadTo(OutputStream)} but allows specifying a
-     * request metric collector.
-     */
-    public GetObjectResponse downloadTo(final OutputStream output,
-                                     RequestMetricCollector requestMetricCollector) {
-        return downloadTo0(output, requestMetricCollector);
-    }
-
-    private GetObjectResponse downloadTo0(final OutputStream output,
-                                          RequestMetricCollector requestMetricCollector) {
-        GetObjectResponse response = getAmazonS3Client().getObject(GetObjectRequest.builder()
-                                                                                   .bucket(bucketName())
-                                                                                   .key(getKey())
-                                                                                   .build(),
-                                                                   StreamingResponseHandler.toOutputStream(output));
-
-        return response;
+        return getAmazonS3Client().getObject(GetObjectRequest.builder()
+                                                             .bucket(bucketName())
+                                                             .key(getKey())
+                                                             .build(),
+                                             StreamingResponseHandler.toOutputStream(output));
     }
 
     /**

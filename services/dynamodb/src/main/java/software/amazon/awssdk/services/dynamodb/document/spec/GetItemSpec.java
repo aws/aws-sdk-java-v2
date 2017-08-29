@@ -21,7 +21,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
 import software.amazon.awssdk.services.dynamodb.document.KeyAttribute;
 import software.amazon.awssdk.services.dynamodb.document.PrimaryKey;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
@@ -131,13 +130,6 @@ public class GetItemSpec extends AbstractSpecWithPrimaryKey<GetItemRequest> {
     @Override
     public GetItemSpec withProgressListener(ProgressListener progressListener) {
         setProgressListener(progressListener);
-        return this;
-    }
-
-    @Override
-    public GetItemSpec withRequestMetricCollector(
-            RequestMetricCollector requestMetricCollector) {
-        setRequestMetricCollector(requestMetricCollector);
         return this;
     }
 }

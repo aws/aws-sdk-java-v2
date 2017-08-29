@@ -15,25 +15,16 @@
 
 package software.amazon.awssdk.http;
 
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 
 /**
  * Container for extra dependencies needed during execution of a request.
  */
+@ReviewBeforeRelease("Should we keep this? It was previously used for metrics, which was removed.")
 public class SdkRequestContext {
 
-    private final AwsRequestMetrics metrics;
-
     private SdkRequestContext(Builder builder) {
-        this.metrics = builder.metrics;
-    }
-
-    /**
-     * @return Object used to record request level metrics.
-     */
-    public AwsRequestMetrics metrics() {
-        return metrics;
     }
 
     /**
@@ -50,14 +41,7 @@ public class SdkRequestContext {
     @SdkInternalApi
     public static final class Builder {
 
-        private AwsRequestMetrics metrics;
-
         private Builder() {
-        }
-
-        public Builder metrics(AwsRequestMetrics metrics) {
-            this.metrics = metrics;
-            return this;
         }
 
         /**

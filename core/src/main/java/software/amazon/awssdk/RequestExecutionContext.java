@@ -18,14 +18,12 @@ package software.amazon.awssdk;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.MetricsReportingCredentialsProvider;
 import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.ExecutionContext;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.internal.http.timers.client.ClientExecutionAbortTrackerTask;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 import software.amazon.awssdk.runtime.auth.SignerProvider;
 import software.amazon.awssdk.utils.Validate;
 
@@ -49,10 +47,8 @@ public final class RequestExecutionContext {
         this.executionContext = Validate.paramNotNull(builder.executionContext, "executionContext");
 
         AwsCredentialsProvider contextCredentialsProvider = builder.executionContext.getCredentialsProvider();
-        this.credentialsProvider = contextCredentialsProvider != null
-                                   ? new MetricsReportingCredentialsProvider(contextCredentialsProvider,
-                                                                             builder.executionContext.awsRequestMetrics())
-                                   : new AnonymousCredentialsProvider();
+        this.credentialsProvider = contextCredentialsProvider != null ? contextCredentialsProvider
+                                                                      : new AnonymousCredentialsProvider();
     }
 
     /**
@@ -88,13 +84,6 @@ public final class RequestExecutionContext {
                          + "these. Once that's done, this won't be needed.")
     public ExecutionContext executionContext() {
         return executionContext;
-    }
-
-    /**
-     * @return AwsRequestMetrics object to report timing and events.
-     */
-    public AwsRequestMetrics awsRequestMetrics() {
-        return executionContext.awsRequestMetrics();
     }
 
     /**

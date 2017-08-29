@@ -20,30 +20,18 @@ import java.io.InputStream;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AbortedException;
 import software.amazon.awssdk.internal.io.Releasable;
-import software.amazon.awssdk.runtime.MetricAware;
 import software.amazon.awssdk.util.SdkRuntime;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * Base class for AWS Java SDK specific {@link InputStream}.
  */
-public abstract class SdkInputStream extends InputStream implements
-                                                         MetricAware, Releasable {
+public abstract class SdkInputStream extends InputStream implements Releasable {
     /**
      * Returns the underlying input stream, if any, from the subclass; or null
      * if there is no underlying input stream.
      */
     protected abstract InputStream getWrappedInputStream();
-
-    @Override
-    public final boolean isMetricActivated() {
-        InputStream in = getWrappedInputStream();
-        if (in instanceof MetricAware) {
-            MetricAware metricAware = (MetricAware) in;
-            return metricAware.isMetricActivated();
-        }
-        return false;
-    }
 
     /**
      * Aborts with subclass specific abortion logic executed if needed.

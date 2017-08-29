@@ -17,6 +17,7 @@ package software.amazon.awssdk.retry;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -26,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.internal.verification.Times;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.AmazonServiceException;
@@ -41,8 +43,6 @@ import software.amazon.awssdk.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.interceptor.InterceptorContext;
 import software.amazon.awssdk.internal.AmazonWebServiceRequestAdapter;
 import software.amazon.awssdk.internal.auth.NoOpSignerProvider;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
-import software.amazon.awssdk.util.AwsRequestMetricsFullSupport;
 import utils.HttpTestUtils;
 
 /**
@@ -126,7 +126,7 @@ public class AmazonHttpClientRetryPolicyTest extends RetryPolicyTestBase {
                                   EXPECTED_RETRY_COUNT);
 
         // request count = retries + 1
-        assertRequestCountEquals(EXPECTED_RETRY_COUNT + 1, context.awsRequestMetrics());
+        verify(abortableCallable, new Times(EXPECTED_RETRY_COUNT + 1)).call();
     }
 
     /**
@@ -170,7 +170,7 @@ public class AmazonHttpClientRetryPolicyTest extends RetryPolicyTestBase {
                                   EXPECTED_RETRY_COUNT);
 
         // request count = retries + 1
-        assertRequestCountEquals(EXPECTED_RETRY_COUNT + 1, context.awsRequestMetrics());
+        verify(abortableCallable, new Times(EXPECTED_RETRY_COUNT + 1)).call();
     }
 
     /**
@@ -215,7 +215,7 @@ public class AmazonHttpClientRetryPolicyTest extends RetryPolicyTestBase {
                                   null,
                                   EXPECTED_RETRY_COUNT);
         // request count = retries + 1
-        assertRequestCountEquals(EXPECTED_RETRY_COUNT + 1, context.awsRequestMetrics());
+        verify(abortableCallable, new Times(EXPECTED_RETRY_COUNT + 1)).call();
     }
 
     /**
@@ -258,7 +258,7 @@ public class AmazonHttpClientRetryPolicyTest extends RetryPolicyTestBase {
                                   EXPECTED_RETRY_COUNT);
 
         // request count = retries + 1
-        assertRequestCountEquals(EXPECTED_RETRY_COUNT + 1, context.awsRequestMetrics());
+        verify(abortableCallable, new Times(EXPECTED_RETRY_COUNT + 1)).call();
     }
 
     /**
@@ -299,23 +299,15 @@ public class AmazonHttpClientRetryPolicyTest extends RetryPolicyTestBase {
                                   0);
 
         // The captured RequestCount should be 1
-        assertRequestCountEquals(1, context.awsRequestMetrics());
+        verify(abortableCallable, new Times(1)).call();
     }
 
     private ExecutionContext createExecutionContext(SdkRequest request) {
         return ExecutionContext.builder()
-                               .awsRequestMetrics(new AwsRequestMetricsFullSupport())
                                .signerProvider(new NoOpSignerProvider())
                                .interceptorChain(new ExecutionInterceptorChain(Collections.emptyList()))
                                .executionAttributes(new ExecutionAttributes())
                                .interceptorContext(InterceptorContext.builder().request(request).build())
                                .build();
-    }
-
-    private void assertRequestCountEquals(int expectedCount, AwsRequestMetrics actualMetrics) {
-        assertEquals(
-                expectedCount,
-                actualMetrics.getTimingInfo().getCounter(AwsRequestMetrics.Field.RequestCount.toString()).intValue());
-
     }
 }

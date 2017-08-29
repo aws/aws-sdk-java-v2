@@ -59,9 +59,7 @@ public class MakeHttpRequestStage
 
     private SdkHttpFullResponse executeHttpRequest(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         final AbortableCallable<SdkHttpFullResponse> requestCallable = sdkHttpClient
-                .prepareRequest(request, SdkRequestContext.builder()
-                                                          .metrics(context.awsRequestMetrics())
-                                                          .build());
+                .prepareRequest(request, SdkRequestContext.builder().build());
 
         context.clientExecutionTrackerTask().setCurrentHttpRequest(requestCallable);
         return requestCallable.call();

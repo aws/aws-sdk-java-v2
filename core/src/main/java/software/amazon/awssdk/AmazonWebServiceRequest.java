@@ -26,7 +26,6 @@ import software.amazon.awssdk.auth.AwsCredentials;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
 
 /**
  * Base class for all user facing web service requests.
@@ -45,12 +44,6 @@ public abstract class AmazonWebServiceRequest extends SdkRequest implements Clon
      * The optional progress listener for receiving updates about the progress of the request.
      */
     private ProgressListener progressListener = ProgressListener.NOOP;
-    /**
-     * A request metric collector used for this specific service request; or null if there is none.
-     * This collector always takes precedence over the ones specified at the http client level and
-     * AWS SDK level.
-     */
-    private RequestMetricCollector requestMetricCollector;
 
     /**
      * The optional credentials to use for this request - overrides the default credentials set at
@@ -118,32 +111,6 @@ public abstract class AmazonWebServiceRequest extends SdkRequest implements Clon
      */
     public RequestClientOptions getRequestClientOptions() {
         return requestClientOptions;
-    }
-
-    /**
-     * Returns a request level metric collector; or null if not specified.
-     */
-    public RequestMetricCollector getRequestMetricCollector() {
-        return requestMetricCollector;
-    }
-
-    /**
-     * Sets a request level request metric collector which takes precedence over the ones at the
-     * http client level and AWS SDK level.
-     */
-    public void setRequestMetricCollector(RequestMetricCollector requestMetricCollector) {
-        this.requestMetricCollector = requestMetricCollector;
-    }
-
-    /**
-     * Specifies a request level metric collector which takes precedence over the ones at the http
-     * client level and AWS SDK level.
-     */
-    public <T extends AmazonWebServiceRequest> T withRequestMetricCollector(RequestMetricCollector metricCollector) {
-        setRequestMetricCollector(metricCollector);
-        @SuppressWarnings("unchecked")
-        T t = (T) this;
-        return t;
     }
 
     /**
@@ -283,7 +250,6 @@ public abstract class AmazonWebServiceRequest extends SdkRequest implements Clon
 
         target.setRequestCredentialsProvider(credentialsProvider);
         target.setGeneralProgressListener(progressListener);
-        target.setRequestMetricCollector(requestMetricCollector);
         requestClientOptions.copyTo(target.getRequestClientOptions());
         return target;
     }

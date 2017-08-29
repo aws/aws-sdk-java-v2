@@ -57,10 +57,8 @@
         <module>aws-sdk-java</module>
         <module>core</module>
         <module>opensdk-runtime</module>
-        <module>cloudwatchmetrics</module>
         <module>bom</module>
         <module>codegen</module>
-        <module>metrics-spi</module>
         <module>http-client-spi</module>
         <module>http-clients</module>
         <module>codegen-maven-plugin</module>

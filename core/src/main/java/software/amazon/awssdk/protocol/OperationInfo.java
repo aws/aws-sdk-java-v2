@@ -75,9 +75,8 @@ public class OperationInfo {
     }
 
     /**
-     * @return Display name for the service. Mainly used for the metrics system but is also available in the
-     * {@link ExecutionAttributes} object. This is usually the service interface name but may be customized at generation time
-     * ('AmazonDynamoDBv2' for example).
+     * @return Display name for the service. Available in the {@link ExecutionAttributes} object. This is usually the service
+     * interface name but may be customized at generation time ('AmazonDynamoDBv2' for example).
      */
     public String serviceName() {
         return serviceName;

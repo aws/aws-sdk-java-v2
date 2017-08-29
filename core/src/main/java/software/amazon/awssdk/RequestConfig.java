@@ -23,7 +23,6 @@ import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.event.ProgressListener;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.internal.AmazonWebServiceRequestAdapter;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
 
 /**
  * Generic representation of request level configuration. The customer interface for specifying
@@ -33,8 +32,6 @@ import software.amazon.awssdk.metrics.RequestMetricCollector;
 public abstract class RequestConfig {
 
     public abstract ProgressListener getProgressListener();
-
-    public abstract RequestMetricCollector getRequestMetricsCollector();
 
     public abstract AwsCredentialsProvider getCredentialsProvider();
 
@@ -54,8 +51,7 @@ public abstract class RequestConfig {
     public abstract RequestClientOptions getRequestClientOptions();
 
     /**
-     * @return String identifying the 'type' (i.e. operation) of the request. Used in metrics
-     *     subsystem.
+     * @return String identifying the 'type' (i.e. operation) of the request.
      */
     public abstract String getRequestType();
 

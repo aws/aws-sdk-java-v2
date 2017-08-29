@@ -29,7 +29,6 @@ import software.amazon.awssdk.auth.AwsCredentials;
 import software.amazon.awssdk.event.ProgressEvent;
 import software.amazon.awssdk.event.ProgressListener;
 import software.amazon.awssdk.event.SyncProgressListener;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
 import utils.model.EmptyAmazonWebServiceRequest;
 
 public class AmazonWebServiceRequestTest {
@@ -38,7 +37,6 @@ public class AmazonWebServiceRequestTest {
         assertNull(to.getCustomRequestHeaders());
         assertNull(to.getCustomQueryParameters());
         assertSame(ProgressListener.NOOP, to.getGeneralProgressListener());
-        assertNull(to.getRequestMetricCollector());
 
         assertTrue(RequestClientOptions.DEFAULT_STREAM_BUFFER_SIZE == to
                 .getReadLimit());
@@ -50,7 +48,6 @@ public class AmazonWebServiceRequestTest {
 
     private static void verifyBaseAfterCopy(final ProgressListener listener,
                                             final AwsCredentials credentials,
-                                            final RequestMetricCollector collector,
                                             final AmazonWebServiceRequest from, final AmazonWebServiceRequest to) {
         Map<String, String> headers = to.getCustomRequestHeaders();
         assertTrue(2 == headers.size());
@@ -61,7 +58,6 @@ public class AmazonWebServiceRequestTest {
         assertEquals(Arrays.asList("v1"), parmas.get("k1"));
         assertEquals(Arrays.asList("v2a", "v2b"), parmas.get("k2"));
         assertSame(listener, to.getGeneralProgressListener());
-        assertSame(collector, to.getRequestMetricCollector());
 
         assertTrue(1234 == to.getReadLimit());
         RequestClientOptions toOptions = to.getRequestClientOptions();
@@ -97,17 +93,11 @@ public class AmazonWebServiceRequestTest {
         };
         final AwsCredentials credentials = new AwsCredentials("accesskey",
                                                               "accessid");
-        final RequestMetricCollector collector = new RequestMetricCollector() {
-            @Override
-            public void collectMetrics(Request<?> request, Object response) {
-            }
-        };
 
         final AmazonWebServiceRequest from = new AmazonWebServiceRequest() {
         };
         from.setGeneralProgressListener(listener);
         from.setRequestCredentials(credentials);
-        from.setRequestMetricCollector(collector);
         from.putCustomRequestHeader("k1", "v1");
         from.putCustomRequestHeader("k2", "v2");
         from.putCustomQueryParameter("k1", "v1");
@@ -124,7 +114,7 @@ public class AmazonWebServiceRequestTest {
 
         // After copy
         from.copyBaseTo(to);
-        verifyBaseAfterCopy(listener, credentials, collector, from, to);
+        verifyBaseAfterCopy(listener, credentials, from, to);
     }
 
     @Test

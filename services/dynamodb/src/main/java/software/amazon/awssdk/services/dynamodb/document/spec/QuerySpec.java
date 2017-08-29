@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
 import software.amazon.awssdk.services.dynamodb.document.KeyAttribute;
 import software.amazon.awssdk.services.dynamodb.document.PrimaryKey;
 import software.amazon.awssdk.services.dynamodb.document.QueryFilter;
@@ -297,13 +296,6 @@ public class QuerySpec extends AbstractCollectionSpec<QueryRequest> {
     @Override
     public QuerySpec withProgressListener(ProgressListener progressListener) {
         setProgressListener(progressListener);
-        return this;
-    }
-
-    @Override
-    public QuerySpec withRequestMetricCollector(
-            RequestMetricCollector requestMetricCollector) {
-        setRequestMetricCollector(requestMetricCollector);
         return this;
     }
 }

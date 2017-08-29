@@ -17,25 +17,14 @@ package software.amazon.awssdk.internal.io;
 
 import java.io.FilterOutputStream;
 import java.io.OutputStream;
-import software.amazon.awssdk.runtime.MetricAware;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * Base class for AWS Java SDK specific {@link FilterOutputStream}.
  */
-public class SdkFilterOutputStream extends FilterOutputStream implements
-                                                              MetricAware, Releasable {
+public class SdkFilterOutputStream extends FilterOutputStream implements Releasable {
     public SdkFilterOutputStream(OutputStream out) {
         super(out);
-    }
-
-    @Override
-    public boolean isMetricActivated() {
-        if (out instanceof MetricAware) {
-            MetricAware metricAware = (MetricAware) out;
-            return metricAware.isMetricActivated();
-        }
-        return false;
     }
 
     @Override

@@ -90,9 +90,7 @@ public class MakeAsyncHttpRequestStage<OutputT>
         // Set content length if it hasn't been set already.
         SdkHttpFullRequest requestWithContentLength = getRequestWithContentLength(request, requestProvider);
 
-        sdkAsyncHttpClient.prepareRequest(requestWithContentLength, SdkRequestContext.builder()
-                                                                                     .metrics(context.awsRequestMetrics())
-                                                                                     .build(),
+        sdkAsyncHttpClient.prepareRequest(requestWithContentLength, SdkRequestContext.builder().build(),
                                           requestProvider,
                                           handler)
                           .run();

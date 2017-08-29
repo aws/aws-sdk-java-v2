@@ -27,7 +27,7 @@ public interface SdkAsyncHttpClient extends SdkAutoCloseable, ConfigurationProvi
      * Create an {@link AbortableRunnable} that can be used to execute the HTTP request.
      *
      * @param request         HTTP request (without content).
-     * @param context         Request context containing additional dependencies like metrics.
+     * @param context         Request context containing additional dependencies.
      * @param requestProvider Representation of an HTTP requestProvider.
      * @param handler         The handler that will be called when data is received.
      * @return Task that can execute an HTTP requestProvider and can be aborted.
