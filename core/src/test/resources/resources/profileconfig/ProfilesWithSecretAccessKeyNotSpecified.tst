@@ -1,8 +1,0 @@
-[default]
-aws_access_key_id=testDefault
-aws_secret_access_key=testDefault
-[profile test]
-aws_access_key_id=testProfile1
-aws_secret_access_key=testProfile1
-[profile test2]
-aws_access_key_id=testProfile2

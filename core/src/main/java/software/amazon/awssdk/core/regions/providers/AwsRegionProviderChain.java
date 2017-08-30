@@ -28,7 +28,7 @@ import software.amazon.awssdk.core.regions.Region;
  * Composite {@link AwsRegionProvider} that sequentially delegates to a chain of providers looking
  * for region information.
  */
-public class AwsRegionProviderChain extends AwsRegionProvider {
+public class AwsRegionProviderChain implements AwsRegionProvider {
 
     private static final Logger log = LoggerFactory.getLogger(AwsCredentialsProviderChain.class);
 

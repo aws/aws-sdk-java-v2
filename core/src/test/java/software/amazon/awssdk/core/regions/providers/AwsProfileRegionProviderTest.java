@@ -15,104 +15,53 @@
 
 package software.amazon.awssdk.core.regions.providers;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.File;
-import java.util.HashMap;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import software.amazon.awssdk.core.auth.profile.ProfileResourceLoader;
-import software.amazon.awssdk.core.auth.profile.internal.AllProfiles;
-import software.amazon.awssdk.core.auth.profile.internal.BasicProfile;
-import software.amazon.awssdk.core.auth.profile.internal.BasicProfileConfigLoader;
-import software.amazon.awssdk.core.auth.profile.internal.ProfileKeyConstants;
-import software.amazon.awssdk.core.profile.path.AwsProfileFileLocationProvider;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
+import software.amazon.awssdk.core.AwsSystemSetting;
+import software.amazon.awssdk.core.regions.Region;
 
 public class AwsProfileRegionProviderTest {
-
-    private static final String PROFILE = "test_profile";
-
-    @Mock
-    private BasicProfileConfigLoader configLoader;
-
-    @Mock
-    private AwsProfileFileLocationProvider locationProvider;
-
-    private AwsRegionProvider regionProvider;
+    private String initialDefaultProfile;
+    private String initialProfileLocation;
 
     @Before
     public void setup() {
-        MockitoAnnotations.initMocks(this);
-        when(locationProvider.getLocation())
-                .thenReturn(ProfileResourceLoader.profilesContainingOtherConfiguration().asFile());
-        regionProvider = new AwsProfileRegionProvider(PROFILE, locationProvider, configLoader);
+        this.initialDefaultProfile = AwsSystemSetting.AWS_PROFILE.getStringValue().orElse(null);
+        this.initialProfileLocation = AwsSystemSetting.AWS_CONFIG_FILE.getStringValue().orElse(null);
+    }
+
+    @After
+    public void teardown() {
+        if (initialDefaultProfile == null) {
+            System.clearProperty(AwsSystemSetting.AWS_PROFILE.property());
+        } else {
+            System.setProperty(AwsSystemSetting.AWS_PROFILE.property(), initialDefaultProfile);
+        }
+
+        if (initialProfileLocation == null) {
+            System.clearProperty(AwsSystemSetting.AWS_CONFIG_FILE.property());
+        } else {
+            System.setProperty(AwsSystemSetting.AWS_CONFIG_FILE.property(), initialProfileLocation);
+        }
     }
 
     @Test
-    public void nullConfigFileLocation_ProvidesNullRegion() {
-        when(locationProvider.getLocation()).thenReturn(null);
-        assertNull(regionProvider.getRegion());
+    public void nonExistentDefaultConfigFile_ReturnsNull() {
+        System.setProperty(AwsSystemSetting.AWS_CONFIG_FILE.property(), "/var/tmp/this/is/invalid.txt");
+        assertThat(new AwsProfileRegionProvider().getRegion()).isNull();
     }
 
     @Test
-    public void nonExistentConfigFile_ProvidesNullRegion() {
-        when(locationProvider.getLocation()).thenReturn(new File("/var/tmp/this/is/invalid.txt"));
-        assertNull(regionProvider.getRegion());
+    public void profilePresentAndRegionIsSet_ProvidesCorrectRegion() throws URISyntaxException {
+        String testFile = "/resources/profileconfig/test-profiles.tst";
+        System.setProperty(AwsSystemSetting.AWS_PROFILE.property(), "test");
+        System.setProperty(AwsSystemSetting.AWS_CONFIG_FILE.property(),
+                           Paths.get(getClass().getResource(testFile).toURI()).toString());
+        assertThat(new AwsProfileRegionProvider().getRegion()).isEqualTo(Region.of("saa"));
     }
-
-    @Test
-    public void profilesAreEmpty_ProvidesNullRegion() {
-        when(configLoader.loadProfiles(any(File.class)))
-                .thenReturn(new AllProfiles(new HashMap<String, BasicProfile>()));
-        assertNull(regionProvider.getRegion());
-    }
-
-    @Test
-    public void profilesNonEmptyButGivenProfileNotPresent_ProvidesNullRegion() {
-        final String otherProfileName = "other_profile";
-        final BasicProfile other_profile = new BasicProfile(otherProfileName, ImmutableMapParameter
-                .of(ProfileKeyConstants.REGION, "us-east-8"));
-        final AllProfiles profiles = new AllProfiles(
-                ImmutableMapParameter.of(otherProfileName, other_profile));
-        stubLoadProfile(profiles);
-        assertNull(regionProvider.getRegion());
-    }
-
-    @Test
-    public void profilePresentButRegionIsNotSet_ProvidesNullRegion() {
-        final BasicProfile profile = new BasicProfile(PROFILE, new HashMap<String, String>());
-        final AllProfiles profiles = new AllProfiles(ImmutableMapParameter.of(PROFILE, profile));
-        stubLoadProfile(profiles);
-        assertNull(regionProvider.getRegion());
-    }
-
-    @Test
-    public void profilePresentButRegionIsEmpty_ProvidesNullRegion() {
-        final BasicProfile profile = new BasicProfile(PROFILE, ImmutableMapParameter
-                .of(ProfileKeyConstants.REGION, ""));
-        final AllProfiles profiles = new AllProfiles(ImmutableMapParameter.of(PROFILE, profile));
-        stubLoadProfile(profiles);
-        assertNull(regionProvider.getRegion());
-    }
-
-    @Test
-    public void profilePresentAndRegionIsSet_ProvidesCorrectRegion() {
-        final String expectedRegion = "us-east-8";
-        final BasicProfile profile = new BasicProfile(PROFILE, ImmutableMapParameter
-                .of(ProfileKeyConstants.REGION, expectedRegion));
-        final AllProfiles profiles = new AllProfiles(ImmutableMapParameter.of(PROFILE, profile));
-        stubLoadProfile(profiles);
-        assertEquals(expectedRegion, regionProvider.getRegion().value());
-    }
-
-    private void stubLoadProfile(AllProfiles toReturn) {
-        when(configLoader.loadProfiles(any(File.class))).thenReturn(toReturn);
-    }
-
 }
