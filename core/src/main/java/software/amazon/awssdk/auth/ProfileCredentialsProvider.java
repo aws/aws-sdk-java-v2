@@ -15,12 +15,15 @@
 
 package software.amazon.awssdk.auth;
 
-import java.io.File;
+import java.util.Optional;
 import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
-import software.amazon.awssdk.auth.profile.ProfilesConfigFile;
-import software.amazon.awssdk.profile.path.AwsProfileFileLocationProvider;
+import software.amazon.awssdk.auth.profile.Profile;
+import software.amazon.awssdk.auth.profile.ProfilesFile;
+import software.amazon.awssdk.auth.profile.internal.path.AwsProfileFileLocationProvider;
+import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -32,10 +35,13 @@ import software.amazon.awssdk.utils.Validate;
  *
  * <p>See http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html</p>
  *
- * @see ProfilesConfigFile
+ * @see ProfilesFile
  */
-public class ProfileCredentialsProvider extends FileSystemCredentialsProvider {
-    private final ProfilesConfigFile profilesConfigFile;
+public final class ProfileCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
+    private final AwsCredentialsProvider profileCredentialsProvider;
+    private final RuntimeException loadException;
+
+    private final ProfilesFile profilesFile;
     private final String profileName;
 
     /**
@@ -50,16 +56,43 @@ public class ProfileCredentialsProvider extends FileSystemCredentialsProvider {
      * @see #builder()
      */
     private ProfileCredentialsProvider(Builder builder) {
-        if (builder.profilesConfigFile == null) {
+        this.profileName = builder.profileName != null ? builder.profileName
+                                                         : AwsSystemSetting.AWS_DEFAULT_PROFILE.getStringValueOrThrow();
+
+        // Load the profiles file
+        Optional<ProfilesFile> profilesFile = Optional.ofNullable(builder.profilesFile);
+
+        if (!profilesFile.isPresent()) {
             Validate.notNull(builder.profileFileLocationProvider, "Profile file location provider must not be null.");
-            File defaultProfileFile = builder.profileFileLocationProvider.getLocation();
-            this.profilesConfigFile = defaultProfileFile == null ? null : new ProfilesConfigFile(defaultProfileFile);
-        } else {
-            this.profilesConfigFile = builder.profilesConfigFile;
+            profilesFile = builder.profileFileLocationProvider.getLocation().map(ProfilesFile::new);
         }
 
-        this.profileName = builder.profileName != null ? builder.profileName
-                                                       : AwsSystemSetting.AWS_DEFAULT_PROFILE.getStringValueOrThrow();
+        this.profilesFile = profilesFile.orElse(null);
+
+        // Load the profile and credentials provider
+        Optional<Profile> profile = profilesFile.flatMap(f -> f.profile(profileName));
+        this.profileCredentialsProvider = profile.flatMap(Profile::credentialsProvider).orElse(null);
+
+        // If we couldn't load the credentials provider for some reason, save an exception describing why. This exception will
+        // only be raised on calls to getCredentials. We don't want to raise an exception here because it may be expected (eg. in
+        // the default credential chain).
+        if (profileCredentialsProvider == null) {
+            String loadError = "Unable to load credentials from profiles file: ";
+
+            if (!profilesFile.isPresent()) {
+                loadError += "Credentials file could not be located.";
+            } else if (!profile.isPresent()) {
+                loadError += String.format("Credentials file '%s' did not contain a profile named '%s'.",
+                                           profilesFile.get(), profileName);
+            } else {
+                loadError += String.format("In credentials file '%s', profile '%s' did not have any credentials configured.",
+                                           profilesFile.get(), profileName);
+
+            }
+            this.loadException = new SdkClientException(loadError);
+        } else {
+            this.loadException = null;
+        }
     }
 
     /**
@@ -70,25 +103,30 @@ public class ProfileCredentialsProvider extends FileSystemCredentialsProvider {
     }
 
     @Override
-    protected AwsCredentials loadCredentials() {
-        if (profilesConfigFile == null) {
-            throw new SdkClientException("Unable to find profile configuration file. If you are specifying a profile config "
-                                         + "file please verify it exists.");
+    public AwsCredentials getCredentials() {
+        if (loadException != null) {
+            throw loadException;
         }
-
-        return profilesConfigFile.getCredentials(profileName);
+        return profileCredentialsProvider.getCredentials();
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + profilesConfigFile + ", " + profileName + ")";
+        return "ProfileCredentialsProvider(" + profilesFile + ", " + profileName + ")";
+    }
+
+    @Override
+    public void close() {
+        // The delegate credentials provider may be closeable (eg. if it's an STS credentials provider). In this case, we should
+        // clean it up when this credentials provider is closed.
+        IoUtils.closeIfCloseable(profileCredentialsProvider, null);
     }
 
     /**
      * A builder for creating a custom {@link ProfileCredentialsProvider}.
      */
     public static final class Builder {
-        private ProfilesConfigFile profilesConfigFile;
+        private ProfilesFile profilesFile;
         private String profileName;
 
         private AwsProfileFileLocationProvider profileFileLocationProvider =
@@ -99,10 +137,10 @@ public class ProfileCredentialsProvider extends FileSystemCredentialsProvider {
         /**
          * Define the profile configuration file that should be used by this credentials provider.
          *
-         * By default, the result of {@link ProfilesConfigFile#ProfilesConfigFile()} is used.
+         * By default, the result of {@link AwsProfileFileLocationProvider#DEFAULT_CREDENTIALS_LOCATION_PROVIDER} is used.
          */
-        public Builder profilesConfigFile(ProfilesConfigFile profilesConfigFile) {
-            this.profilesConfigFile = profilesConfigFile;
+        public Builder profilesConfigFile(ProfilesFile profilesFile) {
+            this.profilesFile = profilesFile;
             return this;
         }
 
@@ -118,7 +156,7 @@ public class ProfileCredentialsProvider extends FileSystemCredentialsProvider {
 
         /**
          * Override the default configuration file locator to be used when the customer does not explicitly set
-         * {@link #profilesConfigFile(ProfilesConfigFile)}. This is only useful for testing the default behavior.
+         * {@link #profilesConfigFile(ProfilesFile)}. This is only useful for testing the default behavior.
          */
         @SdkTestInternalApi
         Builder defaultProfilesConfigFileLocator(AwsProfileFileLocationProvider profileFileLocationProvider) {

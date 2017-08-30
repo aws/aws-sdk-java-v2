@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk;
 
+import java.nio.file.Paths;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.AwsCredentials;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
@@ -25,9 +26,11 @@ import software.amazon.awssdk.auth.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.auth.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.auth.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.SystemPropertyCredentialsProvider;
+import software.amazon.awssdk.auth.profile.internal.path.CredentialsSystemSettingsLocationProvider;
+import software.amazon.awssdk.auth.profile.internal.path.SystemSettingsProfileLocationProvider;
 import software.amazon.awssdk.client.builder.ClientBuilder;
-import software.amazon.awssdk.profile.path.config.SystemSettingsProfileLocationProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.regions.providers.InstanceProfileRegionProvider;
 import software.amazon.awssdk.regions.providers.SystemSettingsRegionProvider;
 import software.amazon.awssdk.utils.JavaSystemSetting;
@@ -86,7 +89,18 @@ public enum AwsSystemSetting implements SystemSetting {
 
     /**
      * Configure the default configuration file used in the {@link SystemSettingsProfileLocationProvider}. This value is
-     * checked by the {@link DefaultCredentialsProvider}, which is used when clients are created with no credential provider
+     * checked by the {@link DefaultAwsRegionProviderChain}, which is used when clients are created with no region
+     * specified via {@link ClientBuilder#region(Region)}.
+     *
+     * See http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html for more information on configuring the
+     * SDK via a configuration file.
+     */
+    AWS_CONFIG_FILE("aws.configFile",
+                    Paths.get(JavaSystemSetting.USER_HOME.getStringValueOrThrow(), ".aws", "config").toString()),
+
+    /**
+     * Configure the default configuration file used in the {@link CredentialsSystemSettingsLocationProvider}. This value is
+     * checked by the {@link DefaultCredentialsProvider}, which is used when clients are created with no credentials
      * specified via {@link ClientBuilder#credentialsProvider(AwsCredentialsProvider)}.
      *
      * See http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html for more information on configuring the
@@ -94,9 +108,8 @@ public enum AwsSystemSetting implements SystemSetting {
      *
      * @see ProfileCredentialsProvider
      */
-    @ReviewBeforeRelease("The code relies on this being null, so it's treated as an override. When we refactor the profile stuff"
-                         + "we should consider adding a default to this value and simplifying the location finding.")
-    AWS_CONFIG_FILE("aws.configFile", null),
+    AWS_SHARED_CREDENTIALS_FILE("aws.sharedCredentialsFile",
+                                Paths.get(JavaSystemSetting.USER_HOME.getStringValueOrThrow(), ".aws", "credentials").toString()),
 
     /**
      * Configure the default profile that should be loaded from the {@link #AWS_CONFIG_FILE} when using configuration files for

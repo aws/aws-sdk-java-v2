@@ -103,10 +103,7 @@ public final class AwsCredentialsProviderChain implements AwsCredentialsProvider
 
     @Override
     public void close() {
-        credentialsProviders.stream()
-                            .filter(AutoCloseable.class::isInstance)
-                            .map(AutoCloseable.class::cast)
-                            .forEach(c -> IoUtils.closeQuietly(c, null));
+        credentialsProviders.forEach(c -> IoUtils.closeIfCloseable(c, null));
     }
 
     @Override

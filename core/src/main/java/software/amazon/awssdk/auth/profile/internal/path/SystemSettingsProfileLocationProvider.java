@@ -13,23 +13,25 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.profile.path.config;
+package software.amazon.awssdk.auth.profile.internal.path;
 
-import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
 import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.profile.path.AwsProfileFileLocationProvider;
+import software.amazon.awssdk.auth.profile.internal.path.AwsProfileFileLocationProvider;
 
 /**
  * If the 'AWS_CONFIG_FILE' environment variable or 'aws.configFile' system property is set, then we source the config file from
  * the location specified. If both are specified, the system property is used.
+ *
+ * If neither have been overridden, we use the default value of '~/.aws/config'
  */
 @SdkInternalApi
 public class SystemSettingsProfileLocationProvider implements AwsProfileFileLocationProvider {
     @Override
-    public File getLocation() {
-        return AwsSystemSetting.AWS_CONFIG_FILE.getStringValue()
-                                               .map(File::new)
-                                               .orElse(null);
+    public Optional<Path> getLocation() {
+        return AwsSystemSetting.AWS_CONFIG_FILE.getStringValue().map(Paths::get);
     }
 }
