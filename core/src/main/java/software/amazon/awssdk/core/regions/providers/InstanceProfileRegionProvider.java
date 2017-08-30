@@ -24,7 +24,7 @@ import software.amazon.awssdk.core.util.EC2MetadataUtils;
  * Attempts to load region information from the EC2 Metadata service. If the application is not
  * running on EC2 this provider will return null.
  */
-public class InstanceProfileRegionProvider extends AwsRegionProvider {
+public class InstanceProfileRegionProvider implements AwsRegionProvider {
 
     /**
      * Cache region as it will not change during the lifetime of the JVM.

@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.util;
 
 import java.io.ByteArrayInputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -27,7 +26,7 @@ public class StringInputStream extends ByteArrayInputStream {
 
     private final String string;
 
-    public StringInputStream(String s) throws UnsupportedEncodingException {
+    public StringInputStream(String s) {
         super(s.getBytes(StandardCharsets.UTF_8));
         this.string = s;
     }

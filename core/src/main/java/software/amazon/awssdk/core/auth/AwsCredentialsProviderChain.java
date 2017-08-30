@@ -94,7 +94,7 @@ public final class AwsCredentialsProviderChain implements AwsCredentialsProvider
                 return credentials;
             } catch (RuntimeException e) {
                 // Ignore any exceptions and move onto the next provider
-                log.debug("Unable to load credentials from {}:{}", provider.toString(), e.getMessage(), e);
+                log.debug("Unable to load credentials from {}: {}", provider.toString(), e.getMessage(), e);
             }
         }
 
@@ -103,10 +103,7 @@ public final class AwsCredentialsProviderChain implements AwsCredentialsProvider
 
     @Override
     public void close() {
-        credentialsProviders.stream()
-                            .filter(AutoCloseable.class::isInstance)
-                            .map(AutoCloseable.class::cast)
-                            .forEach(c -> IoUtils.closeQuietly(c, null));
+        credentialsProviders.forEach(c -> IoUtils.closeIfCloseable(c, null));
     }
 
     @Override
