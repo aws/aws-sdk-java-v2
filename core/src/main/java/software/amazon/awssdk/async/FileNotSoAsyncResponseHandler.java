@@ -17,18 +17,16 @@ package software.amazon.awssdk.async;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousFileChannel;
-import java.nio.channels.CompletionHandler;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * {@link AsyncResponseHandler} that writes the data to the specified file.
@@ -36,18 +34,14 @@ import software.amazon.awssdk.annotation.SdkInternalApi;
  * @param <ResponseT> Response POJO type. Returned on {@link #complete()}.
  */
 @SdkInternalApi
-class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<ResponseT, ResponseT> {
+public class FileNotSoAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<ResponseT, ResponseT> {
 
     private final Path path;
-    private AsynchronousFileChannel fileChannel;
+    private FileOutputStream fos;
     private volatile ResponseT response;
 
-    FileAsyncResponseHandler(Path path) {
+    public FileNotSoAsyncResponseHandler(Path path) {
         this.path = path;
-    }
-
-    private AsynchronousFileChannel createChannel(Path path) throws IOException {
-        return AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW);
     }
 
     @Override
@@ -57,15 +51,14 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
 
     @Override
     public void onStream(Publisher<ByteBuffer> publisher) {
-        // onStream may be called multiple times so reset the file channel every time
-        this.fileChannel = invokeSafely(() -> createChannel(path));
+        this.fos = invokeSafely(() -> new FileOutputStream(path.toFile()));
         publisher.subscribe(new FileSubscriber());
     }
 
     @Override
     public void exceptionOccurred(Throwable throwable) {
         try {
-            invokeSafely(fileChannel::close);
+            invokeSafely(fos::close);
         } catch (RuntimeException e) {
             path.toFile().delete();
             throw e;
@@ -78,6 +71,7 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
 
     @Override
     public ResponseT complete() {
+        invokeSafely(fos::close);
         return response;
     }
 
@@ -86,9 +80,6 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
      */
     private class FileSubscriber implements Subscriber<ByteBuffer> {
 
-        private boolean writeInProgress = false;
-        private boolean closeOnLastWrite = false;
-        private final AtomicLong position = new AtomicLong();
         private Subscription subscription;
 
         @Override
@@ -100,29 +91,8 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
-            writeInProgress = true;
-            fileChannel.write(byteBuffer, position.get(), byteBuffer, new CompletionHandler<Integer, ByteBuffer>() {
-                @Override
-                public void completed(Integer result, ByteBuffer attachment) {
-                    if (result > 0) {
-                        position.addAndGet(result);
-                        synchronized (FileSubscriber.this) {
-                            if (closeOnLastWrite) {
-                                invokeSafely(fileChannel::close);
-                            } else {
-                                subscription.request(1);
-                            }
-                            writeInProgress = false;
-                        }
-                    }
-                }
-
-                @Override
-                public void failed(Throwable exc, ByteBuffer attachment) {
-                    subscription.cancel();
-                }
-            });
-
+            invokeSafely(() -> fos.write(BinaryUtils.copyBytesFrom(byteBuffer)));
+            subscription.request(1);
         }
 
         @Override
@@ -132,21 +102,7 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
 
         @Override
         public void onComplete() {
-            // if write in progress, tell write to close on finish
-            synchronized (this) {
-                if (writeInProgress) {
-                    closeOnLastWrite = true;
-                } else {
-                    close();
-                }
-            }
         }
 
-        private void close() {
-            // Completion handled by response handler
-            if (fileChannel != null) {
-                invokeSafely(fileChannel::close);
-            }
-        }
     }
 }

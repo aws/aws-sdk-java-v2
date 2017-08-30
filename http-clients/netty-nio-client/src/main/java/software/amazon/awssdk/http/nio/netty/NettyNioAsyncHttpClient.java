@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.http.nio.netty;
 
-import static io.netty.handler.ssl.SslContext.defaultClientProvider;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.SOCKET_TIMEOUT;
@@ -29,12 +28,14 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollSocketChannel;
+import io.netty.channel.pool.ChannelHealthChecker;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolMap;
 import io.netty.channel.pool.FixedChannelPool;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.net.URI;
 import java.util.Optional;
@@ -92,7 +93,8 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                 SslContext sslContext = sslContext(key.getScheme());
                 return new FixedChannelPool(bootstrap,
                                             // TODO expose better options for this
-                                            new ChannelPipelineInitializer(sslContext), maxConnectionsPerEndpoint);
+                                            new ChannelPipelineInitializer(sslContext), ChannelHealthChecker.ACTIVE,
+                                            FixedChannelPool.AcquireTimeoutAction.FAIL, 1000, maxConnectionsPerEndpoint, 10_000);
             }
         };
     }
@@ -143,7 +145,7 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
     private SslContext sslContext(String scheme) {
         if (scheme.equalsIgnoreCase("https")) {
-            SslContextBuilder builder = SslContextBuilder.forClient().sslProvider(defaultClientProvider());
+            SslContextBuilder builder = SslContextBuilder.forClient().sslProvider(SslProvider.JDK);
             if (trustAllCertificates) {
                 builder.trustManager(InsecureTrustManagerFactory.INSTANCE);
             }
