@@ -51,7 +51,6 @@ import software.amazon.awssdk.interceptor.InterceptorContext;
 import software.amazon.awssdk.internal.auth.NoOpSignerProvider;
 import software.amazon.awssdk.internal.http.request.SlowExecutionInterceptor;
 import software.amazon.awssdk.internal.http.response.DummyResponseHandler;
-import software.amazon.awssdk.util.AwsRequestMetricsFullSupport;
 import utils.HttpTestUtils;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -129,7 +128,6 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockSer
 
     private ExecutionContext withInterceptors(ExecutionInterceptor... requestHandlers) {
         return ExecutionContext.builder()
-                               .awsRequestMetrics(new AwsRequestMetricsFullSupport())
                                .signerProvider(new NoOpSignerProvider())
                                .executionAttributes(new ExecutionAttributes())
                                .interceptorContext(InterceptorContext.builder().request(new SdkRequest() {}).build())

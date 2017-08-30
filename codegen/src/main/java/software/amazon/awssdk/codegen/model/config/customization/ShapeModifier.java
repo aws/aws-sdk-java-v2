@@ -29,6 +29,8 @@ public class ShapeModifier {
     private List<String> exclude;
     private List<Map<String, ModifyModelShapeModifier>> modify;
     private List<Map<String, Member>> inject;
+    private String customUnmarshallerFqcn;
+    private Integer staxTargetDepthOffset;
 
     /**
      * @return true if the whole shape should be excluded.
@@ -74,5 +76,28 @@ public class ShapeModifier {
 
     public void setInject(List<Map<String, Member>> inject) {
         this.inject = inject;
+    }
+
+    /**
+     * @return a FQCN to an implementation of {@link software.amazon.awssdk.runtime.transform.Unmarshaller} to
+     * be used to unmarshall this shape
+     */
+    public String getCustomUnmarshallerFqcn() {
+        return customUnmarshallerFqcn;
+    }
+
+    public void setCustomUnmarshallerFqcn(String customUnmarshallerFqcn) {
+        this.customUnmarshallerFqcn = customUnmarshallerFqcn;
+    }
+
+    /**
+     * @return the depth offset to use during staxUnmarshalling
+     */
+    public Integer getStaxTargetDepthOffset() {
+        return staxTargetDepthOffset;
+    }
+
+    public void setStaxTargetDepthOffset(Integer staxTargetDepthOffset) {
+        this.staxTargetDepthOffset = staxTargetDepthOffset;
     }
 }

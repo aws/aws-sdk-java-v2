@@ -37,7 +37,7 @@ import software.amazon.awssdk.runtime.io.SdkBufferedInputStream;
 import software.amazon.awssdk.util.UnreliableFilterInputStream;
 
 /**
- * Instruments the request input stream for both retry purposes (to allow for mark/reset) and metrics/progress reporting. Handles
+ * Instruments the request input stream for both retry purposes (to allow for mark/reset) and progress reporting. Handles
  * closing the input stream when the request completes.
  *
  * @param <OutputT> Type of unmarshalled response
@@ -63,7 +63,6 @@ public class StreamManagingStage<OutputT> implements RequestPipeline<SdkHttpFull
                            .content(nonCloseableInputStream(toBeClosed))
                            .build(), context);
             publishProgress(listener, ProgressEventType.CLIENT_REQUEST_SUCCESS_EVENT);
-            context.awsRequestMetrics().getTimingInfo().endTiming();
             return response;
         } finally {
             // Always close so any progress tracking would get the final events propagated.

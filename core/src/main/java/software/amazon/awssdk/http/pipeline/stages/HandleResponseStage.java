@@ -32,7 +32,6 @@ import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 
 /**
  * Unmarshalls an HTTP response into either a successful response POJO, or into a (possibly modeled) exception. Returns a wrapper
@@ -86,17 +85,11 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
     @SuppressWarnings("deprecation")
     private OutputT handleSuccessResponse(HttpResponse httpResponse, RequestExecutionContext context)
             throws IOException, InterruptedException {
-        context.awsRequestMetrics().addProperty(AwsRequestMetrics.Field.StatusCode, httpResponse.getStatusCode());
         ProgressListener listener = context.requestConfig().getProgressListener();
         try {
             OutputT awsResponse;
-            context.awsRequestMetrics().startEvent(AwsRequestMetrics.Field.ResponseProcessingTime);
             publishProgress(listener, ProgressEventType.HTTP_RESPONSE_STARTED_EVENT);
-            try {
-                awsResponse = successResponseHandler.handle(httpResponse, context.executionAttributes());
-            } finally {
-                context.awsRequestMetrics().endEvent(AwsRequestMetrics.Field.ResponseProcessingTime);
-            }
+            awsResponse = successResponseHandler.handle(httpResponse, context.executionAttributes());
             publishProgress(listener, ProgressEventType.HTTP_RESPONSE_COMPLETED_EVENT);
 
             return awsResponse;

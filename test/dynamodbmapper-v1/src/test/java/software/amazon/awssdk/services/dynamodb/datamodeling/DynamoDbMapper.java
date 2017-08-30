@@ -818,8 +818,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
         rqBuilder.tableName(tableName);
         rqBuilder.consistentRead(config.getConsistentReads() == ConsistentReads.CONSISTENT);
 
-        GetItemRequest rq = rqBuilder.build()
-                .withRequestMetricCollector(config.getRequestMetricCollector());
+        GetItemRequest rq = rqBuilder.build();
 
         GetItemResponse item = db.getItem(applyUserAgent(rq));
         Map<String, AttributeValue> itemAttributes = item.item();
@@ -1096,7 +1095,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
                     .build();
 
         }
-        db.deleteItem(applyUserAgent(req.withRequestMetricCollector(config.getRequestMetricCollector())));
+        db.deleteItem(applyUserAgent(req));
     }
 
     @Override
@@ -1380,9 +1379,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
                 }
             }
 
-            batchGetItemResponse = db.batchGetItem(
-                    applyBatchOperationUserAgent(batchGetItemRequest)
-                            .withRequestMetricCollector(config.getRequestMetricCollector()));
+            batchGetItemResponse = db.batchGetItem(applyBatchOperationUserAgent(batchGetItemRequest));
 
             Map<String, List<Map<String, AttributeValue>>> responses = batchGetItemResponse.responses();
             for (Map.Entry<String, List<Map<String, AttributeValue>>> entries : responses.entrySet()) {
@@ -1557,7 +1554,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
                 .consistentRead(scanExpression.isConsistentRead())
                 .build();
 
-        return applyUserAgent(scanRequest.withRequestMetricCollector(config.getRequestMetricCollector()));
+        return applyUserAgent(scanRequest);
     }
 
     /**
@@ -1617,7 +1614,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
                .returnConsumedCapacity(xpress.getReturnConsumedCapacity())
                .build();
 
-        return applyUserAgent(request.withRequestMetricCollector(config.getRequestMetricCollector()));
+        return applyUserAgent(request);
     }
 
     private <T> AttributeTransformer.Parameters<T> toParameters(
@@ -2155,7 +2152,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
                     .returnValues(ReturnValue.ALL_NEW)
                     .build();
 
-            return db.updateItem(applyUserAgent(req.withRequestMetricCollector(saveConfig.getRequestMetricCollector())));
+            return db.updateItem(applyUserAgent(req));
         }
 
         /**
@@ -2184,7 +2181,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
                     .conditionalOperator(userProvidedConditionOperator)
                     .build();
 
-            return db.putItem(applyUserAgent(req.withRequestMetricCollector(saveConfig.getRequestMetricCollector())));
+            return db.putItem(applyUserAgent(req));
         }
 
         /**

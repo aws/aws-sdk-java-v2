@@ -26,7 +26,6 @@ import software.amazon.awssdk.http.HttpClientDependencies;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.pipeline.RequestToRequestPipeline;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 import software.amazon.awssdk.runtime.auth.SignerProviderContext;
 
 /**
@@ -57,13 +56,8 @@ public class SigningStage implements RequestToRequestPipeline {
         updateInterceptorContext(request, context.executionContext());
         Signer signer = newSigner(request, context);
         if (shouldSign(signer, credentials)) {
-            context.awsRequestMetrics().startEvent(AwsRequestMetrics.Field.RequestSigningTime);
-            try {
-                adjustForClockSkew(context.executionAttributes());
-                return signer.sign(context.executionContext().interceptorContext(), context.executionAttributes());
-            } finally {
-                context.awsRequestMetrics().endEvent(AwsRequestMetrics.Field.RequestSigningTime);
-            }
+            adjustForClockSkew(context.executionAttributes());
+            return signer.sign(context.executionContext().interceptorContext(), context.executionAttributes());
         }
         return request;
     }

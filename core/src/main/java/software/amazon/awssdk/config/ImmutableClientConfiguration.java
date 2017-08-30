@@ -57,7 +57,6 @@ public abstract class ImmutableClientConfiguration implements ClientConfiguratio
         requireField("overrideConfiguration.advancedOption[SIGNER_PROVIDER]",
                      overrideConfiguration().advancedOption(AdvancedClientOption.SIGNER_PROVIDER));
         requireField("overrideConfiguration.gzipEnabled", overrideConfiguration().gzipEnabled());
-        requireField("overrideConfiguration.requestMetricCollector", overrideConfiguration().requestMetricCollector());
         requireField("overrideConfiguration.advancedOption[USER_AGENT_PREFIX]",
                      overrideConfiguration().advancedOption(AdvancedClientOption.USER_AGENT_PREFIX));
         requireField("overrideConfiguration.advancedOption[USER_AGENT_SUFFIX]",

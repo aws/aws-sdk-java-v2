@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.dynamodb.document.spec;
 
 import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
 import software.amazon.awssdk.services.dynamodb.document.internal.InternalUtils;
 
 /**
@@ -52,24 +51,9 @@ class AbstractSpec<T extends AmazonWebServiceRequest> {
         getRequest().setGeneralProgressListener(progressListener);
     }
 
-    public RequestMetricCollector getRequestMetricCollector() {
-        return getRequest().getRequestMetricCollector();
-    }
-
-    public void setRequestMetricCollector(
-            RequestMetricCollector requestMetricCollector) {
-        getRequest().setRequestMetricCollector(requestMetricCollector);
-    }
-
     public AbstractSpec<T> withProgressListener(
             ProgressListener progressListener) {
         getRequest().setGeneralProgressListener(progressListener);
-        return this;
-    }
-
-    public AbstractSpec<T> withRequestMetricCollector(
-            RequestMetricCollector requestMetricCollector) {
-        getRequest().setRequestMetricCollector(requestMetricCollector);
         return this;
     }
 }

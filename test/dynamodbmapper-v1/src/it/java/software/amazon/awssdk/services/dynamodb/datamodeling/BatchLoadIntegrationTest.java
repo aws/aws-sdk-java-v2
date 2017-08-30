@@ -58,8 +58,10 @@ public class BatchLoadIntegrationTest extends DynamoDBMapperIntegrationTestBase 
     private static int start = 1;
     private static int byteStart = 1;
     private static int startKeyDebug = 1;
-    DynamoDbMapper mapper = new DynamoDbMapper(dynamo, new DynamoDbMapperConfig(SaveBehavior.UPDATE,
-                                                                                ConsistentReads.CONSISTENT, null));
+    DynamoDbMapper mapper = new DynamoDbMapper(dynamo, DynamoDbMapperConfig.builder()
+                                                                           .withSaveBehavior(SaveBehavior.UPDATE)
+                                                                           .withConsistentReads(ConsistentReads.CONSISTENT)
+                                                                           .build());
 
     @BeforeClass
     public static void setUp() throws Exception {

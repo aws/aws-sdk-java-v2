@@ -1,3 +1,2 @@
 software.amazon.awssdk.services.s3.handlers.EndpointAddressInterceptor
 software.amazon.awssdk.services.s3.handlers.CreateBucketInterceptor
-software.amazon.awssdk.services.s3.handlers.SingleStringExecutionInterceptor

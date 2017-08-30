@@ -13,30 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.metrics;
+package software.amazon.awssdk.services.s3.transform;
 
-import software.amazon.awssdk.metrics.spi.MetricType;
+import software.amazon.awssdk.http.HttpResponse;
+import software.amazon.awssdk.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.services.s3.model.GetBucketPolicyResponse;
+import software.amazon.awssdk.utils.IoUtils;
 
-public abstract class SimpleMetricType implements MetricType {
+public final class GetBucketPolicyResponseUnmarshaller implements Unmarshaller<GetBucketPolicyResponse, HttpResponse> {
     @Override
-    public abstract String name();
-
-    @Override
-    public final int hashCode() {
-        return name().hashCode();
-    }
-
-    @Override
-    public final boolean equals(Object o) {
-        if (!(o instanceof MetricType)) {
-            return false;
-        }
-        MetricType that = (MetricType) o;
-        return this.name().equals(that.name());
-    }
-
-    @Override
-    public final String toString() {
-        return name();
+    public GetBucketPolicyResponse unmarshall(HttpResponse response) throws Exception {
+        return GetBucketPolicyResponse.builder().policy(IoUtils.toString(response.getContent())).build();
     }
 }

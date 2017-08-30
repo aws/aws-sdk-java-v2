@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static com.squareup.javapoet.TypeSpec.Builder;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.getCustomResponseHandler;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
 
 import com.squareup.javapoet.ClassName;
@@ -105,10 +106,13 @@ public final class AsyncClientClass extends AsyncClientInterface {
     }
 
     @Override
-    protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel) {
+    protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel) {        
+        ClassName returnType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
+
         return builder.addModifiers(Modifier.PUBLIC)
                       .addAnnotation(Override.class)
-                      .addCode(protocolSpec.responseHandler(opModel))
+                      .addCode(getCustomResponseHandler(opModel, returnType)
+                                   .orElseGet(() -> protocolSpec.responseHandler(opModel)))
                       .addCode(protocolSpec.errorResponseHandler(opModel))
                       .addCode(protocolSpec.asyncExecutionHandler(opModel));
 

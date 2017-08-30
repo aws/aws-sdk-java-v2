@@ -24,7 +24,6 @@ import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.ReadLimitInfo;
 import software.amazon.awssdk.Request;
 import software.amazon.awssdk.http.HttpMethodName;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 
 public class EmptyHttpRequest implements Request<Object> {
 
@@ -145,15 +144,6 @@ public class EmptyHttpRequest implements Request<Object> {
     @Override
     public Request<Object> withTimeOffset(int timeOffset) {
         return this;
-    }
-
-    @Override
-    public AwsRequestMetrics getAwsRequestMetrics() {
-        return null;
-    }
-
-    @Override
-    public void setAwsRequestMetrics(AwsRequestMetrics metrics) {
     }
 
     @Override

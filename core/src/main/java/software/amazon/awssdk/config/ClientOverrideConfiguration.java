@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
 import software.amazon.awssdk.retry.v2.RetryPolicy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -41,7 +40,6 @@ public class ClientOverrideConfiguration
     private final Duration totalExecutionTimeout;
     private final Map<String, List<String>> additionalHttpHeaders;
     private final Boolean gzipEnabled;
-    private final RequestMetricCollector requestMetricCollector;
     private final RetryPolicy retryPolicy;
     private final List<ExecutionInterceptor> lastExecutionInterceptors;
     private final AttributeMap advancedOptions;
@@ -54,7 +52,6 @@ public class ClientOverrideConfiguration
         this.totalExecutionTimeout = builder.totalExecutionTimeout;
         this.additionalHttpHeaders = CollectionUtils.deepUnmodifiableMap(builder.additionalHttpHeaders);
         this.gzipEnabled = builder.gzipEnabled;
-        this.requestMetricCollector = builder.requestMetricCollector;
         this.retryPolicy = builder.retryPolicy;
         this.lastExecutionInterceptors = Collections.unmodifiableList(new ArrayList<>(builder.lastExecutionInterceptors));
         this.advancedOptions = builder.advancedOptions.build();
@@ -67,7 +64,6 @@ public class ClientOverrideConfiguration
                                                               .totalExecutionTimeout(totalExecutionTimeout)
                                                               .additionalHttpHeaders(additionalHttpHeaders)
                                                               .gzipEnabled(gzipEnabled)
-                                                              .requestMetricCollector(requestMetricCollector)
                                                               .retryPolicy(retryPolicy)
                                                               .lastExecutionInterceptors(lastExecutionInterceptors);
     }
@@ -138,15 +134,6 @@ public class ClientOverrideConfiguration
      */
     public Boolean gzipEnabled() {
         return gzipEnabled;
-    }
-
-    /**
-     * The metric collector that should be notified of each request event.
-     *
-     * @see Builder#requestMetricCollector(RequestMetricCollector)
-     */
-    public RequestMetricCollector requestMetricCollector() {
-        return requestMetricCollector;
     }
 
     /**
@@ -253,13 +240,6 @@ public class ClientOverrideConfiguration
         Builder gzipEnabled(Boolean gzipEnabled);
 
         /**
-         * Set the metric collector that should be notified of each request event.
-         *
-         * @see ClientOverrideConfiguration#requestMetricCollector()
-         */
-        Builder requestMetricCollector(RequestMetricCollector metricCollector);
-
-        /**
          * Configure the retry policy that should be used when handling failure cases.
          *
          * @see ClientOverrideConfiguration#retryPolicy()
@@ -315,7 +295,6 @@ public class ClientOverrideConfiguration
         private Duration totalExecutionTimeout;
         private Map<String, List<String>> additionalHttpHeaders = new HashMap<>();
         private Boolean gzipEnabled;
-        private RequestMetricCollector requestMetricCollector;
         private RetryPolicy retryPolicy;
         private List<ExecutionInterceptor> lastExecutionInterceptors = new ArrayList<>();
         private AttributeMap.Builder advancedOptions = AttributeMap.builder();
@@ -365,16 +344,6 @@ public class ClientOverrideConfiguration
 
         public void setGzipEnabled(Boolean gzipEnabled) {
             gzipEnabled(gzipEnabled);
-        }
-
-        @Override
-        public Builder requestMetricCollector(RequestMetricCollector requestMetricCollector) {
-            this.requestMetricCollector = requestMetricCollector;
-            return this;
-        }
-
-        public void setRequestMetricCollector(RequestMetricCollector requestMetricCollector) {
-            requestMetricCollector(requestMetricCollector);
         }
 
         @Override

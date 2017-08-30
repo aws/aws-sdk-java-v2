@@ -56,9 +56,6 @@ public class ClientExecutionTimedStage<OutputT> implements RequestToResponsePipe
             return executeWithTimer(request, context);
         } catch (Exception e) {
             throw translatePipelineException(context, e);
-        } finally {
-            // Don't let the flag to persist after we return control
-            Thread.interrupted();
         }
     }
 
@@ -93,6 +90,7 @@ public class ClientExecutionTimedStage<OutputT> implements RequestToResponsePipe
 
         // InterruptedException was not rethrown and instead the interrupted flag was set
         if (Thread.currentThread().isInterrupted() && context.clientExecutionTrackerTask().hasTimeoutExpired()) {
+            Thread.interrupted();
             return new ClientExecutionTimeoutException();
         }
 

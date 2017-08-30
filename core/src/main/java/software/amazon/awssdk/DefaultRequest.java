@@ -25,7 +25,6 @@ import java.util.Map;
 import software.amazon.awssdk.annotation.NotThreadSafe;
 import software.amazon.awssdk.event.ProgressInputStream;
 import software.amazon.awssdk.http.HttpMethodName;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 import software.amazon.awssdk.util.json.Jackson;
 
 /**
@@ -68,8 +67,6 @@ public class DefaultRequest<T> implements Request<T> {
     private InputStream content;
     /** An optional time offset to account for clock skew. */
     private int timeOffset;
-    /** All AWS Request metrics are collected into this object. */
-    private AwsRequestMetrics metrics;
 
     /**
      * Constructs a new DefaultRequest with the specified service name and the
@@ -305,20 +302,6 @@ public class DefaultRequest<T> implements Request<T> {
         }
 
         return builder.toString();
-    }
-
-    @Override
-    public AwsRequestMetrics getAwsRequestMetrics() {
-        return metrics;
-    }
-
-    @Override
-    public void setAwsRequestMetrics(AwsRequestMetrics metrics) {
-        if (this.metrics == null) {
-            this.metrics = metrics;
-        } else {
-            throw new IllegalStateException("AWSRequestMetrics has already been set on this request");
-        }
     }
 
     @SuppressWarnings("resource")

@@ -29,7 +29,6 @@ import software.amazon.awssdk.config.ClientConfiguration;
 import software.amazon.awssdk.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.handlers.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
 import software.amazon.awssdk.retry.PredefinedRetryPolicies;
 import software.amazon.awssdk.retry.RetryPolicyAdapter;
 import software.amazon.awssdk.util.UserAgentUtils;
@@ -56,7 +55,6 @@ public final class GlobalClientConfigurationDefaults extends ClientConfiguration
         builder.advancedOption(CRC32_FROM_COMPRESSED_DATA_ENABLED,
                                applyDefault(configuration.advancedOption(CRC32_FROM_COMPRESSED_DATA_ENABLED), () -> false));
 
-        builder.requestMetricCollector(applyDefault(configuration.requestMetricCollector(), () -> RequestMetricCollector.NONE));
         builder.retryPolicy(applyDefault(configuration.retryPolicy(), () ->
                 new RetryPolicyAdapter(PredefinedRetryPolicies.DEFAULT)));
 

@@ -48,7 +48,6 @@ import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.http.async.SyncResponseHandlerAdapter;
 import software.amazon.awssdk.interceptor.InterceptorContext;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 import software.amazon.awssdk.util.CredentialUtils;
 import software.amazon.awssdk.util.Throwables;
 
@@ -117,26 +116,12 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
         runBeforeExecutionInterceptors(executionContext);
         InputT inputT = runModifyRequestInterceptors(executionContext);
 
-        AwsRequestMetrics awsRequestMetrics = executionContext.awsRequestMetrics();
+        runBeforeMarshallingInterceptors(executionContext);
+        Request<InputT> request = executionParams.getMarshaller().marshall(inputT);
+        request.setEndpoint(asyncClientConfiguration.endpoint());
 
-        awsRequestMetrics.startEvent(AwsRequestMetrics.Field.ClientExecuteTime);
-        Request<InputT> request;
-
-        awsRequestMetrics.startEvent(AwsRequestMetrics.Field.RequestMarshallTime);
-        try {
-            runBeforeMarshallingInterceptors(executionContext);
-            request = executionParams.getMarshaller().marshall(inputT);
-            request.setAwsRequestMetrics(awsRequestMetrics);
-            request.setEndpoint(asyncClientConfiguration.endpoint());
-
-            // TODO: Can any of this be merged into the parent class? There's a lot of duplication here.
-            executionContext.executionAttributes().putAttribute(AwsExecutionAttributes.SERVICE_NAME, request.getServiceName());
-        } catch (Exception e) {
-            endClientExecution(awsRequestMetrics, executionParams.getRequestConfig(), null, null);
-            throw e;
-        } finally {
-            awsRequestMetrics.endEvent(AwsRequestMetrics.Field.RequestMarshallTime);
-        }
+        // TODO: Can any of this be merged into the parent class? There's a lot of duplication here.
+        executionContext.executionAttributes().putAttribute(AwsExecutionAttributes.SERVICE_NAME, request.getServiceName());
 
         addHttpRequest(executionContext, SdkHttpFullRequestAdapter.toHttpFullRequest(request));
         runAfterMarshallingInterceptors(executionContext);
@@ -157,16 +142,10 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
         return invoke(marshalled, requestProvider, executionParams.getRequestConfig(),
                       executionContext, successResponseHandler, errorHandler)
                 .handle((resp, err) -> {
-                    try {
-                        if (err != null) {
-                            throw Throwables.failure(err);
-                        }
-                        return resp;
-                    } catch (Exception e) {
-                        throw e;
-                    } finally {
-                        endClientExecution(awsRequestMetrics, executionParams.getRequestConfig(), request, resp);
+                    if (err != null) {
+                        throw Throwables.failure(err);
                     }
+                    return resp;
                 });
     }
 

@@ -35,7 +35,6 @@ import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 import software.amazon.awssdk.sync.StreamingResponseHandler;
 import software.amazon.awssdk.util.CredentialUtils;
 
@@ -96,42 +95,24 @@ public class SyncClientHandlerImpl extends ClientHandler {
         runBeforeExecutionInterceptors(executionContext);
         InputT inputT = runModifyRequestInterceptors(executionContext);
 
-        AwsRequestMetrics awsRequestMetrics = executionContext.awsRequestMetrics();
-        awsRequestMetrics.startEvent(AwsRequestMetrics.Field.ClientExecuteTime);
-        Request<InputT> request = null;
-        ReturnT response = null;
+        runBeforeMarshallingInterceptors(executionContext);
+        Request<InputT> request = executionParams.getMarshaller().marshall(inputT);
+        request.setEndpoint(syncClientConfiguration.endpoint());
 
-        try {
-            awsRequestMetrics.startEvent(AwsRequestMetrics.Field.RequestMarshallTime);
-            try {
-                runBeforeMarshallingInterceptors(executionContext);
-                request = executionParams.getMarshaller().marshall(inputT);
-                request.setAwsRequestMetrics(awsRequestMetrics);
-                request.setEndpoint(syncClientConfiguration.endpoint());
+        // TODO: Can any of this be merged into the parent class? There's a lot of duplication here.
+        executionContext.executionAttributes().putAttribute(AwsExecutionAttributes.SERVICE_NAME,
+                                                            request.getServiceName());
 
-                // TODO: Can any of this be merged into the parent class? There's a lot of duplication here.
-                executionContext.executionAttributes().putAttribute(AwsExecutionAttributes.SERVICE_NAME,
-                                                                    request.getServiceName());
-            } finally {
-                awsRequestMetrics.endEvent(AwsRequestMetrics.Field.RequestMarshallTime);
-            }
+        SdkHttpFullRequest marshalled = SdkHttpFullRequestAdapter.toHttpFullRequest(request);
+        addHttpRequest(executionContext, marshalled);
+        runAfterMarshallingInterceptors(executionContext);
+        marshalled = runModifyHttpRequestInterceptors(executionContext);
 
-            SdkHttpFullRequest marshalled = SdkHttpFullRequestAdapter.toHttpFullRequest(request);
-            addHttpRequest(executionContext, marshalled);
-            runAfterMarshallingInterceptors(executionContext);
-            marshalled = runModifyHttpRequestInterceptors(executionContext);
-
-            response = invoke(marshalled,
-                              executionParams.getRequestConfig(),
-                              executionContext,
-                              responseHandler,
-                              executionParams.getErrorResponseHandler());
-            return response;
-        } catch (RuntimeException e) {
-            throw e;
-        } finally {
-            endClientExecution(awsRequestMetrics, executionParams.getRequestConfig(), request, response);
-        }
+        return invoke(marshalled,
+                      executionParams.getRequestConfig(),
+                      executionContext,
+                      responseHandler,
+                      executionParams.getErrorResponseHandler());
     }
 
     @Override
