@@ -18,6 +18,7 @@ package software.amazon.awssdk.regions.providers;
 import java.io.File;
 import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.SdkClientException;
+import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
 import software.amazon.awssdk.auth.profile.internal.AllProfiles;
 import software.amazon.awssdk.auth.profile.internal.BasicProfile;

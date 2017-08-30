@@ -16,6 +16,7 @@
 package software.amazon.awssdk.profile.path;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,9 +36,9 @@ public class AwsProfileFileLocationProviderChain implements AwsProfileFileLocati
     }
 
     @Override
-    public File getLocation() {
+    public Path getLocation() {
         for (AwsProfileFileLocationProvider provider : providers) {
-            File path = provider.getLocation();
+            Path path = provider.getLocation();
             if (path != null) {
                 return path;
             }

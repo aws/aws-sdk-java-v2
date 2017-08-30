@@ -66,35 +66,35 @@ public class BasicProfile {
     }
 
     public String getAwsAccessIdKey() {
-        return getPropertyValue(ProfileKeyConstants.AWS_ACCESS_KEY_ID);
+        return getPropertyValue(ProfileProperties.AWS_ACCESS_KEY_ID);
     }
 
     public String getAwsSecretAccessKey() {
-        return getPropertyValue(ProfileKeyConstants.AWS_SECRET_ACCESS_KEY);
+        return getPropertyValue(ProfileProperties.AWS_SECRET_ACCESS_KEY);
     }
 
     public String getAwsSessionToken() {
-        return getPropertyValue(ProfileKeyConstants.AWS_SESSION_TOKEN);
+        return getPropertyValue(ProfileProperties.AWS_SESSION_TOKEN);
     }
 
     public String getRoleArn() {
-        return getPropertyValue(ProfileKeyConstants.ROLE_ARN);
+        return getPropertyValue(ProfileProperties.ROLE_ARN);
     }
 
     public String getRoleSourceProfile() {
-        return getPropertyValue(ProfileKeyConstants.SOURCE_PROFILE);
+        return getPropertyValue(ProfileProperties.SOURCE_PROFILE);
     }
 
     public String getRoleSessionName() {
-        return getPropertyValue(ProfileKeyConstants.ROLE_SESSION_NAME);
+        return getPropertyValue(ProfileProperties.ROLE_SESSION_NAME);
     }
 
     public String getRoleExternalId() {
-        return getPropertyValue(ProfileKeyConstants.EXTERNAL_ID);
+        return getPropertyValue(ProfileProperties.EXTERNAL_ID);
     }
 
     public String getRegion() {
-        return getPropertyValue(ProfileKeyConstants.REGION);
+        return getPropertyValue(ProfileProperties.REGION);
     }
 
     public boolean isRoleBasedProfile() {

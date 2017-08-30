@@ -43,12 +43,12 @@ public class Profile {
 
     public Profile(String profileName, AwsCredentials awsCredentials) {
         Map<String, String> properties = new LinkedHashMap<String, String>();
-        properties.put(ProfileKeyConstants.AWS_ACCESS_KEY_ID, awsCredentials.accessKeyId());
-        properties.put(ProfileKeyConstants.AWS_SECRET_ACCESS_KEY, awsCredentials.secretAccessKey());
+        properties.put(ProfileProperties.AWS_ACCESS_KEY_ID, awsCredentials.accessKeyId());
+        properties.put(ProfileProperties.AWS_SECRET_ACCESS_KEY, awsCredentials.secretAccessKey());
 
         if (awsCredentials instanceof AwsSessionCredentials) {
             AwsSessionCredentials sessionCred = (AwsSessionCredentials) awsCredentials;
-            properties.put(ProfileKeyConstants.AWS_SESSION_TOKEN, sessionCred.sessionToken());
+            properties.put(ProfileProperties.AWS_SESSION_TOKEN, sessionCred.sessionToken());
         }
 
         this.profileName = profileName;
@@ -58,15 +58,15 @@ public class Profile {
 
     public Profile(String profileName, String sourceProfile, AwsCredentialsProvider awsCredentials, RoleInfo roleInfo) {
         Map<String, String> properties = new LinkedHashMap<String, String>();
-        properties.put(ProfileKeyConstants.SOURCE_PROFILE, sourceProfile);
-        properties.put(ProfileKeyConstants.ROLE_ARN, roleInfo.getRoleArn());
+        properties.put(ProfileProperties.SOURCE_PROFILE, sourceProfile);
+        properties.put(ProfileProperties.ROLE_ARN, roleInfo.getRoleArn());
 
         if (roleInfo.getRoleSessionName() != null) {
-            properties.put(ProfileKeyConstants.ROLE_SESSION_NAME, roleInfo.getRoleSessionName());
+            properties.put(ProfileProperties.ROLE_SESSION_NAME, roleInfo.getRoleSessionName());
         }
 
         if (roleInfo.getExternalId() != null) {
-            properties.put(ProfileKeyConstants.EXTERNAL_ID, roleInfo.getExternalId());
+            properties.put(ProfileProperties.EXTERNAL_ID, roleInfo.getExternalId());
         }
 
         this.profileName = profileName;

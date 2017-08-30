@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.profile.path;
 
-import java.io.File;
+import java.nio.file.Path;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.profile.path.config.SharedConfigDefaultLocationProvider;
 import software.amazon.awssdk.profile.path.config.SystemSettingsProfileLocationProvider;
@@ -51,5 +51,5 @@ public interface AwsProfileFileLocationProvider {
      * @return Location of file containing profile data. Null if implementation cannot provide the
      *     location.
      */
-    File getLocation();
+    Path getLocation();
 }

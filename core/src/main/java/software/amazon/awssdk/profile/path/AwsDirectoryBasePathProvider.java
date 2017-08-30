@@ -16,6 +16,8 @@
 package software.amazon.awssdk.profile.path;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.utils.JavaSystemSetting;
 
@@ -27,8 +29,8 @@ public abstract class AwsDirectoryBasePathProvider implements AwsProfileFileLoca
     /**
      * @return File of ~/.aws directory.
      */
-    protected final File getAwsDirectory() {
-        return new File(getHomeDirectory(), ".aws");
+    protected final Path getAwsDirectory() {
+        return Paths.get(getHomeDirectory(), ".aws");
     }
 
     private String getHomeDirectory() {

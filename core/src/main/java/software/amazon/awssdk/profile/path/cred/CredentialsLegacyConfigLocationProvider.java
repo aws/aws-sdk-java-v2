@@ -15,7 +15,8 @@
 
 package software.amazon.awssdk.profile.path.cred;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotation.SdkInternalApi;
@@ -38,12 +39,12 @@ public class CredentialsLegacyConfigLocationProvider extends AwsDirectoryBasePat
     private static final String LEGACY_CONFIG_PROFILES_FILENAME = "config";
 
     @Override
-    public File getLocation() {
-        File legacyConfigProfiles = new File(getAwsDirectory(), LEGACY_CONFIG_PROFILES_FILENAME);
-        if (legacyConfigProfiles.exists() && legacyConfigProfiles.isFile()) {
+    public Path getLocation() {
+        Path legacyConfigProfiles = getAwsDirectory().resolve(LEGACY_CONFIG_PROFILES_FILENAME);
+        if (Files.isRegularFile(legacyConfigProfiles)) {
             log.warn("Found the legacy config profiles file at [{}]. " +
                      "Please move it to the latest default location [~/.aws/credentials]",
-                     legacyConfigProfiles.getAbsolutePath());
+                     legacyConfigProfiles.toAbsolutePath());
             return legacyConfigProfiles;
         }
         return null;

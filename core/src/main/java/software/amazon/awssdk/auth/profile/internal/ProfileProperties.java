@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotation.SdkInternalApi;
  * Keys the Java SDK uses in the CLI credentials and config files.
  */
 @SdkInternalApi
-public class ProfileKeyConstants {
+public class ProfileProperties {
 
     /**
      * Property name for specifying the Amazon AWS Access Key

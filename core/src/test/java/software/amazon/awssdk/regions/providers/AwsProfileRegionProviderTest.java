@@ -30,7 +30,7 @@ import software.amazon.awssdk.auth.profile.ProfileResourceLoader;
 import software.amazon.awssdk.auth.profile.internal.AllProfiles;
 import software.amazon.awssdk.auth.profile.internal.BasicProfile;
 import software.amazon.awssdk.auth.profile.internal.BasicProfileConfigLoader;
-import software.amazon.awssdk.auth.profile.internal.ProfileKeyConstants;
+import software.amazon.awssdk.auth.profile.internal.ProfileProperties;
 import software.amazon.awssdk.profile.path.AwsProfileFileLocationProvider;
 import software.amazon.awssdk.util.ImmutableMapParameter;
 
@@ -77,7 +77,7 @@ public class AwsProfileRegionProviderTest {
     public void profilesNonEmptyButGivenProfileNotPresent_ProvidesNullRegion() {
         final String otherProfileName = "other_profile";
         final BasicProfile other_profile = new BasicProfile(otherProfileName, ImmutableMapParameter
-                .of(ProfileKeyConstants.REGION, "us-east-8"));
+                .of(ProfileProperties.REGION, "us-east-8"));
         final AllProfiles profiles = new AllProfiles(
                 ImmutableMapParameter.of(otherProfileName, other_profile));
         stubLoadProfile(profiles);
@@ -95,7 +95,7 @@ public class AwsProfileRegionProviderTest {
     @Test
     public void profilePresentButRegionIsEmpty_ProvidesNullRegion() {
         final BasicProfile profile = new BasicProfile(PROFILE, ImmutableMapParameter
-                .of(ProfileKeyConstants.REGION, ""));
+                .of(ProfileProperties.REGION, ""));
         final AllProfiles profiles = new AllProfiles(ImmutableMapParameter.of(PROFILE, profile));
         stubLoadProfile(profiles);
         assertNull(regionProvider.getRegion());
@@ -105,7 +105,7 @@ public class AwsProfileRegionProviderTest {
     public void profilePresentAndRegionIsSet_ProvidesCorrectRegion() {
         final String expectedRegion = "us-east-8";
         final BasicProfile profile = new BasicProfile(PROFILE, ImmutableMapParameter
-                .of(ProfileKeyConstants.REGION, expectedRegion));
+                .of(ProfileProperties.REGION, expectedRegion));
         final AllProfiles profiles = new AllProfiles(ImmutableMapParameter.of(PROFILE, profile));
         stubLoadProfile(profiles);
         assertEquals(expectedRegion, regionProvider.getRegion().value());

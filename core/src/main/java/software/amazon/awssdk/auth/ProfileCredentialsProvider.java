@@ -15,11 +15,12 @@
 
 package software.amazon.awssdk.auth;
 
-import java.io.File;
+import java.nio.file.Path;
 import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
 import software.amazon.awssdk.auth.profile.ProfilesConfigFile;
+import software.amazon.awssdk.auth.profile.ProfilesFile;
 import software.amazon.awssdk.profile.path.AwsProfileFileLocationProvider;
 import software.amazon.awssdk.utils.Validate;
 
@@ -35,8 +36,7 @@ import software.amazon.awssdk.utils.Validate;
  * @see ProfilesConfigFile
  */
 public class ProfileCredentialsProvider extends FileSystemCredentialsProvider {
-    private final ProfilesConfigFile profilesConfigFile;
-    private final String profileName;
+    private final AwsCredentialsProvider delegateProvider;
 
     /**
      * Create a {@link ProfileCredentialsProvider} using the default profile and configuration file. Use {@link #builder()} for
@@ -52,10 +52,10 @@ public class ProfileCredentialsProvider extends FileSystemCredentialsProvider {
     private ProfileCredentialsProvider(Builder builder) {
         if (builder.profilesConfigFile == null) {
             Validate.notNull(builder.profileFileLocationProvider, "Profile file location provider must not be null.");
-            File defaultProfileFile = builder.profileFileLocationProvider.getLocation();
-            this.profilesConfigFile = defaultProfileFile == null ? null : new ProfilesConfigFile(defaultProfileFile);
+            Path defaultProfileFile = builder.profileFileLocationProvider.getLocation();
+            this.profilesFile = defaultProfileFile == null ? null : new ProfilesConfigFile(defaultProfileFile);
         } else {
-            this.profilesConfigFile = builder.profilesConfigFile;
+            this.profilesFile = builder.profilesConfigFile;
         }
 
         this.profileName = builder.profileName != null ? builder.profileName
@@ -71,17 +71,17 @@ public class ProfileCredentialsProvider extends FileSystemCredentialsProvider {
 
     @Override
     protected AwsCredentials loadCredentials() {
-        if (profilesConfigFile == null) {
+        if (profilesFile == null) {
             throw new SdkClientException("Unable to find profile configuration file. If you are specifying a profile config "
                                          + "file please verify it exists.");
         }
 
-        return profilesConfigFile.getCredentials(profileName);
+        return profilesFile.getCredentials(profileName);
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + profilesConfigFile + ", " + profileName + ")";
+        return getClass().getSimpleName() + "(" + profilesFile + ", " + profileName + ")";
     }
 
     /**

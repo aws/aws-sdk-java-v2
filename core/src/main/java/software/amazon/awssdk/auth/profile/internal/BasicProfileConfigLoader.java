@@ -109,10 +109,10 @@ public class BasicProfileConfigLoader {
     }
 
     /**
-     * Implementation of AbstractProfilesConfigFileScanner that groups profile properties into a map
+     * Implementation of ProfilesConfigFileReader that groups profile properties into a map
      * while scanning through the credentials profile.
      */
-    private static class ProfilesConfigFileLoaderHelper extends AbstractProfilesConfigFileScanner {
+    private static class ProfilesConfigFileLoaderHelper extends ProfilesConfigFileReader {
 
         /**
          * Map from the parsed profile name to the map of all the property values included the
