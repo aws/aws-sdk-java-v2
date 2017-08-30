@@ -23,7 +23,7 @@ import software.amazon.awssdk.core.regions.Region;
  * Loads region information from the 'aws.region' system property or the 'AWS_REGION' environment variable. If both are specified,
  * the system property will be used.
  */
-public class SystemSettingsRegionProvider extends AwsRegionProvider {
+public class SystemSettingsRegionProvider implements AwsRegionProvider {
     @Override
     public Region getRegion() throws SdkClientException {
         return AwsSystemSetting.AWS_REGION.getStringValue().map(Region::of).orElse(null);

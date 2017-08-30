@@ -15,7 +15,22 @@
 
 package software.amazon.awssdk.core;
 
+import java.nio.file.Paths;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.auth.profile.ProfileFile;
+import software.amazon.awssdk.auth.profile.internal.ProfileFileLocations;
+import software.amazon.awssdk.core.auth.AwsCredentials;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.auth.AwsSessionCredentials;
+import software.amazon.awssdk.core.auth.DefaultCredentialsProvider;
+import software.amazon.awssdk.core.auth.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.core.auth.InstanceProfileCredentialsProvider;
+import software.amazon.awssdk.core.auth.ProfileCredentialsProvider;
+import software.amazon.awssdk.core.auth.SystemPropertyCredentialsProvider;
+import software.amazon.awssdk.core.client.builder.ClientBuilder;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.regions.providers.InstanceProfileRegionProvider;
+import software.amazon.awssdk.core.regions.providers.SystemSettingsRegionProvider;
 import software.amazon.awssdk.utils.JavaSystemSetting;
 import software.amazon.awssdk.utils.SystemSetting;
 
@@ -71,26 +86,38 @@ public enum AwsSystemSetting implements SystemSetting {
     AWS_REGION("aws.region", null),
 
     /**
-     * Configure the default configuration file used in the {@link SystemSettingsProfileLocationProvider}. This value is
-     * checked by the {@link DefaultCredentialsProvider}, which is used when clients are created with no credential provider
-     * specified via {@link ClientBuilder#credentialsProvider(AwsCredentialsProvider)}.
+     * Configure the default configuration file used in the {@link ProfileFile#defaultProfileFile()}. When not explicitly
+     * overridden in a client (eg. by specifying the region or credentials provider), this will be the location used when an
+     * AWS client is created.
      *
      * See http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html for more information on configuring the
      * SDK via a configuration file.
      *
      * @see ProfileCredentialsProvider
      */
-    @ReviewBeforeRelease("The code relies on this being null, so it's treated as an override. When we refactor the profile stuff"
-                         + "we should consider adding a default to this value and simplifying the location finding.")
-    AWS_CONFIG_FILE("aws.configFile", null),
+    AWS_CONFIG_FILE("aws.configFile",
+                    Paths.get(ProfileFileLocations.userHomeDirectory(), ".aws", "config").toString()),
 
     /**
-     * Configure the default profile that should be loaded from the {@link #AWS_CONFIG_FILE} when using configuration files for
-     * configuring the SDK.
+     * Configure the default credentials file used in the {@link ProfileFile#defaultProfileFile()}. When not explicitly
+     * overridden in a client (eg. by specifying the region or credentials provider), this will be the location used when an
+     * AWS client is created.
+     *
+     * See http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html for more information on configuring the
+     * SDK via a credentials file.
+     *
+     * @see ProfileCredentialsProvider
+     */
+    AWS_SHARED_CREDENTIALS_FILE("aws.sharedCredentialsFile",
+                                Paths.get(ProfileFileLocations.userHomeDirectory(), ".aws", "credentials").toString()),
+
+    /**
+     * Configure the default profile that should be loaded from the {@link #AWS_CONFIG_FILE} and
+     * {@link #AWS_SHARED_CREDENTIALS_FILE} when using configuration files for configuring the SDK.
      *
      * @see #AWS_CONFIG_FILE
      */
-    AWS_DEFAULT_PROFILE("aws.defaultProfile", "default"),
+    AWS_PROFILE("aws.profile", "default"),
 
     /**
      * Whether the default configuration applied to AWS clients should be optimized for services within the same region.

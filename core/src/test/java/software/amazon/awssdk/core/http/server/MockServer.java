@@ -17,7 +17,6 @@ package software.amazon.awssdk.core.http.server;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -212,13 +211,9 @@ public class MockServer {
         }
 
         private static void setEntity(HttpResponse response, String content) {
-            try {
-                BasicHttpEntity entity = new BasicHttpEntity();
-                entity.setContent(new StringInputStream(content));
-                response.setEntity(entity);
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
-            }
+            BasicHttpEntity entity = new BasicHttpEntity();
+            entity.setContent(new StringInputStream(content));
+            response.setEntity(entity);
         }
 
         @Override
