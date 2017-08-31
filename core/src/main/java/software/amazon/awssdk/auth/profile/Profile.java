@@ -35,24 +35,26 @@ public final class Profile {
     private static final String PROFILE_PREFIX = "profile ";
 
     private final String name;
-    private final boolean isProfilePrefixed;
     private final Map<String, String> properties;
+    private final ProfilesFile profilesFile;
+
+    private final boolean isProfilePrefixed;
 
     public Profile(Builder builder) {
         Validate.paramNotNull(builder.name, "name");
-        Validate.paramNotNull(builder.properties, "properties");
-
-        this.name = parseName(builder.name);
         this.isProfilePrefixed = isProfilePrefixed(builder.name);
-        this.properties = builder.properties;
-    }
+        this.name = parseName(builder.name);
 
-    private String parseName(String profileName) {
-        return isProfilePrefixed(profileName) ? profileName.substring(PROFILE_PREFIX.length()) : profileName;
+        this.properties = Validate.paramNotNull(builder.properties, "properties");
+        this.profilesFile = Validate.paramNotNull(builder.profilesFile, "profilesFile");
     }
 
     private boolean isProfilePrefixed(String profileName) {
         return profileName.startsWith(PROFILE_PREFIX);
+    }
+
+    private String parseName(String profileName) {
+        return isProfilePrefixed ? profileName.substring(PROFILE_PREFIX.length()) : profileName;
     }
 
     public static Builder builder() {
@@ -67,6 +69,10 @@ public final class Profile {
         return isProfilePrefixed;
     }
 
+    public Optional<String> property(String propertyKey) {
+        return Optional.ofNullable(properties.get(propertyKey));
+    }
+
     public Optional<Region> region() {
         return Optional.ofNullable(properties.get(ProfileProperties.REGION)).map(Region::of);
     }
@@ -76,10 +82,6 @@ public final class Profile {
             return Optional.of(roleBasedProfileCredentialsProvider());
         }
 
-        return nonRoleCredentialsProvider();
-    }
-
-    private Optional<AwsCredentialsProvider> nonRoleCredentialsProvider() {
         if (properties.containsKey(ProfileProperties.AWS_SESSION_TOKEN)) {
             return Optional.of(sessionProfileCredentialsProvider());
         }
@@ -116,18 +118,30 @@ public final class Profile {
     }
 
     private AwsCredentialsProvider roleBasedProfileCredentialsProvider() {
-        requireProperties(ProfileProperties.AWS_ACCESS_KEY_ID,
-                          ProfileProperties.AWS_SECRET_ACCESS_KEY);
+        requireProperties(ProfileProperties.SOURCE_PROFILE);
 
-        AwsCredentialsProvider parentCredentialsProvider = nonRoleCredentialsProvider()
-                .orElseThrow(() -> new IllegalStateException("Unexpected: credentials provider could not be created, but "
-                                                             + "access and secret keys were configured."));
+        Profile parentProfile = profilesFile.profile(properties.get(ProfileProperties.SOURCE_PROFILE))
+                                            .orElseThrow(this::parentProfileDoesNotExistException);
 
-        ChildProfileCredentialsProviderFactory credentialsProviderFactory = loadStsCredentialsProviderFactory();
-        return credentialsProviderFactory.create(parentCredentialsProvider, properties);
+        AwsCredentialsProvider parentCredentialsProvider = parentProfile.credentialsProvider()
+                                                                        .orElseThrow(this::noParentProfileCredentialsException);
+
+        return stsCredentialsProviderFactory().create(parentCredentialsProvider, this);
     }
 
-    private ChildProfileCredentialsProviderFactory loadStsCredentialsProviderFactory() {
+    private IllegalStateException parentProfileDoesNotExistException() {
+        String error = String.format("The parent profile of '%s' was configured to be '%s', but that parent profile "
+                                     + "does not exist.", name, properties.get(ProfileProperties.SOURCE_PROFILE));
+        return new IllegalStateException(error);
+    }
+
+    private IllegalStateException noParentProfileCredentialsException() {
+        String error = String.format("The parent profile of '%s' was configured to be '%s', but that parent profile has no "
+                                     + "credentials configured.", name, properties.get(ProfileProperties.SOURCE_PROFILE));
+        return new IllegalStateException(error);
+    }
+
+    private ChildProfileCredentialsProviderFactory stsCredentialsProviderFactory() {
         try {
             Class<?> stsCredentialsProviderFactory = Class.forName(STS_PROFILE_CREDENTIALS_PROVIDER_FACTORY, true,
                                                                    Thread.currentThread().getContextClassLoader());
@@ -139,9 +153,15 @@ public final class Profile {
         }
     }
 
+    @Override
+    public String toString() {
+        return "Profile(" + name + ")";
+    }
+
     public static class Builder {
         private String name;
         private Map<String, String> properties;
+        private ProfilesFile profilesFile;
 
         private Builder() {}
 
@@ -153,6 +173,11 @@ public final class Profile {
 
         public Builder properties(Map<String, String> properties) {
             this.properties = Collections.unmodifiableMap(new LinkedHashMap<>(properties));
+            return this;
+        }
+
+        public Builder profilesFile(ProfilesFile profilesFile) {
+            this.profilesFile = profilesFile;
             return this;
         }
 

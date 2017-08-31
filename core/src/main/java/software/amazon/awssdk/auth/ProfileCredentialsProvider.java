@@ -21,7 +21,7 @@ import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
 import software.amazon.awssdk.auth.profile.Profile;
 import software.amazon.awssdk.auth.profile.ProfilesFile;
-import software.amazon.awssdk.profile.path.AwsProfileFileLocationProvider;
+import software.amazon.awssdk.auth.profile.internal.path.AwsProfileFileLocationProvider;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
@@ -70,7 +70,7 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
         this.profilesFile = profilesFile.orElse(null);
 
         // Load the profile and credentials provider
-        Optional<Profile> profile = profilesFile.flatMap(f -> f.getProfile(profileName));
+        Optional<Profile> profile = profilesFile.flatMap(f -> f.profile(profileName));
         this.profileCredentialsProvider = profile.flatMap(Profile::credentialsProvider).orElse(null);
 
         // If we couldn't load the credentials provider for some reason, save an exception describing why. This exception will

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.profile.path;
+package software.amazon.awssdk.auth.profile.internal.path;
 
 import java.nio.file.Path;
 import java.util.ArrayList;

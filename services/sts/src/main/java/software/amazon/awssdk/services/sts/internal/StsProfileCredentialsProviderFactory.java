@@ -15,54 +15,64 @@
 
 package software.amazon.awssdk.services.sts.internal;
 
-import java.util.Map;
+import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.auth.AwsCredentials;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.profile.Profile;
 import software.amazon.awssdk.auth.profile.internal.ChildProfileCredentialsProviderFactory;
 import software.amazon.awssdk.auth.profile.internal.ProfileProperties;
 import software.amazon.awssdk.services.sts.STSClient;
+import software.amazon.awssdk.services.sts.STSClientBuilder;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
-import software.amazon.awssdk.utils.Validate;
 
+@SdkProtectedApi
 public class StsProfileCredentialsProviderFactory implements ChildProfileCredentialsProviderFactory {
-    private static final String MISSING_PROPERTY_ERROR_FORMAT = "'%s' must be set to use role-based credential loading.";
+    private static final String MISSING_PROPERTY_ERROR_FORMAT = "'%s' must be set to use role-based credential loading in the "
+                                                                + "'%s' profile.";
 
     @Override
-    public AwsCredentialsProvider create(AwsCredentialsProvider parentCredentialsProvider,
-                                         Map<String, String> profileProperties) {
-        return new StsProfileCredentialsProvider(parentCredentialsProvider, profileProperties);
+    public AwsCredentialsProvider create(AwsCredentialsProvider parentCredentialsProvider, Profile profile) {
+        return new StsProfileCredentialsProvider(parentCredentialsProvider, profile);
     }
 
     private static class StsProfileCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
         private final STSClient stsClient;
+        private final AwsCredentialsProvider parentCredentialsProvider;
         private final StsAssumeRoleCredentialsProvider credentialsProvider;
 
-        private StsProfileCredentialsProvider(AwsCredentialsProvider parentCredentialsProvider,
-                                              Map<String, String> profileProperties) {
-            requireProperty(profileProperties, ProfileProperties.ROLE_ARN);
-            requireProperty(profileProperties, ProfileProperties.ROLE_SESSION_NAME);
-            requireProperty(profileProperties, ProfileProperties.EXTERNAL_ID);
+        private StsProfileCredentialsProvider(AwsCredentialsProvider parentCredentialsProvider, Profile profile) {
+            String roleArn = requireProperty(profile, ProfileProperties.ROLE_ARN);
+            String roleSessionName = requireProperty(profile, ProfileProperties.ROLE_SESSION_NAME);
+            String externalId = requireProperty(profile, ProfileProperties.EXTERNAL_ID);
 
-            this.stsClient = STSClient.builder().credentialsProvider(parentCredentialsProvider).build();
+            STSClientBuilder stsClientBuilder = STSClient.builder()
+                                                         .credentialsProvider(parentCredentialsProvider);
+
+            profile.region().ifPresent(stsClientBuilder::region);
+
+            this.stsClient = stsClientBuilder.build();
 
             AssumeRoleRequest assumeRoleRequest =
                     AssumeRoleRequest.builder()
-                                     .roleArn(profileProperties.get(ProfileProperties.ROLE_ARN))
-                                     .roleSessionName(profileProperties.get(ProfileProperties.ROLE_SESSION_NAME))
-                                     .externalId(profileProperties.get(ProfileProperties.EXTERNAL_ID))
+                                     .roleArn(roleArn)
+                                     .roleSessionName(roleSessionName)
+                                     .externalId(externalId)
                                      .build();
 
+            this.parentCredentialsProvider = parentCredentialsProvider;
             this.credentialsProvider = StsAssumeRoleCredentialsProvider.builder()
                                                                        .stsClient(stsClient)
                                                                        .refreshRequest(assumeRoleRequest)
                                                                        .build();
         }
 
-        private void requireProperty(Map<String, String> profileProperties, String requiredProperty) {
-            Validate.isTrue(profileProperties.containsKey(requiredProperty), MISSING_PROPERTY_ERROR_FORMAT, requiredProperty);
+        private String requireProperty(Profile profile, String requiredProperty) {
+            return profile.property(requiredProperty)
+                          .orElseThrow(() -> new IllegalArgumentException(String.format(MISSING_PROPERTY_ERROR_FORMAT,
+                                                                                        requiredProperty, profile.name())));
         }
 
         @Override
@@ -72,6 +82,7 @@ public class StsProfileCredentialsProviderFactory implements ChildProfileCredent
 
         @Override
         public void close() {
+            IoUtils.closeIfCloseable(parentCredentialsProvider, null);
             IoUtils.closeQuietly(credentialsProvider, null);
             IoUtils.closeQuietly(stsClient, null);
         }

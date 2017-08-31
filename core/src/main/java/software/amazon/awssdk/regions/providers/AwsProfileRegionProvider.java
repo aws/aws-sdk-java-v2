@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
 import software.amazon.awssdk.auth.profile.Profile;
 import software.amazon.awssdk.auth.profile.ProfilesFile;
-import software.amazon.awssdk.profile.path.AwsProfileFileLocationProvider;
+import software.amazon.awssdk.auth.profile.internal.path.AwsProfileFileLocationProvider;
 import software.amazon.awssdk.regions.Region;
 
 /**
@@ -49,7 +49,7 @@ public class AwsProfileRegionProvider extends AwsRegionProvider { // TODO: Packa
     public Region getRegion() throws SdkClientException {
         return locationProvider.getLocation()
                                .map(ProfilesFile::new)
-                               .flatMap(f -> f.getProfile(profileName))
+                               .flatMap(f -> f.profile(profileName))
                                .flatMap(Profile::region)
                                .orElse(null);
     }

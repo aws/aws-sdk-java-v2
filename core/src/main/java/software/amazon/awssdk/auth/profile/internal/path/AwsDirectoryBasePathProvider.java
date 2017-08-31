@@ -13,9 +13,8 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.profile.path;
+package software.amazon.awssdk.auth.profile.internal.path;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import software.amazon.awssdk.annotation.SdkInternalApi;

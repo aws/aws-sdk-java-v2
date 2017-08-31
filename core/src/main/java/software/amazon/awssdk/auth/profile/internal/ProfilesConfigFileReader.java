@@ -54,7 +54,7 @@ public final class ProfilesConfigFileReader {
                     continue;
                 }
 
-                Optional<String> newProfileName = parseProfileName(line);
+                Optional<String> newProfileName = parseProfileName(line, lineNumber);
 
                 if (newProfileName.isPresent()) {
                     // Profile name
@@ -70,9 +70,8 @@ public final class ProfilesConfigFileReader {
 
                     Map<String, String> profileProperties = result.get(currentProfileName);
                     Validate.validState(!profileProperties.containsKey(property.getKey()),
-                                        "Duplicate property values for '%s'.", property.getValue());
+                                        "Duplicate property values for '%s' on line %s.", property.getValue(), lineNumber);
                     profileProperties.put(property.getKey(), property.getValue());
-
                 }
             }
         }
@@ -83,9 +82,10 @@ public final class ProfilesConfigFileReader {
     /**
      * Returns the profile name if this line indicates the beginning of a new profile section. Otherwise, returns Optional.empty.
      */
-    private static Optional<String> parseProfileName(String trimmedLine) {
+    private static Optional<String> parseProfileName(String trimmedLine, int lineNumber) {
         if (trimmedLine.startsWith("[") && trimmedLine.endsWith("]")) {
-            String profileName = trimmedLine.substring(1, trimmedLine.length() - 1);
+            String profileName = trimmedLine.substring(1, trimmedLine.length() - 1).trim();
+            Validate.validState(!profileName.isEmpty(), "Invalid profile name: Profile name empty on line %s.", lineNumber);
             return Optional.of(profileName.trim());
         }
         return Optional.empty();

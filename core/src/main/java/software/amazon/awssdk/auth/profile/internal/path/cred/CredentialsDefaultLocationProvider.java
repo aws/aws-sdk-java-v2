@@ -13,24 +13,28 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.profile.path.config;
+package software.amazon.awssdk.auth.profile.internal.path.cred;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
-import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.profile.path.AwsProfileFileLocationProvider;
+import software.amazon.awssdk.auth.profile.internal.path.AwsDirectoryBasePathProvider;
 
 /**
- * If the 'AWS_CONFIG_FILE' environment variable or 'aws.configFile' system property is set, then we source the config file from
- * the location specified. If both are specified, the system property is used.
+ * Load shared credentials file from the default location (~/.aws/credentials).
  */
 @SdkInternalApi
-public class SystemSettingsProfileLocationProvider implements AwsProfileFileLocationProvider {
+public class CredentialsDefaultLocationProvider extends AwsDirectoryBasePathProvider {
+
+    private static final String DEFAULT_CREDENTIAL_PROFILES_FILENAME = "credentials";
+
     @Override
     public Optional<Path> getLocation() {
-        return AwsSystemSetting.AWS_CONFIG_FILE.getStringValue()
-                                               .map(Paths::get);
+        Path credentialProfiles = getAwsDirectory().resolve(DEFAULT_CREDENTIAL_PROFILES_FILENAME);
+        if (Files.isRegularFile(credentialProfiles)) {
+            return Optional.of(credentialProfiles);
+        }
+        return Optional.empty();
     }
 }

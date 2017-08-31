@@ -26,7 +26,7 @@ import software.amazon.awssdk.auth.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.auth.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.SystemPropertyCredentialsProvider;
 import software.amazon.awssdk.client.builder.ClientBuilder;
-import software.amazon.awssdk.profile.path.config.SystemSettingsProfileLocationProvider;
+import software.amazon.awssdk.auth.profile.internal.path.config.SystemSettingsProfileLocationProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.InstanceProfileRegionProvider;
 import software.amazon.awssdk.regions.providers.SystemSettingsRegionProvider;

@@ -26,9 +26,12 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.auth.profile.internal.ProfilesConfigFileReader;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 public final class ProfilesFile {
+    private static final Logger log = Logger.loggerFor(ProfilesFile.class);
+
     private final String location;
     private final Map<String, Profile> profiles;
 
@@ -47,7 +50,7 @@ public final class ProfilesFile {
         this.profiles = readProfilesFile(profileStream);
     }
 
-    public Optional<Profile> getProfile(String profileName) {
+    public Optional<Profile> profile(String profileName) {
         return Optional.ofNullable(profiles.get(profileName));
     }
 
@@ -64,6 +67,7 @@ public final class ProfilesFile {
     }
 
     private Profile resolveProfileConflict(Profile l, Profile r) {
+
         return l.isProfilePrefixed() ? r : l;
     }
 
@@ -74,7 +78,7 @@ public final class ProfilesFile {
     }
 
     private Profile convertToProfile(String profileName, Map<String, String> profileProperties) {
-        return Profile.builder().name(profileName).properties(profileProperties).build();
+        return Profile.builder().name(profileName).properties(profileProperties).profilesFile(this).build();
     }
 
     @Override

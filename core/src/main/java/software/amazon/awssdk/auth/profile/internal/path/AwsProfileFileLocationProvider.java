@@ -13,16 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.profile.path;
+package software.amazon.awssdk.auth.profile.internal.path;
 
 import java.nio.file.Path;
 import java.util.Optional;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.profile.path.config.SharedConfigDefaultLocationProvider;
-import software.amazon.awssdk.profile.path.config.SystemSettingsProfileLocationProvider;
-import software.amazon.awssdk.profile.path.cred.CredentialsDefaultLocationProvider;
-import software.amazon.awssdk.profile.path.cred.CredentialsLegacyConfigLocationProvider;
-import software.amazon.awssdk.profile.path.cred.CredentialsSystemSettingsLocationProvider;
+import software.amazon.awssdk.auth.profile.internal.path.config.SharedConfigDefaultLocationProvider;
+import software.amazon.awssdk.auth.profile.internal.path.config.SystemSettingsProfileLocationProvider;
+import software.amazon.awssdk.auth.profile.internal.path.cred.CredentialsDefaultLocationProvider;
+import software.amazon.awssdk.auth.profile.internal.path.cred.CredentialsLegacyConfigLocationProvider;
+import software.amazon.awssdk.auth.profile.internal.path.cred.CredentialsSystemSettingsLocationProvider;
 
 /**
  * Provides the location of both the AWS Shared credentials file (~/.aws/credentials) or the AWS

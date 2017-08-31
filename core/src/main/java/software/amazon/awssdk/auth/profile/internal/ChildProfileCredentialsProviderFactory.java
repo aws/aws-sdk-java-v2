@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.auth.profile.internal;
 
-import java.util.Map;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.profile.Profile;
 
 @FunctionalInterface
 public interface ChildProfileCredentialsProviderFactory {
-    AwsCredentialsProvider create(AwsCredentialsProvider parentCredentialsProvider, Map<String, String> profileAttributes);
+    AwsCredentialsProvider create(AwsCredentialsProvider parentCredentialsProvider, Profile profile);
 }
