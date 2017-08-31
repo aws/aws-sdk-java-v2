@@ -17,12 +17,14 @@ package software.amazon.awssdk.regions.providers;
 
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.regions.Region;
 
 /**
  * Interface for providing AWS region information. Implementations are free to use any strategy for
  * providing region information.
  */
+@SdkInternalApi
 public abstract class AwsRegionProvider {
 
     /**

@@ -18,6 +18,7 @@ package software.amazon.awssdk.auth;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -54,7 +55,7 @@ public class ProfileCredentialsProviderTest {
     @Test(expected = SdkClientException.class)
     public void testNoProfileFile() {
         ProfileCredentialsProvider nullProvider =
-                ProfileCredentialsProvider.builder().defaultProfilesConfigFileLocator(() -> null).build();
+                ProfileCredentialsProvider.builder().defaultProfilesConfigFileLocator(Optional::empty).build();
 
         nullProvider.getCredentials();
     }

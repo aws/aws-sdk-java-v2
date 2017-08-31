@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.profile.path.config;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.profile.path.AwsProfileFileLocationProvider;
@@ -29,9 +29,8 @@ import software.amazon.awssdk.profile.path.AwsProfileFileLocationProvider;
 @SdkInternalApi
 public class SystemSettingsProfileLocationProvider implements AwsProfileFileLocationProvider {
     @Override
-    public Path getLocation() {
+    public Optional<Path> getLocation() {
         return AwsSystemSetting.AWS_CONFIG_FILE.getStringValue()
-                                               .map(Paths::get)
-                                               .orElse(null);
+                                               .map(Paths::get);
     }
 }

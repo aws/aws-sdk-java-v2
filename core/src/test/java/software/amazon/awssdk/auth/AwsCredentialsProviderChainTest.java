@@ -17,6 +17,7 @@ package software.amazon.awssdk.auth;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Optional;
 import org.junit.Test;
 
 public class AwsCredentialsProviderChainTest {
@@ -80,7 +81,7 @@ public class AwsCredentialsProviderChainTest {
 
     @Test
     public void testNullProfileFileUsesNextProvider() {
-        ProfileCredentialsProvider provider = ProfileCredentialsProvider.builder().defaultProfilesConfigFileLocator(() -> null).build();
+        ProfileCredentialsProvider provider = ProfileCredentialsProvider.builder().defaultProfilesConfigFileLocator(Optional::empty).build();
 
         MockCredentialsProvider provider2 = new MockCredentialsProvider();
 

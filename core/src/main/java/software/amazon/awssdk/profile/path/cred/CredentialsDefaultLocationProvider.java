@@ -17,6 +17,7 @@ package software.amazon.awssdk.profile.path.cred;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.profile.path.AwsDirectoryBasePathProvider;
 
@@ -29,11 +30,11 @@ public class CredentialsDefaultLocationProvider extends AwsDirectoryBasePathProv
     private static final String DEFAULT_CREDENTIAL_PROFILES_FILENAME = "credentials";
 
     @Override
-    public Path getLocation() {
+    public Optional<Path> getLocation() {
         Path credentialProfiles = getAwsDirectory().resolve(DEFAULT_CREDENTIAL_PROFILES_FILENAME);
         if (Files.isRegularFile(credentialProfiles)) {
-            return credentialProfiles;
+            return Optional.of(credentialProfiles);
         }
-        return null;
+        return Optional.empty();
     }
 }

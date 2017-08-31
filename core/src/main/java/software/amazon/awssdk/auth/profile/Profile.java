@@ -29,7 +29,7 @@ import software.amazon.awssdk.auth.profile.internal.ProfileProperties;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.Validate;
 
-public class Profile {
+public final class Profile {
     private static final String STS_PROFILE_CREDENTIALS_PROVIDER_FACTORY =
             "software.amazon.awssdk.services.sts.internal.StsProfileCredentialsProviderFactory";
     private static final String PROFILE_PREFIX = "profile ";
@@ -63,7 +63,7 @@ public class Profile {
         return name;
     }
 
-    public boolean isProfilePrefixed() {
+    boolean isProfilePrefixed() {
         return isProfilePrefixed;
     }
 

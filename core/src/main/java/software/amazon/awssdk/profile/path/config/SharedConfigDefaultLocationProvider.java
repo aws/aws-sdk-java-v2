@@ -17,6 +17,7 @@ package software.amazon.awssdk.profile.path.config;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.profile.path.AwsDirectoryBasePathProvider;
 
@@ -32,11 +33,11 @@ public class SharedConfigDefaultLocationProvider extends AwsDirectoryBasePathPro
     private static final String DEFAULT_CONFIG_FILE_NAME = "config";
 
     @Override
-    public Path getLocation() {
+    public Optional<Path> getLocation() {
         Path file = getAwsDirectory().resolve(DEFAULT_CONFIG_FILE_NAME);
         if (Files.isRegularFile(file)) {
-            return file;
+            return Optional.of(file);
         }
-        return null;
+        return Optional.empty();
     }
 }

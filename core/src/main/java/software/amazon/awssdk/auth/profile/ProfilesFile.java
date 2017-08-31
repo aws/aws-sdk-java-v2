@@ -29,26 +29,21 @@ import software.amazon.awssdk.auth.profile.internal.ProfilesConfigFileReader;
 import software.amazon.awssdk.utils.Validate;
 
 public final class ProfilesFile {
+    private final String location;
     private final Map<String, Profile> profiles;
-
-    public ProfilesFile() {
-        this(defaultProfileLocation());
-    }
-
-    private static Path defaultProfileLocation() {
-        return null;
-    }
 
     public ProfilesFile(Path profileLocation) {
         Validate.paramNotNull(profileLocation, "profileLocation");
         Validate.validState(Files.exists(profileLocation), "Profile file '%s' does not exist.", profileLocation);
 
+        this.location = profileLocation.toAbsolutePath().toString();
         this.profiles = readProfilesFile(invokeSafely(() -> Files.newInputStream(profileLocation)));
     }
 
     public ProfilesFile(InputStream profileStream) {
         Validate.paramNotNull(profileStream, "profileStream");
 
+        this.location = "InputStream";
         this.profiles = readProfilesFile(profileStream);
     }
 
@@ -80,5 +75,10 @@ public final class ProfilesFile {
 
     private Profile convertToProfile(String profileName, Map<String, String> profileProperties) {
         return Profile.builder().name(profileName).properties(profileProperties).build();
+    }
+
+    @Override
+    public String toString() {
+        return "ProfilesFile(" + location + ")";
     }
 }
