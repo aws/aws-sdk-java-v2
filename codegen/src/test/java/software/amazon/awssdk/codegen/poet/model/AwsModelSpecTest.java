@@ -44,7 +44,6 @@ public class AwsModelSpecTest {
 
     @Parameterized.Parameters(name = "{0}")
     public static Collection<Object[]> data() {
-        ;
         invokeSafely(AwsModelSpecTest::setUp);
         return intermediateModel.getShapes().values().stream().map(shape -> new Object[] { shape }).collect(toList());
     }
