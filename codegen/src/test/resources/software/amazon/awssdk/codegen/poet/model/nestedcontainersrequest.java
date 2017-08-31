@@ -123,7 +123,6 @@ public class NestedContainersRequest extends AmazonWebServiceRequest implements
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("{");
         if (listOfListOfStrings() != null) {
             sb.append("ListOfListOfStrings: ").append(listOfListOfStrings()).append(",");
         }
@@ -131,10 +130,13 @@ public class NestedContainersRequest extends AmazonWebServiceRequest implements
             sb.append("ListOfListOfListOfStrings: ").append(listOfListOfListOfStrings()).append(",");
         }
         if (mapOfStringToListOfListOfStrings() != null) {
-            sb.append("MapOfStringToListOfListOfStrings: ").append(mapOfStringToListOfListOfStrings());
+            sb.append("MapOfStringToListOfListOfStrings: ").append(mapOfStringToListOfListOfStrings()).append(",");
         }
-        sb.append("}");
-        return sb.toString();
+        String str = sb.toString();
+        if (str.length() == 0) {
+            return "{}";
+        }
+        return "{" + str.substring(0, str.length() - 1) + "}";
     }
 
     public interface Builder extends CopyableBuilder<Builder, NestedContainersRequest> {

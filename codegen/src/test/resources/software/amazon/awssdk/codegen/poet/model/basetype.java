@@ -71,12 +71,14 @@ public class BaseType implements StructuredPojo, ToCopyableBuilder<BaseType.Buil
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("{");
         if (baseMember() != null) {
-            sb.append("BaseMember: ").append(baseMember());
+            sb.append("BaseMember: ").append(baseMember()).append(",");
         }
-        sb.append("}");
-        return sb.toString();
+        String str = sb.toString();
+        if (str.length() == 0) {
+            return "{}";
+        }
+        return "{" + str.substring(0, str.length() - 1) + "}";
     }
 
     @SdkInternalApi

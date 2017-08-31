@@ -47,9 +47,11 @@ public class OperationWithNoInputOrOutputRequest extends AmazonWebServiceRequest
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        sb.append("}");
-        return sb.toString();
+        String str = sb.toString();
+        if (str.length() == 0) {
+            return "{}";
+        }
+        return "{" + str.substring(0, str.length() - 1) + "}";
     }
 
     public interface Builder extends CopyableBuilder<Builder, OperationWithNoInputOrOutputRequest> {

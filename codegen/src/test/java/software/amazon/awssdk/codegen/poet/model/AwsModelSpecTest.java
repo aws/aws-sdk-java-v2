@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Locale;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -45,6 +44,7 @@ public class AwsModelSpecTest {
 
     @Parameterized.Parameters(name = "{0}")
     public static Collection<Object[]> data() {
+        ;
         invokeSafely(AwsModelSpecTest::setUp);
         return intermediateModel.getShapes().values().stream().map(shape -> new Object[] { shape }).collect(toList());
     }

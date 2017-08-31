@@ -508,7 +508,6 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("{");
         if (stringMember() != null) {
             sb.append("StringMember: ").append(stringMember()).append(",");
         }
@@ -573,10 +572,13 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
             sb.append("PolymorphicTypeWithoutSubTypes: ").append(polymorphicTypeWithoutSubTypes()).append(",");
         }
         if (enumType() != null) {
-            sb.append("EnumType: ").append(enumType());
+            sb.append("EnumType: ").append(enumType()).append(",");
         }
-        sb.append("}");
-        return sb.toString();
+        String str = sb.toString();
+        if (str.length() == 0) {
+            return "{}";
+        }
+        return "{" + str.substring(0, str.length() - 1) + "}";
     }
 
     public interface Builder extends CopyableBuilder<Builder, AllTypesResponse> {

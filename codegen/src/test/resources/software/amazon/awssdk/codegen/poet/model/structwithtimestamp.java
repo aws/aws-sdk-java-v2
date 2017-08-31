@@ -72,12 +72,14 @@ public class StructWithTimestamp implements StructuredPojo, ToCopyableBuilder<St
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("{");
         if (nestedTimestamp() != null) {
-            sb.append("NestedTimestamp: ").append(nestedTimestamp());
+            sb.append("NestedTimestamp: ").append(nestedTimestamp()).append(",");
         }
-        sb.append("}");
-        return sb.toString();
+        String str = sb.toString();
+        if (str.length() == 0) {
+            return "{}";
+        }
+        return "{" + str.substring(0, str.length() - 1) + "}";
     }
 
     @SdkInternalApi
