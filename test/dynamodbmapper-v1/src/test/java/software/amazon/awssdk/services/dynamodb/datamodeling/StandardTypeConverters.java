@@ -130,6 +130,7 @@ final class StandardTypeConverters extends DynamoDbTypeConverterFactory {
         CALENDAR(ScalarAttributeType.S, new ConverterMap(Calendar.class, null)
                 .with(Date.class, ToCalendar.FROM_DATE)
                 .with(Instant.class, ToCalendar.FROM_INSTANT)
+                .with(ZonedDateTime.class, ToCalendar.FROM_INSTANT.join(ToInstant.FROM_ZONEDDATETIME))
                 .with(Long.class, ToCalendar.FROM_INSTANT.join(ToInstant.FROM_LONG))
                 .with(String.class, ToCalendar.FROM_INSTANT.join(ToInstant.FROM_STRING))
         ),
