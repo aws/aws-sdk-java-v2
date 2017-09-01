@@ -36,8 +36,9 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.SdkClientException;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.internal.EC2CredentialsUtils;
-import software.amazon.awssdk.util.json.Jackson;
+import software.amazon.awssdk.util.json.JacksonUtils;
 
 /**
  * Utility class for retrieving Amazon EC2 instance metadata.<br>
@@ -54,6 +55,7 @@ import software.amazon.awssdk.util.json.Jackson;
  *      href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AESDG-chapter-instancedata.html">Amazon
  *      EC2 User Guide: Instance Metadata</a>
  */
+@ReviewBeforeRelease("Cleanup")
 public class EC2MetadataUtils {
 
     /** Default resource path for credentials in the Amazon EC2 Instance Metadata Service. */
@@ -240,8 +242,8 @@ public class EC2MetadataUtils {
     static InstanceInfo doGetInstanceInfo(String json) {
         if (null != json) {
             try {
-                InstanceInfo instanceInfo = Jackson.fromJsonString(json,
-                                                                   InstanceInfo.class);
+                InstanceInfo instanceInfo = JacksonUtils.fromJsonString(json,
+                                                                        InstanceInfo.class);
                 return instanceInfo;
             } catch (Exception e) {
                 log.warn("Unable to parse dynamic EC2 instance info (" + json

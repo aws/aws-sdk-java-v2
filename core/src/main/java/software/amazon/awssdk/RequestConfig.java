@@ -29,6 +29,7 @@ import software.amazon.awssdk.internal.AmazonWebServiceRequestAdapter;
  * request level configuration is a base request class with configuration methods.
  */
 @SdkProtectedApi
+@ReviewBeforeRelease("Clean up or delete - doesn't follow standards.")
 public abstract class RequestConfig {
 
     public abstract ProgressListener getProgressListener();

@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.dynamodb.datamodeling;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import software.amazon.awssdk.util.json.Jackson;
+import software.amazon.awssdk.util.json.JacksonUtils;
 
 public class S3LinkIdTest {
 
@@ -27,7 +27,7 @@ public class S3LinkIdTest {
         String region = "ap-northeast-1";
         S3Link.Id id = new S3Link.Id(region, "bucket", "key");
         String json = id.toJson();
-        S3Link.Id twin = Jackson.fromJsonString(json, S3Link.Id.class);
+        S3Link.Id twin = JacksonUtils.fromJsonString(json, S3Link.Id.class);
         assertEquals("bucket", twin.bucket());
         assertEquals("key", twin.getKey());
         assertEquals(region, twin.getRegionId());

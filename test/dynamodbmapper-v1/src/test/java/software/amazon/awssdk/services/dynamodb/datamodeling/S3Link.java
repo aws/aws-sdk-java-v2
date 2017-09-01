@@ -31,7 +31,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.sync.RequestBody;
 import software.amazon.awssdk.sync.StreamingResponseHandler;
-import software.amazon.awssdk.util.json.Jackson;
+import software.amazon.awssdk.util.json.JacksonUtils;
 
 /**
  * An S3 Link that works with {@link DynamoDbMapper}.
@@ -121,7 +121,7 @@ public class S3Link {
      * Deserializes from a JSON string.
      */
     public static S3Link fromJson(S3ClientCache s3cc, String json) {
-        Id id = Jackson.fromJsonString(json, Id.class);
+        Id id = JacksonUtils.fromJsonString(json, Id.class);
         return new S3Link(s3cc, id);
     }
 
@@ -316,7 +316,7 @@ public class S3Link {
         }
 
         String toJson() {
-            return Jackson.toJsonString(this);
+            return JacksonUtils.toJsonString(this);
         }
     }
 

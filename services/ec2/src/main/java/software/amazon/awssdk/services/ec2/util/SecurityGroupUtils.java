@@ -17,9 +17,11 @@ package software.amazon.awssdk.services.ec2.util;
 
 import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.AmazonServiceException;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.services.ec2.EC2Client;
 import software.amazon.awssdk.services.ec2.model.DescribeSecurityGroupsRequest;
 
+@ReviewBeforeRelease("Public API? Should it be cleaned up?")
 public class SecurityGroupUtils {
 
     private static final String INVALID_GROUP_NOT_FOUND = "InvalidGroup.NotFound";

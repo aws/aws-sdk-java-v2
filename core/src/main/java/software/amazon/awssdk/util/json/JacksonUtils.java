@@ -22,13 +22,11 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import software.amazon.awssdk.SdkClientException;
 
-public enum Jackson {
-    ;
+public final class JacksonUtils {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final ObjectWriter WRITER = OBJECT_MAPPER.writer();
 
@@ -39,6 +37,8 @@ public enum Jackson {
         OBJECT_MAPPER.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
+
+    private JacksonUtils() {}
 
     public static String toJsonPrettyString(Object value) {
         try {
@@ -77,27 +77,5 @@ public enum Jackson {
 
     public static JsonGenerator jsonGeneratorOf(Writer writer) throws IOException {
         return new JsonFactory().createGenerator(writer);
-    }
-
-    public static <T> T loadFrom(File file, Class<T> clazz) throws IOException {
-        try {
-            return OBJECT_MAPPER.readValue(file, clazz);
-        } catch (IOException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    public static ObjectMapper getObjectMapper() {
-        return OBJECT_MAPPER;
-    }
-
-    public static ObjectWriter getWriter() {
-        return WRITER;
-    }
-
-    public static ObjectWriter getPrettywriter() {
-        return PRETTY_WRITER;
     }
 }

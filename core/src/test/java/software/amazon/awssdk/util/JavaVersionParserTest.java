@@ -29,10 +29,6 @@ import software.amazon.awssdk.util.JavaVersionParser.KnownJavaVersions;
 
 public class JavaVersionParserTest {
 
-    public static void assertIntEquals(int expected, Integer actual) {
-        assertEquals(Integer.valueOf(expected), actual);
-    }
-
     private static void assertJavaVersionsEqual(JavaVersion expected, JavaVersion actual) {
         assertEquals(expected.getMajorVersionFamily(), actual.getMajorVersionFamily());
         assertEquals(expected.getMajorVersion(), actual.getMajorVersion());

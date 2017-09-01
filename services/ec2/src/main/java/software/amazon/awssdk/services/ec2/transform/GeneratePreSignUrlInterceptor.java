@@ -16,9 +16,7 @@
 package software.amazon.awssdk.services.ec2.transform;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.Protocol;
 import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.auth.Aws4Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -146,21 +144,5 @@ public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
         }
 
         return EC2Client.serviceMetadata().endpointFor(region);
-    }
-
-    /**
-     * Returns the endpoint as a URI.
-     */
-    private URI toUri(String endpoint) throws IllegalArgumentException {
-
-        if (endpoint.contains("://") == false) {
-            endpoint = Protocol.HTTPS + "://" + endpoint;
-        }
-
-        try {
-            return new URI(endpoint);
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException(e);
-        }
     }
 }

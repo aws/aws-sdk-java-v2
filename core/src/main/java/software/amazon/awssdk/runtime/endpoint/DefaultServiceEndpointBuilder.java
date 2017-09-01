@@ -27,7 +27,7 @@ import software.amazon.awssdk.regions.ServiceMetadata;
  */
 @NotThreadSafe
 @SdkProtectedApi
-public class DefaultServiceEndpointBuilder extends ServiceEndpointBuilder {
+public final class DefaultServiceEndpointBuilder {
 
     private final String serviceName;
     private final String protocol;
@@ -46,7 +46,6 @@ public class DefaultServiceEndpointBuilder extends ServiceEndpointBuilder {
         return this;
     }
 
-    @Override
     public URI getServiceEndpoint() {
         ServiceMetadata serviceMetadata = ServiceMetadata.of(serviceName);
         return withProtocol(serviceMetadata.endpointFor(region));
@@ -60,7 +59,6 @@ public class DefaultServiceEndpointBuilder extends ServiceEndpointBuilder {
         }
     }
 
-    @Override
     public Region getRegion() {
         return region;
     }

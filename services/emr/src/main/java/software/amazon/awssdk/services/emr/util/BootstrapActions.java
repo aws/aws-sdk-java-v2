@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.emr.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.services.emr.model.BootstrapActionConfig;
 import software.amazon.awssdk.services.emr.model.ScriptBootstrapActionConfig;
 import software.amazon.awssdk.util.StringUtils;
@@ -50,6 +51,7 @@ import software.amazon.awssdk.util.StringUtils;
  * RunJobFlowResult result = emr.runJobFlow(request);
  * </pre>
  */
+@ReviewBeforeRelease("This and the other classes in this package - delete or clean up.")
 public class BootstrapActions {
     private final String bucket;
 

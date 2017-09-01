@@ -17,11 +17,13 @@ package software.amazon.awssdk.services.simpledb.internal;
 
 import java.util.Map;
 import software.amazon.awssdk.ResponseMetadata;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.http.StaxResponseHandler;
 import software.amazon.awssdk.runtime.transform.StaxUnmarshallerContext;
 import software.amazon.awssdk.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.services.simpledb.SimpleDbResponseMetadata;
 
+@ReviewBeforeRelease("Not used at this time.")
 public class SimpleDbStaxResponseHandler<T> extends StaxResponseHandler<T> {
 
     public SimpleDbStaxResponseHandler(Unmarshaller<T, StaxUnmarshallerContext> responseUnmarshaller) {

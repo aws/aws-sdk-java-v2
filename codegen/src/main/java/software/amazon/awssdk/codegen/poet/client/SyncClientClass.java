@@ -38,7 +38,6 @@ import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.codegen.poet.client.specs.ApiGatewayProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.Ec2ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.JsonProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
@@ -213,7 +212,7 @@ public class SyncClientClass implements ClassSpec {
             case ION:
                 return new JsonProtocolSpec(poetExtensions);
             case API_GATEWAY:
-                return new ApiGatewayProtocolSpec(poetExtensions);
+                throw new UnsupportedOperationException("Not yet supported.");
             default:
                 throw new RuntimeException("Unknown protocol: " + protocol.name());
         }

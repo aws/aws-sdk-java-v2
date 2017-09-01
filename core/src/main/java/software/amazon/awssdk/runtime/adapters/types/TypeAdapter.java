@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.runtime.adapters.types;
 
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 
 /**
@@ -28,6 +29,7 @@ import software.amazon.awssdk.annotation.SdkInternalApi;
 @SdkInternalApi
 public interface TypeAdapter<SourceT, DestinationT> {
 
+    @ReviewBeforeRelease("This isn't used.")
     DestinationT adapt(SourceT source);
 
 }

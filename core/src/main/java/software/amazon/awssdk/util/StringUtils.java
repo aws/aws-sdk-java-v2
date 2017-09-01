@@ -21,7 +21,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.text.Collator;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Locale;
 import software.amazon.awssdk.utils.Base64Utils;
 
@@ -45,10 +44,6 @@ public class StringUtils {
     private static final char CHAR_CARRIAGE_RETURN = '\r';
     private static final char CHAR_FORM_FEED = '\f';
 
-    public static String toString(StringBuilder value) {
-        return value.toString();
-    }
-
     public static String fromInteger(Integer value) {
         return Integer.toString(value);
     }
@@ -67,19 +62,6 @@ public class StringUtils {
 
     public static String fromFloat(Float value) {
         return Float.toString(value);
-    }
-
-    /**
-     * Converts the specified date to an ISO 8601 timestamp string and returns
-     * it.
-     *
-     * @param value
-     *            The date to format as an ISO 8601 timestamp string.
-     *
-     * @return An ISO 8601 timestamp string created from the specified date.
-     */
-    public static String fromDate(Date value) {
-        return DateUtils.formatIso8601Date(value.toInstant());
     }
 
     /**
@@ -161,17 +143,6 @@ public class StringUtils {
             }
         }
         return builder.toString();
-    }
-
-    /**
-     * A null-safe trim method. If the input string is null, returns null;
-     * otherwise returns a trimmed version of the input.
-     */
-    public static String trim(String value) {
-        if (value == null) {
-            return null;
-        }
-        return value.trim();
     }
 
     /**

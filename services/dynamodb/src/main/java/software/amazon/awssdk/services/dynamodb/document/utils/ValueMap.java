@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import software.amazon.awssdk.services.dynamodb.document.internal.InternalUtils;
 import software.amazon.awssdk.services.dynamodb.document.internal.ItemValueConformer;
-import software.amazon.awssdk.util.json.Jackson;
+import software.amazon.awssdk.util.json.JacksonUtils;
 
 
 /**
@@ -201,7 +201,7 @@ public class ValueMap extends FluentHashMap<String, Object> {
      * structure passed.
      */
     public ValueMap withJson(String key, String jsonValue) {
-        super.put(key, VALUE_CONFORMER.transform(Jackson.fromJsonString(jsonValue, Object.class)));
+        super.put(key, VALUE_CONFORMER.transform(JacksonUtils.fromJsonString(jsonValue, Object.class)));
         return this;
     }
 

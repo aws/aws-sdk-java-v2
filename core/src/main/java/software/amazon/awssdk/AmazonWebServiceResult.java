@@ -24,6 +24,7 @@ import software.amazon.awssdk.http.SdkHttpMetadata;
  *
  * @param <T> Type of {@link ResponseMetadata}.
  */
+@ReviewBeforeRelease("This should be deleted.")
 public class AmazonWebServiceResult<T extends ResponseMetadata> extends SdkResponse {
 
     private T sdkResponseMetadata;
