@@ -24,14 +24,12 @@ import java.nio.file.Path;
 import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import software.amazon.awssdk.auth.profile.internal.ProfilesConfigFileReader;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 public final class ProfilesFile {
-    private static final Logger log = Logger.loggerFor(ProfilesFile.class);
-
     private final String location;
     private final Map<String, Profile> profiles;
 
@@ -57,21 +55,16 @@ public final class ProfilesFile {
     private Map<String, Profile> readProfilesFile(InputStream profileStream) {
         Map<String, Profile> result = ProfilesConfigFileReader.parseProfileProperties(profileStream).entrySet().stream()
                                                               .map(this::convertToProfileMapEntry)
-                                                              .collect(toMap(e -> profileName(e.getValue()), Map.Entry::getValue,
-                                                                             this::resolveProfileConflict));
+                                                              .collect(toMap(Entry::getKey, Entry::getValue));
         return Collections.unmodifiableMap(result);
     }
 
-    private String profileName(Profile profile) {
-        return profile.name();
+    @Override
+    public String toString() {
+        return "ProfilesFile(" + location + ")";
     }
 
-    private Profile resolveProfileConflict(Profile l, Profile r) {
-
-        return l.isProfilePrefixed() ? r : l;
-    }
-
-    private Map.Entry<String, Profile> convertToProfileMapEntry(Map.Entry<String, Map<String, String>> stringMapEntry) {
+    private Entry<String, Profile> convertToProfileMapEntry(Entry<String, Map<String, String>> stringMapEntry) {
         String profileName = stringMapEntry.getKey();
         Map<String, String> profileProperties = stringMapEntry.getValue();
         return new AbstractMap.SimpleImmutableEntry<>(profileName, convertToProfile(profileName, profileProperties));
@@ -79,10 +72,5 @@ public final class ProfilesFile {
 
     private Profile convertToProfile(String profileName, Map<String, String> profileProperties) {
         return Profile.builder().name(profileName).properties(profileProperties).profilesFile(this).build();
-    }
-
-    @Override
-    public String toString() {
-        return "ProfilesFile(" + location + ")";
     }
 }

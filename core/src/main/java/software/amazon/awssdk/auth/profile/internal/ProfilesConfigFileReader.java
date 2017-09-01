@@ -17,13 +17,13 @@ package software.amazon.awssdk.auth.profile.internal;
 
 import java.io.InputStream;
 import java.util.AbstractMap;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Scanner;
 import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -31,6 +31,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public final class ProfilesConfigFileReader {
+    private static final String DEPRECATED_PROFILE_PREFIX = "profile ";
 
     private ProfilesConfigFileReader() {}
 
@@ -39,7 +40,7 @@ public final class ProfilesConfigFileReader {
      * profile file, so profile names may be prefixed with "profile".
      */
     public static Map<String, Map<String, String>> parseProfileProperties(InputStream profileStream) {
-        Map<String, Map<String, String>> result = new LinkedHashMap<>();
+        Map<String, Map<String, String>> profiles = new LinkedHashMap<>();
 
         int lineNumber = 0;
         String currentProfileName = null;
@@ -57,26 +58,28 @@ public final class ProfilesConfigFileReader {
                 Optional<String> newProfileName = parseProfileName(line, lineNumber);
 
                 if (newProfileName.isPresent()) {
-                    // Profile name
                     String profileName = newProfileName.get();
-                    result.put(profileName, new HashMap<>()); // Clobber higher profiles with matching names
+                    Validate.validState(!profiles.containsKey(profileName),
+                                        "Duplicate profile definitions for '%s' on line %s.", profileName, lineNumber);
+                    profiles.put(profileName, new LinkedHashMap<>());
+
                     currentProfileName = profileName;
                 } else {
-                    // Property
                     Validate.validState(currentProfileName != null,
-                                        "A property was defined without a preceding profile name on line %s.", lineNumber);
+                                        "Expected a profile name on line %s.", lineNumber);
 
                     Entry<String, String> property = parsePropertyLine(line, lineNumber);
+                    Map<String, String> properties = profiles.get(currentProfileName);
 
-                    Map<String, String> profileProperties = result.get(currentProfileName);
-                    Validate.validState(!profileProperties.containsKey(property.getKey()),
+                    Validate.validState(!properties.containsKey(property.getKey()),
                                         "Duplicate property values for '%s' on line %s.", property.getValue(), lineNumber);
-                    profileProperties.put(property.getKey(), property.getValue());
+
+                    properties.put(property.getKey(), property.getValue());
                 }
             }
         }
 
-        return result;
+        return profiles;
     }
 
     /**
@@ -84,11 +87,21 @@ public final class ProfilesConfigFileReader {
      */
     private static Optional<String> parseProfileName(String trimmedLine, int lineNumber) {
         if (trimmedLine.startsWith("[") && trimmedLine.endsWith("]")) {
-            String profileName = trimmedLine.substring(1, trimmedLine.length() - 1).trim();
-            Validate.validState(!profileName.isEmpty(), "Invalid profile name: Profile name empty on line %s.", lineNumber);
-            return Optional.of(profileName.trim());
+            String profileNameWithoutBrackets = trimmedLine.substring(1, trimmedLine.length() - 1).trim();
+            String profileNameWithoutProfilePrefix = removeProfilePrefix(profileNameWithoutBrackets);
+
+            Validate.validState(!profileNameWithoutProfilePrefix.isEmpty(),
+                                "Invalid profile name: Profile name empty on line %s.", lineNumber);
+
+            return Optional.of(profileNameWithoutProfilePrefix);
         }
         return Optional.empty();
+    }
+
+    private static String removeProfilePrefix(String profileName) {
+        return profileName.startsWith(DEPRECATED_PROFILE_PREFIX)
+               ? profileName.substring(DEPRECATED_PROFILE_PREFIX.length()).trim()
+               : profileName;
     }
 
     /**

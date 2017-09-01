@@ -32,29 +32,15 @@ import software.amazon.awssdk.utils.Validate;
 public final class Profile {
     private static final String STS_PROFILE_CREDENTIALS_PROVIDER_FACTORY =
             "software.amazon.awssdk.services.sts.internal.StsProfileCredentialsProviderFactory";
-    private static final String PROFILE_PREFIX = "profile ";
 
     private final String name;
     private final Map<String, String> properties;
     private final ProfilesFile profilesFile;
 
-    private final boolean isProfilePrefixed;
-
     public Profile(Builder builder) {
-        Validate.paramNotNull(builder.name, "name");
-        this.isProfilePrefixed = isProfilePrefixed(builder.name);
-        this.name = parseName(builder.name);
-
+        this.name = Validate.paramNotNull(builder.name, "name");
         this.properties = Validate.paramNotNull(builder.properties, "properties");
         this.profilesFile = Validate.paramNotNull(builder.profilesFile, "profilesFile");
-    }
-
-    private boolean isProfilePrefixed(String profileName) {
-        return profileName.startsWith(PROFILE_PREFIX);
-    }
-
-    private String parseName(String profileName) {
-        return isProfilePrefixed ? profileName.substring(PROFILE_PREFIX.length()) : profileName;
     }
 
     public static Builder builder() {
@@ -63,10 +49,6 @@ public final class Profile {
 
     public String name() {
         return name;
-    }
-
-    boolean isProfilePrefixed() {
-        return isProfilePrefixed;
     }
 
     public Optional<String> property(String propertyKey) {
@@ -147,7 +129,8 @@ public final class Profile {
                                                                    Thread.currentThread().getContextClassLoader());
             return (ChildProfileCredentialsProviderFactory) stsCredentialsProviderFactory.newInstance();
         } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("To use assume role profiles, the 'sts' service module must be on the class path.");
+            throw new IllegalStateException("To use assumed roles in the '" + name + "' profile, the 'sts' service module must "
+                                            + "be on the class path.");
         } catch (InstantiationException | IllegalAccessException e) {
             throw new IllegalStateException("Failed to create the '" + name + " ' profile credentials provider.", e);
         }

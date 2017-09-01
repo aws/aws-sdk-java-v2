@@ -18,7 +18,6 @@ package software.amazon.awssdk.regions.providers;
 import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.annotation.SdkTestInternalApi;
 import software.amazon.awssdk.auth.profile.Profile;
 import software.amazon.awssdk.auth.profile.ProfilesFile;
 import software.amazon.awssdk.auth.profile.internal.path.AwsProfileFileLocationProvider;
@@ -29,21 +28,13 @@ import software.amazon.awssdk.regions.Region;
  * otherwise specified.
  */
 @SdkInternalApi
-public class AwsProfileRegionProvider extends AwsRegionProvider { // TODO: Package protected?
+class AwsProfileRegionProvider extends AwsRegionProvider {
 
-    private final String profileName;
-    private final AwsProfileFileLocationProvider locationProvider;
+    private final String profileName =
+            AwsSystemSetting.AWS_DEFAULT_PROFILE.getStringValueOrThrow();
 
-    public AwsProfileRegionProvider() {
-        this(AwsSystemSetting.AWS_DEFAULT_PROFILE.getStringValueOrThrow(),
-             AwsProfileFileLocationProvider.DEFAULT_CONFIG_LOCATION_PROVIDER);
-    }
-
-    @SdkTestInternalApi
-    AwsProfileRegionProvider(String profileName, AwsProfileFileLocationProvider locationProvider) {
-        this.profileName = profileName;
-        this.locationProvider = locationProvider;
-    }
+    private final AwsProfileFileLocationProvider locationProvider =
+            AwsProfileFileLocationProvider.DEFAULT_CONFIG_LOCATION_PROVIDER;
 
     @Override
     public Region getRegion() throws SdkClientException {

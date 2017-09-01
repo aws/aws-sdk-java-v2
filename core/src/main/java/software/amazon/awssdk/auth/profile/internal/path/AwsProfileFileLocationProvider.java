@@ -18,11 +18,6 @@ package software.amazon.awssdk.auth.profile.internal.path;
 import java.nio.file.Path;
 import java.util.Optional;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.auth.profile.internal.path.config.SharedConfigDefaultLocationProvider;
-import software.amazon.awssdk.auth.profile.internal.path.config.SystemSettingsProfileLocationProvider;
-import software.amazon.awssdk.auth.profile.internal.path.cred.CredentialsDefaultLocationProvider;
-import software.amazon.awssdk.auth.profile.internal.path.cred.CredentialsLegacyConfigLocationProvider;
-import software.amazon.awssdk.auth.profile.internal.path.cred.CredentialsSystemSettingsLocationProvider;
 
 /**
  * Provides the location of both the AWS Shared credentials file (~/.aws/credentials) or the AWS
@@ -31,22 +26,17 @@ import software.amazon.awssdk.auth.profile.internal.path.cred.CredentialsSystemS
 @SdkInternalApi
 @FunctionalInterface
 public interface AwsProfileFileLocationProvider {
+    /**
+     * Location provider for the shared AWS credentials file. Checks the environment variable and system property overrides
+     * first, falling back to the default location (~/.aws/credentials) if they were not configured.
+     */
+    AwsProfileFileLocationProvider DEFAULT_CREDENTIALS_LOCATION_PROVIDER = new CredentialsSystemSettingsLocationProvider();
 
     /**
-     * Location provider for the shared AWS credentials file. Checks the environment variable override
-     * first, then checks the default location (~/.aws/credentials), and finally falls back to the
-     * legacy config file (~/.aws/config) that we still support loading credentials from.
+     * Location provider for the shared AWS config file. Checks the environment variable and system property overrides
+     * first, falling back to the default location (~/.aws/config) if they were not configured.
      */
-    AwsProfileFileLocationProvider DEFAULT_CREDENTIALS_LOCATION_PROVIDER = new AwsProfileFileLocationProviderChain(
-            new CredentialsSystemSettingsLocationProvider(), new CredentialsDefaultLocationProvider(),
-            new CredentialsLegacyConfigLocationProvider());
-
-    /**
-     * Location provider for the shared AWS Config file. Checks environment variable override first then
-     * falls back to the default location (~/.aws/config) if not present.
-     */
-    AwsProfileFileLocationProvider DEFAULT_CONFIG_LOCATION_PROVIDER = new AwsProfileFileLocationProviderChain(
-            new SystemSettingsProfileLocationProvider(), new SharedConfigDefaultLocationProvider());
+    AwsProfileFileLocationProvider DEFAULT_CONFIG_LOCATION_PROVIDER = new SystemSettingsProfileLocationProvider();
 
     /**
      * @return Location of file containing profile data. Optional.empty if the file could not be located.

@@ -45,8 +45,9 @@ public class StsProfileCredentialsProviderFactory implements ChildProfileCredent
 
         private StsProfileCredentialsProvider(AwsCredentialsProvider parentCredentialsProvider, Profile profile) {
             String roleArn = requireProperty(profile, ProfileProperties.ROLE_ARN);
-            String roleSessionName = requireProperty(profile, ProfileProperties.ROLE_SESSION_NAME);
-            String externalId = requireProperty(profile, ProfileProperties.EXTERNAL_ID);
+            String roleSessionName = profile.property(ProfileProperties.ROLE_SESSION_NAME)
+                                            .orElseGet(() -> "aws-sdk-java-" + System.currentTimeMillis());
+            String externalId = profile.property(ProfileProperties.EXTERNAL_ID).orElse(null);
 
             STSClientBuilder stsClientBuilder = STSClient.builder()
                                                          .credentialsProvider(parentCredentialsProvider);

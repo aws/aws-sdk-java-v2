@@ -112,6 +112,10 @@ public class ProfileResourceLoader {
         return new ProfileResourceLoader("RoleProfileMissingSource.tst");
     }
 
+    public static ProfileResourceLoader roleProfileWithSourceHavingNoCredentials() {
+        return new ProfileResourceLoader("RoleProfileWithSourceHavingNoCredentials.tst");
+    }
+
     public static ProfileResourceLoader roleProfileWithEmptySourceName() {
         return new ProfileResourceLoader("RoleProfileWithEmptySourceName.tst");
     }
