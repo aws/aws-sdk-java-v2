@@ -17,18 +17,17 @@ package software.amazon.awssdk.core.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
-import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.AwsRequest;
+import software.amazon.awssdk.core.AwsRequestOverrideConfig;;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.auth.DefaultCredentialsProvider;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
-import utils.model.EmptyAmazonWebServiceRequest;
+import software.amazon.awssdk.core.http.NoopTestAwsRequest;
 
 public class CredentialUtilsTest {
 
@@ -40,8 +39,11 @@ public class CredentialUtilsTest {
         final String awsSecretAccessKey = "bar";
         final AwsCredentials reqCredentials = AwsCredentials.create(awsAccessKeyId,
                                                                  awsSecretAccessKey);
-        EmptyAmazonWebServiceRequest req = new EmptyAmazonWebServiceRequest();
-        req.setRequestCredentials(reqCredentials);
+        AwsRequest req = NoopTestAwsRequest.builder()
+                .requestOverrideConfig(AwsRequestOverrideConfig.builder()
+                        .credentialsProvider(StaticCredentialsProvider.create(reqCredentials))
+                        .build())
+                .build();
         AwsCredentialsProvider actual = CredentialUtils.getCredentialsProvider(req,
                                                                                null);
 
@@ -58,7 +60,7 @@ public class CredentialUtilsTest {
                                                                                                    awsSecretAccessKey));
 
         AwsCredentialsProvider actual = CredentialUtils
-                .getCredentialsProvider((AmazonWebServiceRequest) null, base);
+                .getCredentialsProvider((AwsRequest) null, base);
         Assert.assertThat(actual, Matchers.instanceOf(StaticCredentialsProvider.class));
         assertEquals(awsAccessKeyId, actual.getCredentials().accessKeyId());
         assertEquals(awsSecretAccessKey, actual.getCredentials().secretAccessKey());
@@ -67,8 +69,9 @@ public class CredentialUtilsTest {
     @Test
     public void requestCredentialsInRequestConfig_TakesPrecedenceOverClientCredentials() {
         AwsCredentialsProvider requestCredentials = mock(AwsCredentialsProvider.class);
-        RequestConfig requestConfig = mock(RequestConfig.class);
-        when(requestConfig.getCredentialsProvider()).thenReturn(requestCredentials);
+        AwsRequestOverrideConfig requestConfig = AwsRequestOverrideConfig.builder()
+                .credentialsProvider(requestCredentials)
+                .build();
         AwsCredentialsProvider actual = CredentialUtils
                 .getCredentialsProvider(requestConfig, CLIENT_CREDENTIALS);
         assertEquals(requestCredentials, actual);
@@ -76,7 +79,7 @@ public class CredentialUtilsTest {
 
     @Test
     public void requestCredentialsNotSetInRequestConfig_ReturnsClientCredentials() {
-        RequestConfig requestConfig = mock(RequestConfig.class);
+        AwsRequestOverrideConfig requestConfig = AwsRequestOverrideConfig.builder().build();
         AwsCredentialsProvider actual = CredentialUtils
                 .getCredentialsProvider(requestConfig, CLIENT_CREDENTIALS);
         assertEquals(CLIENT_CREDENTIALS, actual);

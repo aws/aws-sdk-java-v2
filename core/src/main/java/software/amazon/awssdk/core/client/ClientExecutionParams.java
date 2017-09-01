@@ -19,7 +19,6 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.RequestConfig;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestProvider;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -42,7 +41,6 @@ public class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private Marshaller<Request<InputT>, InputT> marshaller;
     private HttpResponseHandler<OutputT> responseHandler;
     private HttpResponseHandler<? extends SdkException> errorResponseHandler;
-    private RequestConfig requestConfig;
 
     public Marshaller<Request<InputT>, InputT> getMarshaller() {
         return marshaller;
@@ -80,15 +78,6 @@ public class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     public ClientExecutionParams<InputT, OutputT> withErrorResponseHandler(
             HttpResponseHandler<? extends SdkException> errorResponseHandler) {
         this.errorResponseHandler = errorResponseHandler;
-        return this;
-    }
-
-    public RequestConfig getRequestConfig() {
-        return requestConfig;
-    }
-
-    public ClientExecutionParams<InputT, OutputT> withRequestConfig(RequestConfig requestConfig) {
-        this.requestConfig = requestConfig;
         return this;
     }
 

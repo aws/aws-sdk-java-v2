@@ -18,10 +18,11 @@ package software.amazon.awssdk.core.protocol.json.internal;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.protocol.MarshallingInfo;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.protocol.OperationInfo;
@@ -36,7 +37,7 @@ import software.amazon.awssdk.utils.BinaryUtils;
  * @param <OrigRequestT> Type of the original request object.
  */
 @SdkInternalApi
-public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolRequestMarshaller<OrigRequestT> {
+public class JsonProtocolMarshaller<OrigRequestT extends SdkRequest> implements ProtocolRequestMarshaller<OrigRequestT> {
 
     private static final MarshallerRegistry MARSHALLER_REGISTRY = createMarshallerRegistry();
 
@@ -74,11 +75,7 @@ public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolRequestMars
     }
 
     private DefaultRequest<OrigRequestT> createRequest(OperationInfo operationInfo, OrigRequestT originalRequest) {
-        if (originalRequest instanceof AmazonWebServiceRequest) {
-            return new DefaultRequest<>((AmazonWebServiceRequest) originalRequest, operationInfo.serviceName());
-        } else {
-            return new DefaultRequest<>(operationInfo.serviceName());
-        }
+        return new DefaultRequest<>(originalRequest, operationInfo.serviceName());
     }
 
     private static MarshallerRegistry createMarshallerRegistry() {

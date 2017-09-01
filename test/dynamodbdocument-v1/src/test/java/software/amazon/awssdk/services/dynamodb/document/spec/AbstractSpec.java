@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.document.spec;
 
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AwsRequest;
 import software.amazon.awssdk.services.dynamodb.document.internal.InternalUtils;
 
 /**
@@ -23,7 +23,7 @@ import software.amazon.awssdk.services.dynamodb.document.internal.InternalUtils;
  *
  * @param <T> request type
  */
-class AbstractSpec<T extends AmazonWebServiceRequest> {
+class AbstractSpec<T extends AwsRequest> {
     private T req;
 
     AbstractSpec(T req) {

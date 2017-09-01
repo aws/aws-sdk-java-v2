@@ -17,12 +17,10 @@ package software.amazon.awssdk.core.client;
 
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.core.config.SyncClientConfiguration;
-import software.amazon.awssdk.core.internal.AmazonWebServiceRequestAdapter;
 import software.amazon.awssdk.core.internal.http.response.AwsErrorResponseHandler;
 import software.amazon.awssdk.core.sync.StreamingResponseHandler;
 
@@ -62,9 +60,7 @@ public class SdkClientHandler extends ClientHandler {
 
     private <InputT extends SdkRequest, OutputT> ClientExecutionParams<InputT, OutputT> addRequestConfig(
             ClientExecutionParams<InputT, OutputT> params) {
-        return params.withRequestConfig(new AmazonWebServiceRequestAdapter((AmazonWebServiceRequest) params.getInput()))
-                     // TODO this is a hack to get the build working. Also doesn't deal with AwsResponseHandlerAdapter
-                     .withErrorResponseHandler(
+        return params.withErrorResponseHandler(
                              new AwsErrorResponseHandler(params.getErrorResponseHandler()));
     }
 

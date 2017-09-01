@@ -83,6 +83,7 @@ public class RetryCountInUserAgentTest extends WireMockTestBase {
             SdkHttpFullRequest request = SdkHttpFullRequestAdapter.toHttpFullRequest(newGetRequest(RESOURCE_PATH));
             httpClient.requestExecutionBuilder()
                       .request(request)
+                      .originalRequest(NoopTestAwsRequest.builder().build())
                       .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(request))
                       .errorResponseHandler(stubErrorHandler())
                       .execute();

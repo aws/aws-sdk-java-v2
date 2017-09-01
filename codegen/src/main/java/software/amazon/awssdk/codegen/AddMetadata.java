@@ -86,6 +86,8 @@ final class AddMetadata {
                 .withSyncBuilder(String.format(Constants.SYNC_BUILDER_CLASS_NAME_PATTERN, serviceName))
                 .withSyncBuilderInterface(String.format(Constants.SYNC_BUILDER_INTERFACE_NAME_PATTERN, serviceName))
                 .withBaseExceptionName(String.format(Constants.BASE_EXCEPTION_NAME_PATTERN, serviceName))
+                .withBaseRequestName(String.format(Constants.BASE_REQUEST_NAME_PATTERN, serviceName))
+                .withBaseResponseName(String.format(Constants.BASE_RESPONSE_NAME_PATTERN, serviceName))
                 .withProtocol(Protocol.fromValue(serviceMetadata.getProtocol()))
                 .withJsonVersion(serviceMetadata.getJsonVersion())
                 .withEndpointPrefix(serviceMetadata.getEndpointPrefix())

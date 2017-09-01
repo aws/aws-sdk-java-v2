@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AwsRequestOverrideConfig;
 import software.amazon.awssdk.core.runtime.StandardMemberCopier;
 import software.amazon.awssdk.core.runtime.TypeConverter;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -22,7 +22,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class AllTypesRequest extends AmazonWebServiceRequest implements
+public class AllTypesRequest extends JsonProtocolTestsRequest implements
         ToCopyableBuilder<AllTypesRequest.Builder, AllTypesRequest> {
     private final String stringMember;
 
@@ -79,6 +79,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
     private final String enumType;
 
     private AllTypesRequest(BuilderImpl builder) {
+        super(builder);
         this.stringMember = builder.stringMember;
         this.integerMember = builder.integerMember;
         this.booleanMember = builder.booleanMember;
@@ -711,7 +712,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         }
     }
 
-    public interface Builder extends CopyableBuilder<Builder, AllTypesRequest> {
+    public interface Builder extends JsonProtocolTestsRequest.Builder, CopyableBuilder<Builder, AllTypesRequest> {
         /**
          * Sets the value of the StringMember property for this object.
          *
@@ -1106,9 +1107,12 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
          * @see EnumType
          */
         Builder enumType(EnumType enumType);
+
+        @Override
+        Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig);
     }
 
-    static final class BuilderImpl implements Builder {
+    static final class BuilderImpl extends JsonProtocolTestsRequest.BuilderImpl implements Builder {
         private String stringMember;
 
         private Integer integerMember;
@@ -1618,6 +1622,18 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
         public final void setEnumType(String enumType) {
             this.enumType = enumType;
+        }
+
+        @Override
+        public Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig) {
+            super.requestOverrideConfig(awsRequestOverrideConfig);
+            return this;
+        }
+
+        @Override
+        public Builder requestOverrideConfig(Consumer<AwsRequestOverrideConfig.Builder> builderConsumer) {
+            super.requestOverrideConfig(builderConsumer);
+            return this;
         }
 
         @Override
