@@ -14,53 +14,8 @@
  */
 
 /**
- * AWS configuration profiles allow you to share multiple sets of AWS
- * security credentials between different tools such as the AWS SDK for Java
- * and the AWS CLI.
- * <p>
- * In addition to the required <code>default</code> profile, you can specify as
- * many additional named profiles as you need:
- * <pre>
- * [default]
- * aws_access_key_id=AKIAXXXXXXXXXX
- * aws_secret_access_key=abc01234567890
+ * AWS configuration profiles.
  *
- * [test]
- * aws_access_key_id=AKIAZZZZZZZZZZ
- * aws_secret_access_key=xyz01234567890
- * </pre>
- * <p>
- * Role assumption is also supported for cross account access. The source profile credentials are
- * used to assume the given role when the <pre>test</pre> profile is used. One requirement to use
- * assume role profiles is that the STS SDK module be on the class path.
- * <pre>
- * [default]
- * aws_access_key_id=AKIAXXXXXXXXXX
- * aws_secret_access_key=abc01234567890
- *
- * [test]
- * role_arn=arn:aws:iam::123456789012:role/role-name
- * source_profile=default
- * # Optionally, provide a session name
- * # role_session_name=mysession
- * # Optionally, provide an external id
- * # external_id=abc01234567890
- * # Optionally, provide a region to use for the role assumption service calls
- * # region=us-east-1
- * </pre>
- *
- *
- * <p>
- * You can use {@link software.amazon.awssdk.auth.ProfileCredentialsProvider} to
- * access your AWS configuration profiles and supply your credentials to code
- * using the AWS SDK for Java.
- *
- * <p>
- * The same profiles are used by the AWS CLI.
- *
- * <p>
- * For more information on setting up AWS configuration profiles, see:
- * http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html
+ * @see software.amazon.awssdk.auth.profile.ProfilesFile
  */
-
 package software.amazon.awssdk.auth.profile;
