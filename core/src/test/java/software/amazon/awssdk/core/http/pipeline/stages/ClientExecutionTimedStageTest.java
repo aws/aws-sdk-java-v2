@@ -22,17 +22,20 @@ import static org.mockito.Mockito.when;
 
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.AbortedException;
-import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.AwsRequestOverrideConfig;
 import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.config.SyncClientConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpSyncClientDependencies;
+import software.amazon.awssdk.core.http.NoopTestAwsRequest;
 import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
 import software.amazon.awssdk.core.util.CapacityManager;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
+import java.time.Duration;
 
 /**
  * Tests for {@link ClientExecutionTimedStage}.
@@ -71,12 +74,15 @@ public class ClientExecutionTimedStageTest {
             throw exceptionToThrow;
         });
 
-        RequestConfig mockRequestConfig = mock(RequestConfig.class);
-        when(mockRequestConfig.getClientExecutionTimeout()).thenReturn(0);
+        SdkRequest originalRequest = NoopTestAwsRequest.builder()
+                .requestOverrideConfig(AwsRequestOverrideConfig.builder()
+                        .requestExecutionTimeout(Duration.ofMillis(0))
+                        .build())
+                .build();
         try {
             stage.execute(mock(SdkHttpFullRequest.class), RequestExecutionContext.builder()
                     .executionContext(mock(ExecutionContext.class))
-                    .requestConfig(mockRequestConfig)
+                    .originalRequest(originalRequest)
                     .build());
         } finally {
             assertThat(Thread.interrupted());

@@ -15,8 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.document.spec;
 
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
-
+import software.amazon.awssdk.core.AwsRequest;
 
 /**
  * Abstract implementation class for parameter specification that involves
@@ -24,7 +23,7 @@ import software.amazon.awssdk.core.AmazonWebServiceRequest;
  *
  * @param <T> request type
  */
-abstract class AbstractCollectionSpec<T extends AmazonWebServiceRequest>
+abstract class AbstractCollectionSpec<T extends AwsRequest>
         extends AbstractSpec<T> {
 
     private Integer maxPageSize;

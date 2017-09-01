@@ -2,17 +2,16 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Optional;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.AmazonWebServiceResult;
-import software.amazon.awssdk.core.ResponseMetadata;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class StreamingOutputOperationResponse extends AmazonWebServiceResult<ResponseMetadata> implements
+public class StreamingOutputOperationResponse extends JsonProtocolTestsResponse implements
         ToCopyableBuilder<StreamingOutputOperationResponse.Builder, StreamingOutputOperationResponse> {
     private StreamingOutputOperationResponse(BuilderImpl builder) {
+        super(builder);
     }
 
     @Override
@@ -62,10 +61,11 @@ public class StreamingOutputOperationResponse extends AmazonWebServiceResult<Res
         return Optional.empty();
     }
 
-    public interface Builder extends CopyableBuilder<Builder, StreamingOutputOperationResponse> {
+    public interface Builder extends JsonProtocolTestsResponse.Builder,
+            CopyableBuilder<Builder, StreamingOutputOperationResponse> {
     }
 
-    static final class BuilderImpl implements Builder {
+    static final class BuilderImpl extends JsonProtocolTestsResponse.BuilderImpl implements Builder {
         private BuilderImpl() {
         }
 

@@ -57,6 +57,7 @@ public class AmazonHttpClientSslHandshakeTimeoutIntegrationTest extends Unrespon
             EmptyHttpRequest request = new EmptyHttpRequest(server.getHttpsEndpoint(), HttpMethodName.GET);
             httpClient.requestExecutionBuilder()
                       .request(request)
+                      .originalRequest(NoopTestAwsRequest.builder().build())
                       .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
                       .errorResponseHandler(new NullErrorResponseHandler())
                       .execute();

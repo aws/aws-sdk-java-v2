@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.protocol;
 
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AwsRequest;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 
 /**
@@ -75,6 +75,6 @@ public abstract class BaseProtocolMetadataProvider implements ProtocolMetadataPr
      */
     @Override
     public String getRequestBaseFqcn() {
-        return AmazonWebServiceRequest.class.getName();
+        return AwsRequest.class.getName();
     }
 }

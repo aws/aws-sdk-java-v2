@@ -15,13 +15,28 @@
 
 package software.amazon.awssdk.core;
 
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+/**
+ * Base class for all AWS Service responses.
+ */
+public abstract class AwsResponse extends SdkResponse {
 
-@ReviewBeforeRelease("This isn't used except in unit tests. Can it be removed?")
-public interface ReadLimitInfo {
-    /**
-     * Returns the read limit for mark-and-reset during retries; or -1 if not
-     * available.
-     */
-    int getReadLimit();
+    protected AwsResponse(Builder builder) {
+    }
+
+    @Override
+    public abstract Builder toBuilder();
+
+    protected interface Builder extends SdkResponse.Builder {
+        @Override
+        AwsResponse build();
+    }
+
+    protected abstract static class BuilderImpl implements Builder {
+
+        protected BuilderImpl() {
+        }
+
+        protected BuilderImpl(AwsResponse response) {
+        }
+    }
 }

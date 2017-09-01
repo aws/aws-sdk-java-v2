@@ -90,15 +90,7 @@ public interface ImmutableRequest<T> {
     InputStream getContent();
 
     /**
-     * Returns the read limit info about the original request.
-     */
-    ReadLimitInfo getReadLimitInfo();
-
-    /**
-     * Returns the original, user facing request object which this internal
      * request object is representing.
-     *
-     * @return an instance of request as an <code>Object</code>.
      */
-    Object getOriginalRequestObject();
+    T getOriginalRequest();
 }
