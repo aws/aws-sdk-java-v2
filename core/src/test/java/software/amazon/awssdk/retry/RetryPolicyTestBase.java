@@ -24,7 +24,6 @@ import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.DefaultRequest;
-import software.amazon.awssdk.LegacyClientConfiguration;
 import software.amazon.awssdk.Request;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;

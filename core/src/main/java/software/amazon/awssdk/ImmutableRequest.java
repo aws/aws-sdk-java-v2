@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.http.HttpMethodName;
 
 /**
@@ -30,6 +31,7 @@ import software.amazon.awssdk.http.HttpMethodName;
  * @param <T> The type of original, user facing request represented by this
  *            request.
  */
+@ReviewBeforeRelease("Shouldn't be needed after signer/base model refactor.")
 public interface ImmutableRequest<T> {
     /**
      * Returns a map of all the headers included in this request.

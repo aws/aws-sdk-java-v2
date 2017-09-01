@@ -121,23 +121,6 @@ public class ClientExecutionTimedStage<OutputT> implements RequestToResponsePipe
     }
 
     /**
-     * Determine if an aborted exception is caused by the client execution timer interrupting
-     * the current thread. If so throws {@link ClientExecutionTimeoutException} else throws the
-     * original {@link AbortedException}
-     *
-     * @param ae aborted exception that occurred
-     * @return {@link ClientExecutionTimeoutException} if the {@link AbortedException} was
-     * caused by the {@link ClientExecutionTimer}. Otherwise throws the original {@link AbortedException}
-     */
-    private RuntimeException handleAbortedException(RequestExecutionContext context, final AbortedException ae) {
-        if (context.clientExecutionTrackerTask().hasTimeoutExpired()) {
-            return new ClientExecutionTimeoutException();
-        } else {
-            return ae;
-        }
-    }
-
-    /**
      * Gets the correct client execution timeout taking into account precedence of the
      * configuration in {@link AmazonWebServiceRequest} versus {@link ClientConfiguration}.
      *

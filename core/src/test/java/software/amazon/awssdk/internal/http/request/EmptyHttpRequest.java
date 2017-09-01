@@ -128,10 +128,6 @@ public class EmptyHttpRequest implements Request<Object> {
         return originalRequest;
     }
 
-    public void setOriginalRequest(AmazonWebServiceRequest originalRequest) {
-        this.originalRequest = originalRequest;
-    }
-
     @Override
     public int getTimeOffset() {
         return 0;

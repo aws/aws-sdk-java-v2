@@ -68,10 +68,12 @@ public final class ApacheSdkHttpClientFactory
         return proxyConfiguration;
     }
 
+    @ReviewBeforeRelease("This isn't currently used. Remove or implement.")
     public Optional<InetAddress> localAddress() {
         return localAddress;
     }
 
+    @ReviewBeforeRelease("This isn't currently used. Remove or implement.")
     public Optional<Boolean> expectContinueEnabled() {
         return expectContinueEnabled;
     }

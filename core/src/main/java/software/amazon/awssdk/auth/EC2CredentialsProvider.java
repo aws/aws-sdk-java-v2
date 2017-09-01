@@ -28,7 +28,7 @@ import software.amazon.awssdk.internal.CredentialsEndpointProvider;
 import software.amazon.awssdk.internal.EC2CredentialsUtils;
 import software.amazon.awssdk.util.ComparableUtils;
 import software.amazon.awssdk.util.DateUtils;
-import software.amazon.awssdk.util.json.Jackson;
+import software.amazon.awssdk.util.json.JacksonUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
@@ -62,7 +62,7 @@ class EC2CredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable
                                                             .readResource(credentialsEndpointProvider.getCredentialsEndpoint(),
                                                                           credentialsEndpointProvider.getRetryPolicy());
 
-            JsonNode node = Jackson.jsonNodeOf(credentialsResponse);
+            JsonNode node = JacksonUtils.jsonNodeOf(credentialsResponse);
             JsonNode accessKey = node.get("AccessKeyId");
             JsonNode secretKey = node.get("SecretAccessKey");
             JsonNode token = node.get("Token");

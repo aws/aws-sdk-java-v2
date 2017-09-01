@@ -27,8 +27,6 @@ import software.amazon.awssdk.interceptor.ExecutionAttributes;
 
 public class NullResponseHandler implements HttpResponseHandler<AmazonWebServiceResponse<Object>> {
 
-    private boolean needsConnectionLeftOpen;
-
     public static void assertIsUnmarshallingException(AmazonClientException e) {
         assertThat(e.getCause(), instanceOf(RuntimeException.class));
         RuntimeException re = (RuntimeException) e.getCause();
@@ -43,15 +41,6 @@ public class NullResponseHandler implements HttpResponseHandler<AmazonWebService
 
     @Override
     public boolean needsConnectionLeftOpen() {
-        return needsConnectionLeftOpen;
-    }
-
-    /**
-     * Enable streaming
-     * @return Object for method chaining
-     */
-    public NullResponseHandler leaveConnectionOpen() {
-        this.needsConnectionLeftOpen = true;
-        return this;
+        return false;
     }
 }

@@ -21,7 +21,6 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.Request;
 import software.amazon.awssdk.RequestConfig;
 import software.amazon.awssdk.RequestExecutionContext;
-import software.amazon.awssdk.Response;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
@@ -145,14 +144,6 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
          * @return Unmarshalled result type.
          */
         <OutputT> CompletableFuture<OutputT> execute(SdkHttpResponseHandler<OutputT> responseHandler);
-
-        /**
-         * Executes the request with the given configuration; not handling response.
-         *
-         * @return Void response
-         */
-        CompletableFuture<Response<Void>> execute();
-
     }
 
     public static class Builder {
@@ -240,11 +231,6 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
             } catch (Exception e) {
                 throw new SdkClientException(e);
             }
-        }
-
-        @Override
-        public CompletableFuture<Response<Void>> execute() {
-            return execute(null);
         }
 
         private RequestExecutionContext createRequestExecutionDependencies() {

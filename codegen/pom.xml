@@ -41,11 +41,6 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <artifactId>opensdk-runtime</artifactId>
-            <groupId>software.amazon.awssdk</groupId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
             <groupId>io.burt</groupId>
             <artifactId>jmespath-jackson</artifactId>
             <version>0.2.0</version>

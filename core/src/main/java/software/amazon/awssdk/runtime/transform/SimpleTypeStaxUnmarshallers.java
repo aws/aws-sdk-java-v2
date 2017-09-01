@@ -30,7 +30,7 @@ import software.amazon.awssdk.utils.Base64Utils;
  */
 public class SimpleTypeStaxUnmarshallers {
     /** Shared logger. */
-    private static Logger log = LoggerFactory.getLogger(SimpleTypeUnmarshallers.class);
+    private static Logger log = LoggerFactory.getLogger(SimpleTypeStaxUnmarshallers.class);
 
     /**
      * Unmarshaller for String values.

@@ -37,10 +37,6 @@ import software.amazon.awssdk.utils.IoUtils;
 
 public class S3TestUtils {
 
-    protected static File getRandomTempFile(String filename, long contentLength) throws Exception {
-        return new RandomTempFile(filename, contentLength);
-    }
-
     public static void deleteBucketAndAllContents(S3Client s3, String bucketName) {
         System.out.println("Deleting S3 bucket: " + bucketName);
         ListObjectsResponse response = s3.listObjects(ListObjectsRequest.builder().bucket(bucketName).build());

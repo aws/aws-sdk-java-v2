@@ -23,7 +23,7 @@ import software.amazon.awssdk.annotation.SdkProtectedApi;
  * @author Hanson Char
  */
 @SdkProtectedApi
-class Base16Codec implements Codec {
+class Base16Codec {
     private static final int OFFSET_OF_LITTLE_A = 'a' - 10;
     private static final int OFFSET_OF_A = 'A' - 10;
     private static final int MASK_4BITS = (1 << 4) - 1;
@@ -39,7 +39,6 @@ class Base16Codec implements Codec {
                          : CodecUtils.toBytesDirect("0123456789abcdef");
     }
 
-    @Override
     public byte[] encode(byte[] src) {
         byte[] dest = new byte[src.length * 2];
         byte p;
@@ -52,7 +51,6 @@ class Base16Codec implements Codec {
         return dest;
     }
 
-    @Override
     public byte[] decode(byte[] src, final int length) {
         if (length % 2 != 0) {
             throw new IllegalArgumentException(
