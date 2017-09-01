@@ -65,6 +65,7 @@ public class SdkTransactionIdInHeaderTest extends WireMockTestBase {
             SdkHttpFullRequest request = SdkHttpFullRequestAdapter.toHttpFullRequest(newGetRequest(RESOURCE_PATH));
             httpClient.requestExecutionBuilder()
                       .request(request)
+                      .originalRequest(NoopTestAwsRequest.builder().build())
                       .errorResponseHandler(stubErrorHandler())
                       .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(request))
                       .execute();

@@ -70,6 +70,7 @@ public class ConnectionPoolMaxConnectionsIntegrationTest {
         // Block the first connection in the pool with this request.
         httpClient.requestExecutionBuilder()
                   .request(request)
+                  .originalRequest(NoopTestAwsRequest.builder().build())
                   .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
                   .execute(new EmptyAWSResponseHandler());
 
@@ -78,6 +79,7 @@ public class ConnectionPoolMaxConnectionsIntegrationTest {
             // ConnectionPoolTimeoutException.
             httpClient.requestExecutionBuilder()
                       .request(request)
+                      .originalRequest(NoopTestAwsRequest.builder().build())
                       .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
                       .execute();
             Assert.fail("Connection pool timeout exception is expected!");

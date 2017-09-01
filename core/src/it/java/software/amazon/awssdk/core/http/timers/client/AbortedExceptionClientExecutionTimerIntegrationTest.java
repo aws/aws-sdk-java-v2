@@ -34,11 +34,12 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.exception.AbortedException;
-import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.AmazonHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.MockServerTestBase;
+import software.amazon.awssdk.core.http.NoopTestAwsRequest;
+import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
 import software.amazon.awssdk.core.http.server.MockServer;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -113,6 +114,7 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockSer
         interruptCurrentThreadAfterDelay(1000);
         try {
             requestBuilder()
+                    .originalRequest(NoopTestAwsRequest.builder().build())
                     .executionContext(withInterceptors(new SlowExecutionInterceptor().afterTransmissionWaitInSeconds(10)))
                     .execute(new DummyResponseHandler().leaveConnectionOpen());
             fail("Expected exception");
@@ -131,7 +133,7 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockSer
         return ExecutionContext.builder()
                                .signerProvider(new NoOpSignerProvider())
                                .executionAttributes(new ExecutionAttributes())
-                               .interceptorContext(InterceptorContext.builder().request(new SdkRequest() {}).build())
+                               .interceptorContext(InterceptorContext.builder().request(NoopTestRequest.builder().build()).build())
                                .interceptorChain(new ExecutionInterceptorChain(Arrays.asList(requestHandlers)))
                                .build();
     }

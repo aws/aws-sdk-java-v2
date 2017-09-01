@@ -106,12 +106,6 @@ public interface Request<T> extends SignableRequest<T> {
     String getServiceName();
 
     /**
-     * Returns the original, user facing request object which this internal
-     * request object is representing.
-     */
-    AmazonWebServiceRequest getOriginalRequest();
-
-    /**
      * Sets the optional value for time offset for this request.  This
      * will be used by the signer to adjust for potential clock skew.
      * Value is in seconds, positive values imply the current clock is "fast",

@@ -7,15 +7,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.AmazonWebServiceResult;
-import software.amazon.awssdk.core.ResponseMetadata;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMetadata> implements
+public class NestedContainersResponse extends JsonProtocolTestsResponse implements
         ToCopyableBuilder<NestedContainersResponse.Builder, NestedContainersResponse> {
     private final List<List<String>> listOfListOfStrings;
 
@@ -24,6 +22,7 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
     private final Map<String, List<List<String>>> mapOfStringToListOfListOfStrings;
 
     private NestedContainersResponse(BuilderImpl builder) {
+        super(builder);
         this.listOfListOfStrings = builder.listOfListOfStrings;
         this.listOfListOfListOfStrings = builder.listOfListOfListOfStrings;
         this.mapOfStringToListOfListOfStrings = builder.mapOfStringToListOfListOfStrings;
@@ -136,7 +135,7 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
         }
     }
 
-    public interface Builder extends CopyableBuilder<Builder, NestedContainersResponse> {
+    public interface Builder extends JsonProtocolTestsResponse.Builder, CopyableBuilder<Builder, NestedContainersResponse> {
         /**
          * Sets the value of the ListOfListOfStrings property for this object.
          *
@@ -184,7 +183,7 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
                 Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings);
     }
 
-    static final class BuilderImpl implements Builder {
+    static final class BuilderImpl extends JsonProtocolTestsResponse.BuilderImpl implements Builder {
         private List<List<String>> listOfListOfStrings;
 
         private List<List<List<String>>> listOfListOfListOfStrings;
@@ -266,4 +265,3 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
         }
     }
 }
-

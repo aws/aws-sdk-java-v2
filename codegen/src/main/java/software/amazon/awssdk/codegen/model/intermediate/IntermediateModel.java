@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
-import software.amazon.awssdk.core.AmazonWebServiceResult;
+import software.amazon.awssdk.core.AwsResponse;
 import software.amazon.awssdk.core.ResponseMetadata;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -143,6 +143,22 @@ public final class IntermediateModel {
         }
     }
 
+    public String getSdkRequestBaseClassName() {
+        if (customizationConfig.getSdkRequestBaseClassName() != null) {
+            return customizationConfig.getSdkRequestBaseClassName();
+        } else {
+            return metadata.getBaseRequestName();
+        }
+    }
+
+    public String getSdkResponseBaseClassName() {
+        if (customizationConfig.getSdkResponseBaseClassName() != null) {
+            return customizationConfig.getSdkResponseBaseClassName();
+        } else {
+            return metadata.getBaseResponseName();
+        }
+    }
+
     public String getFileHeader() throws IOException {
         return loadDefaultFileHeader();
     }
@@ -166,7 +182,7 @@ public final class IntermediateModel {
             return "software.amazon.awssdk.opensdk.BaseResult";
         } else {
             return String.format("%s<%s>",
-                                 AmazonWebServiceResult.class.getName(),
+                                 AwsResponse.class.getName(),
                                  getResponseMetadataClassName());
         }
     }

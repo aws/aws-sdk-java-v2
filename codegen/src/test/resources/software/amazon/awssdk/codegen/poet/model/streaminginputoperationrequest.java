@@ -1,17 +1,19 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AwsRequestOverrideConfig;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class StreamingInputOperationRequest extends AmazonWebServiceRequest implements
+public class StreamingInputOperationRequest extends JsonProtocolTestsRequest implements
         ToCopyableBuilder<StreamingInputOperationRequest.Builder, StreamingInputOperationRequest> {
     private StreamingInputOperationRequest(BuilderImpl builder) {
+        super(builder);
     }
 
     @Override
@@ -61,14 +63,28 @@ public class StreamingInputOperationRequest extends AmazonWebServiceRequest impl
         return Optional.empty();
     }
 
-    public interface Builder extends CopyableBuilder<Builder, StreamingInputOperationRequest> {
+    public interface Builder extends JsonProtocolTestsRequest.Builder, CopyableBuilder<Builder, StreamingInputOperationRequest> {
+        @Override
+        Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig);
     }
 
-    static final class BuilderImpl implements Builder {
+    static final class BuilderImpl extends JsonProtocolTestsRequest.BuilderImpl implements Builder {
         private BuilderImpl() {
         }
 
         private BuilderImpl(StreamingInputOperationRequest model) {
+        }
+
+        @Override
+        public Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig) {
+            super.requestOverrideConfig(awsRequestOverrideConfig);
+            return this;
+        }
+
+        @Override
+        public Builder requestOverrideConfig(Consumer<AwsRequestOverrideConfig.Builder> builderConsumer) {
+            super.requestOverrideConfig(builderConsumer);
+            return this;
         }
 
         @Override

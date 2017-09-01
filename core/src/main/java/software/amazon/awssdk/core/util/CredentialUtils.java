@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.core.util;
 
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
-import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.AwsRequest;
+import software.amazon.awssdk.core.AwsRequestOverrideConfig;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 
@@ -31,18 +31,18 @@ public final class CredentialUtils {
      *  takes precedence over the credentials/credentials provider set in the
      *  client.
      */
-    public static AwsCredentialsProvider getCredentialsProvider(AmazonWebServiceRequest req, AwsCredentialsProvider base) {
-        if (req != null && req.getRequestCredentialsProvider() != null) {
-            return req.getRequestCredentialsProvider();
+    public static AwsCredentialsProvider getCredentialsProvider(AwsRequest req, AwsCredentialsProvider base) {
+        if (req == null) {
+            return base;
         }
-        return base;
+        return req.requestOverrideConfig()
+                .flatMap(AwsRequestOverrideConfig::credentialsProvider)
+                .orElse(base);
     }
 
-    public static AwsCredentialsProvider getCredentialsProvider(RequestConfig requestConfig, AwsCredentialsProvider base) {
-        if (requestConfig.getCredentialsProvider() != null) {
-            return requestConfig.getCredentialsProvider();
-        }
-        return base;
+    public static AwsCredentialsProvider getCredentialsProvider(AwsRequestOverrideConfig requestConfig,
+                                                                AwsCredentialsProvider base) {
+        return requestConfig.credentialsProvider().orElse(base);
     }
 
     /**

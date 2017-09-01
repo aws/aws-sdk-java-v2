@@ -56,7 +56,8 @@ public class AmazonHttpClientWireMockTest extends WireMockTestBase {
     @Test
     public void headersOnRequestsWinOverClientConfigurationHeaders() throws Exception {
         Request<?> request = newGetRequest(OPERATION);
-        request.getOriginalRequest().putCustomRequestHeader(HEADER, REQUEST_HEADER_VALUE);
+
+        request.addHeader(HEADER, REQUEST_HEADER_VALUE);
 
         AmazonHttpClient sut = createClient(HEADER, CONFIG_HEADER_VALUE);
         sendRequest(request, sut);
@@ -78,6 +79,7 @@ public class AmazonHttpClientWireMockTest extends WireMockTestBase {
     private void sendRequest(Request<?> request, AmazonHttpClient sut) {
         sut.requestExecutionBuilder()
            .request(request)
+           .originalRequest(NoopTestAwsRequest.builder().build())
            .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
            .errorResponseHandler(new NullErrorResponseHandler())
            .execute();

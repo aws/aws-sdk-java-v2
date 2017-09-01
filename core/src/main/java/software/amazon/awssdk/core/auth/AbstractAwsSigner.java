@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.core.auth;
 
-import static software.amazon.awssdk.core.interceptor.AwsExecutionAttributes.REQUEST_CONFIG;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -28,13 +26,13 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.RequestClientOptions;
-import software.amazon.awssdk.core.RequestConfig;
 import software.amazon.awssdk.core.auth.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.io.SdkDigestInputStream;
@@ -238,11 +236,10 @@ public abstract class AbstractAwsSigner implements Signer {
         return SdkHttpUtils.flattenQueryParameters(sorted).orElse("");
     }
 
+    @ReviewBeforeRelease("Do we still want to make read limit user-configurable as in V1?")
     protected static int getReadLimit(Aws4SignerRequestParams signerRequestParams) {
-        return Optional.ofNullable(signerRequestParams.executionAttributes().getAttribute(REQUEST_CONFIG))
-                       .map(RequestConfig::getRequestClientOptions)
-                       .map(RequestClientOptions::getReadLimit)
-                       .orElse(RequestClientOptions.DEFAULT_STREAM_BUFFER_SIZE);
+        return RequestClientOptions.DEFAULT_STREAM_BUFFER_SIZE;
+
     }
 
     protected InputStream getBinaryRequestPayloadStream(InputStream stream) {

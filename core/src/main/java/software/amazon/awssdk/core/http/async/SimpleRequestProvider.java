@@ -20,8 +20,9 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import java.nio.ByteBuffer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
+import software.amazon.awssdk.core.RequestClientOptions;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
@@ -49,8 +50,9 @@ public class SimpleRequestProvider implements SdkHttpRequestProvider {
         this.length = content.length;
     }
 
+    @ReviewBeforeRelease("Do we still want to make read limit user-configurable as in V1?")
     private int getReadLimit(ExecutionAttributes executionAttributes) {
-        return executionAttributes.getAttribute(AwsExecutionAttributes.REQUEST_CONFIG).getRequestClientOptions().getReadLimit();
+        return RequestClientOptions.DEFAULT_STREAM_BUFFER_SIZE;
     }
 
     @Override

@@ -64,7 +64,7 @@ public class RetryHandler {
 
         this.retryPolicyContext = RetryPolicyContext.builder()
                                                     .request(request)
-                                                    .originalRequest(context.requestConfig().getOriginalRequest())
+                                                    .originalRequest(context.originalRequest())
                                                     .exception(exception)
                                                     .retriesAttempted(retriesAttempted)
                                                     .executionAttributes(context.executionAttributes())
