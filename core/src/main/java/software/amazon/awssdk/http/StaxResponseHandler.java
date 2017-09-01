@@ -25,7 +25,7 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.ResponseMetadata;
+import software.amazon.awssdk.AwsResponseMetadata;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.async.AsyncResponseHandler;
@@ -102,8 +102,8 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
 
         try {
             StaxUnmarshallerContext unmarshallerContext = new StaxUnmarshallerContext(eventReader, response.getHeaders());
-            unmarshallerContext.registerMetadataExpression("ResponseMetadata/RequestId", 2, ResponseMetadata.AWS_REQUEST_ID);
-            unmarshallerContext.registerMetadataExpression("requestId", 2, ResponseMetadata.AWS_REQUEST_ID);
+            unmarshallerContext.registerMetadataExpression("ResponseMetadata/RequestId", 2, AwsResponseMetadata.AWS_REQUEST_ID);
+            unmarshallerContext.registerMetadataExpression("requestId", 2, AwsResponseMetadata.AWS_REQUEST_ID);
             registerAdditionalMetadataExpressions(unmarshallerContext);
 
             return responseUnmarshaller.unmarshall(unmarshallerContext);
@@ -117,11 +117,11 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
     }
 
     /**
-     * Create the default {@link ResponseMetadata}. Subclasses may override this to create a
-     * subclass of {@link ResponseMetadata}. Currently only SimpleDB does this.
+     * Create the default {@link AwsResponseMetadata}. Subclasses may override this to create a
+     * subclass of {@link AwsResponseMetadata}. Currently only SimpleDB does this.
      */
-    protected ResponseMetadata getResponseMetadata(Map<String, String> metadata) {
-        return new ResponseMetadata(metadata);
+    protected AwsResponseMetadata getResponseMetadata(Map<String, String> metadata) {
+        return new AwsResponseMetadata(metadata);
     }
 
     /**
@@ -189,8 +189,8 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
         }
 
         StaxUnmarshallerContext unmarshallerContext = new StaxUnmarshallerContext(eventReader, response.getHeaders());
-        unmarshallerContext.registerMetadataExpression("ResponseMetadata/RequestId", 2, ResponseMetadata.AWS_REQUEST_ID);
-        unmarshallerContext.registerMetadataExpression("requestId", 2, ResponseMetadata.AWS_REQUEST_ID);
+        unmarshallerContext.registerMetadataExpression("ResponseMetadata/RequestId", 2, AwsResponseMetadata.AWS_REQUEST_ID);
+        unmarshallerContext.registerMetadataExpression("requestId", 2, AwsResponseMetadata.AWS_REQUEST_ID);
         return unmarshaller.unmarshall(unmarshallerContext);
     }
 

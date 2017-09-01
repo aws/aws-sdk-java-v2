@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.simpledb.internal;
 
 import java.util.Map;
-import software.amazon.awssdk.ResponseMetadata;
+import software.amazon.awssdk.AwsResponseMetadata;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.http.StaxResponseHandler;
 import software.amazon.awssdk.runtime.transform.StaxUnmarshallerContext;
@@ -37,7 +37,7 @@ public class SimpleDbStaxResponseHandler<T> extends StaxResponseHandler<T> {
     }
 
     @Override
-    protected ResponseMetadata getResponseMetadata(Map<String, String> metadata) {
+    protected AwsResponseMetadata getResponseMetadata(Map<String, String> metadata) {
         return new SimpleDbResponseMetadata(super.getResponseMetadata(metadata));
     }
 }

@@ -23,6 +23,8 @@ import java.util.Map;
 import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.ReadLimitInfo;
 import software.amazon.awssdk.Request;
+import software.amazon.awssdk.SdkRequest;
+import software.amazon.awssdk.TestRequest;
 import software.amazon.awssdk.http.HttpMethodName;
 
 public class EmptyHttpRequest implements Request<Object> {
@@ -30,8 +32,7 @@ public class EmptyHttpRequest implements Request<Object> {
     private final URI endpoint;
     private final HttpMethodName httpMethod;
     private InputStream content;
-    private AmazonWebServiceRequest originalRequest = new AmazonWebServiceRequest() {
-    };
+    private SdkRequest originalRequest = TestRequest.builder().build();
 
     public EmptyHttpRequest(String endpoint, HttpMethodName httpMethod) {
         this(endpoint, httpMethod, null);
@@ -124,7 +125,7 @@ public class EmptyHttpRequest implements Request<Object> {
     }
 
     @Override
-    public AmazonWebServiceRequest getOriginalRequest() {
+    public SdkRequest getOriginalRequest() {
         return originalRequest;
     }
 
@@ -144,8 +145,8 @@ public class EmptyHttpRequest implements Request<Object> {
 
     @Override
     public ReadLimitInfo getReadLimitInfo() {
-        return new AmazonWebServiceRequest() {
-        };
+        // TODO(dongie)
+        return null;
     }
 
     @Override
@@ -155,7 +156,7 @@ public class EmptyHttpRequest implements Request<Object> {
 
     @Override
     public Object getOriginalRequestObject() {
-        return new AmazonWebServiceRequest() {
-        };
+        // TODO(dongie)
+        return null;
     }
 }

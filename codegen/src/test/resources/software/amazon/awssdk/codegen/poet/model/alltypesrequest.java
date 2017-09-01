@@ -7,16 +7,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Generated;
-import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.runtime.StandardMemberCopier;
-import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class AllTypesRequest extends AmazonWebServiceRequest implements
-                                                             ToCopyableBuilder<AllTypesRequest.Builder, AllTypesRequest> {
+public class AllTypesRequest extends JsonProtocolTestsRequest<AllTypesRequest.Builder, AllTypesRequest> {
     private final String stringMember;
 
     private final Integer integerMember;
@@ -62,6 +58,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
     private final String enumType;
 
     private AllTypesRequest(BuilderImpl builder) {
+        super(builder);
         this.stringMember = builder.stringMember;
         this.integerMember = builder.integerMember;
         this.booleanMember = builder.booleanMember;
@@ -88,7 +85,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
     /**
      * Returns the value of the StringMember property for this object.
-     *
+     * 
      * @return The value of the StringMember property for this object.
      */
     public String stringMember() {
@@ -97,7 +94,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
     /**
      * Returns the value of the IntegerMember property for this object.
-     *
+     * 
      * @return The value of the IntegerMember property for this object.
      */
     public Integer integerMember() {
@@ -106,7 +103,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
     /**
      * Returns the value of the BooleanMember property for this object.
-     *
+     * 
      * @return The value of the BooleanMember property for this object.
      */
     public Boolean booleanMember() {
@@ -115,7 +112,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
     /**
      * Returns the value of the FloatMember property for this object.
-     *
+     * 
      * @return The value of the FloatMember property for this object.
      */
     public Float floatMember() {
@@ -124,7 +121,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
     /**
      * Returns the value of the DoubleMember property for this object.
-     *
+     * 
      * @return The value of the DoubleMember property for this object.
      */
     public Double doubleMember() {
@@ -133,7 +130,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
     /**
      * Returns the value of the LongMember property for this object.
-     *
+     * 
      * @return The value of the LongMember property for this object.
      */
     public Long longMember() {
@@ -145,7 +142,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
-     *
+     * 
      * @return The value of the SimpleList property for this object.
      */
     public List<String> simpleList() {
@@ -157,7 +154,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
-     *
+     * 
      * @return The value of the ListOfMaps property for this object.
      */
     public List<Map<String, String>> listOfMaps() {
@@ -169,7 +166,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
-     *
+     * 
      * @return The value of the ListOfStructs property for this object.
      */
     public List<SimpleStruct> listOfStructs() {
@@ -181,7 +178,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
-     *
+     * 
      * @return The value of the MapOfStringToIntegerList property for this object.
      */
     public Map<String, List<Integer>> mapOfStringToIntegerList() {
@@ -193,7 +190,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
-     *
+     * 
      * @return The value of the MapOfStringToString property for this object.
      */
     public Map<String, String> mapOfStringToString() {
@@ -205,7 +202,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
-     *
+     * 
      * @return The value of the MapOfStringToStruct property for this object.
      */
     public Map<String, SimpleStruct> mapOfStringToStruct() {
@@ -214,7 +211,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
     /**
      * Returns the value of the TimestampMember property for this object.
-     *
+     * 
      * @return The value of the TimestampMember property for this object.
      */
     public Instant timestampMember() {
@@ -223,7 +220,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
     /**
      * Returns the value of the StructWithNestedTimestampMember property for this object.
-     *
+     * 
      * @return The value of the StructWithNestedTimestampMember property for this object.
      */
     public StructWithTimestamp structWithNestedTimestampMember() {
@@ -235,7 +232,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
      * <p>
      * This method will return a new read-only {@code ByteBuffer} each time it is invoked.
      * </p>
-     *
+     * 
      * @return The value of the BlobArg property for this object.
      */
     public ByteBuffer blobArg() {
@@ -244,7 +241,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
     /**
      * Returns the value of the StructWithNestedBlob property for this object.
-     *
+     * 
      * @return The value of the StructWithNestedBlob property for this object.
      */
     public StructWithNestedBlobType structWithNestedBlob() {
@@ -256,7 +253,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
-     *
+     * 
      * @return The value of the BlobMap property for this object.
      */
     public Map<String, ByteBuffer> blobMap() {
@@ -268,7 +265,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
-     *
+     * 
      * @return The value of the ListOfBlobs property for this object.
      */
     public List<ByteBuffer> listOfBlobs() {
@@ -277,7 +274,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
     /**
      * Returns the value of the RecursiveStruct property for this object.
-     *
+     * 
      * @return The value of the RecursiveStruct property for this object.
      */
     public RecursiveStructType recursiveStruct() {
@@ -286,7 +283,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
     /**
      * Returns the value of the PolymorphicTypeWithSubTypes property for this object.
-     *
+     * 
      * @return The value of the PolymorphicTypeWithSubTypes property for this object.
      */
     public BaseType polymorphicTypeWithSubTypes() {
@@ -295,7 +292,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
     /**
      * Returns the value of the PolymorphicTypeWithoutSubTypes property for this object.
-     *
+     * 
      * @return The value of the PolymorphicTypeWithoutSubTypes property for this object.
      */
     public SubTypeOne polymorphicTypeWithoutSubTypes() {
@@ -304,7 +301,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
     /**
      * Returns the value of the EnumType property for this object.
-     *
+     * 
      * @return The value of the EnumType property for this object.
      * @see EnumType
      */
@@ -342,7 +339,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         hashCode = 31 * hashCode + ((mapOfStringToStruct() == null) ? 0 : mapOfStringToStruct().hashCode());
         hashCode = 31 * hashCode + ((timestampMember() == null) ? 0 : timestampMember().hashCode());
         hashCode = 31 * hashCode
-                   + ((structWithNestedTimestampMember() == null) ? 0 : structWithNestedTimestampMember().hashCode());
+                + ((structWithNestedTimestampMember() == null) ? 0 : structWithNestedTimestampMember().hashCode());
         hashCode = 31 * hashCode + ((blobArg() == null) ? 0 : blobArg().hashCode());
         hashCode = 31 * hashCode + ((structWithNestedBlob() == null) ? 0 : structWithNestedBlob().hashCode());
         hashCode = 31 * hashCode + ((blobMap() == null) ? 0 : blobMap().hashCode());
@@ -448,7 +445,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
             return false;
         }
         if (other.structWithNestedTimestampMember() != null
-            && !other.structWithNestedTimestampMember().equals(this.structWithNestedTimestampMember())) {
+                && !other.structWithNestedTimestampMember().equals(this.structWithNestedTimestampMember())) {
             return false;
         }
         if (other.blobArg() == null ^ this.blobArg() == null) {
@@ -485,14 +482,14 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
             return false;
         }
         if (other.polymorphicTypeWithSubTypes() != null
-            && !other.polymorphicTypeWithSubTypes().equals(this.polymorphicTypeWithSubTypes())) {
+                && !other.polymorphicTypeWithSubTypes().equals(this.polymorphicTypeWithSubTypes())) {
             return false;
         }
         if (other.polymorphicTypeWithoutSubTypes() == null ^ this.polymorphicTypeWithoutSubTypes() == null) {
             return false;
         }
         if (other.polymorphicTypeWithoutSubTypes() != null
-            && !other.polymorphicTypeWithoutSubTypes().equals(this.polymorphicTypeWithoutSubTypes())) {
+                && !other.polymorphicTypeWithoutSubTypes().equals(this.polymorphicTypeWithoutSubTypes())) {
             return false;
         }
         if (other.enumType() == null ^ this.enumType() == null) {
@@ -578,7 +575,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         return sb.toString();
     }
 
-    public interface Builder extends CopyableBuilder<Builder, AllTypesRequest> {
+    public interface Builder extends JsonProtocolTestsRequest.Builder<Builder, AllTypesRequest> {
         /**
          * Sets the value of the StringMember property for this object.
          *
@@ -831,7 +828,8 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         Builder enumType(EnumType enumType);
     }
 
-    private static final class BuilderImpl implements Builder {
+    private static final class BuilderImpl extends JsonProtocolTestsRequest.BuilderImpl<Builder, AllTypesRequest> implements
+            Builder {
         private String stringMember;
 
         private Integer integerMember;
@@ -877,9 +875,11 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         private String enumType;
 
         private BuilderImpl() {
+            super(Builder.class);
         }
 
         private BuilderImpl(AllTypesRequest model) {
+            super(Builder.class, model);
             setStringMember(model.stringMember);
             setIntegerMember(model.integerMember);
             setBooleanMember(model.booleanMember);
@@ -1252,3 +1252,4 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         }
     }
 }
+

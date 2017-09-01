@@ -16,10 +16,11 @@
 package software.amazon.awssdk.services.simpledb;
 
 import java.util.Map;
-import software.amazon.awssdk.ResponseMetadata;
+
+import software.amazon.awssdk.AwsResponseMetadata;
 
 /**
- * Extension of {@link ResponseMetadata} with Amazon SimpleDB specific data. In addition to the
+ * Extension of {@link AwsResponseMetadata} with Amazon SimpleDB specific data. In addition to the
  * standard AWS request ID contained in all services' response metadata, Amazon SimpleDB also
  * includes information on how much compute capacity, or box usage, was used to process your
  * request.
@@ -27,7 +28,7 @@ import software.amazon.awssdk.ResponseMetadata;
  * SimpleDB box usage is useful when looking at how different queries perform on your data. You can
  * use that information to tune your queries, and reduce your monthly SimpleDB usage charges.
  */
-public class SimpleDbResponseMetadata extends ResponseMetadata {
+public class SimpleDbResponseMetadata extends AwsResponseMetadata {
     public static final String BOX_USAGE = "BOX_USAGE";
 
     /**
@@ -46,7 +47,7 @@ public class SimpleDbResponseMetadata extends ResponseMetadata {
      * @param originalResponseMetadata
      *            The ResponseMetadata object from which to create the new object.
      */
-    public SimpleDbResponseMetadata(ResponseMetadata originalResponseMetadata) {
+    public SimpleDbResponseMetadata(AwsResponseMetadata originalResponseMetadata) {
         super(originalResponseMetadata);
     }
 

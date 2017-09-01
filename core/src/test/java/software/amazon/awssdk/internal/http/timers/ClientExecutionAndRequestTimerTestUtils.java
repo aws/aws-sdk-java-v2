@@ -23,6 +23,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.Request;
 import software.amazon.awssdk.SdkRequest;
+import software.amazon.awssdk.TestRequest;
 import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.ExecutionContext;
 import software.amazon.awssdk.http.HttpMethodName;
@@ -120,7 +121,7 @@ public class ClientExecutionAndRequestTimerTestUtils {
     public static ExecutionContext executionContext(SdkHttpFullRequest request) {
         InterceptorContext incerceptorContext =
                 InterceptorContext.builder()
-                                  .request(new SdkRequest() {})
+                                  .request(TestRequest.builder().build())
                                   .httpRequest(request)
                                   .build();
         return ExecutionContext.builder()

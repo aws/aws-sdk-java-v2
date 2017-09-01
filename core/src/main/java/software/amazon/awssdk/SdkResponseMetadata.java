@@ -13,20 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.waiters;
+package software.amazon.awssdk;
 
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
-@SdkInternalApi
-public class NoOpWaiterHandler extends WaiterHandler<AmazonWebServiceRequest> {
+/**
+ * Metadata of an SDK response.
+ *
+ * @see SdkResponse
+ */
+public interface SdkResponseMetadata<B extends SdkResponseMetadata.Builder<B, T>,
+        T extends SdkResponseMetadata<B, T>> extends ToCopyableBuilder<B, T> {
 
-    @Override
-    public void onWaitSuccess(AmazonWebServiceRequest request) {
+    interface Builder<B extends SdkResponseMetadata.Builder<B, T>,
+            T extends SdkResponseMetadata<B, T>> extends CopyableBuilder<B, T> {
     }
-
-    @Override
-    public void onWaitFailure(Exception e) {
-    }
-
 }

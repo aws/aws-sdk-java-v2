@@ -26,16 +26,20 @@ public class SignerTestUtils {
     public static SdkHttpFullRequest signRequest(Signer signer,
                                                  SdkHttpFullRequest request,
                                                  AwsCredentials credentials) {
-        return signer.sign(InterceptorContext.builder().request(new SdkRequest() {}).httpRequest(request).build(),
-                           new ExecutionAttributes().putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, credentials));
+        // FIXME(dongie)
+        return null;
+//        return signer.sign(InterceptorContext.builder().request(new SdkRequest() {}).httpRequest(request).build(),
+//                           new ExecutionAttributes().putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, credentials));
     }
 
     public static SdkHttpFullRequest presignRequest(Presigner presigner,
                                                     SdkHttpFullRequest request,
                                                     AwsCredentials credentials,
                                                     Date expiration) {
-        return presigner.presign(InterceptorContext.builder().request(new SdkRequest() {}).httpRequest(request).build(),
-                                 new ExecutionAttributes().putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, credentials),
-                                 expiration);
+        // FIXME(dongie)
+        return null;
+//        return presigner.presign(InterceptorContext.builder().request(new SdkRequest() {}).httpRequest(request).build(),
+//                                 new ExecutionAttributes().putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, credentials),
+//                                 expiration);
     }
 }

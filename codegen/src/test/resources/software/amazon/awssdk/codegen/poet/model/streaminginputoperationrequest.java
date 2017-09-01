@@ -1,16 +1,14 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import javax.annotation.Generated;
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class StreamingInputOperationRequest extends AmazonWebServiceRequest implements
-                                                                            ToCopyableBuilder<StreamingInputOperationRequest.Builder, StreamingInputOperationRequest> {
+public class StreamingInputOperationRequest extends
+        JsonProtocolTestsRequest<StreamingInputOperationRequest.Builder, StreamingInputOperationRequest> {
     private StreamingInputOperationRequest(BuilderImpl builder) {
+        super(builder);
     }
 
     @Override
@@ -54,14 +52,17 @@ public class StreamingInputOperationRequest extends AmazonWebServiceRequest impl
         return sb.toString();
     }
 
-    public interface Builder extends CopyableBuilder<Builder, StreamingInputOperationRequest> {
+    public interface Builder extends JsonProtocolTestsRequest.Builder<Builder, StreamingInputOperationRequest> {
     }
 
-    private static final class BuilderImpl implements Builder {
+    private static final class BuilderImpl extends JsonProtocolTestsRequest.BuilderImpl<Builder, StreamingInputOperationRequest>
+            implements Builder {
         private BuilderImpl() {
+            super(Builder.class);
         }
 
         private BuilderImpl(StreamingInputOperationRequest model) {
+            super(Builder.class, model);
         }
 
         @Override
@@ -70,3 +71,4 @@ public class StreamingInputOperationRequest extends AmazonWebServiceRequest impl
         }
     }
 }
+

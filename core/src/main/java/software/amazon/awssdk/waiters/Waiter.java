@@ -17,9 +17,9 @@ package software.amazon.awssdk.waiters;
 
 import java.util.concurrent.Future;
 import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.SdkRequest;
 
-public interface Waiter<InputT extends AmazonWebServiceRequest> {
+public interface Waiter<InputT extends SdkRequest<?, ?, ?>> {
 
     /**
      * Polls synchronously until it is determined that the resource

@@ -17,19 +17,24 @@ package software.amazon.awssdk;
 
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.http.SdkHttpMetadata;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
 
 /**
  * Base type for all AWS response objects. Exposes metadata about the request such as the request
  * id and access to details in the HTTP response.
  *
- * @param <T> Type of {@link ResponseMetadata}.
+ * @param <T> Type of {@link AwsResponseMetadata}.
  */
 @ReviewBeforeRelease("This should be deleted.")
-public class AmazonWebServiceResult<T extends ResponseMetadata> extends SdkResponse {
+public class AmazonWebServiceResult<T extends AwsResponseMetadata> extends SdkResponse {
 
     private T sdkResponseMetadata;
 
     private SdkHttpMetadata sdkHttpMetadata;
+
+    protected AmazonWebServiceResult(BuilderImpl builder) {
+        super(builder);
+    }
 
     /**
      * @return The response metadata associated with this request.
@@ -55,5 +60,10 @@ public class AmazonWebServiceResult<T extends ResponseMetadata> extends SdkRespo
     public AmazonWebServiceResult<T> setSdkHttpMetadata(SdkHttpMetadata sdkHttpMetadata) {
         this.sdkHttpMetadata = sdkHttpMetadata;
         return this;
+    }
+
+    @Override
+    public CopyableBuilder toBuilder() {
+        return null;
     }
 }

@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.handlers;
 
-import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.SdkRequest;
 
 /**
  * Callback interface for notification on web service requests executed with the
  * asynchronous clients in the AWS SDK for Java.
  */
-public interface AsyncHandler<REQUEST extends AmazonWebServiceRequest, RESULT> {
+public interface AsyncHandler<REQUEST extends SdkRequest, RESULT> {
 
     /**
      * Invoked after an asynchronous request

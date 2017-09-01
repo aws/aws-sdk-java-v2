@@ -127,11 +127,14 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockSer
     }
 
     private ExecutionContext withInterceptors(ExecutionInterceptor... requestHandlers) {
-        return ExecutionContext.builder()
-                               .signerProvider(new NoOpSignerProvider())
-                               .executionAttributes(new ExecutionAttributes())
-                               .interceptorContext(InterceptorContext.builder().request(new SdkRequest() {}).build())
-                               .interceptorChain(new ExecutionInterceptorChain(Arrays.asList(requestHandlers)))
-                               .build();
+        // FIXME(dongie)
+//        return ExecutionContext.builder()
+//                               .awsRequestMetrics(new AwsRequestMetricsFullSupport())
+//                               .signerProvider(new NoOpSignerProvider())
+//                               .executionAttributes(new ExecutionAttributes())
+//                               .interceptorContext(InterceptorContext.builder().request(new SdkRequest() {}).build())
+//                               .interceptorChain(new ExecutionInterceptorChain(Arrays.asList(requestHandlers)))
+//                               .build();
+        return null;
     }
 }

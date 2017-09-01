@@ -34,6 +34,10 @@ import software.amazon.awssdk.event.ProgressListener;
 public abstract class AmazonWebServiceRequest extends SdkRequest implements Cloneable, ReadLimitInfo {
 
     public static final AmazonWebServiceRequest NOOP = new AmazonWebServiceRequest() {
+        @Override
+        public Builder toBuilder() {
+            return null;
+        }
     };
     /**
      * Arbitrary options storage for individual {@link AmazonWebServiceRequest}s. This field is not
@@ -67,6 +71,10 @@ public abstract class AmazonWebServiceRequest extends SdkRequest implements Clon
     private AmazonWebServiceRequest cloneSource;
 
     private Integer sdkClientExecutionTimeout = null;
+
+    public AmazonWebServiceRequest() {
+        super(null);
+    }
 
     /**
      * Sets the optional credentials to use for this request, overriding the default credentials set at the client level.
