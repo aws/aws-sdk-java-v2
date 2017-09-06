@@ -15,13 +15,14 @@
 
 package software.amazon.awssdk.http.apache.internal.impl;
 
+import static software.amazon.awssdk.utils.HttpUtils.createUrl;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
-import static software.amazon.awssdk.utils.StringUtils.isNotBlank;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.config.RequestConfig;
@@ -50,22 +51,9 @@ public class ApacheHttpRequestFactory {
     private static final List<String> IGNORE_HEADERS = Arrays.asList(HttpHeaders.CONTENT_LENGTH, HttpHeaders.HOST);
 
     public HttpRequestBase create(final SdkHttpFullRequest request, final ApacheHttpRequestConfig requestConfig) {
-        URI endpoint = request.getEndpoint();
+        String uri = createUrl(request.getEndpoint(), request.getResourcePath(), request.getParameters(), true).toString();
 
-        /*
-         * HttpClient cannot handle url in pattern of "http://host//path", so we
-         * have to escape the double-slash between endpoint and resource-path
-         * into "/%2F"
-         */
-        String uri = SdkHttpUtils.appendUri(endpoint.toString(), request
-                .getResourcePath(), true);
-        String encodedParams = SdkHttpUtils.encodeParameters(request);
-
-        if (isNotBlank(encodedParams)) {
-            uri += "?" + encodedParams;
-        }
-
-        final HttpRequestBase base = createApacheRequest(request, uri, encodedParams);
+        final HttpRequestBase base = createApacheRequest(request, uri);
         addHeadersToRequest(base, request);
         addRequestConfig(base, request, requestConfig);
 
@@ -98,7 +86,7 @@ public class ApacheHttpRequestFactory {
     }
 
 
-    private HttpRequestBase createApacheRequest(SdkHttpFullRequest request, String uri, String encodedParams) {
+    private static HttpRequestBase createApacheRequest(SdkHttpFullRequest request, String uri) {
         switch (request.getHttpMethod()) {
             case HEAD:
                 return new HttpHead(uri);
@@ -109,19 +97,18 @@ public class ApacheHttpRequestFactory {
             case OPTIONS:
                 return new HttpOptions(uri);
             case PATCH:
-                return wrapEntity(request, new HttpPatch(uri), encodedParams);
+                return wrapEntity(request, new HttpPatch(uri));
             case POST:
-                return wrapEntity(request, new HttpPost(uri), encodedParams);
+                return wrapEntity(request, new HttpPost(uri));
             case PUT:
-                return wrapEntity(request, new HttpPut(uri), encodedParams);
+                return wrapEntity(request, new HttpPut(uri));
             default:
                 throw new RuntimeException("Unknown HTTP method name: " + request.getHttpMethod());
         }
     }
 
-    private HttpRequestBase wrapEntity(SdkHttpFullRequest request,
-                                       HttpEntityEnclosingRequestBase entityEnclosingRequest,
-                                       String encodedParams) {
+    private static HttpRequestBase wrapEntity(SdkHttpFullRequest request,
+                                       HttpEntityEnclosingRequestBase entityEnclosingRequest) {
 
         /*
          * We should never reuse the entity of the previous request, since
@@ -147,7 +134,7 @@ public class ApacheHttpRequestFactory {
     /**
      * Configures the headers in the specified Apache HTTP request.
      */
-    private void addHeadersToRequest(HttpRequestBase httpRequest, SdkHttpFullRequest request) {
+    private static void addHeadersToRequest(HttpRequestBase httpRequest, SdkHttpFullRequest request) {
 
         httpRequest.addHeader(HttpHeaders.HOST, getHostHeaderValue(request.getEndpoint()));
 
@@ -173,7 +160,7 @@ public class ApacheHttpRequestFactory {
         }
     }
 
-    private String getHostHeaderValue(final URI endpoint) {
+    private static String getHostHeaderValue(final URI endpoint) {
         /*
          * Apache HttpClient omits the port number in the Host header (even if
          * we explicitly specify it) if it's the default port for the protocol
@@ -182,8 +169,26 @@ public class ApacheHttpRequestFactory {
          * and started honoring our explicit host with endpoint), we follow this
          * same behavior here and in the QueryString signer.
          */
-        return SdkHttpUtils.isUsingNonDefaultPort(endpoint)
+        return isUsingNonDefaultPort(endpoint)
                 ? endpoint.getHost() + ":" + endpoint.getPort()
                 : endpoint.getHost();
+    }
+
+    private static boolean isUsingNonDefaultPort(URI uri) {
+        int port = uri.getPort();
+        if (port <= 0) {
+            return false;
+        }
+
+        String scheme = uri.getScheme().toLowerCase(Locale.ENGLISH);
+
+        if (scheme.equals("http") && port == 80) {
+            return false;
+        }
+        if (scheme.equals("https") && port == 443) {
+            return false;
+        }
+
+        return true;
     }
 }

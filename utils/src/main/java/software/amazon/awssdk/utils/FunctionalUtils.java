@@ -95,6 +95,14 @@ public final class FunctionalUtils {
         return ignore -> supplier.get();
     }
 
+    public static <T> T supplySafely(UnsafeSupplier<T> unsafeSupplier) {
+        return invokeSafely(unsafeSupplier);
+    }
+
+    public static <T> T runSafely(UnsafeSupplier<T> unsafeRunnable) {
+        return invokeSafely(unsafeRunnable);
+    }
+
     public static <T> T invokeSafely(UnsafeSupplier<T> unsafeSupplier) {
         return safeSupplier(unsafeSupplier).get();
     }

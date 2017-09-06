@@ -19,6 +19,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.utils.HttpUtils;
 
 public interface SdkHttpRequest extends SdkHttpHeaders {
 
@@ -54,4 +55,13 @@ public interface SdkHttpRequest extends SdkHttpHeaders {
      * @return The HTTP method to use when sending this request.
      */
     SdkHttpMethod getHttpMethod();
+
+    /**
+     * Returns the full URI including resource path and encoded query parameters.
+     *
+     * @return full URI.
+     */
+    default URI getFullUri() {
+        return HttpUtils.createUrl(getEndpoint(), getResourcePath(), getParameters());
+    }
 }
