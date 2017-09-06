@@ -135,4 +135,5 @@ public class Region extends AbstractEnum {
     public static List<Region> getRegions() {
         return REGIONS;
     }
+
 }

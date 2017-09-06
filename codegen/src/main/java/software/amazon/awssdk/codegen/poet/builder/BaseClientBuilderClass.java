@@ -21,7 +21,6 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
-import java.net.URI;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.auth.Aws4Signer;
@@ -77,7 +76,6 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addMethod(serviceEndpointPrefixMethod());
         builder.addMethod(serviceDefaultsMethod());
         builder.addMethod(defaultSignerProviderMethod());
-        builder.addMethod(applyEndpointDefaultsMethod());
 
         if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
             builder.addMethod(setAdvancedConfigurationMethod())
@@ -114,7 +112,6 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addCode("return $T.builder()\n", ServiceBuilderConfigurationDefaults.class)
                          .addCode("         .defaultSignerProvider(this::defaultSignerProvider)\n")
                          .addCode("         .addRequestHandlerPath($S)\n", requestHandlerPath)
-                         .addCode("         .defaultEndpoint(this::defaultEndpoint)\n")
                          .addCode("         .crc32FromCompressedDataEnabled($L)\n", crc32FromCompressedDataEnabled)
                          .addCode("         .build();\n")
                          .build();
@@ -149,25 +146,6 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addModifiers(Modifier.PUBLIC)
                          .addParameter(advancedConfiguration, "advancedConfiguration")
                          .addStatement("advancedConfiguration(advancedConfiguration)")
-                         .build();
-    }
-
-    private MethodSpec applyEndpointDefaultsMethod() {
-        if (model.getCustomizationConfig().getServiceSpecificEndpointBuilderClass() == null) {
-            return MethodSpec.methodBuilder("defaultEndpoint")
-                             .returns(URI.class)
-                             .addModifiers(Modifier.PRIVATE)
-                             .addStatement("return null")
-                             .build();
-        }
-
-        ClassName serviceEndpointBuilder = ClassName.get(basePackage,
-                                                         model.getCustomizationConfig().getServiceSpecificEndpointBuilderClass());
-        return MethodSpec.methodBuilder("defaultEndpoint")
-                         .returns(URI.class)
-                         .addModifiers(Modifier.PRIVATE)
-                         .addStatement("return $T.getEndpoint(advancedConfiguration, resolveRegion().get())",
-                                       serviceEndpointBuilder)
                          .build();
     }
 

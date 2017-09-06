@@ -36,8 +36,24 @@ package software.amazon.awssdk.interceptor;
  * }
  * }
  * </pre>
+ *
  * @param <T> The type of data associated with this attribute.
  */
 public class ExecutionAttribute<T> {
 
+    private final String name;
+
+    /**
+     * Creates a new {@link ExecutionAttribute} bound to the provided type param.
+     *
+     * @param name Descriptive name for the attribute, used primarily for debugging purposes.
+     */
+    public ExecutionAttribute(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }
