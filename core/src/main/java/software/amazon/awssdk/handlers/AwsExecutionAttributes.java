@@ -22,6 +22,7 @@ import software.amazon.awssdk.auth.AwsCredentials;
 import software.amazon.awssdk.auth.Signer;
 import software.amazon.awssdk.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.regions.Region;
 
 /**
  * AWS-specific attributes attached to the execution. This information is available to {@link ExecutionInterceptor}s and
@@ -38,26 +39,32 @@ public class AwsExecutionAttributes {
     /**
      * The key under which the request credentials are set.
      */
-    public static final ExecutionAttribute<AwsCredentials> AWS_CREDENTIALS = new ExecutionAttribute<>();
+    public static final ExecutionAttribute<AwsCredentials> AWS_CREDENTIALS = new ExecutionAttribute<>("AwsCredentials");
 
     /**
      * The key under which the request config is stored.
      */
     @ReviewBeforeRelease("RequestConfig feels pretty internal. Can we just expose parts of it?")
-    public static final ExecutionAttribute<RequestConfig> REQUEST_CONFIG = new ExecutionAttribute<>();
+    public static final ExecutionAttribute<RequestConfig> REQUEST_CONFIG = new ExecutionAttribute<>("RequestConfig");
 
     /**
      * The key under which the service name is stored.
      */
-    public static final ExecutionAttribute<String> SERVICE_NAME = new ExecutionAttribute<>();
+    public static final ExecutionAttribute<String> SERVICE_NAME = new ExecutionAttribute<>("ServiceName");
 
     /**
      * The key under which the time offset (for clock skew correction) is stored.
      */
-    public static final ExecutionAttribute<Integer> TIME_OFFSET = new ExecutionAttribute<>();
+    public static final ExecutionAttribute<Integer> TIME_OFFSET = new ExecutionAttribute<>("TimeOffset");
+
+    /**
+     * The AWS {@link Region} the client was configured with.
+     */
+    public static final ExecutionAttribute<Region> AWS_REGION = new ExecutionAttribute<>("AwsRegion");
 
     /**
      * Handler context key for advanced configuration.
      */
-    public static final ExecutionAttribute<ServiceAdvancedConfiguration> SERVICE_ADVANCED_CONFIG = new ExecutionAttribute<>();
+    public static final ExecutionAttribute<ServiceAdvancedConfiguration> SERVICE_ADVANCED_CONFIG =
+            new ExecutionAttribute<>("ServiceAdvancedConfig");
 }

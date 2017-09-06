@@ -124,7 +124,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void testUpdateAccelerateConfiguration() {
+    public void testUpdateAccelerateConfiguration() throws InterruptedException {
 
         String status = s3.getBucketAccelerateConfiguration(GetBucketAccelerateConfigurationRequest.builder()
                                                                                                    .bucket(US_BUCKET_NAME)
@@ -171,7 +171,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
                                    RequestBody.of(uploadFile));
     }
 
-    private void enableAccelerateOnBucket() {
+    private void enableAccelerateOnBucket() throws InterruptedException {
         s3.putBucketAccelerateConfiguration(
                 PutBucketAccelerateConfigurationRequest.builder()
                                                        .bucket(US_BUCKET_NAME)
@@ -179,6 +179,8 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
                                                                                                        .status(BucketAccelerateStatus.Enabled)
                                                                                                        .build())
                                                        .build());
+        // Wait a bit for accelerate to kick in
+        Thread.sleep(1000);
     }
 
     private void disableAccelerateOnBucket() {

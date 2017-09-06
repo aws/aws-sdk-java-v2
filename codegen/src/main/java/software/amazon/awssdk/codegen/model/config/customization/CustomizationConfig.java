@@ -86,12 +86,6 @@ public class CustomizationConfig {
      */
     private String serviceSpecificClientConfigClass;
     /**
-     * Specifies the name of the endpoint builder class to use if a service
-     * has a specific endpoint builder class. Null if the service does not have
-     * a specific endpoint builder.
-     */
-    private String serviceSpecificEndpointBuilderClass;
-    /**
      * Specify additional constructor forms for a given model class.
      */
     private Map<String, ConstructorFormsWrapper> additionalShapeConstructors;
@@ -326,14 +320,6 @@ public class CustomizationConfig {
 
     public void setServiceSpecificClientConfigClass(String serviceSpecificClientConfig) {
         this.serviceSpecificClientConfigClass = serviceSpecificClientConfig;
-    }
-
-    public String getServiceSpecificEndpointBuilderClass() {
-        return serviceSpecificEndpointBuilderClass;
-    }
-
-    public void setServiceSpecificEndpointBuilderClass(String serviceSpecificEndpointBuilderClass) {
-        this.serviceSpecificEndpointBuilderClass = serviceSpecificEndpointBuilderClass;
     }
 
     /**
