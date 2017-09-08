@@ -26,10 +26,10 @@ public class InternalAdvancedClientOption<T> extends AdvancedClientOption<T> {
     /**
      * Whether to calculate the CRC 32 checksum of a message based on the uncompressed data. By default, this is false.
      */
-    public static InternalAdvancedClientOption<Boolean> CRC32_FROM_COMPRESSED_DATA_ENABLED =
+    public static final InternalAdvancedClientOption<Boolean> CRC32_FROM_COMPRESSED_DATA_ENABLED =
             new InternalAdvancedClientOption<>(Boolean.class);
 
-    protected InternalAdvancedClientOption(Class<T> valueClass) {
+    private InternalAdvancedClientOption(Class<T> valueClass) {
         super(valueClass);
     }
 }
