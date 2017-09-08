@@ -378,18 +378,18 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>findbugs-maven-plugin</artifactId>
-                    <version>3.0.4</version>
+                    <version>3.0.5</version>
                     <dependencies>
                         <dependency>
                             <groupId>software.amazon.awssdk</groupId>
                             <artifactId>build-tools</artifactId>
-                            <version>2.0.0-preview-1</version>
+                            <version>${awsjavasdk.version}</version>
                         </dependency>
                     </dependencies>
                     <executions>
                         <execution>
                             <id>findbugs</id>
-                            <phase>verify</phase>
+                            <phase>process-classes</phase>
                             <goals>
                                 <goal>check</goal>
                             </goals>
@@ -421,7 +421,7 @@
                     <dependency>
                         <groupId>software.amazon.awssdk</groupId>
                         <artifactId>build-tools</artifactId>
-                        <version>2.0.0-preview-1</version>
+                        <version>${awsjavasdk.version}</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -462,6 +462,11 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
@@ -542,24 +547,6 @@
                 </plugins>
             </build>
         </profile>
-
-        <profile>
-            <id>findbugs</id>
-            <activation>
-                <property>
-                    <name>doRelease</name>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>findbugs-maven-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
 
         <profile>
             <id>public-javadoc</id>

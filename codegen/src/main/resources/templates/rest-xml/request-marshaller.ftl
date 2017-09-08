@@ -138,9 +138,7 @@ public class ${shapeName}Marshaller implements Marshaller<Request<${shapeName}>,
             XmlWriter xmlWriter = new XmlWriter(stringWriter, "${shape.marshaller.xmlNameSpaceUri}");
 
             xmlWriter.startElement("${shape.marshaller.locationName}");
-            if (${shape.variable.variableName} != null) {
             <@MemberMarshallerMacro.content customConfig shapeName shape.variable.variableName shapes/>
-            }
             xmlWriter.endElement();
 
             request.setContent(new StringInputStream(stringWriter.getBuffer().toString()));

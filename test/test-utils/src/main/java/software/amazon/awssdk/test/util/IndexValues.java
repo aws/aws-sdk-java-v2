@@ -16,6 +16,7 @@
 package software.amazon.awssdk.test.util;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * Used to iterate through all possible combination of array index values given
@@ -68,13 +69,12 @@ public class IndexValues implements Iterable<int[]> {
         }
 
         /**
-         * Returns the next combination of array index values, or null if
-         * the index value space has been exhausted.
+         * Returns the next combination of array index values.
          */
         @Override
         public int[] next() {
             if (curr == null) {
-                return null;
+                throw new NoSuchElementException();
             }
             final int last = lengths.length - 1;
             if (curr[last] < lengths[last] - 1) {

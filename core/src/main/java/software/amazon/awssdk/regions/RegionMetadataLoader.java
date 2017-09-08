@@ -16,6 +16,7 @@
 package software.amazon.awssdk.regions;
 
 import com.fasterxml.jackson.jr.ob.JSON;
+import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
@@ -94,7 +95,7 @@ public class RegionMetadataLoader {
                            .with(JSON.Feature.USE_IS_GETTERS)
                            .beanFrom(Partitions.class, stream);
 
-        } catch (Exception e) {
+        } catch (IOException | RuntimeException e) {
             throw new SdkClientException("Error while loading partitions " +
                                          "file from " + location, e);
         } finally {

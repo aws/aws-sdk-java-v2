@@ -23,7 +23,6 @@ import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.util.DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT;
 
 import com.fasterxml.jackson.core.JsonFactory;
-
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -36,7 +35,6 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
-
 import org.junit.Test;
 import software.amazon.awssdk.protocol.json.SdkJsonGenerator;
 import software.amazon.awssdk.protocol.json.StructuredJsonGenerator;

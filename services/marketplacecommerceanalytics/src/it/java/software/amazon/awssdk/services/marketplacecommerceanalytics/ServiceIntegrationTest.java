@@ -141,11 +141,11 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
     }
 
     private String getAssumeRolePolicy() throws Exception {
-        return getResourceAsString(ASSUME_ROLE_POLICY_LOCATION);
+        return getResourceAsString(getClass(), ASSUME_ROLE_POLICY_LOCATION);
     }
 
     private String getPolicyDocument() throws IOException {
-        return getResourceAsString(POLICY_DOCUMENT_LOCATION);
+        return getResourceAsString(getClass(), POLICY_DOCUMENT_LOCATION);
     }
 
 }

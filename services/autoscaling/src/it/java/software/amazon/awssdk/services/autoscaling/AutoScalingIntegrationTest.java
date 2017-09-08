@@ -34,7 +34,6 @@ import org.junit.After;
 import org.junit.Test;
 import software.amazon.awssdk.AmazonServiceException.ErrorType;
 import software.amazon.awssdk.SdkGlobalTime;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.services.autoscaling.model.AlreadyExistsException;
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
 import software.amazon.awssdk.services.autoscaling.model.BlockDeviceMapping;
@@ -624,7 +623,7 @@ public class AutoScalingIntegrationTest extends IntegrationTestBase {
     @Test
     public void testClockSkewAs() {
         SdkGlobalTime.setGlobalTimeOffset(3600);
-        AutoScalingClient clockSkewClient = AutoScalingClient.builder().credentialsProvider(new StaticCredentialsProvider(credentials)).build();
+        AutoScalingClient clockSkewClient = AutoScalingClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
         clockSkewClient.describePolicies(DescribePoliciesRequest.builder().build());
         assertTrue(SdkGlobalTime.getGlobalTimeOffset() < 60);
     }

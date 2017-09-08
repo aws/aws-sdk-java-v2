@@ -27,7 +27,6 @@ import static software.amazon.awssdk.http.pipeline.stages.RetryableStage.HEADER_
 
 import org.junit.Test;
 import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.Request;
 import software.amazon.awssdk.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.config.MutableClientConfiguration;
 import software.amazon.awssdk.config.defaults.GlobalClientConfigurationDefaults;

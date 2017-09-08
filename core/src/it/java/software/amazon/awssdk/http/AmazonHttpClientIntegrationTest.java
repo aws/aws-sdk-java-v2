@@ -28,12 +28,7 @@ import static software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequ
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.Request;
-import software.amazon.awssdk.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.config.MutableClientConfiguration;
-import software.amazon.awssdk.config.defaults.GlobalClientConfigurationDefaults;
-import software.amazon.awssdk.internal.http.response.ErrorDuringUnmarshallingResponseHandler;
 import software.amazon.awssdk.internal.http.response.NullErrorResponseHandler;
-import software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import utils.HttpTestUtils;
 import utils.http.WireMockTestBase;
 

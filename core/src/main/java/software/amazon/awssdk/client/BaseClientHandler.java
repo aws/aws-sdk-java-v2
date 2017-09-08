@@ -106,8 +106,8 @@ abstract class BaseClientHandler {
         return interceptorContext.httpRequest();
     }
 
-    private <OutputT extends SdkResponse> OutputT runAfterUnmarshallingInterceptors(OutputT response,
-                                                                                    ExecutionContext context) {
+    private static <OutputT extends SdkResponse> OutputT runAfterUnmarshallingInterceptors(OutputT response,
+                                                                                           ExecutionContext context) {
         // Update interceptor context to include response
         InterceptorContext interceptorContext =
                 context.interceptorContext().copy(b -> b.response(response));
@@ -122,8 +122,8 @@ abstract class BaseClientHandler {
         return (OutputT) interceptorContext.response();
     }
 
-    public <OutputT extends SdkResponse> HttpResponseHandler<OutputT> interceptorCalling(HttpResponseHandler<OutputT> delegate,
-                                                                                         ExecutionContext context) {
+    protected static <OutputT extends SdkResponse>
+            HttpResponseHandler<OutputT> interceptorCalling(HttpResponseHandler<OutputT> delegate, ExecutionContext context) {
         return (response, executionAttributes) ->
                 runAfterUnmarshallingInterceptors(delegate.handle(response, executionAttributes), context);
     }

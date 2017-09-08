@@ -57,10 +57,10 @@ public class JsonErrorUnmarshaller extends AbstractErrorUnmarshaller<JsonNode> {
         // FIXME: dirty hack below
         try {
             Method builderClassGetter = exceptionClass.getDeclaredMethod("serializableBuilderClass");
-            builderClassGetter.setAccessible(true);
+            makeAccessible(builderClassGetter);
             Class<?> builderClass = (Class<?>) builderClassGetter.invoke(null);
             Method buildMethod = builderClass.getMethod("build");
-            buildMethod.setAccessible(true);
+            makeAccessible(buildMethod);
             Object o = MAPPER.treeToValue(jsonContent, builderClass);
             return (AmazonServiceException) buildMethod.invoke(o);
         } catch (NoSuchMethodException e) {
@@ -75,10 +75,7 @@ public class JsonErrorUnmarshaller extends AbstractErrorUnmarshaller<JsonNode> {
      * @return True if the actualErrorCode can be handled by this unmarshaller, false otherwise
      */
     public boolean matchErrorCode(String actualErrorCode) {
-        if (handledErrorCode == null) {
-            return true;
-        }
-        return handledErrorCode.equals(actualErrorCode);
+        return handledErrorCode == null || handledErrorCode.equals(actualErrorCode);
     }
 
 }

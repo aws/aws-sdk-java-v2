@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.iam;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.junit.Before;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.test.AwsTestBase;
 
@@ -42,7 +41,7 @@ public class IntegrationTestBase extends AwsTestBase {
     public void setUp() throws FileNotFoundException, IOException {
         setUpCredentials();
         iam = IAMClient.builder()
-                       .credentialsProvider(new StaticCredentialsProvider(credentials))
+                       .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                        .region(Region.AWS_GLOBAL)
                        .build();
         System.out.println(iam);

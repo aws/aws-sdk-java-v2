@@ -21,7 +21,7 @@
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>build-tools</artifactId>
     <name>AWS Java SDK :: Build Tools</name>
-    <version>2.0.0-preview-1</version>
+    <version>2.0.0-preview-3-SNAPSHOT</version>
     <description>This package holds the resources used for checkstyle and findbugs.
     </description>
 

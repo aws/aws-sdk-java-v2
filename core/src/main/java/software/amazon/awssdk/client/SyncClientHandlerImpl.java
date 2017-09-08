@@ -63,20 +63,10 @@ public class SyncClientHandlerImpl extends ClientHandler {
             ClientExecutionParams<InputT, OutputT> executionParams,
             StreamingResponseHandler<OutputT, ReturnT> streamingResponseHandler) {
         ExecutionContext executionContext = createExecutionContext(executionParams.getRequestConfig());
-        HttpResponseHandler<ReturnT> httpResponseHandler = new HttpResponseHandler<ReturnT>() {
-
-            @Override
-            public ReturnT handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
-                OutputT resp = interceptorCalling(executionParams.getResponseHandler(), executionContext)
-                        .handle(response, executionAttributes);
-                return streamingResponseHandler.apply(resp, new AbortableInputStream(response.getContent(), response));
-            }
-
-            @Override
-            public boolean needsConnectionLeftOpen() {
-                return streamingResponseHandler.needsConnectionLeftOpen();
-            }
-        };
+        HttpResponseHandler<OutputT> interceptorCallingResponseHandler =
+                interceptorCalling(executionParams.getResponseHandler(), executionContext);
+        HttpResponseHandler<ReturnT> httpResponseHandler =
+                new HttpResponseHandlerAdapter<>(interceptorCallingResponseHandler, streamingResponseHandler);
         return execute(executionParams, executionContext, httpResponseHandler);
     }
 
@@ -154,4 +144,27 @@ public class SyncClientHandlerImpl extends ClientHandler {
                      .execute(responseHandler);
     }
 
+    private static class HttpResponseHandlerAdapter<ReturnT, OutputT extends SdkResponse>
+            implements HttpResponseHandler<ReturnT> {
+
+        private final HttpResponseHandler<OutputT> httpResponseHandler;
+        private final StreamingResponseHandler<OutputT, ReturnT> streamingResponseHandler;
+
+        private HttpResponseHandlerAdapter(HttpResponseHandler<OutputT> httpResponseHandler,
+                                           StreamingResponseHandler<OutputT, ReturnT> streamingResponseHandler) {
+            this.httpResponseHandler = httpResponseHandler;
+            this.streamingResponseHandler = streamingResponseHandler;
+        }
+
+        @Override
+        public ReturnT handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
+            OutputT resp = httpResponseHandler.handle(response, executionAttributes);
+            return streamingResponseHandler.apply(resp, new AbortableInputStream(response.getContent(), response));
+        }
+
+        @Override
+        public boolean needsConnectionLeftOpen() {
+            return streamingResponseHandler.needsConnectionLeftOpen();
+        }
+    }
 }

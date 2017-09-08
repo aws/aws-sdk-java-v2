@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.dynamodb.mapper;
 import java.time.format.DateTimeParseException;
 import java.util.Calendar;
 import java.util.Date;
-
 import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;

@@ -18,12 +18,10 @@ package software.amazon.awssdk.internal.http.response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AmazonWebServiceResponse;
-import software.amazon.awssdk.AmazonWebServiceResult;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
-import software.amazon.awssdk.http.SdkHttpMetadata;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 
 /**
@@ -73,19 +71,8 @@ public class AwsResponseHandlerAdapter<T> implements HttpResponseHandler<T> {
             // it is not available from the response header.
             logResponseRequestId(awsRequestId);
         }
-        return fillInResponseMetadata(awsResponse, response);
-    }
 
-    @SuppressWarnings("unchecked")
-    private <T> T fillInResponseMetadata(AmazonWebServiceResponse<T> awsResponse,
-                                         HttpResponse httpResponse) {
-        final T result = awsResponse.getResult();
-        if (result instanceof AmazonWebServiceResult<?>) {
-            ((AmazonWebServiceResult) result)
-                    .setSdkResponseMetadata(awsResponse.getResponseMetadata())
-                    .setSdkHttpMetadata(SdkHttpMetadata.from(httpResponse));
-        }
-        return result;
+        return awsResponse.getResult();
     }
 
     @Override

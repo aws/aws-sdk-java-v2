@@ -24,6 +24,6 @@ public class ${shape.shapeName}Unmarshaller extends ${exceptionUnmarshallerImpl}
         if(errorCode == null || !errorCode.equals("${shape.errorCode}"))
             return null;
 
-        return (${shape.shapeName})super.unmarshall(node);
+        return super.unmarshall(node);
     }
 }

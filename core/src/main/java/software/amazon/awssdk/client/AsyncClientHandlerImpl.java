@@ -127,8 +127,9 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
         runAfterMarshallingInterceptors(executionContext);
         SdkHttpFullRequest marshalled = runModifyHttpRequestInterceptors(executionContext);
 
-        SdkHttpRequestProvider requestProvider = executionParams.getAsyncRequestProvider() != null ?
-                adaptAsyncRequestProvider(executionParams.getAsyncRequestProvider()) : null;
+        SdkHttpRequestProvider requestProvider = executionParams.getAsyncRequestProvider() == null
+                                                 ? null
+                                                 : new SdkHttpRequestProviderAdapter(executionParams.getAsyncRequestProvider());
 
         HttpResponseAdapter responseAdapter
                 = r -> SdkHttpResponseAdapter.adapt(isCalculateCrc32FromCompressedData(), marshalled, r);
@@ -157,30 +158,6 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
     @Override
     public void close() {
         client.close();
-    }
-
-    /**
-     * When an operation has a streaming input, the customer must supply an {@link AsyncRequestProvider} to
-     * provide the request content in a non-blocking manner. This adapts that interface to the
-     * {@link SdkHttpRequestProvider} which the HTTP client SPI expects.
-     *
-     * @param asyncRequestProvider Customer supplied request provider.
-     * @return Request provider to send to the HTTP layer.
-     */
-    private SdkHttpRequestProvider adaptAsyncRequestProvider(AsyncRequestProvider asyncRequestProvider) {
-        return new SdkHttpRequestProvider() {
-
-            @Override
-            public long contentLength() {
-                return asyncRequestProvider.contentLength();
-            }
-
-            @Override
-            public void subscribe(Subscriber<? super ByteBuffer> s) {
-                asyncRequestProvider.subscribe(s);
-            }
-
-        };
     }
 
     /**
@@ -296,7 +273,7 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
      * @param <OutputT> Unmarshalled POJO response type.
      * @param <ReturnT> Return type of {@link AsyncResponseHandler}
      */
-    private class UnmarshallingSdkHttpResponseHandler<OutputT extends SdkResponse, ReturnT>
+    private static class UnmarshallingSdkHttpResponseHandler<OutputT extends SdkResponse, ReturnT>
             implements SdkHttpResponseHandler<ReturnT> {
 
         private final AsyncResponseHandler<OutputT, ReturnT> asyncResponseHandler;
@@ -339,5 +316,30 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
         public ReturnT complete() {
             return asyncResponseHandler.complete();
         }
+    }
+
+    /**
+     * When an operation has a streaming input, the customer must supply an {@link AsyncRequestProvider} to
+     * provide the request content in a non-blocking manner. This adapts that interface to the
+     * {@link SdkHttpRequestProvider} which the HTTP client SPI expects.
+     */
+    private static class SdkHttpRequestProviderAdapter implements SdkHttpRequestProvider {
+
+        private final AsyncRequestProvider asyncRequestProvider;
+
+        private SdkHttpRequestProviderAdapter(AsyncRequestProvider asyncRequestProvider) {
+            this.asyncRequestProvider = asyncRequestProvider;
+        }
+
+        @Override
+        public long contentLength() {
+            return asyncRequestProvider.contentLength();
+        }
+
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> s) {
+            asyncRequestProvider.subscribe(s);
+        }
+
     }
 }

@@ -29,6 +29,7 @@ import javax.mail.internet.MimeMessage;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import software.amazon.awssdk.auth.AwsCredentials;
 import software.amazon.awssdk.services.simpleemail.AwsJavaMailTransport;
 
 /**
@@ -46,11 +47,14 @@ public class JavaMailIntegrationTest extends IntegrationTestBase {
     private static final String[] MULTI_DESTINATION = {DESTINATION,
                                                        DESTINATION, DESTINATION};
     protected static Session session;
+    private static AwsCredentials credentials;
 
     @BeforeClass
     public static void createSession() throws FileNotFoundException, IOException,
                                               NoSuchProviderException {
         sendVerificationEmail();
+
+        credentials = CREDENTIALS_PROVIDER_CHAIN.getCredentials();
 
         // Get JavaMail Properties and Setup Session
         Properties props = new Properties();
@@ -68,8 +72,7 @@ public class JavaMailIntegrationTest extends IntegrationTestBase {
     @Test
     public void testMultipleMessagesWithOneConnect() throws Exception {
         Transport t = new AwsJavaMailTransport(session, null);
-        t.connect(credentials.accessKeyId(), credentials
-                .secretAccessKey());
+        t.connect(credentials.accessKeyId(), credentials.secretAccessKey());
         Address[] a = {new InternetAddress(ADDITIONAL_DESTINATION)};
         t.sendMessage(getTestTextEmail(true), null);
         t.sendMessage(getTestMimeEmail(true), a);

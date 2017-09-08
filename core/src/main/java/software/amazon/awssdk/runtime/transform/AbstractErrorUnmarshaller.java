@@ -15,8 +15,11 @@
 
 package software.amazon.awssdk.runtime.transform;
 
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 
@@ -69,7 +72,7 @@ public abstract class AbstractErrorUnmarshaller<T> implements Unmarshaller<Amazo
 
         try {
             builderMethod = exceptionClass.getDeclaredMethod("builder");
-            builderMethod.setAccessible(true);
+            makeAccessible(builderMethod);
         } catch (NoSuchMethodException e) {
             // ignored
         }
@@ -78,8 +81,8 @@ public abstract class AbstractErrorUnmarshaller<T> implements Unmarshaller<Amazo
             Object exceptionBuilder = builderMethod.invoke(null);
             Method buildMethod = exceptionBuilder.getClass().getDeclaredMethod("build");
             Method messageSetter = exceptionBuilder.getClass().getDeclaredMethod("message", String.class);
-            messageSetter.setAccessible(true);
-            buildMethod.setAccessible(true);
+            makeAccessible(messageSetter);
+            makeAccessible(buildMethod);
 
             messageSetter.invoke(exceptionBuilder, message);
 
@@ -87,6 +90,15 @@ public abstract class AbstractErrorUnmarshaller<T> implements Unmarshaller<Amazo
         } else {
             Constructor<? extends AmazonServiceException> constructor = exceptionClass.getConstructor(String.class);
             return constructor.newInstance(message);
+        }
+    }
+
+    protected static void makeAccessible(AccessibleObject object) {
+        if (!object.isAccessible()) {
+            AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+                object.setAccessible(true);
+                return null;
+            });
         }
     }
 

@@ -45,8 +45,6 @@ import static software.amazon.awssdk.services.stepfunctions.builder.StepFunction
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.Date;

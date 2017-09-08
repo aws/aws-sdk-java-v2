@@ -31,7 +31,7 @@ public class SnsSignatureCheckerTest extends AwsTestBase {
 
     @Test
     public void validateMessageTest() throws URISyntaxException, IOException, CertificateException {
-        final String jsonMessage = getResourceAsString(SnsTestResources.SAMPLE_MESSAGE);
+        final String jsonMessage = getResourceAsString(getClass(), SnsTestResources.SAMPLE_MESSAGE);
         SignatureChecker checker = new SignatureChecker();
         assertTrue(checker.verifyMessageSignature(jsonMessage, getPublicKey()));
     }

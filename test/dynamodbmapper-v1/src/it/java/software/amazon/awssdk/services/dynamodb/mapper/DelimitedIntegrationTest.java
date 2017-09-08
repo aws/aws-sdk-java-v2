@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
-
 import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;

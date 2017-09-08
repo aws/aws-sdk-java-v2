@@ -37,7 +37,7 @@ public enum Memory {
         final long usedMem = totalMem - freeMem;
         final long spareMem = rt.maxMemory() - usedMem;
         return String.format(
-                "Heap usedMem=%d (KB), freeMem=%d (KB), spareMem=%d (KB)\n",
+                "Heap usedMem=%d (KB), freeMem=%d (KB), spareMem=%d (KB)%n",
                 usedMem / 1024, freeMem / 1024, spareMem / 1024);
     }
 

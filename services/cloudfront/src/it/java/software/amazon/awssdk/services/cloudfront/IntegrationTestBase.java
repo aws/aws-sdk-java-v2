@@ -19,7 +19,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import org.junit.BeforeClass;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudfront.model.GetDistributionRequest;
 import software.amazon.awssdk.services.cloudfront.model.GetDistributionResponse;
@@ -54,10 +53,10 @@ public abstract class IntegrationTestBase extends AwsTestBase {
     public static void setUp() throws FileNotFoundException, IOException {
         setUpCredentials();
         cloudfront = CloudFrontClient.builder()
-                                     .credentialsProvider(new StaticCredentialsProvider(credentials))
+                                     .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                      .region(Region.AWS_GLOBAL)
                                      .build();
-        s3 = S3Client.builder().credentialsProvider(new StaticCredentialsProvider(credentials)).region(Region.AWS_GLOBAL).build();
+        s3 = S3Client.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.AWS_GLOBAL).build();
     }
 
     /**

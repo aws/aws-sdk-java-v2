@@ -127,20 +127,14 @@ public class RandomTempFile extends File {
     public void createFile(long sizeInBytes) throws IOException {
         deleteOnExit();
 
-        FileOutputStream outputStream = new FileOutputStream(this);
-        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
-        InputStream inputStream = new RandomInputStream(sizeInBytes, binaryData);
-
-        try {
+        try (FileOutputStream outputStream = new FileOutputStream(this);
+             BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
+             InputStream inputStream = new RandomInputStream(sizeInBytes, binaryData)) {
             byte[] buffer = new byte[1024];
-            int bytesRead = -1;
+            int bytesRead;
             while ((bytesRead = inputStream.read(buffer)) > -1) {
                 bufferedOutputStream.write(buffer, 0, bytesRead);
             }
-        } finally {
-            bufferedOutputStream.close();
-            outputStream.close();
-            inputStream.close();
         }
     }
 
@@ -158,4 +152,8 @@ public class RandomTempFile extends File {
         return random;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj;
+    }
 }

@@ -4,7 +4,6 @@ import javax.annotation.Generated;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.auth.Aws4Signer;
 import software.amazon.awssdk.auth.StaticSignerProvider;
-import software.amazon.awssdk.client.builder.ClientBuilder;
 import software.amazon.awssdk.client.builder.DefaultClientBuilder;
 import software.amazon.awssdk.config.defaults.ClientConfigurationDefaults;
 import software.amazon.awssdk.config.defaults.ServiceBuilderConfigurationDefaults;
@@ -16,8 +15,7 @@ import software.amazon.awssdk.utils.AttributeMap;
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C> extends DefaultClientBuilder<B, C>
-        implements ClientBuilder<B, C> {
+abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C> extends DefaultClientBuilder<B, C> {
     @Override
     protected final String serviceEndpointPrefix() {
         return "json-service";

@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.test.retry;
 
+import software.amazon.awssdk.utils.Validate;
+
 /**
  * Normally all exceptions are retried by {@link RetryableAction}. This is a special exception to
  * communicate the intent that a certain exception should not be retried.
@@ -27,6 +29,6 @@ public class NonRetryableException extends Exception {
 
     @Override
     public Exception getCause() {
-        return (Exception) super.getCause();
+        return Validate.isInstanceOf(Exception.class, super.getCause(), "Unexpected cause type.");
     }
 }

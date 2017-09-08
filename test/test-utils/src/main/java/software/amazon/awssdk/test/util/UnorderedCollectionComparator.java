@@ -30,15 +30,7 @@ public class UnorderedCollectionComparator {
      */
     public static <T> boolean equalUnorderedCollections(
             Collection<T> colA, Collection<T> colB) {
-        return equalUnorderedCollections(colA, colB, new CrossTypeComparator<T, T>() {
-
-            @Override
-            public boolean equals(T a, T b) {
-                return (a == null && b == null)
-                       || a.equals(b);
-            }
-
-        });
+        return equalUnorderedCollections(colA, colB, (a, b) -> (a == b) || a != null && a.equals(b));
     }
 
     /**

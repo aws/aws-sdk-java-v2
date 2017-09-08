@@ -87,7 +87,7 @@ public abstract class HttpClientDependencies implements SdkAutoCloseable {
     /**
      * Builder for {@link HttpClientDependencies}.
      */
-    public static class Builder<T extends Builder<T>> {
+    public abstract static class Builder<T extends Builder<T>> {
         private CapacityManager capacityManager;
         private ClientExecutionTimer clientExecutionTimer;
 

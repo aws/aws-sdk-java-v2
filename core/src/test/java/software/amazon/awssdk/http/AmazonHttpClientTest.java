@@ -36,7 +36,6 @@ import software.amazon.awssdk.config.AdvancedClientOption;
 import software.amazon.awssdk.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.config.MutableClientConfiguration;
 import software.amazon.awssdk.config.defaults.GlobalClientConfigurationDefaults;
-import software.amazon.awssdk.internal.auth.NoOpSignerProvider;
 import software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import utils.HttpTestUtils;
 

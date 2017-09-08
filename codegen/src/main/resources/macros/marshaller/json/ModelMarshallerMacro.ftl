@@ -49,9 +49,8 @@ public class ${shapeName}JsonMarshaller {
         }
     }
 
-    private static ${shapeName}JsonMarshaller INSTANCE;
+    private static final ${shapeName}JsonMarshaller INSTANCE = new ${shapeName}JsonMarshaller();
     public static ${shapeName}JsonMarshaller getInstance() {
-        if (INSTANCE == null) INSTANCE = new ${shapeName}JsonMarshaller();
         return INSTANCE;
     }
 
