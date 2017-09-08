@@ -38,7 +38,6 @@ public class CloudWatchEventsIntegrationTest extends AwsIntegrationTestBase {
 
     @BeforeClass
     public static void setUpClient() throws Exception {
-        setUpCredentials();
         events = CloudWatchEventsClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
 
         events.putRule(PutRuleRequest.builder()

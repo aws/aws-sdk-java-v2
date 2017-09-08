@@ -59,10 +59,8 @@ public final class PresignerFacade {
                                                                                               .withUri(httpRequest.getEndpoint())
                                                                                               .build());
         SdkHttpFullRequest.Builder mutableHttpRequest = httpRequest.toBuilder();
-        if (requestConfig != null) {
-            addCustomQueryParams(mutableHttpRequest, requestConfig);
-            addCustomHeaders(mutableHttpRequest, requestConfig);
-        }
+        addCustomQueryParams(mutableHttpRequest, requestConfig);
+        addCustomHeaders(mutableHttpRequest, requestConfig);
         AwsCredentialsProvider credentialsProvider = resolveCredentials(requestConfig);
 
         ExecutionAttributes executionAttributes = new ExecutionAttributes();

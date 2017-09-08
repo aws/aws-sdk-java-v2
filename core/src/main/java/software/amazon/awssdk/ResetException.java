@@ -20,7 +20,6 @@ package software.amazon.awssdk;
  */
 public class ResetException extends SdkClientException {
     private static final long serialVersionUID = 1L;
-    private String extraInfo;
 
     public ResetException(String message, Throwable t) {
         super(message, t);
@@ -33,11 +32,5 @@ public class ResetException extends SdkClientException {
     @Override
     public boolean isRetryable() {
         return false;
-    }
-
-    @Override
-    public String getMessage() {
-        String msg = super.getMessage();
-        return extraInfo == null ? msg : msg + ";  " + extraInfo;
     }
 }

@@ -44,6 +44,7 @@ import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -56,8 +57,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
-
-import io.netty.channel.nio.NioEventLoopGroup;
 import org.assertj.core.api.Condition;
 import org.junit.AfterClass;
 import org.junit.Rule;

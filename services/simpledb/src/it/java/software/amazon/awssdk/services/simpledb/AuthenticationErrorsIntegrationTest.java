@@ -58,7 +58,7 @@ public class AuthenticationErrorsIntegrationTest extends IntegrationTestBase {
      */
     @Test
     public void testSignatureDoesNotMatch() {
-        String accessKey = credentials.accessKeyId();
+        String accessKey = CREDENTIALS_PROVIDER_CHAIN.getCredentials().accessKeyId();
         SimpleDBClient client = SimpleDBClient.builder()
                 .credentialsProvider(new StaticCredentialsProvider(new AwsCredentials(accessKey, "skid")))
                 .build();

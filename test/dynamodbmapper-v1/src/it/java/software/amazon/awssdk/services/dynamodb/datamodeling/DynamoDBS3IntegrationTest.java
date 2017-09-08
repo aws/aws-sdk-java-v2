@@ -21,7 +21,6 @@ import java.io.ByteArrayOutputStream;
 import java.util.UUID;
 import org.junit.Ignore;
 import org.junit.Test;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.pojos.S3LinksTestClass;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -36,12 +35,12 @@ public class DynamoDBS3IntegrationTest extends DynamoDBS3IntegrationTestBase {
 
     @Test
     public void testCredentialContext() throws Exception {
-        tryCreateItem(new DynamoDbMapper(dynamo, new StaticCredentialsProvider(credentials)));
+        tryCreateItem(new DynamoDbMapper(dynamo, CREDENTIALS_PROVIDER_CHAIN));
     }
 
     @Test
     public void testManuallyFilledContext() throws Exception {
-        DynamoDbMapper mapper = new DynamoDbMapper(dynamo, new StaticCredentialsProvider(credentials));
+        DynamoDbMapper mapper = new DynamoDbMapper(dynamo, CREDENTIALS_PROVIDER_CHAIN);
         S3ClientCache s3cc = mapper.s3ClientCache();
         s3cc.useClient(s3East, Region.US_EAST_1);
         s3cc.useClient(s3West, Region.US_WEST_2);

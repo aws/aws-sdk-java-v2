@@ -18,10 +18,10 @@ package software.amazon.awssdk.async;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.atomic.AtomicLong;
@@ -66,13 +66,8 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
     public void exceptionOccurred(Throwable throwable) {
         try {
             invokeSafely(fileChannel::close);
-        } catch (RuntimeException e) {
-            path.toFile().delete();
-            throw e;
-        }
-        if (!path.toFile().delete()) {
-            throw new UncheckedIOException(new IOException(
-                    String.format("Could not delete %s.", path.toFile().getAbsolutePath())));
+        } finally {
+            invokeSafely(() -> Files.delete(path));
         }
     }
 

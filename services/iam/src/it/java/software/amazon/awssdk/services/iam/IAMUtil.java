@@ -16,7 +16,6 @@
 package software.amazon.awssdk.services.iam;
 
 import java.util.UUID;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.model.AccessKeyMetadata;
 import software.amazon.awssdk.services.iam.model.CreateUserRequest;
@@ -51,7 +50,7 @@ public class IAMUtil {
         try {
             IntegrationTestBase.setUpCredentials();
             client = IAMClient.builder()
-                              .credentialsProvider(new StaticCredentialsProvider(IntegrationTestBase.credentials))
+                              .credentialsProvider(IntegrationTestBase.CREDENTIALS_PROVIDER_CHAIN)
                               .region(Region.AWS_GLOBAL)
                               .build();
         } catch (Exception e) {

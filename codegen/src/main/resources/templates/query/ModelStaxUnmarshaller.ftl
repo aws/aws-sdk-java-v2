@@ -170,9 +170,8 @@ public class ${shape.shapeName}Unmarshaller implements Unmarshaller<${shape.shap
         return ${shape.variable.variableName}.build();
     }
 
-    private static ${shape.shapeName}Unmarshaller INSTANCE;
+    private static final ${shape.shapeName}Unmarshaller INSTANCE = new ${shape.shapeName}Unmarshaller();
     public static ${shape.shapeName}Unmarshaller getInstance() {
-        if (INSTANCE == null) INSTANCE = new ${shape.shapeName}Unmarshaller();
         return INSTANCE;
     }
 }

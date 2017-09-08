@@ -30,10 +30,8 @@ import org.junit.Test;
 import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
 import software.amazon.awssdk.internal.http.request.EmptyHttpRequest;
-import software.amazon.awssdk.internal.http.response.ErrorDuringUnmarshallingResponseHandler;
 import software.amazon.awssdk.internal.http.response.NullErrorResponseHandler;
 import software.amazon.awssdk.retry.PredefinedRetryPolicies;
-import software.amazon.awssdk.retry.RetryPolicy;
 import utils.HttpTestUtils;
 
 /**

@@ -26,7 +26,6 @@ import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.auth.Aws4Signer;
 import software.amazon.awssdk.auth.QueryStringSigner;
 import software.amazon.awssdk.auth.StaticSignerProvider;
-import software.amazon.awssdk.client.builder.ClientBuilder;
 import software.amazon.awssdk.client.builder.DefaultClientBuilder;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -60,7 +59,6 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addTypeVariable(PoetUtils.createBoundedTypeVariableName("B", builderInterfaceName, "B", "C"))
                          .addTypeVariable(TypeVariableName.get("C"))
                          .superclass(PoetUtils.createParameterizedTypeName(DefaultClientBuilder.class, "B", "C"))
-                         .addSuperinterface(PoetUtils.createParameterizedTypeName(ClientBuilder.class, "B", "C"))
                          .addJavadoc("Internal base class for {@link $T} and {@link $T}.",
                                      ClassName.get(basePackage, model.getMetadata().getSyncBuilder()),
                                      ClassName.get(basePackage, model.getMetadata().getAsyncBuilder()));

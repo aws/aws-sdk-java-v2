@@ -20,12 +20,15 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
@@ -75,8 +78,9 @@ public final class ReflectionUtils {
                     ex);
 
         } catch (InvocationTargetException ex) {
-            if (ex.getCause() instanceof RuntimeException) {
-                throw (RuntimeException) ex.getCause();
+            Throwable cause = ex.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
             }
             throw new IllegalStateException(
                     "Unexpected checked exception thrown from "
@@ -240,8 +244,9 @@ public final class ReflectionUtils {
             throw new IllegalStateException("BOOM", exception);
 
         } catch (InvocationTargetException exception) {
-            if (exception.getCause() instanceof RuntimeException) {
-                throw (RuntimeException) exception.getCause();
+            Throwable cause = exception.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
             }
             throw new RuntimeException("BOOM", exception);
         }
@@ -412,8 +417,9 @@ public final class ReflectionUtils {
                     exception);
 
         } catch (InvocationTargetException exception) {
-            if (exception.getCause() instanceof RuntimeException) {
-                throw (RuntimeException) exception.getCause();
+            Throwable cause = exception.getCause();
+            if (cause instanceof RuntimeException) {
+                throw (RuntimeException) cause;
             }
             throw new IllegalStateException(
                     "Checked exception thrown from getter or setter method",
@@ -455,8 +461,9 @@ public final class ReflectionUtils {
                         exception);
 
             } catch (InvocationTargetException exception) {
-                if (exception.getCause() instanceof RuntimeException) {
-                    throw (RuntimeException) exception.getCause();
+                Throwable cause = exception.getCause();
+                if (cause instanceof RuntimeException) {
+                    throw (RuntimeException) cause;
                 }
                 throw new IllegalStateException(
                         "Checked exception thrown from setter method",
@@ -479,8 +486,8 @@ public final class ReflectionUtils {
      */
     public static Method findAccessor(Object target, String propertyName) {
 
-        propertyName = propertyName.substring(0, 1).toUpperCase()
-                       + propertyName.substring(1);
+        propertyName = propertyName.substring(0, 1).toUpperCase(Locale.ENGLISH) +
+                       propertyName.substring(1);
 
         try {
             return target.getClass().getMethod("get" + propertyName);
@@ -586,15 +593,18 @@ public final class ReflectionUtils {
             }
 
             final Class<?> type = field.getType();
-            field.setAccessible(true);
+            AccessController.doPrivileged((PrivilegedAction<?>) () -> {
+                field.setAccessible(true);
+                return null;
+            });
 
             RandomSupplier<?> supplier = findSupplier(suppliers, type);
             if (supplier != null) {
                 setField(instance, field, supplier.getNext());
             } else if (type.isAssignableFrom(int.class) || type.isAssignableFrom(Integer.class)) {
-                setField(instance, field, Math.abs(RANDOM.nextInt()));
+                setField(instance, field, RANDOM.nextInt(Integer.MAX_VALUE));
             } else if (type.isAssignableFrom(long.class) || type.isAssignableFrom(Long.class)) {
-                setField(instance, field, Math.abs(RANDOM.nextLong()));
+                setField(instance, field, (long) RANDOM.nextInt(Integer.MAX_VALUE));
             } else if (type.isAssignableFrom(Boolean.class) || type.isAssignableFrom(boolean.class)) {
                 Object bool = getField(instance, field);
                 if (bool == null) {

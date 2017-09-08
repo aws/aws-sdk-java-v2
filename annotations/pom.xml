@@ -12,13 +12,4 @@
     <artifactId>annotations</artifactId>
     <name>AWS Java SDK :: Annotations</name>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
-
 </project>

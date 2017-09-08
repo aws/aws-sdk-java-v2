@@ -16,7 +16,6 @@
 package software.amazon.awssdk;
 
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.http.SdkHttpMetadata;
 
 /**
  * Base type for all AWS response objects. Exposes metadata about the request such as the request
@@ -27,33 +26,4 @@ import software.amazon.awssdk.http.SdkHttpMetadata;
 @ReviewBeforeRelease("This should be deleted.")
 public class AmazonWebServiceResult<T extends ResponseMetadata> extends SdkResponse {
 
-    private T sdkResponseMetadata;
-
-    private SdkHttpMetadata sdkHttpMetadata;
-
-    /**
-     * @return The response metadata associated with this request.
-     */
-    @ReviewBeforeRelease("This is broken. Fix before release")
-    private T getSdkResponseMetadata() {
-        return sdkResponseMetadata;
-    }
-
-    public AmazonWebServiceResult<T> setSdkResponseMetadata(T sdkResponseMetadata) {
-        this.sdkResponseMetadata = sdkResponseMetadata;
-        return this;
-    }
-
-    /**
-     * @return HTTP related metadata like headers and status code.
-     */
-    @ReviewBeforeRelease("This is broken. Fix before release")
-    private SdkHttpMetadata getSdkHttpMetadata() {
-        return sdkHttpMetadata;
-    }
-
-    public AmazonWebServiceResult<T> setSdkHttpMetadata(SdkHttpMetadata sdkHttpMetadata) {
-        this.sdkHttpMetadata = sdkHttpMetadata;
-        return this;
-    }
 }

@@ -29,7 +29,6 @@ import static software.amazon.awssdk.http.AmazonHttpClient.HEADER_SDK_TRANSACTIO
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import org.junit.Test;
 import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.Request;
 import software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import utils.HttpTestUtils;
 import utils.http.WireMockTestBase;

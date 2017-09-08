@@ -17,9 +17,7 @@ package software.amazon.awssdk.services.autoscaling;
 
 import java.io.IOException;
 import org.junit.BeforeClass;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.autoscaling.model.CreateAutoScalingGroupRequest;
 import software.amazon.awssdk.services.autoscaling.model.CreateLaunchConfigurationRequest;
 import software.amazon.awssdk.services.sns.SNSClient;
 import software.amazon.awssdk.test.AwsTestBase;
@@ -59,15 +57,15 @@ public abstract class IntegrationTestBase extends AwsTestBase {
     public static void setUp() throws IOException {
         setUpCredentials();
         autoscaling = AutoScalingClient.builder()
-                .credentialsProvider(new StaticCredentialsProvider(credentials))
+                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                 .region(REGION)
                 .build();
         autoscalingAsync = AutoScalingAsyncClient.builder()
-                .credentialsProvider(new StaticCredentialsProvider(credentials))
+                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                 .region(REGION)
                 .build();
         sns = SNSClient.builder()
-                .credentialsProvider(new StaticCredentialsProvider(credentials))
+                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                 .region(REGION)
                 .build();
     }

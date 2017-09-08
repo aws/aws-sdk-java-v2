@@ -31,7 +31,7 @@ import software.amazon.awssdk.util.IdempotentUtils;
 /**
  * Runs a list of test cases (either marshalling or unmarshalling).
  */
-public class ProtocolTestRunner {
+public final class ProtocolTestRunner {
 
     private static final Logger log = LoggerFactory.getLogger(ProtocolTestRunner.class);
     private static final ObjectMapper MAPPER = new ObjectMapper()
