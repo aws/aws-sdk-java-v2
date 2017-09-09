@@ -67,7 +67,11 @@ public class JsonContent {
     }
 
     private static JsonNode parseJsonContent(byte[] rawJsonContent, ObjectMapper mapper) {
-        if (rawJsonContent == null) {
+        if (rawJsonContent == null || rawJsonContent.length == 0) {
+            // Note: behavior of mapper.readTree changed in 2.9 so we need to explicitly
+            // check for an empty input and return an empty object or else the return
+            // value will be null:
+            // https://github.com/FasterXML/jackson-databind/issues/1406
             return mapper.createObjectNode();
         }
         try {
