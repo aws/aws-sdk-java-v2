@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.annotation.NotThreadSafe;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.runtime.io.SdkFilterInputStream;
 
@@ -26,6 +27,7 @@ import software.amazon.awssdk.runtime.io.SdkFilterInputStream;
  * Used for input stream progress tracking purposes.
  */
 @NotThreadSafe
+@ReviewBeforeRelease("Delete or update progress listener code.")
 public abstract class ProgressInputStream extends SdkFilterInputStream {
     /** The threshold of bytes between notifications. */
     private static final int DEFAULT_NOTIFICATION_THRESHOLD = 8 * 1024;

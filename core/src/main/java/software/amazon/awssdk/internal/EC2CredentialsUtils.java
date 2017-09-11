@@ -28,7 +28,7 @@ import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.internal.net.ConnectionUtils;
 import software.amazon.awssdk.retry.internal.CredentialsEndpointRetryParameters;
 import software.amazon.awssdk.retry.internal.CredentialsEndpointRetryPolicy;
-import software.amazon.awssdk.util.json.Jackson;
+import software.amazon.awssdk.util.json.JacksonUtils;
 import software.amazon.awssdk.utils.IoUtils;
 
 @SdkInternalApi
@@ -147,7 +147,7 @@ public final class EC2CredentialsUtils {
             String errorResponse = IoUtils.toString(errorStream);
 
             try {
-                JsonNode node = Jackson.jsonNodeOf(errorResponse);
+                JsonNode node = JacksonUtils.jsonNodeOf(errorResponse);
                 JsonNode code = node.get("code");
                 JsonNode message = node.get("message");
                 if (code != null && message != null) {

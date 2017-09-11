@@ -1,6 +1,5 @@
 package software.amazon.awssdk.services.json;
 
-import java.net.URI;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.auth.Aws4Signer;
@@ -28,7 +27,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     protected final ClientConfigurationDefaults serviceDefaults() {
         return ServiceBuilderConfigurationDefaults.builder().defaultSignerProvider(this::defaultSignerProvider)
                 .addRequestHandlerPath("software/amazon/awssdk/services/json/execution.interceptors")
-                .defaultEndpoint(this::defaultEndpoint).crc32FromCompressedDataEnabled(false).build();
+                .crc32FromCompressedDataEnabled(false).build();
     }
 
     private SignerProvider defaultSignerProvider() {
@@ -36,10 +35,6 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         signer.setServiceName("json-service");
         signer.setRegionName(signingRegion().value());
         return new StaticSignerProvider(signer);
-    }
-
-    private URI defaultEndpoint() {
-        return null;
     }
 
     @Override

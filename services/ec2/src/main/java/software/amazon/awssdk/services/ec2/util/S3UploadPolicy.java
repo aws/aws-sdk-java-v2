@@ -25,12 +25,14 @@ import java.util.Calendar;
 import java.util.SimpleTimeZone;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.utils.Base64Utils;
 
 /**
  * This class represents S3 upload policy. Policy string representation and
  * signature to be used within EC2 bundling API.
  */
+@ReviewBeforeRelease("Public API? Should it be cleaned up?")
 public class S3UploadPolicy {
 
     private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";

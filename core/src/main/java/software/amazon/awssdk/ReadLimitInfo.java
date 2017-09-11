@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk;
 
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+
+@ReviewBeforeRelease("This isn't used except in unit tests. Can it be removed?")
 public interface ReadLimitInfo {
     /**
      * Returns the read limit for mark-and-reset during retries; or -1 if not

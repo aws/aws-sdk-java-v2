@@ -32,7 +32,7 @@ import software.amazon.awssdk.auth.policy.conditions.IpAddressCondition;
 import software.amazon.awssdk.auth.policy.conditions.IpAddressCondition.IpAddressComparisonType;
 import software.amazon.awssdk.auth.policy.conditions.StringCondition;
 import software.amazon.awssdk.auth.policy.conditions.StringCondition.StringComparisonType;
-import software.amazon.awssdk.util.json.Jackson;
+import software.amazon.awssdk.util.json.JacksonUtils;
 
 /**
  * Unit tests for constructing policy objects and serializing them to JSON.
@@ -48,7 +48,7 @@ public class PolicyTest {
                                                       new Principal("accountId2"))
                                       .withActions(new Action("action")));
 
-        JsonNode jsonPolicyNode = Jackson.jsonNodeOf(policy.toJson());
+        JsonNode jsonPolicyNode = JacksonUtils.jsonNodeOf(policy.toJson());
         JsonNode statementArray = jsonPolicyNode.get("Statement");
 
         assertTrue(statementArray.isArray());
@@ -72,7 +72,7 @@ public class PolicyTest {
                                                       new Principal(Services.AmazonElasticTranscoder))
                                       .withActions(new Action("action")));
 
-        jsonPolicyNode = Jackson.jsonNodeOf(policy.toJson());
+        jsonPolicyNode = JacksonUtils.jsonNodeOf(policy.toJson());
         statementArray = jsonPolicyNode.get("Statement");
         assertTrue(statementArray.size() == 1);
 
@@ -96,7 +96,7 @@ public class PolicyTest {
                                       .withPrincipals(Principal.ALL_USERS)
                                       .withActions(new Action("action")));
 
-        jsonPolicyNode = Jackson.jsonNodeOf(policy.toJson());
+        jsonPolicyNode = JacksonUtils.jsonNodeOf(policy.toJson());
         statementArray = jsonPolicyNode.get("Statement");
         assertTrue(statementArray.size() == 1);
 
@@ -115,7 +115,7 @@ public class PolicyTest {
                                       .withPrincipals(Principal.ALL_SERVICES, Principal.ALL_USERS)
                                       .withActions(new Action("action")));
 
-        jsonPolicyNode = Jackson.jsonNodeOf(policy.toJson());
+        jsonPolicyNode = JacksonUtils.jsonNodeOf(policy.toJson());
         statementArray = jsonPolicyNode.get("Statement");
         assertTrue(statementArray.size() == 1);
 
@@ -137,7 +137,7 @@ public class PolicyTest {
                                                       Principal.ALL_WEB_PROVIDERS)
                                       .withActions(new Action("action")));
 
-        jsonPolicyNode = Jackson.jsonNodeOf(policy.toJson());
+        jsonPolicyNode = JacksonUtils.jsonNodeOf(policy.toJson());
         statementArray = jsonPolicyNode.get("Statement");
         assertTrue(statementArray.size() == 1);
 
@@ -162,7 +162,7 @@ public class PolicyTest {
                                                       Principal.ALL_WEB_PROVIDERS, Principal.ALL)
                                       .withActions(new Action("action")));
 
-        jsonPolicyNode = Jackson.jsonNodeOf(policy.toJson());
+        jsonPolicyNode = JacksonUtils.jsonNodeOf(policy.toJson());
         statementArray = jsonPolicyNode.get("Statement");
         assertTrue(statementArray.size() == 1);
 
@@ -188,7 +188,7 @@ public class PolicyTest {
                                       .withPrincipals(new Principal("accountId1"), Principal.ALL_USERS)
                                       .withActions(new Action("action")));
 
-        jsonPolicyNode = Jackson.jsonNodeOf(policy.toJson());
+        jsonPolicyNode = JacksonUtils.jsonNodeOf(policy.toJson());
         statementArray = jsonPolicyNode.get("Statement");
         assertTrue(statementArray.size() == 1);
 
@@ -210,7 +210,7 @@ public class PolicyTest {
                                                       Principal.ALL_SERVICES, new Principal("accountId1"))
                                       .withActions(new Action("action")));
 
-        jsonPolicyNode = Jackson.jsonNodeOf(policy.toJson());
+        jsonPolicyNode = JacksonUtils.jsonNodeOf(policy.toJson());
         statementArray = jsonPolicyNode.get("Statement");
         assertTrue(statementArray.size() == 1);
 
@@ -237,7 +237,7 @@ public class PolicyTest {
                                                       Principal.ALL_WEB_PROVIDERS)
                                       .withActions(new Action("action")));
 
-        jsonPolicyNode = Jackson.jsonNodeOf(policy.toJson());
+        jsonPolicyNode = JacksonUtils.jsonNodeOf(policy.toJson());
         statementArray = jsonPolicyNode.get("Statement");
         assertTrue(statementArray.size() == 1);
 
@@ -280,7 +280,7 @@ public class PolicyTest {
                                               new StringCondition(StringComparisonType.StringNotLike,
                                                                   "key1", "bar")));
 
-        JsonNode jsonPolicy = Jackson.jsonNodeOf(policy.toJson());
+        JsonNode jsonPolicy = JacksonUtils.jsonNodeOf(policy.toJson());
 
         JsonNode statementArray = jsonPolicy.get("Statement");
         assertEquals(statementArray.size(), 1);
@@ -314,7 +314,7 @@ public class PolicyTest {
                                           .withResources(new Resource("resource"))
                                           .withConditions(new IpAddressCondition("10.1.2.0/24")));
 
-        JsonNode jsonPolicy = Jackson.jsonNodeOf(policy.toJson());
+        JsonNode jsonPolicy = JacksonUtils.jsonNodeOf(policy.toJson());
         assertTrue(jsonPolicy.has("Id"));
 
         JsonNode statementArray = jsonPolicy.get("Statement");

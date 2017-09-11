@@ -87,20 +87,4 @@ public abstract class IntegrationTestBase extends AwsTestBase {
                 .launchConfigurationName(name).imageId(AMI_ID).instanceType(INSTANCE_TYPE).build();
         autoscaling.createLaunchConfiguration(createRequest);
     }
-
-    /**
-     * Creates an autoscaling group with the specified name and specified launch configuration.
-     *
-     * @param name
-     *            The name of the autoscaling group to create.
-     * @param launchConfigurationName
-     *            The name of an existing launch configuration to use in the new autoscaling group.
-     */
-    protected void createAutoscalingGroup(String name, String launchConfigurationName) {
-        CreateAutoScalingGroupRequest createRequest = CreateAutoScalingGroupRequest.builder()
-                .autoScalingGroupName(name).launchConfigurationName(launchConfigurationName)
-                .availabilityZones(AVAILABILITY_ZONE).maxSize(2).minSize(1).build();
-        autoscaling.createAutoScalingGroup(createRequest);
-    }
-
 }

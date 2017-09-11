@@ -29,6 +29,8 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.http.apache.internal.net.SdkSocket;
+import software.amazon.awssdk.http.apache.internal.net.SdkSslSocket;
 
 /**
  * Used to enforce the preferred TLS protocol during SSL handshake.
@@ -111,16 +113,14 @@ public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
         if (log.isDebugEnabled()) {
             log.debug("Connecting to {}:{}", remoteAddress.getAddress(), remoteAddress.getPort());
         }
-        Socket connectedSocket;
-        return super.connectSocket(connectTimeout, socket, host, remoteAddress, localAddress, context);
 
-        // TODO v2 http read metric
-        //        if (connectedSocket instanceof SSLSocket) {
-        //            SdkSSLSocket sslSocket = new SdkSSLSocket((SSLSocket) connectedSocket);
-        //            return AwsSdkMetrics.isHttpSocketReadMetricEnabled() ? new SdkSSLMetricsSocket(sslSocket) : sslSocket;
-        //        }
-        //        SdkSocket sdkSocket = new SdkSocket(connectedSocket);
-        //        return AwsSdkMetrics.isHttpSocketReadMetricEnabled() ? new SdkMetricsSocket(sdkSocket) : sdkSocket;
+        Socket connectedSocket = super.connectSocket(connectTimeout, socket, host, remoteAddress, localAddress, context);
+
+        if (connectedSocket instanceof SSLSocket) {
+            return new SdkSslSocket((SSLSocket) connectedSocket);
+        }
+
+        return new SdkSocket(connectedSocket);
     }
 
 }

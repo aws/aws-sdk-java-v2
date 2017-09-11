@@ -17,12 +17,14 @@ package software.amazon.awssdk.services.emr.spi.security;
 
 import java.util.HashMap;
 import java.util.Map;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 
 /**
  * Context information that can help users to determine which encryption materials
  * should return in the EncryptionMaterialsProvider.
  *
  */
+@ReviewBeforeRelease("This and the other classes in this package - delete or clean up.")
 public class EncryptionContext {
     private final String type;
     private final Map<String, String> context = new HashMap<String, String>();

@@ -22,6 +22,7 @@ package software.amazon.awssdk.services.cloudfront.auth;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 
 /**
  * An ASN.1 TLV. The object is not parsed. It can
@@ -29,6 +30,7 @@ import java.math.BigInteger;
  *
  * @author zhang
  */
+@ReviewBeforeRelease("What is all of this stuff? Clean it up or delete it?")
 class Asn1Object {
     protected final int type;
     protected final int length;

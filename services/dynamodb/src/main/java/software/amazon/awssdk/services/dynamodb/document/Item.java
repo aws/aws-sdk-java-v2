@@ -38,7 +38,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import software.amazon.awssdk.services.dynamodb.document.internal.InternalUtils;
 import software.amazon.awssdk.services.dynamodb.document.internal.ItemValueConformer;
-import software.amazon.awssdk.util.json.Jackson;
+import software.amazon.awssdk.util.json.JacksonUtils;
 import software.amazon.awssdk.utils.Base64Utils;
 
 /**
@@ -101,7 +101,7 @@ public class Item {
         }
         @SuppressWarnings("unchecked")
         Map<String, Object> map = (Map<String, Object>)
-                VALUE_CONFORMER.transform(Jackson.fromJsonString(json, Map.class));
+                VALUE_CONFORMER.transform(JacksonUtils.fromJsonString(json, Map.class));
         return fromMap(map);
     }
 
@@ -973,7 +973,7 @@ public class Item {
     public Item withJson(String attrName, String json) {
         checkInvalidAttribute(attrName, json);
         attributes.put(attrName,
-                VALUE_CONFORMER.transform(Jackson.fromJsonString(json, Object.class)));
+                VALUE_CONFORMER.transform(JacksonUtils.fromJsonString(json, Object.class)));
         return this;
     }
 
@@ -990,7 +990,7 @@ public class Item {
     public String getJson(String attrName) {
         checkInvalidAttrName(attrName);
         Object val = attributes.get(attrName);
-        return val == null ? null : Jackson.toJsonString(val);
+        return val == null ? null : JacksonUtils.toJsonString(val);
     }
 
     /**
@@ -1006,7 +1006,7 @@ public class Item {
     public String getJsonPretty(String attrName) {
         checkInvalidAttrName(attrName);
         Object val = attributes.get(attrName);
-        return val == null ? null : Jackson.toJsonPrettyString(val);
+        return val == null ? null : JacksonUtils.toJsonPrettyString(val);
     }
 
     /**
@@ -1294,7 +1294,7 @@ public class Item {
      * base-64 encoded in the resultant string.
      */
     public String toJson() {
-        return Jackson.toJsonString(this.attributes);
+        return JacksonUtils.toJsonString(this.attributes);
     }
 
     /**
@@ -1420,7 +1420,7 @@ public class Item {
      * become base-64 encoded in the resultant string.
      */
     public String toJsonPretty() {
-        return Jackson.toJsonPrettyString(this.attributes);
+        return JacksonUtils.toJsonPrettyString(this.attributes);
     }
 
     @Override

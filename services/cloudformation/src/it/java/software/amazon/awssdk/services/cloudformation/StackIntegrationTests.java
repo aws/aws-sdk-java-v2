@@ -66,7 +66,7 @@ import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 import software.amazon.awssdk.services.cloudformation.model.StackSummary;
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackResponse;
-import software.amazon.awssdk.util.json.Jackson;
+import software.amazon.awssdk.util.json.JacksonUtils;
 
 /**
  * Tests of the Stack APIs : CloudFormation
@@ -266,7 +266,7 @@ public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
             assertNotNull(e.resourceStatus());
             assertNotNull(e.resourceType());
             assertNotNull(e.timestamp());
-            LOG.debug(Jackson.toJsonPrettyString(e));
+            LOG.debug(JacksonUtils.toJsonPrettyString(e));
         }
     }
 

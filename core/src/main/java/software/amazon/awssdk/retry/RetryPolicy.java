@@ -18,6 +18,7 @@ package software.amazon.awssdk.retry;
 import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.annotation.Immutable;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 
 /**
  * Retry policy that can be configured on a specific service client using
@@ -128,6 +129,7 @@ public final class RetryPolicy {
      * @return Whether this retry policy should honor the max error retry set in
      *         ClientConfiguration
      */
+    @ReviewBeforeRelease("This isn't used.")
     public boolean isMaxErrorRetryInClientConfigHonored() {
         return honorMaxErrorRetryInClientConfig;
     }

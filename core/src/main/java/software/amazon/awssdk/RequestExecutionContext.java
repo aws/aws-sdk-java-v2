@@ -16,8 +16,6 @@
 package software.amazon.awssdk;
 
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.auth.AnonymousCredentialsProvider;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.ExecutionContext;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
@@ -35,7 +33,6 @@ public final class RequestExecutionContext {
 
     private final SdkHttpRequestProvider requestProvider;
     private final RequestConfig requestConfig;
-    private final AwsCredentialsProvider credentialsProvider;
     private final ExecutionContext executionContext;
 
     private ClientExecutionAbortTrackerTask clientExecutionTrackerTask;
@@ -43,12 +40,7 @@ public final class RequestExecutionContext {
     private RequestExecutionContext(Builder builder) {
         this.requestProvider = builder.requestProvider;
         this.requestConfig = Validate.paramNotNull(builder.requestConfig, "requestConfig");
-
         this.executionContext = Validate.paramNotNull(builder.executionContext, "executionContext");
-
-        AwsCredentialsProvider contextCredentialsProvider = builder.executionContext.getCredentialsProvider();
-        this.credentialsProvider = contextCredentialsProvider != null ? contextCredentialsProvider
-                                                                      : new AnonymousCredentialsProvider();
     }
 
     /**
@@ -84,13 +76,6 @@ public final class RequestExecutionContext {
                          + "these. Once that's done, this won't be needed.")
     public ExecutionContext executionContext() {
         return executionContext;
-    }
-
-    /**
-     * @return Credentials provider to sign with. Will be non-null.
-     */
-    public AwsCredentialsProvider credentialsProvider() {
-        return credentialsProvider;
     }
 
     /**

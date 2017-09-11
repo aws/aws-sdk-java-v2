@@ -26,18 +26,6 @@ public class ResetException extends SdkClientException {
         super(message, t);
     }
 
-    public ResetException(Throwable t) {
-        super("", t);
-    }
-
-    public ResetException(String message) {
-        super(message);
-    }
-
-    public ResetException() {
-        super("");
-    }
-
     /**
      * {@inheritDoc}
      * A stream reset exception cannot be retried.
@@ -51,13 +39,5 @@ public class ResetException extends SdkClientException {
     public String getMessage() {
         String msg = super.getMessage();
         return extraInfo == null ? msg : msg + ";  " + extraInfo;
-    }
-
-    public String getExtraInfo() {
-        return extraInfo;
-    }
-
-    public void setExtraInfo(String extraInfo) {
-        this.extraInfo = extraInfo;
     }
 }

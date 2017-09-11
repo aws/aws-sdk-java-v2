@@ -37,21 +37,26 @@ public abstract class AbstractEnum {
         return (T) VALUES.computeIfAbsent(new SimpleImmutableEntry<>(clz, value), ignored -> creator.apply(value));
     }
 
-    public String value() {
+    public final String value() {
         return this.value;
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return 73 * getClass().hashCode() * value.hashCode();
     }
 
     @Override
-    public boolean equals(Object other) {
+    public final boolean equals(Object other) {
         if (other == null) {
             return false;
         }
 
         return other.getClass().equals(this.getClass()) && ((AbstractEnum) other).value.equals(this.value);
+    }
+
+    @Override
+    public final String toString() {
+        return value;
     }
 }

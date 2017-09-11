@@ -56,7 +56,6 @@
         <module>services</module>
         <module>aws-sdk-java</module>
         <module>core</module>
-        <module>opensdk-runtime</module>
         <module>bom</module>
         <module>codegen</module>
         <module>http-client-spi</module>

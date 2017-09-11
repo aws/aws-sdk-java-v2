@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.retry.v2.RetryPolicy;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -89,6 +90,7 @@ public class ClientOverrideConfiguration
      *
      * @see Builder#httpRequestTimeout(Duration)
      */
+    @ReviewBeforeRelease("This doesn't currently work.")
     public Duration httpRequestTimeout() {
         return httpRequestTimeout;
     }

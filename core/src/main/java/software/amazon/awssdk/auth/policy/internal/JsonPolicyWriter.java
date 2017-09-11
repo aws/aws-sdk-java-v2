@@ -35,7 +35,7 @@ import software.amazon.awssdk.auth.policy.Policy;
 import software.amazon.awssdk.auth.policy.Principal;
 import software.amazon.awssdk.auth.policy.Resource;
 import software.amazon.awssdk.auth.policy.Statement;
-import software.amazon.awssdk.util.json.Jackson;
+import software.amazon.awssdk.util.json.JacksonUtils;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -58,7 +58,7 @@ public class JsonPolicyWriter {
     public JsonPolicyWriter() {
         writer = new StringWriter();
         try {
-            generator = Jackson.jsonGeneratorOf(writer);
+            generator = JacksonUtils.jsonGeneratorOf(writer);
         } catch (IOException ioe) {
             throw new SdkClientException(
                     "Unable to instantiate JsonGenerator.", ioe);

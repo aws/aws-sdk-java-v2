@@ -23,7 +23,6 @@ import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.interceptor.InterceptorContext;
-import software.amazon.awssdk.internal.http.timers.client.ClientExecutionAbortTrackerTask;
 import software.amazon.awssdk.runtime.auth.SignerProvider;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -41,15 +40,11 @@ public class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Buil
     private final ExecutionInterceptorChain interceptorChain;
     private final ExecutionAttributes executionAttributes;
 
-    private boolean retryCapacityConsumed;
-
     /**
      * Optional credentials to enable the runtime layer to handle signing requests (and resigning on
      * retries).
      */
     private AwsCredentialsProvider credentialsProvider;
-
-    private ClientExecutionAbortTrackerTask clientExecutionTrackerTask;
 
     private ExecutionContext(final Builder builder) {
         this.signerProvider = Validate.paramNotNull(builder.signerProvider, "signerProvider");
@@ -82,24 +77,6 @@ public class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Buil
     }
 
     /**
-     * Returns whether retry capacity was consumed during this request lifecycle.
-     * This can be inspected to determine whether capacity should be released if a retry succeeds.
-     *
-     * @return true if retry capacity was consumed
-     */
-    public boolean retryCapacityConsumed() {
-        return retryCapacityConsumed;
-    }
-
-    /**
-     * Marks that a retry during this request lifecycle has consumed retry capacity.  This is inspected
-     * when determining if capacity should be released if a retry succeeds.
-     */
-    public void markRetryCapacityConsumed() {
-        this.retryCapacityConsumed = true;
-    }
-
-    /**
      * Returns the credentials provider used for fetching the credentials. The credentials fetched
      * is used for signing the request. If there is no credential provider, then the runtime will
      * not attempt to sign (or resign on retries) requests.
@@ -120,14 +97,6 @@ public class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Buil
      */
     public void setCredentialsProvider(AwsCredentialsProvider credentialsProvider) {
         this.credentialsProvider = credentialsProvider;
-    }
-
-    public ClientExecutionAbortTrackerTask getClientExecutionTrackerTask() {
-        return clientExecutionTrackerTask;
-    }
-
-    public void setClientExecutionTrackerTask(ClientExecutionAbortTrackerTask clientExecutionTrackerTask) {
-        this.clientExecutionTrackerTask = clientExecutionTrackerTask;
     }
 
     public SignerProvider signerProvider() {

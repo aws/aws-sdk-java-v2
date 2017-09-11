@@ -53,12 +53,12 @@ abstract class BaseClientHandler {
 
         Validate.validState(credentials != null, "Credential providers must never return null.");
 
-        ExecutionAttributes executionAttributes =
-                new ExecutionAttributes().putAttribute(AwsExecutionAttributes.SERVICE_ADVANCED_CONFIG,
-                                                       serviceAdvancedConfiguration)
-                                         .putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS,
-                                                       credentials)
-                                         .putAttribute(AwsExecutionAttributes.REQUEST_CONFIG, requestConfig);
+        ExecutionAttributes executionAttributes = new ExecutionAttributes()
+                .putAttribute(AwsExecutionAttributes.SERVICE_ADVANCED_CONFIG, serviceAdvancedConfiguration)
+                .putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, credentials)
+                .putAttribute(AwsExecutionAttributes.REQUEST_CONFIG, requestConfig)
+                .putAttribute(AwsExecutionAttributes.AWS_REGION,
+                              overrideConfiguration.advancedOption(AdvancedClientOption.AWS_REGION));
 
         return ExecutionContext.builder()
                                .interceptorChain(new ExecutionInterceptorChain(overrideConfiguration.lastExecutionInterceptors()))

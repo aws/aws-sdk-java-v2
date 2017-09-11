@@ -17,6 +17,7 @@ package software.amazon.awssdk.interceptor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.SdkResponse;
@@ -136,7 +137,7 @@ public class ExecutionInterceptorChain {
      */
     private void validateInterceptorResult(Object originalMessage, Object newMessage,
                                            ExecutionInterceptor interceptor, String methodName) {
-        if (originalMessage != newMessage) {
+        if (!Objects.equals(originalMessage, newMessage)) {
             LOG.debug(() -> "Interceptor '" + interceptor + "' modified the message with its " + methodName + " method.");
             LOG.trace(() -> "Old: " + originalMessage + "\nNew: " + newMessage);
         }

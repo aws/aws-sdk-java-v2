@@ -18,7 +18,7 @@ package software.amazon.awssdk.util;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import software.amazon.awssdk.util.json.Jackson;
+import software.amazon.awssdk.util.json.JacksonUtils;
 
 /**
  * An internal class used solely for the purpose of testing via failure
@@ -166,6 +166,6 @@ public class UnreliableFilterInputStream extends FilterInputStream {
 
     @Override
     public String toString() {
-        return Jackson.toJsonString(this);
+        return JacksonUtils.toJsonString(this);
     }
 }

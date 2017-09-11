@@ -18,12 +18,17 @@ package software.amazon.awssdk.services.lambda.invoke;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.services.lambda.IntegrationTestBase;
 import software.amazon.awssdk.services.lambda.model.CreateFunctionRequest;
 import software.amazon.awssdk.services.lambda.model.DeleteFunctionRequest;
@@ -41,10 +46,14 @@ public class HelloWorldIntegrationTest extends IntegrationTestBase {
     private static final String FUNCTION_NAME = "helloWorld";
     @Rule
     public RetryRule retryRule = new RetryRule(10, 2000, TimeUnit.MILLISECONDS);
-    private HelloWorldService invoker;
+    private static HelloWorldService invoker;
 
-    @Before
-    public void uploadFunction() throws Exception {
+    @BeforeClass
+    public static void uploadFunction() throws Exception {
+        // Give time for the IAM role to propagate
+        System.out.println("Waiting for IAM role to propagate...");
+        Thread.sleep(15_000);
+
         // Upload function
         byte[] functionBits;
         InputStream functionZip = new FileInputStream(cloudFuncZip);
@@ -53,6 +62,9 @@ public class HelloWorldIntegrationTest extends IntegrationTestBase {
         } finally {
             functionZip.close();
         }
+
+        // Clean up any function left behind by a previous test
+        deleteFunction();
 
         lambda.createFunction(CreateFunctionRequest.builder()
                 .description("My cloud function")
@@ -63,40 +75,48 @@ public class HelloWorldIntegrationTest extends IntegrationTestBase {
                 .runtime(Runtime.Nodejs43)
                 .timeout(10)
                 .role(lambdaServiceRoleArn)
-                .build());
+                .build())
+              .get(30, TimeUnit.SECONDS);
 
         invoker = LambdaInvokerFactory.builder()
                                       .lambdaClient(lambda)
                                       .build(HelloWorldService.class);
+
+        System.out.println("Ready for testing...");
     }
 
-    @After
-    public void deleteFunction() {
-        lambda.deleteFunction(DeleteFunctionRequest.builder().functionName(FUNCTION_NAME).build());
+    @AfterClass
+    public static void deleteFunction() throws Exception {
+        try {
+            lambda.deleteFunction(DeleteFunctionRequest.builder().functionName(FUNCTION_NAME).build())
+                  .get(30, TimeUnit.SECONDS);
+        } catch (ExecutionException e) {
+            // Expected, if the function doesn't exist.
+        }
     }
 
-    @Test
+    @Test(timeout = 30_000)
     public void test_Async() {
         // Just make sure it doesn't throw.
         invoker.helloWorldAsync();
     }
 
-    @Test
+    @Test(timeout = 30_000)
     public void test_DryRun() {
         invoker.helloWorldDryRun();
     }
 
-    @Test
+    @Test(timeout = 30_000)
     public void test_NoArgs() {
         Assert.assertEquals("Hello World", invoker.helloWorld());
     }
 
-    @Test
+    @Test(timeout = 30_000)
     public void test_String() {
         Assert.assertEquals("Hello World", invoker.helloWorld("Testing 123"));
     }
 
-    @Test
+    @Test(timeout = 30_000)
     public void test_Complex() {
         ComplexInput input = new ComplexInput();
         input.setString("Testing");
@@ -105,12 +125,12 @@ public class HelloWorldIntegrationTest extends IntegrationTestBase {
         Assert.assertEquals("Hello World", invoker.helloWorld(input));
     }
 
-    @Test(expected = LambdaSerializationException.class)
+    @Test(expected = LambdaSerializationException.class, timeout = 10_000)
     public void test_Bogus() {
         invoker.bogus();
     }
 
-    @Test
+    @Test(timeout = 10_000)
     public void test_Failure() {
         try {
             invoker.helloWorld("BOOM");

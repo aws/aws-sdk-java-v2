@@ -25,7 +25,7 @@ import java.util.Map;
 import software.amazon.awssdk.annotation.NotThreadSafe;
 import software.amazon.awssdk.event.ProgressInputStream;
 import software.amazon.awssdk.http.HttpMethodName;
-import software.amazon.awssdk.util.json.Jackson;
+import software.amazon.awssdk.util.json.JacksonUtils;
 
 /**
  * Default implementation of the {@linkplain Request} interface.
@@ -289,7 +289,7 @@ public class DefaultRequest<T> implements Request<T> {
         builder.append(" ");
         if (!getParameters().isEmpty()) {
             builder.append("Parameters: (")
-                   .append(Jackson.toJsonString(parameters));
+                   .append(JacksonUtils.toJsonString(parameters));
         }
 
         if (!getHeaders().isEmpty()) {

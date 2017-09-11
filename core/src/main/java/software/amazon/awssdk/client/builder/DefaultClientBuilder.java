@@ -21,10 +21,12 @@ import static software.amazon.awssdk.utils.Validate.paramNotNull;
 import java.net.URI;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
+import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.DefaultCredentialsProvider;
+import software.amazon.awssdk.config.AdvancedClientOption;
 import software.amazon.awssdk.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.config.ImmutableAsyncClientConfiguration;
 import software.amazon.awssdk.config.ImmutableSyncClientConfiguration;
@@ -243,6 +245,12 @@ public abstract class DefaultClientBuilder<B extends ClientBuilder<B, C>, C>
             @Override
             protected ScheduledExecutorService getAsyncExecutorDefault() {
                 return Optional.ofNullable(asyncExecutorProvider).map(ExecutorProvider::get).orElse(null);
+            }
+
+            @Override
+            protected void applyOverrideDefaults(ClientOverrideConfiguration.Builder builder) {
+                builder.advancedOption(AdvancedClientOption.AWS_REGION,
+                                       resolveRegion().orElseThrow(() -> new SdkClientException("AWS region not provided")));
             }
         };
     }
