@@ -14,10 +14,32 @@
  */
 package software.amazon.awssdk.services.s3;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Date;
+import org.junit.AfterClass;
 import org.junit.Test;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketLocationRequest;
 
 public class CreateBucketIntegrationTest extends S3IntegrationTestBase {
+
+    private static final String BUCKET_NAME = "java-create-bucket-integ-test-" + new Date().getTime();
+
+    @AfterClass
+    public static void cleanup() {
+        deleteBucketAndAllContents(BUCKET_NAME);
+    }
+
+    @Test
+    public void createBucket_Succeeds_WithoutSpecifyingBucketLocation() {
+        S3Client client = S3Client.builder().region(Region.US_WEST_2).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        client.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
+
+        String region = client.getBucketLocation(GetBucketLocationRequest.builder().bucket(BUCKET_NAME).build()).locationConstraint();
+        assertThat(region).isEqualToIgnoringCase("us-west-2");
+    }
 
     @Test(expected = IllegalArgumentException.class)
     public void createBucket_ThrowsIllegalArgumentException_WhenBucketNameIsLessThan3Characters() {

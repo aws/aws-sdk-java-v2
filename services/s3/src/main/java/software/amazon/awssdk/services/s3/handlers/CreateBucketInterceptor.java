@@ -16,26 +16,36 @@
 package software.amazon.awssdk.services.s3.handlers;
 
 import software.amazon.awssdk.SdkRequest;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.handlers.AwsExecutionAttributes;
 import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.BucketUtils;
+import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
 public class CreateBucketInterceptor implements ExecutionInterceptor {
 
     @Override
-    @ReviewBeforeRelease("Automatically set location constraint to the bucket region if not provided. Also" +
-                         " perhaps remove the location constraint from the model so that is may only be" +
-                         " the current region.")
-    public void beforeMarshalling(Context.BeforeMarshalling context, ExecutionAttributes executionAttributes) {
-        SdkRequest request = context.request();
+    public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
+        SdkRequest sdkRequest = context.request();
 
-        if (request instanceof CreateBucketRequest) {
-            CreateBucketRequest createBucketRequest = (CreateBucketRequest) request;
-            validateBucketNameIsS3Compatible(createBucketRequest.bucket());
+        if (sdkRequest instanceof CreateBucketRequest) {
+            CreateBucketRequest request = (CreateBucketRequest) sdkRequest;
+            validateBucketNameIsS3Compatible(request.bucket());
+
+            if (request.createBucketConfiguration() == null || request.createBucketConfiguration().locationConstraint() == null) {
+                Region region = executionAttributes.getAttribute(AwsExecutionAttributes.AWS_REGION);
+                sdkRequest = request.toBuilder()
+                                    .createBucketConfiguration(CreateBucketConfiguration.builder()
+                                                                                        .locationConstraint(region.value())
+                                                                                        .build())
+                                    .build();
+            }
         }
+
+        return sdkRequest;
     }
 
     /**
