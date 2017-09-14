@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -78,6 +80,18 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
         } finally {
             path.toFile().delete();
         }
+    }
+
+    @Test
+    public void dumpToString() throws IOException {
+        String returned = s3Async.getObject(getObjectRequest, AsyncResponseHandler.toUtf8String()).join();
+        assertThat(returned).isEqualTo(new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void toByteArray() throws IOException {
+        byte[] returned = s3Async.getObject(getObjectRequest, AsyncResponseHandler.toByteArray()).join();
+        assertThat(returned).isEqualTo(Files.readAllBytes(file.toPath()));
     }
 
     @Test
