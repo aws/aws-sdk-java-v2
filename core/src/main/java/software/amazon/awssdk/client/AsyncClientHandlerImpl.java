@@ -34,7 +34,6 @@ import software.amazon.awssdk.async.AsyncRequestProvider;
 import software.amazon.awssdk.async.AsyncResponseHandler;
 import software.amazon.awssdk.config.AsyncClientConfiguration;
 import software.amazon.awssdk.config.InternalAdvancedClientOption;
-import software.amazon.awssdk.handlers.AwsExecutionAttributes;
 import software.amazon.awssdk.http.AmazonAsyncHttpClient;
 import software.amazon.awssdk.http.ExecutionContext;
 import software.amazon.awssdk.http.HttpResponse;
@@ -47,6 +46,7 @@ import software.amazon.awssdk.http.SdkHttpResponseAdapter;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.http.async.SyncResponseHandlerAdapter;
+import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.interceptor.InterceptorContext;
 import software.amazon.awssdk.util.CredentialUtils;
 import software.amazon.awssdk.util.Throwables;
@@ -61,14 +61,13 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
     private final AsyncClientConfiguration asyncClientConfiguration;
     private final AmazonAsyncHttpClient client;
 
-    @ReviewBeforeRelease("Should this be migrated to use a builder, particularly because it crosses module boundaries?")
+    @ReviewBeforeRelease("Should this be migrated to use a params object, particularly because it crosses module boundaries?" +
+                         "We might also need to think about how it will work after AWS/SDK are split.")
     AsyncClientHandlerImpl(AsyncClientConfiguration asyncClientConfiguration,
                            ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
         super(asyncClientConfiguration, serviceAdvancedConfiguration);
         this.asyncClientConfiguration = asyncClientConfiguration;
-        this.client = AmazonAsyncHttpClient.builder()
-                                           .asyncClientConfiguration(asyncClientConfiguration)
-                                           .build();
+        this.client = new AmazonAsyncHttpClient(asyncClientConfiguration);
     }
 
     @Override
@@ -197,7 +196,7 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
 
     /**
      * Invoke the request using the http client. Assumes credentials (or lack thereof) have been
-     * configured in the OldExecutionContext beforehand.
+     * configured in the ExecutionContext beforehand.
      **/
     private <OutputT> CompletableFuture<OutputT> doInvoke(
             SdkHttpFullRequest request,

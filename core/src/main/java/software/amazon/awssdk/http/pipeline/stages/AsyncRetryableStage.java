@@ -17,7 +17,6 @@ package software.amazon.awssdk.http.pipeline.stages;
 
 import static java.util.Collections.singletonList;
 import static software.amazon.awssdk.event.SdkProgressPublisher.publishProgress;
-import static software.amazon.awssdk.http.AmazonHttpClient.THROTTLED_RETRY_COST;
 import static software.amazon.awssdk.http.pipeline.stages.RetryableStage.HEADER_SDK_RETRY_INFO;
 
 import java.io.IOException;
@@ -34,9 +33,9 @@ import software.amazon.awssdk.ResetException;
 import software.amazon.awssdk.Response;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkClientException;
+import software.amazon.awssdk.SdkStandardLoggers;
 import software.amazon.awssdk.event.ProgressEventType;
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.HttpAsyncClientDependencies;
 import software.amazon.awssdk.http.HttpClientDependencies;
 import software.amazon.awssdk.http.HttpResponse;
@@ -187,7 +186,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
          */
         private void releaseRetryCapacity() {
             if (isRetry() && retryCapacityConsumed) {
-                retryCapacity.release(THROTTLED_RETRY_COST);
+                retryCapacity.release(RetryPolicy.THROTTLED_RETRY_COST);
             } else {
                 retryCapacity.release();
             }
@@ -205,10 +204,8 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
 
             markInputStream(request.getContent());
 
-            if (AmazonHttpClient.REQUEST_LOG.isDebugEnabled()) {
-                AmazonHttpClient.REQUEST_LOG
-                        .debug((isRetry() ? "Retrying " : "Sending ") + "Request: " + request);
-            }
+            SdkStandardLoggers.REQUEST_LOGGER.debug(() -> (isRetry() ? "Retrying " : "Sending ") + "Request: " + request);
+
             return requestPipeline.execute(addRetryInfoHeader(request), context);
         }
 
@@ -282,7 +279,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
             // Do not use retry capacity for throttling exceptions
             if (!RetryUtils.isThrottlingException(exception)) {
                 // See if we have enough available retry capacity to be able to execute this retry attempt.
-                if (!retryCapacity.acquire(THROTTLED_RETRY_COST)) {
+                if (!retryCapacity.acquire(RetryPolicy.THROTTLED_RETRY_COST)) {
                     return false;
                 }
                 this.retryCapacityConsumed = true;
@@ -300,7 +297,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
             if (!retryPolicy.shouldRetry(retryPolicyContext)) {
                 // If the retry policy fails we immediately return consumed capacity to the pool.
                 if (retryCapacityConsumed) {
-                    retryCapacity.release(THROTTLED_RETRY_COST);
+                    retryCapacity.release(RetryPolicy.THROTTLED_RETRY_COST);
                 }
                 return false;
             }

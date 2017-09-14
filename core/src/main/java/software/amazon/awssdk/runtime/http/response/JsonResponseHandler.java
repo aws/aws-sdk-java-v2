@@ -19,12 +19,12 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import java.io.IOException;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.SdkStandardLoggers;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
+import software.amazon.awssdk.http.StaxResponseHandler;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.internal.Crc32MismatchException;
 import software.amazon.awssdk.runtime.transform.JsonUnmarshallerContext;
@@ -33,6 +33,7 @@ import software.amazon.awssdk.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.runtime.transform.VoidJsonUnmarshaller;
 import software.amazon.awssdk.util.ValidationUtils;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Default implementation of HttpResponseHandler that handles a successful response from an AWS
@@ -43,11 +44,8 @@ import software.amazon.awssdk.utils.IoUtils;
 @SdkProtectedApi
 @ReviewBeforeRelease("Metadata in base result has been broken. Fix this and deal with AwsResponseHandlerAdapter")
 public class JsonResponseHandler<T> implements HttpResponseHandler<T> {
+    private static final Logger log = Logger.loggerFor(StaxResponseHandler.class);
 
-    /**
-     * Shared logger for profiling information
-     */
-    private static final Logger log = LoggerFactory.getLogger("software.amazon.awssdk.request");
     private final JsonFactory jsonFactory;
     private final boolean needsConnectionLeftOpen;
     private final boolean isPayloadJson;
@@ -93,7 +91,7 @@ public class JsonResponseHandler<T> implements HttpResponseHandler<T> {
      * @see HttpResponseHandler#handle(HttpResponse, ExecutionAttributes)
      */
     public T handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
-        log.trace("Parsing service response JSON");
+        SdkStandardLoggers.REQUEST_LOGGER.trace(() -> "Parsing service response JSON.");
 
         JsonParser jsonParser = null;
 
@@ -114,7 +112,7 @@ public class JsonResponseHandler<T> implements HttpResponseHandler<T> {
                 IoUtils.drainInputStream(response.getContent());
             }
 
-            log.trace("Done parsing service response");
+            SdkStandardLoggers.REQUEST_LOGGER.trace(() -> "Done parsing service response.");
             return result;
         } finally {
             if (shouldParsePayloadAsJson()) {
@@ -124,7 +122,7 @@ public class JsonResponseHandler<T> implements HttpResponseHandler<T> {
                     // Throw back out the CRC exception
                     throw e;
                 } catch (IOException e) {
-                    log.warn("Error closing json parser", e);
+                    log.warn(() -> "Error closing JSON parser.", e);
                 }
             }
         }

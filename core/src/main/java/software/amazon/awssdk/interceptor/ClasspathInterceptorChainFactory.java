@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.handlers;
+package software.amazon.awssdk.interceptor;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.util.ClassLoaderHelper;
 import software.amazon.awssdk.utils.Validate;
 
@@ -124,7 +123,7 @@ public final class ClasspathInterceptorChainFactory {
         }
     }
 
-    @ReviewBeforeRelease("Can we statically load the global and service interceptors and just have this log a warning?")
+    @ReviewBeforeRelease("Can we hard-code our required global and service interceptors and just have this log a warning?")
     private ClassLoader classLoader() {
         return Validate.notNull(Thread.currentThread().getContextClassLoader(),
                                 "Failed to load the classloader for the current thread.");

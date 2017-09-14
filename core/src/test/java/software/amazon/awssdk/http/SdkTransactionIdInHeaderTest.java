@@ -24,11 +24,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
-import static software.amazon.awssdk.http.AmazonHttpClient.HEADER_SDK_TRANSACTION_ID;
 
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import org.junit.Test;
 import software.amazon.awssdk.AmazonServiceException;
+import software.amazon.awssdk.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import utils.HttpTestUtils;
 import utils.http.WireMockTestBase;
@@ -47,7 +47,7 @@ public class SdkTransactionIdInHeaderTest extends WireMockTestBase {
     private void assertTransactionIdIsUnchangedAcrossRetries() {
         String previousTransactionId = null;
         for (LoggedRequest request : findAll(getRequestedFor(urlEqualTo(RESOURCE_PATH)))) {
-            final String currentTransactionId = request.getHeader(HEADER_SDK_TRANSACTION_ID);
+            final String currentTransactionId = request.getHeader(ApplyTransactionIdStage.HEADER_SDK_TRANSACTION_ID);
             // Transaction ID should always be set
             assertNotNull(currentTransactionId);
             // Transaction ID should be the same across retries

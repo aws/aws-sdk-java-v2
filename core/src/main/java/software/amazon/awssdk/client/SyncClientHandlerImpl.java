@@ -26,7 +26,6 @@ import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.annotation.ThreadSafe;
 import software.amazon.awssdk.config.SyncClientConfiguration;
-import software.amazon.awssdk.handlers.AwsExecutionAttributes;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.ExecutionContext;
@@ -34,6 +33,7 @@ import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullRequestAdapter;
+import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.sync.StreamingResponseHandler;
 import software.amazon.awssdk.util.CredentialUtils;
@@ -53,9 +53,7 @@ public class SyncClientHandlerImpl extends ClientHandler {
                                  ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
         super(syncClientConfiguration, serviceAdvancedConfiguration);
         this.syncClientConfiguration = syncClientConfiguration;
-        this.client = AmazonHttpClient.builder()
-                                      .syncClientConfiguration(syncClientConfiguration)
-                                      .build();
+        this.client = new AmazonHttpClient(syncClientConfiguration);
     }
 
     @Override

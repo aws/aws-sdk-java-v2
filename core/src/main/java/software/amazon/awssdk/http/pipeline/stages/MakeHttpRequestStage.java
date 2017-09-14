@@ -21,8 +21,8 @@ import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.event.ProgressEventType;
 import software.amazon.awssdk.event.ProgressListener;
 import software.amazon.awssdk.http.AbortableCallable;
-import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.HttpSyncClientDependencies;
+import software.amazon.awssdk.http.InterruptMonitor;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -47,7 +47,7 @@ public class MakeHttpRequestStage
      */
     public Pair<SdkHttpFullRequest, SdkHttpFullResponse> execute(SdkHttpFullRequest request,
                                                                  RequestExecutionContext context) throws Exception {
-        AmazonHttpClient.checkInterrupted();
+        InterruptMonitor.checkInterrupted();
         final ProgressListener listener = context.requestConfig().getProgressListener();
 
         publishProgress(listener, ProgressEventType.HTTP_REQUEST_STARTED_EVENT);

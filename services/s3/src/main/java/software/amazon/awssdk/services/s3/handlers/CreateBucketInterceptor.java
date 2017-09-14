@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.s3.handlers;
 
 import software.amazon.awssdk.SdkRequest;
-import software.amazon.awssdk.handlers.AwsExecutionAttributes;
+import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;

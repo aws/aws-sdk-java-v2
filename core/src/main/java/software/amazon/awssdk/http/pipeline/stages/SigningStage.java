@@ -19,12 +19,12 @@ import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.auth.AwsCredentials;
 import software.amazon.awssdk.auth.CanHandleNullCredentials;
 import software.amazon.awssdk.auth.Signer;
-import software.amazon.awssdk.handlers.AwsExecutionAttributes;
-import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.ExecutionContext;
 import software.amazon.awssdk.http.HttpClientDependencies;
+import software.amazon.awssdk.http.InterruptMonitor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.pipeline.RequestToRequestPipeline;
+import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.runtime.auth.SignerProviderContext;
 
@@ -44,7 +44,7 @@ public class SigningStage implements RequestToRequestPipeline {
      * Returns the response from executing one httpClientSettings request; or null for retry.
      */
     public SdkHttpFullRequest execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
-        AmazonHttpClient.checkInterrupted();
+        InterruptMonitor.checkInterrupted();
         return signRequest(request, context);
     }
 
@@ -95,7 +95,6 @@ public class SigningStage implements RequestToRequestPipeline {
      * Always use the client level timeOffset.
      */
     private void adjustForClockSkew(ExecutionAttributes attributes) {
-        // TODO: Should we allow customers to specify the initial time offset?
         attributes.putAttribute(AwsExecutionAttributes.TIME_OFFSET, dependencies.timeOffset());
     }
 

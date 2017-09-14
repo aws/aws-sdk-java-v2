@@ -17,8 +17,8 @@ package software.amazon.awssdk.auth;
 
 import java.util.Date;
 import software.amazon.awssdk.SdkRequest;
-import software.amazon.awssdk.handlers.AwsExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.InterceptorContext;
 

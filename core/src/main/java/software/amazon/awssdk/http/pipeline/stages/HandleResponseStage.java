@@ -25,10 +25,10 @@ import software.amazon.awssdk.Response;
 import software.amazon.awssdk.RetryableException;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkClientException;
+import software.amazon.awssdk.SdkStandardLoggers;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.event.ProgressEventType;
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.pipeline.RequestPipeline;
@@ -56,7 +56,7 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
         boolean didRequestFail = true;
         try {
             Response<OutputT> response = handleResponse(httpResponse, context);
-            didRequestFail = didRequestFail(response);
+            didRequestFail = response.isFailure();
             return response;
         } finally {
             closeInputStreamIfNeeded(httpResponse, didRequestFail);
@@ -115,9 +115,7 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
         try {
             SdkBaseException exception = errorResponseHandler.handle(httpResponse, context.executionAttributes());
             exception.fillInStackTrace();
-            if (AmazonHttpClient.REQUEST_LOG.isDebugEnabled()) {
-                AmazonHttpClient.REQUEST_LOG.debug("Received error response: " + exception);
-            }
+            SdkStandardLoggers.REQUEST_LOGGER.debug(() -> "Received error response: " + exception);
             return exception;
         } catch (InterruptedException | IOException e) {
             throw e;
@@ -152,16 +150,4 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
         }
     }
 
-    /**
-     * Determines whether a request failed or not based on the response. If the response is an empty optional then
-     * execution failed with some non-service error like an IOException or some other client error. If the response
-     * is a fulfilled optional and {@link Response#isFailure()} is true then the execution failed with a service error
-     * of some kind.
-     *
-     * @param response Optional of unmarshalled response.
-     * @return True if the response was a failure. False if it was a success.
-     */
-    private boolean didRequestFail(Response<OutputT> response) {
-        return response.isFailure();
-    }
 }

@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.auth.internal;
 
-import static software.amazon.awssdk.handlers.AwsExecutionAttributes.TIME_OFFSET;
+import static software.amazon.awssdk.interceptor.AwsExecutionAttributes.TIME_OFFSET;
 
 import java.util.Date;
 import software.amazon.awssdk.SdkRequest;

@@ -16,11 +16,14 @@
 package software.amazon.awssdk.handlers;
 
 import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 
 /**
  * Callback interface for notification on web service requests executed with the
  * asynchronous clients in the AWS SDK for Java.
  */
+@ReviewBeforeRelease("This doesn't seem to be used outside of SQS. Is this the correct location for it? If so, it probably "
+                     + "shouldn't be in the handlers package.")
 public interface AsyncHandler<REQUEST extends AmazonWebServiceRequest, RESULT> {
 
     /**

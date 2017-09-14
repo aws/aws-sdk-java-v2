@@ -77,10 +77,7 @@ public class RetryCountInUserAgentTest extends WireMockTestBase {
 
         new GlobalClientConfigurationDefaults().applySyncDefaults(clientConfiguration);
 
-        AmazonHttpClient httpClient =
-                AmazonHttpClient.builder()
-                                .syncClientConfiguration(clientConfiguration)
-                                .build();
+        AmazonHttpClient httpClient = new AmazonHttpClient(clientConfiguration);
         try {
             SdkHttpFullRequest request = SdkHttpFullRequestAdapter.toHttpFullRequest(newGetRequest(RESOURCE_PATH));
             httpClient.requestExecutionBuilder()

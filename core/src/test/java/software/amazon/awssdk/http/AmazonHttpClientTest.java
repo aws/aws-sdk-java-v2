@@ -123,9 +123,7 @@ public class AmazonHttpClientTest {
 
         new GlobalClientConfigurationDefaults().applySyncDefaults(config);
 
-        AmazonHttpClient client = AmazonHttpClient.builder()
-                .syncClientConfiguration(config)
-                .build();
+        AmazonHttpClient client = new AmazonHttpClient(config);
 
         client.requestExecutionBuilder()
               .request(request)

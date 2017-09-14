@@ -85,7 +85,7 @@ public class HttpTestUtils {
 
             new GlobalClientConfigurationDefaults().applySyncDefaults(clientConfig);
 
-            return AmazonHttpClient.builder().syncClientConfiguration(clientConfig).build();
+            return new AmazonHttpClient(clientConfig);
         }
 
         private ClientOverrideConfiguration.Builder configureAdditionalHeaders(ClientOverrideConfiguration.Builder builder) {

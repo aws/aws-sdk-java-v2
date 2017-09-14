@@ -27,10 +27,10 @@ import software.amazon.awssdk.Response;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.event.ProgressEventType;
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.HttpAsyncClientDependencies;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpStatusCodes;
+import software.amazon.awssdk.http.InterruptMonitor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -70,7 +70,7 @@ public class MakeAsyncHttpRequestStage<OutputT>
     public CompletableFuture<Response<OutputT>> execute(SdkHttpFullRequest request,
                                                         RequestExecutionContext context) throws Exception {
 
-        AmazonHttpClient.checkInterrupted();
+        InterruptMonitor.checkInterrupted();
         final ProgressListener listener = context.requestConfig().getProgressListener();
 
         publishProgress(listener, ProgressEventType.HTTP_REQUEST_STARTED_EVENT);

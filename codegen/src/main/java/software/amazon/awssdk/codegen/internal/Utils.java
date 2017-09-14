@@ -17,7 +17,6 @@ package software.amazon.awssdk.codegen.internal;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static software.amazon.awssdk.codegen.internal.Constants.LOGGER;
 
 import java.io.Closeable;
 import java.io.File;
@@ -36,6 +35,7 @@ import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.model.service.XmlNamespace;
+import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
 public class Utils {
@@ -246,15 +246,7 @@ public class Utils {
     }
 
     public static void closeQuietly(Closeable closeable) {
-        if (closeable == null) {
-            return;
-        }
-
-        try {
-            closeable.close();
-        } catch (Exception e) {
-            LOGGER.debug("Not able to close the stream.");
-        }
+        IoUtils.closeQuietly(closeable, null);
     }
 
     /**

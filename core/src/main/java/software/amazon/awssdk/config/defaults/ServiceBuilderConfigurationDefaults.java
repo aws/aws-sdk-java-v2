@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.handlers.ClasspathInterceptorChainFactory;
+import software.amazon.awssdk.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.runtime.auth.SignerProvider;
 

@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.auth;
 
-import static software.amazon.awssdk.handlers.AwsExecutionAttributes.AWS_CREDENTIALS;
+import static software.amazon.awssdk.interceptor.AwsExecutionAttributes.AWS_CREDENTIALS;
 import static software.amazon.awssdk.util.DateUtils.numberOfDaysSinceEpoch;
 import static software.amazon.awssdk.util.StringUtils.lowerCase;
 

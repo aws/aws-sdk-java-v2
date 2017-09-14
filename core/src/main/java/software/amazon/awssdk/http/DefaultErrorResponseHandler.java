@@ -27,6 +27,7 @@ import org.xml.sax.SAXException;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.util.StringUtils;
@@ -130,7 +131,7 @@ public class DefaultErrorResponseHandler implements HttpResponseHandler<AmazonSe
     private String idString(HttpResponse errorResponse) {
         StringBuilder idString = new StringBuilder();
         try {
-            errorResponse.getRequest().getFirstHeaderValue(AmazonHttpClient.HEADER_SDK_TRANSACTION_ID)
+            errorResponse.getRequest().getFirstHeaderValue(ApplyTransactionIdStage.HEADER_SDK_TRANSACTION_ID)
                          .ifPresent(h -> idString.append("Invocation Id:").append(h));
             if (errorResponse.getHeaders().containsKey(X_AMZN_REQUEST_ID_HEADER)) {
                 if (idString.length() > 0) {
