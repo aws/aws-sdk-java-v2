@@ -163,4 +163,13 @@ public final class Logger {
     public static Logger loggerFor(Class<?> clz) {
         return new Logger(LoggerFactory.getLogger(clz));
     }
+
+    /**
+     * Static factory to get a logger instance with a specific name.
+     * @param name - The name of the logger to create
+     * @return a Logger instance
+     */
+    public static Logger loggerFor(String name) {
+        return new Logger(LoggerFactory.getLogger(name));
+    }
 }

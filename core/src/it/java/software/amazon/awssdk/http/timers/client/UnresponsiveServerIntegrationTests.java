@@ -100,7 +100,7 @@ public class UnresponsiveServerIntegrationTests extends UnresponsiveMockServerTe
                 .httpClient(HttpTestUtils.testSdkHttpClient())
                 .overrideConfiguration(overrideConfiguration);
 
-        httpClient = AmazonHttpClient.builder().syncClientConfiguration(clientConfig).build();
+        httpClient = new AmazonHttpClient(clientConfig);
 
         // We make sure the first connection has failed due to the socket timeout before
         // interrupting so we know that we are sleeping per the backoff strategy. Apache HTTP

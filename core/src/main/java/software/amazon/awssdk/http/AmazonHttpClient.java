@@ -15,25 +15,19 @@
 
 package software.amazon.awssdk.http;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.AmazonWebServiceResponse;
 import software.amazon.awssdk.Request;
 import software.amazon.awssdk.RequestConfig;
 import software.amazon.awssdk.RequestExecutionContext;
-import software.amazon.awssdk.Response;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
 import software.amazon.awssdk.annotation.ThreadSafe;
 import software.amazon.awssdk.config.SyncClientConfiguration;
-import software.amazon.awssdk.http.exception.SdkInterruptedException;
 import software.amazon.awssdk.http.pipeline.RequestPipelineBuilder;
-import software.amazon.awssdk.http.pipeline.stages.AfterCallbackStage;
 import software.amazon.awssdk.http.pipeline.stages.AfterExecutionInterceptorsStage;
 import software.amazon.awssdk.http.pipeline.stages.AfterTransmissionExecutionInterceptorsStage;
 import software.amazon.awssdk.http.pipeline.stages.ApplyTransactionIdStage;
@@ -42,6 +36,7 @@ import software.amazon.awssdk.http.pipeline.stages.BeforeTransmissionExecutionIn
 import software.amazon.awssdk.http.pipeline.stages.BeforeUnmarshallingExecutionInterceptorsStage;
 import software.amazon.awssdk.http.pipeline.stages.ClientExecutionTimedStage;
 import software.amazon.awssdk.http.pipeline.stages.ExecutionFailureExceptionReportingStage;
+import software.amazon.awssdk.http.pipeline.stages.FailureProgressPublishingStage;
 import software.amazon.awssdk.http.pipeline.stages.HandleResponseStage;
 import software.amazon.awssdk.http.pipeline.stages.HttpResponseAdaptingStage;
 import software.amazon.awssdk.http.pipeline.stages.InstrumentHttpResponseContentStage;
@@ -61,50 +56,24 @@ import software.amazon.awssdk.internal.AmazonWebServiceRequestAdapter;
 import software.amazon.awssdk.internal.http.response.AwsErrorResponseHandler;
 import software.amazon.awssdk.internal.http.response.AwsResponseHandlerAdapter;
 import software.amazon.awssdk.internal.http.timers.client.ClientExecutionTimer;
+import software.amazon.awssdk.retry.v2.RetryPolicy;
 import software.amazon.awssdk.util.CapacityManager;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @ThreadSafe
-@SdkProtectedApi
+@SdkInternalApi
 public class AmazonHttpClient implements SdkAutoCloseable {
-
-    public static final String HEADER_USER_AGENT = "User-Agent";
-
-    public static final String HEADER_SDK_TRANSACTION_ID = "amz-sdk-invocation-id";
-
-    /**
-     * Logger providing detailed information on requests/responses. Users can enable this logger to
-     * get access to AWS request IDs for responses, individual requests and parameters sent to AWS,
-     * etc.
-     */
-    @SdkInternalApi
-    public static final Logger REQUEST_LOG = LoggerFactory.getLogger("software.amazon.awssdk.request");
-
-    /**
-     * When throttled retries are enabled, each retry attempt will consume this much capacity.
-     * Successful retry attempts will release this capacity back to the pool while failed retries
-     * will not.  Successful initial (non-retry) requests will always release 1 capacity unit to the
-     * pool.
-     */
-    public static final int THROTTLED_RETRY_COST = 5;
-
     /**
      * Used for testing via failure injection.
      */
     static UnreliableTestConfig unreliableTestConfig;
 
-    /**
-     * When throttled retries are enabled, this is the total number of subsequent failed retries
-     * that may be attempted before retry capacity is fully drained.
-     */
-    static final int THROTTLED_RETRIES = 100;
-
     private final HttpSyncClientDependencies httpClientDependencies;
 
-    private AmazonHttpClient(Builder builder) {
+    public AmazonHttpClient(SyncClientConfiguration syncClientConfiguration) {
         this.httpClientDependencies = HttpSyncClientDependencies.builder()
                                                                 .clientExecutionTimer(new ClientExecutionTimer())
-                                                                .syncClientConfiguration(builder.syncClientConfiguration)
+                                                                .syncClientConfiguration(syncClientConfiguration)
                                                                 .capacityManager(createCapacityManager())
                                                                 .build();
     }
@@ -112,11 +81,7 @@ public class AmazonHttpClient implements SdkAutoCloseable {
     private CapacityManager createCapacityManager() {
         // When enabled, total retry capacity is computed based on retry cost and desired number of retries.
         // TODO: Allow customers to configure throttled retries (https://github.com/aws/aws-sdk-java-v2/issues/17)
-        return new CapacityManager(THROTTLED_RETRY_COST * THROTTLED_RETRIES);
-    }
-
-    public static Builder builder() {
-        return new Builder();
+        return new CapacityManager(RetryPolicy.THROTTLED_RETRY_COST * RetryPolicy.THROTTLED_RETRIES);
     }
 
     /**
@@ -147,50 +112,6 @@ public class AmazonHttpClient implements SdkAutoCloseable {
     @SdkTestInternalApi
     public ClientExecutionTimer getClientExecutionTimer() {
         return this.httpClientDependencies.clientExecutionTimer();
-    }
-
-    /**
-     * Check if the thread has been interrupted. If so throw an {@link InterruptedException}.
-     * Long running tasks should be periodically checked if the current thread has been
-     * interrupted and handle it appropriately
-     *
-     * @throws InterruptedException If thread has been interrupted
-     */
-    // TODO address
-    public static void checkInterrupted() throws InterruptedException {
-        checkInterrupted((Response<?>) null);
-    }
-
-    /**
-     * Check if the thread has been interrupted. If so throw an {@link InterruptedException}.
-     * Long running tasks should be periodically checked if the current thread has been
-     * interrupted and handle it appropriately
-     *
-     * @param response Response to be closed before returning control to the caller to avoid
-     *                 leaking the connection.
-     * @throws InterruptedException If thread has been interrupted
-     */
-    // TODO address
-    public static void checkInterrupted(Response<?> response) throws InterruptedException {
-        if (Thread.interrupted()) {
-            throw new SdkInterruptedException(response);
-        }
-    }
-
-    /**
-     * Check if the thread has been interrupted. If so throw an {@link InterruptedException}.
-     * Long running tasks should be periodically checked if the current thread has been
-     * interrupted and handle it appropriately
-     *
-     * @param response Response to be closed before returning control to the caller to avoid
-     *                 leaking the connection.
-     * @throws InterruptedException If thread has been interrupted
-     */
-    // TODO address
-    public static void checkInterrupted(SdkHttpFullResponse response) throws InterruptedException {
-        if (Thread.interrupted()) {
-            throw new SdkInterruptedException(response);
-        }
     }
 
     /**
@@ -307,22 +228,6 @@ public class AmazonHttpClient implements SdkAutoCloseable {
 
     }
 
-    public static class Builder {
-        private SyncClientConfiguration syncClientConfiguration;
-
-        private Builder() {
-        }
-
-        public Builder syncClientConfiguration(SyncClientConfiguration syncClientConfiguration) {
-            this.syncClientConfiguration = syncClientConfiguration;
-            return this;
-        }
-
-        public AmazonHttpClient build() {
-            return new AmazonHttpClient(this);
-        }
-    }
-
     private static class NoOpResponseHandler<T> implements HttpResponseHandler<T> {
         @Override
         public T handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
@@ -410,7 +315,7 @@ public class AmazonHttpClient implements SdkAutoCloseable {
                                           .wrap(TimerExceptionHandlingStage::new)
                                           .wrap(RetryableStage::new)::build)
                                 .wrap(StreamManagingStage::new)
-                                .wrap(AfterCallbackStage::new)
+                                .wrap(FailureProgressPublishingStage::new)
                                 .wrap(ClientExecutionTimedStage::new)::build)
                         .then(() -> new UnwrapResponseContainer<>())
                         .then(() -> new AfterExecutionInterceptorsStage<>())

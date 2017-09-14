@@ -15,11 +15,10 @@
 
 package software.amazon.awssdk.internal.http.response;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.function.Supplier;
 import software.amazon.awssdk.AmazonWebServiceResponse;
+import software.amazon.awssdk.SdkStandardLoggers;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
@@ -32,15 +31,6 @@ import software.amazon.awssdk.interceptor.ExecutionAttributes;
  */
 @SdkInternalApi
 public class AwsResponseHandlerAdapter<T> implements HttpResponseHandler<T> {
-
-    /**
-     * Logger used for the purpose of logging the AWS request id extracted either from the
-     * httpClientSettings header response or from the response body.
-     */
-    private static final Logger REQUEST_ID_LOG = LoggerFactory.getLogger("software.amazon.awssdk.requestId");
-
-    private static final Logger REQUEST_LOG = AmazonHttpClient.REQUEST_LOG;
-
     private final HttpResponseHandler<AmazonWebServiceResponse<T>> delegate;
 
     /**
@@ -62,9 +52,8 @@ public class AwsResponseHandlerAdapter<T> implements HttpResponseHandler<T> {
 
         final String awsRequestId = awsResponse.getRequestId();
 
-        if (REQUEST_LOG.isDebugEnabled()) {
-            REQUEST_LOG.debug("Received successful response: " + response.getStatusCode() + ", AWS Request ID: " + awsRequestId);
-        }
+        SdkStandardLoggers.REQUEST_LOGGER.debug(() -> "Received successful response: " + response.getStatusCode() +
+                                                      ", AWS Request ID: " + awsRequestId);
 
         if (!logHeaderRequestId(response)) {
             // Logs the AWS request ID extracted from the payload if
@@ -95,15 +84,9 @@ public class AwsResponseHandlerAdapter<T> implements HttpResponseHandler<T> {
                                            .get(HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER);
         final boolean isHeaderReqIdAvail = reqIdHeader != null;
 
-        if (REQUEST_ID_LOG.isDebugEnabled() || REQUEST_LOG.isDebugEnabled()) {
-            final String msg = HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER + ": "
-                               + (isHeaderReqIdAvail ? reqIdHeader : "not available");
-            if (REQUEST_ID_LOG.isDebugEnabled()) {
-                REQUEST_ID_LOG.debug(msg);
-            } else {
-                REQUEST_LOG.debug(msg);
-            }
-        }
+        logRequestId(() -> HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER + ": "
+                           + (isHeaderReqIdAvail ? reqIdHeader : "not available"));
+
         return isHeaderReqIdAvail;
     }
 
@@ -115,14 +98,18 @@ public class AwsResponseHandlerAdapter<T> implements HttpResponseHandler<T> {
      * logger.
      */
     private void logResponseRequestId(final String awsRequestId) {
-        if (REQUEST_ID_LOG.isDebugEnabled() || REQUEST_LOG.isDebugEnabled()) {
-            final String msg = "AWS Request ID: " +
-                               (awsRequestId == null ? "not available" : awsRequestId);
-            if (REQUEST_ID_LOG.isDebugEnabled()) {
-                REQUEST_ID_LOG.debug(msg);
-            } else {
-                REQUEST_LOG.debug(msg);
-            }
+        logRequestId(() -> "AWS Request ID: " + (awsRequestId == null ? "not available" : awsRequestId));
+    }
+
+    /**
+     * Logs the provided message using the "software.amazon.awssdk.requestId" logger if it was enabled at DEBUG
+     * level; otherwise, it is logged using at DEBUG level using the "software.amazon.awssdk.request" logger.
+     */
+    private void logRequestId(Supplier<String> message) {
+        if (SdkStandardLoggers.REQUEST_ID_LOGGER.isLoggingLevelEnabled("debug")) {
+            SdkStandardLoggers.REQUEST_ID_LOGGER.debug(message);
+        } else {
+            SdkStandardLoggers.REQUEST_LOGGER.debug(message);
         }
     }
 }

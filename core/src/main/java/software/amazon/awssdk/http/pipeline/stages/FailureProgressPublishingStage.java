@@ -29,11 +29,11 @@ import software.amazon.awssdk.http.pipeline.RequestToResponsePipeline;
 /**
  * Calls {@link SdkProgressPublisher#publishProgress(ProgressListener, ProgressEventType)} if the execution fails.
  */
-public class AfterCallbackStage<OutputT> implements RequestToResponsePipeline<OutputT> {
+public class FailureProgressPublishingStage<OutputT> implements RequestToResponsePipeline<OutputT> {
 
     private final RequestPipeline<SdkHttpFullRequest, Response<OutputT>> wrapped;
 
-    public AfterCallbackStage(RequestPipeline<SdkHttpFullRequest, Response<OutputT>> wrapped) {
+    public FailureProgressPublishingStage(RequestPipeline<SdkHttpFullRequest, Response<OutputT>> wrapped) {
         this.wrapped = wrapped;
     }
 

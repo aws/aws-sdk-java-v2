@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.auth;
 
-import static software.amazon.awssdk.handlers.AwsExecutionAttributes.REQUEST_CONFIG;
+import static software.amazon.awssdk.interceptor.AwsExecutionAttributes.REQUEST_CONFIG;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

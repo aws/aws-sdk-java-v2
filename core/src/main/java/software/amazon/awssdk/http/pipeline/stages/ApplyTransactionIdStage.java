@@ -15,12 +15,10 @@
 
 package software.amazon.awssdk.http.pipeline.stages;
 
-import static software.amazon.awssdk.http.AmazonHttpClient.HEADER_SDK_TRANSACTION_ID;
-import static software.amazon.awssdk.http.AmazonHttpClient.checkInterrupted;
-
 import java.util.Random;
 import java.util.UUID;
 import software.amazon.awssdk.RequestExecutionContext;
+import software.amazon.awssdk.http.InterruptMonitor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.pipeline.MutableRequestToRequestPipeline;
 
@@ -28,6 +26,7 @@ import software.amazon.awssdk.http.pipeline.MutableRequestToRequestPipeline;
  * Generates a unique identifier for the request that is consistent across retries.
  */
 public class ApplyTransactionIdStage implements MutableRequestToRequestPipeline {
+    public static final String HEADER_SDK_TRANSACTION_ID = "amz-sdk-invocation-id";
 
     /**
      * Used to generate UUID's for client transaction id. This gives a higher probability of id
@@ -39,7 +38,7 @@ public class ApplyTransactionIdStage implements MutableRequestToRequestPipeline 
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
             throws Exception {
-        checkInterrupted();
+        InterruptMonitor.checkInterrupted();
         return request.header(HEADER_SDK_TRANSACTION_ID, new UUID(random.nextLong(), random.nextLong()).toString());
     }
 }

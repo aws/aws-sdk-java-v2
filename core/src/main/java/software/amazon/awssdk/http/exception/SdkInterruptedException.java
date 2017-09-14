@@ -29,6 +29,10 @@ public class SdkInterruptedException extends InterruptedException {
 
     private final transient InputStream responseStream;
 
+    public SdkInterruptedException() {
+        this.responseStream = null;
+    }
+
     public SdkInterruptedException(Response<?> response) {
         this.responseStream = Optional.ofNullable(response)
                                       .map(Response::getHttpResponse)

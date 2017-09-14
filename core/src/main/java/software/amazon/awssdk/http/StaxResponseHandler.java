@@ -23,9 +23,8 @@ import java.util.Map;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.ResponseMetadata;
+import software.amazon.awssdk.SdkStandardLoggers;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.async.AsyncResponseHandler;
@@ -36,6 +35,7 @@ import software.amazon.awssdk.runtime.transform.VoidStaxUnmarshaller;
 import software.amazon.awssdk.sync.StreamingResponseHandler;
 import software.amazon.awssdk.util.StringUtils;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeFunction;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Default implementation of HttpResponseHandler that handles a successful
@@ -47,15 +47,13 @@ import software.amazon.awssdk.utils.FunctionalUtils.UnsafeFunction;
 @SdkProtectedApi
 @ReviewBeforeRelease("Metadata is currently broken. Revisit when base result types are refactored")
 public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
+    private static final Logger log = Logger.loggerFor(StaxResponseHandler.class);
 
-    /**
-     * Shared logger for profiling information.
-     */
-    private static final Logger log = LoggerFactory.getLogger("software.amazon.awssdk.request");
     /**
      * Shared factory for creating XML event readers.
      */
     private static final XMLInputFactory XML_INPUT_FACTORY = XMLInputFactory.newInstance();
+
     /**
      * The StAX unmarshaller to use when handling the response.
      */
@@ -89,7 +87,7 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
      * @see HttpResponseHandler#handle(HttpResponse, ExecutionAttributes)
      */
     public T handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
-        log.trace("Parsing service response XML");
+        SdkStandardLoggers.REQUEST_LOGGER.trace(() -> "Parsing service response XML.");
         InputStream content = response.getContent();
         if (content == null) {
             content = new ByteArrayInputStream("<eof/>".getBytes(StringUtils.UTF8));
@@ -106,12 +104,16 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
             unmarshallerContext.registerMetadataExpression("requestId", 2, ResponseMetadata.AWS_REQUEST_ID);
             registerAdditionalMetadataExpressions(unmarshallerContext);
 
-            return responseUnmarshaller.unmarshall(unmarshallerContext);
+            T result = responseUnmarshaller.unmarshall(unmarshallerContext);
+
+            SdkStandardLoggers.REQUEST_LOGGER.trace(() -> "Done parsing service response.");
+
+            return result;
         } finally {
             try {
                 eventReader.close();
             } catch (XMLStreamException e) {
-                log.warn("Error closing xml parser", e);
+                log.warn(() -> "Error closing XML parser.", e);
             }
         }
     }

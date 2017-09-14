@@ -18,9 +18,9 @@ package software.amazon.awssdk.internal.http.response;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.handlers.AwsExecutionAttributes;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
+import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 
 /**

@@ -104,7 +104,7 @@ public class EC2Interceptor implements ExecutionInterceptor {
         /*
          * For backwards compatibility, we preserve the existing List<String> of
          * security group names by explicitly populating it from the full list
-         * of security group info. TODO: Is this actually needed?
+         * of security group info. TODO: Is this actually needed? We might be able to drop it after we drop EC2 customizations
          */
         if (awsResponse instanceof DescribeSpotInstanceRequestsResponse) {
             return convertDescribeSpotInstanceRequestsResponse((DescribeSpotInstanceRequestsResponse) awsResponse);

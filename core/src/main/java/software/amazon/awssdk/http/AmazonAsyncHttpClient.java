@@ -23,7 +23,7 @@ import software.amazon.awssdk.RequestConfig;
 import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.annotation.ThreadSafe;
 import software.amazon.awssdk.config.AsyncClientConfiguration;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
@@ -45,18 +45,19 @@ import software.amazon.awssdk.http.pipeline.stages.ReportRequestContentLengthSta
 import software.amazon.awssdk.http.pipeline.stages.SigningStage;
 import software.amazon.awssdk.http.pipeline.stages.UnwrapResponseContainer;
 import software.amazon.awssdk.internal.http.timers.client.ClientExecutionTimer;
+import software.amazon.awssdk.retry.v2.RetryPolicy;
 import software.amazon.awssdk.util.CapacityManager;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @ThreadSafe
-@SdkProtectedApi
+@SdkInternalApi
 public class AmazonAsyncHttpClient implements SdkAutoCloseable {
     private final HttpAsyncClientDependencies httpClientDependencies;
 
-    private AmazonAsyncHttpClient(Builder builder) {
+    public AmazonAsyncHttpClient(AsyncClientConfiguration configuration) {
         this.httpClientDependencies = HttpAsyncClientDependencies.builder()
                                                                  .clientExecutionTimer(new ClientExecutionTimer())
-                                                                 .asyncClientConfiguration(builder.asyncClientConfiguration)
+                                                                 .asyncClientConfiguration(configuration)
                                                                  .capacityManager(createCapacityManager())
                                                                  .build();
     }
@@ -64,11 +65,7 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
     private CapacityManager createCapacityManager() {
         // When enabled, total retry capacity is computed based on retry cost and desired number of retries.
         // TODO: Allow customers to configure throttled retries (https://github.com/aws/aws-sdk-java-v2/issues/17)
-        return new CapacityManager(AmazonHttpClient.THROTTLED_RETRY_COST * AmazonHttpClient.THROTTLED_RETRIES);
-    }
-
-    public static Builder builder() {
-        return new Builder();
+        return new CapacityManager(RetryPolicy.THROTTLED_RETRY_COST * RetryPolicy.THROTTLED_RETRIES);
     }
 
     /**
@@ -144,22 +141,6 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
          * @return Unmarshalled result type.
          */
         <OutputT> CompletableFuture<OutputT> execute(SdkHttpResponseHandler<OutputT> responseHandler);
-    }
-
-    public static class Builder {
-        private AsyncClientConfiguration asyncClientConfiguration;
-
-        private Builder() {
-        }
-
-        public Builder asyncClientConfiguration(AsyncClientConfiguration asyncClientConfiguration) {
-            this.asyncClientConfiguration = asyncClientConfiguration;
-            return this;
-        }
-
-        public AmazonAsyncHttpClient build() {
-            return new AmazonAsyncHttpClient(this);
-        }
     }
 
     private class RequestExecutionBuilderImpl implements RequestExecutionBuilder {

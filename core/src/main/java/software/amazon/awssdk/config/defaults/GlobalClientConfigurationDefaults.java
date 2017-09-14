@@ -27,7 +27,7 @@ import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.config.ClientConfiguration;
 import software.amazon.awssdk.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.handlers.ClasspathInterceptorChainFactory;
+import software.amazon.awssdk.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.retry.PredefinedRetryPolicies;
 import software.amazon.awssdk.retry.RetryPolicyAdapter;

@@ -44,9 +44,8 @@ import software.amazon.awssdk.utils.IoUtils;
  */
 @ReviewBeforeRelease("Do we need this? It isn't well encapsulated because of storing non-copied arrays.")
 public class JsonPolicyWriter {
+    private static final Logger log = LoggerFactory.getLogger(JsonPolicyWriter.class);
 
-    /** Logger used to log exceptions that occurs while writing the Json policy.*/
-    private static final Logger log = LoggerFactory.getLogger("software.amazon.awssdk.auth.policy");
     /** The JSON Generator to generator a JSON string.*/
     private JsonGenerator generator = null;
     /** The output writer to which the JSON String is written.*/

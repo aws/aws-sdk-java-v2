@@ -13,15 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.handlers;
+package software.amazon.awssdk.interceptor;
 
 import software.amazon.awssdk.RequestConfig;
 import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.AwsCredentials;
 import software.amazon.awssdk.auth.Signer;
-import software.amazon.awssdk.interceptor.ExecutionAttribute;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.regions.Region;
 
 /**

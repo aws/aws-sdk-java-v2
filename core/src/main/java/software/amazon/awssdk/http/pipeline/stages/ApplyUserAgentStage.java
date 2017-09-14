@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.http.pipeline.stages;
 
-import static software.amazon.awssdk.http.AmazonHttpClient.HEADER_USER_AGENT;
-
 import software.amazon.awssdk.RequestClientOptions;
 import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.config.ClientConfiguration;
@@ -29,6 +27,8 @@ import software.amazon.awssdk.util.RuntimeHttpUtils;
  * Apply any custom user agent supplied, otherwise instrument the user agent with info about the SDK and environment.
  */
 public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
+
+    private static final String HEADER_USER_AGENT = "User-Agent";
 
     private final ClientConfiguration clientConfig;
 
