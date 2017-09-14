@@ -106,7 +106,7 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
                 public void completed(Integer result, ByteBuffer attachment) {
                     if (result > 0) {
                         position.addAndGet(result);
-                        synchronized (FileSubscriber.this) {
+                        synchronized (this) {
                             if (closeOnLastWrite) {
                                 invokeSafely(fileChannel::close);
                             } else {

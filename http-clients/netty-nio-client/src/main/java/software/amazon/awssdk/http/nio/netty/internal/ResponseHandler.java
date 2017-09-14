@@ -23,10 +23,12 @@ import com.typesafe.netty.HandlerPublisher;
 import com.typesafe.netty.HandlerSubscriber;
 import com.typesafe.netty.http.HttpStreamsClientHandler;
 import com.typesafe.netty.http.StreamedHttpResponse;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.FullHttpMessage;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -48,6 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 
 @Sharable
@@ -82,7 +85,10 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
             requestContext.handler().onStream(new Publisher<ByteBuffer>() {
                 @Override
                 public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-                    subscriber.onNext(((FullHttpResponse) msg).content().nioBuffer());
+                    FullHttpMessage fullMsg = (FullHttpMessage) msg;
+                    ByteBuffer bb = copyToByteBuffer(fullMsg.content());
+                    fullMsg.release();
+                    subscriber.onNext(bb);
                     channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY)
                                   .set(subscriber);
                 }
@@ -145,6 +151,13 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         closeAndRelease(ctx);
     }
 
+    private static ByteBuffer copyToByteBuffer(ByteBuf byteBuf) {
+        ByteBuffer bb = ByteBuffer.allocate(byteBuf.readableBytes());
+        byteBuf.getBytes(byteBuf.readerIndex(), bb);
+        bb.flip();
+        return bb;
+    }
+
     /**
      * Close the channel and release it back into the pool.
      *
@@ -198,8 +211,9 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
                 @Override
                 public void onNext(HttpContent httpContent) {
-                    subscriber.onNext(httpContent.content().nioBuffer());
+                    ByteBuffer b = copyToByteBuffer(httpContent.content());
                     httpContent.release();
+                    subscriber.onNext(b);
                     channelContext.read();
                 }
 
