@@ -42,6 +42,7 @@ import io.netty.util.AttributeKey;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -80,23 +81,20 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         }
 
         if (msg instanceof StreamedHttpResponse) {
+            //System.out.println("Yo this is a streamed HTTP response...");
             requestContext.handler().onStream(new PublisherAdapter((StreamedHttpResponse) msg, channelContext, requestContext));
         } else if (msg instanceof FullHttpResponse) {
-            requestContext.handler().onStream(new Publisher<ByteBuffer>() {
-                @Override
-                public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-                    FullHttpMessage fullMsg = (FullHttpMessage) msg;
-                    ByteBuffer bb = copyToByteBuffer(fullMsg.content());
-                    fullMsg.release();
-                    subscriber.onNext(bb);
-                    channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY)
-                                  .set(subscriber);
-                }
-            });
+            FullHttpMessage fullMsg = (FullHttpMessage) msg;
+            byte[] content = new byte[fullMsg.content().readableBytes()];
+            fullMsg.content().getBytes(fullMsg.content().readerIndex(), content);
+            FullHttpContentPublisher publisher = new FullHttpContentPublisher(content);
+            channelContext.channel().attr(ChannelAttributeKeys.PUBLISHER_KEY).set(publisher);
+            requestContext.handler().onStream(publisher);
         }
 
         if (msg instanceof LastHttpContent) {
-            Subscriber<? super ByteBuffer> subscriber = channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY).get();
+            FullHttpContentPublisher publisher = (FullHttpContentPublisher) channelContext.channel().attr(ChannelAttributeKeys.PUBLISHER_KEY).get();
+            Subscriber<? super ByteBuffer> subscriber = publisher.getSubscriber();
             try {
                 subscriber.onComplete();
                 requestContext.handler().complete();
@@ -187,6 +185,25 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         return headers.entries().stream()
                       .collect(groupingBy(Map.Entry::getKey,
                                           mapping(Map.Entry::getValue, Collectors.toList())));
+    }
+
+    private static class FullHttpContentPublisher implements Publisher<ByteBuffer> {
+        private final byte[] content;
+        private Subscriber<? super ByteBuffer> subscriber;
+
+        public FullHttpContentPublisher(byte[] content) {
+            this.content = content;
+        }
+
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+            subscriber.onNext(ByteBuffer.wrap(content).asReadOnlyBuffer());
+            this.subscriber = subscriber;
+        }
+
+        public Subscriber<? super ByteBuffer> getSubscriber() {
+            return subscriber;
+        }
     }
 
     private static class PublisherAdapter implements Publisher<ByteBuffer> {

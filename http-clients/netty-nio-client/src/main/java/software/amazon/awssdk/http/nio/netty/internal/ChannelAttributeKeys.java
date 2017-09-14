@@ -17,6 +17,8 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.util.AttributeKey;
 import java.nio.ByteBuffer;
+
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
 /**
@@ -30,6 +32,8 @@ class ChannelAttributeKeys {
     static final AttributeKey<RequestContext> REQUEST_CONTEXT_KEY = AttributeKey.newInstance("requestContext");
 
     static final AttributeKey<Subscriber<? super ByteBuffer>> SUBSCRIBER_KEY = AttributeKey.newInstance("subscriber");
+
+    static final AttributeKey<Publisher<ByteBuffer>> PUBLISHER_KEY = AttributeKey.newInstance("DongiePublisher");
 
     private ChannelAttributeKeys() {
     }
