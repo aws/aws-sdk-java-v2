@@ -23,10 +23,10 @@ import java.util.Date;
 import java.util.TimeZone;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.util.CredentialUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Signer implementation responsible for signing an AWS query string request
@@ -57,24 +57,24 @@ public class QueryStringSigner extends AbstractAwsSigner {
         SdkHttpFullRequest.Builder mutableRequest = execution.httpRequest().toBuilder();
 
         AwsCredentials sanitizedCredentials = sanitizeCredentials(executionAttributes.getAttribute(AWS_CREDENTIALS));
-        mutableRequest.queryParameter("AWSAccessKeyId", sanitizedCredentials.accessKeyId());
-        mutableRequest.queryParameter("SignatureVersion", "2");
+        mutableRequest.rawQueryParameter("AWSAccessKeyId", sanitizedCredentials.accessKeyId());
+        mutableRequest.rawQueryParameter("SignatureVersion", "2");
 
         int timeOffset = executionAttributes.getAttribute(TIME_OFFSET) == null ? 0 :
                          executionAttributes.getAttribute(TIME_OFFSET);
-        mutableRequest.queryParameter("Timestamp", getFormattedTimestamp(timeOffset));
+        mutableRequest.rawQueryParameter("Timestamp", getFormattedTimestamp(timeOffset));
 
         if (sanitizedCredentials instanceof AwsSessionCredentials) {
             addSessionCredentials(mutableRequest, (AwsSessionCredentials) sanitizedCredentials);
         }
 
-        mutableRequest.queryParameter("SignatureMethod", SigningAlgorithm.HmacSHA256.toString());
+        mutableRequest.rawQueryParameter("SignatureMethod", SigningAlgorithm.HmacSHA256.toString());
         String stringToSign = calculateStringToSignV2(mutableRequest);
 
         String signatureValue = signAndBase64Encode(stringToSign,
                                                     sanitizedCredentials.secretAccessKey(),
                                                     SigningAlgorithm.HmacSHA256);
-        mutableRequest.queryParameter("Signature", signatureValue);
+        mutableRequest.rawQueryParameter("Signature", signatureValue);
         return mutableRequest.build();
     }
 
@@ -85,41 +85,16 @@ public class QueryStringSigner extends AbstractAwsSigner {
      * @return String to sign
      * @throws SdkClientException If the string to sign cannot be calculated.
      */
-    private String calculateStringToSignV2(SdkHttpRequest request) throws SdkClientException {
+    private String calculateStringToSignV2(SdkHttpFullRequest.Builder requestBuilder) throws SdkClientException {
+        SdkHttpFullRequest request = requestBuilder.build();
         return "POST" + "\n" +
-               getCanonicalizedEndpoint(request.getEndpoint()) + "\n" +
+               getCanonicalizedEndpoint(request) + "\n" +
                getCanonicalizedResourcePath(request) + "\n" +
-               getCanonicalizedQueryString(request.getParameters());
+               getCanonicalizedQueryString(request.rawQueryParameters());
     }
 
-    private String getCanonicalizedResourcePath(SdkHttpRequest request) {
-        String resourcePath = "";
-
-        if (request.getEndpoint().getPath() != null) {
-            resourcePath += request.getEndpoint().getPath();
-        }
-
-        if (request.getResourcePath() != null) {
-            if (resourcePath.length() > 0 &&
-                !resourcePath.endsWith("/") &&
-                !request.getResourcePath().startsWith("/")) {
-                resourcePath += "/";
-            }
-
-            resourcePath += request.getResourcePath();
-        } else if (!resourcePath.endsWith("/")) {
-            resourcePath += "/";
-        }
-
-        if (!resourcePath.startsWith("/")) {
-            resourcePath = "/" + resourcePath;
-        }
-
-        if (resourcePath.startsWith("//")) {
-            resourcePath = resourcePath.substring(1);
-        }
-
-        return resourcePath;
+    private String getCanonicalizedResourcePath(SdkHttpFullRequest request) {
+        return StringUtils.isEmpty(request.encodedPath()) ? "/" : request.encodedPath();
     }
 
     /**
@@ -146,6 +121,6 @@ public class QueryStringSigner extends AbstractAwsSigner {
 
     @Override
     protected void addSessionCredentials(SdkHttpFullRequest.Builder request, AwsSessionCredentials credentials) {
-        request.queryParameter("SecurityToken", credentials.sessionToken());
+        request.rawQueryParameter("SecurityToken", credentials.sessionToken());
     }
 }

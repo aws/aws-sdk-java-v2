@@ -25,95 +25,97 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.Arrays;
 import org.junit.Test;
-import software.amazon.awssdk.DefaultRequest;
 import software.amazon.awssdk.Request;
 import software.amazon.awssdk.util.StringInputStream;
+import utils.ValidSdkObjects;
 
 public class SdkHttpFullRequestAdapterTest {
 
     @Test
     public void adaptHeaders_AdaptsValuesToSingletonLists() {
-        Request<Void> request = new DefaultRequest<>("foo");
+        Request<Void> request = ValidSdkObjects.legacyRequest();
         request.addHeader("HeaderOne", "valOne");
 
         SdkHttpFullRequest adapted = SdkHttpFullRequestAdapter.toHttpFullRequest(request);
 
-        assertThat(adapted.getHeaders().get("HeaderOne"), hasSize(1));
-        assertThat(adapted.getHeaders().get("HeaderOne").get(0), equalTo("valOne"));
+        assertThat(adapted.headers().get("HeaderOne"), hasSize(1));
+        assertThat(adapted.headers().get("HeaderOne").get(0), equalTo("valOne"));
     }
 
     @Test
     public void adaptHeaders_NullValueAdaptsToSingletonListContainingNull() {
-        Request<Void> request = new DefaultRequest<>("foo");
+        Request<Void> request = ValidSdkObjects.legacyRequest();
         request.addHeader("HeaderOne", null);
 
         SdkHttpFullRequest adapted = SdkHttpFullRequestAdapter.toHttpFullRequest(request);
 
-        assertThat(adapted.getHeaders().get("HeaderOne"), hasSize(1));
-        assertThat(adapted.getHeaders().get("HeaderOne").get(0), nullValue());
+        assertThat(adapted.headers().get("HeaderOne"), hasSize(1));
+        assertThat(adapted.headers().get("HeaderOne").get(0), nullValue());
     }
 
     @Test
     public void adapt_EndpointIsPreserved() {
-        Request<Void> request = new DefaultRequest<>("foo");
+        Request<Void> request = ValidSdkObjects.legacyRequest();
         request.setEndpoint(URI.create("http://shorea.com"));
 
         SdkHttpFullRequest adapted = SdkHttpFullRequestAdapter.toHttpFullRequest(request);
 
-        assertThat(adapted.getEndpoint(), equalTo(request.getEndpoint()));
+        assertThat(adapted.protocol(), equalTo("http"));
+        assertThat(adapted.host(), equalTo("shorea.com"));
+        assertThat(adapted.port(), equalTo(80));
     }
 
     @Test
     public void adapt_QueryParamsArePreserved() {
-        Request<Void> request = new DefaultRequest<>("foo");
+        Request<Void> request = ValidSdkObjects.legacyRequest();
         request.addParameter("QueryParam", "value");
 
         SdkHttpFullRequest adapted = SdkHttpFullRequestAdapter.toHttpFullRequest(request);
 
-        assertThat(adapted.getParameters().get("QueryParam"), hasSize(1));
-        assertThat(adapted.getParameters().get("QueryParam").get(0), equalTo("value"));
+        assertThat(adapted.rawQueryParameters().get("QueryParam"), hasSize(1));
+        assertThat(adapted.rawQueryParameters().get("QueryParam").get(0), equalTo("value"));
     }
 
     @Test
     public void adapt_QueryParamWithMultipleValuesArePreserved() {
-        Request<Void> request = new DefaultRequest<>("foo");
+        Request<Void> request = ValidSdkObjects.legacyRequest();
         request.addParameters("QueryParam", Arrays.asList("foo", "bar", "baz"));
 
         SdkHttpFullRequest adapted = SdkHttpFullRequestAdapter.toHttpFullRequest(request);
 
-        assertThat(adapted.getParameters().get("QueryParam"), hasSize(3));
-        assertThat(adapted.getParameters().get("QueryParam"), hasItems("foo", "bar", "baz"));
+        assertThat(adapted.rawQueryParameters().get("QueryParam"), hasSize(3));
+        assertThat(adapted.rawQueryParameters().get("QueryParam"), hasItems("foo", "bar", "baz"));
     }
 
     @Test
     public void adapt_ResourcePathPreserved() {
-        Request<Void> request = new DefaultRequest<>("foo");
-        request.setResourcePath("/foo/bar");
+        Request<Void> request = ValidSdkObjects.legacyRequest();
+        request.setResourcePath("/foo/bar/");
 
         SdkHttpFullRequest adapted = SdkHttpFullRequestAdapter.toHttpFullRequest(request);
 
-        assertThat(adapted.getResourcePath(), equalTo("/foo/bar"));
+        assertThat(adapted.encodedPath(), equalTo("/foo/bar"));
     }
 
     @Test
     public void adapt_HttpMethodTranslatedToSdkHttpMethod() {
-        Request<Void> request = new DefaultRequest<>("foo");
+        Request<Void> request = ValidSdkObjects.legacyRequest();
         request.setHttpMethod(HttpMethodName.GET);
 
         SdkHttpFullRequest adapted = SdkHttpFullRequestAdapter.toHttpFullRequest(request);
 
-        assertThat(adapted.getHttpMethod(), equalTo(SdkHttpMethod.GET));
+        assertThat(adapted.method(), equalTo(SdkHttpMethod.GET));
     }
 
     @Test
     public void adapt_InputStreamPreserved() throws UnsupportedEncodingException {
         StringInputStream contents = new StringInputStream("contents");
-        Request<Void> request = new DefaultRequest<>("foo");
+        Request<Void> request = ValidSdkObjects.legacyRequest();
         request.setContent(contents);
 
         SdkHttpFullRequest adapted = SdkHttpFullRequestAdapter.toHttpFullRequest(request);
 
-        assertThat(adapted.getContent(), equalTo(contents));
+        assertThat(adapted.content().orElse(null), equalTo(contents));
     }
 
 

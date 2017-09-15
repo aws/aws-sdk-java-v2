@@ -77,7 +77,7 @@ public class SigningStage implements RequestToRequestPipeline {
                 .builder()
                 .withRequest(request)
                 .withRequestConfig(context.requestConfig());
-        return context.signerProvider().getSigner(signerProviderContext.withUri(request.getEndpoint()).build());
+        return context.signerProvider().getSigner(signerProviderContext.build());
     }
 
     /**

@@ -15,32 +15,27 @@
 
 package software.amazon.awssdk.http;
 
+import static java.util.Collections.singletonList;
+
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import java.util.Optional;
+import software.amazon.awssdk.annotation.Immutable;
+import software.amazon.awssdk.annotation.SdkPublicApi;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Generic representation of an HTTP response.
+ * An immutable HTTP response with a possible HTTP body.
  *
- * TODO should we allow HTTP impl authors to implement this or should they only use the builder?
+ * <p>All implementations of this interface MUST be immutable. Instead of implementing this interface, consider using
+ * {@link #builder()} to create an instance.</p>
  */
+@SdkPublicApi
+@Immutable
 public interface SdkHttpFullResponse
         extends SdkHttpResponse, ToCopyableBuilder<SdkHttpFullResponse.Builder, SdkHttpFullResponse> {
-
-    /**
-     * Returns the input stream containing the response content. Instance of {@link AbortableInputStream}
-     * which can be aborted before all content is read, this usually means killing the underlying HTTP
-     * connection but it's up to HTTP implementations to define.
-     * <br/>
-     * May be null, not all responses have content.
-     *
-     * @return The input stream containing the response content or null if there is no content.
-     */
-    AbortableInputStream getContent();
-
     /**
      * @return Builder instance to construct a {@link DefaultSdkHttpFullResponse}.
      */
@@ -49,23 +44,98 @@ public interface SdkHttpFullResponse
     }
 
     /**
+     * Returns the optional stream containing the payload data returned by the service. Note: an {@link AbortableInputStream}
+     * is returned instead of an {@link InputStream}. This allows the stream to be aborted before all content is read, which
+     * usually means destroying the underlying HTTP connection. This may be implemented differently in other HTTP implementations.
+     *
+     * <p>When the response does not include payload data, this will return {@link Optional#empty()}.</p>
+     *
+     * @return The optional stream containing the payload data included in this response, or empty if there is no payload.
+     */
+    Optional<AbortableInputStream> content();
+
+    /**
      * Builder for a {@link DefaultSdkHttpFullResponse}.
      */
     interface Builder extends CopyableBuilder<Builder, SdkHttpFullResponse> {
+        /**
+         * The status text, exactly as it was configured with {@link #statusText(String)}.
+         */
+        String statusText();
 
+        /**
+         * Configure an {@link SdkHttpResponse#statusText()} to be used in the created HTTP response. This is not validated
+         * until the http response is created.
+         */
         Builder statusText(String statusText);
 
+        /**
+         * The status text, exactly as it was configured with {@link #statusCode(int)}.
+         */
+        int statusCode();
+
+        /**
+         * Configure an {@link SdkHttpResponse#statusCode()} to be used in the created HTTP response. This is not validated
+         * until the http response is created.
+         */
         Builder statusCode(int statusCode);
 
-        Builder content(AbortableInputStream content);
+        /**
+         * The query parameters, exactly as they were configured with {@link #headers(Map)},
+         * {@link #header(String, String)} and {@link #header(String, List)}.
+         */
+        Map<String, List<String>> headers();
 
-        @ReviewBeforeRelease("Should we only allow setting the AbortableInputStream?")
-        Builder content(InputStream content);
+        /**
+         * Add a single header to be included in the created HTTP response.
+         *
+         * <p>This completely overrides any values already configured with this header name in the builder.</p>
+         *
+         * @param headerName The name of the header to add (eg. "Host")
+         * @param headerValue The value for the header
+         */
+        default Builder header(String headerName, String headerValue) {
+            return header(headerName, singletonList(headerValue));
+        }
 
+        /**
+         * Add a single header with multiple values to be included in the created HTTP response.
+         *
+         * <p>This completely overrides any values already configured with this header name in the builder.</p>
+         *
+         * @param headerName The name of the header to add
+         * @param headerValues The values for the header
+         */
+        Builder header(String headerName, List<String> headerValues);
+
+        /**
+         * Configure an {@link SdkHttpResponse#headers()} to be used in the created HTTP response. This is not validated
+         * until the http response is created. This overrides any values currently configured in the builder.
+         */
         Builder headers(Map<String, List<String>> headers);
 
-        @ReviewBeforeRelease("This is completely different from the HTTP request. "
-                             + "This should be the same between both interfaces.")
-        Builder addHeader(String headerName, List<String> headerValues);
+        /**
+         * Remove all values for the requested header from this builder.
+         */
+        Builder removeHeader(String headerName);
+
+        /**
+         * Removes all headers from this builder.
+         */
+        Builder clearHeaders();
+
+        /**
+         * The content, exactly as it was configured with {@link #content(AbortableInputStream)}.
+         */
+        AbortableInputStream content();
+
+        /**
+         * Configure an {@link SdkHttpFullResponse#content()} to be used in the HTTP response. This is not validated until
+         * the http response is created.
+         *
+         * <p>Implementers should implement the abort method on the input stream to drop all remaining content with the service.
+         * This is usually done by closing the service connection.</p>
+         */
+        Builder content(AbortableInputStream content);
     }
 }

@@ -42,7 +42,7 @@ public class QueueUrlInterceptor implements ExecutionInterceptor {
     public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
         SdkHttpFullRequest request = context.httpRequest();
 
-        final Map<String, List<String>> requestParams = new HashMap<>(request.getParameters());
+        final Map<String, List<String>> requestParams = new HashMap<>(request.rawQueryParameters());
         final List<String> queueUrlParam = requestParams.get(QUEUE_URL_PARAMETER);
         if (queueUrlParam != null && !queueUrlParam.isEmpty()) {
             List<String> queueUrlParameter = requestParams.remove(QUEUE_URL_PARAMETER);
@@ -51,14 +51,15 @@ public class QueueUrlInterceptor implements ExecutionInterceptor {
             try {
                 URI uri = new URI(queueUrl);
                 SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
-                mutableRequest.resourcePath(uri.getPath());
+                mutableRequest.encodedPath(uri.getPath());
 
                 if (uri.getHost() != null) {
                     // If the URI has a host specified, set the request's endpoint to the queue URLs
                     // endpoint, so that queue URLs from different regions will send the request to
                     // the correct endpoint.
-                    URI uriWithoutPath = new URI(uri.toString().replace(uri.getPath(), ""));
-                    mutableRequest.endpoint(uriWithoutPath);
+                    mutableRequest.protocol(uri.getScheme())
+                                  .host(uri.getHost())
+                                  .port(uri.getPort());
                 }
                 return mutableRequest.build();
             } catch (URISyntaxException e) {

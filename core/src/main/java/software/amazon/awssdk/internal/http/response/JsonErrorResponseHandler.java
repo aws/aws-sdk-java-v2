@@ -26,6 +26,7 @@ import software.amazon.awssdk.AmazonServiceException.ErrorType;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
+import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.internal.http.ErrorCodeParser;
@@ -118,7 +119,7 @@ public class JsonErrorResponseHandler implements HttpResponseHandler<AmazonServi
     }
 
     private ErrorType getErrorTypeFromStatusCode(int statusCode) {
-        return statusCode < 500 ? ErrorType.Client : ErrorType.Service;
+        return HttpStatusFamily.of(statusCode) == HttpStatusFamily.SERVER_ERROR ? ErrorType.Service : ErrorType.Client;
     }
 
     private String getRequestIdFromHeaders(Map<String, String> headers) {

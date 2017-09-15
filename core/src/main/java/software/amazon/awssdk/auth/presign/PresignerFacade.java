@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.auth.presign;
 
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
@@ -33,7 +35,6 @@ import software.amazon.awssdk.interceptor.InterceptorContext;
 import software.amazon.awssdk.runtime.auth.SignerProvider;
 import software.amazon.awssdk.runtime.auth.SignerProviderContext;
 import software.amazon.awssdk.util.CredentialUtils;
-import software.amazon.awssdk.util.RuntimeHttpUtils;
 
 /**
  * Really thin facade over {@link Presigner} to deal with some common concerns like credential resolution, adding custom headers
@@ -56,7 +57,6 @@ public final class PresignerFacade {
         final Presigner presigner = (Presigner) signerProvider.getSigner(SignerProviderContext.builder()
                                                                                               .withIsRedirect(false)
                                                                                               .withRequest(httpRequest)
-                                                                                              .withUri(httpRequest.getEndpoint())
                                                                                               .build());
         SdkHttpFullRequest.Builder mutableHttpRequest = httpRequest.toBuilder();
         addCustomQueryParams(mutableHttpRequest, requestConfig);
@@ -72,7 +72,7 @@ public final class PresignerFacade {
                                                                         .build(),
                                                       executionAttributes,
                                                       expirationDate);
-        return RuntimeHttpUtils.convertRequestToUrl(signed, true, false);
+        return invokeSafely(() -> signed.getUri().toURL());
     }
 
     private void addCustomQueryParams(SdkHttpFullRequest.Builder request, RequestConfig requestConfig) {
@@ -81,7 +81,7 @@ public final class PresignerFacade {
             return;
         }
         for (Map.Entry<String, List<String>> param : queryParameters.entrySet()) {
-            request.queryParameter(param.getKey(), param.getValue());
+            request.rawQueryParameter(param.getKey(), param.getValue());
         }
     }
 

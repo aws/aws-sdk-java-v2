@@ -17,6 +17,7 @@ package software.amazon.awssdk.auth;
 
 import java.io.IOException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.retry.internal.CredentialsEndpointRetryParameters;
 import software.amazon.awssdk.retry.internal.CredentialsEndpointRetryPolicy;
 
@@ -33,7 +34,7 @@ class ContainerCredentialsRetryPolicy implements CredentialsEndpointRetryPolicy 
         }
 
         Integer statusCode = retryParams.getStatusCode();
-        if (statusCode != null && statusCode >= 500 && statusCode < 600) {
+        if (statusCode != null && HttpStatusFamily.of(statusCode) == HttpStatusFamily.SERVER_ERROR) {
             return true;
         }
 

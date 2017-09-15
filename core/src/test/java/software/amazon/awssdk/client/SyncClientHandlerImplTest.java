@@ -21,6 +21,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.net.URI;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -142,6 +143,7 @@ public class SyncClientHandlerImplTest {
 
     public SyncClientConfiguration clientConfiguration() {
         MutableClientConfiguration mutableClientConfiguration = new MutableClientConfiguration()
+                .endpoint(URI.create("http://test.com"))
                 .credentialsProvider(credentialsProvider)
                 .httpClient(httpClient);
 

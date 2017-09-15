@@ -20,6 +20,8 @@ import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
+import software.amazon.awssdk.http.HttpStatusCodes;
+import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 
@@ -52,13 +54,13 @@ public class AwsErrorResponseHandler implements HttpResponseHandler<SdkBaseExcep
             throw e;
         } catch (Exception e) {
             // If the errorResponseHandler doesn't work, then check for error responses that don't have any content
-            if (statusCode == 413) {
+            if (statusCode == HttpStatusCodes.REQUEST_TOO_LONG) {
                 AmazonServiceException exception = new AmazonServiceException("Request entity too large");
                 exception.setStatusCode(statusCode);
                 exception.setErrorType(AmazonServiceException.ErrorType.Client);
                 exception.setErrorCode("Request entity too large");
                 return exception;
-            } else if (statusCode >= 500 && statusCode < 600) {
+            } else if (HttpStatusFamily.of(statusCode) == HttpStatusFamily.SERVER_ERROR) {
                 AmazonServiceException exception = new AmazonServiceException(response.getStatusText());
                 exception.setStatusCode(statusCode);
                 exception.setErrorType(AmazonServiceException.ErrorType.Service);

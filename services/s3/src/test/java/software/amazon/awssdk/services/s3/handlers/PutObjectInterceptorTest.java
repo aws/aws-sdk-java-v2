@@ -15,15 +15,17 @@
 
 package software.amazon.awssdk.services.s3.handlers;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.Test;
 import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 public class PutObjectInterceptorTest {
     private final PutObjectInterceptor interceptor = new PutObjectInterceptor();
@@ -33,7 +35,7 @@ public class PutObjectInterceptorTest {
         Context.ModifyHttpRequest ctx = new Context.ModifyHttpRequest() {
             @Override
             public SdkHttpFullRequest httpRequest() {
-                return SdkHttpFullRequest.builder().build();
+                return sdkHttpFullRequest();
             }
 
             @Override
@@ -44,7 +46,7 @@ public class PutObjectInterceptorTest {
 
         final SdkHttpFullRequest modifiedRequest = interceptor.modifyHttpRequest(ctx, new ExecutionAttributes());
 
-        assertThat(modifiedRequest.getFirstHeaderValue("Expect").get()).isEqualTo("100-continue");
+        assertThat(SdkHttpUtils.firstMatchingHeader(modifiedRequest.headers(), "Expect")).hasValue("100-continue");
     }
 
     @Test
@@ -52,7 +54,7 @@ public class PutObjectInterceptorTest {
         Context.ModifyHttpRequest ctx = new Context.ModifyHttpRequest() {
             @Override
             public SdkHttpFullRequest httpRequest() {
-                return SdkHttpFullRequest.builder().build();
+                return sdkHttpFullRequest();
             }
 
             @Override
@@ -63,7 +65,15 @@ public class PutObjectInterceptorTest {
 
         final SdkHttpFullRequest modifiedRequest = interceptor.modifyHttpRequest(ctx, new ExecutionAttributes());
 
-        assertThat(modifiedRequest.getFirstHeaderValue("Expect").isPresent()).isFalse();
+        assertThat(SdkHttpUtils.firstMatchingHeader(modifiedRequest.headers(), "Expect")).isNotPresent();
     }
 
+    private SdkHttpFullRequest sdkHttpFullRequest() {
+        return SdkHttpFullRequest.builder()
+                                 .protocol("http")
+                                 .host("test.com")
+                                 .port(80)
+                                 .method(SdkHttpMethod.GET)
+                                 .build();
+    }
 }

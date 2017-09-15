@@ -23,6 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -45,6 +46,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @RunWith(MockitoJUnitRunner.class)
 public final class UrlConnectionHttpClientIntegrationTest {
@@ -72,9 +74,9 @@ public final class UrlConnectionHttpClientIntegrationTest {
         verify(1, getRequestedFor(urlMatching("/"))
             .withHeader("Host", containing("localhost"))
             .withHeader("User-Agent", containing("hello")));
-        assertThat(IoUtils.toString(response.getContent())).isEqualTo("hello");
-        assertThat(response.getFirstHeaderValue("Some-Header")).contains("With Value");
-        assertThat(response.getFirstHeaderValue("Some-Header")).contains("With Value");
+        assertThat(IoUtils.toString(response.content().orElse(null))).isEqualTo("hello");
+        assertThat(SdkHttpUtils.firstMatchingHeader(response.headers(), "Some-Header")).contains("With Value");
+        assertThat(SdkHttpUtils.firstMatchingHeader(response.headers(), "Some-Header")).contains("With Value");
     }
 
     @Test
@@ -96,21 +98,19 @@ public final class UrlConnectionHttpClientIntegrationTest {
         SdkHttpFullResponse response = client.prepareRequest(request, requestContext).call();
 
         verify(1, getRequestedFor(urlMatching("/")).withHeader("Host", containing("localhost")));
-        assertThat(IoUtils.toString(response.getContent())).isEqualTo("response");
-        assertThat(response.getStatusCode()).isEqualTo(returnCode);
+        assertThat(IoUtils.toString(response.content().orElse(null))).isEqualTo("response");
+        assertThat(response.statusCode()).isEqualTo(returnCode);
         mockServer.resetMappings();
     }
 
     private SdkHttpFullRequest mockSdkRequest(URI uri) {
-        SdkHttpFullRequest request = mock(SdkHttpFullRequest.class);
-        when(request.getEndpoint()).thenReturn(uri);
-        when(request.getHttpMethod()).thenReturn(SdkHttpMethod.GET);
-        when(request.getResourcePath()).thenReturn("/");
-        when(request.getParameters()).thenReturn(Collections.emptyMap());
-        Map<String, List<String>> headers = new HashMap<>();
-        headers.put("Host", Collections.singletonList(uri.getHost()));
-        headers.put("User-Agent", Collections.singletonList("hello-world!"));
-        when(request.getHeaders()).thenReturn(headers);
-        return request;
+        return SdkHttpFullRequest.builder()
+                                 .host(uri.getHost())
+                                 .protocol(uri.getScheme())
+                                 .port(uri.getPort())
+                                 .method(SdkHttpMethod.GET)
+                                 .header("Host", uri.getHost())
+                                 .header("User-Agent", "hello-world!")
+                                 .build();
     }
 }

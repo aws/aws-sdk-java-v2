@@ -153,7 +153,7 @@ public class HttpResponse implements Abortable {
      * If we get back any 2xx status code, then we know we should treat the service call as successful.
      */
     public boolean isSuccessful() {
-        return statusCode / 100 == HttpStatusCodes.OK / 100;
+        return HttpStatusFamily.of(statusCode) == HttpStatusFamily.SUCCESSFUL;
     }
 
     @Override

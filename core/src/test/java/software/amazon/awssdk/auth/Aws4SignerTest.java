@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.io.ByteArrayInputStream;
-import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -31,6 +30,7 @@ import org.junit.Test;
 import software.amazon.awssdk.auth.internal.Aws4SignerUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Unit tests for the {@link Aws4Signer}.
@@ -64,7 +64,7 @@ public class Aws4SignerTest {
         signer.setServiceName("demo");
 
         SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.build(), credentials);
-        assertThat(signed.getFirstHeaderValue("Authorization"))
+        assertThat(SdkHttpUtils.firstMatchingHeader(signed.headers(), "Authorization"))
                 .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
 
 
@@ -73,7 +73,32 @@ public class Aws4SignerTest {
         request.header("x-amz-sha256", "required");
 
         signed = SignerTestUtils.signRequest(signer, request.build(), credentials);
-        assertThat(signed.getFirstHeaderValue("Authorization")).hasValue(expectedAuthorizationHeaderWithSha256Header);
+        assertThat(
+                SdkHttpUtils
+                        .firstMatchingHeader(signed.headers(), "Authorization")).hasValue(expectedAuthorizationHeaderWithSha256Header);
+    }
+
+    @Test
+    public void queryParamsWithNullValuesAreStillSignedWithTrailingEquals() throws Exception {
+        final String expectedAuthorizationHeaderWithoutSha256Header =
+                "AWS4-HMAC-SHA256 Credential=access/19810216/us-east-1/demo/aws4_request, " +
+                "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
+                "Signature=c45a3ff1f028e83017f3812c06b4440f0b3240264258f6e18cd683b816990ba4";
+
+        AwsCredentials credentials = new AwsCredentials("access", "secret");
+        // Test request without 'x-amz-sha256' header
+        SdkHttpFullRequest.Builder request = generateBasicRequest().rawQueryParameter("Foo", (String) null);
+
+        Calendar calendar = new GregorianCalendar();
+        calendar.set(1981, 1, 16, 6, 30, 0);
+        calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        signer.setOverrideDate(calendar.getTime());
+        signer.setServiceName("demo");
+
+        SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.build(), credentials);
+        assertThat(SdkHttpUtils.firstMatchingHeader(signed.headers(), "Authorization"))
+                .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
     }
 
     @Test
@@ -96,10 +121,10 @@ public class Aws4SignerTest {
         signer.setServiceName("demo");
 
         SdkHttpFullRequest signed = SignerTestUtils.presignRequest(signer, request, credentials, null);
-        assertEquals(expectedAmzSignature, signed.getParameters().get("X-Amz-Signature").get(0));
-        assertEquals(expectedAmzCredentials, signed.getParameters().get("X-Amz-Credential").get(0));
-        assertEquals(expectedAmzHeader, signed.getParameters().get("X-Amz-Date").get(0));
-        assertEquals(expectedAmzExpires, signed.getParameters().get("X-Amz-Expires").get(0));
+        assertEquals(expectedAmzSignature, signed.rawQueryParameters().get("X-Amz-Signature").get(0));
+        assertEquals(expectedAmzCredentials, signed.rawQueryParameters().get("X-Amz-Credential").get(0));
+        assertEquals(expectedAmzHeader, signed.rawQueryParameters().get("X-Amz-Date").get(0));
+        assertEquals(expectedAmzExpires, signed.rawQueryParameters().get("X-Amz-Expires").get(0));
     }
 
     /**
@@ -118,7 +143,7 @@ public class Aws4SignerTest {
 
         SignerTestUtils.signRequest(signer, request, credentials);
 
-        assertNull(request.getHeaders().get("Authorization"));
+        assertNull(request.headers().get("Authorization"));
     }
 
     /**
@@ -138,7 +163,7 @@ public class Aws4SignerTest {
 
         SdkHttpFullRequest actual = SignerTestUtils.signRequest(signer, request.build(), credentials);
 
-        assertThat(actual.getFirstHeaderValue("Authorization"))
+        assertThat(SdkHttpUtils.firstMatchingHeader(actual.headers(), "Authorization"))
                 .hasValue("AWS4-HMAC-SHA256 Credential=akid/19810216/us-east-1/demo/aws4_request, " +
                           "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
                           "Signature=581d0042389009a28d461124138f1fe8eeb8daed87611d2a2b47fd3d68d81d73");
@@ -147,11 +172,12 @@ public class Aws4SignerTest {
     private SdkHttpFullRequest.Builder generateBasicRequest() {
         return SdkHttpFullRequest.builder()
                                  .content(new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
-                                 .httpMethod(SdkHttpMethod.POST)
+                                 .method(SdkHttpMethod.POST)
                                  .header("Host", "demo.us-east-1.amazonaws.com")
                                  .header("x-amz-archive-description", "test  test")
-                                 .resourcePath("/")
-                                 .endpoint(URI.create("http://demo.us-east-1.amazonaws.com"));
+                                 .encodedPath("/")
+                                 .protocol("http")
+                                 .host("demo.us-east-1.amazonaws.com");
     }
 
     private String getOldTimeStamp(Date date) {

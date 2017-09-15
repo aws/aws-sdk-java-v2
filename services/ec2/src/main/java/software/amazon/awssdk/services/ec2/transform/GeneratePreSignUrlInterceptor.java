@@ -30,7 +30,6 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.EC2Client;
 import software.amazon.awssdk.services.ec2.model.CopySnapshotRequest;
 import software.amazon.awssdk.util.AwsHostNameUtils;
-import software.amazon.awssdk.util.SdkHttpUtils;
 
 /**
  * ExecutionInterceptor that generates a pre-signed URL for copying encrypted snapshots
@@ -65,20 +64,20 @@ public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
              * as the destination region in the client before calling this
              * request.
              */
-
-            URI endPointDestination = request.getEndpoint();
             String destinationRegion = originalCopySnapshotRequest
                                                .destinationRegion() != null ? originalCopySnapshotRequest
                     .destinationRegion() : AwsHostNameUtils
-                    .parseRegionName(endPointDestination.getHost(), serviceName);
+                    .parseRegionName(request.host(), serviceName);
 
             URI endPointSource = createEndpoint(sourceRegion, serviceName);
 
             SdkHttpFullRequest requestForPresigning = generateRequestForPresigning(
                     sourceSnapshotId, sourceRegion, destinationRegion)
                     .toBuilder()
-                    .endpoint(endPointSource)
-                    .httpMethod(SdkHttpMethod.GET)
+                    .protocol(endPointSource.getScheme())
+                    .host(endPointSource.getHost())
+                    .port(endPointSource.getPort())
+                    .method(SdkHttpMethod.GET)
                     .build();
 
             Aws4Signer signer = new Aws4Signer();
@@ -93,8 +92,8 @@ public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
                     signer.presign(newExecutionContext, executionAttributes, null);
 
             return request.toBuilder()
-                          .queryParameter("DestinationRegion", destinationRegion)
-                          .queryParameter("PresignedUrl", generateUrl(presignedRequest))
+                          .rawQueryParameter("DestinationRegion", destinationRegion)
+                          .rawQueryParameter("PresignedUrl", presignedRequest.getUri().toString())
                           .build();
         }
 
@@ -116,22 +115,6 @@ public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
                                                                      .build();
 
         return SdkHttpFullRequestAdapter.toHttpFullRequest(new CopySnapshotRequestMarshaller().marshall(copySnapshotRequest));
-
-    }
-
-    private String generateUrl(SdkHttpFullRequest request) {
-
-        URI endpoint = request.getEndpoint();
-        String uri = SdkHttpUtils.appendUri(endpoint.toString(),
-                                            request.getResourcePath(), true);
-        String encodedParams = SdkHttpUtils.encodeParameters(request);
-
-        if (encodedParams != null) {
-            uri += "?" + encodedParams;
-        }
-
-        return uri;
-
     }
 
     private URI createEndpoint(String regionName, String serviceName) {

@@ -19,7 +19,6 @@ import static software.amazon.awssdk.interceptor.AwsExecutionAttributes.REQUEST_
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
@@ -42,10 +41,10 @@ import software.amazon.awssdk.auth.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.event.ProgressInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.runtime.io.SdkDigestInputStream;
-import software.amazon.awssdk.util.SdkHttpUtils;
 import software.amazon.awssdk.utils.Base64Utils;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Abstract base class for AWS signing protocol implementations. Provides
@@ -60,18 +59,15 @@ public abstract class AbstractAwsSigner implements Signer {
     private static final ThreadLocal<MessageDigest> SHA256_MESSAGE_DIGEST;
 
     static {
-        SHA256_MESSAGE_DIGEST = new ThreadLocal<MessageDigest>() {
-            @Override
-            protected MessageDigest initialValue() {
-                try {
-                    return MessageDigest.getInstance("SHA-256");
-                } catch (NoSuchAlgorithmException e) {
-                    throw new SdkClientException(
-                            "Unable to get SHA256 Function"
-                            + e.getMessage(), e);
-                }
+        SHA256_MESSAGE_DIGEST = ThreadLocal.withInitial(() -> {
+            try {
+                return MessageDigest.getInstance("SHA-256");
+            } catch (NoSuchAlgorithmException e) {
+                throw new SdkClientException(
+                        "Unable to get SHA256 Function"
+                        + e.getMessage(), e);
             }
-        };
+        });
         EMPTY_STRING_SHA256_HEX = BinaryUtils.toHex(doHash(""));
     }
 
@@ -224,32 +220,24 @@ public abstract class AbstractAwsSigner implements Signer {
          * encoding in addition to sorted parameter names.
          */
         for (Map.Entry<String, List<String>> entry : parameters.entrySet()) {
-            final String encodedParamName = SdkHttpUtils.urlEncode(
-                    entry.getKey(), false);
+            final String encodedParamName = SdkHttpUtils.urlEncode(entry.getKey());
             final List<String> paramValues = entry.getValue();
-            final List<String> encodedValues = new ArrayList<String>(
-                    paramValues.size());
+            final List<String> encodedValues = new ArrayList<>(paramValues.size());
             for (String value : paramValues) {
-                encodedValues.add(SdkHttpUtils.urlEncode(value, false));
+                String encodedValue = SdkHttpUtils.urlEncode(value);
+
+                // Null values should be treated as empty for the purposes of signing, not missing.
+                // For example "?foo=" instead of "?foo".
+                String signatureFormattedEncodedValue = encodedValue == null ? "" : encodedValue;
+
+                encodedValues.add(signatureFormattedEncodedValue);
             }
             Collections.sort(encodedValues);
             sorted.put(encodedParamName, encodedValues);
 
         }
 
-        final StringBuilder result = new StringBuilder();
-        for (Map.Entry<String, List<String>> entry : sorted.entrySet()) {
-            for (String value : entry.getValue()) {
-                if (result.length() > 0) {
-                    result.append("&");
-                }
-                result.append(entry.getKey())
-                      .append("=")
-                      .append(value);
-            }
-        }
-
-        return result.toString();
+        return SdkHttpUtils.flattenQueryParameters(sorted).orElse("");
     }
 
     protected static int getReadLimit(Aws4SignerRequestParams signerRequestParams) {
@@ -293,7 +281,7 @@ public abstract class AbstractAwsSigner implements Signer {
         if (resourcePath == null || resourcePath.isEmpty()) {
             return "/";
         } else {
-            String value = urlEncode ? SdkHttpUtils.urlEncode(resourcePath, true) : resourcePath;
+            String value = urlEncode ? SdkHttpUtils.urlEncodeIgnoreSlashes(resourcePath) : resourcePath;
             if (value.startsWith("/")) {
                 return value;
             } else {
@@ -302,17 +290,13 @@ public abstract class AbstractAwsSigner implements Signer {
         }
     }
 
-    protected String getCanonicalizedEndpoint(URI endpoint) {
-        String endpointForStringToSign = StringUtils.lowerCase(endpoint.getHost());
-        /*
-         * Apache HttpClient will omit the port in the Host header for default
-         * port values (i.e. 80 for HTTP and 443 for HTTPS) even if we
-         * explicitly specify it, so we need to be careful that we use the same
-         * value here when we calculate the string to sign and in the Host
-         * header we send in the HTTP request.
-         */
-        if (SdkHttpUtils.isUsingNonDefaultPort(endpoint)) {
-            endpointForStringToSign += ":" + endpoint.getPort();
+    protected String getCanonicalizedEndpoint(SdkHttpFullRequest request) {
+        String endpointForStringToSign = StringUtils.lowerCase(request.host());
+
+        // Omit the port from the endpoint if we're using the default port for the protocol. Some HTTP clients (ie. Apache) don't
+        // allow you to specify it in the request, so we're standardizing around not including it. See SdkHttpRequest#port().
+        if (!SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())) {
+            endpointForStringToSign += ":" + request.port();
         }
 
         return endpointForStringToSign;

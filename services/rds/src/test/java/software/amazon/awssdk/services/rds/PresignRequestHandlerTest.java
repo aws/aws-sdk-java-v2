@@ -26,6 +26,7 @@ import java.util.TimeZone;
 import org.junit.Test;
 import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.Protocol;
+import software.amazon.awssdk.Request;
 import software.amazon.awssdk.auth.AwsCredentials;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullRequestAdapter;
@@ -38,6 +39,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.runtime.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.services.rds.model.CopyDBSnapshotRequest;
 import software.amazon.awssdk.services.rds.transform.CopyDBSnapshotRequestMarshaller;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Unit Tests for {@link RdsPresignInterceptor}
@@ -54,7 +56,7 @@ public class PresignRequestHandlerTest {
         CopyDBSnapshotRequest request = makeTestRequest();
         SdkHttpFullRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
 
-        assertNotNull(presignedRequest.getParameters().get("PreSignedUrl").get(0));
+        assertNotNull(presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
     }
 
     @Test
@@ -80,7 +82,7 @@ public class PresignRequestHandlerTest {
 
         SdkHttpFullRequest presignedRequest = modifyHttpRequest(interceptor, request, marshallRequest(request));
 
-        final String expectedPreSignedUrl = "https://rds.us-east-1.amazonaws.com/?" +
+        final String expectedPreSignedUrl = "https://rds.us-east-1.amazonaws.com?" +
                 "Action=CopyDBSnapshot" +
                 "&Version=2014-10-31" +
                 "&SourceDBSnapshotIdentifier=arn%3Aaws%3Ards%3Aus-east-1%3A123456789012%3Asnapshot%3Ards%3Atest-instance-ss-2016-12-20-23-19" +
@@ -94,7 +96,7 @@ public class PresignRequestHandlerTest {
                 "&X-Amz-Credential=foo%2F20161221%2Fus-east-1%2Frds%2Faws4_request" +
                 "&X-Amz-Signature=f839ca3c728dc96e7c978befeac648296b9f778f6724073de4217173859d13d9";
 
-        assertEquals(expectedPreSignedUrl, presignedRequest.getParameters().get("PreSignedUrl").get(0));
+        assertEquals(expectedPreSignedUrl, presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
     }
 
     @Test
@@ -107,7 +109,7 @@ public class PresignRequestHandlerTest {
 
         SdkHttpFullRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
 
-        assertEquals("PRESIGNED", presignedRequest.getParameters().get("PreSignedUrl").get(0));
+        assertEquals("PRESIGNED", presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
     }
 
     @Test
@@ -116,7 +118,7 @@ public class PresignRequestHandlerTest {
 
         SdkHttpFullRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshallRequest(request));
 
-        assertNull(presignedRequest.getParameters().get("PreSignedUrl"));
+        assertNull(presignedRequest.rawQueryParameters().get("PreSignedUrl"));
     }
 
     @Test
@@ -129,7 +131,7 @@ public class PresignRequestHandlerTest {
 
         final SdkHttpFullRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshalled);
 
-        final URI presignedUrl = new URI(presignedRequest.getParameters().get("PreSignedUrl").get(0));
+        final URI presignedUrl = new URI(presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
         assertTrue(presignedUrl.toString().contains("DestinationRegion=" + destination.value()));
     }
 
@@ -139,15 +141,22 @@ public class PresignRequestHandlerTest {
         SdkHttpFullRequest marshalled = marshallRequest(request);
         SdkHttpFullRequest actual = modifyHttpRequest(presignInterceptor, request, marshalled);
 
-        assertFalse(actual.getParameters().containsKey("SourceRegion"));
+        assertFalse(actual.rawQueryParameters().containsKey("SourceRegion"));
     }
 
     private SdkHttpFullRequest marshallRequest(CopyDBSnapshotRequest request) throws URISyntaxException {
-        SdkHttpFullRequest marshalled = SdkHttpFullRequestAdapter.toHttpFullRequest(marshaller.marshall(request));
+        Request<CopyDBSnapshotRequest> legacyMarshalled = marshaller.marshall(request);
+        legacyMarshalled.setEndpoint(URI.create("https://example.com"));
+
+        SdkHttpFullRequest marshalled = SdkHttpFullRequestAdapter.toHttpFullRequest(legacyMarshalled);
+        URI endpoint = new DefaultServiceEndpointBuilder("rds", Protocol.HTTPS.toString())
+                          .withRegion(DESTINATION_REGION)
+                          .getServiceEndpoint();
         return marshalled.toBuilder()
-                         .endpoint(new DefaultServiceEndpointBuilder("rds", Protocol.HTTPS.toString())
-                                           .withRegion(DESTINATION_REGION)
-                                           .getServiceEndpoint())
+                         .protocol(endpoint.getScheme())
+                         .host(endpoint.getHost())
+                         .port(endpoint.getPort())
+                         .encodedPath(SdkHttpUtils.appendUri(endpoint.getPath(), marshalled.encodedPath()))
                          .build();
     }
 

@@ -33,10 +33,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.AmazonServiceException.ErrorType;
-import software.amazon.awssdk.DefaultRequest;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
-import software.amazon.awssdk.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.internal.http.JsonErrorCodeParser;
@@ -44,6 +42,7 @@ import software.amazon.awssdk.runtime.http.JsonErrorMessageParser;
 import software.amazon.awssdk.runtime.transform.JsonErrorUnmarshaller;
 import software.amazon.awssdk.util.StringInputStream;
 import software.amazon.awssdk.util.StringUtils;
+import utils.ValidSdkObjects;
 
 public class JsonErrorResponseHandlerTest {
 
@@ -65,7 +64,7 @@ public class JsonErrorResponseHandlerTest {
                      .parseErrorCode(anyObject(), anyObject()))
                 .thenReturn(ERROR_CODE);
 
-        httpResponse = new HttpResponse(SdkHttpFullRequestAdapter.toHttpFullRequest(new DefaultRequest<>(SERVICE_NAME)));
+        httpResponse = new HttpResponse(ValidSdkObjects.sdkHttpFullRequest().build());
         httpResponse.setContent(new StringInputStream("{}"));
 
         responseHandler = new JsonErrorResponseHandler(Collections.singletonList(unmarshaller), errorCodeParser,

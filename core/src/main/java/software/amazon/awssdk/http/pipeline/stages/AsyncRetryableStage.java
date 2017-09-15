@@ -80,7 +80,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
      * @throws ResetException If Input Stream can't be reset which means the request can't be retried.
      */
     private static void resetRequestInputStream(InputStream inputStream) throws ResetException {
-        if (inputStream != null && inputStream.markSupported()) {
+        if (inputStream.markSupported()) {
             try {
                 inputStream.reset();
             } catch (IOException ex) {
@@ -199,10 +199,10 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
 
         private CompletableFuture<Response<OutputT>> doExecute() throws Exception {
             if (isRetry()) {
-                resetRequestInputStream(request.getContent());
+                request.content().ifPresent(AsyncRetryableStage::resetRequestInputStream);
             }
 
-            markInputStream(request.getContent());
+            request.content().ifPresent(this::markInputStream);
 
             SdkStandardLoggers.REQUEST_LOGGER.debug(() -> (isRetry() ? "Retrying " : "Sending ") + "Request: " + request);
 
@@ -251,7 +251,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
          * Mark the input stream at the current position to allow a reset on retries.
          */
         private void markInputStream(InputStream originalContent) {
-            if (originalContent != null && originalContent.markSupported()) {
+            if (originalContent.markSupported()) {
                 originalContent.mark(readLimit());
             }
         }

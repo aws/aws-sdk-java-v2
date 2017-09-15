@@ -42,7 +42,7 @@ public class RetryCountInUserAgentTest extends WireMockTestBase {
 
     private static final int[] BACKOFF_VALUES = new int[]{0, 10, 20};
 
-    private static final String RESOURCE_PATH = "/user-agent/";
+    private static final String RESOURCE_PATH = "/user-agent";
 
     @Test
     public void retriedRequest_AppendsCorrectRetryCountInUserAgent() throws Exception {

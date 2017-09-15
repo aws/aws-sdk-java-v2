@@ -18,7 +18,7 @@ package software.amazon.awssdk.http;
 /**
  * Constants for common HTTP status codes.
  */
-public class HttpStatusCodes {
+public final class HttpStatusCodes {
 
     // --- 1xx Informational ---
 
@@ -57,4 +57,6 @@ public class HttpStatusCodes {
     public static final int BAD_GATEWAY = 502;
     public static final int SERVICE_UNAVAILABLE = 503;
     public static final int GATEWAY_TIMEOUT = 504;
+
+    private HttpStatusCodes() {}
 }

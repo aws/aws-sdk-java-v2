@@ -25,9 +25,11 @@ import java.util.stream.Stream;
 import org.junit.Test;
 import software.amazon.awssdk.RequestConfig;
 import software.amazon.awssdk.RequestExecutionContext;
+import software.amazon.awssdk.http.ExecutionContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
+import utils.ValidSdkObjects;
 
 public class MoveParametersToBodyStageTest {
 
@@ -35,18 +37,18 @@ public class MoveParametersToBodyStageTest {
 
     @Test
     public void postRequestsWithNoBodyHaveTheirParametersMovedToTheBody() throws Exception {
-        SdkHttpFullRequest.Builder mutableRequest = SdkHttpFullRequest.builder()
-                                                                      .content(null)
-                                                                      .httpMethod(SdkHttpMethod.POST)
-                                                                      .queryParameter("key", singletonList("value"));
+        SdkHttpFullRequest.Builder mutableRequest = ValidSdkObjects.sdkHttpFullRequest()
+                                                                   .content(null)
+                                                                   .method(SdkHttpMethod.POST)
+                                                                   .rawQueryParameter("key", singletonList("value"));
 
         SdkHttpFullRequest output = sut.execute(mutableRequest, requestContext(mutableRequest)).build();
 
-        assertThat(output.getParameters()).hasSize(0);
-        assertThat(output.getHeaders())
+        assertThat(output.rawQueryParameters()).hasSize(0);
+        assertThat(output.headers())
                 .containsKey("Content-Length")
                 .containsEntry("Content-Type", singletonList("application/x-www-form-urlencoded; charset=utf-8"));
-        assertThat(output.getContent()).isNotNull();
+        assertThat(output.content()).isNotEmpty();
     }
 
     @Test
@@ -59,47 +61,48 @@ public class MoveParametersToBodyStageTest {
     @Test
     public void postWithContentIsUnaltered() throws Exception {
         InputStream content = new ByteArrayInputStream("hello".getBytes(StandardCharsets.UTF_8));
-        SdkHttpFullRequest.Builder mutableRequest = SdkHttpFullRequest.builder()
-                                                                      .content(content)
-                                                                      .httpMethod(SdkHttpMethod.POST)
-                                                                      .queryParameter("key", singletonList("value"));
+        SdkHttpFullRequest.Builder mutableRequest = ValidSdkObjects.sdkHttpFullRequest()
+                                                                   .content(content)
+                                                                   .method(SdkHttpMethod.POST)
+                                                                   .rawQueryParameter("key", singletonList("value"));
 
         SdkHttpFullRequest output = sut.execute(mutableRequest, requestContext(mutableRequest)).build();
 
-        assertThat(output.getParameters()).hasSize(1);
-        assertThat(output.getHeaders()).hasSize(0);
-        assertThat(output.getContent()).isEqualTo(content);
+        assertThat(output.rawQueryParameters()).hasSize(1);
+        assertThat(output.headers()).hasSize(0);
+        assertThat(output.content()).hasValue(content);
     }
 
     @Test
     public void onlyAlterRequestsIfParamsArePresent() throws Exception {
-        SdkHttpFullRequest.Builder mutableRequest = SdkHttpFullRequest.builder()
-                                                                      .content(null)
-                                                                      .httpMethod(SdkHttpMethod.POST);
+        SdkHttpFullRequest.Builder mutableRequest = ValidSdkObjects.sdkHttpFullRequest()
+                                                                   .content(null)
+                                                                   .method(SdkHttpMethod.POST);
 
         SdkHttpFullRequest output = sut.execute(mutableRequest, requestContext(mutableRequest)).build();
 
-        assertThat(output.getParameters()).hasSize(0);
-        assertThat(output.getHeaders()).hasSize(0);
-        assertThat(output.getContent()).isNull();
+        assertThat(output.rawQueryParameters()).hasSize(0);
+        assertThat(output.headers()).hasSize(0);
+        assertThat(output.content()).isEmpty();
     }
 
     private void nonPostRequestsUnaltered(SdkHttpMethod method) {
-        SdkHttpFullRequest.Builder mutableRequest = SdkHttpFullRequest.builder()
-                                                                      .content(null)
-                                                                      .httpMethod(method)
-                                                                      .queryParameter("key", singletonList("value"));
+        SdkHttpFullRequest.Builder mutableRequest = ValidSdkObjects.sdkHttpFullRequest()
+                                                                   .content(null)
+                                                                   .method(method)
+                                                                   .rawQueryParameter("key", singletonList("value"));
 
         SdkHttpFullRequest output = sut.execute(mutableRequest, requestContext(mutableRequest)).build();
 
-        assertThat(output.getParameters()).hasSize(1);
-        assertThat(output.getHeaders()).hasSize(0);
-        assertThat(output.getContent()).isNull();
+        assertThat(output.rawQueryParameters()).hasSize(1);
+        assertThat(output.headers()).hasSize(0);
+        assertThat(output.content()).isEmpty();
     }
 
     private RequestExecutionContext requestContext(SdkHttpFullRequest.Builder mutableRequest) {
+        ExecutionContext executionContext = ClientExecutionAndRequestTimerTestUtils.executionContext(mutableRequest.build());
         return RequestExecutionContext.builder()
-                                      .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(mutableRequest))
+                                      .executionContext(executionContext)
                                       .requestConfig(RequestConfig.empty())
                                       .build();
     }

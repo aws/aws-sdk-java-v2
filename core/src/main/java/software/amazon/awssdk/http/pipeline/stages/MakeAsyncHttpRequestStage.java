@@ -29,7 +29,7 @@ import software.amazon.awssdk.event.ProgressEventType;
 import software.amazon.awssdk.event.ProgressListener;
 import software.amazon.awssdk.http.HttpAsyncClientDependencies;
 import software.amazon.awssdk.http.HttpResponse;
-import software.amazon.awssdk.http.HttpStatusCodes;
+import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.InterruptMonitor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -43,6 +43,7 @@ import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.http.async.SimpleRequestProvider;
 import software.amazon.awssdk.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Delegate to the HTTP implementation to make an HTTP request and receive the response.
@@ -111,10 +112,10 @@ public class MakeAsyncHttpRequestStage<OutputT>
 
     private boolean shouldSetContentLength(SdkHttpFullRequest request, SdkHttpRequestProvider requestProvider) {
         return requestProvider != null
-               && !request.getFirstHeaderValue("Content-Length").isPresent()
+               && !SdkHttpUtils.firstMatchingHeader(request.headers(), "Content-Length").isPresent()
                // Can cause issues with signing if content length is present for these method
-               && request.getHttpMethod() != SdkHttpMethod.GET
-               && request.getHttpMethod() != SdkHttpMethod.HEAD;
+               && request.method() != SdkHttpMethod.GET
+               && request.method() != SdkHttpMethod.HEAD;
 
     }
 
@@ -159,7 +160,7 @@ public class MakeAsyncHttpRequestStage<OutputT>
 
         @Override
         public void headersReceived(SdkHttpResponse response) {
-            if (isSuccessful(response.getStatusCode())) {
+            if (HttpStatusFamily.of(response.statusCode()) == HttpStatusFamily.SUCCESSFUL) {
                 isSuccess = true;
                 responseHandler.headersReceived(response);
             } else {
@@ -199,13 +200,6 @@ public class MakeAsyncHttpRequestStage<OutputT>
                 future.completeExceptionally(e);
                 throw e;
             }
-        }
-
-        /**
-         * If we get back any 2xx status code, then we know we should treat the service call as successful.
-         */
-        private boolean isSuccessful(int statusCode) {
-            return statusCode / 100 == HttpStatusCodes.OK / 100;
         }
 
         private Response<OutputT> handleResponse(HttpResponse httpResponse) {
