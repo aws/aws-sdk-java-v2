@@ -134,7 +134,7 @@ public enum AwsSystemSetting implements SystemSetting {
      * This allows a service running in an elastic container to automatically load its credentials without needing to configure
      * them in the {@link ClientBuilder}.
      *
-     * This is not used if the {@link #AWS_CONTAINER_CREDENTIALS_PATH} is not specified.
+     * This is not used if the {@link #AWS_CONTAINER_CREDENTIALS_RELATIVE_URI} is not specified.
      */
     AWS_CONTAINER_SERVICE_ENDPOINT("aws.containerServiceEndpoint", "http://169.254.170.2"),
 
@@ -145,7 +145,7 @@ public enum AwsSystemSetting implements SystemSetting {
      *
      * @see #AWS_CONTAINER_SERVICE_ENDPOINT
      */
-    AWS_CONTAINER_CREDENTIALS_PATH("aws.containerCredentialsPath", null),
+    AWS_CONTAINER_CREDENTIALS_RELATIVE_URI("aws.containerCredentialsPath", null),
 
     /**
      * Whether CBOR optimization should automatically be used if its support is found on the classpath and the service supports

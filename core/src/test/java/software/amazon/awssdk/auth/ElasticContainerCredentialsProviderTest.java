@@ -68,7 +68,7 @@ public class ElasticContainerCredentialsProviderTest {
     @Test
     public void testGetCredentialsReturnsValidResponseFromEcsEndpoint() {
         try {
-            System.setProperty(AwsSystemSetting.AWS_CONTAINER_CREDENTIALS_PATH.property(), "");
+            System.setProperty(AwsSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI.property(), "");
 
             stubForSuccessResponse();
 
@@ -79,7 +79,7 @@ public class ElasticContainerCredentialsProviderTest {
             assertThat(credentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
             assertThat(credentials.sessionToken()).isEqualTo(TOKEN);
         } finally {
-            System.clearProperty(AwsSystemSetting.AWS_CONTAINER_CREDENTIALS_PATH.property());
+            System.clearProperty(AwsSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI.property());
         }
     }
 
