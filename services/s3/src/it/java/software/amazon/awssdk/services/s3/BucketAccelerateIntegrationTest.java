@@ -21,7 +21,9 @@ import java.io.File;
 import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.AccelerateConfiguration;
 import software.amazon.awssdk.services.s3.model.BucketAccelerateStatus;
@@ -50,6 +52,10 @@ import software.amazon.awssdk.test.util.RandomTempFile;
 /**
  * Integration tests for S3 bucket accelerate configuration.
  */
+@ReviewBeforeRelease("These tests are a bit flaky. Looks like S3 returns 307 Temporary Redirect occasionally " +
+                     "for a newly accelerated bucket. Not sure what the right fix is without following redirects " +
+                     "which we don't want to do for other reasons.")
+@Ignore
 public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
 
     private static final String US_BUCKET_NAME = "s3-accelerate-us-east-1-" + System.currentTimeMillis();
