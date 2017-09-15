@@ -87,7 +87,7 @@ public class ElasticContainerCredentialsProvider implements AwsCredentialsProvid
     }
 
     private static boolean isEnabled() {
-        return AwsSystemSetting.AWS_CONTAINER_CREDENTIALS_PATH.getStringValue().isPresent();
+        return AwsSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI.getStringValue().isPresent();
     }
 
     /**
@@ -97,7 +97,7 @@ public class ElasticContainerCredentialsProvider implements AwsCredentialsProvid
         @Override
         public URI getCredentialsEndpoint() throws URISyntaxException {
             return new URI(AwsSystemSetting.AWS_CONTAINER_SERVICE_ENDPOINT.getStringValueOrThrow() +
-                           AwsSystemSetting.AWS_CONTAINER_CREDENTIALS_PATH.getStringValueOrThrow());
+                           AwsSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI.getStringValueOrThrow());
         }
 
         @Override
