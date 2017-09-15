@@ -88,9 +88,9 @@ public final class RunnableRequest implements AbortableRunnable {
         channel.pipeline().addFirst(new WriteTimeoutHandler(50));
         channel.pipeline().addFirst(new ReadTimeoutHandler(50));
         channel.pipeline().addLast(new DongiePeekingHandler());
-        //channel.pipeline().addLast(new HttpStreamsClientHandler());
+        channel.pipeline().addLast(new HttpStreamsClientHandler());
         channel.pipeline().addLast(new ResponseHandler());
-        channel.pipeline().addLast(new DongieOutboundHandler());
+        //channel.pipeline().addLast(new DongieOutboundHandler());
     }
 
     /**
@@ -115,7 +115,7 @@ public final class RunnableRequest implements AbortableRunnable {
     }
 
     private void makeRequest(HttpRequest request) {
-        //request.headers().add("Expect", "100-continue");
+        request.headers().add("Expect", "100-continue");
         log.debug("Writing request: {}", request);
         channel.writeAndFlush(new StreamedRequest(request, context.sdkRequestProvider(), channel))
                .addListener(wireCall -> {

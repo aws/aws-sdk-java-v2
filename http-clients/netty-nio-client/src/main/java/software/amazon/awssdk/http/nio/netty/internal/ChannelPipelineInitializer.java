@@ -62,6 +62,6 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
         p.addLast(new HttpClientCodec());
         p.addLast(handlers);
         // Disabling auto-read is needed for backpressure to work
-        ch.config().setOption(ChannelOption.AUTO_READ, false);
+        ch.config().setOption(ChannelOption.AUTO_READ, true);
     }
 }

@@ -85,22 +85,25 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                                                              .build();
             channelContext.channel().attr(KEEP_ALIVE).set(HttpUtil.isKeepAlive(response));
             requestContext.handler().headersReceived(sdkResponse);
-            DongiePublisher publisher = new DongiePublisher();
-            requestContext.handler().onStream(publisher);
-            channelContext.channel().attr(ChannelAttributeKeys.PUBLISHER_KEY).set(publisher);
         }
 
-        if (msg instanceof HttpContent) {
-            log(String.format("Request Thread %d: HttpContent read", requestContext.requestThreadId()));
-            DongiePublisher publisher = (DongiePublisher) channelContext.channel().attr(ChannelAttributeKeys.PUBLISHER_KEY).get();
-            publisher.newData(copyToByteBuffer(((HttpContent) msg).content()));
-            channelContext.channel().read();
+        if (msg instanceof StreamedHttpResponse) {
+            log(String.format("Request Thread %d: StreamedHttpResponse read", requestContext.requestThreadId()));
+            requestContext.handler().onStream(new PublisherAdapter((StreamedHttpResponse) msg, channelContext, requestContext));
+        } else if (msg instanceof FullHttpResponse) {
+            log(String.format("Request Thread %d: FullHttpResponse read", requestContext.requestThreadId()));
+            requestContext.handler().onStream(new Publisher<ByteBuffer>() {
+                @Override
+                public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+                    subscriber.onNext(((FullHttpResponse) msg).content().nioBuffer());
+                    channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY)
+                            .set(subscriber);
+                }
+            });
         }
 
         if (msg instanceof LastHttpContent) {
-            log(String.format("Request Thread %d: LastHttpContent read", requestContext.requestThreadId()));
-            DongiePublisher publisher = (DongiePublisher) channelContext.channel().attr(ChannelAttributeKeys.PUBLISHER_KEY).get();
-            Subscriber<? super ByteBuffer> subscriber = publisher.getSubscriber();
+            Subscriber<? super ByteBuffer> subscriber = channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY).get();
             try {
                 subscriber.onComplete();
                 requestContext.handler().complete();
@@ -261,6 +264,6 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     }
 
     private static void log(String msg) {
-        //System.out.printf("[%s]: %s%n", ZonedDateTime.now(), msg);
+        System.out.printf("[%s]: %s%n", ZonedDateTime.now(), msg);
     }
 }
