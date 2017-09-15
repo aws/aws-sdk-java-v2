@@ -1,3 +1,8 @@
+# __2.0.0-preview-3__ __2017-MM-DD__
+## __Amazon DynamoDB__
+  - ### Deprecations
+    - `DynamoDBMapper` will be undergoing a major update/rewrite for v2, and in preparation for this, the mapper has been removed from the `services/dynamodb` module; the code has been moved to `test/dynamodbmapper-v1` and is currently being used for testing only.
+
 # __2.0.0-preview-1__ __2017-06-28__
 ## __AWS SDK for Java v2__
   - ### Features ###
