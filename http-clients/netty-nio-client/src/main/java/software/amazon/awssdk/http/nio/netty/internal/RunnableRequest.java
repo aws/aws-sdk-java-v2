@@ -26,6 +26,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.http.DefaultHttpContent;
+import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
@@ -44,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.async.AbortableRunnable;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
+import sun.net.www.http.HttpClient;
 
 public final class RunnableRequest implements AbortableRunnable {
 
@@ -80,13 +82,15 @@ public final class RunnableRequest implements AbortableRunnable {
         // Remove any existing handlers from the pipeline from the previous request.
         removeIfExists(HttpStreamsClientHandler.class, ResponseHandler.class,
                        ReadTimeoutHandler.class, WriteTimeoutHandler.class,
-                       HandlerPublisher.class, HandlerSubscriber.class);
+                       HandlerPublisher.class, HandlerSubscriber.class, DongiePeekingHandler.class, DongieOutboundHandler.class);
 
         // TODO make these configurable
         channel.pipeline().addFirst(new WriteTimeoutHandler(50));
         channel.pipeline().addFirst(new ReadTimeoutHandler(50));
-        channel.pipeline().addLast(new HttpStreamsClientHandler());
+        channel.pipeline().addLast(new DongiePeekingHandler());
+        //channel.pipeline().addLast(new HttpStreamsClientHandler());
         channel.pipeline().addLast(new ResponseHandler());
+        channel.pipeline().addLast(new DongieOutboundHandler());
     }
 
     /**
@@ -111,8 +115,9 @@ public final class RunnableRequest implements AbortableRunnable {
     }
 
     private void makeRequest(HttpRequest request) {
+        //request.headers().add("Expect", "100-continue");
         log.debug("Writing request: {}", request);
-        channel.writeAndFlush(new StreamedRequest(context.nettyRequest(), context.sdkRequestProvider(), channel))
+        channel.writeAndFlush(new StreamedRequest(request, context.sdkRequestProvider(), channel))
                .addListener(wireCall -> {
                    if (wireCall.isSuccess()) {
                        // Auto-read is turned off so trigger an explicit read to give control to HttpStreamsClientHandler

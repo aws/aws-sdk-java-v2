@@ -28,6 +28,7 @@ public final class RequestContext {
     private final SdkHttpRequestProvider requestProvider;
     private final HttpRequest nettyRequest;
     private final SdkHttpResponseHandler handler;
+    private final long requestThreadId;
 
     public RequestContext(ChannelPool channelPool,
                           SdkHttpRequest sdkRequest,
@@ -39,6 +40,7 @@ public final class RequestContext {
         this.requestProvider = requestProvider;
         this.nettyRequest = nettyRequest;
         this.handler = handler;
+        this.requestThreadId = Thread.currentThread().getId();
     }
 
     SdkHttpResponseHandler handler() {
@@ -59,5 +61,9 @@ public final class RequestContext {
 
     HttpRequest nettyRequest() {
         return nettyRequest;
+    }
+
+    long requestThreadId() {
+        return requestThreadId;
     }
 }

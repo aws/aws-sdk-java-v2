@@ -24,6 +24,7 @@ import com.typesafe.netty.HandlerSubscriber;
 import com.typesafe.netty.http.HttpStreamsClientHandler;
 import com.typesafe.netty.http.StreamedHttpResponse;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -39,7 +40,10 @@ import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.AttributeKey;
+
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -67,10 +71,13 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelContext, HttpObject msg) throws Exception {
+        //System.out.printf("ResponseHandler msg is: %s%n", msg.getClass().getSimpleName());
         RequestContext requestContext = channelContext.channel().attr(REQUEST_CONTEXT_KEY).get();
 
         if (msg instanceof HttpResponse) {
+            log(String.format("Request Thread %d: HttpResponse read", requestContext.requestThreadId()));
             HttpResponse response = (HttpResponse) msg;
+            //System.out.printf("Response: %s%n", response.status());
             SdkHttpResponse sdkResponse = SdkHttpFullResponse.builder()
                                                              .headers(fromNettyHeaders(response.headers()))
                                                              .statusCode(response.status().code())
@@ -78,22 +85,21 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                                                              .build();
             channelContext.channel().attr(KEEP_ALIVE).set(HttpUtil.isKeepAlive(response));
             requestContext.handler().headersReceived(sdkResponse);
+            DongiePublisher publisher = new DongiePublisher();
+            requestContext.handler().onStream(publisher);
+            channelContext.channel().attr(ChannelAttributeKeys.PUBLISHER_KEY).set(publisher);
         }
 
-        if (msg instanceof StreamedHttpResponse) {
-            //System.out.println("Yo this is a streamed HTTP response...");
-            requestContext.handler().onStream(new PublisherAdapter((StreamedHttpResponse) msg, channelContext, requestContext));
-        } else if (msg instanceof FullHttpResponse) {
-            FullHttpMessage fullMsg = (FullHttpMessage) msg;
-            byte[] content = new byte[fullMsg.content().readableBytes()];
-            fullMsg.content().getBytes(fullMsg.content().readerIndex(), content);
-            FullHttpContentPublisher publisher = new FullHttpContentPublisher(content);
-            channelContext.channel().attr(ChannelAttributeKeys.PUBLISHER_KEY).set(publisher);
-            requestContext.handler().onStream(publisher);
+        if (msg instanceof HttpContent) {
+            log(String.format("Request Thread %d: HttpContent read", requestContext.requestThreadId()));
+            DongiePublisher publisher = (DongiePublisher) channelContext.channel().attr(ChannelAttributeKeys.PUBLISHER_KEY).get();
+            publisher.newData(copyToByteBuffer(((HttpContent) msg).content()));
+            channelContext.channel().read();
         }
 
         if (msg instanceof LastHttpContent) {
-            FullHttpContentPublisher publisher = (FullHttpContentPublisher) channelContext.channel().attr(ChannelAttributeKeys.PUBLISHER_KEY).get();
+            log(String.format("Request Thread %d: LastHttpContent read", requestContext.requestThreadId()));
+            DongiePublisher publisher = (DongiePublisher) channelContext.channel().attr(ChannelAttributeKeys.PUBLISHER_KEY).get();
             Subscriber<? super ByteBuffer> subscriber = publisher.getSubscriber();
             try {
                 subscriber.onComplete();
@@ -111,11 +117,7 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     private static void finalizeRequest(RequestContext requestContext, ChannelHandlerContext channelContext) {
         runAndLogError("Could not remove request specific handlers from pipeline",
                        () -> removePerRequestHandlers(channelContext));
-        if (!channelContext.channel().attr(KEEP_ALIVE).get()) {
             closeAndRelease(channelContext);
-        } else {
-            requestContext.channelPool().release(channelContext.channel());
-        }
     }
 
     private static void removePerRequestHandlers(ChannelHandlerContext ctx) {
@@ -134,6 +136,7 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
+        log(String.format("Request Thread %d: exceptionCaught event", requestContext.requestThreadId()));
         log.error("Exception processing request: {}", requestContext.sdkRequest(), cause);
 
         runAndLogError("Could not remove request handlers",
@@ -146,6 +149,10 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
+        RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
+        log(String.format("Request Thread %d: channelInactiveEvent", requestContext.requestThreadId()));
+//        removePerRequestHandlers(ctx);
+//        requestContext.handler().exceptionOccurred(new IOException("Channel closed"));
         closeAndRelease(ctx);
     }
 
@@ -251,5 +258,9 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                 }
             });
         }
+    }
+
+    private static void log(String msg) {
+        //System.out.printf("[%s]: %s%n", ZonedDateTime.now(), msg);
     }
 }
