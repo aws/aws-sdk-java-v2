@@ -22,11 +22,13 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
-import software.amazon.awssdk.util.SdkHttpUtils;
+import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @ReviewBeforeRelease("Might only need to do this for certain protocols - ie query?")
 // TODO how is this going to work with streaming input posts in asyncland
@@ -34,7 +36,7 @@ public final class MoveParametersToBodyStage implements MutableRequestToRequestP
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder input, RequestExecutionContext context) {
         if (shouldPutParamsInBody(input, context)) {
-            return putParams(input);
+            return changeQueryParametersToFormData(input);
         }
         return input;
     }
@@ -42,10 +44,9 @@ public final class MoveParametersToBodyStage implements MutableRequestToRequestP
     private boolean shouldPutParamsInBody(SdkHttpFullRequest.Builder input,
                                           RequestExecutionContext context) {
         return notSimpleDb(context) &&
-               input.getHttpMethod() == SdkHttpMethod.POST &&
-               input.getContent() == null &&
-               input.getParameters() != null &&
-               input.getParameters().size() > 0;
+               input.method() == SdkHttpMethod.POST &&
+               input.content() == null &&
+               !CollectionUtils.isNullOrEmpty(input.rawQueryParameters());
     }
 
     // TODO FIXME hacky hack
@@ -58,8 +59,10 @@ public final class MoveParametersToBodyStage implements MutableRequestToRequestP
         return !"SimpleDBClient".equals(context.executionAttributes().getAttribute(AwsExecutionAttributes.SERVICE_NAME));
     }
 
-    private SdkHttpFullRequest.Builder putParams(SdkHttpFullRequest.Builder input) {
-        byte[] params = SdkHttpUtils.encodeParameters(input).getBytes(StandardCharsets.UTF_8);
+    @SdkProtectedApi
+    public static SdkHttpFullRequest.Builder changeQueryParametersToFormData(SdkHttpFullRequest.Builder input) {
+        byte[] params = SdkHttpUtils.encodeAndFlattenFormData(input.rawQueryParameters()).orElse("")
+                                    .getBytes(StandardCharsets.UTF_8);
 
         return input.clearQueryParameters()
                     .content(new ByteArrayInputStream(params))

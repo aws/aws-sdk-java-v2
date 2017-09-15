@@ -16,6 +16,7 @@
 package utils;
 
 import java.io.UnsupportedEncodingException;
+import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.util.StringInputStream;
 
@@ -33,7 +34,7 @@ public final class S3MockUtils {
     public static SdkHttpFullResponse mockListObjectsResponse() throws UnsupportedEncodingException {
         return SdkHttpFullResponse.builder()
                                   .statusCode(200)
-                                  .content(new StringInputStream(
+                                  .content(new AbortableInputStream(new StringInputStream(
                                           "<ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">\n" +
                                           "  <Name>example-bucket</Name>\n" +
                                           "  <Prefix>photos/2006/</Prefix>\n" +
@@ -48,7 +49,7 @@ public final class S3MockUtils {
                                           "  <CommonPrefixes>\n" +
                                           "    <Prefix>photos/2006/January/</Prefix>\n" +
                                           "  </CommonPrefixes>\n" +
-                                          "</ListBucketResult>"))
+                                          "</ListBucketResult>"), () -> { }))
                                   .build();
     }
 
@@ -58,7 +59,7 @@ public final class S3MockUtils {
     public static SdkHttpFullResponse mockListBucketsResponse() throws UnsupportedEncodingException {
         return SdkHttpFullResponse.builder()
                                   .statusCode(200)
-                                  .content(new StringInputStream(
+                                  .content(new AbortableInputStream(new StringInputStream(
                                           "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                                           "<ListAllMyBucketsResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01\">\n" +
                                           "  <Owner>\n" +
@@ -71,7 +72,7 @@ public final class S3MockUtils {
                                           "      <CreationDate>2006-02-03T16:45:09.000Z</CreationDate>\n" +
                                           "    </Bucket>\n" +
                                           "  </Buckets>\n" +
-                                          "</ListAllMyBucketsResult>"))
+                                          "</ListAllMyBucketsResult>"), () -> { }))
                                   .build();
     }
 }

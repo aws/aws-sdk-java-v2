@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
@@ -152,7 +153,8 @@ public class AsyncClientHandlerImplTest {
     public AsyncClientConfiguration clientConfiguration() {
         MutableClientConfiguration mutableClientConfiguration = new MutableClientConfiguration()
                 .credentialsProvider(credentialsProvider)
-                .asyncHttpClient(httpClient);
+                .asyncHttpClient(httpClient)
+                .endpoint(URI.create("http://test.com"));
 
         mutableClientConfiguration.overrideConfiguration(
                 ClientOverrideConfiguration.builder()

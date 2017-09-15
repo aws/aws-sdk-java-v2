@@ -31,6 +31,7 @@ import software.amazon.awssdk.auth.presign.PresignerParams;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.services.polly.model.SynthesizeSpeechRequest;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Presigning extensions methods for {@link software.amazon.awssdk.services.polly.PollyClient}.
@@ -56,10 +57,13 @@ public final class PollyClientPresigners {
      */
     @ReviewBeforeRelease("Refactor as part of siging changes.")
     public URL getPresignedSynthesizeSpeechUrl(SynthesizeSpeechPresignRequest synthesizeSpeechPresignRequest) {
-        SdkHttpFullRequest.Builder request = SdkHttpFullRequest.builder()
-                                                               .endpoint(endpoint)
-                                                               .resourcePath("/v1/speech")
-                                                               .httpMethod(SdkHttpMethod.GET);
+        SdkHttpFullRequest.Builder request =
+                SdkHttpFullRequest.builder()
+                                  .protocol(endpoint.getScheme())
+                                  .host(endpoint.getHost())
+                                  .port(endpoint.getPort())
+                                  .encodedPath(SdkHttpUtils.appendUri(endpoint.getPath(), "/v1/speech"))
+                                  .method(SdkHttpMethod.GET);
         marshallIntoRequest(synthesizeSpeechPresignRequest, request);
         Date expirationDate = synthesizeSpeechPresignRequest.getExpirationDate() == null ?
                               getDefaultExpirationDate() : synthesizeSpeechPresignRequest.getExpirationDate();
@@ -68,33 +72,31 @@ public final class PollyClientPresigners {
 
     private void marshallIntoRequest(SynthesizeSpeechPresignRequest synthesizeSpeechRequest, SdkHttpFullRequest.Builder request) {
         if (synthesizeSpeechRequest.getText() != null) {
-            request.queryParameter("Text", synthesizeSpeechRequest.getText());
+            request.rawQueryParameter("Text", synthesizeSpeechRequest.getText());
         }
 
         if (synthesizeSpeechRequest.getTextType() != null) {
-            request.queryParameter("TextType", synthesizeSpeechRequest.getTextType());
+            request.rawQueryParameter("TextType", synthesizeSpeechRequest.getTextType());
         }
 
         if (synthesizeSpeechRequest.getVoiceId() != null) {
-            request.queryParameter("VoiceId", synthesizeSpeechRequest.getVoiceId());
+            request.rawQueryParameter("VoiceId", synthesizeSpeechRequest.getVoiceId());
         }
 
         if (synthesizeSpeechRequest.getSampleRate() != null) {
-            request.queryParameter("SampleRate", synthesizeSpeechRequest.getSampleRate());
+            request.rawQueryParameter("SampleRate", synthesizeSpeechRequest.getSampleRate());
         }
 
         if (synthesizeSpeechRequest.getOutputFormat() != null) {
-            request.queryParameter("OutputFormat", synthesizeSpeechRequest.getOutputFormat());
+            request.rawQueryParameter("OutputFormat", synthesizeSpeechRequest.getOutputFormat());
         }
 
         if (synthesizeSpeechRequest.getLexiconNames() != null) {
-            request.queryParameter("LexiconNames", synthesizeSpeechRequest.getLexiconNames());
+            request.rawQueryParameter("LexiconNames", synthesizeSpeechRequest.getLexiconNames());
         }
 
         if (synthesizeSpeechRequest.getSpeechMarkTypes() != null) {
-            for (String speechMarkType : synthesizeSpeechRequest.getSpeechMarkTypes()) {
-                request.queryParameter("SpeechMarkTypes", speechMarkType);
-            }
+            request.rawQueryParameter("SpeechMarkTypes", synthesizeSpeechRequest.getSpeechMarkTypes());
         }
     }
 

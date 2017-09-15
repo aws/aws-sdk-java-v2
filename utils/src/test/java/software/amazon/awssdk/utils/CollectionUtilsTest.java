@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.junit.Test;
@@ -31,7 +32,7 @@ public class CollectionUtilsTest {
 
     @Test
     public void isEmpty_NullCollection_ReturnsTrue() {
-        assertTrue(CollectionUtils.isNullOrEmpty(null));
+        assertTrue(CollectionUtils.isNullOrEmpty((Collection<?>) null));
     }
 
     @Test

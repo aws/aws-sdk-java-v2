@@ -15,8 +15,7 @@
 
 package software.amazon.awssdk.services.rds;
 
-import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpFullRequestAdapter;
+import software.amazon.awssdk.Request;
 import software.amazon.awssdk.services.rds.model.CreateDBInstanceReadReplicaRequest;
 import software.amazon.awssdk.services.rds.transform.CreateDBInstanceReadReplicaRequestMarshaller;
 import software.amazon.awssdk.util.ImmutableObjectUtils;
@@ -43,9 +42,8 @@ public class CreateDbInstanceReadReplicaPresignInterceptor extends RdsPresignInt
             }
 
             @Override
-            public SdkHttpFullRequest.Builder marshall() {
-                return SdkHttpFullRequestAdapter.toMutableHttpFullRequest(
-                        new CreateDBInstanceReadReplicaRequestMarshaller().marshall(originalRequest));
+            public Request<?> marshall() {
+                return new CreateDBInstanceReadReplicaRequestMarshaller().marshall(originalRequest);
             }
         };
     }

@@ -19,7 +19,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import java.net.URI;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -45,59 +44,33 @@ public class QueryStringSignerTest {
     }
 
     @Test
-    public void testRequestResourcePath() throws Exception {
+    public void testNonAnonymousRequest() throws Exception {
         SdkHttpFullRequest request = SdkHttpFullRequest.builder()
-                                                       .httpMethod(SdkHttpMethod.POST)
-                                                       .endpoint(URI.create("http://foo.amazon.com"))
-                                                       .queryParameter("foo", "bar")
-                                                       .resourcePath("foo/bar")
+                                                       .protocol("http")
+                                                       .host("foo.amazon.com")
+                                                       .encodedPath("foo/bar")
+                                                       .method(SdkHttpMethod.POST)
+                                                       .rawQueryParameter("foo", "bar")
                                                        .build();
 
         request = SignerTestUtils.signRequest(signer, request, credentials);
 
-        assertSignature(EXPECTED_SIGNATURE, request.getParameters());
-    }
-
-    @Test
-    public void testRequestAndEndpointResourcePath() throws Exception {
-        SdkHttpFullRequest request = SdkHttpFullRequest.builder()
-                                                       .httpMethod(SdkHttpMethod.POST)
-                                                       .endpoint(URI.create("http://foo.amazon.com/foo"))
-                                                       .queryParameter("foo", "bar")
-                                                       .resourcePath("/bar")
-                                                       .build();
-
-        request = SignerTestUtils.signRequest(signer, request, credentials);
-
-        assertSignature(EXPECTED_SIGNATURE, request.getParameters());
-    }
-
-    @Test
-    public void testRequestAndEndpointResourcePathNoSlash() throws Exception {
-        SdkHttpFullRequest request = SdkHttpFullRequest.builder()
-                                                       .httpMethod(SdkHttpMethod.POST)
-                                                       .endpoint(URI.create("http://foo.amazon.com/foo"))
-                                                       .queryParameter("foo", "bar")
-                                                       .resourcePath("bar")
-                                                       .build();
-
-        request = SignerTestUtils.signRequest(signer, request, credentials);
-
-        assertSignature(EXPECTED_SIGNATURE, request.getParameters());
+        assertSignature(EXPECTED_SIGNATURE, request.rawQueryParameters());
     }
 
     @Test
     public void testAnonymous() throws Exception {
         SdkHttpFullRequest request = SdkHttpFullRequest.builder()
-                                                       .httpMethod(SdkHttpMethod.POST)
-                                                       .endpoint(URI.create("http://foo.amazon.com"))
-                                                       .queryParameter("foo", "bar")
-                                                       .resourcePath("bar")
+                                                       .protocol("http")
+                                                       .host("foo.amazon.com")
+                                                       .encodedPath("bar")
+                                                       .method(SdkHttpMethod.POST)
+                                                       .rawQueryParameter("foo", "bar")
                                                        .build();
 
         request = SignerTestUtils.signRequest(signer, request, new AnonymousCredentialsProvider().getCredentials());
 
-        assertNull(request.getParameters().get("Signature"));
+        assertNull(request.rawQueryParameters().get("Signature"));
     }
 
     /**

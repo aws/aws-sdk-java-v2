@@ -70,6 +70,7 @@ import software.amazon.awssdk.services.protocolrestjson.model.StreamingInputOper
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.sync.RequestBody;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Verify that request handler hooks are behaving as expected.
@@ -128,8 +129,8 @@ public class ExecutionInterceptorTest {
 
         // Expect
         Context.BeforeTransmission beforeTransmissionArg = captureBeforeTransmissionArg(interceptor);
-        beforeTransmissionArg.httpRequest().getContent().reset();
-        assertThat(beforeTransmissionArg.httpRequest().getContent().read()).isEqualTo(0);
+        beforeTransmissionArg.httpRequest().content().get().reset();
+        assertThat(beforeTransmissionArg.httpRequest().content().get().read()).isEqualTo(0);
     }
 
     @Test
@@ -146,13 +147,13 @@ public class ExecutionInterceptorTest {
 
         // Expect
         Context.BeforeTransmission beforeTransmissionArg = captureBeforeTransmissionArg(interceptor);
-        beforeTransmissionArg.httpRequest().getContent().reset();
+        beforeTransmissionArg.httpRequest().content().get().reset();
 
-        // TODO: The content should actually be null to match responses. We can fix this by updating the StructuredJsonGenerator
+        // TODO: The content should actually be empty to match responses. We can fix this by updating the StructuredJsonGenerator
         // to use null for NO-OP marshalling of payloads. This will break streaming POST operations for JSON because of a hack in
         // the MoveParametersToBodyStage, but we can move the logic from there into the query marshallers (why the hack exists)
         // and then everything should be good for JSON.
-        assertThat(beforeTransmissionArg.httpRequest().getContent().read()).isEqualTo(-1);
+        assertThat(beforeTransmissionArg.httpRequest().content().get().read()).isEqualTo(-1);
     }
 
     @Test
@@ -174,7 +175,7 @@ public class ExecutionInterceptorTest {
         // Expect
         Context.AfterTransmission afterTransmissionArg = captureAfterTransmissionArg(interceptor);
         // TODO: When we don't always close the input stream, make sure we can read the service's '0' response.
-        assertThat(afterTransmissionArg.httpResponse().getContent()).isNotNull();
+        assertThat(afterTransmissionArg.httpResponse().content()).isPresent();
     }
 
     @Test
@@ -191,7 +192,7 @@ public class ExecutionInterceptorTest {
 
         // Expect
         Context.AfterTransmission afterTransmissionArg = captureAfterTransmissionArg(interceptor);
-        assertThat(afterTransmissionArg.httpResponse().getContent()).isNull();
+        assertThat(afterTransmissionArg.httpResponse().content()).isNotPresent();
     }
 
     @Test
@@ -390,7 +391,7 @@ public class ExecutionInterceptorTest {
         assertThat(attributes.getAllValues()).containsOnly(attributes.getAllValues().get(0));
 
         // Verify HTTP response
-        assertThat(beforeUnmarshallingArg.getValue().httpResponse().getStatusCode()).isEqualTo(404);
+        assertThat(beforeUnmarshallingArg.getValue().httpResponse().statusCode()).isEqualTo(404);
 
         // Verify failed execution parameters
         assertThat(failedExecutionArg.getValue().exception()).isInstanceOf(AmazonServiceException.class);
@@ -403,11 +404,11 @@ public class ExecutionInterceptorTest {
 
         assertThat(failedRequest.stringMember()).isEqualTo("1");
         assertThat(failedExecutionArg.getValue().httpRequest()).hasValueSatisfying(httpRequest -> {
-            assertThat(httpRequest.getFirstHeaderValue("x-amz-string")).hasValue("1");
-            assertThat(httpRequest.getFirstHeaderValue("x-amz-integer")).hasValue("2");
+            assertThat(SdkHttpUtils.firstMatchingHeader(httpRequest.headers(), "x-amz-string")).hasValue("1");
+            assertThat(SdkHttpUtils.firstMatchingHeader(httpRequest.headers(), "x-amz-integer")).hasValue("2");
         });
         assertThat(failedExecutionArg.getValue().httpResponse()).hasValueSatisfying(httpResponse -> {
-            assertThat(httpResponse.getFirstHeaderValue("x-amz-integer")).hasValue("3");
+            assertThat(SdkHttpUtils.firstMatchingHeader(httpResponse.headers(), "x-amz-integer")).hasValue("3");
         });
 
         if (expectResponse) {
@@ -429,15 +430,18 @@ public class ExecutionInterceptorTest {
     private void validateArgs(Context.AfterMarshalling context,
                               String expectedStringMemberValue, String expectedIntegerHeaderValue) {
         validateArgs(context, expectedStringMemberValue);
-        assertThat(context.httpRequest().getFirstHeaderValue("x-amz-integer")).isEqualTo(Optional.ofNullable(expectedIntegerHeaderValue));
-        assertThat(context.httpRequest().getFirstHeaderValue("x-amz-string")).isEqualTo(Optional.ofNullable(expectedStringMemberValue));
+        assertThat(SdkHttpUtils.firstMatchingHeader(context.httpRequest().headers(),
+                                                    "x-amz-integer")).isEqualTo(Optional.ofNullable(expectedIntegerHeaderValue));
+        assertThat(SdkHttpUtils.firstMatchingHeader(context.httpRequest().headers(),
+                                                    "x-amz-string")).isEqualTo(Optional.ofNullable(expectedStringMemberValue));
     }
 
     private void validateArgs(Context.AfterTransmission context,
                               String expectedStringMemberValue, String expectedIntegerHeaderValue,
                               String expectedResponseIntegerHeaderValue) {
         validateArgs(context, expectedStringMemberValue, expectedIntegerHeaderValue);
-        assertThat(context.httpResponse().getFirstHeaderValue("x-amz-integer")).isEqualTo(Optional.ofNullable(expectedResponseIntegerHeaderValue));
+        assertThat(SdkHttpUtils.firstMatchingHeader(context.httpResponse().headers(),
+                                                    "x-amz-integer")).isEqualTo(Optional.ofNullable(expectedResponseIntegerHeaderValue));
     }
 
     private void validateArgs(Context.AfterUnmarshalling context,
@@ -489,7 +493,7 @@ public class ExecutionInterceptorTest {
         public SdkHttpFullResponse modifyHttpResponse(Context.ModifyHttpResponse context,
                                                       ExecutionAttributes executionAttributes) {
             SdkHttpFullResponse httpResponse = context.httpResponse();
-            return httpResponse.copy(b -> b.addHeader("x-amz-integer", Collections.singletonList("3")));
+            return httpResponse.copy(b -> b.header("x-amz-integer", Collections.singletonList("3")));
         }
 
         @Override

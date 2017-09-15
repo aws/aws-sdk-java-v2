@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.services.ec2.transform;
 
-import static java.util.Collections.singletonList;
-
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -45,30 +43,29 @@ public final class TimestampFormatInterceptor implements ExecutionInterceptor {
         SdkHttpFullRequest request = context.httpRequest();
         Object original = context.request();
         if (original instanceof DescribeSpotFleetRequestHistoryRequest) {
-            Map<String, List<String>> params = request.getParameters();
+            Map<String, List<String>> params = request.rawQueryParameters();
             List<String> startTime = params.get(START_TIME);
 
             if (startTime != null && !startTime.isEmpty()) {
                 return request.toBuilder()
-                              .queryParameter(START_TIME, singletonList(sanitize(startTime.get(0))))
+                              .rawQueryParameter(START_TIME, sanitize(startTime.get(0)))
                               .build();
             }
 
         } else if (original instanceof RequestSpotFleetRequest) {
 
-            Map<String, List<String>> params = request.getParameters();
+            Map<String, List<String>> params = request.rawQueryParameters();
 
             List<String> validFrom = params.get(VALID_FROM);
             List<String> validUntil = params.get(VALID_UNTIL);
 
             return request.toBuilder().apply(builder -> {
                 if (validFrom != null && !validFrom.isEmpty()) {
-                    builder.queryParameter(VALID_FROM, singletonList(sanitize(validFrom.get(0))));
+                    builder.rawQueryParameter(VALID_FROM, sanitize(validFrom.get(0)));
                 }
                 if (validUntil != null && !validUntil.isEmpty()) {
-                    builder.queryParameter(VALID_UNTIL, singletonList(sanitize(validUntil.get(0))));
+                    builder.rawQueryParameter(VALID_UNTIL, sanitize(validUntil.get(0)));
                 }
-                return builder;
             }).build();
 
         }

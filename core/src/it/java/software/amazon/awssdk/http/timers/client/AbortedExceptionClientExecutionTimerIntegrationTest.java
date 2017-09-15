@@ -37,6 +37,7 @@ import software.amazon.awssdk.AbortedException;
 import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.http.AbortableCallable;
+import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.ExecutionContext;
 import software.amazon.awssdk.http.MockServerTestBase;
@@ -107,7 +108,7 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockSer
         InputStream mockContent = mock(InputStream.class);
         when(abortableCallable.call()).thenReturn(SdkHttpFullResponse.builder()
                                                                      .statusCode(200)
-                                                                     .content(mockContent)
+                                                                     .content(new AbortableInputStream(mockContent, () -> { }))
                                                                      .build());
         interruptCurrentThreadAfterDelay(1000);
         try {

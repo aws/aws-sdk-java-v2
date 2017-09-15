@@ -33,6 +33,7 @@ import software.amazon.awssdk.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.util.StringUtils;
 import software.amazon.awssdk.util.XpathUtils;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Implementation of HttpResponseHandler that handles only error responses from Amazon Web Services.
@@ -131,8 +132,9 @@ public class DefaultErrorResponseHandler implements HttpResponseHandler<AmazonSe
     private String idString(HttpResponse errorResponse) {
         StringBuilder idString = new StringBuilder();
         try {
-            errorResponse.getRequest().getFirstHeaderValue(ApplyTransactionIdStage.HEADER_SDK_TRANSACTION_ID)
-                         .ifPresent(h -> idString.append("Invocation Id:").append(h));
+            SdkHttpUtils.firstMatchingHeader(errorResponse.getRequest().headers(),
+                                             ApplyTransactionIdStage.HEADER_SDK_TRANSACTION_ID)
+                        .ifPresent(h -> idString.append("Invocation Id:").append(h));
             if (errorResponse.getHeaders().containsKey(X_AMZN_REQUEST_ID_HEADER)) {
                 if (idString.length() > 0) {
                     idString.append(", ");

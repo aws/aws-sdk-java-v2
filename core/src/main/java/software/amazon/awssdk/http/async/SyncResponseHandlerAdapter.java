@@ -22,6 +22,7 @@ import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.function.Function;
 import org.reactivestreams.Publisher;
+import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -79,7 +80,10 @@ public class SyncResponseHandlerAdapter<T> implements SdkHttpResponseHandler<T> 
         try {
             // Once we've buffered all the content we can invoke the response handler
             if (baos != null) {
-                httpResponse.content(new ByteArrayInputStream(baos.toByteArray()));
+                // Ignore aborts - we already have all of the content.
+                ByteArrayInputStream content = new ByteArrayInputStream(baos.toByteArray());
+                AbortableInputStream abortableContent = new AbortableInputStream(content, () -> { });
+                httpResponse.content(abortableContent);
             }
             return responseHandler.handle(httpResponseAdapter.apply(httpResponse.build()), executionAttributes);
         } catch (Exception e) {

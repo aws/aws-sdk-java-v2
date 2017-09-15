@@ -28,19 +28,15 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyMap;
-import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
-import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.reverse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.netty.channel.EventLoopGroup;
@@ -50,10 +46,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -67,6 +60,7 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkRequestContext;
@@ -259,8 +253,8 @@ public class NettyNioAsyncHttpClientIntegrationTest {
 
         assertThat(recorder.responses).hasOnlyOneElementSatisfying(
                 headerResponse -> {
-                    assertThat(headerResponse.getHeaders()).containsKey("Some-Header");
-                    assertThat(headerResponse.getStatusCode()).isEqualTo(200);
+                    assertThat(headerResponse.headers()).containsKey("Some-Header");
+                    assertThat(headerResponse.statusCode()).isEqualTo(200);
                 });
 
         assertThat(recorder.fullResponseAsString()).isEqualTo(body);
@@ -304,20 +298,20 @@ public class NettyNioAsyncHttpClientIntegrationTest {
                                          String body,
                                          SdkHttpMethod method,
                                          Map<String, String> params) {
-        SdkHttpRequest request = mock(SdkHttpRequest.class);
-        when(request.getEndpoint()).thenReturn(uri);
-        when(request.getHttpMethod()).thenReturn(method);
-        when(request.getResourcePath()).thenReturn(resourcePath);
-        when(request.getParameters()).thenReturn(params.entrySet()
-                                                       .stream()
-                                                       .collect(toMap(Entry::getKey, e -> singletonList(e.getValue()))));
-        Map<String, List<String>> headers = new HashMap<>();
-        headers.put("Host", singletonList(uri.getHost()));
-        if (body != null) {
-            headers.put("Content-Length", singletonList(String.valueOf(body.getBytes(UTF_8).length)));
-        }
-        when(request.getHeaders()).thenReturn(headers);
-        return request;
+        String contentLength = body == null ? null : String.valueOf(body.getBytes(UTF_8).length);
+        return SdkHttpFullRequest.builder()
+                                 .host(uri.getHost())
+                                 .protocol(uri.getScheme())
+                                 .port(uri.getPort())
+                                 .method(method)
+                                 .encodedPath(resourcePath)
+                                 .apply(b -> params.forEach(b::rawQueryParameter))
+                                 .apply(b -> {
+                                     b.header("Host", uri.getHost());
+                                     if (contentLength != null) {
+                                         b.header("Content-Length", contentLength);
+                                     }
+                                 }).build();
     }
 
     private static Collection<String> splitStringBySize(String str) {

@@ -42,7 +42,7 @@ public class SdkInterruptedException extends InterruptedException {
 
     public SdkInterruptedException(SdkHttpFullResponse response) {
         this.responseStream = Optional.ofNullable(response)
-                                      .map(SdkHttpFullResponse::getContent)
+                                      .flatMap(SdkHttpFullResponse::content)
                                       .orElse(null);
     }
 

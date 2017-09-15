@@ -15,31 +15,26 @@
 
 package software.amazon.awssdk.services.cloudsearchdomain;
 
-import java.io.ByteArrayInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.pipeline.stages.MoveParametersToBodyStage;
 import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.cloudsearchdomain.model.SearchRequest;
-import software.amazon.awssdk.util.SdkHttpUtils;
 
 /**
- * Ensures that all SearchRequests use <code>POST</code> instead of <code>GET</code>.
+ * Ensures that all SearchRequests use <code>POST</code> instead of <code>GET</code>, moving the query parameters to be form data.
  */
 public class SwitchToPostInterceptor implements ExecutionInterceptor {
     @Override
     public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
         SdkHttpFullRequest request = context.httpRequest();
         Object originalRequest = context.request();
-        if (originalRequest instanceof SearchRequest && request.getHttpMethod() == SdkHttpMethod.GET) {
-            final byte[] content = SdkHttpUtils.encodeParameters(request).getBytes();
+        if (originalRequest instanceof SearchRequest && request.method() == SdkHttpMethod.GET) {
             return request.toBuilder()
-                          .httpMethod(SdkHttpMethod.POST)
-                          .content(new ByteArrayInputStream(content))
-                          .header("Content-Type", "application/x-www-form-urlencoded")
-                          .header("Content-Length", Integer.toString(content.length))
-                          .clearQueryParameters()
+                          .method(SdkHttpMethod.POST)
+                          .apply(MoveParametersToBodyStage::changeQueryParametersToFormData)
                           .build();
         }
         return request;

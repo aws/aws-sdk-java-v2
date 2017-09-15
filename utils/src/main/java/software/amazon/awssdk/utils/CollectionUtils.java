@@ -33,8 +33,12 @@ import software.amazon.awssdk.annotation.SdkProtectedApi;
 @SdkProtectedApi
 public class CollectionUtils {
 
-    public static <T> boolean isNullOrEmpty(Collection<T> collection) {
+    public static boolean isNullOrEmpty(Collection<?> collection) {
         return collection == null || collection.isEmpty();
+    }
+
+    public static boolean isNullOrEmpty(Map<?, ?> map) {
+        return map == null || map.isEmpty();
     }
 
     /**

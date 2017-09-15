@@ -88,13 +88,12 @@ public class StreamManagingStage<OutputT> implements RequestPipeline<SdkHttpFull
      * @return Modified input stream to use for the remainder of the execution.
      */
     private InputStream createManagedStream(SdkHttpFullRequest request, RequestConfig requestConfig) {
-        if (request.getContent() == null) {
-            return null;
-        }
-        final InputStream content = monitorStreamProgress(requestConfig.getProgressListener(),
-                                                          bufferIfNeeded(makeResettable(request.getContent())));
-
-        return unreliableTestConfig == null ? content : wrapWithUnreliableStream(content);
+        return request.content()
+                      .map(this::makeResettable)
+                      .map(this::bufferIfNeeded)
+                      .map(content -> monitorStreamProgress(requestConfig.getProgressListener(), content))
+                      .map(content -> unreliableTestConfig == null ? content : makeUnreliable(content))
+                      .orElse(null);
     }
 
     /**
@@ -146,7 +145,7 @@ public class StreamManagingStage<OutputT> implements RequestPipeline<SdkHttpFull
      * @param content Input stream to make unreliable.
      * @return UnreliableFilterInputStream
      */
-    private InputStream wrapWithUnreliableStream(InputStream content) {
+    private InputStream makeUnreliable(InputStream content) {
         return new UnreliableFilterInputStream(content, unreliableTestConfig.isFakeIoException())
                 .withBytesReadBeforeException(unreliableTestConfig.getBytesReadBeforeException())
                 .withMaxNumErrors(unreliableTestConfig.getMaxNumErrors())

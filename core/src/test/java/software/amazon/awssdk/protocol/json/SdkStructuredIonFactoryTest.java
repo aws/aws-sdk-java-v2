@@ -38,6 +38,7 @@ import software.amazon.ion.IonSystem;
 import software.amazon.ion.IonWriter;
 import software.amazon.ion.Timestamp;
 import software.amazon.ion.system.IonSystemBuilder;
+import utils.ValidSdkObjects;
 
 public class SdkStructuredIonFactoryTest {
     private static final String ERROR_PREFIX = "aws-type:";
@@ -66,7 +67,7 @@ public class SdkStructuredIonFactoryTest {
         payload.writeTo(writer);
         writer.close();
 
-        HttpResponse error = new HttpResponse(SdkHttpFullRequest.builder().build());
+        HttpResponse error = new HttpResponse(ValidSdkObjects.sdkHttpFullRequest().build());
         error.setContent(new ByteArrayInputStream(bytes.toByteArray()));
         return error;
     }

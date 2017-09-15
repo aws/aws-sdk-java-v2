@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.net.URI;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,14 +31,15 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.DefaultRequest;
 import software.amazon.awssdk.Request;
 import software.amazon.awssdk.config.AdvancedClientOption;
 import software.amazon.awssdk.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.config.MutableClientConfiguration;
 import software.amazon.awssdk.config.defaults.GlobalClientConfigurationDefaults;
 import software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 import utils.HttpTestUtils;
+import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AmazonHttpClientTest {
@@ -67,7 +69,7 @@ public class AmazonHttpClientTest {
 
         try {
             client.requestExecutionBuilder()
-                    .request(new DefaultRequest<>("testsvc"))
+                    .request(ValidSdkObjects.legacyRequest())
                     .executionContext(context)
                     .execute();
             Assert.fail("No exception when request repeatedly fails!");
@@ -92,7 +94,7 @@ public class AmazonHttpClientTest {
 
         try {
             client.requestExecutionBuilder()
-                    .request(new DefaultRequest<>(null, "testsvc"))
+                    .request(ValidSdkObjects.legacyRequest())
                     .executionContext(context)
                     .execute(mockHandler);
             Assert.fail("No exception when request repeatedly fails!");
@@ -110,7 +112,7 @@ public class AmazonHttpClientTest {
     public void testUserAgentPrefixAndSuffixAreAdded() throws Exception {
         String prefix = "somePrefix";
         String suffix = "someSuffix";
-        Request<?> request = new DefaultRequest<>("fooservice");
+        Request<?> request = ValidSdkObjects.legacyRequest();
 
         HttpResponseHandler<?> handler = mock(HttpResponseHandler.class);
         ClientOverrideConfiguration overrideConfig =
@@ -119,7 +121,8 @@ public class AmazonHttpClientTest {
                                            .advancedOption(AdvancedClientOption.USER_AGENT_SUFFIX, suffix)
                                            .build();
         MutableClientConfiguration config = new MutableClientConfiguration().overrideConfiguration(overrideConfig)
-                                                                            .httpClient(sdkHttpClient);
+                                                                            .httpClient(sdkHttpClient)
+                                                                            .endpoint(URI.create("http://example.com"));
 
         new GlobalClientConfigurationDefaults().applySyncDefaults(config);
 
@@ -133,8 +136,8 @@ public class AmazonHttpClientTest {
         ArgumentCaptor<SdkHttpFullRequest> httpRequestCaptor = ArgumentCaptor.forClass(SdkHttpFullRequest.class);
         verify(sdkHttpClient).prepareRequest(httpRequestCaptor.capture(), any());
 
-        final String userAgent = httpRequestCaptor.getValue().getFirstHeaderValue("User-Agent")
-                .orElseThrow(() -> new AssertionError("User-Agent header was not found"));
+        final String userAgent = SdkHttpUtils.firstMatchingHeader(httpRequestCaptor.getValue().headers(), "User-Agent")
+                                             .orElseThrow(() -> new AssertionError("User-Agent header was not found"));
 
         Assert.assertTrue(userAgent.startsWith(prefix));
         Assert.assertTrue(userAgent.endsWith(suffix));

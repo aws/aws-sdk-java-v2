@@ -23,6 +23,7 @@ import software.amazon.awssdk.interceptor.Context;
 import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.machinelearning.model.PredictRequest;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Predict calls are sent to a predictor-specific endpoint. This handler
@@ -42,8 +43,12 @@ public class PredictEndpointInterceptor implements ExecutionInterceptor {
             }
 
             try {
+                URI endpoint = new URI(pr.predictEndpoint());
                 return request.toBuilder()
-                              .endpoint(new URI(pr.predictEndpoint()))
+                              .protocol(endpoint.getScheme())
+                              .host(endpoint.getHost())
+                              .port(endpoint.getPort())
+                              .encodedPath(SdkHttpUtils.appendUri(endpoint.getPath(), request.encodedPath()))
                               .build();
             } catch (URISyntaxException e) {
                 throw new AmazonClientException("Unable to parse PredictRequest.PredictEndpoint", e);

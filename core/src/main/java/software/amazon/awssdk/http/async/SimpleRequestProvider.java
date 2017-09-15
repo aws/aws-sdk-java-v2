@@ -37,13 +37,14 @@ public class SimpleRequestProvider implements SdkHttpRequestProvider {
     private final int length;
 
     public SimpleRequestProvider(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
-        if (request.getContent() != null) {
-            request.getContent().mark(getReadLimit(executionAttributes));
-            this.content = invokeSafely(() -> IoUtils.toByteArray(request.getContent()));
-            invokeSafely(() -> request.getContent().reset());
-        } else {
-            this.content = new byte[0];
-        }
+        this.content = request.content().map(content -> {
+            try {
+                content.mark(getReadLimit(executionAttributes));
+                return invokeSafely(() -> IoUtils.toByteArray(content));
+            } finally {
+                invokeSafely(content::reset);
+            }
+        }).orElseGet(() -> new byte[0]);
         this.length = content.length;
     }
 

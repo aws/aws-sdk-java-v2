@@ -20,8 +20,8 @@ import static software.amazon.awssdk.util.ValidationUtils.assertStringNotEmpty;
 
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.util.IdempotentUtils;
-import software.amazon.awssdk.util.SdkHttpUtils;
 import software.amazon.awssdk.util.StringUtils;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkProtectedApi
 public class PathMarshallers {
@@ -83,7 +83,7 @@ public class PathMarshallers {
         @Override
         public String marshall(String resourcePath, String paramName, String pathValue) {
             assertStringNotEmpty(pathValue, paramName);
-            return resourcePath.replace(String.format("{%s}", paramName), SdkHttpUtils.urlEncode(pathValue, false));
+            return resourcePath.replace(String.format("{%s}", paramName), SdkHttpUtils.urlEncode(pathValue));
         }
 
         @Override
@@ -105,7 +105,7 @@ public class PathMarshallers {
         public String marshall(String resourcePath, String paramName, String pathValue) {
             assertStringNotEmpty(pathValue, paramName);
             return resourcePath.replace(String.format("{%s+}", paramName),
-                                        SdkHttpUtils.urlEncode(trimLeadingSlash(pathValue), true));
+                                        SdkHttpUtils.urlEncodeIgnoreSlashes(trimLeadingSlash(pathValue)));
         }
 
         @Override
@@ -128,7 +128,7 @@ public class PathMarshallers {
                 throw new IllegalArgumentException(paramName + " must not be empty. If not set a value will be auto generated");
             }
             return resourcePath.replace(String.format("{%s}", paramName),
-                                        SdkHttpUtils.urlEncode(IdempotentUtils.resolveString(pathValue), false));
+                                        SdkHttpUtils.urlEncode(IdempotentUtils.resolveString(pathValue)));
         }
 
         @Override

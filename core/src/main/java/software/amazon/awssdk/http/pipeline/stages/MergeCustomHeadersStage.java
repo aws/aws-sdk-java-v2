@@ -41,7 +41,7 @@ public class MergeCustomHeadersStage implements MutableRequestToRequestPipeline 
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
             throws Exception {
-        return request.headers(mergeHeaders(request.getHeaders(),
+        return request.headers(mergeHeaders(request.headers(),
                                             config.overrideConfiguration().additionalHttpHeaders(),
                                             adaptHeaders(context.requestConfig().getCustomRequestHeaders())));
     }

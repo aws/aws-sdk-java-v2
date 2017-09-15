@@ -127,7 +127,7 @@ public final class RunnableRequest implements AbortableRunnable {
     }
 
     private URI endpoint() {
-        return context.sdkRequest().getEndpoint();
+        return context.sdkRequest().getUri();
     }
 
     private void handleFailure(Supplier<String> msg, Throwable cause) {
