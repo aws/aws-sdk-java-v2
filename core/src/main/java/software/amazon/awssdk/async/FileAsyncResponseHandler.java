@@ -123,5 +123,10 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
         public void onComplete() {
             // Completion handled by response handler
         }
+
+        @Override
+        public String toString() {
+            return getClass() + ":" + path.toString();
+        }
     }
 }

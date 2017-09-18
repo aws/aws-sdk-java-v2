@@ -38,14 +38,22 @@ public class CreateBucketInterceptor implements ExecutionInterceptor {
             if (request.createBucketConfiguration() == null || request.createBucketConfiguration().locationConstraint() == null) {
                 Region region = executionAttributes.getAttribute(AwsExecutionAttributes.AWS_REGION);
                 sdkRequest = request.toBuilder()
-                                    .createBucketConfiguration(CreateBucketConfiguration.builder()
-                                                                                        .locationConstraint(region.value())
-                                                                                        .build())
+                                    .createBucketConfiguration(toLocationConstraint(region))
                                     .build();
             }
         }
 
         return sdkRequest;
+    }
+
+    private CreateBucketConfiguration toLocationConstraint(Region region) {
+        if (region.equals(Region.US_EAST_1)) {
+            // us-east-1 requires no location restraint. See http://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketPUT.html
+            return null;
+        }
+        return CreateBucketConfiguration.builder()
+                                        .locationConstraint(region.value())
+                                        .build();
     }
 
     /**
