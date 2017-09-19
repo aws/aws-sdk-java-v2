@@ -26,10 +26,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.core.AwsSystemSetting;
 import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.internal.CredentialsEndpointProvider;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 /**
  * Tests for the {@link ElasticContainerCredentialsProviderTest}.
@@ -45,10 +47,13 @@ public class ElasticContainerCredentialsProviderTest {
     private static final String TOKEN = "TOKEN_TOKEN_TOKEN";
     private ElasticContainerCredentialsProvider credentialsProvider;
 
+    @Rule
+    public final EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
+
     @Before
     public void setup() {
         TestCredentialsEndpointProvider endpointProvider =
-                new TestCredentialsEndpointProvider("http://localhost:" + mockServer.port());
+            new TestCredentialsEndpointProvider("http://localhost:" + mockServer.port());
         credentialsProvider = ElasticContainerCredentialsProvider.builder()
                                                                  .credentialsEndpointProvider(endpointProvider)
                                                                  .build();
@@ -59,6 +64,7 @@ public class ElasticContainerCredentialsProviderTest {
      */
     @Test(expected = SdkClientException.class)
     public void testEnvVariableNotSet() {
+        helper.remove(AwsSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI);
         new ElasticContainerCredentialsProvider().getCredentials();
     }
 
@@ -67,20 +73,17 @@ public class ElasticContainerCredentialsProviderTest {
      */
     @Test
     public void testGetCredentialsReturnsValidResponseFromEcsEndpoint() {
-        try {
-            System.setProperty(AwsSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI.property(), "");
+        helper.set(AwsSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI, "");
 
-            stubForSuccessResponse();
+        stubForSuccessResponse();
 
-            AwsSessionCredentials credentials = (AwsSessionCredentials) credentialsProvider.getCredentials();
+        AwsSessionCredentials credentials = (AwsSessionCredentials) credentialsProvider.getCredentials();
 
-            assertThat(credentials).isNotNull();
-            assertThat(credentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
-            assertThat(credentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
-            assertThat(credentials.sessionToken()).isEqualTo(TOKEN);
-        } finally {
-            System.clearProperty(AwsSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI.property());
-        }
+        assertThat(credentials).isNotNull();
+        assertThat(credentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
+        assertThat(credentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
+        assertThat(credentials.sessionToken()).isEqualTo(TOKEN);
+
     }
 
     private void stubForSuccessResponse() {
