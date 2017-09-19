@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_CONTEXT_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.RESPONSE_COMPLETE_KEY;
 
 import com.typesafe.netty.HandlerPublisher;
 import com.typesafe.netty.HandlerSubscriber;
@@ -63,6 +64,7 @@ public final class RunnableRequest implements AbortableRunnable {
                     channel = channelFuture.getNow();
                     initializePerRequestHandlers();
                     channel.attr(REQUEST_CONTEXT_KEY).set(context);
+                    channel.attr(RESPONSE_COMPLETE_KEY).set(false);
                     makeRequest(context.nettyRequest());
                 } catch (Exception e) {
                     handleFailure(() -> "Failed to make request to " + endpoint(), e);
@@ -112,7 +114,7 @@ public final class RunnableRequest implements AbortableRunnable {
 
     private void makeRequest(HttpRequest request) {
         log.debug("Writing request: {}", request);
-        channel.writeAndFlush(new StreamedRequest(context.nettyRequest(), context.sdkRequestProvider(), channel))
+        channel.writeAndFlush(new StreamedRequest(request, context.sdkRequestProvider(), channel))
                .addListener(wireCall -> {
                    if (wireCall.isSuccess()) {
                        // Auto-read is turned off so trigger an explicit read to give control to HttpStreamsClientHandler
@@ -251,7 +253,7 @@ public final class RunnableRequest implements AbortableRunnable {
 
                 @Override
                 public void onNext(ByteBuffer byteBuffer) {
-                    ByteBuf buffer = channel.alloc().buffer(byteBuffer.limit());
+                    ByteBuf buffer = channel.alloc().buffer(byteBuffer.remaining());
                     buffer.writeBytes(byteBuffer);
                     HttpContent content = new DefaultHttpContent(buffer);
                     subscriber.onNext(content);
