@@ -28,7 +28,7 @@ import software.amazon.awssdk.services.gamelift.model.DescribeAliasRequest;
 import software.amazon.awssdk.services.gamelift.model.DescribeAliasResponse;
 import software.amazon.awssdk.services.gamelift.model.RoutingStrategy;
 import software.amazon.awssdk.services.gamelift.model.RoutingStrategyType;
-import software.amazon.awssdk.test.AwsIntegrationTestBase;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class ServiceIntegrationTest extends AwsIntegrationTestBase {
 

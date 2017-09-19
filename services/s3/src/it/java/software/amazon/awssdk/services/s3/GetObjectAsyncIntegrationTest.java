@@ -39,7 +39,7 @@ import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.test.util.RandomTempFile;
+import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.util.ImmutableMapParameter;
 
 public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {

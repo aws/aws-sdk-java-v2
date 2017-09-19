@@ -21,7 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.services.servicecatalog.model.ListRecordHistoryRequest;
 import software.amazon.awssdk.services.servicecatalog.model.RecordDetail;
-import software.amazon.awssdk.test.AwsIntegrationTestBase;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class ServiceCatalogIntegrationTest extends AwsIntegrationTestBase {
 

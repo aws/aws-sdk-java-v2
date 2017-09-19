@@ -145,7 +145,7 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <artifactId>test-utils</artifactId>
+            <artifactId>service-test-utils</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <scope>test</scope>
             <version>${awsjavasdk.version}</version>

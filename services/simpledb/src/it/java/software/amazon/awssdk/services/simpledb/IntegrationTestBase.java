@@ -43,7 +43,7 @@ import software.amazon.awssdk.services.simpledb.model.ReplaceableAttribute;
 import software.amazon.awssdk.services.simpledb.model.ReplaceableItem;
 import software.amazon.awssdk.services.simpledb.model.SelectRequest;
 import software.amazon.awssdk.services.simpledb.model.SelectResponse;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
  * Base class for SimpleDB integration tests; responsible for loading AWS account info for running

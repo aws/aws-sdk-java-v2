@@ -47,7 +47,7 @@ import software.amazon.awssdk.services.lambda.model.ListFunctionsRequest;
 import software.amazon.awssdk.services.lambda.model.ListFunctionsResponse;
 import software.amazon.awssdk.services.lambda.model.LogType;
 import software.amazon.awssdk.services.lambda.model.Runtime;
-import software.amazon.awssdk.test.retry.RetryRule;
+import software.amazon.awssdk.testutils.retry.RetryRule;
 import software.amazon.awssdk.util.StringUtils;
 import software.amazon.awssdk.utils.Base64Utils;
 

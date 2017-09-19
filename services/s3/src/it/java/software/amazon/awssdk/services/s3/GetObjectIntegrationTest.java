@@ -35,7 +35,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.sync.ResponseInputStream;
 import software.amazon.awssdk.sync.StreamingResponseHandler;
-import software.amazon.awssdk.test.util.RandomTempFile;
+import software.amazon.awssdk.testutils.RandomTempFile;
 
 public class GetObjectIntegrationTest extends S3IntegrationTestBase {
 

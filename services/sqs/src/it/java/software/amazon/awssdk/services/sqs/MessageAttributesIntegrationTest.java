@@ -22,7 +22,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static software.amazon.awssdk.test.util.SdkAsserts.assertNotEmpty;
+import static software.amazon.awssdk.testutils.SdkAsserts.assertNotEmpty;
 
 import java.nio.ByteBuffer;
 import java.util.List;

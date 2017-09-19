@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.elasticache;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static software.amazon.awssdk.testutils.SdkAsserts.assertNotEmpty;
 
 import java.util.ArrayList;
 import java.util.List;

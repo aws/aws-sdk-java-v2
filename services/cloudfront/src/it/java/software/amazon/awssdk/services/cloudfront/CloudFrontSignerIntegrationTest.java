@@ -2,7 +2,7 @@ package software.amazon.awssdk.services.cloudfront;
 
 import static org.junit.Assert.assertEquals;
 import static software.amazon.awssdk.services.cloudfront.util.SignerUtils.loadPrivateKey;
-import static software.amazon.awssdk.test.util.DateUtils.yyMMddhhmmss;
+import static software.amazon.awssdk.testutils.DateUtils.yyMMddhhmmss;
 
 import java.io.File;
 import java.io.IOException;

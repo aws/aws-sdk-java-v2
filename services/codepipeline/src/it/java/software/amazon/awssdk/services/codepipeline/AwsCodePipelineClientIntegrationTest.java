@@ -33,7 +33,7 @@ import software.amazon.awssdk.services.codepipeline.model.InvalidNextTokenExcept
 import software.amazon.awssdk.services.codepipeline.model.ListActionTypesRequest;
 import software.amazon.awssdk.services.codepipeline.model.ListActionTypesResponse;
 import software.amazon.awssdk.services.codepipeline.model.ListPipelinesRequest;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
  * Smoke tests for the {@link CodePipelineClient}.

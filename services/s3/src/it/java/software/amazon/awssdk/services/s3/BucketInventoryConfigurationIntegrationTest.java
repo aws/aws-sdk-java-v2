@@ -42,7 +42,7 @@ import software.amazon.awssdk.services.s3.model.ListBucketInventoryConfiguration
 import software.amazon.awssdk.services.s3.model.PutBucketInventoryConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.sync.RequestBody;
-import software.amazon.awssdk.test.util.RandomTempFile;
+import software.amazon.awssdk.testutils.RandomTempFile;
 
 public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTestBase {
 

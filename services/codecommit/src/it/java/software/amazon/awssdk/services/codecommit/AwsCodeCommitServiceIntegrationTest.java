@@ -27,7 +27,7 @@ import software.amazon.awssdk.services.codecommit.model.DeleteRepositoryRequest;
 import software.amazon.awssdk.services.codecommit.model.GetRepositoryRequest;
 import software.amazon.awssdk.services.codecommit.model.RepositoryDoesNotExistException;
 import software.amazon.awssdk.services.codecommit.model.RepositoryMetadata;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
  * Smoke test for {@link CodeCommitClient}.

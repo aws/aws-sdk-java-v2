@@ -60,7 +60,7 @@ import software.amazon.awssdk.services.ec2.model.PurchaseReservedInstancesOfferi
 import software.amazon.awssdk.services.ec2.model.Vpc;
 import software.amazon.awssdk.services.ec2.model.VpnConnection;
 import software.amazon.awssdk.services.ec2.model.VpnGateway;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 @Deprecated
 public class EC2TestHelper {
