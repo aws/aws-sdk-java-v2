@@ -41,7 +41,7 @@ import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
 import software.amazon.awssdk.services.dynamodb.util.TableUtils;
-import software.amazon.awssdk.test.util.UnorderedCollectionComparator;
+import software.amazon.awssdk.testutils.UnorderedCollectionComparator;
 import software.amazon.awssdk.util.ImmutableObjectUtils;
 import utils.test.util.DynamoDBTestBase;
 

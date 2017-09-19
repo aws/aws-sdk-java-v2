@@ -22,7 +22,7 @@ import software.amazon.awssdk.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalingPoliciesRequest;
 import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalingPoliciesResponse;
 import software.amazon.awssdk.services.applicationautoscaling.model.ServiceNamespace;
-import software.amazon.awssdk.test.AwsIntegrationTestBase;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class ServiceIntegrationTest extends AwsIntegrationTestBase {
 

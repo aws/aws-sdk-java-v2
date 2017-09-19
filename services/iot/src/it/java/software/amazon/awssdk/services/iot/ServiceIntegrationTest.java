@@ -37,7 +37,7 @@ import software.amazon.awssdk.services.iotdataplane.model.PublishRequest;
 import software.amazon.awssdk.services.iotdataplane.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.iotdataplane.model.UpdateThingShadowRequest;
 import software.amazon.awssdk.services.iotdataplane.model.UpdateThingShadowResponse;
-import software.amazon.awssdk.test.AwsIntegrationTestBase;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 public class ServiceIntegrationTest extends AwsIntegrationTestBase {

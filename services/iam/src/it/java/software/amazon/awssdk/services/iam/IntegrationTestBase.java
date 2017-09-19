@@ -19,7 +19,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.junit.Before;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
  * Base class for IAM integration tests. Provides convenience methods for

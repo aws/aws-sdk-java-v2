@@ -36,7 +36,7 @@ import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.LocalSecondaryIndex;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
-import software.amazon.awssdk.test.util.UnorderedCollectionComparator;
+import software.amazon.awssdk.testutils.UnorderedCollectionComparator;
 import utils.test.util.DynamoDBTestBase;
 
 /**

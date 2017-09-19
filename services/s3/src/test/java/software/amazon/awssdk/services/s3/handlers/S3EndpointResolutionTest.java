@@ -33,7 +33,7 @@ import software.amazon.awssdk.services.s3.S3AdvancedConfiguration;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
-import software.amazon.awssdk.test.http.MockHttpClient;
+import software.amazon.awssdk.testutils.service.http.MockHttpClient;
 
 /**
  * Functional tests for various endpoint related behavior in S3.

@@ -31,7 +31,7 @@ import software.amazon.awssdk.services.ecs.model.ListTaskDefinitionsRequest;
 import software.amazon.awssdk.services.ecs.model.PortMapping;
 import software.amazon.awssdk.services.ecs.model.RegisterTaskDefinitionRequest;
 import software.amazon.awssdk.services.ecs.model.RegisterTaskDefinitionResponse;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class EC2ContainerServiceIntegrationTest extends AwsTestBase {
 

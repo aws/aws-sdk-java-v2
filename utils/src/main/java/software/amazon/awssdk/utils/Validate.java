@@ -37,6 +37,7 @@ package software.amazon.awssdk.utils;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Predicate;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 
@@ -137,6 +138,46 @@ public class Validate {
             throw new NullPointerException(String.format("%s must not be null.", paramName));
         }
         return object;
+    }
+
+    /**
+     * <p>Validate the stateful predicate is true for the given object and return the object;
+     * otherwise throw an exception with the specified message.</p>
+     *
+     * <pre>String value = Validate.validState(someString, s -> s.length() == 0, "must be blank got: %s", someString);</pre>
+     *
+     *
+     * @param <T> the object type
+     * @param object  the object to check
+     * @param test  the predicate to apply, will return true if the object is valid
+     * @param message  the {@link String#format(String, Object...)} exception message if invalid, not null
+     * @param values  the optional values for the formatted exception message
+     * @return the validated object
+     * @throws NullPointerException if the object is {@code null}
+     */
+    public static <T> T validState(final T object, final Predicate<T> test, final String message, final Object... values) {
+        if (!test.test(object)) {
+            throw new IllegalStateException(String.format(message, values));
+        }
+        return object;
+    }
+
+    /**
+     * <p>Validate the stateful predicate is true for the given object and return the object;
+     * otherwise throw an exception with a precanned message that includes the parameter name.</p>
+     *
+     * <pre>String value = Validate.validState(someString, s -> s.length() == 0, "someString");</pre>
+     *
+     * @param <T> the object type
+     * @param object  the object to check
+     * @param test  the predicate to apply, will return true if the object is valid
+     * @param message  the {@link String#format(String, Object...)} exception message if invalid, not null
+     * @param values  the optional values for the formatted exception message
+     * @return the validated object
+     * @throws NullPointerException if the object is {@code null}
+     */
+    public static <T> T paramValidState(final T object, final Predicate<T> test, final String paramName) {
+        return validState(object, test, "%s has invalid state", paramName);
     }
 
     // notEmpty array

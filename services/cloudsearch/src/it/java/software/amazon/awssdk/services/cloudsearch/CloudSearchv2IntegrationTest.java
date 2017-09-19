@@ -57,7 +57,7 @@ import software.amazon.awssdk.services.cloudsearch.model.SuggesterStatus;
 import software.amazon.awssdk.services.cloudsearch.model.TextOptions;
 import software.amazon.awssdk.services.cloudsearch.model.UpdateScalingParametersRequest;
 import software.amazon.awssdk.services.cloudsearch.model.UpdateServiceAccessPoliciesRequest;
-import software.amazon.awssdk.test.AwsIntegrationTestBase;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class CloudSearchv2IntegrationTest extends AwsIntegrationTestBase {
 

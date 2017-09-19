@@ -26,7 +26,7 @@ import software.amazon.awssdk.services.cloudwatchevents.model.DisableRuleRequest
 import software.amazon.awssdk.services.cloudwatchevents.model.EnableRuleRequest;
 import software.amazon.awssdk.services.cloudwatchevents.model.PutRuleRequest;
 import software.amazon.awssdk.services.cloudwatchevents.model.RuleState;
-import software.amazon.awssdk.test.AwsIntegrationTestBase;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class CloudWatchEventsIntegrationTest extends AwsIntegrationTestBase {
 

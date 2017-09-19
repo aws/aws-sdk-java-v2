@@ -32,7 +32,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sns.model.Subscription;
 import software.amazon.awssdk.services.sns.model.Topic;
 import software.amazon.awssdk.services.sqs.SQSClient;
-import software.amazon.awssdk.test.AwsIntegrationTestBase;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 /**
  * Base class for SNS integration tests; responsible for loading AWS account info for running the

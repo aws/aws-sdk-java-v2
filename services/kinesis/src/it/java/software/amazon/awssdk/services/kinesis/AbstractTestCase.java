@@ -22,7 +22,7 @@ import java.net.URI;
 import java.util.Properties;
 import org.junit.BeforeClass;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 import software.amazon.awssdk.util.AwsHostNameUtils;
 
 public class AbstractTestCase extends AwsTestBase {

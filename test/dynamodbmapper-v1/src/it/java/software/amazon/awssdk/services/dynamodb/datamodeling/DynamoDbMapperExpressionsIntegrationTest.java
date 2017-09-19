@@ -39,7 +39,7 @@ import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ResourceInUseException;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 import software.amazon.awssdk.util.ImmutableMapParameter;
 import software.amazon.awssdk.util.ImmutableMapParameter.Builder;
 

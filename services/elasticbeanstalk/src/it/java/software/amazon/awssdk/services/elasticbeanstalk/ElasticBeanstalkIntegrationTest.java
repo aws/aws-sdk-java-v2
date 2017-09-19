@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.elasticbeanstalk;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static software.amazon.awssdk.testutils.SdkAsserts.assertNotEmpty;
 
 import java.util.List;
 import org.junit.Test;

@@ -26,7 +26,7 @@ import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.sync.RequestBody;
-import software.amazon.awssdk.test.util.RandomTempFile;
+import software.amazon.awssdk.testutils.RandomTempFile;
 
 /**
  * Integration test for the copyObject operation.

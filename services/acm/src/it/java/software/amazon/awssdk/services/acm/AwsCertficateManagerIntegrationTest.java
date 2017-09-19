@@ -23,7 +23,7 @@ import software.amazon.awssdk.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.services.acm.model.GetCertificateRequest;
 import software.amazon.awssdk.services.acm.model.ListCertificatesRequest;
 import software.amazon.awssdk.services.acm.model.ListCertificatesResponse;
-import software.amazon.awssdk.test.AwsIntegrationTestBase;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class AwsCertficateManagerIntegrationTest extends AwsIntegrationTestBase {
 

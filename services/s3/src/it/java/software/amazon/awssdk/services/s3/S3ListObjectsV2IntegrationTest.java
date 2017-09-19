@@ -43,7 +43,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.sync.RequestBody;
-import software.amazon.awssdk.test.util.RandomTempFile;
+import software.amazon.awssdk.testutils.RandomTempFile;
 
 /**
  * Integration tests for the listObjectsV2 operation in the Amazon S3 Java

@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.services.cloudwatch;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static software.amazon.awssdk.testutils.service.AwsTestBase.isValidAmazonServiceException;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -54,8 +56,8 @@ import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricAlarmRequest;
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataRequest;
 import software.amazon.awssdk.services.cloudwatch.model.SetAlarmStateRequest;
-import software.amazon.awssdk.test.AwsIntegrationTestBase;
-import software.amazon.awssdk.test.util.SdkAsserts;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
+import software.amazon.awssdk.testutils.SdkAsserts;
 
 /**
  * Integration tests for the AWS CloudWatch service.
@@ -339,7 +341,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
                                                    .namespace("fake-namespace").build());
             fail("Expected an AmazonServiceException, but wasn't thrown");
         } catch (AmazonServiceException e) {
-            SdkAsserts.assertValidException(e);
+            assertThat(e, isValidAmazonServiceException());
         }
     }
 

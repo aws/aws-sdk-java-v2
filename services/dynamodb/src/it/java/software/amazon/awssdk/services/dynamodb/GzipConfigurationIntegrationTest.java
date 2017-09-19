@@ -34,7 +34,7 @@ import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.util.TableUtils;
 import software.amazon.awssdk.services.dynamodb.util.TableUtils.TableNeverTransitionedToStateException;
-import software.amazon.awssdk.test.AwsIntegrationTestBase;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class GzipConfigurationIntegrationTest extends AwsIntegrationTestBase {
 

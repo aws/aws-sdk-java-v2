@@ -29,7 +29,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.sync.RequestBody;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
  * Base class for CloudFormation integration tests. Loads AWS credentials from a properties file and

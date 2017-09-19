@@ -28,7 +28,7 @@ import software.amazon.awssdk.services.efs.model.DeleteFileSystemRequest;
 import software.amazon.awssdk.services.efs.model.DescribeFileSystemsRequest;
 import software.amazon.awssdk.services.efs.model.FileSystemAlreadyExistsException;
 import software.amazon.awssdk.services.efs.model.FileSystemNotFoundException;
-import software.amazon.awssdk.test.AwsIntegrationTestBase;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 import software.amazon.awssdk.util.StringUtils;
 
 public class ElasticFileSystemIntegrationTest extends AwsIntegrationTestBase {
