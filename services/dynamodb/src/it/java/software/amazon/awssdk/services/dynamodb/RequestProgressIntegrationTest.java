@@ -38,7 +38,7 @@ import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutRequest;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
-import software.amazon.awssdk.test.util.ProgressListenerWithEventCodeVerification;
+import software.amazon.awssdk.testutils.service.ProgressListenerWithEventCodeVerification;
 import software.amazon.awssdk.util.ImmutableMapParameter;
 import utils.resources.RequiredResources;
 import utils.resources.RequiredResources.RequiredResource;

@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.sts;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.junit.BeforeClass;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
  * Base class for all STS integration tests. Loads AWS credentials from a

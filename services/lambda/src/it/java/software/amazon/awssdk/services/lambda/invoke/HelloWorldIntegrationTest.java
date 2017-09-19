@@ -32,7 +32,7 @@ import software.amazon.awssdk.services.lambda.model.FunctionCode;
 import software.amazon.awssdk.services.lambda.model.InvocationType;
 import software.amazon.awssdk.services.lambda.model.LogType;
 import software.amazon.awssdk.services.lambda.model.Runtime;
-import software.amazon.awssdk.test.retry.RetryRule;
+import software.amazon.awssdk.testutils.retry.RetryRule;
 
 public class HelloWorldIntegrationTest extends IntegrationTestBase {
 

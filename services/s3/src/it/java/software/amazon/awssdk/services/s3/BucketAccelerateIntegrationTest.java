@@ -43,10 +43,10 @@ import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.Tagging;
 import software.amazon.awssdk.services.s3.model.VersioningConfiguration;
 import software.amazon.awssdk.sync.RequestBody;
-import software.amazon.awssdk.test.retry.AssertCallable;
-import software.amazon.awssdk.test.retry.RetryableAssertion;
-import software.amazon.awssdk.test.retry.RetryableParams;
-import software.amazon.awssdk.test.util.RandomTempFile;
+import software.amazon.awssdk.testutils.retry.AssertCallable;
+import software.amazon.awssdk.testutils.retry.RetryableAssertion;
+import software.amazon.awssdk.testutils.retry.RetryableParams;
+import software.amazon.awssdk.testutils.RandomTempFile;
 
 
 /**

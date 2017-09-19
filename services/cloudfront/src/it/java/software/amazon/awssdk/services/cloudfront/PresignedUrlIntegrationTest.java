@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.cloudfront;
 
 import static org.junit.Assert.assertEquals;
-import static software.amazon.awssdk.test.util.DateUtils.yyMMddhhmmss;
+import static software.amazon.awssdk.testutils.DateUtils.yyMMddhhmmss;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -64,7 +64,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectAclRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.Type;
 import software.amazon.awssdk.sync.RequestBody;
-import software.amazon.awssdk.test.util.RandomTempFile;
+import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.util.StringUtils;
 
 /**

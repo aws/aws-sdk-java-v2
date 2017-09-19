@@ -28,7 +28,7 @@ import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeMetricFilter
 import software.amazon.awssdk.services.cloudwatchlogs.model.LogGroup;
 import software.amazon.awssdk.services.cloudwatchlogs.model.LogStream;
 import software.amazon.awssdk.services.cloudwatchlogs.model.MetricFilter;
-import software.amazon.awssdk.test.AwsIntegrationTestBase;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 /**
  * Base class for CloudWatch Logs integration tests.

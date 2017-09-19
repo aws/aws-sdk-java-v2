@@ -44,7 +44,7 @@ import software.amazon.awssdk.services.s3.model.StorageClassAnalysisDataExport;
 import software.amazon.awssdk.services.s3.model.StorageClassAnalysisSchemaVersion;
 import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.sync.RequestBody;
-import software.amazon.awssdk.test.util.RandomTempFile;
+import software.amazon.awssdk.testutils.RandomTempFile;
 
 public class BucketAnalyticsConfigurationIntegrationTest extends S3IntegrationTestBase {
 

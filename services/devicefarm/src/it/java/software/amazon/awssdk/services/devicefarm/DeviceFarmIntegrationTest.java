@@ -25,7 +25,7 @@ import software.amazon.awssdk.services.devicefarm.model.CreateProjectRequest;
 import software.amazon.awssdk.services.devicefarm.model.CreateProjectResponse;
 import software.amazon.awssdk.services.devicefarm.model.ListDevicePoolsRequest;
 import software.amazon.awssdk.services.devicefarm.model.Project;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
  * Smoke tests for device farm service.

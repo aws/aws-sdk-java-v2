@@ -27,7 +27,7 @@ import software.amazon.awssdk.services.elasticsearch.model.ListDomainNamesReques
 import software.amazon.awssdk.services.elasticsearch.model.ListTagsRequest;
 import software.amazon.awssdk.services.elasticsearch.model.Tag;
 import software.amazon.awssdk.services.elasticsearch.model.VolumeType;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 
 public class ServiceIntegrationTest extends AwsTestBase {

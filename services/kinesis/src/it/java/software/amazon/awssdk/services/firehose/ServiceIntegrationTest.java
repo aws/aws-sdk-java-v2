@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.firehose;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static software.amazon.awssdk.testutils.SdkAsserts.assertNotEmpty;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -36,7 +37,8 @@ import software.amazon.awssdk.services.firehose.model.PutRecordBatchResponseEntr
 import software.amazon.awssdk.services.firehose.model.PutRecordRequest;
 import software.amazon.awssdk.services.firehose.model.Record;
 import software.amazon.awssdk.services.firehose.model.S3DestinationConfiguration;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
+
 
 public class ServiceIntegrationTest extends AwsTestBase {
 
