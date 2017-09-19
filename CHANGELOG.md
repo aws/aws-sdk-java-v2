@@ -1,4 +1,4 @@
-# __2.0.0-preview-3__ __2017-09-18__
+# __2.0.0-preview-4__ __2017-09-19__
 ## __AWS SDK for Java v2__
   - ### New Features ###
     - The [File](https://github.com/aws/aws-sdk-java-v2/blob/master/core/src/main/java/software/amazon/awssdk/sync/StreamingResponseHandler.java#L92) and [OutputStream](https://github.com/aws/aws-sdk-java-v2/blob/master/core/src/main/java/software/amazon/awssdk/sync/StreamingResponseHandler.java#L107) implementations of StreamingResponseHandler now return the POJO response in onComplete.
@@ -20,6 +20,8 @@
     - Metrics subsystem has been removed.
     - DynamoDBMapper and DynamoDB Document API have been removed.
 
+# __2.0.0-preview-3__ __2017-09-18__
+Invalid partial release. Use 2.0.0-preview-4 instead.
 
 # __2.0.0-preview-2__ __2017-07-21__
 ## __AWS SDK for Java v2__
