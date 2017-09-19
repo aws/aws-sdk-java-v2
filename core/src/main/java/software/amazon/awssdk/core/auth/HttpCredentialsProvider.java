@@ -18,14 +18,13 @@ package software.amazon.awssdk.core.auth;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.CredentialsEndpointProvider;
-import software.amazon.awssdk.core.internal.EC2CredentialsUtils;
+import software.amazon.awssdk.core.internal.HttpCredentialsUtils;
 import software.amazon.awssdk.core.util.ComparableUtils;
 import software.amazon.awssdk.core.util.DateUtils;
 import software.amazon.awssdk.core.util.json.JacksonUtils;
@@ -37,30 +36,29 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 
 /**
  * Helper class that contains the common behavior of the CredentialsProviders that loads the credentials from a local endpoint on
- * an EC2 instance.
+ * a container (e.g. an EC2 instance).
  */
 @SdkInternalApi
-class EC2CredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
-    private final CredentialsEndpointProvider credentialsEndpointProvider;
+abstract class HttpCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
     private final CachedSupplier<AwsCredentials> credentialsCache;
 
-    EC2CredentialsProvider(CredentialsEndpointProvider credentialsEndpointProvider,
-                                  boolean asyncRefreshEnabled,
-                                  String asyncThreadName) {
-        this.credentialsEndpointProvider = credentialsEndpointProvider;
+    HttpCredentialsProvider(Builder<?, ?> builder) {
+        this(builder.asyncCredentialUpdateEnabled, builder.asyncThreadName);
+    }
 
+    HttpCredentialsProvider(boolean asyncCredentialUpdateEnabled, String asyncThreadName) {
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials);
-        if (asyncRefreshEnabled) {
+        if (asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(asyncThreadName));
         }
         this.credentialsCache = cacheBuilder.build();
     }
 
+    protected abstract CredentialsEndpointProvider getCredentialsEndpointProvider();
+
     private RefreshResult<AwsCredentials> refreshCredentials() {
         try {
-            String credentialsResponse = EC2CredentialsUtils.getInstance()
-                                                            .readResource(credentialsEndpointProvider.getCredentialsEndpoint(),
-                                                                          credentialsEndpointProvider.getRetryPolicy());
+            String credentialsResponse = HttpCredentialsUtils.instance().readResource(getCredentialsEndpointProvider());
 
             JsonNode node = JacksonUtils.jsonNodeOf(credentialsResponse);
             JsonNode accessKey = node.get("AccessKeyId");
@@ -72,12 +70,12 @@ class EC2CredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable
             Validate.notNull(secretKey, "Failed to load secret key.");
 
             AwsCredentials credentials =
-                    token == null ? AwsCredentials.create(accessKey.asText(), secretKey.asText())
+                    token == null ? new AwsCredentials(accessKey.asText(), secretKey.asText())
                                   : AwsSessionCredentials.create(accessKey.asText(), secretKey.asText(), token.asText());
 
             Instant expiration = getExpiration(expirationNode).orElse(null);
             if (expiration != null && Instant.now().isAfter(expiration)) {
-                throw new SdkClientException("Credentials obtained from EC2 metadata service are already expired");
+                throw new SdkClientException("Credentials obtained from metadata service are already expired.");
             }
             return RefreshResult.builder(credentials)
                                 .staleTime(getStaleTime(expiration))
@@ -87,7 +85,7 @@ class EC2CredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable
             throw e;
         } catch (JsonMappingException e) {
             throw new SdkClientException("Unable to parse response returned from service endpoint.", e);
-        } catch (RuntimeException | IOException | URISyntaxException e) {
+        } catch (RuntimeException | IOException e) {
             throw new SdkClientException("Unable to load credentials from service endpoint.", e);
         }
     }
@@ -100,7 +98,7 @@ class EC2CredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable
             try {
                 return DateUtils.parseIso8601Date(expirationValue);
             } catch (RuntimeException e) {
-                throw new IllegalStateException("Unable to parse credentials expiration date from Amazon EC2 instance.", e);
+                throw new IllegalStateException("Unable to parse credentials expiration date from metadata service.", e);
             }
         });
     }
@@ -129,5 +127,38 @@ class EC2CredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable
     @Override
     public String toString() {
         return getClass().getSimpleName();
+    }
+
+
+    /**
+     * A builder for creating a custom a {@link InstanceProfileCredentialsProvider}.
+     */
+    protected abstract static class Builder<TypeToBuildT extends HttpCredentialsProvider, BuilderT extends Builder> {
+        private boolean asyncCredentialUpdateEnabled = false;
+        private String asyncThreadName;
+
+        /**
+         * Created using {@link #builder()}.
+         */
+        protected Builder() {}
+
+        /**
+         * Configure whether this provider should fetch credentials asynchronously in the background. If this is true, threads are
+         * less likely to block when {@link #getCredentials()} is called, but additional resources are used to maintain the
+         * provider.
+         *
+         * <p>By default, this is disabled.</p>
+         */
+        public BuilderT asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {
+            this.asyncCredentialUpdateEnabled = asyncCredentialUpdateEnabled;
+            return (BuilderT) this;
+        }
+
+        public BuilderT asyncThreadName(String asyncThreadName) {
+            this.asyncThreadName = asyncThreadName;
+            return (BuilderT) this;
+        }
+
+        public abstract TypeToBuildT build();
     }
 }

@@ -20,13 +20,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
-import java.net.URISyntaxException;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.core.AwsSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -34,9 +34,9 @@ import software.amazon.awssdk.core.internal.CredentialsEndpointProvider;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 /**
- * Tests for the {@link ElasticContainerCredentialsProviderTest}.
+ * Tests for the {@link ContainerCredentialsProviderTest}.
  */
-public class ElasticContainerCredentialsProviderTest {
+public class ContainerCredentialsProviderTest {
     @ClassRule
     public static WireMockRule mockServer = new WireMockRule(0);
 
@@ -45,18 +45,21 @@ public class ElasticContainerCredentialsProviderTest {
     private static final String ACCESS_KEY_ID = "ACCESS_KEY_ID";
     private static final String SECRET_ACCESS_KEY = "SECRET_ACCESS_KEY";
     private static final String TOKEN = "TOKEN_TOKEN_TOKEN";
-    private ElasticContainerCredentialsProvider credentialsProvider;
-
-    @Rule
-    public final EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
+    private ContainerCredentialsProvider credentialsProvider;
+    private static EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
 
     @Before
     public void setup() {
         TestCredentialsEndpointProvider endpointProvider =
             new TestCredentialsEndpointProvider("http://localhost:" + mockServer.port());
-        credentialsProvider = ElasticContainerCredentialsProvider.builder()
-                                                                 .credentialsEndpointProvider(endpointProvider)
-                                                                 .build();
+        credentialsProvider = ContainerCredentialsProvider.builder()
+                                                          .credentialsEndpointProvider(endpointProvider)
+                                                          .build();
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        helper.reset();
     }
 
     /**
@@ -65,7 +68,9 @@ public class ElasticContainerCredentialsProviderTest {
     @Test(expected = SdkClientException.class)
     public void testEnvVariableNotSet() {
         helper.remove(AwsSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI);
-        ElasticContainerCredentialsProvider.create().getCredentials();
+        ContainerCredentialsProvider.builder()
+                                    .build()
+                                    .getCredentials();
     }
 
     /**
@@ -83,7 +88,6 @@ public class ElasticContainerCredentialsProviderTest {
         assertThat(credentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
         assertThat(credentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
         assertThat(credentials.sessionToken()).isEqualTo(TOKEN);
-
     }
 
     private void stubForSuccessResponse() {
@@ -102,7 +106,7 @@ public class ElasticContainerCredentialsProviderTest {
     /**
      * Dummy CredentialsPathProvider that overrides the endpoint and connects to the WireMock server.
      */
-    private static class TestCredentialsEndpointProvider extends CredentialsEndpointProvider {
+    private static class TestCredentialsEndpointProvider implements CredentialsEndpointProvider {
         private final String host;
 
         public TestCredentialsEndpointProvider(String host) {
@@ -110,8 +114,8 @@ public class ElasticContainerCredentialsProviderTest {
         }
 
         @Override
-        public URI getCredentialsEndpoint() throws URISyntaxException {
-            return new URI(host + CREDENTIALS_PATH);
+        public URI endpoint() {
+            return invokeSafely(() -> new URI(host + CREDENTIALS_PATH));
         }
     }
 }

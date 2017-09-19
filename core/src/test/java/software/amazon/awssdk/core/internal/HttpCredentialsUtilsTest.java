@@ -29,6 +29,8 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.Map;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -44,7 +46,7 @@ import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryPolicy
 import utils.http.SocketUtils;
 
 @RunWith(MockitoJUnitRunner.class)
-public class EC2CredentialsUtilsTest {
+public class HttpCredentialsUtilsTest {
     @ClassRule
     public static WireMockRule mockServer = new WireMockRule(wireMockConfig().port(0), false);
 
@@ -52,10 +54,11 @@ public class EC2CredentialsUtilsTest {
     private static final String SUCCESS_BODY = "{\"AccessKeyId\":\"ACCESS_KEY_ID\",\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
                                                + "\"Token\":\"TOKEN_TOKEN_TOKEN\",\"Expiration\":\"3000-05-03T04:55:54Z\"}";
     private static URI endpoint;
+    private final Map<String, String> emptyHeaders = Collections.emptyMap();
 
     private static CustomRetryPolicy customRetryPolicy;
 
-    private static EC2CredentialsUtils ec2CredentialsUtils;
+    private static HttpCredentialsUtils httpCredentialsUtils;
 
     @Mock
     private ConnectionUtils mockConnection;
@@ -64,7 +67,7 @@ public class EC2CredentialsUtilsTest {
     public static void setup() throws URISyntaxException {
         endpoint = new URI("http://localhost:" + mockServer.port() + CREDENTIALS_PATH);
         customRetryPolicy = new CustomRetryPolicy();
-        ec2CredentialsUtils = EC2CredentialsUtils.getInstance();
+        httpCredentialsUtils = HttpCredentialsUtils.instance();
     }
 
     /**
@@ -79,7 +82,7 @@ public class EC2CredentialsUtilsTest {
             fail("Unable to find an unused port");
         }
 
-        ec2CredentialsUtils.readResource(new URI("http://localhost:" + port));
+        httpCredentialsUtils.readResource(new URI("http://localhost:" + port));
     }
 
     /**
@@ -90,7 +93,7 @@ public class EC2CredentialsUtilsTest {
     public void readResouceReturnsResponseBodyFor200Response() throws IOException {
         generateStub(200, SUCCESS_BODY);
 
-        assertEquals(SUCCESS_BODY, ec2CredentialsUtils.readResource(endpoint));
+        assertEquals(SUCCESS_BODY, httpCredentialsUtils.readResource(endpoint));
     }
 
     /**
@@ -100,7 +103,7 @@ public class EC2CredentialsUtilsTest {
     @Test
     public void readResouceReturnsAceFor404ErrorResponse() throws Exception {
         try {
-            ec2CredentialsUtils.readResource(new URI("http://localhost:" + mockServer.port() + "/dummyPath"));
+            httpCredentialsUtils.readResource(new URI("http://localhost:" + mockServer.port() + "/dummyPath"));
             fail("Expected SdkClientException");
         } catch (SdkClientException ace) {
             assertTrue(ace.getMessage().contains("The requested metadata is not found at"));
@@ -117,7 +120,7 @@ public class EC2CredentialsUtilsTest {
         generateStub(500, "{\"code\":\"500 Internal Server Error\",\"message\":\"ERROR_MESSAGE\"}");
 
         try {
-            ec2CredentialsUtils.readResource(endpoint);
+            httpCredentialsUtils.readResource(endpoint);
             fail("Expected SdkServiceException");
         } catch (SdkServiceException exception) {
             assertEquals(500, exception.statusCode());
@@ -136,7 +139,7 @@ public class EC2CredentialsUtilsTest {
         generateStub(500, "Non Json error body");
 
         try {
-            ec2CredentialsUtils.readResource(endpoint);
+            httpCredentialsUtils.readResource(endpoint);
             fail("Expected SdkServiceException");
         } catch (SdkServiceException exception) {
             assertEquals(500, exception.statusCode());
@@ -150,13 +153,13 @@ public class EC2CredentialsUtilsTest {
      */
     @Test
     public void readResouceWithDefaultRetryPolicy_DoesNotRetry_ForIoException() throws IOException {
-        Mockito.when(mockConnection.connectToEndpoint(endpoint)).thenThrow(new IOException());
+        Mockito.when(mockConnection.connectToEndpoint(endpoint, emptyHeaders)).thenThrow(new IOException());
 
         try {
-            new EC2CredentialsUtils(mockConnection).readResource(endpoint);
+            new HttpCredentialsUtils(mockConnection).readResource(endpoint);
             fail("Expected an IOexception");
         } catch (IOException exception) {
-            Mockito.verify(mockConnection, Mockito.times(1)).connectToEndpoint(endpoint);
+            Mockito.verify(mockConnection, Mockito.times(1)).connectToEndpoint(endpoint, emptyHeaders);
         }
     }
 
@@ -167,13 +170,13 @@ public class EC2CredentialsUtilsTest {
      */
     @Test
     public void readResouceWithCustomRetryPolicy_DoesRetry_ForIoException() throws IOException {
-        Mockito.when(mockConnection.connectToEndpoint(endpoint)).thenThrow(new IOException());
+        Mockito.when(mockConnection.connectToEndpoint(endpoint, emptyHeaders)).thenThrow(new IOException());
 
         try {
-            new EC2CredentialsUtils(mockConnection).readResource(endpoint, customRetryPolicy);
+            new HttpCredentialsUtils(mockConnection).readResource(endpointProvider(endpoint, customRetryPolicy));
             fail("Expected an IOexception");
         } catch (IOException exception) {
-            Mockito.verify(mockConnection, Mockito.times(CustomRetryPolicy.MAX_RETRIES + 1)).connectToEndpoint(endpoint);
+            Mockito.verify(mockConnection, Mockito.times(CustomRetryPolicy.MAX_RETRIES + 1)).connectToEndpoint(endpoint, emptyHeaders);
         }
     }
 
@@ -185,13 +188,13 @@ public class EC2CredentialsUtilsTest {
     @Test
     public void readResouceWithCustomRetryPolicy_DoesNotRetry_ForNonIoException() throws IOException {
         generateStub(500, "Non Json error body");
-        Mockito.when(mockConnection.connectToEndpoint(endpoint)).thenCallRealMethod();
+        Mockito.when(mockConnection.connectToEndpoint(endpoint, emptyHeaders)).thenCallRealMethod();
 
         try {
-            new EC2CredentialsUtils(mockConnection).readResource(endpoint, customRetryPolicy);
+            new HttpCredentialsUtils(mockConnection).readResource(endpointProvider(endpoint, customRetryPolicy));
             fail("Expected an SdkServiceException");
         } catch (SdkServiceException exception) {
-            Mockito.verify(mockConnection, Mockito.times(1)).connectToEndpoint(endpoint);
+            Mockito.verify(mockConnection, Mockito.times(1)).connectToEndpoint(endpoint, emptyHeaders);
         }
     }
 
@@ -225,7 +228,20 @@ public class EC2CredentialsUtilsTest {
 
             return false;
         }
+    }
 
+    private static CredentialsEndpointProvider endpointProvider(URI endpoint, CredentialsEndpointRetryPolicy retryPolicy) {
+        return new CredentialsEndpointProvider() {
+            @Override
+            public URI endpoint() throws IOException {
+                return endpoint;
+            }
+
+            @Override
+            public CredentialsEndpointRetryPolicy retryPolicy() {
+                return retryPolicy;
+            }
+        };
     }
 
 }
