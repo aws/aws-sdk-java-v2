@@ -23,15 +23,19 @@ import java.lang.reflect.Field;
 import java.util.Map;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.core.AwsSystemSetting;
 import software.amazon.awssdk.core.auth.profile.ProfileResourceLoader;
 import software.amazon.awssdk.core.auth.profile.ProfilesConfigFile;
-import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 public class ProfileCredentialsProviderTest {
     private static File profileLocation = null;
+
+    @Rule
+    public final EnvironmentVariableHelper env = new EnvironmentVariableHelper();
 
     @BeforeClass
     public static void setUp() {
@@ -65,19 +69,13 @@ public class ProfileCredentialsProviderTest {
 
     @Test
     public void testEnvironmentVariable() throws Exception {
-        Map<String, String> env = getMutableSystemEnvironment();
+        env.set(AwsSystemSetting.AWS_DEFAULT_PROFILE.environmentVariable(), "test");
 
-        try {
-            env.put(AwsSystemSetting.AWS_DEFAULT_PROFILE.environmentVariable(), "test");
+        ProfileCredentialsProvider provider = newProvider();
 
-            ProfileCredentialsProvider provider = newProvider();
-
-            AwsCredentials credentials = provider.getCredentials();
-            Assert.assertEquals("test", credentials.accessKeyId());
-            Assert.assertEquals("test key", credentials.secretAccessKey());
-        } finally {
-            env.remove(AwsSystemSetting.AWS_DEFAULT_PROFILE.environmentVariable());
-        }
+        AwsCredentials credentials = provider.getCredentials();
+        Assert.assertEquals("test", credentials.accessKeyId());
+        Assert.assertEquals("test key", credentials.secretAccessKey());
     }
 
     @Test
@@ -97,11 +95,9 @@ public class ProfileCredentialsProviderTest {
 
     @Test
     public void testBoth() throws Exception {
-        Map<String, String> env = getMutableSystemEnvironment();
-
         try {
             // If both are set, property should take precedence.
-            env.put(AwsSystemSetting.AWS_DEFAULT_PROFILE.environmentVariable(), "bogus");
+            env.set(AwsSystemSetting.AWS_DEFAULT_PROFILE.environmentVariable(), "bogus");
             System.setProperty(AwsSystemSetting.AWS_DEFAULT_PROFILE.property(), "test");
 
             ProfileCredentialsProvider provider = newProvider();
@@ -111,16 +107,13 @@ public class ProfileCredentialsProviderTest {
             Assert.assertEquals("test key", credentials.secretAccessKey());
         } finally {
             System.clearProperty(AwsSystemSetting.AWS_DEFAULT_PROFILE.property());
-            env.remove(AwsSystemSetting.AWS_DEFAULT_PROFILE.environmentVariable());
         }
     }
 
     @Test
     public void testExplicit() throws Exception {
-        Map<String, String> env = getMutableSystemEnvironment();
-
         try {
-            env.put(AwsSystemSetting.AWS_DEFAULT_PROFILE.environmentVariable(), "test");
+            env.set(AwsSystemSetting.AWS_DEFAULT_PROFILE.environmentVariable(), "test");
             System.setProperty(AwsSystemSetting.AWS_DEFAULT_PROFILE.property(), "test");
 
             // If an explicit override is provided, that beats anything else.
@@ -139,8 +132,6 @@ public class ProfileCredentialsProviderTest {
 
         } finally {
             System.clearProperty(AwsSystemSetting.AWS_DEFAULT_PROFILE.property());
-
-            env.remove(AwsSystemSetting.AWS_DEFAULT_PROFILE.environmentVariable());
         }
     }
 

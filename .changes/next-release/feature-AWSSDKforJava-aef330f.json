@@ -1,0 +1,5 @@
+{
+    "category": "AWS SDK for Java v2",
+    "type": "feature", 
+    "description": "Implementation of a generic HTTP credential provider used to get credentials from an container metadata service. Replica of v1 [implementation](https://github.com/aws/aws-sdk-java/blob/master/aws-java-sdk-core/src/main/java/com/amazonaws/auth/ContainerCredentialsProvider.java#L108) [#328](https://github.com/aws/aws-sdk-java-v2/pull/328)"
+}

@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Custom retry policy for credentials providers ({@link InstanceProfileCredentialsProvider},
- * {@link ElasticContainerCredentialsProvider}) that retrieve credentials from a local endpoint in EC2 host.
+ * {@link ContainerCredentialsProvider}) that retrieve credentials from a local endpoint in EC2 host.
  *
  * Internal use only.
  */
