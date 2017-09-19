@@ -18,14 +18,13 @@ package software.amazon.awssdk.auth;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.internal.CredentialsEndpointProvider;
-import software.amazon.awssdk.internal.EC2CredentialsUtils;
+import software.amazon.awssdk.internal.HttpCredentialsUtils;
 import software.amazon.awssdk.util.ComparableUtils;
 import software.amazon.awssdk.util.DateUtils;
 import software.amazon.awssdk.util.json.JacksonUtils;
@@ -37,16 +36,16 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 
 /**
  * Helper class that contains the common behavior of the CredentialsProviders that loads the credentials from a local endpoint on
- * an EC2 instance.
+ * a container (e.g. an EC2 instance).
  */
 @SdkInternalApi
-class EC2CredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
+class HttpCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
     private final CredentialsEndpointProvider credentialsEndpointProvider;
     private final CachedSupplier<AwsCredentials> credentialsCache;
 
-    EC2CredentialsProvider(CredentialsEndpointProvider credentialsEndpointProvider,
-                                  boolean asyncRefreshEnabled,
-                                  String asyncThreadName) {
+    HttpCredentialsProvider(CredentialsEndpointProvider credentialsEndpointProvider,
+                            boolean asyncRefreshEnabled,
+                            String asyncThreadName) {
         this.credentialsEndpointProvider = credentialsEndpointProvider;
 
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials);
@@ -58,9 +57,7 @@ class EC2CredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable
 
     private RefreshResult<AwsCredentials> refreshCredentials() {
         try {
-            String credentialsResponse = EC2CredentialsUtils.getInstance()
-                                                            .readResource(credentialsEndpointProvider.getCredentialsEndpoint(),
-                                                                          credentialsEndpointProvider.getRetryPolicy());
+            String credentialsResponse = HttpCredentialsUtils.getInstance().readResource(credentialsEndpointProvider);
 
             JsonNode node = JacksonUtils.jsonNodeOf(credentialsResponse);
             JsonNode accessKey = node.get("AccessKeyId");
@@ -77,7 +74,7 @@ class EC2CredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable
 
             Instant expiration = getExpiration(expirationNode).orElse(null);
             if (expiration != null && Instant.now().isAfter(expiration)) {
-                throw new SdkClientException("Credentials obtained from EC2 metadata service are already expired");
+                throw new SdkClientException("Credentials obtained from metadata service are already expired.");
             }
             return RefreshResult.builder(credentials)
                                 .staleTime(getStaleTime(expiration))
@@ -87,7 +84,7 @@ class EC2CredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable
             throw e;
         } catch (JsonMappingException e) {
             throw new SdkClientException("Unable to parse response returned from service endpoint.", e);
-        } catch (RuntimeException | IOException | URISyntaxException e) {
+        } catch (RuntimeException | IOException e) {
             throw new SdkClientException("Unable to load credentials from service endpoint.", e);
         }
     }
@@ -100,7 +97,7 @@ class EC2CredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable
             try {
                 return DateUtils.parseIso8601Date(expirationValue);
             } catch (RuntimeException e) {
-                throw new IllegalStateException("Unable to parse credentials expiration date from Amazon EC2 instance.", e);
+                throw new IllegalStateException("Unable to parse credentials expiration date from metadata service.", e);
             }
         });
     }

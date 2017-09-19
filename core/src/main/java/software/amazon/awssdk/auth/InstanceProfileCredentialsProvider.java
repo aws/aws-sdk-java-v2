@@ -17,11 +17,10 @@ package software.amazon.awssdk.auth;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.internal.CredentialsEndpointProvider;
-import software.amazon.awssdk.internal.EC2CredentialsUtils;
+import software.amazon.awssdk.internal.HttpCredentialsUtils;
 import software.amazon.awssdk.util.EC2MetadataUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
@@ -32,7 +31,7 @@ public class InstanceProfileCredentialsProvider implements AwsCredentialsProvide
     /**
      * The client to use to fetch the Amazon ECS credentials.
      */
-    private final EC2CredentialsProvider credentialsFetcher;
+    private final HttpCredentialsProvider credentialsFetcher;
 
     /**
      * Create an {@link InstanceProfileCredentialsProvider} using the default configuration. See {@link #builder()} for
@@ -47,9 +46,9 @@ public class InstanceProfileCredentialsProvider implements AwsCredentialsProvide
      * @see #builder()
      */
     private InstanceProfileCredentialsProvider(Builder builder) {
-        this.credentialsFetcher = new EC2CredentialsProvider(new InstanceMetadataCredentialsEndpointProvider(),
-                                                             builder.asyncCredentialUpdateEnabled,
-                                                             "instance-profile-credentials-provider");
+        this.credentialsFetcher = new HttpCredentialsProvider(new InstanceMetadataCredentialsEndpointProvider(),
+                                                              builder.asyncCredentialUpdateEnabled,
+                                                              "instance-profile-credentials-provider");
     }
 
     /**
@@ -74,20 +73,20 @@ public class InstanceProfileCredentialsProvider implements AwsCredentialsProvide
         return getClass().getSimpleName();
     }
 
-    private static class InstanceMetadataCredentialsEndpointProvider extends CredentialsEndpointProvider {
+    private static class InstanceMetadataCredentialsEndpointProvider implements CredentialsEndpointProvider {
         @Override
-        public URI getCredentialsEndpoint() throws URISyntaxException, IOException {
+        public URI endpoint() throws IOException {
             String host = EC2MetadataUtils.getHostAddressForEc2MetadataService();
 
-            URI endpoint = new URI(host + EC2MetadataUtils.SECURITY_CREDENTIALS_RESOURCE);
-            String securityCredentialsList = EC2CredentialsUtils.getInstance().readResource(endpoint);
+            URI endpoint = URI.create(host + EC2MetadataUtils.SECURITY_CREDENTIALS_RESOURCE);
+            String securityCredentialsList = HttpCredentialsUtils.getInstance().readResource(endpoint);
             String[] securityCredentials = securityCredentialsList.trim().split("\n");
 
             if (securityCredentials.length == 0) {
                 throw new SdkClientException("Unable to load credentials path");
             }
 
-            return new URI(host + EC2MetadataUtils.SECURITY_CREDENTIALS_RESOURCE + securityCredentials[0]);
+            return URI.create(host + EC2MetadataUtils.SECURITY_CREDENTIALS_RESOURCE + securityCredentials[0]);
         }
     }
 

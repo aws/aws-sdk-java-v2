@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.auth;
 
+import software.amazon.awssdk.auth.ContainerCredentialsProvider.EcsCredentialsEndpointProvider;
+import software.amazon.awssdk.auth.ContainerCredentialsProvider.FullUriGenericCredentialsEndpointProvider;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
@@ -31,7 +33,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * @see SystemPropertyCredentialsProvider
  * @see EnvironmentVariableCredentialsProvider
  * @see ProfileCredentialsProvider
- * @see ElasticContainerCredentialsProvider
+ * @see ContainerCredentialsProvider
  * @see InstanceProfileCredentialsProvider
  */
 public class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
@@ -64,13 +66,18 @@ public class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAu
      */
     private static AwsCredentialsProviderChain createChain(Builder builder) {
         AwsCredentialsProvider[] credentialsProviders = new AwsCredentialsProvider[] {
-                new SystemPropertyCredentialsProvider(),
-                new EnvironmentVariableCredentialsProvider(),
-                new ProfileCredentialsProvider(),
-                ElasticContainerCredentialsProvider.builder()
-                                                   .asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled)
-                                                   .build(),
-                InstanceProfileCredentialsProvider.builder()
+            new SystemPropertyCredentialsProvider(),
+            new EnvironmentVariableCredentialsProvider(),
+            new ProfileCredentialsProvider(),
+            ContainerCredentialsProvider.builder()
+                                        .credentialsEndpointProvider(new EcsCredentialsEndpointProvider())
+                                        .asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled)
+                                        .build(),
+            ContainerCredentialsProvider.builder()
+                                        .credentialsEndpointProvider(new FullUriGenericCredentialsEndpointProvider())
+                                        .asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled)
+                                        .build(),
+            InstanceProfileCredentialsProvider.builder()
                                                   .asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled)
                                                   .build()
         };

@@ -21,6 +21,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.IOException;
@@ -37,7 +38,7 @@ import software.amazon.awssdk.internal.CredentialsEndpointProvider;
 import software.amazon.awssdk.util.DateUtils;
 import software.amazon.awssdk.utils.IoUtils;
 
-public class EC2CredentialsProviderTest {
+public class HttpCredentialsProviderTest {
     @ClassRule
     public static WireMockRule mockServer = new WireMockRule(0);
     /** One minute (in milliseconds) */
@@ -50,8 +51,8 @@ public class EC2CredentialsProviderTest {
 
     @BeforeClass
     public static void setup() throws IOException {
-        successResponse = IoUtils.toString(EC2CredentialsProviderTest.class.getResourceAsStream("/resources/wiremock/successResponse.json"));
-        successResponseWithInvalidBody = IoUtils.toString(EC2CredentialsProviderTest.class.getResourceAsStream("/resources/wiremock/successResponseWithInvalidBody.json"));
+        successResponse = IoUtils.toString(HttpCredentialsProviderTest.class.getResourceAsStream("/resources/wiremock/successResponse.json"));
+        successResponseWithInvalidBody = IoUtils.toString(HttpCredentialsProviderTest.class.getResourceAsStream("/resources/wiremock/successResponseWithInvalidBody.json"));
     }
 
     /**
@@ -61,7 +62,7 @@ public class EC2CredentialsProviderTest {
     public void testLoadCredentialsParsesJsonResponseProperly() {
         stubForSuccessResponseWithCustomBody(successResponse);
 
-        EC2CredentialsProvider credentialsProvider = testCredentialsProvider();
+        HttpCredentialsProvider credentialsProvider = testCredentialsProvider();
         AwsSessionCredentials credentials = (AwsSessionCredentials) credentialsProvider.getCredentials();
 
         assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
@@ -78,7 +79,7 @@ public class EC2CredentialsProviderTest {
         // Stub for success response but without keys in the response body
         stubForSuccessResponseWithCustomBody(successResponseWithInvalidBody);
 
-        EC2CredentialsProvider credentialsProvider = testCredentialsProvider();
+        HttpCredentialsProvider credentialsProvider = testCredentialsProvider();
 
         assertThatExceptionOfType(AmazonClientException.class).isThrownBy(credentialsProvider::getCredentials)
                                                               .withMessage("Unable to load credentials from service endpoint.");
@@ -92,7 +93,7 @@ public class EC2CredentialsProviderTest {
     public void testNoMetadataService() throws Exception {
         stubForErrorResponse();
 
-        EC2CredentialsProvider credentialsProvider = testCredentialsProvider();
+        HttpCredentialsProvider credentialsProvider = testCredentialsProvider();
 
         // When there are no credentials, the provider should throw an exception if we can't connect
         assertThatExceptionOfType(AmazonClientException.class).isThrownBy(credentialsProvider::getCredentials);
@@ -108,7 +109,7 @@ public class EC2CredentialsProviderTest {
 
     @Test
     public void basicCachingFunctionalityWorks() {
-        EC2CredentialsProvider credentialsProvider = testCredentialsProvider();
+        HttpCredentialsProvider credentialsProvider = testCredentialsProvider();
 
         // Successful load
         stubForSuccessResonseWithCustomExpirationDate(Date.from(Instant.now().plus(Duration.ofDays(10))));
@@ -148,16 +149,16 @@ public class EC2CredentialsProviderTest {
     }
 
 
-    private EC2CredentialsProvider testCredentialsProvider() {
-        return new EC2CredentialsProvider(new TestCredentialsEndpointProvider("http://localhost:" + mockServer.port()),
-                                          false, "");
+    private HttpCredentialsProvider testCredentialsProvider() {
+        return new HttpCredentialsProvider(new TestCredentialsEndpointProvider("http://localhost:" + mockServer.port()),
+                                           false, "");
     }
 
     /**
      * Dummy CredentialsPathProvider that overrides the endpoint
      * and connects to the WireMock server.
      */
-    private static class TestCredentialsEndpointProvider extends CredentialsEndpointProvider {
+    private static class TestCredentialsEndpointProvider implements CredentialsEndpointProvider {
         private final String host;
 
         public TestCredentialsEndpointProvider(String host) {
@@ -165,8 +166,8 @@ public class EC2CredentialsProviderTest {
         }
 
         @Override
-        public URI getCredentialsEndpoint() throws URISyntaxException {
-            return new URI(host + CREDENTIALS_PATH);
+        public URI endpoint() {
+            return invokeSafely(() -> new URI(host + CREDENTIALS_PATH));
         }
     }
 

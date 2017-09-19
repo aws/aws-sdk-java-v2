@@ -16,12 +16,12 @@
 package software.amazon.awssdk.retry.internal;
 
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.auth.ElasticContainerCredentialsProvider;
+import software.amazon.awssdk.auth.ContainerCredentialsProvider;
 import software.amazon.awssdk.auth.InstanceProfileCredentialsProvider;
 
 /**
  * Custom retry policy for credentials providers ({@link InstanceProfileCredentialsProvider},
- * {@link ElasticContainerCredentialsProvider}) that retrieve credentials from a local endpoint in EC2 host.
+ * {@link ContainerCredentialsProvider}) that retrieve credentials from a local endpoint in EC2 host.
  *
  * Internal use only.
  */

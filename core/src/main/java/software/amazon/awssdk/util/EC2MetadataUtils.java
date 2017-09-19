@@ -37,7 +37,7 @@ import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.internal.EC2CredentialsUtils;
+import software.amazon.awssdk.internal.HttpCredentialsUtils;
 import software.amazon.awssdk.util.json.JacksonUtils;
 
 /**
@@ -378,7 +378,7 @@ public class EC2MetadataUtils {
         List<String> items;
         try {
             String hostAddress = getHostAddressForEc2MetadataService();
-            String response = EC2CredentialsUtils.getInstance().readResource(new URI(hostAddress + path));
+            String response = HttpCredentialsUtils.getInstance().readResource(new URI(hostAddress + path));
             if (slurp) {
                 items = Collections.singletonList(response);
             } else {
