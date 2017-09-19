@@ -17,13 +17,17 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
+
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_CONTEXT_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.RESPONSE_COMPLETE_KEY;
 
 import com.typesafe.netty.http.StreamedHttpResponse;
 import com.typesafe.netty.HandlerPublisher;
 import com.typesafe.netty.HandlerSubscriber;
 import com.typesafe.netty.http.HttpStreamsClientHandler;
 import com.typesafe.netty.http.StreamedHttpResponse;
+
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -38,15 +42,20 @@ import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.AttributeKey;
+
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
@@ -80,12 +89,18 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         if (msg instanceof StreamedHttpResponse) {
             requestContext.handler().onStream(new PublisherAdapter((StreamedHttpResponse) msg, channelContext, requestContext));
         } else if (msg instanceof FullHttpResponse) {
+            ByteBuf fullContent = ((FullHttpResponse) msg).content();
+            final ByteBuffer bb = copyToByteBuffer(fullContent);
+            fullContent.release();
             requestContext.handler().onStream(new Publisher<ByteBuffer>() {
+                // FIXME: According to the spec,the publisher must call
+                // onSubscribe and wait for demand before calling onNext
+                // see item 1.1, 1.9: https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.1/README.md#specification
                 @Override
                 public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-                    subscriber.onNext(((FullHttpResponse) msg).content().nioBuffer());
+                    subscriber.onNext(bb);
                     channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY)
-                                  .set(subscriber);
+                            .set(subscriber);
                 }
             });
         }
@@ -108,12 +123,13 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     private static void finalizeRequest(RequestContext requestContext, ChannelHandlerContext channelContext) {
 
         runAndLogError("Could not remove request specific handlers from pipeline",
-                       () -> removePerRequestHandlers(channelContext));
+                () -> removePerRequestHandlers(channelContext));
         if (!channelContext.channel().attr(KEEP_ALIVE).get()) {
             closeAndRelease(channelContext);
         } else {
             requestContext.channelPool().release(channelContext.channel());
         }
+        channelContext.channel().attr(RESPONSE_COMPLETE_KEY).set(true);
     }
 
     private static void removePerRequestHandlers(ChannelHandlerContext ctx) {
@@ -142,9 +158,15 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        super.channelInactive(ctx);
-        closeAndRelease(ctx);
+    public void channelInactive(ChannelHandlerContext handlerCtx) throws Exception {
+        RequestContext requestCtx = handlerCtx.channel().attr(REQUEST_CONTEXT_KEY).get();
+        boolean responseCompleted = handlerCtx.channel().attr(RESPONSE_COMPLETE_KEY).get();
+        if (!responseCompleted) {
+            runAndLogError("SdkHttpResponseHandler threw an exception when calling exceptionOccurred",
+                    () -> requestCtx.handler().exceptionOccurred(new IOException("Server failed to send complete response")));
+            runAndLogError("Could not release channel",
+                    () -> requestCtx.channelPool().release(handlerCtx.channel()));
+        }
     }
 
     /**
@@ -178,6 +200,13 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                                           mapping(Map.Entry::getValue, Collectors.toList())));
     }
 
+    private static ByteBuffer copyToByteBuffer(ByteBuf byteBuf) {
+        ByteBuffer bb = ByteBuffer.allocate(byteBuf.readableBytes());
+        byteBuf.getBytes(byteBuf.readerIndex(), bb);
+        bb.flip();
+        return bb;
+    }
+
     private static class PublisherAdapter implements Publisher<ByteBuffer> {
         private final StreamedHttpResponse response;
         private final ChannelHandlerContext channelContext;
@@ -200,8 +229,10 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
                 @Override
                 public void onNext(HttpContent httpContent) {
-                    subscriber.onNext(httpContent.content().nioBuffer());
+                    // Needed to prevent use-after-free bug if the subscriber's onNext is asynchronous
+                    ByteBuffer b = copyToByteBuffer(httpContent.content());
                     httpContent.release();
+                    subscriber.onNext(b);
                     channelContext.read();
                 }
 
@@ -219,7 +250,10 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                                        subscriber::onComplete);
                         requestContext.handler().complete();
                     } finally {
-                        finalizeRequest(requestContext, channelContext);
+                        // Run in the event loop to avoid sync issues in finalizeRequest
+                        channelContext.channel().eventLoop().submit(() ->
+                                finalizeRequest(requestContext, channelContext)
+                        );
                     }
                 }
             });

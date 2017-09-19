@@ -31,6 +31,8 @@ class ChannelAttributeKeys {
 
     static final AttributeKey<Subscriber<? super ByteBuffer>> SUBSCRIBER_KEY = AttributeKey.newInstance("subscriber");
 
+    static final AttributeKey<Boolean> RESPONSE_COMPLETE_KEY = AttributeKey.newInstance("responseComplete");
+
     private ChannelAttributeKeys() {
     }
 }
