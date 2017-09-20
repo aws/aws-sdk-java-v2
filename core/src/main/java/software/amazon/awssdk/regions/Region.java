@@ -107,9 +107,7 @@ public class Region extends AbstractEnum {
             AWS_GLOBAL,
             CN_NORTH_1,
             CN_NORTHWEST_1,
-            AWS_CN_GLOBAL,
-            GovCloud.US_GOV_WEST_1,
-            GovCloud.AWS_US_GOV_GLOBAL));
+            AWS_CN_GLOBAL));
 
     private Region(String value) {
         super(value);
@@ -135,4 +133,5 @@ public class Region extends AbstractEnum {
     public static List<Region> getRegions() {
         return REGIONS;
     }
+
 }

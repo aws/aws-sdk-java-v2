@@ -7,7 +7,7 @@ import software.amazon.awssdk.LegacyClientConfigurationFactory;
 import software.amazon.awssdk.annotation.NotThreadSafe;
 import software.amazon.awssdk.client.builder.AwsSyncClientBuilder;
 import software.amazon.awssdk.client.AwsSyncClientParams;
-import software.amazon.awssdk.handlers.HandlerChainFactory;
+import software.amazon.awssdk.handlers.ClasspathInterceptorChainFactory;
 
 /**
  * Fluent builder for {@link ${metadata.fullClientPackageName + "." + metadata.syncInterface}}. Use of the

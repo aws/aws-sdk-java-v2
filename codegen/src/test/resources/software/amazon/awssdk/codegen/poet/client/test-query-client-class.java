@@ -8,11 +8,11 @@ import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.client.AwsSyncClientParams;
 import software.amazon.awssdk.client.ClientExecutionParams;
 import software.amazon.awssdk.client.ClientHandler;
-import software.amazon.awssdk.client.ClientHandlerParams;
 import software.amazon.awssdk.client.SdkClientHandler;
+import software.amazon.awssdk.config.ClientConfiguration;
+import software.amazon.awssdk.config.SyncClientConfiguration;
 import software.amazon.awssdk.http.DefaultErrorResponseHandler;
 import software.amazon.awssdk.http.StaxResponseHandler;
 import software.amazon.awssdk.runtime.transform.StandardErrorUnmarshaller;
@@ -42,15 +42,14 @@ final class DefaultQueryClient implements QueryClient {
 
     private final List<Unmarshaller<AmazonServiceException, Node>> exceptionUnmarshallers;
 
-    private final AwsSyncClientParams clientParams;
+    private final ClientConfiguration clientConfiguration;
 
     private volatile QueryClientWaiters waiters;
 
-    protected DefaultQueryClient(AwsSyncClientParams clientParams) {
-        this.clientHandler = new SdkClientHandler(new ClientHandlerParams().withClientParams(clientParams)
-                                                                           .withCalculateCrc32FromCompressedDataEnabled(false));
-        this.clientParams = clientParams;
+    protected DefaultQueryClient(SyncClientConfiguration clientConfiguration) {
+        this.clientHandler = new SdkClientHandler(clientConfiguration, null);
         this.exceptionUnmarshallers = init();
+        this.clientConfiguration = clientConfiguration;
     }
 
     /**
@@ -66,9 +65,9 @@ final class DefaultQueryClient implements QueryClient {
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
      * @throws SdkClientException
-     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc)
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
      * @throws QueryException
-     *         Base exception for all service exceptions. Unknown exceptions will be thrown as an instance of this type
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample QueryClient.APostOperation
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
@@ -100,9 +99,9 @@ final class DefaultQueryClient implements QueryClient {
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
      * @throws SdkClientException
-     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc)
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
      * @throws QueryException
-     *         Base exception for all service exceptions. Unknown exceptions will be thrown as an instance of this type
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample QueryClient.APostOperationWithOutput
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/APostOperationWithOutput"
      *      target="_top">AWS API Documentation</a>
@@ -143,7 +142,7 @@ final class DefaultQueryClient implements QueryClient {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         clientHandler.close();
     }
 }

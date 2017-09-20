@@ -21,17 +21,18 @@ import static software.amazon.awssdk.utils.Validate.paramNotNull;
 import java.net.URI;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
+import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.DefaultCredentialsProvider;
+import software.amazon.awssdk.config.AdvancedClientOption;
 import software.amazon.awssdk.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.config.ImmutableAsyncClientConfiguration;
 import software.amazon.awssdk.config.ImmutableSyncClientConfiguration;
 import software.amazon.awssdk.config.MutableClientConfiguration;
 import software.amazon.awssdk.config.defaults.ClientConfigurationDefaults;
 import software.amazon.awssdk.config.defaults.GlobalClientConfigurationDefaults;
-import software.amazon.awssdk.handlers.HandlerChainFactory;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientFactory;
@@ -174,6 +175,24 @@ public abstract class DefaultClientBuilder<B extends ClientBuilder<B, C>, C>
         return new ImmutableSyncClientConfiguration(configuration);
     }
 
+    /**
+     * Return an async client configuration object, populated with the following chain of priorities.
+     * <ol>
+     * <li>Customer Configuration</li>
+     * <li>Builder-Specific Default Configuration</li>
+     * <li>Service-Specific Default Configuration</li>
+     * <li>Global Default Configuration</li>
+     * </ol>
+     */
+    protected final ImmutableAsyncClientConfiguration asyncClientConfiguration() {
+        MutableClientConfiguration configuration = mutableClientConfiguration.clone();
+        builderDefaults().applyAsyncDefaults(configuration);
+        serviceDefaults().applyAsyncDefaults(configuration);
+        new GlobalClientConfigurationDefaults().applyAsyncDefaults(configuration);
+        applySdkAsyncHttpClient(configuration);
+        return new ImmutableAsyncClientConfiguration(configuration);
+    }
+
     private void applySdkHttpClient(MutableClientConfiguration config) {
         config.httpClient(resolveSdkHttpClient());
     }
@@ -196,24 +215,6 @@ public abstract class DefaultClientBuilder<B extends ClientBuilder<B, C>, C>
                 .map(e -> e.map(NonManagedSdkAsyncHttpClient::new,
                     factory -> factory.createHttpClientWithDefaults(serviceSpecificHttpConfig())))
                 .orElseGet(() -> defaultAsyncHttpClientFactory.createHttpClientWithDefaults(serviceSpecificHttpConfig()));
-    }
-
-    /**
-     * Return an async client configuration object, populated with the following chain of priorities.
-     * <ol>
-     * <li>Customer Configuration</li>
-     * <li>Builder-Specific Default Configuration</li>
-     * <li>Service-Specific Default Configuration</li>
-     * <li>Global Default Configuration</li>
-     * </ol>
-     */
-    protected final ImmutableAsyncClientConfiguration asyncClientConfiguration() {
-        MutableClientConfiguration configuration = mutableClientConfiguration.clone();
-        builderDefaults().applyAsyncDefaults(configuration);
-        serviceDefaults().applyAsyncDefaults(configuration);
-        new GlobalClientConfigurationDefaults().applyAsyncDefaults(configuration);
-        applySdkAsyncHttpClient(configuration);
-        return new ImmutableAsyncClientConfiguration(configuration);
     }
 
     /**
@@ -246,12 +247,10 @@ public abstract class DefaultClientBuilder<B extends ClientBuilder<B, C>, C>
                 return Optional.ofNullable(asyncExecutorProvider).map(ExecutorProvider::get).orElse(null);
             }
 
-            /**
-             * Add the global request handlers.
-             */
             @Override
             protected void applyOverrideDefaults(ClientOverrideConfiguration.Builder builder) {
-                new HandlerChainFactory().getGlobalHandlers().forEach(builder::addRequestListener);
+                builder.advancedOption(AdvancedClientOption.AWS_REGION,
+                                       resolveRegion().orElseThrow(() -> new SdkClientException("AWS region not provided")));
             }
         };
     }
@@ -398,7 +397,7 @@ public abstract class DefaultClientBuilder<B extends ClientBuilder<B, C>, C>
         }
 
         @Override
-        public void close() throws Exception {
+        public void close() {
             // Do nothing, this client is managed by the customer.
         }
     }
@@ -428,7 +427,7 @@ public abstract class DefaultClientBuilder<B extends ClientBuilder<B, C>, C>
         }
 
         @Override
-        public void close() throws Exception {
+        public void close() {
             // Do nothing, this client is managed by the customer.
         }
     }

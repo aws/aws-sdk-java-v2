@@ -20,31 +20,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.AbortedException;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.runtime.MetricAware;
 import software.amazon.awssdk.util.SdkRuntime;
 
 /**
- * A buffered input stream that is both SDK metric aware, and can be aborted
- * via thread interrupt.
+ * A buffered input stream that can be aborted via thread interrupt.
  */
 @SdkProtectedApi
-public class SdkBufferedInputStream extends BufferedInputStream implements
-                                                                MetricAware {
+public class SdkBufferedInputStream extends BufferedInputStream {
     public SdkBufferedInputStream(InputStream in) {
         super(in);
     }
 
     public SdkBufferedInputStream(InputStream in, int size) {
         super(in, size);
-    }
-
-    @Override
-    public boolean isMetricActivated() {
-        if (in instanceof MetricAware) {
-            MetricAware metricAware = (MetricAware) in;
-            return metricAware.isMetricActivated();
-        }
-        return false;
     }
 
     /**

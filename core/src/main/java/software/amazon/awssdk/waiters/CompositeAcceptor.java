@@ -18,10 +18,12 @@ package software.amazon.awssdk.waiters;
 import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.AmazonServiceException;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.util.ValidationUtils;
 
 @SdkInternalApi
+@ReviewBeforeRelease("Clean up remaining waiter code.")
 class CompositeAcceptor<OutputT> {
 
     /**

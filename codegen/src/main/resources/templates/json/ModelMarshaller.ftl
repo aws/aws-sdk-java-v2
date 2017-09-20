@@ -45,10 +45,10 @@ public class ${className} {
         </#list>
     </#if>
 
-    private static final ${className} instance = new ${className}();
+    private static final ${className} INSTANCE = new ${className}();
 
     public static ${className} getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
     /**

@@ -34,6 +34,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import software.amazon.awssdk.AmazonClientException;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.services.cloudfront.util.SignerUtils.Protocol;
 import software.amazon.awssdk.util.DateUtils;
 
@@ -82,6 +83,7 @@ import software.amazon.awssdk.util.DateUtils;
  *
  * @see DateUtils
  */
+@ReviewBeforeRelease("This should be made similar to all of our other signer stuff.")
 public enum CloudFrontCookieSigner {
     ;
     private static final String EXPIRES_KEY = "CloudFront-Expires";

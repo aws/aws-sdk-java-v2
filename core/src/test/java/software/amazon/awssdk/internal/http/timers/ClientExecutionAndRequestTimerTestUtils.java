@@ -18,11 +18,20 @@ package software.amazon.awssdk.internal.http.timers;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.util.Collections;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.Request;
+import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.http.AmazonHttpClient;
+import software.amazon.awssdk.http.ExecutionContext;
 import software.amazon.awssdk.http.HttpMethodName;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullRequestAdapter;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.interceptor.InterceptorContext;
+import software.amazon.awssdk.internal.auth.NoOpSignerProvider;
 import software.amazon.awssdk.internal.http.request.EmptyHttpRequest;
 import software.amazon.awssdk.internal.http.response.ErrorDuringUnmarshallingResponseHandler;
 import software.amazon.awssdk.internal.http.response.NullErrorResponseHandler;
@@ -103,8 +112,23 @@ public class ClientExecutionAndRequestTimerTestUtils {
     public static void execute(AmazonHttpClient httpClient, Request<?> request) {
         httpClient.requestExecutionBuilder()
                 .request(request)
+                  .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
                 .errorResponseHandler(new NullErrorResponseHandler())
                 .execute(new ErrorDuringUnmarshallingResponseHandler());
+    }
+
+    public static ExecutionContext executionContext(SdkHttpFullRequest request) {
+        InterceptorContext incerceptorContext =
+                InterceptorContext.builder()
+                                  .request(new SdkRequest() {})
+                                  .httpRequest(request)
+                                  .build();
+        return ExecutionContext.builder()
+                               .signerProvider(new NoOpSignerProvider())
+                               .interceptorChain(new ExecutionInterceptorChain(Collections.emptyList()))
+                               .executionAttributes(new ExecutionAttributes())
+                               .interceptorContext(incerceptorContext)
+                               .build();
     }
 
     private static void waitBeforeAssertOnExecutor() {

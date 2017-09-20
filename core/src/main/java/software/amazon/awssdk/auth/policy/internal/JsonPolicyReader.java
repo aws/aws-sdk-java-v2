@@ -28,7 +28,7 @@ import software.amazon.awssdk.auth.policy.Policy;
 import software.amazon.awssdk.auth.policy.Principal;
 import software.amazon.awssdk.auth.policy.Resource;
 import software.amazon.awssdk.auth.policy.Statement;
-import software.amazon.awssdk.util.json.Jackson;
+import software.amazon.awssdk.util.json.JacksonUtils;
 
 /**
  * Generate an AWS policy object by parsing the given JSON string.
@@ -71,7 +71,7 @@ public class JsonPolicyReader {
         List<Statement> statements = new LinkedList<Statement>();
 
         try {
-            policyNode = Jackson.jsonNodeOf(jsonString);
+            policyNode = JacksonUtils.jsonNodeOf(jsonString);
 
             idNode = policyNode.get(JsonDocumentFields.POLICY_ID);
             if (isNotNull(idNode)) {

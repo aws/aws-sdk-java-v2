@@ -25,6 +25,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import org.junit.Assert;
@@ -166,7 +167,7 @@ public class SdkAsserts {
      */
     public static void assertStringEqualsStream(String expected, InputStream actual) {
         try {
-            InputStream expectedInputStream = new ByteArrayInputStream(expected.getBytes());
+            InputStream expectedInputStream = new ByteArrayInputStream(expected.getBytes(StandardCharsets.UTF_8));
             assertTrue(doesStreamEqualStream(expectedInputStream, actual));
         } catch (IOException e) {
             fail("Error reading from stream: " + e.getMessage());

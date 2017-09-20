@@ -51,11 +51,13 @@ public class ProtocolTestSuiteLoader {
     private Stream<? extends TestCase> loadTestCases(String testCase) {
         try {
             final List<TestCase> testCases = MAPPER
-                    .readValue(getClass().getResource(RESOURCE_PREFIX + testCase), new TypeReference<List<TestCase>>() {
-                    });
+                    .readValue(getClass().getResource(RESOURCE_PREFIX + testCase), new ListTypeReference());
             return testCases.stream();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static class ListTypeReference extends TypeReference<List<TestCase>> {
     }
 }

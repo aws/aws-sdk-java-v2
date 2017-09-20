@@ -21,13 +21,11 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
-import java.net.URI;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.auth.Aws4Signer;
 import software.amazon.awssdk.auth.QueryStringSigner;
 import software.amazon.awssdk.auth.StaticSignerProvider;
-import software.amazon.awssdk.client.builder.ClientBuilder;
 import software.amazon.awssdk.client.builder.DefaultClientBuilder;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -61,7 +59,6 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addTypeVariable(PoetUtils.createBoundedTypeVariableName("B", builderInterfaceName, "B", "C"))
                          .addTypeVariable(TypeVariableName.get("C"))
                          .superclass(PoetUtils.createParameterizedTypeName(DefaultClientBuilder.class, "B", "C"))
-                         .addSuperinterface(PoetUtils.createParameterizedTypeName(ClientBuilder.class, "B", "C"))
                          .addJavadoc("Internal base class for {@link $T} and {@link $T}.",
                                      ClassName.get(basePackage, model.getMetadata().getSyncBuilder()),
                                      ClassName.get(basePackage, model.getMetadata().getAsyncBuilder()));
@@ -77,7 +74,6 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addMethod(serviceEndpointPrefixMethod());
         builder.addMethod(serviceDefaultsMethod());
         builder.addMethod(defaultSignerProviderMethod());
-        builder.addMethod(applyEndpointDefaultsMethod());
 
         if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
             builder.addMethod(setAdvancedConfigurationMethod())
@@ -103,7 +99,9 @@ public class BaseClientBuilderClass implements ClassSpec {
 
     private MethodSpec serviceDefaultsMethod() {
         String requestHandlerDirectory = Utils.packageToDirectory(model.getMetadata().getFullClientPackageName());
-        String requestHandlerPath = String.format("/%s/request.handler2s", requestHandlerDirectory);
+        String requestHandlerPath = String.format("%s/execution.interceptors", requestHandlerDirectory);
+
+        boolean crc32FromCompressedDataEnabled = model.getCustomizationConfig().isCalculateCrc32FromCompressedData();
 
         return MethodSpec.methodBuilder("serviceDefaults")
                          .addAnnotation(Override.class)
@@ -112,7 +110,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addCode("return $T.builder()\n", ServiceBuilderConfigurationDefaults.class)
                          .addCode("         .defaultSignerProvider(this::defaultSignerProvider)\n")
                          .addCode("         .addRequestHandlerPath($S)\n", requestHandlerPath)
-                         .addCode("         .defaultEndpoint(this::defaultEndpoint)\n")
+                         .addCode("         .crc32FromCompressedDataEnabled($L)\n", crc32FromCompressedDataEnabled)
                          .addCode("         .build();\n")
                          .build();
     }
@@ -146,25 +144,6 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addModifiers(Modifier.PUBLIC)
                          .addParameter(advancedConfiguration, "advancedConfiguration")
                          .addStatement("advancedConfiguration(advancedConfiguration)")
-                         .build();
-    }
-
-    private MethodSpec applyEndpointDefaultsMethod() {
-        if (model.getCustomizationConfig().getServiceSpecificEndpointBuilderClass() == null) {
-            return MethodSpec.methodBuilder("defaultEndpoint")
-                             .returns(URI.class)
-                             .addModifiers(Modifier.PRIVATE)
-                             .addStatement("return null")
-                             .build();
-        }
-
-        ClassName serviceEndpointBuilder = ClassName.get(basePackage,
-                                                         model.getCustomizationConfig().getServiceSpecificEndpointBuilderClass());
-        return MethodSpec.methodBuilder("defaultEndpoint")
-                         .returns(URI.class)
-                         .addModifiers(Modifier.PRIVATE)
-                         .addStatement("return $T.getEndpoint(advancedConfiguration, resolveRegion().get())",
-                                       serviceEndpointBuilder)
                          .build();
     }
 
@@ -224,7 +203,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                             ClassName.get("software.amazon.awssdk.services.s3", "AwsS3V4Signer"),
                             ClassName.get("software.amazon.awssdk.services.s3", "AwsS3V4Signer"),
                             model.getMetadata().getSigningName(),
-                            ClassName.get("software.amazon.awssdk.services.s3.auth", "S3SignerProvider"));
+                            StaticSignerProvider.class);
     }
 
     @Override

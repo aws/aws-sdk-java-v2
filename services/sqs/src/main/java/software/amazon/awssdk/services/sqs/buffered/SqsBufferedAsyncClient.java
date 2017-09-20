@@ -53,7 +53,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesResponse;
-import software.amazon.awssdk.util.VersionInfoUtils;
+import software.amazon.awssdk.util.VersionInfo;
 
 /**
  * AmazonSQSBufferedAsyncClient provides client-side batching of outgoing sendMessage, deleteMessage
@@ -78,7 +78,7 @@ import software.amazon.awssdk.util.VersionInfoUtils;
 public class SqsBufferedAsyncClient implements SQSAsyncClient {
 
     public static final String USER_AGENT = SqsBufferedAsyncClient.class.getSimpleName() + "/"
-                                            + VersionInfoUtils.getVersion();
+                                            + VersionInfo.SDK_VERSION;
 
     private final CachingMap buffers = new CachingMap(16, (float) 0.75, true);
     private final SQSAsyncClient realSqs;
@@ -222,7 +222,7 @@ public class SqsBufferedAsyncClient implements SQSAsyncClient {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         realSqs.close();
     }
 

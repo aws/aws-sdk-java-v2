@@ -15,8 +15,25 @@
 
 package software.amazon.awssdk.retry.v2;
 
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+
 /**
  * Aggregate interface combining a {@link RetryCondition} and {@link BackoffStrategy} into a single policy.
  */
 public interface RetryPolicy extends RetryCondition, BackoffStrategy {
+    /**
+     * When throttled retries are enabled, each retry attempt will consume this much capacity.
+     * Successful retry attempts will release this capacity back to the pool while failed retries
+     * will not.  Successful initial (non-retry) requests will always release 1 capacity unit to the
+     * pool.
+     */
+    @ReviewBeforeRelease("There is probably a better place for this after we refactor retries.")
+    int THROTTLED_RETRY_COST = 5;
+
+    /**
+     * When throttled retries are enabled, this is the total number of subsequent failed retries
+     * that may be attempted before retry capacity is fully drained.
+     */
+    @ReviewBeforeRelease("There is probably a better place for this after we refactor retries.")
+    int THROTTLED_RETRIES = 100;
 }

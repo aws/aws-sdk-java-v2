@@ -16,7 +16,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public class AllTypesRequest extends AmazonWebServiceRequest implements
-        ToCopyableBuilder<AllTypesRequest.Builder, AllTypesRequest> {
+                                                             ToCopyableBuilder<AllTypesRequest.Builder, AllTypesRequest> {
     private final String stringMember;
 
     private final Integer integerMember;
@@ -59,6 +59,8 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
     private final SubTypeOne polymorphicTypeWithoutSubTypes;
 
+    private final String enumType;
+
     private AllTypesRequest(BuilderImpl builder) {
         this.stringMember = builder.stringMember;
         this.integerMember = builder.integerMember;
@@ -81,6 +83,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         this.recursiveStruct = builder.recursiveStruct;
         this.polymorphicTypeWithSubTypes = builder.polymorphicTypeWithSubTypes;
         this.polymorphicTypeWithoutSubTypes = builder.polymorphicTypeWithoutSubTypes;
+        this.enumType = builder.enumType;
     }
 
     /**
@@ -299,6 +302,16 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         return polymorphicTypeWithoutSubTypes;
     }
 
+    /**
+     * Returns the value of the EnumType property for this object.
+     *
+     * @return The value of the EnumType property for this object.
+     * @see EnumType
+     */
+    public String enumType() {
+        return enumType;
+    }
+
     @Override
     public Builder toBuilder() {
         return new BuilderImpl(this);
@@ -329,7 +342,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         hashCode = 31 * hashCode + ((mapOfStringToStruct() == null) ? 0 : mapOfStringToStruct().hashCode());
         hashCode = 31 * hashCode + ((timestampMember() == null) ? 0 : timestampMember().hashCode());
         hashCode = 31 * hashCode
-                + ((structWithNestedTimestampMember() == null) ? 0 : structWithNestedTimestampMember().hashCode());
+                   + ((structWithNestedTimestampMember() == null) ? 0 : structWithNestedTimestampMember().hashCode());
         hashCode = 31 * hashCode + ((blobArg() == null) ? 0 : blobArg().hashCode());
         hashCode = 31 * hashCode + ((structWithNestedBlob() == null) ? 0 : structWithNestedBlob().hashCode());
         hashCode = 31 * hashCode + ((blobMap() == null) ? 0 : blobMap().hashCode());
@@ -337,6 +350,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         hashCode = 31 * hashCode + ((recursiveStruct() == null) ? 0 : recursiveStruct().hashCode());
         hashCode = 31 * hashCode + ((polymorphicTypeWithSubTypes() == null) ? 0 : polymorphicTypeWithSubTypes().hashCode());
         hashCode = 31 * hashCode + ((polymorphicTypeWithoutSubTypes() == null) ? 0 : polymorphicTypeWithoutSubTypes().hashCode());
+        hashCode = 31 * hashCode + ((enumType() == null) ? 0 : enumType().hashCode());
         return hashCode;
     }
 
@@ -434,7 +448,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
             return false;
         }
         if (other.structWithNestedTimestampMember() != null
-                && !other.structWithNestedTimestampMember().equals(this.structWithNestedTimestampMember())) {
+            && !other.structWithNestedTimestampMember().equals(this.structWithNestedTimestampMember())) {
             return false;
         }
         if (other.blobArg() == null ^ this.blobArg() == null) {
@@ -471,14 +485,20 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
             return false;
         }
         if (other.polymorphicTypeWithSubTypes() != null
-                && !other.polymorphicTypeWithSubTypes().equals(this.polymorphicTypeWithSubTypes())) {
+            && !other.polymorphicTypeWithSubTypes().equals(this.polymorphicTypeWithSubTypes())) {
             return false;
         }
         if (other.polymorphicTypeWithoutSubTypes() == null ^ this.polymorphicTypeWithoutSubTypes() == null) {
             return false;
         }
         if (other.polymorphicTypeWithoutSubTypes() != null
-                && !other.polymorphicTypeWithoutSubTypes().equals(this.polymorphicTypeWithoutSubTypes())) {
+            && !other.polymorphicTypeWithoutSubTypes().equals(this.polymorphicTypeWithoutSubTypes())) {
+            return false;
+        }
+        if (other.enumType() == null ^ this.enumType() == null) {
+            return false;
+        }
+        if (other.enumType() != null && !other.enumType().equals(this.enumType())) {
             return false;
         }
         return true;
@@ -550,6 +570,9 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         }
         if (polymorphicTypeWithoutSubTypes() != null) {
             sb.append("PolymorphicTypeWithoutSubTypes: ").append(polymorphicTypeWithoutSubTypes()).append(",");
+        }
+        if (enumType() != null) {
+            sb.append("EnumType: ").append(enumType()).append(",");
         }
         sb.append("}");
         return sb.toString();
@@ -784,6 +807,28 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder polymorphicTypeWithoutSubTypes(SubTypeOne polymorphicTypeWithoutSubTypes);
+
+        /**
+         * Sets the value of the EnumType property for this object.
+         *
+         * @param enumType
+         *        The new value for the EnumType property for this object.
+         * @see EnumType
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see EnumType
+         */
+        Builder enumType(String enumType);
+
+        /**
+         * Sets the value of the EnumType property for this object.
+         *
+         * @param enumType
+         *        The new value for the EnumType property for this object.
+         * @see EnumType
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see EnumType
+         */
+        Builder enumType(EnumType enumType);
     }
 
     private static final class BuilderImpl implements Builder {
@@ -829,6 +874,8 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
         private SubTypeOne polymorphicTypeWithoutSubTypes;
 
+        private String enumType;
+
         private BuilderImpl() {
         }
 
@@ -854,6 +901,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
             setRecursiveStruct(model.recursiveStruct);
             setPolymorphicTypeWithSubTypes(model.polymorphicTypeWithSubTypes);
             setPolymorphicTypeWithoutSubTypes(model.polymorphicTypeWithoutSubTypes);
+            setEnumType(model.enumType);
         }
 
         public final String getStringMember() {
@@ -961,11 +1009,6 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
             this.simpleList = ListOfStringsCopier.copy(simpleList);
         }
 
-        @SafeVarargs
-        public final void setSimpleList(String... simpleList) {
-            simpleList(Arrays.asList(simpleList));
-        }
-
         public final Collection<Map<String, String>> getListOfMaps() {
             return listOfMaps;
         }
@@ -987,11 +1030,6 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
             this.listOfMaps = ListOfMapStringToStringCopier.copy(listOfMaps);
         }
 
-        @SafeVarargs
-        public final void setListOfMaps(Map<String, String>... listOfMaps) {
-            listOfMaps(Arrays.asList(listOfMaps));
-        }
-
         public final Collection<SimpleStruct> getListOfStructs() {
             return listOfStructs;
         }
@@ -1011,11 +1049,6 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
         public final void setListOfStructs(Collection<SimpleStruct> listOfStructs) {
             this.listOfStructs = ListOfSimpleStructsCopier.copy(listOfStructs);
-        }
-
-        @SafeVarargs
-        public final void setListOfStructs(SimpleStruct... listOfStructs) {
-            listOfStructs(Arrays.asList(listOfStructs));
         }
 
         public final Map<String, ? extends Collection<Integer>> getMapOfStringToIntegerList() {
@@ -1151,11 +1184,6 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
             this.listOfBlobs = ListOfBlobsTypeCopier.copy(listOfBlobs);
         }
 
-        @SafeVarargs
-        public final void setListOfBlobs(ByteBuffer... listOfBlobs) {
-            listOfBlobs(Arrays.asList(listOfBlobs));
-        }
-
         public final RecursiveStructType getRecursiveStruct() {
             return recursiveStruct;
         }
@@ -1198,10 +1226,29 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
             this.polymorphicTypeWithoutSubTypes = polymorphicTypeWithoutSubTypes;
         }
 
+        public final String getEnumType() {
+            return enumType;
+        }
+
+        @Override
+        public final Builder enumType(String enumType) {
+            this.enumType = enumType;
+            return this;
+        }
+
+        @Override
+        public final Builder enumType(EnumType enumType) {
+            this.enumType(enumType.toString());
+            return this;
+        }
+
+        public final void setEnumType(String enumType) {
+            this.enumType = enumType;
+        }
+
         @Override
         public AllTypesRequest build() {
             return new AllTypesRequest(this);
         }
     }
 }
-

@@ -19,8 +19,6 @@ import java.io.File;
 import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.auth.policy.Action;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -57,7 +55,7 @@ public class CloudFormationIntegrationTestBase extends AwsTestBase {
     public static void setUp() throws Exception {
         setUpCredentials();
         cf = CloudFormationClient.builder()
-                                 .credentialsProvider(new StaticCredentialsProvider(credentials))
+                                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                  .region(Region.AP_NORTHEAST_1)
                                  .build();
         s3 = S3Client.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.AP_NORTHEAST_1).build();

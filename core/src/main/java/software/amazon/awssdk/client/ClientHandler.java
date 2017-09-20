@@ -15,22 +15,50 @@
 
 package software.amazon.awssdk.client;
 
+import software.amazon.awssdk.SdkRequest;
+import software.amazon.awssdk.SdkResponse;
+import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.config.ClientConfiguration;
+import software.amazon.awssdk.sync.StreamingResponseHandler;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * Client interface to invoke an API.
  */
 @SdkProtectedApi
-public abstract class ClientHandler implements AutoCloseable {
+public abstract class ClientHandler extends BaseClientHandler implements SdkAutoCloseable {
+
+    public ClientHandler(ClientConfiguration clientConfiguration,
+                         ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
+        super(clientConfiguration, serviceAdvancedConfiguration);
+    }
 
     /**
      * Execute's a web service request. Handles marshalling and unmarshalling of data and making the
      * underlying HTTP call(s).
      *
      * @param executionParams Parameters specific to this invocation of an API.
-     * @param <InputT>         Input POJO type
-     * @param <OutputT>        Output POJO type
+     * @param <InputT>        Input POJO type
+     * @param <OutputT>       Output POJO type
      * @return Unmarshalled output POJO type.
      */
-    public abstract <InputT, OutputT> OutputT execute(ClientExecutionParams<InputT, OutputT> executionParams);
+    public abstract <InputT extends SdkRequest, OutputT extends SdkResponse> OutputT execute(
+            ClientExecutionParams<InputT, OutputT> executionParams);
+
+    /**
+     * Execute's a streaming web service request. Handles marshalling and unmarshalling of data and making the
+     * underlying HTTP call(s).
+     *
+     * @param executionParams          Parameters specific to this invocation of an API.
+     * @param streamingResponseHandler Response handler for a streaming response. Receives unmarshalled POJO and input stream and
+     *                                 returns a transformed result.
+     * @param <InputT>                 Input POJO type
+     * @param <OutputT>                Output POJO type
+     * @param <ReturnT>                Transformed result returned by streamingResponseHandler. Returned by this method.
+     * @return Transformed result as returned by streamingResponseHandler.
+     */
+    public abstract <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> ReturnT execute(
+            ClientExecutionParams<InputT, OutputT> executionParams,
+            StreamingResponseHandler<OutputT, ReturnT> streamingResponseHandler);
 }

@@ -29,9 +29,8 @@
             }
         }
 
-        private static ${memberModel.name}MapEntryUnmarshaller INSTANCE;
+        private static final ${memberModel.name}MapEntryUnmarshaller INSTANCE = new ${memberModel.name}MapEntryUnmarshaller();
         public static ${memberModel.name}MapEntryUnmarshaller getInstance() {
-            if (INSTANCE == null) INSTANCE = new ${memberModel.name}MapEntryUnmarshaller();
             return INSTANCE;
         }
 

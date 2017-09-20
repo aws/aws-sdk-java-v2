@@ -218,14 +218,8 @@ public class SimpleTypeCborUnmarshallers {
         }
 
         public Instant unmarshall(JsonUnmarshallerContext unmarshallerContext) throws Exception {
-            Date date =  DateUtils.parseServiceSpecificDate(unmarshallerContext
+            return DateUtils.parseServiceSpecificInstant(unmarshallerContext
                     .readText());
-
-            if (date == null) {
-                return null;
-            }
-
-            return date.toInstant();
         }
     }
 

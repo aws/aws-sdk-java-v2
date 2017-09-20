@@ -24,10 +24,6 @@ import software.amazon.awssdk.protocol.json.JsonContent;
 public class CompositeErrorCodeParser implements ErrorCodeParser {
     private final Iterable<ErrorCodeParser> parsers;
 
-    public CompositeErrorCodeParser(Iterable<ErrorCodeParser> parsers) {
-        this.parsers = parsers;
-    }
-
     public CompositeErrorCodeParser(ErrorCodeParser... parsers) {
         this.parsers = Arrays.asList(parsers);
     }

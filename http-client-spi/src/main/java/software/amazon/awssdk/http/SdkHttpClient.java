@@ -15,19 +15,21 @@
 
 package software.amazon.awssdk.http;
 
+import software.amazon.awssdk.utils.SdkAutoCloseable;
+
 /**
  * Generic interface to take a representation of an HTTP request, make the HTTP call, and return a representation of an
  * HTTP response.
  *
  * <p>Implementations MUST be thread safe.</p>
  */
-public interface SdkHttpClient extends AutoCloseable, ConfigurationProvider {
+public interface SdkHttpClient extends SdkAutoCloseable, ConfigurationProvider {
 
     /**
      * Create a {@link AbortableCallable} that can be used to execute the HTTP request.
      *
      * @param request        Representation of an HTTP request.
-     * @param requestContext Contains any extra dependencies needed like metrics object.
+     * @param requestContext Contains any extra dependencies needed.
      * @return Task that can execute an HTTP request and can be aborted.
      */
     AbortableCallable<SdkHttpFullResponse> prepareRequest(SdkHttpFullRequest request, SdkRequestContext requestContext);

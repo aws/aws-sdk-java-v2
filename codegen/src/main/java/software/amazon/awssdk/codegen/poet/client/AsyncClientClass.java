@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static com.squareup.javapoet.TypeSpec.Builder;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.getCustomResponseHandler;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
 
 import com.squareup.javapoet.ClassName;
@@ -24,14 +25,13 @@ import com.squareup.javapoet.TypeSpec;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.client.AsyncClientHandler;
-import software.amazon.awssdk.client.AwsAsyncClientParams;
-import software.amazon.awssdk.client.ClientHandlerParams;
 import software.amazon.awssdk.client.SdkAsyncClientHandler;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
+import software.amazon.awssdk.config.AsyncClientConfiguration;
 
 public final class AsyncClientClass extends AsyncClientInterface {
     private final PoetExtensions poetExtensions;
@@ -58,42 +58,28 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                         .addSuperinterface(interfaceClass)
                                         .addJavadoc("Internal implementation of {@link $1T}.\n\n@see $1T#builder()",
                                                     interfaceClass)
-                                        .addMethod(constructor())
                                         .addMethods(operations())
                                         .addMethod(closeMethod())
                                         .addMethods(protocolSpec.additionalMethods())
                                         .addMethod(protocolSpec.initProtocolFactory(model));
-        protocolSpec.createErrorResponseHandler().ifPresent(classBuilder::addMethod);
 
         if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
             classBuilder.addMethod(constructorWithAdvancedConfiguration());
+        } else {
+            classBuilder.addMethod(constructor());
         }
+
+        protocolSpec.createErrorResponseHandler().ifPresent(classBuilder::addMethod);
 
         return classBuilder.build();
     }
 
     private MethodSpec constructor() {
-        if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
-            return MethodSpec.constructorBuilder()
-                             .addParameter(AwsAsyncClientParams.class, "asyncClientParams")
-                             .addStatement("this($N, null)", "asyncClientParams")
-                             .build();
-        }
         return MethodSpec.constructorBuilder()
                          .addModifiers(Modifier.PROTECTED)
-                         .addParameter(AwsAsyncClientParams.class, "clientParams")
-                         .addStatement(
-                             "this.$N = new $T(new $T()\n" +
-                             ".withAsyncClientParams($N)\n" +
-                             ".withClientParams($N)\n" +
-                             ".withCalculateCrc32FromCompressedDataEnabled($L))",
-                             "clientHandler",
-                             // TODO this will likely differ for APIG clients
-                             SdkAsyncClientHandler.class,
-                             ClientHandlerParams.class,
-                             "clientParams",
-                             "clientParams",
-                             model.getCustomizationConfig().isCalculateCrc32FromCompressedData())
+                         .addParameter(AsyncClientConfiguration.class, "clientConfiguration")
+                         .addStatement("this.clientHandler = new $T(clientConfiguration, null)",
+                                       SdkAsyncClientHandler.class) // TODO this will likely differ for APIG clients
                          .addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name)
                          .build();
     }
@@ -103,21 +89,10 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                                         model.getCustomizationConfig().getServiceSpecificClientConfigClass());
         return MethodSpec.constructorBuilder()
                          .addModifiers(Modifier.PROTECTED)
-                         .addParameter(AwsAsyncClientParams.class, "clientParams")
-                         .addParameter(advancedConfiguration, "advancedConfiguration")
-                         .addStatement(
-                             "this.$N = new $T(new $T()\n" +
-                             ".withAsyncClientParams($N)\n" +
-                             ".withClientParams($N)\n" +
-                             ".withCalculateCrc32FromCompressedDataEnabled($L)" +
-                             ".withServiceAdvancedConfiguration(advancedConfiguration))",
-                             "clientHandler",
-                             // TODO this will likely differ for APIG clients
-                             SdkAsyncClientHandler.class,
-                             ClientHandlerParams.class,
-                             "clientParams",
-                             "clientParams",
-                             model.getCustomizationConfig().isCalculateCrc32FromCompressedData())
+                         .addParameter(AsyncClientConfiguration.class, "clientConfiguration")
+                         .addParameter(advancedConfiguration, "serviceConfiguration")
+                         .addStatement("this.clientHandler = new $T(clientConfiguration, serviceConfiguration)",
+                                       SdkAsyncClientHandler.class) // TODO this will likely differ for APIG clients
                          .addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name)
                          .build();
     }
@@ -125,32 +100,22 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private MethodSpec closeMethod() {
         return MethodSpec.methodBuilder("close")
                          .addAnnotation(Override.class)
-                         .addException(Exception.class)
                          .addModifiers(Modifier.PUBLIC)
                          .addStatement("$N.close()", "clientHandler")
                          .build();
     }
 
     @Override
-    protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel, boolean simpleMethod) {
-        if (simpleMethod) {
-            return simpleOperationBody(builder, opModel);
-        }
+    protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel) {        
+        ClassName returnType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
 
         return builder.addModifiers(Modifier.PUBLIC)
                       .addAnnotation(Override.class)
-                      .addCode(protocolSpec.asyncResponseHandler(opModel))
+                      .addCode(getCustomResponseHandler(opModel, returnType)
+                                   .orElseGet(() -> protocolSpec.responseHandler(opModel)))
                       .addCode(protocolSpec.errorResponseHandler(opModel))
                       .addCode(protocolSpec.asyncExecutionHandler(opModel));
 
-    }
-
-    private MethodSpec.Builder simpleOperationBody(MethodSpec.Builder builder, OperationModel opModel) {
-        return builder.addModifiers(Modifier.PUBLIC)
-                      .addAnnotation(Override.class)
-                      .addCode("return $N($N.builder().build());",
-                          opModel.getMethodName(),
-                          opModel.getInput().getVariableType());
     }
 
     @Override

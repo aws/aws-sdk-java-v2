@@ -23,9 +23,7 @@ import java.util.Map;
 import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.ReadLimitInfo;
 import software.amazon.awssdk.Request;
-import software.amazon.awssdk.http.HandlerContextKey;
 import software.amazon.awssdk.http.HttpMethodName;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 
 public class EmptyHttpRequest implements Request<Object> {
 
@@ -130,10 +128,6 @@ public class EmptyHttpRequest implements Request<Object> {
         return originalRequest;
     }
 
-    public void setOriginalRequest(AmazonWebServiceRequest originalRequest) {
-        this.originalRequest = originalRequest;
-    }
-
     @Override
     public int getTimeOffset() {
         return 0;
@@ -146,15 +140,6 @@ public class EmptyHttpRequest implements Request<Object> {
     @Override
     public Request<Object> withTimeOffset(int timeOffset) {
         return this;
-    }
-
-    @Override
-    public AwsRequestMetrics getAwsRequestMetrics() {
-        return null;
-    }
-
-    @Override
-    public void setAwsRequestMetrics(AwsRequestMetrics metrics) {
     }
 
     @Override
@@ -173,16 +158,4 @@ public class EmptyHttpRequest implements Request<Object> {
         return new AmazonWebServiceRequest() {
         };
     }
-
-
-    @Override
-    public <X> void addHandlerContext(HandlerContextKey<X> key, X value) {
-
-    }
-
-    @Override
-    public <X> X getHandlerContext(HandlerContextKey<X> key) {
-        return null;
-    }
-
 }

@@ -22,27 +22,16 @@ import software.amazon.awssdk.AbortedException;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.internal.io.Releasable;
 import software.amazon.awssdk.internal.io.SdkIoUtils;
-import software.amazon.awssdk.runtime.MetricAware;
 import software.amazon.awssdk.util.SdkRuntime;
 
 /**
  * Base class for AWS Java SDK specific {@link FilterInputStream}.
  */
 @SdkProtectedApi
-public class SdkFilterInputStream extends FilterInputStream
-        implements MetricAware, Releasable {
+public class SdkFilterInputStream extends FilterInputStream implements Releasable {
 
     protected SdkFilterInputStream(InputStream in) {
         super(in);
-    }
-
-    @Override
-    public boolean isMetricActivated() {
-        if (in instanceof MetricAware) {
-            MetricAware metricAware = (MetricAware) in;
-            return metricAware.isMetricActivated();
-        }
-        return false;
     }
 
     /**

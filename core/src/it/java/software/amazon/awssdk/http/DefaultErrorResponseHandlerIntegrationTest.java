@@ -24,7 +24,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.junit.Assert.assertThat;
 import static software.amazon.awssdk.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER;
-import static utils.HttpTestUtils.builderWithDefaultClient;
+import static software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.executionContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,16 +33,15 @@ import org.apache.log4j.Level;
 import org.apache.log4j.spi.LoggingEvent;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.LegacyClientConfiguration;
+import software.amazon.awssdk.Request;
 import software.amazon.awssdk.util.LogCaptor;
+import utils.HttpTestUtils;
 import utils.http.WireMockTestBase;
 
 public class DefaultErrorResponseHandlerIntegrationTest extends WireMockTestBase {
 
     private static final String RESOURCE = "/some-path";
-    private final AmazonHttpClient client = builderWithDefaultClient()
-                                                            .clientConfiguration(new LegacyClientConfiguration())
-                                                            .build();
+    private final AmazonHttpClient client = HttpTestUtils.testAmazonHttpClient();
     private final DefaultErrorResponseHandler sut = new DefaultErrorResponseHandler(new ArrayList<>());
     private LogCaptor logCaptor = new LogCaptor.DefaultLogCaptor(Level.INFO);
 
@@ -86,7 +85,12 @@ public class DefaultErrorResponseHandlerIntegrationTest extends WireMockTestBase
         expectException(new Runnable() {
             @Override
             public void run() {
-                client.requestExecutionBuilder().errorResponseHandler(sut).request(newGetRequest(RESOURCE)).execute();
+                Request<?> request = newGetRequest(RESOURCE);
+                client.requestExecutionBuilder()
+                      .errorResponseHandler(sut)
+                      .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
+                      .request(request)
+                      .execute();
             }
         });
     }

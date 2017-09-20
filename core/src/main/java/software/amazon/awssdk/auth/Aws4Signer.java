@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.auth;
 
+import static software.amazon.awssdk.interceptor.AwsExecutionAttributes.AWS_CREDENTIALS;
+import static software.amazon.awssdk.util.DateUtils.numberOfDaysSinceEpoch;
 import static software.amazon.awssdk.util.StringUtils.lowerCase;
 
 import java.io.IOException;
@@ -23,7 +25,6 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -38,9 +39,10 @@ import software.amazon.awssdk.auth.internal.SignerConstants;
 import software.amazon.awssdk.auth.internal.SignerKey;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.interceptor.Context;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.internal.collections.FifoCache;
 import software.amazon.awssdk.util.CredentialUtils;
-import software.amazon.awssdk.util.DateUtils;
 import software.amazon.awssdk.util.SdkHttpUtils;
 import software.amazon.awssdk.util.StringUtils;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -170,30 +172,33 @@ public class Aws4Signer extends AbstractAwsSigner
     }
 
     @Override
-    public SdkHttpFullRequest sign(SdkHttpFullRequest request, AwsCredentials credentials) {
+    public SdkHttpFullRequest sign(Context.BeforeTransmission execution, ExecutionAttributes executionAttributes) {
         // anonymous credentials, don't sign
-        if (CredentialUtils.isAnonymous(credentials)) {
-            return request;
+        if (CredentialUtils.isAnonymous(executionAttributes.getAttribute(AWS_CREDENTIALS))) {
+            return execution.httpRequest();
         }
-        return request.toBuilder()
-                      .apply(b -> doSign(b, credentials))
-                      .build();
+
+        return execution.httpRequest().copy(b -> doSign(b, execution, executionAttributes));
     }
 
-    private SdkHttpFullRequest.Builder doSign(SdkHttpFullRequest.Builder mutableRequest, AwsCredentials credentials) {
-        AwsCredentials sanitizedCredentials = sanitizeCredentials(credentials);
+    private SdkHttpFullRequest.Builder doSign(SdkHttpFullRequest.Builder mutableRequest,
+                                              Context.BeforeTransmission execution,
+                                              ExecutionAttributes executionAttributes) {
+        AwsCredentials sanitizedCredentials =
+                sanitizeCredentials(executionAttributes.getAttribute(AWS_CREDENTIALS));
+
         if (sanitizedCredentials instanceof AwsSessionCredentials) {
             addSessionCredentials(mutableRequest, (AwsSessionCredentials) sanitizedCredentials);
         }
 
         final Aws4SignerRequestParams signerParams = new Aws4SignerRequestParams(
-                mutableRequest, overriddenDate, regionName, serviceName,
-                SignerConstants.AWS4_SIGNING_ALGORITHM);
+                execution.request(), mutableRequest, executionAttributes,
+                overriddenDate, regionName, serviceName, SignerConstants.AWS4_SIGNING_ALGORITHM);
 
         addHostHeader(mutableRequest);
         mutableRequest.header(SignerConstants.X_AMZ_DATE, signerParams.getFormattedSigningDateTime());
 
-        String contentSha256 = calculateContentHash(mutableRequest);
+        String contentSha256 = calculateContentHash(signerParams, mutableRequest);
         mutableRequest.getFirstHeaderValue(SignerConstants.X_AMZ_CONTENT_SHA256)
                       .filter(h -> h.equals("required"))
                       .ifPresent(h -> mutableRequest.header(SignerConstants.X_AMZ_CONTENT_SHA256, contentSha256));
@@ -207,27 +212,28 @@ public class Aws4Signer extends AbstractAwsSigner
         final byte[] signature = computeSignature(stringToSign, signingKey);
 
         mutableRequest.header(SignerConstants.AUTHORIZATION,
-                              buildAuthorizationHeader(mutableRequest, signature, sanitizedCredentials, signerParams));
+                              buildAuthorizationHeader(signature, sanitizedCredentials, signerParams));
 
         processRequestPayload(mutableRequest, signature, signingKey, signerParams);
         return mutableRequest;
     }
 
     @Override
-    public SdkHttpFullRequest presignRequest(SdkHttpFullRequest request, AwsCredentials credentials,
-                                             Date userSpecifiedExpirationDate) {
+    public SdkHttpFullRequest presign(Context.BeforeTransmission execution,
+                                      ExecutionAttributes executionAttributes,
+                                      Date userSpecifiedExpirationDate) {
 
         // anonymous credentials, don't sign
-        if (CredentialUtils.isAnonymous(credentials)) {
-            return request;
+        if (CredentialUtils.isAnonymous(executionAttributes.getAttribute(AWS_CREDENTIALS))) {
+            return execution.httpRequest();
         }
-        SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
+        SdkHttpFullRequest.Builder mutableRequest = execution.httpRequest().toBuilder();
 
         long expirationInSeconds = generateExpirationDate(userSpecifiedExpirationDate);
 
         addHostHeader(mutableRequest);
 
-        AwsCredentials sanitizedCredentials = sanitizeCredentials(credentials);
+        AwsCredentials sanitizedCredentials = sanitizeCredentials(executionAttributes.getAttribute(AWS_CREDENTIALS));
         if (sanitizedCredentials instanceof AwsSessionCredentials) {
             // For SigV4 pre-signing URL, we need to add "X-Amz-Security-Token"
             // as a query string parameter, before constructing the canonical
@@ -237,16 +243,15 @@ public class Aws4Signer extends AbstractAwsSigner
         }
 
         final Aws4SignerRequestParams signerRequestParams = new Aws4SignerRequestParams(
-                mutableRequest, overriddenDate, regionName, serviceName,
-                SignerConstants.AWS4_SIGNING_ALGORITHM);
+                execution.request(), mutableRequest, executionAttributes,
+                overriddenDate, regionName, serviceName, SignerConstants.AWS4_SIGNING_ALGORITHM);
 
         // Add the important parameters for v4 signing
         final String timeStamp = signerRequestParams.getFormattedSigningDateTime();
 
-        addPreSignInformationToRequest(mutableRequest, sanitizedCredentials,
-                                       signerRequestParams, timeStamp, expirationInSeconds);
+        addPreSignInformationToRequest(mutableRequest, sanitizedCredentials, signerRequestParams, timeStamp, expirationInSeconds);
 
-        final String contentSha256 = calculateContentHashPresign(mutableRequest);
+        final String contentSha256 = calculateContentHashPresign(signerRequestParams, mutableRequest);
 
         final String canonicalRequest = createCanonicalRequest(mutableRequest, contentSha256);
 
@@ -301,14 +306,13 @@ public class Aws4Signer extends AbstractAwsSigner
     private String createStringToSign(String canonicalRequest,
                                       Aws4SignerRequestParams signerParams) {
 
-        final String stringToSign = new StringBuilder(signerParams.getSigningAlgorithm())
-                .append(SignerConstants.LINE_SEPARATOR)
-                .append(signerParams.getFormattedSigningDateTime())
-                .append(SignerConstants.LINE_SEPARATOR)
-                .append(signerParams.getScope())
-                .append(SignerConstants.LINE_SEPARATOR)
-                .append(BinaryUtils.toHex(hash(canonicalRequest)))
-                .toString();
+        final String stringToSign = signerParams.getSigningAlgorithm() +
+                                    SignerConstants.LINE_SEPARATOR +
+                                    signerParams.getFormattedSigningDateTime() +
+                                    SignerConstants.LINE_SEPARATOR +
+                                    signerParams.getScope() +
+                                    SignerConstants.LINE_SEPARATOR +
+                                    BinaryUtils.toHex(hash(canonicalRequest));
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("AWS4 String to Sign: '\"" + stringToSign + "\"");
@@ -328,9 +332,7 @@ public class Aws4Signer extends AbstractAwsSigner
 
         final String cacheKey = computeSigningCacheKeyName(credentials,
                                                            signerRequestParams);
-        final long daysSinceEpochSigningDate = DateUtils
-                .numberOfDaysSinceEpoch(signerRequestParams
-                                                .getSigningDateTimeMilli());
+        final long daysSinceEpochSigningDate = numberOfDaysSinceEpoch(signerRequestParams.getSigningDateTimeMilli());
 
         SignerKey signerKey = SIGNER_CACHE.get(cacheKey);
 
@@ -358,11 +360,8 @@ public class Aws4Signer extends AbstractAwsSigner
      */
     private String computeSigningCacheKeyName(AwsCredentials credentials,
                                               Aws4SignerRequestParams signerRequestParams) {
-        return new StringBuilder(credentials.secretAccessKey())
-                .append("-")
-                .append(signerRequestParams.getRegionName())
-                .append("-")
-                .append(signerRequestParams.getServiceName()).toString();
+        return credentials.secretAccessKey() + "-" + signerRequestParams.getRegionName() + "-" +
+               signerRequestParams.getServiceName();
     }
 
     /**
@@ -379,38 +378,31 @@ public class Aws4Signer extends AbstractAwsSigner
     /**
      * Creates the authorization header to be included in the request.
      */
-    private String buildAuthorizationHeader(SdkHttpRequest request,
-                                            byte[] signature, AwsCredentials credentials,
+    private String buildAuthorizationHeader(byte[] signature, AwsCredentials credentials,
                                             Aws4SignerRequestParams signerParams) {
 
         String signingCredentials = credentials.accessKeyId() + "/" + signerParams.getScope();
         String credential = "Credential=" + signingCredentials;
-        String signerHeaders = "SignedHeaders=" + getSignedHeadersString(request);
+        String signerHeaders = "SignedHeaders=" +
+                               getSignedHeadersString(signerParams.httpRequest());
         String signatureHeader = "Signature=" + BinaryUtils.toHex(signature);
 
-        return new StringBuilder().append(SignerConstants.AWS4_SIGNING_ALGORITHM)
-                                  .append(" ")
-                                  .append(credential)
-                                  .append(", ")
-                                  .append(signerHeaders)
-                                  .append(", ")
-                                  .append(signatureHeader)
-                                  .toString();
+        return SignerConstants.AWS4_SIGNING_ALGORITHM + " " + credential + ", " + signerHeaders + ", " + signatureHeader;
     }
 
     /**
      * Includes all the signing headers as request parameters for pre-signing.
      */
-    private void addPreSignInformationToRequest(SdkHttpFullRequest.Builder mutableRequest,
-                                                AwsCredentials credentials, Aws4SignerRequestParams signerParams,
-                                                String timeStamp, long expirationInSeconds) {
+    private void addPreSignInformationToRequest(SdkHttpFullRequest.Builder mutableRequest, AwsCredentials sanitizedCredentials,
+                                                Aws4SignerRequestParams signerParams, String timeStamp,
+                                                long expirationInSeconds) {
 
-        String signingCredentials = credentials.accessKeyId() + "/" + signerParams.getScope();
+        String signingCredentials = sanitizedCredentials.accessKeyId() + "/" + signerParams.getScope();
 
         mutableRequest.queryParameter(SignerConstants.X_AMZ_ALGORITHM, SignerConstants.AWS4_SIGNING_ALGORITHM);
         mutableRequest.queryParameter(SignerConstants.X_AMZ_DATE, timeStamp);
         mutableRequest.queryParameter(SignerConstants.X_AMZ_SIGNED_HEADER,
-                                      getSignedHeadersString(mutableRequest));
+                                      getSignedHeadersString(signerParams.httpRequest()));
         mutableRequest.queryParameter(SignerConstants.X_AMZ_EXPIRES,
                                       Long.toString(expirationInSeconds));
         mutableRequest.queryParameter(SignerConstants.X_AMZ_CREDENTIAL, signingCredentials);
@@ -424,7 +416,7 @@ public class Aws4Signer extends AbstractAwsSigner
 
     private String getCanonicalizedHeaderString(SdkHttpRequest request) {
         final List<String> sortedHeaders = new ArrayList<>(request.getHeaders().keySet());
-        Collections.sort(sortedHeaders, String.CASE_INSENSITIVE_ORDER);
+        sortedHeaders.sort(String.CASE_INSENSITIVE_ORDER);
 
         final Map<String, List<String>> requestHeaders = request.getHeaders();
         StringBuilder buffer = new StringBuilder();
@@ -449,7 +441,7 @@ public class Aws4Signer extends AbstractAwsSigner
 
     private String getSignedHeadersString(SdkHttpRequest request) {
         final List<String> sortedHeaders = new ArrayList<>(request.getHeaders().keySet());
-        Collections.sort(sortedHeaders, String.CASE_INSENSITIVE_ORDER);
+        sortedHeaders.sort(String.CASE_INSENSITIVE_ORDER);
 
         StringBuilder buffer = new StringBuilder();
         for (String header : sortedHeaders) {
@@ -490,9 +482,11 @@ public class Aws4Signer extends AbstractAwsSigner
      * uses a pre-defined header value, and needs to change some headers
      * relating to content-encoding and content-length.)
      */
-    protected String calculateContentHash(SdkHttpFullRequest.Builder request) {
-        InputStream payloadStream = getBinaryRequestPayloadStream(request.getContent());
-        payloadStream.mark(getReadLimit(request));
+    protected String calculateContentHash(Aws4SignerRequestParams signerRequestParams,
+                                          SdkHttpFullRequest.Builder requestBuilder) {
+        SdkHttpFullRequest requestToSign = signerRequestParams.httpRequest();
+        InputStream payloadStream = getBinaryRequestPayloadStream(requestToSign.getContent());
+        payloadStream.mark(getReadLimit(signerRequestParams));
         String contentSha256 = BinaryUtils.toHex(hash(payloadStream));
         try {
             payloadStream.reset();
@@ -508,8 +502,9 @@ public class Aws4Signer extends AbstractAwsSigner
      * header. (e.g. Signing the payload by chunk-encoding). The default
      * implementation doesn't need to do anything.
      */
-    protected void processRequestPayload(SdkHttpFullRequest.Builder request, byte[] signature,
-                                         byte[] signingKey, Aws4SignerRequestParams signerRequestParams) {
+    protected void processRequestPayload(SdkHttpFullRequest.Builder requestBuilder,
+                                         byte[] signature, byte[] signingKey,
+                                         Aws4SignerRequestParams signerRequestParams) {
     }
 
     /**
@@ -519,8 +514,9 @@ public class Aws4Signer extends AbstractAwsSigner
      * values (e.g) For S3 pre-signing, the content hash calculation is
      * different from the general implementation.
      */
-    protected String calculateContentHashPresign(SdkHttpFullRequest.Builder request) {
-        return calculateContentHash(request);
+    protected String calculateContentHashPresign(Aws4SignerRequestParams signerRequestParams,
+                                                 SdkHttpFullRequest.Builder requestBuilder) {
+        return calculateContentHash(signerRequestParams, requestBuilder);
     }
 
     /**

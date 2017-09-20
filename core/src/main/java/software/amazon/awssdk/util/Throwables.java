@@ -45,9 +45,9 @@ public enum Throwables {
             t = cause;
         }
         // Too bad.  Return the original exception.
-        LoggerFactory.getLogger(Throwables.class).debug(
-                "Possible circular reference detected on " + orig.getClass()
-                + ": [" + orig + "]");
+        LoggerFactory.getLogger(Throwables.class).debug("Possible circular reference detected on {}: [{}]",
+                                                        orig.getClass(),
+                                                        orig);
         return orig;
     }
 

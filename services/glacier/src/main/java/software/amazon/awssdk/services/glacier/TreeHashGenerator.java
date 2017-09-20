@@ -25,6 +25,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.AmazonClientException;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.runtime.io.ResettableInputStream;
 import software.amazon.awssdk.services.glacier.internal.TreeHashInputStream;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -35,6 +36,7 @@ import software.amazon.awssdk.utils.BinaryUtils;
  * For more information on tree hashing, see 
  * <a href="http://en.wikipedia.org/wiki/Hash_tree">http://en.wikipedia.org/wiki/Hash_tree</a>. 
  */
+@ReviewBeforeRelease("This and related classes - delete or clean up.")
 public class TreeHashGenerator {
 
     /**

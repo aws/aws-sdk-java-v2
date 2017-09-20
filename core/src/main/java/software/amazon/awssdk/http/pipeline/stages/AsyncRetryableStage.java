@@ -17,7 +17,6 @@ package software.amazon.awssdk.http.pipeline.stages;
 
 import static java.util.Collections.singletonList;
 import static software.amazon.awssdk.event.SdkProgressPublisher.publishProgress;
-import static software.amazon.awssdk.http.AmazonHttpClient.THROTTLED_RETRY_COST;
 import static software.amazon.awssdk.http.pipeline.stages.RetryableStage.HEADER_SDK_RETRY_INFO;
 
 import java.io.IOException;
@@ -34,15 +33,14 @@ import software.amazon.awssdk.ResetException;
 import software.amazon.awssdk.Response;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkClientException;
+import software.amazon.awssdk.SdkStandardLoggers;
 import software.amazon.awssdk.event.ProgressEventType;
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.handlers.AwsHandlerKeys;
-import software.amazon.awssdk.http.AmazonHttpClient;
+import software.amazon.awssdk.http.HttpAsyncClientDependencies;
 import software.amazon.awssdk.http.HttpClientDependencies;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 import software.amazon.awssdk.retry.RetryUtils;
 import software.amazon.awssdk.retry.v2.RetryPolicy;
 import software.amazon.awssdk.retry.v2.RetryPolicyContext;
@@ -62,22 +60,17 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
     private final CapacityManager retryCapacity;
     private final RetryPolicy retryPolicy;
 
-    public AsyncRetryableStage(HttpClientDependencies dependencies,
+    public AsyncRetryableStage(HttpAsyncClientDependencies dependencies,
                                RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> requestPipeline) {
         this.dependencies = dependencies;
-        this.retrySubmitter = dependencies.executorService();
+        this.retrySubmitter = dependencies.asyncClientConfiguration().asyncExecutorService();
         this.retryCapacity = dependencies.retryCapacity();
-        this.retryPolicy = dependencies.retryPolicy();
+        this.retryPolicy = dependencies.asyncClientConfiguration().overrideConfiguration().retryPolicy();
         this.requestPipeline = requestPipeline;
     }
 
     public CompletableFuture<Response<OutputT>> execute(SdkHttpFullRequest request, RequestExecutionContext context) throws
                                                                                                                      Exception {
-        // add the service endpoint to the logs. You can infer service name from service endpoint
-        context.awsRequestMetrics()
-               .addPropertyWith(AwsRequestMetrics.Field.RequestType, context.requestConfig().getRequestType())
-               .addPropertyWith(AwsRequestMetrics.Field.ServiceName, request.handlerContext(AwsHandlerKeys.SERVICE_NAME))
-               .addPropertyWith(AwsRequestMetrics.Field.ServiceEndpoint, request.getEndpoint());
         return new RetryExecutor(request, context).execute();
     }
 
@@ -105,7 +98,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
         try {
             Instant serverDate = dateHeader
                     .filter(h -> !h.isEmpty())
-                    .map(DateUtils::parseRfc822Date)
+                    .map(DateUtils::parseRfc1123Date)
                     .orElseThrow(() -> new RuntimeException(
                             "Unable to parse clock skew offset from response. Server Date header missing"));
             long diff = System.currentTimeMillis() - serverDate.toEpochMilli();
@@ -124,11 +117,10 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
         private final SdkHttpFullRequest request;
         private final RequestExecutionContext context;
         private final ProgressListener progressListener;
-        private final AwsRequestMetrics awsRequestMetrics;
 
         private Optional<SdkBaseException> retriedException;
         private RetryPolicyContext retryPolicyContext;
-        private int requestCount;
+        private int requestCount = 0;
         private long lastBackoffDelay;
         private boolean retryCapacityConsumed;
 
@@ -136,7 +128,6 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
             this.request = request;
             this.context = context;
             this.progressListener = context.requestConfig().getProgressListener();
-            this.awsRequestMetrics = context.awsRequestMetrics();
             this.retriedException = Optional.empty();
         }
 
@@ -175,7 +166,6 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
 
         private void executeRetry(CompletableFuture<Response<OutputT>> future) {
             publishProgress(progressListener, ProgressEventType.CLIENT_REQUEST_RETRY_EVENT);
-            awsRequestMetrics.startEvent(AwsRequestMetrics.Field.RetryPauseTime);
             final int retriesAttempted = requestCount - 2;
             long delay = retryPolicy.computeDelayBeforeNextRetry(this.retryPolicyContext);
             lastBackoffDelay = delay;
@@ -185,7 +175,6 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
                           retriesAttempted);
             }
             retrySubmitter.schedule(() -> {
-                awsRequestMetrics.endEvent(AwsRequestMetrics.Field.RetryPauseTime);
                 execute(future);
                 return null;
             }, delay, TimeUnit.MILLISECONDS);
@@ -197,7 +186,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
          */
         private void releaseRetryCapacity() {
             if (isRetry() && retryCapacityConsumed) {
-                retryCapacity.release(THROTTLED_RETRY_COST);
+                retryCapacity.release(RetryPolicy.THROTTLED_RETRY_COST);
             } else {
                 retryCapacity.release();
             }
@@ -205,7 +194,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
 
         private void beforeExecute() {
             retryCapacityConsumed = false;
-            context.awsRequestMetrics().setCounter(AwsRequestMetrics.Field.RequestCount, ++requestCount);
+            ++requestCount;
         }
 
         private CompletableFuture<Response<OutputT>> doExecute() throws Exception {
@@ -215,10 +204,8 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
 
             markInputStream(request.getContent());
 
-            if (AmazonHttpClient.REQUEST_LOG.isDebugEnabled()) {
-                AmazonHttpClient.REQUEST_LOG
-                        .debug((isRetry() ? "Retrying " : "Sending ") + "Request: " + request);
-            }
+            SdkStandardLoggers.REQUEST_LOGGER.debug(() -> (isRetry() ? "Retrying " : "Sending ") + "Request: " + request);
+
             return requestPipeline.execute(addRetryInfoHeader(request), context);
         }
 
@@ -239,6 +226,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
              * Checking for clock skew error again because we don't want to set the global time offset
              * for every service exception.
              */
+
             if (RetryUtils.isClockSkewError(exception)) {
                 int clockSkew = parseClockSkewOffset(response.getHttpResponse());
                 dependencies.updateTimeOffset(clockSkew);
@@ -279,6 +267,8 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
         /**
          * Returns true if a failed request should be retried.
          *
+         * TODO: Can a lot of the duplication between this and RetryableStage be removed?
+         *
          * @param exception The client/service exception from the failed request.
          * @return True if the failed request should be retried.
          */
@@ -289,8 +279,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
             // Do not use retry capacity for throttling exceptions
             if (!RetryUtils.isThrottlingException(exception)) {
                 // See if we have enough available retry capacity to be able to execute this retry attempt.
-                if (!retryCapacity.acquire(THROTTLED_RETRY_COST)) {
-                    awsRequestMetrics.incrementCounter(AwsRequestMetrics.Field.ThrottledRetryCount);
+                if (!retryCapacity.acquire(RetryPolicy.THROTTLED_RETRY_COST)) {
                     return false;
                 }
                 this.retryCapacityConsumed = true;
@@ -308,7 +297,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
             if (!retryPolicy.shouldRetry(retryPolicyContext)) {
                 // If the retry policy fails we immediately return consumed capacity to the pool.
                 if (retryCapacityConsumed) {
-                    retryCapacity.release(THROTTLED_RETRY_COST);
+                    retryCapacity.release(RetryPolicy.THROTTLED_RETRY_COST);
                 }
                 return false;
             }

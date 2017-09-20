@@ -20,15 +20,17 @@ import static software.amazon.awssdk.event.SdkProgressPublisher.publishProgress;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.Response;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.event.ProgressEventType;
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.http.AmazonHttpClient;
-import software.amazon.awssdk.http.HttpClientDependencies;
+import software.amazon.awssdk.http.HttpAsyncClientDependencies;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpStatusCodes;
+import software.amazon.awssdk.http.InterruptMonitor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -40,6 +42,7 @@ import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.http.async.SimpleRequestProvider;
 import software.amazon.awssdk.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 
 /**
  * Delegate to the HTTP implementation to make an HTTP request and receive the response.
@@ -47,16 +50,18 @@ import software.amazon.awssdk.http.pipeline.RequestPipeline;
 public class MakeAsyncHttpRequestStage<OutputT>
         implements RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> {
 
+    private static final Logger log = LoggerFactory.getLogger(MakeAsyncHttpRequestStage.class);
+
     private final SdkAsyncHttpClient sdkAsyncHttpClient;
     private final SdkHttpResponseHandler<OutputT> responseHandler;
     private final SdkHttpResponseHandler<? extends SdkBaseException> errorResponseHandler;
 
     public MakeAsyncHttpRequestStage(SdkHttpResponseHandler<OutputT> responseHandler,
                                      SdkHttpResponseHandler<? extends SdkBaseException> errorResponseHandler,
-                                     HttpClientDependencies dependencies) {
+                                     HttpAsyncClientDependencies dependencies) {
         this.responseHandler = responseHandler;
         this.errorResponseHandler = errorResponseHandler;
-        this.sdkAsyncHttpClient = dependencies.sdkAsyncHttpClient();
+        this.sdkAsyncHttpClient = dependencies.asyncClientConfiguration().asyncHttpClient();
     }
 
     /**
@@ -65,7 +70,7 @@ public class MakeAsyncHttpRequestStage<OutputT>
     public CompletableFuture<Response<OutputT>> execute(SdkHttpFullRequest request,
                                                         RequestExecutionContext context) throws Exception {
 
-        AmazonHttpClient.checkInterrupted();
+        InterruptMonitor.checkInterrupted();
         final ProgressListener listener = context.requestConfig().getProgressListener();
 
         publishProgress(listener, ProgressEventType.HTTP_REQUEST_STARTED_EVENT);
@@ -79,20 +84,19 @@ public class MakeAsyncHttpRequestStage<OutputT>
 
         SdkHttpResponseHandler<Response<OutputT>> handler = new ResponseHandler(request, future, listener);
 
-        SdkHttpRequestProvider requestProvider = context.requestProvider() == null ? new SimpleRequestProvider(request)
+        SdkHttpRequestProvider requestProvider = context.requestProvider() == null
+                ? new SimpleRequestProvider(request, context.executionAttributes())
                 : context.requestProvider();
         // Set content length if it hasn't been set already.
         SdkHttpFullRequest requestWithContentLength = getRequestWithContentLength(request, requestProvider);
 
-        sdkAsyncHttpClient.prepareRequest(requestWithContentLength, SdkRequestContext.builder()
-                                                                    .metrics(context.awsRequestMetrics())
-                                                                    .build(),
+        sdkAsyncHttpClient.prepareRequest(requestWithContentLength, SdkRequestContext.builder().build(),
                                           requestProvider,
                                           handler)
                           .run();
 
         // TODO client execution timer
-        //        context.getClientExecutionTrackerTask().setCurrentHttpRequest(requestCallable);
+        //        context.clientExecutionTrackerTask().setCurrentHttpRequest(requestCallable);
         return future;
     }
 
@@ -112,6 +116,20 @@ public class MakeAsyncHttpRequestStage<OutputT>
                && request.getHttpMethod() != SdkHttpMethod.GET
                && request.getHttpMethod() != SdkHttpMethod.HEAD;
 
+    }
+
+    /**
+     * Runs a given {@link UnsafeRunnable} and logs an error without throwing.
+     *
+     * @param errorMsg Message to log with exception thrown.
+     * @param runnable Action to perform.
+     */
+    private static void runAndLogError(String errorMsg, UnsafeRunnable runnable) {
+        try {
+            runnable.run();
+        } catch (Exception e) {
+            log.error(errorMsg, e);
+        }
     }
 
     /**
@@ -162,17 +180,25 @@ public class MakeAsyncHttpRequestStage<OutputT>
 
         @Override
         public void exceptionOccurred(Throwable throwable) {
-            responseHandler.exceptionOccurred(throwable);
+            runAndLogError("SdkHttpResponseHandler threw an exception.",
+                () -> responseHandler.exceptionOccurred(throwable));
             future.completeExceptionally(throwable);
         }
 
         @Override
         public Response<OutputT> complete() {
-            publishProgress(listener, ProgressEventType.HTTP_REQUEST_COMPLETED_EVENT);
-            final HttpResponse httpResponse = SdkHttpResponseAdapter.adapt(false, request, (SdkHttpFullResponse) response);
-            Response<OutputT> toReturn = handleResponse(httpResponse);
-            future.complete(toReturn);
-            return toReturn;
+            try {
+                SdkHttpFullResponse httpFullResponse = (SdkHttpFullResponse) this.response;
+
+                publishProgress(listener, ProgressEventType.HTTP_REQUEST_COMPLETED_EVENT);
+                final HttpResponse httpResponse = SdkHttpResponseAdapter.adapt(false, request, httpFullResponse);
+                Response<OutputT> toReturn = handleResponse(httpResponse);
+                future.complete(toReturn);
+                return toReturn;
+            } catch (Exception e) {
+                future.completeExceptionally(e);
+                throw e;
+            }
         }
 
         /**
@@ -184,10 +210,12 @@ public class MakeAsyncHttpRequestStage<OutputT>
 
         private Response<OutputT> handleResponse(HttpResponse httpResponse) {
             if (isSuccess) {
-                return Response.fromSuccess(responseHandler.complete(), httpResponse);
+                OutputT response = responseHandler.complete();
+                return Response.fromSuccess(response, httpResponse);
             } else {
                 return Response.fromFailure(errorResponseHandler.complete(), httpResponse);
             }
         }
+
     }
 }

@@ -17,6 +17,7 @@ package software.amazon.awssdk.auth;
 
 import java.io.File;
 import software.amazon.awssdk.AwsSystemSetting;
+import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
 import software.amazon.awssdk.auth.profile.ProfilesConfigFile;
 import software.amazon.awssdk.profile.path.AwsProfileFileLocationProvider;
@@ -70,7 +71,12 @@ public class ProfileCredentialsProvider extends FileSystemCredentialsProvider {
 
     @Override
     protected AwsCredentials loadCredentials() {
-        return profilesConfigFile == null ? null : profilesConfigFile.getCredentials(profileName);
+        if (profilesConfigFile == null) {
+            throw new SdkClientException("Unable to find profile configuration file. If you are specifying a profile config "
+                                         + "file please verify it exists.");
+        }
+
+        return profilesConfigFile.getCredentials(profileName);
     }
 
     @Override

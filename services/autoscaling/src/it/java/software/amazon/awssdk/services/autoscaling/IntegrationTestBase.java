@@ -17,9 +17,7 @@ package software.amazon.awssdk.services.autoscaling;
 
 import java.io.IOException;
 import org.junit.BeforeClass;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.autoscaling.model.CreateAutoScalingGroupRequest;
 import software.amazon.awssdk.services.autoscaling.model.CreateLaunchConfigurationRequest;
 import software.amazon.awssdk.services.sns.SNSClient;
 import software.amazon.awssdk.test.AwsTestBase;
@@ -59,15 +57,15 @@ public abstract class IntegrationTestBase extends AwsTestBase {
     public static void setUp() throws IOException {
         setUpCredentials();
         autoscaling = AutoScalingClient.builder()
-                .credentialsProvider(new StaticCredentialsProvider(credentials))
+                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                 .region(REGION)
                 .build();
         autoscalingAsync = AutoScalingAsyncClient.builder()
-                .credentialsProvider(new StaticCredentialsProvider(credentials))
+                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                 .region(REGION)
                 .build();
         sns = SNSClient.builder()
-                .credentialsProvider(new StaticCredentialsProvider(credentials))
+                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                 .region(REGION)
                 .build();
     }
@@ -87,20 +85,4 @@ public abstract class IntegrationTestBase extends AwsTestBase {
                 .launchConfigurationName(name).imageId(AMI_ID).instanceType(INSTANCE_TYPE).build();
         autoscaling.createLaunchConfiguration(createRequest);
     }
-
-    /**
-     * Creates an autoscaling group with the specified name and specified launch configuration.
-     *
-     * @param name
-     *            The name of the autoscaling group to create.
-     * @param launchConfigurationName
-     *            The name of an existing launch configuration to use in the new autoscaling group.
-     */
-    protected void createAutoscalingGroup(String name, String launchConfigurationName) {
-        CreateAutoScalingGroupRequest createRequest = CreateAutoScalingGroupRequest.builder()
-                .autoScalingGroupName(name).launchConfigurationName(launchConfigurationName)
-                .availabilityZones(AVAILABILITY_ZONE).maxSize(2).minSize(1).build();
-        autoscaling.createAutoScalingGroup(createRequest);
-    }
-
 }

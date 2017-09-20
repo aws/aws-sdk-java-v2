@@ -21,7 +21,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.text.Collator;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Locale;
 import software.amazon.awssdk.utils.Base64Utils;
 
@@ -45,10 +44,6 @@ public class StringUtils {
     private static final char CHAR_CARRIAGE_RETURN = '\r';
     private static final char CHAR_FORM_FEED = '\f';
 
-    public static String toString(StringBuilder value) {
-        return value.toString();
-    }
-
     public static String fromInteger(Integer value) {
         return Integer.toString(value);
     }
@@ -70,29 +65,16 @@ public class StringUtils {
     }
 
     /**
-     * Converts the specified date to an ISO 8601 timestamp string and returns
-     * it.
+     * Converts the specified instant to an ISO 8601 timestamp string and
+     * returns it.
      *
      * @param value
-     *            The date to format as an ISO 8601 timestamp string.
+     *            The instant to format as an ISO 8601 timestamp string.
      *
-     * @return An ISO 8601 timestamp string created from the specified date.
-     */
-    public static String fromDate(Date value) {
-        return DateUtils.formatIso8601Date(value);
-    }
-
-    /**
-     * Converts the specified date to an ISO 8601 timestamp string and returns
-     * it.
-     *
-     * @param value
-     *            The date to format as an ISO 8601 timestamp string.
-     *
-     * @return An ISO 8601 timestamp string created from the specified date.
+     * @return An ISO 8601 timestamp string created from the specified instant.
      */
     public static String fromInstant(Instant value) {
-        return DateUtils.formatIso8601Date(Date.from(value));
+        return DateUtils.formatIso8601Date(value);
     }
 
     /**
@@ -161,17 +143,6 @@ public class StringUtils {
             }
         }
         return builder.toString();
-    }
-
-    /**
-     * A null-safe trim method. If the input string is null, returns null;
-     * otherwise returns a trimmed version of the input.
-     */
-    public static String trim(String value) {
-        if (value == null) {
-            return null;
-        }
-        return value.trim();
     }
 
     /**

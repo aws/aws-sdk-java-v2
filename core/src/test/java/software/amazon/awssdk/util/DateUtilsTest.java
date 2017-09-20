@@ -15,155 +15,130 @@
 
 package software.amazon.awssdk.util;
 
+import static java.time.ZoneOffset.UTC;
+import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static software.amazon.awssdk.util.DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.Locale;
-import java.util.SimpleTimeZone;
-import org.joda.time.DateTime;
-import org.joda.time.IllegalFieldValueException;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import software.amazon.awssdk.protocol.json.SdkJsonGenerator;
 import software.amazon.awssdk.protocol.json.StructuredJsonGenerator;
 
 public class DateUtilsTest {
     private static final boolean DEBUG = false;
+    private static final int MAX_MILLIS_YEAR = 292278994;
+    private static final SimpleDateFormat COMMON_DATE_FORMAT =
+            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    private static final SimpleDateFormat LONG_DATE_FORMAT =
+            new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US);
+
+    static {
+        COMMON_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone(UTC));
+        LONG_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone(UTC));
+    }
+
+    private static final Instant INSTANT = Instant.ofEpochMilli(1400284606000L);
 
     @Test
-    public void tt0031561767() throws ParseException {
+    public void tt0031561767() {
         String input = "Fri, 16 May 2014 23:56:46 GMT";
-        Instant date = DateUtils.parseRfc822Date(input);
-        assertEquals(input, DateUtils.formatRfc822Date(date));
+        Instant instant = DateUtils.parseRfc1123Date(input);
+        assertEquals(input, DateUtils.formatRfc1123Date(instant));
     }
 
     @Test
     public void formatIso8601Date() throws ParseException {
-        Date date = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
-        String expected = sdf.format(date);
-        String actual = DateUtils.formatIso8601Date(date);
+        Date date = Date.from(INSTANT);
+        String expected = COMMON_DATE_FORMAT.format(date);
+        String actual = DateUtils.formatIso8601Date(date.toInstant());
         assertEquals(expected, actual);
 
-        Date expectedDate = sdf.parse(expected);
-        Date actualDate = DateUtils.parseIso8601Date(actual);
+        Instant expectedDate = COMMON_DATE_FORMAT.parse(expected).toInstant();
+        Instant actualDate = DateUtils.parseIso8601Date(actual);
         assertEquals(expectedDate, actualDate);
     }
 
     @Test
-    public void formatRfc822Date() throws ParseException {
-        Instant date = Instant.now();
-        SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
-        sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
-        String expected = sdf.format(Date.from(date));
-        String actual = DateUtils.formatRfc822Date(date);
-        assertEquals(expected, actual);
+    public void formatRfc1123Date() throws ParseException {
+        String string = DateUtils.formatRfc1123Date(INSTANT);
+        Instant parsedDateAsInstant = LONG_DATE_FORMAT.parse(string).toInstant();
+        assertEquals(INSTANT, parsedDateAsInstant);
 
-        Instant expectedDate = sdf.parse(expected).toInstant();
-        Instant actualDate = DateUtils.parseRfc822Date(actual);
-        assertEquals(expectedDate, actualDate);
-    }
-
-    @Test
-    public void parseCompressedIso8601Date() throws ParseException {
-        Date date = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd'T'HHmmss'Z'");
-        sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
-        String formatted = sdf.format(date);
-        Date expected = sdf.parse(formatted);
-        Date actual = DateUtils.parseCompressedIso8601Date(formatted);
-        assertEquals(expected, actual);
+        String formattedDate = LONG_DATE_FORMAT.format(Date.from(INSTANT));
+        Instant parsedInstant = DateUtils.parseRfc1123Date(formattedDate);
+        assertEquals(INSTANT, parsedInstant);
     }
 
     @Test
     public void parseRfc822Date() throws ParseException {
-        Instant date = Instant.now();
-        SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
-        sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
-        String formatted = sdf.format(Date.from(date));
-        Instant expected = sdf.parse(formatted).toInstant();
-        Instant actual = DateUtils.parseRfc822Date(formatted);
+        String formatted = LONG_DATE_FORMAT.format(Date.from(INSTANT));
+        Instant expected = LONG_DATE_FORMAT.parse(formatted).toInstant();
+        Instant actual = DateUtils.parseRfc1123Date(formatted);
         assertEquals(expected, actual);
     }
 
     @Test
     public void parseIso8601Date() throws ParseException {
-        Date date = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
-        String formatted = sdf.format(date);
-        String alternative = DateUtils.ISO_8601_DATE_FORMAT.print(date.getTime());
-        assertEquals(formatted, alternative);
-
-        Date expectedDate = sdf.parse(formatted);
-        Date actualDate = DateUtils.parseIso8601Date(formatted);
-        assertEquals(expectedDate, actualDate);
+        checkParsing(DateTimeFormatter.ISO_INSTANT, COMMON_DATE_FORMAT);
     }
 
     @Test
     public void parseIso8601Date_usingAlternativeFormat() throws ParseException {
-        Date date = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-        sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
-        String formatted = sdf.format(date);
-        String alternative = DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT.print(date.getTime());
-        assertEquals(formatted, alternative);
+        checkParsing(ALTERNATE_ISO_8601_DATE_FORMAT, COMMON_DATE_FORMAT);
+    }
 
-        Date expectedDate = sdf.parse(formatted);
-        Date actualDate = DateUtils.parseIso8601Date(formatted);
-        assertEquals(expectedDate, actualDate);
+    private void checkParsing(DateTimeFormatter dateTimeFormatter, SimpleDateFormat dateFormat) throws ParseException {
+        String formatted = dateFormat.format(Date.from(INSTANT));
+        String alternative = dateTimeFormatter.format(INSTANT);
+        assertEquals(formatted, alternative);
+        Instant expected = dateFormat.parse(formatted).toInstant();
+        Instant actualDate = DateUtils.parseIso8601Date(formatted);
+        assertEquals(expected, actualDate);
     }
 
     @Test
     public void alternateIso8601DateFormat() throws ParseException {
-        Date date = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-        sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
-        String expected = sdf.format(date);
-        String actual = DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT.print(date.getTime());
+        String expected = COMMON_DATE_FORMAT.format(Date.from(INSTANT));
+        String actual = ALTERNATE_ISO_8601_DATE_FORMAT.format(INSTANT);
         assertEquals(expected, actual);
 
-        Date expectedDate = sdf.parse(expected);
-        DateTime actualDateTime = DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT.parseDateTime(actual);
-        assertEquals(expectedDate, new Date(actualDateTime.getMillis()));
+        Date expectedDate = COMMON_DATE_FORMAT.parse(expected);
+        ZonedDateTime actualDateTime = ZonedDateTime.parse(actual, ALTERNATE_ISO_8601_DATE_FORMAT);
+        assertEquals(expectedDate, Date.from(actualDateTime.toInstant()));
     }
 
-    @Test
+    @Test(expected = ParseException.class)
     public void legacyHandlingOfInvalidDate() throws ParseException {
         final String input = "2014-03-06T14:28:58.000Z.000Z";
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
-        sdf.parse(input);
+        COMMON_DATE_FORMAT.parse(input);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void invalidDate() throws ParseException {
+    @Test(expected = DateTimeParseException.class)
+    public void invalidDate() {
         final String input = "2014-03-06T14:28:58.000Z.000Z";
         DateUtils.parseIso8601Date(input);
     }
 
     @Test
-    public void test() throws ParseException {
-        Date date = new Date();
-        System.out.println("         formatISO8601Date: " + DateUtils.formatIso8601Date(date));
-        System.out.println("alternateIso8601DateFormat: " + DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT.print(date.getTime()));
-    }
-
-    @Test
     public void testIssue233() throws ParseException {
         // https://github.com/aws/aws-sdk-java/issues/233
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
-        final String edgeCase = "292278994-08-17T07:12:55.807Z";
-        Date expected = sdf.parse(edgeCase);
+        final String edgeCase = String.valueOf(MAX_MILLIS_YEAR) + "-08-17T07:12:00Z";
+        Instant expected = COMMON_DATE_FORMAT.parse(edgeCase).toInstant();
         if (DEBUG) {
             System.out.println("date: " + expected);
         }
@@ -171,61 +146,40 @@ public class DateUtilsTest {
         if (DEBUG) {
             System.out.println("formatted: " + formatted);
         }
-        assertEquals(edgeCase, formatted);
-        Date parsed = DateUtils.parseIso8601Date(edgeCase);
+        // we have '+' sign as prefix for years. See java.time.format.SignStyle.EXCEEDS_PAD
+        assertEquals(edgeCase, formatted.substring(1));
+
+        Instant parsed = DateUtils.parseIso8601Date(formatted);
         if (DEBUG) {
             System.out.println("parsed: " + parsed);
         }
         assertEquals(expected, parsed);
-        String reformatted = DateUtils.formatIso8601Date(parsed);
-        assertEquals(edgeCase, reformatted);
+        String reformatted = ISO_INSTANT.format(parsed);
+        // we have '+' sign as prefix for years. See java.time.format.SignStyle.EXCEEDS_PAD
+        assertEquals(edgeCase, reformatted.substring(1));
     }
 
-    @Test(expected = IllegalFieldValueException.class)
-    public void testIssue233JodaTimeLimit() throws ParseException {
+    @Test
+    public void testIssue233JavaTimeLimit() {
         // https://github.com/aws/aws-sdk-java/issues/233
-        String s = DateUtils.ISO_8601_DATE_FORMAT.print(Long.MAX_VALUE);
+        String s = ALTERNATE_ISO_8601_DATE_FORMAT.format(
+                ZonedDateTime.ofInstant(Instant.ofEpochMilli(Long.MAX_VALUE), UTC));
         System.out.println("s: " + s);
-        try {
-            DateTime dt = DateUtils.ISO_8601_DATE_FORMAT.parseDateTime(s);
-            fail("Unexpected success: " + dt);
-        } catch (IllegalFieldValueException ex) {
-            // expected
-            throw ex;
-        }
+
+        Instant parsed = DateUtils.parseIso8601Date(s);
+        assertEquals(ZonedDateTime.ofInstant(parsed, UTC).getYear(), MAX_MILLIS_YEAR);
     }
 
     @Test
     public void testIssueDaysDiff() throws ParseException {
         // https://github.com/aws/aws-sdk-java/issues/233
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        sdf.setTimeZone(new SimpleTimeZone(0, "GMT"));
-        String edgeCase = "292278994-08-17T07:12:55.807Z";
-        String testCase = "292278993-08-17T07:12:55.807Z";
-        Date od = sdf.parse(edgeCase);
-        Date testd = sdf.parse(testCase);
-        long diff = od.getTime() - testd.getTime();
-        assertTrue(diff == 365L * 24 * 60 * 60 * 1000);
-    }
-
-    @Test
-    public void testIssue233Overflows() throws ParseException {
-        String[] cases = {
-            // 1 milli second passed the max time
-            "292278994-08-17T07:12:55.808Z",
-            // 1 year passed the max year
-            "292278995-01-17T07:12:55.807Z",
-        };
-        for (String edgeCase : cases) {
-            try {
-                Date parsed = DateUtils.parseIso8601Date(edgeCase);
-                fail("Unexpected success: " + parsed);
-            } catch (IllegalArgumentException ex) {
-                String msg = ex.getMessage();
-                assertTrue(msg
-                                   .contains("must be in the range [-292275054,292278993]"));
-            }
-        }
+        COMMON_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone(UTC));
+        String edgeCase = String.valueOf(MAX_MILLIS_YEAR) + "-08-17T07:12:55Z";
+        String testCase = String.valueOf(MAX_MILLIS_YEAR - 1) + "-08-17T07:12:55Z";
+        Date edgeDate = COMMON_DATE_FORMAT.parse(edgeCase);
+        Date testDate = COMMON_DATE_FORMAT.parse(testCase);
+        long diff = edgeDate.getTime() - testDate.getTime();
+        assertTrue(diff == TimeUnit.DAYS.toMillis(365));
     }
 
     /**
@@ -234,21 +188,17 @@ public class DateUtilsTest {
      */
     @Test
     public void testAwsFormatDateUtils() throws Exception {
-        testDate(System.currentTimeMillis());
-        testDate(1L);
-        testDate(0L);
+        testInstant(System.currentTimeMillis());
+        testInstant(1L);
+        testInstant(0L);
     }
 
-    private void testDate(long dateInMilliSeconds) {
-        String serverSpecificDateFormat = DateUtils
-                .formatServiceSpecificDate(new Date(dateInMilliSeconds));
+    private void testInstant(long dateInMilliSeconds) {
+        Instant instant = Instant.ofEpochMilli(dateInMilliSeconds);
+        String serverSpecificDateFormat = DateUtils.formatServiceSpecificDate(instant);
+        Instant parsed = DateUtils.parseServiceSpecificInstant(String.valueOf(serverSpecificDateFormat));
 
-        Date parsedDate = DateUtils.parseServiceSpecificDate(String
-                                                                     .valueOf(serverSpecificDateFormat));
-
-        assertEquals(Long.valueOf(dateInMilliSeconds),
-                     Long.valueOf(parsedDate.getTime()));
-
+        assertEquals(instant, parsed);
     }
 
     // See https://forums.aws.amazon.com/thread.jspa?threadID=158756
@@ -294,8 +244,9 @@ public class DateUtilsTest {
     public void numberOfDaysSinceEpoch() {
         final long now = System.currentTimeMillis();
         final long days = DateUtils.numberOfDaysSinceEpoch(now);
-        final int oneDayMilli = 24 * 60 * 60 * 1000;
-        assertTrue(now > days * oneDayMilli);
-        assertTrue((now - days * oneDayMilli) <= oneDayMilli);
+        final long oneDayMilli = Duration.ofDays(1).toMillis();
+        // Could be equal at 00:00:00.
+        assertTrue(now >=  Duration.ofDays(days).toMillis());
+        assertTrue((now -  Duration.ofDays(days).toMillis()) <= oneDayMilli);
     }
 }

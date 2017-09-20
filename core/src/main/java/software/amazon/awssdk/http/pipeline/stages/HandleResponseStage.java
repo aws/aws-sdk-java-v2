@@ -22,15 +22,16 @@ import java.io.InputStream;
 import java.util.Optional;
 import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.Response;
+import software.amazon.awssdk.RetryableException;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkClientException;
+import software.amazon.awssdk.SdkStandardLoggers;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.event.ProgressEventType;
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.HttpResponse;
 import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 
 /**
  * Unmarshalls an HTTP response into either a successful response POJO, or into a (possibly modeled) exception. Returns a wrapper
@@ -38,6 +39,7 @@ import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
  *
  * @param <OutputT> Type of successful unmarshalled POJO.
  */
+@ReviewBeforeRelease("Should this be broken up? It's doing quite a lot...")
 public class HandleResponseStage<OutputT> implements RequestPipeline<HttpResponse, Response<OutputT>> {
 
     private final HttpResponseHandler<OutputT> successResponseHandler;
@@ -51,23 +53,24 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
 
     @Override
     public Response<OutputT> execute(HttpResponse httpResponse, RequestExecutionContext context) throws Exception {
-        Optional<Response<OutputT>> response = Optional.empty();
+        boolean didRequestFail = true;
         try {
-            response = Optional.of(handleResponse(httpResponse, context));
+            Response<OutputT> response = handleResponse(httpResponse, context);
+            didRequestFail = response.isFailure();
+            return response;
         } finally {
-            closeInputStreamIfNeeded(httpResponse, didRequestFail(response));
+            closeInputStreamIfNeeded(httpResponse, didRequestFail);
         }
-
-        return response.orElseThrow(() -> new IllegalStateException("Response should not be null"));
     }
 
     private Response<OutputT> handleResponse(HttpResponse httpResponse,
                                              RequestExecutionContext context)
             throws IOException, InterruptedException {
         if (httpResponse.isSuccessful()) {
-            return Response.fromSuccess(handleSuccessResponse(httpResponse, context), httpResponse);
+            OutputT response = handleSuccessResponse(httpResponse, context);
+            return Response.fromSuccess(response, httpResponse);
         } else {
-            return Response.fromFailure(handleErrorResponse(httpResponse), httpResponse);
+            return Response.fromFailure(handleErrorResponse(httpResponse, context), httpResponse);
         }
     }
 
@@ -82,21 +85,15 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
     @SuppressWarnings("deprecation")
     private OutputT handleSuccessResponse(HttpResponse httpResponse, RequestExecutionContext context)
             throws IOException, InterruptedException {
-        context.awsRequestMetrics().addProperty(AwsRequestMetrics.Field.StatusCode, httpResponse.getStatusCode());
         ProgressListener listener = context.requestConfig().getProgressListener();
         try {
             OutputT awsResponse;
-            context.awsRequestMetrics().startEvent(AwsRequestMetrics.Field.ResponseProcessingTime);
             publishProgress(listener, ProgressEventType.HTTP_RESPONSE_STARTED_EVENT);
-            try {
-                awsResponse = successResponseHandler.handle(httpResponse);
-            } finally {
-                context.awsRequestMetrics().endEvent(AwsRequestMetrics.Field.ResponseProcessingTime);
-            }
+            awsResponse = successResponseHandler.handle(httpResponse, context.executionAttributes());
             publishProgress(listener, ProgressEventType.HTTP_RESPONSE_COMPLETED_EVENT);
 
             return awsResponse;
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException | InterruptedException | RetryableException e) {
             throw e;
         } catch (Exception e) {
             String errorMessage =
@@ -112,14 +109,13 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
      *
      * @throws IOException If any problems are encountering reading the error response.
      */
-    private SdkBaseException handleErrorResponse(HttpResponse httpResponse)
+    private SdkBaseException handleErrorResponse(HttpResponse httpResponse,
+                                                 RequestExecutionContext context)
             throws IOException, InterruptedException {
         try {
-            SdkBaseException exception = errorResponseHandler.handle(httpResponse);
+            SdkBaseException exception = errorResponseHandler.handle(httpResponse, context.executionAttributes());
             exception.fillInStackTrace();
-            if (AmazonHttpClient.REQUEST_LOG.isDebugEnabled()) {
-                AmazonHttpClient.REQUEST_LOG.debug("Received error response: " + exception);
-            }
+            SdkStandardLoggers.REQUEST_LOGGER.debug(() -> "Received error response: " + exception);
             return exception;
         } catch (InterruptedException | IOException e) {
             throw e;
@@ -143,20 +139,15 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
                         // Always close on failed requests. Close on successful unless streaming operation.
                         .filter(i -> didRequestFail || !successResponseHandler.needsConnectionLeftOpen());
         if (inputStreamOptional.isPresent()) {
-            inputStreamOptional.get().close();
+            try {
+                inputStreamOptional.get().close();
+            } catch (Exception e) {
+                // We don't want failure to close to hide the original exception.
+                if (!didRequestFail) {
+                    throw e;
+                }
+            }
         }
     }
 
-    /**
-     * Determines whether a request failed or not based on the response. If the response is an empty optional then
-     * execution failed with some non-service error like an IOException or some other client error. If the response
-     * is a fulfilled optional and {@link Response#isFailure()} is true then the execution failed with a service error
-     * of some kind.
-     *
-     * @param response Optional of unmarshalled response.
-     * @return True if the response was a failure. False if it was a success.
-     */
-    private boolean didRequestFail(Optional<Response<OutputT>> response) {
-        return response.map(Response::isFailure).orElse(true);
-    }
 }

@@ -16,12 +16,13 @@
 package software.amazon.awssdk.codegen.internal;
 
 import static java.util.stream.Collectors.joining;
-import static software.amazon.awssdk.codegen.internal.Constants.LOGGER;
+import static java.util.stream.Collectors.toList;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -34,6 +35,7 @@ import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.model.service.XmlNamespace;
+import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
 public class Utils {
@@ -244,15 +246,7 @@ public class Utils {
     }
 
     public static void closeQuietly(Closeable closeable) {
-        if (closeable == null) {
-            return;
-        }
-
-        try {
-            closeable.close();
-        } catch (Exception e) {
-            LOGGER.debug("Not able to close the stream.");
-        }
+        IoUtils.closeQuietly(closeable, null);
     }
 
     /**
@@ -305,6 +299,10 @@ public class Utils {
             }
         }
         return null;
+    }
+
+    public static List<ShapeModel> findShapesByC2jName(IntermediateModel intermediateModel, String shapeC2jName) {
+        return intermediateModel.getShapes().values().stream().filter(s -> s.getC2jName().equals(shapeC2jName)).collect(toList());
     }
 
     /**

@@ -28,11 +28,6 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 
 public class DocumentationUtils {
 
-    public static final String DEFAULT_ASYNC_RETURN =
-            "A Java Future containing the result of the %s operation returned by the service.";
-
-    public static final String DEFAULT_SYNC_RETURN = "Result of the %s operation returned by the service.";
-
     public static final String DEFAULT_SETTER = "Sets the value of the %s property for this object.";
 
     public static final String DEFAULT_SETTER_PARAM = "The new value for the %s property for this object.";
@@ -50,18 +45,6 @@ public class DocumentationUtils {
             "discovery", "elastictranscoder", "es", "glacier", "importexport",
             "iot", "data.iot", "machinelearning", "rekognition", "s3", "sdb", "swf"
                                                                                                        ));
-
-    public static String generateSetterDocumentation() {
-        return null;
-    }
-
-    public static String generateGetterDocumentation() {
-        return null;
-    }
-
-    public static String generateWitherDocumentation() {
-        return null;
-    }
 
     /**
      * Returns a documentation with HTML tags prefixed and suffixed removed, or
@@ -123,7 +106,7 @@ public class DocumentationUtils {
      */
     public static String createLinkToServiceDocumentation(Metadata metadata, String name) {
         if (isCrossLinkingEnabledForService(metadata)) {
-            return String.format("@see <a href=\"http://%s/goto/WebAPI/%s/%s\" target=\"_top\">AWS API Documentation</a>",
+            return String.format("<a href=\"http://%s/goto/WebAPI/%s/%s\" target=\"_top\">AWS API Documentation</a>",
                                  AWS_DOCS_HOST,
                                  metadata.getUid(),
                                  name);

@@ -17,37 +17,48 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.HAS_CALLED_ON_STREAM;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.PUBLISHER_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_CONTEXT_KEY;
 
-import com.typesafe.netty.HandlerPublisher;
+import com.typesafe.netty.http.StreamedHttpResponse;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.util.AttributeKey;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 
 @Sharable
 class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     private static final Logger log = LoggerFactory.getLogger(ResponseHandler.class);
 
+    /**
+     * {@link AttributeKey} to keep track of whether we should close the connection after this request
+     * has completed.
+     */
+    private static final AttributeKey<Boolean> KEEP_ALIVE = AttributeKey.newInstance("KeepAlive");
+
     @Override
     protected void channelRead0(ChannelHandlerContext channelContext, HttpObject msg) throws Exception {
         RequestContext requestContext = channelContext.channel().attr(REQUEST_CONTEXT_KEY).get();
-        HandlerPublisher<ByteBuffer> publisher = channelContext.channel().attr(PUBLISHER_KEY).get();
+
 
         if (msg instanceof HttpResponse) {
             HttpResponse response = (HttpResponse) msg;
@@ -56,48 +67,142 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                                                              .statusCode(response.status().code())
                                                              .statusText(response.status().reasonPhrase())
                                                              .build();
+            channelContext.channel().attr(KEEP_ALIVE).set(HttpUtil.isKeepAlive(response));
             requestContext.handler().headersReceived(sdkResponse);
         }
 
-        if (msg instanceof HttpContent) {
-            Boolean hasCalledOnStream = channelContext.channel().attr(HAS_CALLED_ON_STREAM).get();
-            if (!Boolean.TRUE.equals(hasCalledOnStream)) {
-                requestContext.handler().onStream(publisher);
-                channelContext.channel().attr(HAS_CALLED_ON_STREAM).set(Boolean.TRUE);
-            }
-            HttpContent content = (HttpContent) msg;
-            if (content.content().readableBytes() > 0) {
-                channelContext.fireChannelRead(content.content().nioBuffer());
-            }
-            if (msg instanceof LastHttpContent) {
-                channelContext.pipeline().remove(publisher);
-                requestContext.channelPool().release(channelContext.channel());
+        if (msg instanceof StreamedHttpResponse) {
+            requestContext.handler().onStream(new PublisherAdapter((StreamedHttpResponse) msg, channelContext, requestContext));
+        } else if (msg instanceof FullHttpResponse) {
+            requestContext.handler().onStream(new EmptyRequestPublisher(msg, channelContext));
+        }
+
+        if (msg instanceof LastHttpContent) {
+            Subscriber<? super ByteBuffer> subscriber = channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY).get();
+            try {
+                subscriber.onComplete();
+                requestContext.handler().complete();
+            } catch (RuntimeException e) {
+                subscriber.onError(e);
+                requestContext.handler().exceptionOccurred(e);
+                throw e;
+            } finally {
+                finalizeRequest(requestContext, channelContext);
             }
         }
     }
 
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        ctx.read();
+    private static void finalizeRequest(RequestContext requestContext, ChannelHandlerContext channelContext) {
+        if (!channelContext.channel().attr(KEEP_ALIVE).get()) {
+            closeAndRelease(channelContext);
+        } else {
+            requestContext.channelPool().release(channelContext.channel());
+        }
     }
 
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        ctx.read();
+    /**
+     * Close the channel and release it back into the pool.
+     *
+     * @param ctx Context for channel
+     */
+    private static void closeAndRelease(ChannelHandlerContext ctx) {
+        RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
+        ctx.channel().close()
+           .addListener(channelFuture -> requestContext.channelPool().release(ctx.channel()));
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
         log.error("Exception processing request: {}", requestContext.sdkRequest(), cause);
-        requestContext.handler().exceptionOccurred(cause);
-        requestContext.channelPool().release(ctx.channel());
-        ctx.fireExceptionCaught(cause);
+
+        runAndLogError("SdkHttpResponseHandler threw an exception",
+            () -> requestContext.handler().exceptionOccurred(cause));
+        runAndLogError("Could not release channel back to the pool", () -> closeAndRelease(ctx));
+    }
+
+    /**
+     * Runs a given {@link UnsafeRunnable} and logs an error without throwing.
+     *
+     * @param errorMsg Message to log with exception thrown.
+     * @param runnable Action to perform.
+     */
+    private static void runAndLogError(String errorMsg, UnsafeRunnable runnable) {
+        try {
+            runnable.run();
+        } catch (Exception e) {
+            log.error(errorMsg, e);
+        }
     }
 
     private static Map<String, List<String>> fromNettyHeaders(HttpHeaders headers) {
         return headers.entries().stream()
                       .collect(groupingBy(Map.Entry::getKey,
                                           mapping(Map.Entry::getValue, Collectors.toList())));
+    }
+
+    private static class PublisherAdapter implements Publisher<ByteBuffer> {
+        private final StreamedHttpResponse response;
+        private final ChannelHandlerContext channelContext;
+        private final RequestContext requestContext;
+
+        private PublisherAdapter(StreamedHttpResponse response, ChannelHandlerContext channelContext,
+                                 RequestContext requestContext) {
+            this.response = response;
+            this.channelContext = channelContext;
+            this.requestContext = requestContext;
+        }
+
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+            response.subscribe(new Subscriber<HttpContent>() {
+                @Override
+                public void onSubscribe(Subscription subscription) {
+                    subscriber.onSubscribe(subscription);
+                }
+
+                @Override
+                public void onNext(HttpContent httpContent) {
+                    subscriber.onNext(httpContent.content().nioBuffer());
+                    httpContent.release();
+                    channelContext.read();
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    runAndLogError(String.format("Subscriber %s threw an exception in onError.", subscriber.toString()),
+                        () -> subscriber.onError(t));
+                    requestContext.handler().exceptionOccurred(t);
+                }
+
+                @Override
+                public void onComplete() {
+                    try {
+                        runAndLogError(String.format("Subscriber %s threw an exception in onComplete.", subscriber.toString()),
+                                       subscriber::onComplete);
+                        requestContext.handler().complete();
+                    } finally {
+                        finalizeRequest(requestContext, channelContext);
+                    }
+                }
+            });
+        }
+    }
+
+    private static class EmptyRequestPublisher implements Publisher<ByteBuffer> {
+        private final HttpObject msg;
+        private final ChannelHandlerContext channelContext;
+
+        private EmptyRequestPublisher(HttpObject msg, ChannelHandlerContext channelContext) {
+            this.msg = msg;
+            this.channelContext = channelContext;
+        }
+
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+            subscriber.onNext(((FullHttpResponse) msg).content().nioBuffer());
+            channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY)
+                          .set(subscriber);
+        }
     }
 }

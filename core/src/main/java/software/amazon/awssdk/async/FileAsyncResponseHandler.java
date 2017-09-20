@@ -18,10 +18,10 @@ package software.amazon.awssdk.async;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.atomic.AtomicLong;
@@ -33,13 +33,14 @@ import software.amazon.awssdk.annotation.SdkInternalApi;
 /**
  * {@link AsyncResponseHandler} that writes the data to the specified file.
  *
- * @param <ResponseT> Response POJO type. Not used.
+ * @param <ResponseT> Response POJO type. Returned on {@link #complete()}.
  */
 @SdkInternalApi
-class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<ResponseT, Void> {
+class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<ResponseT, ResponseT> {
 
     private final Path path;
     private AsynchronousFileChannel fileChannel;
+    private volatile ResponseT response;
 
     FileAsyncResponseHandler(Path path) {
         this.path = path;
@@ -51,6 +52,7 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
 
     @Override
     public void responseReceived(ResponseT response) {
+        this.response = response;
     }
 
     @Override
@@ -64,20 +66,17 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
     public void exceptionOccurred(Throwable throwable) {
         try {
             invokeSafely(fileChannel::close);
-        } catch (RuntimeException e) {
-            path.toFile().delete();
-            throw e;
-        }
-        if (!path.toFile().delete()) {
-            throw new UncheckedIOException(new IOException(
-                    String.format("Could not delete %s.", path.toFile().getAbsolutePath())));
+        } finally {
+            invokeSafely(() -> Files.delete(path));
         }
     }
 
     @Override
-    public Void complete() {
-        invokeSafely(fileChannel::close);
-        return null;
+    public ResponseT complete() {
+        if (fileChannel != null) {
+            invokeSafely(fileChannel::close);
+        }
+        return response;
     }
 
     /**
@@ -123,6 +122,11 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
         @Override
         public void onComplete() {
             // Completion handled by response handler
+        }
+
+        @Override
+        public String toString() {
+            return getClass() + ":" + path.toString();
         }
     }
 }

@@ -26,7 +26,6 @@ import software.amazon.awssdk.auth.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.auth.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.SystemPropertyCredentialsProvider;
 import software.amazon.awssdk.client.builder.ClientBuilder;
-import software.amazon.awssdk.metrics.AwsSdkMetrics;
 import software.amazon.awssdk.profile.path.config.SystemSettingsProfileLocationProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.InstanceProfileRegionProvider;
@@ -135,7 +134,7 @@ public enum AwsSystemSetting implements SystemSetting {
      * This allows a service running in an elastic container to automatically load its credentials without needing to configure
      * them in the {@link ClientBuilder}.
      *
-     * This is not used if the {@link #AWS_CONTAINER_CREDENTIALS_PATH} is not specified.
+     * This is not used if the {@link #AWS_CONTAINER_CREDENTIALS_RELATIVE_URI} is not specified.
      */
     AWS_CONTAINER_SERVICE_ENDPOINT("aws.containerServiceEndpoint", "http://169.254.170.2"),
 
@@ -146,7 +145,7 @@ public enum AwsSystemSetting implements SystemSetting {
      *
      * @see #AWS_CONTAINER_SERVICE_ENDPOINT
      */
-    AWS_CONTAINER_CREDENTIALS_PATH("aws.containerCredentialsPath", null),
+    AWS_CONTAINER_CREDENTIALS_RELATIVE_URI("aws.containerCredentialsPath", null),
 
     /**
      * Whether CBOR optimization should automatically be used if its support is found on the classpath and the service supports
@@ -159,13 +158,7 @@ public enum AwsSystemSetting implements SystemSetting {
      * Whether binary ION representation optimization should automatically be used if the service supports ION.
      */
     @ReviewBeforeRelease("This shouldn't be AWS-branded if ION is a core SDK feature.")
-    AWS_BINARY_ION_ENABLED("aws.binaryIonEnabled", "true"),
-
-    /**
-     * @see AwsSdkMetrics
-     */
-    @ReviewBeforeRelease("This shouldn't be AWS-branded if metrics are a core SDK feature.")
-    AWS_DEFAULT_METRICS("aws.defaultMetrics", null);
+    AWS_BINARY_ION_ENABLED("aws.binaryIonEnabled", "true");
 
     private final String systemProperty;
     private final String defaultValue;

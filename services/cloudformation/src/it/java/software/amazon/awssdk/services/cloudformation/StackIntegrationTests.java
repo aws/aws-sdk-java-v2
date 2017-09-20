@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.AmazonServiceException.ErrorType;
 import software.amazon.awssdk.SdkGlobalTime;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.policy.Action;
 import software.amazon.awssdk.auth.policy.Policy;
 import software.amazon.awssdk.auth.policy.Resource;
@@ -66,7 +65,7 @@ import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 import software.amazon.awssdk.services.cloudformation.model.StackSummary;
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackResponse;
-import software.amazon.awssdk.util.json.Jackson;
+import software.amazon.awssdk.util.json.JacksonUtils;
 
 /**
  * Tests of the Stack APIs : CloudFormation
@@ -266,7 +265,7 @@ public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
             assertNotNull(e.resourceStatus());
             assertNotNull(e.resourceType());
             assertNotNull(e.timestamp());
-            LOG.debug(Jackson.toJsonPrettyString(e));
+            LOG.debug(JacksonUtils.toJsonPrettyString(e));
         }
     }
 
@@ -426,8 +425,7 @@ public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
         SdkGlobalTime.setGlobalTimeOffset(3600);
         // Need to create a new client to have the time offset take affect
         CloudFormationClient clockSkewClient = CloudFormationClient.builder()
-                                                                   .credentialsProvider(
-                                                                           new StaticCredentialsProvider(credentials)).build();
+                                                                   .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
         clockSkewClient.describeStacks(DescribeStacksRequest.builder().build());
         assertTrue(SdkGlobalTime.getGlobalTimeOffset() < 60);
     }

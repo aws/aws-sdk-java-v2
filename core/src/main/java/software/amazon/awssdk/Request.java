@@ -18,10 +18,7 @@ package software.amazon.awssdk;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.handlers.RequestHandler;
-import software.amazon.awssdk.http.HandlerContextKey;
 import software.amazon.awssdk.http.HttpMethodName;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 
 /**
  * Represents a request being sent to an Amazon Web Service, including the
@@ -104,7 +101,6 @@ public interface Request<T> extends SignableRequest<T> {
      *         exceptions.
      *
      * @see {@link AmazonServiceException#getServiceName()}
-     * @see {@link AwsRequestMetrics.Field#ServiceName}
      */
     String getServiceName();
 
@@ -134,36 +130,4 @@ public interface Request<T> extends SignableRequest<T> {
      * @return The updated request object.
      */
     Request<T> withTimeOffset(int timeOffset);
-
-    /**
-     * Returns the request metrics.
-     */
-    AwsRequestMetrics getAwsRequestMetrics();
-
-    /**
-     * Bind the request metrics to the request. Note metrics can be captured
-     * before the request is created.
-     *
-     * @throws IllegalStateException if the binding has already occurred
-     */
-    void setAwsRequestMetrics(AwsRequestMetrics metrics);
-
-    /**
-     * Adds a context to the request object that is visible
-     * to all {@link RequestHandler} .
-     *
-     * Note that, context added here will available only for the scope of
-     * the request execution and will not be marshalled over the wire.
-     * @param key the key for the property being set in the request.
-     * @param value the value for the property being set in the request.
-     */
-    <X> void addHandlerContext(HandlerContextKey<X> key, X value);
-
-    /**
-     * Return the context for the given key if present; else return null.
-     *
-     * @param key the key for the context
-     * @return the context if present else null.
-     */
-    <X> X getHandlerContext(HandlerContextKey<X> key);
 }

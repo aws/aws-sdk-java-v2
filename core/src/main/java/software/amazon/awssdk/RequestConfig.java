@@ -17,35 +17,29 @@ package software.amazon.awssdk;
 
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.handlers.RequestHandler;
+import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.internal.AmazonWebServiceRequestAdapter;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
 
 /**
  * Generic representation of request level configuration. The customer interface for specifying
  * request level configuration is a base request class with configuration methods.
  */
 @SdkProtectedApi
+@ReviewBeforeRelease("Clean up or delete - doesn't follow standards.")
 public abstract class RequestConfig {
 
-    /**
-     * No op implementation to initalize request config in {@link DefaultRequest}.
-     */
-    public static final RequestConfig NO_OP = new AmazonWebServiceRequestAdapter(
-            AmazonWebServiceRequest.NOOP);
-
     public abstract ProgressListener getProgressListener();
-
-    public abstract RequestMetricCollector getRequestMetricsCollector();
 
     public abstract AwsCredentialsProvider getCredentialsProvider();
 
     /**
      * @return A non null map of custom headers to inject into the request.
      */
+    @ReviewBeforeRelease("Should be String, List<String> to match client config.")
     public abstract Map<String, String> getCustomRequestHeaders();
 
     /**
@@ -58,16 +52,21 @@ public abstract class RequestConfig {
     public abstract RequestClientOptions getRequestClientOptions();
 
     /**
-     * @return String identifying the 'type' (i.e. operation) of the request. Used in metrics
-     *     subsystem.
+     * @return String identifying the 'type' (i.e. operation) of the request.
      */
     public abstract String getRequestType();
 
     /**
-     * @return The original request object. May be delivered to various strategies or hooks for
-     *     extra context. I.E. {@link RequestHandler} or {@link
-     * RetryPolicy}.
+     * @return The original request object, before any modifications by {@link ExecutionInterceptor}s.
      */
-    public abstract Object getOriginalRequest();
+    public abstract SdkRequest getOriginalRequest();
+
+    /**
+     *
+     * @return Returns an empty, no-op implementation of request config.
+     */
+    public static RequestConfig empty() {
+        return new AmazonWebServiceRequestAdapter(AmazonWebServiceRequest.NOOP);
+    }
 
 }

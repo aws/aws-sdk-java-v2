@@ -35,7 +35,7 @@ import software.amazon.awssdk.auth.policy.Policy;
 import software.amazon.awssdk.auth.policy.Principal;
 import software.amazon.awssdk.auth.policy.Resource;
 import software.amazon.awssdk.auth.policy.Statement;
-import software.amazon.awssdk.util.json.Jackson;
+import software.amazon.awssdk.util.json.JacksonUtils;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -44,9 +44,8 @@ import software.amazon.awssdk.utils.IoUtils;
  */
 @ReviewBeforeRelease("Do we need this? It isn't well encapsulated because of storing non-copied arrays.")
 public class JsonPolicyWriter {
+    private static final Logger log = LoggerFactory.getLogger(JsonPolicyWriter.class);
 
-    /** Logger used to log exceptions that occurs while writing the Json policy.*/
-    private static final Logger log = LoggerFactory.getLogger("software.amazon.awssdk.auth.policy");
     /** The JSON Generator to generator a JSON string.*/
     private JsonGenerator generator = null;
     /** The output writer to which the JSON String is written.*/
@@ -58,7 +57,7 @@ public class JsonPolicyWriter {
     public JsonPolicyWriter() {
         writer = new StringWriter();
         try {
-            generator = Jackson.jsonGeneratorOf(writer);
+            generator = JacksonUtils.jsonGeneratorOf(writer);
         } catch (IOException ioe) {
             throw new SdkClientException(
                     "Unable to instantiate JsonGenerator.", ioe);

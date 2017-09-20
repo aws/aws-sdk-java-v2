@@ -21,7 +21,6 @@ import static java.util.stream.Collectors.toList;
 import static software.amazon.awssdk.utils.Validate.notNull;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,7 +29,6 @@ import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.pool.ConnPoolControl;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -43,7 +41,6 @@ import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
 import software.amazon.awssdk.http.apache.internal.impl.ApacheHttpRequestFactory;
 import software.amazon.awssdk.http.apache.internal.impl.ConnectionManagerAwareHttpClient;
 import software.amazon.awssdk.http.apache.internal.utils.ApacheUtils;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 import software.amazon.awssdk.utils.AttributeMap;
 
 @SdkInternalApi
@@ -68,7 +65,7 @@ class ApacheHttpClient implements SdkHttpClient {
         return new AbortableCallable<SdkHttpFullResponse>() {
             @Override
             public SdkHttpFullResponse call() throws Exception {
-                return execute(context, apacheRequest);
+                return execute(apacheRequest);
             }
 
             @Override
@@ -88,35 +85,10 @@ class ApacheHttpClient implements SdkHttpClient {
         httpClient.getHttpClientConnectionManager().shutdown();
     }
 
-    private SdkHttpFullResponse execute(SdkRequestContext context, HttpRequestBase apacheRequest) throws IOException {
-        final AwsRequestMetrics awsRequestMetrics = context.metrics();
-        captureConnectionPoolMetrics(awsRequestMetrics);
-
-        Map<String, Object> metricsContext = new HashMap<>();
-        metricsContext.put(AwsRequestMetrics.class.getSimpleName(), awsRequestMetrics);
-
-        final HttpClientContext localRequestContext = ApacheUtils
-                .newClientContext(requestConfig.proxyConfiguration(), metricsContext);
-        try {
-            awsRequestMetrics.startEvent(AwsRequestMetrics.Field.HttpRequestTime);
-            final HttpResponse httpResponse = httpClient.execute(apacheRequest, localRequestContext);
-            return createResponse(httpResponse, apacheRequest);
-        } finally {
-            awsRequestMetrics.endEvent(AwsRequestMetrics.Field.HttpRequestTime);
-        }
-    }
-
-    private void captureConnectionPoolMetrics(AwsRequestMetrics awsRequestMetrics) {
-        if (awsRequestMetrics.isEnabled() &&
-            httpClient.getHttpClientConnectionManager() instanceof ConnPoolControl<?>) {
-            ConnPoolControl<?> control = (ConnPoolControl<?>) httpClient.getHttpClientConnectionManager();
-
-            awsRequestMetrics
-                    .withCounter(AwsRequestMetrics.Field.HttpClientPoolAvailableCount, control.getTotalStats().getAvailable())
-                    .withCounter(AwsRequestMetrics.Field.HttpClientPoolLeasedCount, control.getTotalStats().getLeased())
-                    .withCounter(AwsRequestMetrics.Field.HttpClientPoolPendingCount, control.getTotalStats().getPending());
-        }
-
+    private SdkHttpFullResponse execute(HttpRequestBase apacheRequest) throws IOException {
+        HttpClientContext localRequestContext = ApacheUtils.newClientContext(requestConfig.proxyConfiguration());
+        HttpResponse httpResponse = httpClient.execute(apacheRequest, localRequestContext);
+        return createResponse(httpResponse, apacheRequest);
     }
 
     private HttpRequestBase toApacheRequest(SdkHttpFullRequest request) {

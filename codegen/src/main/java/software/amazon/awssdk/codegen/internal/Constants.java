@@ -15,9 +15,6 @@
 
 package software.amazon.awssdk.codegen.internal;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class Constants {
 
     public static final String CODEGEN_CONFIG_FILE = "codegen.config";
@@ -72,8 +69,6 @@ public class Constants {
     public static final String AUTHORIZER_NAME_PREFIX = "I";
 
     public static final String LF = System.lineSeparator();
-
-    public static final Logger LOGGER = LoggerFactory.getLogger("software.amazon.awssdk.javasdk.codegen");
 
     public static final String AWS_DOCS_HOST = "docs.aws.amazon.com";
 

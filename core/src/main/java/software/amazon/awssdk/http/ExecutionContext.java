@@ -15,19 +15,18 @@
 
 package software.amazon.awssdk.http;
 
-import java.util.List;
 import software.amazon.awssdk.annotation.NotThreadSafe;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.auth.AwsCredentials;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.Signer;
-import software.amazon.awssdk.handlers.RequestHandler;
-import software.amazon.awssdk.internal.auth.NoOpSignerProvider;
-import software.amazon.awssdk.internal.http.timers.client.ClientExecutionAbortTrackerTask;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.interceptor.InterceptorContext;
 import software.amazon.awssdk.runtime.auth.SignerProvider;
-import software.amazon.awssdk.runtime.auth.SignerProviderContext;
-import software.amazon.awssdk.util.AwsRequestMetricsFullSupport;
+import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * @NotThreadSafe This class should only be accessed by a single thread and be used throughout
@@ -35,12 +34,11 @@ import software.amazon.awssdk.util.AwsRequestMetricsFullSupport;
  */
 @NotThreadSafe
 @SdkProtectedApi
-public class ExecutionContext {
-    private final AwsRequestMetrics awsRequestMetrics;
-    private final List<RequestHandler> requestHandlers;
+public class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Builder, ExecutionContext> {
     private final SignerProvider signerProvider;
-
-    private boolean retryCapacityConsumed;
+    private InterceptorContext interceptorContext;
+    private final ExecutionInterceptorChain interceptorChain;
+    private final ExecutionAttributes executionAttributes;
 
     /**
      * Optional credentials to enable the runtime layer to handle signing requests (and resigning on
@@ -48,71 +46,34 @@ public class ExecutionContext {
      */
     private AwsCredentialsProvider credentialsProvider;
 
-    private ClientExecutionAbortTrackerTask clientExecutionTrackerTask;
-
-    /** For testing purposes. */
-    public ExecutionContext(boolean isMetricEnabled) {
-        this(builder().withUseRequestMetrics(isMetricEnabled).withSignerProvider(new NoOpSignerProvider()));
-    }
-
-    /** For testing purposes. */
-    public ExecutionContext() {
-        this(builder().withSignerProvider(new NoOpSignerProvider()));
-    }
-
     private ExecutionContext(final Builder builder) {
-        this.requestHandlers = builder.requestHandlers;
-        this.awsRequestMetrics = builder.useRequestMetrics ? new AwsRequestMetricsFullSupport() : new AwsRequestMetrics();
-        this.signerProvider = builder.signerProvider;
+        this.signerProvider = Validate.paramNotNull(builder.signerProvider, "signerProvider");
+        this.interceptorContext = Validate.paramNotNull(builder.interceptorContext, "interceptorContext");
+        this.interceptorChain = Validate.paramNotNull(builder.interceptorChain, "interceptorChain");
+        this.executionAttributes = Validate.paramNotNull(builder.executionAttributes, "executionAttributes");
     }
 
     public static ExecutionContext.Builder builder() {
         return new ExecutionContext.Builder();
     }
 
-    public List<RequestHandler> getRequestHandlers() {
-        return requestHandlers;
+    public InterceptorContext interceptorContext() {
+        return interceptorContext;
     }
 
-    public AwsRequestMetrics getAwsRequestMetrics() {
-        return awsRequestMetrics;
+    @ReviewBeforeRelease("We should switch to fully immutable execution contexts. Currently, we mutate it for the interceptor "
+                         + "context, credential providers, etc.")
+    public ExecutionContext interceptorContext(InterceptorContext interceptorContext) {
+        this.interceptorContext = interceptorContext;
+        return this;
     }
 
-    /**
-     * There is in general no need to set the signer in the execution context, since the signer for
-     * each request may differ depending on the URI of the request. The exception is S3 where the
-     * signer is currently determined only when the S3 client is constructed. Hence the need for
-     * this method. We may consider supporting a per request level signer determination for S3 later
-     * on.
-     */
-    @Deprecated
-    public void setSigner(Signer signer) {
+    public ExecutionInterceptorChain interceptorChain() {
+        return interceptorChain;
     }
 
-    /**
-     * Returns whether retry capacity was consumed during this request lifecycle.
-     * This can be inspected to determine whether capacity should be released if a retry succeeds.
-     *
-     * @return true if retry capacity was consumed
-     */
-    public boolean retryCapacityConsumed() {
-        return retryCapacityConsumed;
-    }
-
-    /**
-     * Marks that a retry during this request lifecycle has consumed retry capacity.  This is inspected
-     * when determining if capacity should be released if a retry succeeds.
-     */
-    public void markRetryCapacityConsumed() {
-        this.retryCapacityConsumed = true;
-    }
-
-    /**
-     * Passes in the provided {@link SignerProviderContext} into a {@link SignerProvider} and returns
-     * a {@link Signer} instance.
-     */
-    public Signer getSigner(SignerProviderContext context) {
-        return signerProvider.getSigner(context);
+    public ExecutionAttributes executionAttributes() {
+        return executionAttributes;
     }
 
     /**
@@ -138,63 +99,48 @@ public class ExecutionContext {
         this.credentialsProvider = credentialsProvider;
     }
 
-    public ClientExecutionAbortTrackerTask getClientExecutionTrackerTask() {
-        return clientExecutionTrackerTask;
-    }
-
-    public void setClientExecutionTrackerTask(ClientExecutionAbortTrackerTask clientExecutionTrackerTask) {
-        this.clientExecutionTrackerTask = clientExecutionTrackerTask;
-    }
-
-    public SignerProvider getSignerProvider() {
+    public SignerProvider signerProvider() {
         return signerProvider;
     }
 
-    public static class Builder {
+    @Override
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
 
-        private boolean useRequestMetrics;
-        private List<RequestHandler> requestHandlers;
-        private SignerProvider signerProvider = new NoOpSignerProvider();
+    public static class Builder implements CopyableBuilder<Builder, ExecutionContext> {
+        private InterceptorContext interceptorContext;
+        private ExecutionInterceptorChain interceptorChain;
+        private ExecutionAttributes executionAttributes;
+        private SignerProvider signerProvider;
 
         private Builder() {
         }
 
-        public boolean useRequestMetrics() {
-            return useRequestMetrics;
+        public Builder(ExecutionContext executionContext) {
+            this.signerProvider = executionContext.signerProvider;
+            this.interceptorContext = executionContext.interceptorContext;
+            this.interceptorChain = executionContext.interceptorChain;
+            this.executionAttributes = executionContext.executionAttributes;
         }
 
-        public void setUseRequestMetrics(final boolean useRequestMetrics) {
-            this.useRequestMetrics = useRequestMetrics;
-        }
-
-        public Builder withUseRequestMetrics(final boolean withUseRequestMetrics) {
-            setUseRequestMetrics(withUseRequestMetrics);
+        public Builder interceptorContext(InterceptorContext interceptorContext) {
+            this.interceptorContext = interceptorContext;
             return this;
         }
 
-        public List<RequestHandler> getRequestHandlers() {
-            return requestHandlers;
-        }
-
-        public void setRequestHandlers(final List<RequestHandler> requestHandlers) {
-            this.requestHandlers = requestHandlers;
-        }
-
-        public Builder withRequestHandlers(final List<RequestHandler> requestHandlers) {
-            setRequestHandlers(requestHandlers);
+        public Builder interceptorChain(ExecutionInterceptorChain interceptorChain) {
+            this.interceptorChain = interceptorChain;
             return this;
         }
 
-        public SignerProvider getSignerProvider() {
-            return signerProvider;
+        public Builder executionAttributes(ExecutionAttributes executionAttributes) {
+            this.executionAttributes = executionAttributes;
+            return this;
         }
 
-        public void setSignerProvider(final SignerProvider signerProvider) {
+        public Builder signerProvider(SignerProvider signerProvider) {
             this.signerProvider = signerProvider;
-        }
-
-        public Builder withSignerProvider(final SignerProvider signerProvider) {
-            setSignerProvider(signerProvider);
             return this;
         }
 

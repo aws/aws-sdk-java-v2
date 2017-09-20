@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -33,6 +34,12 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 public interface SdkHttpFullRequest
         extends SdkHttpRequest, ToCopyableBuilder<SdkHttpFullRequest.Builder, SdkHttpFullRequest> {
+    /**
+     * @return Builder instance to construct a {@link DefaultSdkHttpFullRequest}.
+     */
+    static Builder builder() {
+        return new DefaultSdkHttpFullRequest.Builder();
+    }
 
     /**
      * Returns the optional stream containing the payload data to include for
@@ -47,8 +54,9 @@ public interface SdkHttpFullRequest
     /**
      * Builder interface for {@link SdkHttpFullRequest}.
      */
-    interface Builder extends CopyableBuilder<Builder, SdkHttpFullRequest>, SdkHttpRequest {
-
+    @ReviewBeforeRelease("Extending SdkHttpRequest is dangerous, because this is mutable, but it's expected that "
+                         + "requests aren't.")
+    interface Builder extends CopyableBuilder<Builder, SdkHttpFullRequest>, SdkHttpFullRequest {
         /**
          * Adds the header to the builder.
          *
@@ -185,15 +193,6 @@ public interface SdkHttpFullRequest
          * @return The optional stream containing the payload data to include for this request or null if there is no payload.
          */
         InputStream getContent();
-
-        /**
-         * Adds to the handler context for the builder.
-         *
-         * @param key   Key to add context under.
-         * @param value Value associated with key.
-         * @return This builder for method chaining.
-         */
-        <T> Builder handlerContext(HandlerContextKey<T> key, T value);
 
     }
 

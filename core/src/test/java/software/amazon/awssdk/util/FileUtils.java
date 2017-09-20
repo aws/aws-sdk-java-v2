@@ -35,32 +35,6 @@ public class FileUtils {
     private static final Random rand = new Random();
 
     /**
-     * Returns a reference to the file created with the given file name in the
-     * System's temporary directory.
-     *
-     * @return a reference to the file
-     */
-    public static File createTempFileForTesting(String fileName) throws IOException {
-        return File.createTempFile(String.valueOf(System.currentTimeMillis()),
-                                   fileName);
-
-    }
-
-    /**
-     * Creates a file with the given name in the System's temporary directory.
-     * Adds the data to the given file and returns the reference to the file.
-     *
-     * @param data
-     * @return reference to the file.
-     */
-    public static File createTempFileForTesting(String fileName, String data)
-            throws IOException {
-        return appendDataToTempFile(File.createTempFile(
-                String.valueOf(System.currentTimeMillis()), fileName), data);
-
-    }
-
-    /**
      * Appends the given data to the file specified in the input and returns the
      * reference to the file.
      *

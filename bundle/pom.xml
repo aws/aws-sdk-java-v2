@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.0.0-preview-2</version>
+        <version>2.0.0-preview-4</version>
     </parent>
     <artifactId>bundle</artifactId>
     <packaging>jar</packaging>
@@ -54,7 +54,6 @@
                 <configuration>
                     <artifactSet>
                         <includes>
-                            <include>joda-time:joda-time</include>
                             <include>com.fasterxml.jackson.core:*</include>
                             <include>com.fasterxml.jackson.dataformat:jackson-dataformat-cbor</include>
                             <include>org.apache.httpcomponents:*</include>
@@ -64,10 +63,6 @@
                         </includes>
                     </artifactSet>
                     <relocations>
-                        <relocation>
-                            <pattern>org.joda</pattern>
-                            <shadedPattern>software.amazon.awssdk.thirdparty.joda</shadedPattern>
-                        </relocation>
                         <relocation>
                             <pattern>com.fasterxml.jackson</pattern>
                             <shadedPattern>software.amazon.awssdk.thirdparty.jackson</shadedPattern>

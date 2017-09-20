@@ -31,9 +31,9 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toMap;
-import static org.apache.commons.lang.RandomStringUtils.randomAlphabetic;
-import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.apache.commons.lang.StringUtils.reverse;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.reverse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -44,6 +44,7 @@ import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -155,10 +156,10 @@ public class NettyNioAsyncHttpClientIntegrationTest {
     public void customEventLoopGroup_NotClosedWhenClientIsClosed() throws Exception {
 
         ThreadFactory threadFactory = spy(new CustomThreadFactory());
-        EventLoopGroup eventLoopGroup = spy(DefaultEventLoopGroupFactory.builder()
-                                                                        .threadFactory(threadFactory)
-                                                                        .build()
-                                                                        .create());
+        // Cannot use DefaultEventLoopGroupFactory because the concrete
+        // implementation it creates is platform-dependent and could be a final
+        // (i.e. non-spyable) class.
+        EventLoopGroup eventLoopGroup = spy(new NioEventLoopGroup(0, threadFactory));
         EventLoopGroupConfiguration eventLoopGroupConfiguration =
                 EventLoopGroupConfiguration.builder()
                                            .eventLoopGroup(eventLoopGroup)

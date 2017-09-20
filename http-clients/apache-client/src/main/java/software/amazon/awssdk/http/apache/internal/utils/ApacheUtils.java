@@ -17,8 +17,6 @@ package software.amazon.awssdk.http.apache.internal.utils;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.io.UnsupportedEncodingException;
-import java.util.Map;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -28,28 +26,12 @@ import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.BufferedHttpEntity;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import software.amazon.awssdk.http.apache.ProxyConfiguration;
 
 public class ApacheUtils {
-
-    /**
-     * Utility function for creating a new StringEntity and wrapping any errors
-     * as a SdkClientException.
-     *
-     * @param s The string contents of the returned HTTP entity.
-     * @return A new StringEntity with the specified contents.
-     */
-    public static HttpEntity newStringEntity(String s) {
-        try {
-            return new StringEntity(s);
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("Unable to create HTTP entity: " + e.getMessage(), e);
-        }
-    }
 
     /**
      * Utility function for creating a new BufferedEntity and wrapping any errors
@@ -69,16 +51,8 @@ public class ApacheUtils {
     /**
      * Returns a new HttpClientContext used for request execution.
      */
-    public static HttpClientContext newClientContext(ProxyConfiguration proxyConfiguration,
-                                                     Map<String, ?> attributes) {
+    public static HttpClientContext newClientContext(ProxyConfiguration proxyConfiguration) {
         final HttpClientContext clientContext = new HttpClientContext();
-
-        if (attributes != null && !attributes.isEmpty()) {
-            for (Map.Entry<String, ?> entry : attributes.entrySet()) {
-                clientContext.setAttribute(entry.getKey(), entry.getValue());
-            }
-        }
-
         addPreemptiveAuthenticationProxy(clientContext, proxyConfiguration);
         return clientContext;
 

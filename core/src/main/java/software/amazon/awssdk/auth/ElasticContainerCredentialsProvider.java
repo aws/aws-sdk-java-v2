@@ -24,6 +24,7 @@ import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
 import software.amazon.awssdk.internal.CredentialsEndpointProvider;
 import software.amazon.awssdk.retry.internal.CredentialsEndpointRetryPolicy;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * {@link AwsCredentialsProvider} implementation that loads credentials from the Amazon Elastic Container Service.
@@ -31,7 +32,7 @@ import software.amazon.awssdk.retry.internal.CredentialsEndpointRetryPolicy;
  * <p>The URI path is retrieved from the environment variable "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" in the container's
  * environment. If the environment variable is not set, this credentials provider will always return null.</p>
  */
-public class ElasticContainerCredentialsProvider implements AwsCredentialsProvider, AutoCloseable {
+public class ElasticContainerCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
     private static final Logger log = LoggerFactory.getLogger(ElasticContainerCredentialsProvider.class);
 
     /**
@@ -86,7 +87,7 @@ public class ElasticContainerCredentialsProvider implements AwsCredentialsProvid
     }
 
     private static boolean isEnabled() {
-        return AwsSystemSetting.AWS_CONTAINER_CREDENTIALS_PATH.getStringValue().isPresent();
+        return AwsSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI.getStringValue().isPresent();
     }
 
     /**
@@ -96,7 +97,7 @@ public class ElasticContainerCredentialsProvider implements AwsCredentialsProvid
         @Override
         public URI getCredentialsEndpoint() throws URISyntaxException {
             return new URI(AwsSystemSetting.AWS_CONTAINER_SERVICE_ENDPOINT.getStringValueOrThrow() +
-                           AwsSystemSetting.AWS_CONTAINER_CREDENTIALS_PATH.getStringValueOrThrow());
+                           AwsSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI.getStringValueOrThrow());
         }
 
         @Override

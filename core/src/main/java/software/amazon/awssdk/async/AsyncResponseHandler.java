@@ -16,6 +16,8 @@
 package software.amazon.awssdk.async;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
@@ -87,8 +89,39 @@ public interface AsyncResponseHandler<ResponseT, ReturnT> {
      * @param <ResponseT> Pojo Response type.
      * @return AsyncResponseHandler instance.
      */
-    static <ResponseT> AsyncResponseHandler<ResponseT, Void> toFile(Path path) {
+    static <ResponseT> AsyncResponseHandler<ResponseT, ResponseT> toFile(Path path) {
         return new FileAsyncResponseHandler<>(path);
+    }
+
+    /**
+     * Creates an {@link AsyncResponseHandler} that writes all content to a byte array.
+     *
+     * @param <ResponseT> Pojo response type.
+     * @return AsyncResponseHandler instance.
+     */
+    static <ResponseT> AsyncResponseHandler<ResponseT, byte[]> toByteArray() {
+        return new ByteArrayAsyncResponseHandler<>();
+    }
+
+    /**
+     * Creates an {@link AsyncResponseHandler} that writes all content to a string using the specified encoding.
+     *
+     * @param charset     {@link Charset} to use when constructing the string.
+     * @param <ResponseT> Pojo response type.
+     * @return AsyncResponseHandler instance.
+     */
+    static <ResponseT> AsyncResponseHandler<ResponseT, String> toString(Charset charset) {
+        return new StringAsyncResponseHandler<>(toByteArray(), charset);
+    }
+
+    /**
+     * Creates an {@link AsyncResponseHandler} that writes all content to UTF8 encoded string.
+     *
+     * @param <ResponseT> Pojo response type.
+     * @return AsyncResponseHandler instance.
+     */
+    static <ResponseT> AsyncResponseHandler<ResponseT, String> toUtf8String() {
+        return toString(StandardCharsets.UTF_8);
     }
 
 }

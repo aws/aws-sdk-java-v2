@@ -21,6 +21,7 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 import static software.amazon.awssdk.utils.StringUtils.isNotBlank;
 
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -62,7 +63,7 @@ final class UrlConnectionHttpClient implements SdkHttpClient {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
 
     }
 
@@ -132,14 +133,14 @@ final class UrlConnectionHttpClient implements SdkHttpClient {
             }
 
             int responseCode = connection.getResponseCode();
+            InputStream content = responseCode < 400 ? connection.getInputStream() : connection.getErrorStream();
             return SdkHttpFullResponse.builder()
                                       .statusCode(responseCode)
                                       .statusText(connection.getResponseMessage())
-                                      .content(connection.getInputStream())
+                                      .content(content)
                                       .headers(extractHeaders(connection))
                                       .build();
         }
-
 
         private Map<String, List<String>> extractHeaders(HttpURLConnection response) {
             return response.getHeaderFields().entrySet().stream()

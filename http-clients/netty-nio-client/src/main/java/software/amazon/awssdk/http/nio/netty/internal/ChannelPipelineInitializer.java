@@ -41,7 +41,6 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
         if (log.isLoggingLevelEnabled("debug")) {
             tmpHandlers.add(new LoggingHandler(log::debug));
         }
-        tmpHandlers.add(new ResponseHandler());
 
         handlers = tmpHandlers.toArray(new ChannelHandler[0]);
     }

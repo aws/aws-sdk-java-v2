@@ -21,8 +21,8 @@ import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.event.ProgressEventType;
 import software.amazon.awssdk.event.ProgressListener;
 import software.amazon.awssdk.http.AbortableCallable;
-import software.amazon.awssdk.http.AmazonHttpClient;
-import software.amazon.awssdk.http.HttpClientDependencies;
+import software.amazon.awssdk.http.HttpSyncClientDependencies;
+import software.amazon.awssdk.http.InterruptMonitor;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -38,8 +38,8 @@ public class MakeHttpRequestStage
 
     private final SdkHttpClient sdkHttpClient;
 
-    public MakeHttpRequestStage(HttpClientDependencies dependencies) {
-        this.sdkHttpClient = dependencies.sdkHttpClient();
+    public MakeHttpRequestStage(HttpSyncClientDependencies dependencies) {
+        this.sdkHttpClient = dependencies.syncClientConfiguration().httpClient();
     }
 
     /**
@@ -47,7 +47,7 @@ public class MakeHttpRequestStage
      */
     public Pair<SdkHttpFullRequest, SdkHttpFullResponse> execute(SdkHttpFullRequest request,
                                                                  RequestExecutionContext context) throws Exception {
-        AmazonHttpClient.checkInterrupted();
+        InterruptMonitor.checkInterrupted();
         final ProgressListener listener = context.requestConfig().getProgressListener();
 
         publishProgress(listener, ProgressEventType.HTTP_REQUEST_STARTED_EVENT);
@@ -59,11 +59,9 @@ public class MakeHttpRequestStage
 
     private SdkHttpFullResponse executeHttpRequest(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         final AbortableCallable<SdkHttpFullResponse> requestCallable = sdkHttpClient
-                .prepareRequest(request, SdkRequestContext.builder()
-                                                          .metrics(context.awsRequestMetrics())
-                                                          .build());
+                .prepareRequest(request, SdkRequestContext.builder().build());
 
-        context.getClientExecutionTrackerTask().setCurrentHttpRequest(requestCallable);
+        context.clientExecutionTrackerTask().setCurrentHttpRequest(requestCallable);
         return requestCallable.call();
     }
 }

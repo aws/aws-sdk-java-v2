@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.test.retry;
 
+import software.amazon.awssdk.utils.Validate;
+
 /**
  * Normally {@link Error}'s are not retried by {@link RetryableAction}. This is a special error that
  * communicates retry intent to {@link RetryableAction}.
@@ -27,6 +29,6 @@ public class RetryableError extends Error {
 
     @Override
     public Error getCause() {
-        return (Error) super.getCause();
+        return Validate.isInstanceOf(Error.class, super.getCause(), "Unexpected cause type.");
     }
 }

@@ -15,11 +15,9 @@
 
 package software.amazon.awssdk.util;
 
-import java.net.InetAddress;
 import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.slf4j.LoggerFactory;
 
 public class AwsHostNameUtils {
 
@@ -200,29 +198,6 @@ public class AwsHostNameUtils {
             return serviceAndRegion;
         }
 
-        String service =
-                serviceAndRegion.substring(0, serviceAndRegion.indexOf(separator));
-
-        return service;
-    }
-
-    /**
-     * Returns the host name for the local host. If the operation is not allowed
-     * by the security check, the textual representation of the IP address of
-     * the local host is returned instead. If the ip address of the local host
-     * cannot be resolved or if there is any other failure, "localhost" is
-     * returned as a fallback.
-     */
-    public static String localHostName() {
-        try {
-            InetAddress localhost = InetAddress.getLocalHost();
-            return localhost.getHostName();
-        } catch (Exception e) {
-            LoggerFactory.getLogger(AwsHostNameUtils.class)
-                      .debug(
-                                      "Failed to determine the local hostname; fall back to "
-                                      + "use \"localhost\".", e);
-            return "localhost";
-        }
+        return serviceAndRegion.substring(0, serviceAndRegion.indexOf(separator));
     }
 }

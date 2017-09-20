@@ -39,6 +39,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.auth.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.Aws4Signer;
 import software.amazon.awssdk.auth.StaticSignerProvider;
@@ -108,7 +109,7 @@ public class DefaultClientBuilderTest {
 
     @Test
     public void buildWithoutRegionOrEndpointOrDefaultProviderThrowsException() {
-        assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> testClientBuilder().build());
+        assertThatExceptionOfType(SdkClientException.class).isThrownBy(() -> testClientBuilder().build());
     }
 
     @Test

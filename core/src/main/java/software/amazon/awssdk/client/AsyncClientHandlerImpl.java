@@ -15,38 +15,39 @@
 
 package software.amazon.awssdk.client;
 
-import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.Request;
 import software.amazon.awssdk.RequestConfig;
 import software.amazon.awssdk.SdkBaseException;
+import software.amazon.awssdk.SdkRequest;
+import software.amazon.awssdk.SdkResponse;
+import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.annotation.ThreadSafe;
 import software.amazon.awssdk.async.AsyncRequestProvider;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.handlers.AwsHandlerKeys;
-import software.amazon.awssdk.handlers.RequestHandler;
+import software.amazon.awssdk.async.AsyncResponseHandler;
+import software.amazon.awssdk.config.AsyncClientConfiguration;
+import software.amazon.awssdk.config.InternalAdvancedClientOption;
 import software.amazon.awssdk.http.AmazonAsyncHttpClient;
 import software.amazon.awssdk.http.ExecutionContext;
 import software.amazon.awssdk.http.HttpResponse;
+import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.SdkHttpResponseAdapter;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.http.async.SyncResponseHandlerAdapter;
-import software.amazon.awssdk.metrics.AwsSdkMetrics;
-import software.amazon.awssdk.metrics.RequestMetricCollector;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
-import software.amazon.awssdk.runtime.auth.SignerProvider;
+import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
+import software.amazon.awssdk.interceptor.InterceptorContext;
 import software.amazon.awssdk.util.CredentialUtils;
 import software.amazon.awssdk.util.Throwables;
 
@@ -56,115 +57,106 @@ import software.amazon.awssdk.util.Throwables;
 @Immutable
 @ThreadSafe
 @SdkProtectedApi
-public class AsyncClientHandlerImpl extends AsyncClientHandler {
-
-    private final AwsCredentialsProvider awsCredentialsProvider;
-    private final SignerProvider signerProvider;
-    private final URI endpoint;
-    private final List<RequestHandler> requestHandlers;
-    private final RequestMetricCollector clientLevelMetricCollector;
+class AsyncClientHandlerImpl extends AsyncClientHandler {
+    private final AsyncClientConfiguration asyncClientConfiguration;
     private final AmazonAsyncHttpClient client;
-    private final boolean calculateCrc32FromCompressedData;
 
-    public AsyncClientHandlerImpl(ClientHandlerParams handlerParams) {
-        this.signerProvider = handlerParams.getClientParams().getSignerProvider();
-        this.endpoint = handlerParams.getClientParams().getEndpoint();
-        this.awsCredentialsProvider = handlerParams.getClientParams().getCredentialsProvider();
-        this.requestHandlers = handlerParams.getClientParams().getRequestHandlers();
-        this.clientLevelMetricCollector = handlerParams.getClientParams().getRequestMetricCollector();
-        this.calculateCrc32FromCompressedData = handlerParams.isCalculateCrc32FromCompressedDataEnabled();
-        this.client = buildHttpClient(handlerParams);
-    }
-
-    private AmazonAsyncHttpClient buildHttpClient(ClientHandlerParams handlerParams) {
-        final AwsSyncClientParams clientParams = handlerParams.getClientParams();
-        return AmazonAsyncHttpClient.builder()
-                                    .clientConfiguration(clientParams.getClientConfiguration())
-                                    .retryPolicy(clientParams.getRetryPolicy())
-                                    .requestMetricCollector(clientParams.getRequestMetricCollector())
-                                    .calculateCrc32FromCompressedData(handlerParams.isCalculateCrc32FromCompressedDataEnabled())
-                                    .asyncExecutor(handlerParams.getAsyncClientParams().getExecutor())
-                                    .sdkAsyncHttpClient(handlerParams.getAsyncClientParams().getAsyncHttpClient())
-                                    .build();
+    @ReviewBeforeRelease("Should this be migrated to use a params object, particularly because it crosses module boundaries?" +
+                         "We might also need to think about how it will work after AWS/SDK are split.")
+    AsyncClientHandlerImpl(AsyncClientConfiguration asyncClientConfiguration,
+                           ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
+        super(asyncClientConfiguration, serviceAdvancedConfiguration);
+        this.asyncClientConfiguration = asyncClientConfiguration;
+        this.client = new AmazonAsyncHttpClient(asyncClientConfiguration);
     }
 
     @Override
-    public <InputT, OutputT> CompletableFuture<OutputT> execute(ClientExecutionParams<InputT, OutputT> executionParams) {
-        final InputT inputT = executionParams.getInput();
-        ExecutionContext executionContext = createExecutionContext(
-                executionParams.getRequestConfig());
-        AwsRequestMetrics awsRequestMetrics = executionContext.getAwsRequestMetrics();
-        awsRequestMetrics.startEvent(AwsRequestMetrics.Field.ClientExecuteTime);
-        Request<InputT> request;
-
-        awsRequestMetrics.startEvent(AwsRequestMetrics.Field.RequestMarshallTime);
-        try {
-            request = executionParams.getMarshaller().marshall(tryBeforeMarshalling(inputT));
-            request.setAwsRequestMetrics(awsRequestMetrics);
-            request.setEndpoint(endpoint);
-        } catch (Exception e) {
-            endClientExecution(awsRequestMetrics, executionParams.getRequestConfig(), null, null);
-            throw e;
-        } finally {
-            awsRequestMetrics.endEvent(AwsRequestMetrics.Field.RequestMarshallTime);
-        }
-
-        SdkHttpFullRequest marshalled =
-                SdkHttpFullRequestAdapter.toMutableHttpFullRequest(request)
-                                         .handlerContext(AwsHandlerKeys.REQUEST_CONFIG, executionParams.getRequestConfig())
-                                         .build();
-        SdkHttpRequestProvider requestProvider = executionParams.getAsyncRequestProvider() != null ?
-                adaptAsyncRequestProvider(executionParams.getAsyncRequestProvider()) : null;
-
-        Function<SdkHttpFullResponse, HttpResponse> responseAdapter
-                = r -> SdkHttpResponseAdapter.adapt(calculateCrc32FromCompressedData, marshalled, r);
-
-        SdkHttpResponseHandler<OutputT> responseHandler = resolveResponseHandler(executionParams, responseAdapter);
-
-        SdkHttpResponseHandler<? extends SdkBaseException> errorHandler =
-                resolveErrorResponseHandler(executionParams, responseAdapter);
-
-        return invoke(marshalled, requestProvider, executionParams.getRequestConfig(), executionContext,
-                      responseHandler, errorHandler)
-                .handle((resp, err) -> {
-                    try {
-                        if (err != null) {
-                            throw Throwables.failure(err);
-                        }
-                        return resp;
-                    } finally {
-                        endClientExecution(awsRequestMetrics, executionParams.getRequestConfig(), request, resp);
-                    }
-                });
-    }
-
-    @Override
-    public void close() throws Exception {
-        client.close();
+    public <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<OutputT> execute(
+            ClientExecutionParams<InputT, OutputT> executionParams) {
+        ExecutionContext executionContext = createExecutionContext(executionParams.getRequestConfig());
+        return execute(executionParams, executionContext,
+            responseAdapter -> new SyncResponseHandlerAdapter<>(
+                               interceptorCalling(executionParams.getResponseHandler(), executionContext),
+                               responseAdapter,
+                               executionContext.executionAttributes()));
     }
 
     /**
-     * When an operation has a streaming input, the customer must supply an {@link AsyncRequestProvider} to
-     * provide the request content in a non-blocking manner. This adapts that interface to the
-     * {@link SdkHttpRequestProvider} which the HTTP client SPI expects.
-     *
-     * @param asyncRequestProvider Customer supplied request provider.
-     * @return Request provider to send to the HTTP layer.
+     * Adapter interface from {@link SdkHttpFullResponse} to {@link HttpResponse}
      */
-    private SdkHttpRequestProvider adaptAsyncRequestProvider(AsyncRequestProvider asyncRequestProvider) {
-        return new SdkHttpRequestProvider() {
+    private interface HttpResponseAdapter extends Function<SdkHttpFullResponse, HttpResponse> {
+    }
 
-            @Override
-            public long contentLength() {
-                return asyncRequestProvider.contentLength();
-            }
+    /**
+     * Factory interface for obtaining an {@link SdkHttpResponseHandler} given an {@link HttpResponseAdapter}.
+     *
+     * @param <ReturnT> Type param for {@link SdkHttpResponseHandler}
+     */
+    private interface ResponseHandlerFactory<ReturnT> extends
+                                                      Function<HttpResponseAdapter, SdkHttpResponseHandler<ReturnT>> {
+    }
 
-            @Override
-            public void subscribe(Subscriber<? super ByteBuffer> s) {
-                asyncRequestProvider.subscribe(s);
-            }
+    @Override
+    public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> CompletableFuture<ReturnT> execute(
+            ClientExecutionParams<InputT, OutputT> executionParams,
+            AsyncResponseHandler<OutputT, ReturnT> asyncResponseHandler) {
 
-        };
+        ExecutionContext context = createExecutionContext(executionParams.getRequestConfig());
+        ResponseHandlerFactory<ReturnT> sdkHttpResponseHandler = responseAdapter ->
+                new UnmarshallingSdkHttpResponseHandler<>(asyncResponseHandler, context, executionParams.getResponseHandler());
+
+        return execute(executionParams, context, sdkHttpResponseHandler);
+    }
+
+    private <InputT extends SdkRequest, OutputT, ReturnT> CompletableFuture<ReturnT> execute(
+            ClientExecutionParams<InputT, OutputT> executionParams,
+            ExecutionContext executionContext,
+            ResponseHandlerFactory<ReturnT> sdkHttpResponseHandlerFactory) {
+        runBeforeExecutionInterceptors(executionContext);
+        InputT inputT = runModifyRequestInterceptors(executionContext);
+
+        runBeforeMarshallingInterceptors(executionContext);
+        Request<InputT> request = executionParams.getMarshaller().marshall(inputT);
+        request.setEndpoint(asyncClientConfiguration.endpoint());
+
+        // TODO: Can any of this be merged into the parent class? There's a lot of duplication here.
+        executionContext.executionAttributes().putAttribute(AwsExecutionAttributes.SERVICE_NAME, request.getServiceName());
+
+        addHttpRequest(executionContext, SdkHttpFullRequestAdapter.toHttpFullRequest(request));
+        runAfterMarshallingInterceptors(executionContext);
+        SdkHttpFullRequest marshalled = runModifyHttpRequestInterceptors(executionContext);
+
+        SdkHttpRequestProvider requestProvider = executionParams.getAsyncRequestProvider() == null
+                                                 ? null
+                                                 : new SdkHttpRequestProviderAdapter(executionParams.getAsyncRequestProvider());
+
+        HttpResponseAdapter responseAdapter
+                = r -> SdkHttpResponseAdapter.adapt(isCalculateCrc32FromCompressedData(), marshalled, r);
+
+        SdkHttpResponseHandler<ReturnT> successResponseHandler = new InterceptorCallingHttpResponseHandler<>(
+                sdkHttpResponseHandlerFactory.apply(responseAdapter), executionContext);
+
+        SdkHttpResponseHandler<? extends SdkBaseException> errorHandler =
+                resolveErrorResponseHandler(executionParams, responseAdapter, executionContext);
+
+        return invoke(marshalled, requestProvider, executionParams.getRequestConfig(),
+                      executionContext, successResponseHandler, errorHandler)
+                .handle((resp, err) -> {
+                    if (err != null) {
+                        throw Throwables.failure(err);
+                    }
+                    return resp;
+                });
+    }
+
+    private boolean isCalculateCrc32FromCompressedData() {
+        return asyncClientConfiguration.overrideConfiguration()
+                                       .advancedOption(InternalAdvancedClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED);
+    }
+
+    @Override
+    public void close() {
+        client.close();
     }
 
     /**
@@ -175,92 +167,13 @@ public class AsyncClientHandlerImpl extends AsyncClientHandler {
      */
     private SdkHttpResponseHandler<? extends SdkBaseException> resolveErrorResponseHandler(
             ClientExecutionParams<?, ?> executionParams,
-            Function<SdkHttpFullResponse, HttpResponse> responseAdapter) {
-        return new SyncResponseHandlerAdapter<>(executionParams.getErrorResponseHandler(), responseAdapter);
-    }
-
-    /**
-     * Resolve the async response handler. If this operation has a streaming output then the customer
-     * must provide an {@link software.amazon.awssdk.async.AsyncResponseHandler} which will be adapted
-     * by the client implementation to a {@link SdkHttpResponseHandler} (unmarshalling is done in this
-     * adaption layer). If this operation does not have a streaming output we use {@link SyncResponseHandlerAdapter}
-     * to buffer all contents into memory then call out to the sync response handler ({@link
-     * software.amazon.awssdk.http.HttpResponseHandler}).
-     */
-    private <OutputT> SdkHttpResponseHandler<OutputT> resolveResponseHandler(
-            ClientExecutionParams<?, OutputT> executionParams,
-            Function<SdkHttpFullResponse, HttpResponse> responseAdapter) {
-        return executionParams.getResponseHandler() != null ?
-                new SyncResponseHandlerAdapter<>(executionParams.getResponseHandler(), responseAdapter) :
-                executionParams.getAsyncResponseHandler();
-    }
-
-    private ExecutionContext createExecutionContext(RequestConfig requestConfig) {
-        boolean isMetricsEnabled = isRequestMetricsEnabled(requestConfig);
-        return ExecutionContext.builder()
-                               .withRequestHandlers(requestHandlers)
-                               .withUseRequestMetrics(isMetricsEnabled)
-                               .withSignerProvider(signerProvider)
-                               .build();
-    }
-
-    /**
-     * Returns true if request metric collection is applicable to the given request; false
-     * otherwise.
-     */
-    private boolean isRequestMetricsEnabled(RequestConfig requestConfig) {
-        return hasRequestMetricsCollector(requestConfig) || isRmcEnabledAtClientOrSdkLevel();
-    }
-
-    private boolean hasRequestMetricsCollector(RequestConfig requestConfig) {
-        return requestConfig.getRequestMetricsCollector() != null &&
-               requestConfig.getRequestMetricsCollector().isEnabled();
-    }
-
-    /**
-     * Returns true if request metric collection is enabled at the service client or AWS SDK level
-     * request; false otherwise.
-     */
-    private boolean isRmcEnabledAtClientOrSdkLevel() {
-        RequestMetricCollector collector = requestMetricCollector();
-        return collector != null && collector.isEnabled();
-    }
-
-    /**
-     * Returns the client specific request metric collector if there is one; or the one at the AWS
-     * SDK level otherwise.
-     */
-    private RequestMetricCollector requestMetricCollector() {
-        return clientLevelMetricCollector != null ? clientLevelMetricCollector :
-                AwsSdkMetrics.getRequestMetricCollector();
-    }
-
-    /**
-     * Super big hack: beforeMarshalling requires an AmazonWebServiceRequest. Here we will try to call it if we can.
-     */
-    @SuppressWarnings("unchecked")
-    @ReviewBeforeRelease("This should be removed when we update the listener system.")
-    private <T> T tryBeforeMarshalling(T input) {
-        if (input instanceof AmazonWebServiceRequest) {
-            return (T) beforeMarshalling((AmazonWebServiceRequest) input);
-        }
-        return input;
-    }
-
-    /**
-     * Runs the {@code beforeMarshalling} method of any {@code RequestHandler2}s associated with
-     * this client.
-     *
-     * @param request the request passed in from the user
-     * @return The (possibly different) request to marshall
-     */
-    @SuppressWarnings("unchecked")
-    private <T extends AmazonWebServiceRequest> T beforeMarshalling(T request) {
-        T local = request;
-        for (RequestHandler handler : requestHandlers) {
-            local = (T) handler.beforeMarshalling(local);
-        }
-        return local;
+            Function<SdkHttpFullResponse, HttpResponse> responseAdapter,
+            ExecutionContext executionContext) {
+        SyncResponseHandlerAdapter<? extends SdkBaseException> result =
+                new SyncResponseHandlerAdapter<>(executionParams.getErrorResponseHandler(),
+                                                 responseAdapter,
+                                                 executionContext.executionAttributes());
+        return new InterceptorCallingHttpResponseHandler<>(result, executionContext);
     }
 
     /**
@@ -275,7 +188,7 @@ public class AsyncClientHandlerImpl extends AsyncClientHandler {
                                                         SdkHttpResponseHandler<? extends SdkBaseException> errorResponseHandler) {
 
         executionContext.setCredentialsProvider(CredentialUtils.getCredentialsProvider(
-                requestConfig, awsCredentialsProvider));
+                requestConfig, asyncClientConfiguration.credentialsProvider()));
 
         return doInvoke(request, requestProvider, requestConfig,
                         executionContext, responseHandler, errorResponseHandler);
@@ -301,35 +214,131 @@ public class AsyncClientHandlerImpl extends AsyncClientHandler {
                      .execute(responseHandler);
     }
 
+    private static class InterceptorCallingHttpResponseHandler<T> implements SdkHttpResponseHandler<T> {
+        private final SdkHttpResponseHandler<T> delegate;
+        private final ExecutionContext context;
+
+        private InterceptorCallingHttpResponseHandler(SdkHttpResponseHandler<T> delegate, ExecutionContext context) {
+            this.delegate = delegate;
+            this.context = context;
+        }
+
+        @Override
+        public void headersReceived(SdkHttpResponse response) {
+            delegate.headersReceived(beforeUnmarshalling((SdkHttpFullResponse) response, context)); // TODO: Ew
+        }
+
+        @Override
+        public void onStream(Publisher<ByteBuffer> publisher) {
+            delegate.onStream(publisher);
+        }
+
+        @Override
+        public void exceptionOccurred(Throwable throwable) {
+            delegate.exceptionOccurred(throwable);
+        }
+
+        @Override
+        public T complete() {
+            return delegate.complete();
+        }
+    }
+
+    private static SdkHttpFullResponse beforeUnmarshalling(SdkHttpFullResponse response, ExecutionContext context) {
+        // Update interceptor context to include response
+        InterceptorContext interceptorContext =
+                context.interceptorContext().copy(b -> b.httpResponse(response));
+
+        // interceptors.afterTransmission
+        context.interceptorChain().afterTransmission(interceptorContext, context.executionAttributes());
+
+        // interceptors.modifyHttpResponse
+        interceptorContext = context.interceptorChain().modifyHttpResponse(interceptorContext, context.executionAttributes());
+
+        // interceptors.beforeUnmarshalling
+        context.interceptorChain().beforeUnmarshalling(interceptorContext, context.executionAttributes());
+
+        // Store updated context
+        context.interceptorContext(interceptorContext);
+
+        return interceptorContext.httpResponse();
+    }
+
     /**
-     * Convenient method to end the client execution without logging the awsRequestMetrics.
+     * Adapter to {@link AsyncResponseHandler} that performs unmarshalling and calls {@link
+     * software.amazon.awssdk.interceptor.ExecutionInterceptor}
+     * callbacks.
+     *
+     * @param <OutputT> Unmarshalled POJO response type.
+     * @param <ReturnT> Return type of {@link AsyncResponseHandler}
      */
-    private void endClientExecution(AwsRequestMetrics awsRequestMetrics,
-                                    RequestConfig requestConfig,
-                                    Request<?> request,
-                                    Object response) {
-        if (request != null) {
-            awsRequestMetrics.endEvent(AwsRequestMetrics.Field.ClientExecuteTime);
-            awsRequestMetrics.getTimingInfo().endTiming();
-            RequestMetricCollector metricCollector = findRequestMetricCollector(requestConfig);
-            metricCollector.collectMetrics(request, response);
-            awsRequestMetrics.log();
+    private static class UnmarshallingSdkHttpResponseHandler<OutputT extends SdkResponse, ReturnT>
+            implements SdkHttpResponseHandler<ReturnT> {
+
+        private final AsyncResponseHandler<OutputT, ReturnT> asyncResponseHandler;
+        private final ExecutionContext executionContext;
+        private final HttpResponseHandler<OutputT> responseHandler;
+
+        UnmarshallingSdkHttpResponseHandler(AsyncResponseHandler<OutputT, ReturnT> asyncResponseHandler,
+                                            ExecutionContext executionContext,
+                                            HttpResponseHandler<OutputT> responseHandler) {
+            this.asyncResponseHandler = asyncResponseHandler;
+            this.executionContext = executionContext;
+            this.responseHandler = responseHandler;
+        }
+
+
+        @Override
+        public void headersReceived(SdkHttpResponse response) {
+            HttpResponse httpResponse = SdkHttpResponseAdapter.adapt(false, null, ((SdkHttpFullResponse) response));
+            try {
+                // TODO would be better to pass in AwsExecutionAttributes to the async response handler so we can
+                // provide them to HttpResponseHandler
+                OutputT resp = interceptorCalling(responseHandler, executionContext).handle(httpResponse, null);
+                asyncResponseHandler.responseReceived(resp);
+            } catch (Exception e) {
+                throw Throwables.failure(e);
+            }
+        }
+
+        @Override
+        public void onStream(Publisher<ByteBuffer> publisher) {
+            asyncResponseHandler.onStream(publisher);
+        }
+
+        @Override
+        public void exceptionOccurred(Throwable throwable) {
+            asyncResponseHandler.exceptionOccurred(throwable);
+        }
+
+        @Override
+        public ReturnT complete() {
+            return asyncResponseHandler.complete();
         }
     }
 
     /**
-     * Returns the most specific request metric collector, starting from the request level, then
-     * client level, then finally the AWS SDK level.
+     * When an operation has a streaming input, the customer must supply an {@link AsyncRequestProvider} to
+     * provide the request content in a non-blocking manner. This adapts that interface to the
+     * {@link SdkHttpRequestProvider} which the HTTP client SPI expects.
      */
-    private RequestMetricCollector findRequestMetricCollector(RequestConfig requestConfig) {
-        RequestMetricCollector reqLevelMetricsCollector = requestConfig
-                .getRequestMetricsCollector();
-        if (reqLevelMetricsCollector != null) {
-            return reqLevelMetricsCollector;
-        } else if (clientLevelMetricCollector != null) {
-            return clientLevelMetricCollector;
-        } else {
-            return AwsSdkMetrics.getRequestMetricCollector();
+    private static class SdkHttpRequestProviderAdapter implements SdkHttpRequestProvider {
+
+        private final AsyncRequestProvider asyncRequestProvider;
+
+        private SdkHttpRequestProviderAdapter(AsyncRequestProvider asyncRequestProvider) {
+            this.asyncRequestProvider = asyncRequestProvider;
         }
+
+        @Override
+        public long contentLength() {
+            return asyncRequestProvider.contentLength();
+        }
+
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> s) {
+            asyncRequestProvider.subscribe(s);
+        }
+
     }
 }

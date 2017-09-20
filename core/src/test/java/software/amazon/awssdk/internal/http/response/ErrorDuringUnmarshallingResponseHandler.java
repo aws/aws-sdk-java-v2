@@ -17,10 +17,12 @@ package software.amazon.awssdk.internal.http.response;
 
 import software.amazon.awssdk.AmazonWebServiceResponse;
 import software.amazon.awssdk.http.HttpResponse;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 
 public class ErrorDuringUnmarshallingResponseHandler extends NullResponseHandler {
     @Override
-    public AmazonWebServiceResponse<Object> handle(HttpResponse response) throws Exception {
+    public AmazonWebServiceResponse<Object> handle(HttpResponse response,
+                                                   ExecutionAttributes executionAttributes) throws Exception {
         throw new RuntimeException("Unable to unmarshall response");
     }
 }

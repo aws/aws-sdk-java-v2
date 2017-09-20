@@ -28,7 +28,8 @@ import software.amazon.awssdk.internal.CredentialsEndpointProvider;
 import software.amazon.awssdk.internal.EC2CredentialsUtils;
 import software.amazon.awssdk.util.ComparableUtils;
 import software.amazon.awssdk.util.DateUtils;
-import software.amazon.awssdk.util.json.Jackson;
+import software.amazon.awssdk.util.json.JacksonUtils;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
@@ -39,7 +40,7 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * an EC2 instance.
  */
 @SdkInternalApi
-class EC2CredentialsProvider implements AwsCredentialsProvider, AutoCloseable {
+class EC2CredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
     private final CredentialsEndpointProvider credentialsEndpointProvider;
     private final CachedSupplier<AwsCredentials> credentialsCache;
 
@@ -61,7 +62,7 @@ class EC2CredentialsProvider implements AwsCredentialsProvider, AutoCloseable {
                                                             .readResource(credentialsEndpointProvider.getCredentialsEndpoint(),
                                                                           credentialsEndpointProvider.getRetryPolicy());
 
-            JsonNode node = Jackson.jsonNodeOf(credentialsResponse);
+            JsonNode node = JacksonUtils.jsonNodeOf(credentialsResponse);
             JsonNode accessKey = node.get("AccessKeyId");
             JsonNode secretKey = node.get("SecretAccessKey");
             JsonNode token = node.get("Token");
@@ -97,7 +98,7 @@ class EC2CredentialsProvider implements AwsCredentialsProvider, AutoCloseable {
             String expirationValue = node.asText().replaceAll("\\+0000$", "Z");
 
             try {
-                return DateUtils.parseIso8601Date(expirationValue).toInstant();
+                return DateUtils.parseIso8601Date(expirationValue);
             } catch (RuntimeException e) {
                 throw new IllegalStateException("Unable to parse credentials expiration date from Amazon EC2 instance.", e);
             }

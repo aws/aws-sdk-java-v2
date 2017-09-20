@@ -26,7 +26,6 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 
 public class SyncClientBuilderClass implements ClassSpec {
-    private final String basePackage;
     private final IntermediateModel model;
     private final ClassName clientInterfaceName;
     private final ClassName clientClassName;
@@ -36,7 +35,8 @@ public class SyncClientBuilderClass implements ClassSpec {
 
     public SyncClientBuilderClass(IntermediateModel model) {
         this.model = model;
-        this.basePackage = model.getMetadata().getFullClientPackageName();
+
+        String basePackage = model.getMetadata().getFullClientPackageName();
         this.clientInterfaceName = ClassName.get(basePackage, model.getMetadata().getSyncInterface());
         this.clientClassName = ClassName.get(basePackage, model.getMetadata().getSyncClient());
         this.builderInterfaceName = ClassName.get(basePackage, model.getMetadata().getSyncBuilderInterface());
@@ -65,7 +65,7 @@ public class SyncClientBuilderClass implements ClassSpec {
                              .addAnnotation(Override.class)
                              .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                              .returns(clientInterfaceName)
-                             .addCode("return new $T(super.syncClientConfiguration().asLegacySyncClientParams() $L);",
+                             .addCode("return new $T(super.syncClientConfiguration() $L);",
                                       clientClassName, advancedConfigParam)
                              .build();
     }

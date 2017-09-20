@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.client.builder;
 
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+
 /**
  * This includes required and optional override configuration required by every sync client builder. An instance can be acquired
  * by calling the static "builder" method on the type of sync client you wish to create.
@@ -34,5 +36,6 @@ public interface SyncClientBuilder<B extends SyncClientBuilder<B, C>, C>
      * software.amazon.awssdk.http.SdkHttpClient} is provided then it is up to the caller to close it when they are finished with
      * it, the SDK will only close HTTP clients that it creates.
      */
+    @ReviewBeforeRelease("We don't test this.")
     B httpConfiguration(ClientHttpConfiguration httpConfiguration);
 }

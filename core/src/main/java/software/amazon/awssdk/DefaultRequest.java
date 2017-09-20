@@ -24,11 +24,8 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotation.NotThreadSafe;
 import software.amazon.awssdk.event.ProgressInputStream;
-import software.amazon.awssdk.handlers.RequestHandler;
-import software.amazon.awssdk.http.HandlerContextKey;
 import software.amazon.awssdk.http.HttpMethodName;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
-import software.amazon.awssdk.util.json.Jackson;
+import software.amazon.awssdk.util.json.JacksonUtils;
 
 /**
  * Default implementation of the {@linkplain Request} interface.
@@ -44,12 +41,7 @@ public class DefaultRequest<T> implements Request<T> {
      * object is representing
      */
     private final AmazonWebServiceRequest originalRequest;
-    /**
-     * Context associated with a request. Mainly used to transfer
-     * information between different {@link RequestHandler}
-     */
-    private final Map<HandlerContextKey<?>, Object> handlerContext = new
-            HashMap<HandlerContextKey<?>, Object>();
+
     /** The resource path being requested. */
     private String resourcePath;
     /**
@@ -75,8 +67,6 @@ public class DefaultRequest<T> implements Request<T> {
     private InputStream content;
     /** An optional time offset to account for clock skew. */
     private int timeOffset;
-    /** All AWS Request metrics are collected into this object. */
-    private AwsRequestMetrics metrics;
 
     /**
      * Constructs a new DefaultRequest with the specified service name and the
@@ -217,6 +207,14 @@ public class DefaultRequest<T> implements Request<T> {
     }
 
     /**
+     * @see Request#setHttpMethod(HttpMethodName)
+     */
+    public Request<T> withHttpMethod(HttpMethodName httpMethod) {
+        setHttpMethod(httpMethod);
+        return this;
+    }
+
+    /**
      * @see Request#getEndpoint()
      */
     public URI getEndpoint() {
@@ -291,7 +289,7 @@ public class DefaultRequest<T> implements Request<T> {
         builder.append(" ");
         if (!getParameters().isEmpty()) {
             builder.append("Parameters: (")
-                   .append(Jackson.toJsonString(parameters));
+                   .append(JacksonUtils.toJsonString(parameters));
         }
 
         if (!getHeaders().isEmpty()) {
@@ -304,30 +302,6 @@ public class DefaultRequest<T> implements Request<T> {
         }
 
         return builder.toString();
-    }
-
-    @Override
-    public AwsRequestMetrics getAwsRequestMetrics() {
-        return metrics;
-    }
-
-    @Override
-    public void setAwsRequestMetrics(AwsRequestMetrics metrics) {
-        if (this.metrics == null) {
-            this.metrics = metrics;
-        } else {
-            throw new IllegalStateException("AWSRequestMetrics has already been set on this request");
-        }
-    }
-
-    @Override
-    public <X> void addHandlerContext(HandlerContextKey<X> key, X value) {
-        handlerContext.put(key, value);
-    }
-
-    @Override
-    public <X> X getHandlerContext(HandlerContextKey<X> key) {
-        return (X) handlerContext.get(key);
     }
 
     @SuppressWarnings("resource")

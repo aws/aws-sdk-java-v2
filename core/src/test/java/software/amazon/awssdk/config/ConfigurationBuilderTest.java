@@ -63,6 +63,11 @@ public class ConfigurationBuilderTest {
 
         // Validate method names
         for (Field field : configurationClass.getFields()) {
+            // Ignore generated fields (eg. by Jacoco)
+            if (field.isSynthetic()) {
+                continue;
+            }
+
             String builderPropertyName = builderClass.getSimpleName() + "'s " + field.getName() + " property";
             PropertyDescriptor builderProperty = builderProperties.get(field.getName());
 

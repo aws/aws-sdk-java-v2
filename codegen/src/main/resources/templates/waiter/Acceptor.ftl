@@ -8,14 +8,16 @@ import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.waiters.WaiterAcceptor;
 import software.amazon.awssdk.waiters.WaiterState;
 import software.amazon.awssdk.waiters.AcceptorPathMatcher;
+import software.amazon.awssdk.waiters.ObjectMapperSingleton;
 import ${metadata.fullModelPackageName}.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import software.amazon.awssdk.jmespath.*;
-
 import java.io.IOException;
 import javax.annotation.Generated;
+
+import io.burt.jmespath.Expression;
+import io.burt.jmespath.jackson.JacksonRuntime;
 
 @SdkInternalApi
 @Generated("software.amazon.awssdk:aws-java-sdk-code-generator")
@@ -50,7 +52,7 @@ class ${waiter.waiterName} {
                  }
             }
 
-            private static final JmesPathExpression AST = ${acceptor.ast};
+            private static final Expression<JsonNode> AST = new JacksonRuntime().compile("${acceptor.argument}");
 
             /**
               * Takes the result and determines whether the state of the
@@ -65,7 +67,7 @@ class ${waiter.waiterName} {
             @Override
             public boolean matches(${outputType} result) {
                 JsonNode queryNode = ObjectMapperSingleton.getObjectMapper().valueToTree(result);
-                JsonNode finalResult = AST.accept(new JmesPathEvaluationVisitor(), queryNode);
+                JsonNode finalResult = AST.search(queryNode);
                 return AcceptorPathMatcher.${acceptor.matcher}(EXPECTED_RESULT, finalResult);
             }
         </#if>

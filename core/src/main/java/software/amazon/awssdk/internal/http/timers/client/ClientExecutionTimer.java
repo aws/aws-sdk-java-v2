@@ -23,6 +23,7 @@ import software.amazon.awssdk.annotation.SdkTestInternalApi;
 import software.amazon.awssdk.annotation.ThreadSafe;
 import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.internal.http.timers.TimeoutThreadPoolBuilder;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * Represents a timer to enforce a timeout on the total client execution time. That is the time
@@ -34,7 +35,7 @@ import software.amazon.awssdk.internal.http.timers.TimeoutThreadPoolBuilder;
 // order and even concurrently, we need to rely on AmazonHttpClient to call our shutdown() method.
 @SdkInternalApi
 @ThreadSafe
-public class ClientExecutionTimer implements AutoCloseable {
+public class ClientExecutionTimer implements SdkAutoCloseable {
 
     private static final String THREAD_NAME_PREFIX = "AwsSdkClientExecutionTimerThread";
 
@@ -50,7 +51,7 @@ public class ClientExecutionTimer implements AutoCloseable {
      * @return Implementation of {@link ClientExecutionAbortTrackerTaskImpl} to query the state of
      *         the task, provide it with up to date context, and cancel it if appropriate
      */
-    public ClientExecutionAbortTrackerTask startTimer(int clientExecutionTimeoutMillis) {
+    public ClientExecutionAbortTrackerTask startTimer(long clientExecutionTimeoutMillis) {
         if (isTimeoutDisabled(clientExecutionTimeoutMillis)) {
             return NoOpClientExecutionAbortTrackerTask.INSTANCE;
         } else if (executor == null) {
@@ -83,20 +84,20 @@ public class ClientExecutionTimer implements AutoCloseable {
      * {@link AmazonHttpClient} is shutdown
      */
     @Override
-    public void close() throws Exception {
+    public void close() {
         if (executor != null) {
             executor.shutdown();
         }
     }
 
-    private ClientExecutionAbortTrackerTask scheduleTimerTask(int clientExecutionTimeoutMillis) {
+    private ClientExecutionAbortTrackerTask scheduleTimerTask(long clientExecutionTimeoutMillis) {
         ClientExecutionAbortTask timerTask = new ClientExecutionAbortTaskImpl(Thread.currentThread());
         ScheduledFuture<?> timerTaskFuture = executor.schedule(timerTask, clientExecutionTimeoutMillis,
                                                                TimeUnit.MILLISECONDS);
         return new ClientExecutionAbortTrackerTaskImpl(timerTask, timerTaskFuture);
     }
 
-    private boolean isTimeoutDisabled(int clientExecutionTimeoutMillis) {
+    private boolean isTimeoutDisabled(long clientExecutionTimeoutMillis) {
         return clientExecutionTimeoutMillis <= 0;
     }
 

@@ -63,7 +63,7 @@ abstract class AbstractCollectionSpec<T extends AmazonWebServiceRequest>
 
     /**
      * The maximum number of resources to be retrieved in this query, including
-     * all the resources in all pages to be retrieved. 
+     * all the resources in all pages to be retrieved.
      */
     public Integer maxResultSize() {
         return maxResultSize;

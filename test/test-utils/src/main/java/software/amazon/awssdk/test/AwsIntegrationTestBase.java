@@ -15,12 +15,14 @@
 
 package software.amazon.awssdk.test;
 
+import java.io.IOException;
 import java.io.InputStream;
-import org.junit.BeforeClass;
 import software.amazon.awssdk.auth.AwsCredentials;
+import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.auth.ProfileCredentialsProvider;
+import software.amazon.awssdk.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.SystemPropertyCredentialsProvider;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -42,28 +44,22 @@ public abstract class AwsIntegrationTestBase {
     /**
      * Shared AWS credentials, loaded from a properties file.
      */
-    private static AwsCredentials credentials;
-
-    /**
-     * Before of super class is guaranteed to be called before that of a subclass so the following
-     * is safe. http://junit-team.github.io/junit/javadoc/latest/org/junit/Before.html
-     */
-    @BeforeClass
-    public static void setUpCredentials() {
-        if (credentials == null) {
-            try {
-                credentials = CREDENTIALS_PROVIDER_CHAIN.getCredentials();
-            } catch (Exception ignored) {
-                // Ignored.
-            }
-        }
-    }
+    private static final AwsCredentials CREDENTIALS = CREDENTIALS_PROVIDER_CHAIN.getCredentials();
 
     /**
      * @return AWSCredentials to use during tests. Setup by base fixture
+     * @deprecated by {@link #getCredentialsProvider()}
      */
+    @Deprecated
     protected static AwsCredentials getCredentials() {
-        return credentials;
+        return CREDENTIALS;
+    }
+
+    /**
+     * @return AwsCredentialsProvider to use during tests. Setup by base fixture
+     */
+    protected static AwsCredentialsProvider getCredentialsProvider() {
+        return new StaticCredentialsProvider(CREDENTIALS);
     }
 
     /**
@@ -75,13 +71,12 @@ public abstract class AwsIntegrationTestBase {
      * @throws RuntimeException
      *             if any error occurs
      */
-    protected String getResourceAsString(String location) {
-        try {
-            InputStream resourceStream = getClass().getResourceAsStream(location);
+    protected String getResourceAsString(Class<?> clazz, String location) {
+        try (InputStream resourceStream = clazz.getResourceAsStream(location)) {
             String resourceAsString = IoUtils.toString(resourceStream);
             resourceStream.close();
             return resourceAsString;
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

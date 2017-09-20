@@ -57,4 +57,14 @@
         </Or>
         <Bug pattern="SE_TRANSIENT_FIELD_NOT_RESTORED" />
     </Match>
+
+    <!-- Protocol test client suppressions. -->
+    <Match>
+        <Or>
+            <Package name="~software\.amazon\.awssdk\.services\.protocol.*"/>
+        </Or>
+        <!-- URF_UNREAD_FIELD, DLS_DEAD_LOCAL_STORE: Sometimes we have unread variables and fields because they're only
+        conditionally used. It's cleaner to just always generate them, even if we may not actually be using them. -->
+        <Bug pattern="URF_UNREAD_FIELD,DLS_DEAD_LOCAL_STORE" />
+    </Match>
 </FindBugsFilter>

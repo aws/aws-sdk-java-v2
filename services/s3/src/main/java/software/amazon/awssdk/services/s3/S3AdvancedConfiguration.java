@@ -52,6 +52,9 @@ public final class S3AdvancedConfiguration implements
         this.dualstackEnabled = resolveBoolean(builder.dualstackEnabled, DEFAULT_DUALSTACK_ENABLED);
         this.accelerateModeEnabled = resolveBoolean(builder.accelerateModeEnabled, DEFAULT_ACCELERATE_MODE_ENABLED);
         this.pathStyleAccessEnabled = resolveBoolean(builder.pathStyleAccessEnabled, DEFAULT_PATH_STYLE_ACCESS_ENABLED);
+        if (accelerateModeEnabled && pathStyleAccessEnabled) {
+            throw new IllegalArgumentException("Accelerate mode cannot be used with path style addressing");
+        }
     }
 
     /**

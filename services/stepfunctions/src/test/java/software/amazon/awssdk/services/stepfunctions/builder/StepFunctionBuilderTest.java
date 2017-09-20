@@ -46,8 +46,8 @@ import static software.amazon.awssdk.services.stepfunctions.builder.StepFunction
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.time.ZonedDateTime;
 import java.util.Date;
-import org.joda.time.DateTime;
 import org.junit.Test;
 
 public class StepFunctionBuilderTest {
@@ -206,7 +206,7 @@ public class StepFunctionBuilderTest {
         final StateMachine stateMachine = stateMachine()
                 .startAt("InitialState")
                 .state("InitialState", waitState()
-                        .waitFor(timestamp(DateTime.parse("2016-03-14T01:59:00Z").toDate()))
+                        .waitFor(timestamp(Date.from(ZonedDateTime.parse("2016-03-14T01:59:00Z").toInstant())))
                         .transition(end()))
                 .build();
 
@@ -215,10 +215,11 @@ public class StepFunctionBuilderTest {
 
     @Test
     public void singleWaitState_WaitUntilTimestampWithMillisecond() {
+        long millis = ZonedDateTime.parse("2016-03-14T01:59:00.123Z").toInstant().toEpochMilli();
         final StateMachine stateMachine = stateMachine()
                 .startAt("InitialState")
                 .state("InitialState", waitState()
-                        .waitFor(timestamp(DateTime.parse("2016-03-14T01:59:00.123Z").toDate()))
+                        .waitFor(timestamp(new Date(millis)))
                         .transition(end()))
                 .build();
 
@@ -227,10 +228,11 @@ public class StepFunctionBuilderTest {
 
     @Test
     public void singleWaitState_WaitUntilTimestampWithTimezone() {
+        long epochMilli = ZonedDateTime.parse("2016-03-14T01:59:00.123-08:00").toInstant().toEpochMilli();
         final StateMachine stateMachine = stateMachine()
                 .startAt("InitialState")
                 .state("InitialState", waitState()
-                        .waitFor(timestamp(DateTime.parse("2016-03-14T01:59:00.123-08:00").toDate()))
+                        .waitFor(timestamp(new Date(epochMilli)))
                         .transition(end()))
                 .build();
 
@@ -374,7 +376,7 @@ public class StepFunctionBuilderTest {
 
     @Test
     public void choiceStateWithAllPrimitiveConditions() {
-        final Date date = DateTime.parse("2016-03-14T01:59:00.000Z").toDate();
+        final Date date = Date.from(ZonedDateTime.parse("2016-03-14T01:59:00.000Z").toInstant());
         final StateMachine stateMachine = stateMachine()
                 .startAt("InitialState")
                 .state("InitialState", choiceState()

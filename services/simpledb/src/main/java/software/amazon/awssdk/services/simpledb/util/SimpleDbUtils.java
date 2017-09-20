@@ -19,11 +19,13 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
+import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 
 /**
  * Provides collection of static functions for conversion of various values into strings that may be
  * compared lexicographically.
  */
+@ReviewBeforeRelease("Clean up or delete.")
 public class SimpleDbUtils {
 
     /**

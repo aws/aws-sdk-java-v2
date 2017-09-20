@@ -17,12 +17,8 @@ package software.amazon.awssdk.retry;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +27,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.LegacyClientConfiguration;
 import software.amazon.awssdk.retry.v2.RetryPolicyContext;
 import software.amazon.awssdk.retry.v2.RetryPolicyContexts;
 
@@ -46,14 +41,12 @@ public class RetryPolicyAdapterTest {
 
     private RetryPolicy legacyPolicy;
 
-    private LegacyClientConfiguration clientConfiguration = new LegacyClientConfiguration().withMaxErrorRetry(10);
-
     private RetryPolicyAdapter adapter;
 
     @Before
     public void setup() {
         legacyPolicy = new RetryPolicy(retryCondition, backoffStrategy, 3, false);
-        adapter = new RetryPolicyAdapter(legacyPolicy, clientConfiguration);
+        adapter = new RetryPolicyAdapter(legacyPolicy);
     }
 
     @Test
@@ -63,12 +56,7 @@ public class RetryPolicyAdapterTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void nullRetryPolicy_ThrowsException() {
-        new RetryPolicyAdapter(null, clientConfiguration);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void nullClientConfiguration_ThrowsException() {
-        new RetryPolicyAdapter(legacyPolicy, null);
+        new RetryPolicyAdapter(null);
     }
 
     @Test
@@ -85,16 +73,6 @@ public class RetryPolicyAdapterTest {
     @Test
     public void shouldRetry_MaxErrorRetryReached() {
         assertFalse(adapter.shouldRetry(RetryPolicyContexts.withRetriesAttempted(3)));
-    }
-
-    @Test
-    public void shouldRetry_MaxErrorInClientConfigHonored_DoesNotUseMaxErrorInPolicy() {
-        when(retryCondition.shouldRetry(any(AmazonWebServiceRequest.class), any(AmazonClientException.class), anyInt()))
-                .thenReturn(true);
-        legacyPolicy = new RetryPolicy(retryCondition, backoffStrategy, 3, true);
-        adapter = new RetryPolicyAdapter(legacyPolicy, clientConfiguration);
-        assertTrue(adapter.shouldRetry(RetryPolicyContexts.withRetriesAttempted(3)));
-        assertFalse(adapter.shouldRetry(RetryPolicyContexts.withRetriesAttempted(10)));
     }
 
     @Test

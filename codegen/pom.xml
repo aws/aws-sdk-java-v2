@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.0.0-preview-2</version>
+        <version>2.0.0-preview-4</version>
     </parent>
     <artifactId>codegen</artifactId>
     <name>AWS Java SDK :: Code Generator</name>
@@ -41,9 +41,9 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <artifactId>opensdk-runtime</artifactId>
-            <groupId>software.amazon.awssdk</groupId>
-            <version>${awsjavasdk.version}</version>
+            <groupId>io.burt</groupId>
+            <artifactId>jmespath-jackson</artifactId>
+            <version>0.2.0</version>
         </dependency>
         <dependency>
             <artifactId>org.eclipse.jdt.core</artifactId>
@@ -64,10 +64,6 @@
             <groupId>com.squareup</groupId>
             <artifactId>javapoet</artifactId>
             <version>1.8.0</version>
-        </dependency>
-        <dependency>
-            <artifactId>jmespath-java</artifactId>
-            <groupId>software.amazon.awssdk</groupId>
         </dependency>
         <dependency>
             <artifactId>commons-lang3</artifactId>
@@ -105,11 +101,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

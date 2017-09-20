@@ -19,14 +19,15 @@ import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.http.ConfigurationProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkRequestContext;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
-public interface SdkAsyncHttpClient extends AutoCloseable, ConfigurationProvider {
+public interface SdkAsyncHttpClient extends SdkAutoCloseable, ConfigurationProvider {
 
     /**
      * Create an {@link AbortableRunnable} that can be used to execute the HTTP request.
      *
      * @param request         HTTP request (without content).
-     * @param context         Request context containing additional dependencies like metrics.
+     * @param context         Request context containing additional dependencies.
      * @param requestProvider Representation of an HTTP requestProvider.
      * @param handler         The handler that will be called when data is received.
      * @return Task that can execute an HTTP requestProvider and can be aborted.

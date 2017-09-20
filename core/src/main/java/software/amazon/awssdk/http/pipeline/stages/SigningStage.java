@@ -19,12 +19,13 @@ import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.auth.AwsCredentials;
 import software.amazon.awssdk.auth.CanHandleNullCredentials;
 import software.amazon.awssdk.auth.Signer;
-import software.amazon.awssdk.handlers.AwsHandlerKeys;
-import software.amazon.awssdk.http.AmazonHttpClient;
+import software.amazon.awssdk.http.ExecutionContext;
 import software.amazon.awssdk.http.HttpClientDependencies;
+import software.amazon.awssdk.http.InterruptMonitor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.pipeline.RequestToRequestPipeline;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
+import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
+import software.amazon.awssdk.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.runtime.auth.SignerProviderContext;
 
 /**
@@ -43,7 +44,7 @@ public class SigningStage implements RequestToRequestPipeline {
      * Returns the response from executing one httpClientSettings request; or null for retry.
      */
     public SdkHttpFullRequest execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
-        AmazonHttpClient.checkInterrupted();
+        InterruptMonitor.checkInterrupted();
         return signRequest(request, context);
     }
 
@@ -51,17 +52,21 @@ public class SigningStage implements RequestToRequestPipeline {
      * Sign the request if the signer if provided and credentials are present.
      */
     private SdkHttpFullRequest signRequest(SdkHttpFullRequest request, RequestExecutionContext context) {
-        final AwsCredentials credentials = context.credentialsProvider().getCredentials();
+        final AwsCredentials credentials = context.executionAttributes().getAttribute(AwsExecutionAttributes.AWS_CREDENTIALS);
+        updateInterceptorContext(request, context.executionContext());
         Signer signer = newSigner(request, context);
         if (shouldSign(signer, credentials)) {
-            context.awsRequestMetrics().startEvent(AwsRequestMetrics.Field.RequestSigningTime);
-            try {
-                return signer.sign(adjustForClockSkew(request), credentials);
-            } finally {
-                context.awsRequestMetrics().endEvent(AwsRequestMetrics.Field.RequestSigningTime);
-            }
+            adjustForClockSkew(context.executionAttributes());
+            return signer.sign(context.executionContext().interceptorContext(), context.executionAttributes());
         }
         return request;
+    }
+
+    /**
+     * TODO: Remove when we stop having two copies of the request.
+     */
+    private void updateInterceptorContext(SdkHttpFullRequest request, ExecutionContext executionContext) {
+        executionContext.interceptorContext(executionContext.interceptorContext().copy(b -> b.httpRequest(request)));
     }
 
     /**
@@ -87,16 +92,10 @@ public class SigningStage implements RequestToRequestPipeline {
     }
 
     /**
-     * Always use the client level timeOffset if it's non-zero. Otherwise, we respect the timeOffset in the request, which could
-     * have been externally configured (at least for the 1st non-retry request).
+     * Always use the client level timeOffset.
      */
-    private SdkHttpFullRequest adjustForClockSkew(SdkHttpFullRequest request) {
-        if (dependencies.timeOffset() != 0) {
-            return request.toBuilder()
-                          .handlerContext(AwsHandlerKeys.TIME_OFFSET, dependencies.timeOffset())
-                          .build();
-        }
-        return request;
+    private void adjustForClockSkew(ExecutionAttributes attributes) {
+        attributes.putAttribute(AwsExecutionAttributes.TIME_OFFSET, dependencies.timeOffset());
     }
 
 }

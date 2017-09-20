@@ -17,7 +17,6 @@ package software.amazon.awssdk.http.pipeline.stages;
 
 import static java.util.Collections.singletonList;
 import static software.amazon.awssdk.event.SdkProgressPublisher.publishProgress;
-import static software.amazon.awssdk.http.AmazonHttpClient.THROTTLED_RETRY_COST;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,21 +24,21 @@ import java.time.Instant;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.ResetException;
 import software.amazon.awssdk.Response;
 import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.SdkClientException;
+import software.amazon.awssdk.SdkStandardLoggers;
 import software.amazon.awssdk.event.ProgressEventType;
 import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.handlers.AwsHandlerKeys;
-import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.HttpClientDependencies;
 import software.amazon.awssdk.http.HttpResponse;
+import software.amazon.awssdk.http.InterruptMonitor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.http.pipeline.RequestToResponsePipeline;
-import software.amazon.awssdk.metrics.spi.AwsRequestMetrics;
 import software.amazon.awssdk.retry.RetryUtils;
 import software.amazon.awssdk.retry.v2.RetryPolicy;
 import software.amazon.awssdk.retry.v2.RetryPolicyContext;
@@ -65,16 +64,11 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
                           RequestPipeline<SdkHttpFullRequest, Response<OutputT>> requestPipeline) {
         this.dependencies = dependencies;
         this.retryCapacity = dependencies.retryCapacity();
-        this.retryPolicy = dependencies.retryPolicy();
+        this.retryPolicy = dependencies.clientConfiguration().overrideConfiguration().retryPolicy();
         this.requestPipeline = requestPipeline;
     }
 
     public Response<OutputT> execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
-        // add the service endpoint to the logs. You can infer service name from service endpoint
-        context.awsRequestMetrics()
-               .addPropertyWith(AwsRequestMetrics.Field.RequestType, context.requestConfig().getRequestType())
-               .addPropertyWith(AwsRequestMetrics.Field.ServiceName, request.handlerContext(AwsHandlerKeys.SERVICE_NAME))
-               .addPropertyWith(AwsRequestMetrics.Field.ServiceEndpoint, request.getEndpoint());
         return new RetryExecutor(request, context).execute();
     }
 
@@ -102,7 +96,7 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
         try {
             Instant serverDate = dateHeader
                     .filter(h -> !h.isEmpty())
-                    .map(DateUtils::parseRfc822Date)
+                    .map(DateUtils::parseRfc1123Date)
                     .orElseThrow(() -> new RuntimeException(
                             "Unable to parse clock skew offset from response. Server Date header missing"));
             long diff = System.currentTimeMillis() - serverDate.toEpochMilli();
@@ -121,11 +115,10 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
         private final SdkHttpFullRequest request;
         private final RequestExecutionContext context;
         private final ProgressListener progressListener;
-        private final AwsRequestMetrics awsRequestMetrics;
 
         private Optional<SdkBaseException> retriedException;
         private RetryPolicyContext retryPolicyContext;
-        private int requestCount;
+        private int requestCount = 0;
         private long lastBackoffDelay;
         private boolean retryCapacityConsumed;
 
@@ -133,7 +126,6 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
             this.request = request;
             this.context = context;
             this.progressListener = context.requestConfig().getProgressListener();
-            this.awsRequestMetrics = context.awsRequestMetrics();
             this.retriedException = Optional.empty();
         }
 
@@ -146,10 +138,14 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
                         releaseRetryCapacity();
                         return response;
                     } else {
-                        setRetriedException(handleSdkException(response));
+                        setRetriedException(handleUnmarshalledException(response));
                     }
-                } catch (IOException ioe) {
-                    setRetriedException(handleIoException(ioe));
+                } catch (AmazonServiceException e) {
+                    // TODO This can be cleaned up a bit if we have separate hierarchies for service and client exceptions
+                    // as we can just catch the client exception below.
+                    throw e;
+                } catch (SdkBaseException | IOException e) {
+                    setRetriedException(handleThrownException(e));
                 }
             }
         }
@@ -160,7 +156,7 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
          */
         private void releaseRetryCapacity() {
             if (isRetry() && retryCapacityConsumed) {
-                retryCapacity.release(THROTTLED_RETRY_COST);
+                retryCapacity.release(RetryPolicy.THROTTLED_RETRY_COST);
             } else {
                 retryCapacity.release();
             }
@@ -168,8 +164,8 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
 
         private void beforeExecute() throws InterruptedException {
             retryCapacityConsumed = false;
-            AmazonHttpClient.checkInterrupted();
-            context.awsRequestMetrics().setCounter(AwsRequestMetrics.Field.RequestCount, ++requestCount);
+            InterruptMonitor.checkInterrupted();
+            ++requestCount;
         }
 
         private Response<OutputT> doExecute() throws Exception {
@@ -180,10 +176,8 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
 
             markInputStream(request.getContent());
 
-            if (AmazonHttpClient.REQUEST_LOG.isDebugEnabled()) {
-                AmazonHttpClient.REQUEST_LOG
-                        .debug((isRetry() ? "Retrying " : "Sending ") + "Request: " + request);
-            }
+            SdkStandardLoggers.REQUEST_LOGGER.debug(() -> (isRetry() ? "Retrying " : "Sending ") + "Request: " + request);
+
             return requestPipeline.execute(addRetryInfoHeader(request), context);
         }
 
@@ -195,7 +189,7 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
             this.retriedException = Optional.of(e);
         }
 
-        private SdkBaseException handleSdkException(Response<OutputT> response) {
+        private SdkBaseException handleUnmarshalledException(Response<OutputT> response) {
             SdkBaseException exception = response.getException();
             if (!shouldRetry(response.getHttpResponse(), exception)) {
                 throw exception;
@@ -211,12 +205,12 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
             return exception;
         }
 
-        private SdkBaseException handleIoException(IOException ioe) {
-            SdkClientException sdkClientException = new SdkClientException(
-                    "Unable to execute HTTP request: " + ioe.getMessage(), ioe);
+        private SdkBaseException handleThrownException(Exception e) {
+            SdkClientException sdkClientException = e instanceof SdkClientException ?
+                    (SdkClientException) e : new SdkClientException("Unable to execute HTTP request: " + e.getMessage(), e);
             boolean willRetry = shouldRetry(null, sdkClientException);
             if (log.isDebugEnabled()) {
-                log.debug(sdkClientException.getMessage() + (willRetry ? " Request will be retried." : ""), ioe);
+                log.debug(sdkClientException.getMessage() + (willRetry ? " Request will be retried." : ""), e);
             }
             if (!willRetry) {
                 throw sdkClientException;
@@ -254,8 +248,7 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
             // Do not use retry capacity for throttling exceptions
             if (!RetryUtils.isThrottlingException(exception)) {
                 // See if we have enough available retry capacity to be able to execute this retry attempt.
-                if (!retryCapacity.acquire(THROTTLED_RETRY_COST)) {
-                    awsRequestMetrics.incrementCounter(AwsRequestMetrics.Field.ThrottledRetryCount);
+                if (!retryCapacity.acquire(RetryPolicy.THROTTLED_RETRY_COST)) {
                     return false;
                 }
                 this.retryCapacityConsumed = true;
@@ -273,7 +266,7 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
             if (!retryPolicy.shouldRetry(retryPolicyContext)) {
                 // If the retry policy fails we immediately return consumed capacity to the pool.
                 if (retryCapacityConsumed) {
-                    retryCapacity.release(THROTTLED_RETRY_COST);
+                    retryCapacity.release(RetryPolicy.THROTTLED_RETRY_COST);
                 }
                 return false;
             }
@@ -282,17 +275,12 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
         }
 
         /**
-         * Pause before the next retry and record metrics around retry behavior.
+         * Pause before the next retry and record progress around retry behavior.
          */
         private void pauseBeforeRetry() throws InterruptedException {
             // Notify the progress listener of the retry
             publishProgress(progressListener, ProgressEventType.CLIENT_REQUEST_RETRY_EVENT);
-            awsRequestMetrics.startEvent(AwsRequestMetrics.Field.RetryPauseTime);
-            try {
-                doPauseBeforeRetry();
-            } finally {
-                awsRequestMetrics.endEvent(AwsRequestMetrics.Field.RetryPauseTime);
-            }
+            doPauseBeforeRetry();
         }
 
         /**
