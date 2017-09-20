@@ -18,8 +18,6 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.RESPONSE_COMPLETE_KEY;
 
-import com.typesafe.netty.HandlerPublisher;
-import com.typesafe.netty.HandlerSubscriber;
 import com.typesafe.netty.http.HttpStreamsClientHandler;
 import com.typesafe.netty.http.StreamedHttpRequest;
 import io.netty.buffer.ByteBuf;
@@ -81,10 +79,13 @@ public final class RunnableRequest implements AbortableRunnable {
     private void initializePerRequestHandlers() {
         // Remove any existing handlers from the pipeline from the previous request.
         removeIfExists(HttpStreamsClientHandler.class, ResponseHandler.class,
-                       ReadTimeoutHandler.class, WriteTimeoutHandler.class,
-                       HandlerPublisher.class, HandlerSubscriber.class);
+                       ReadTimeoutHandler.class, WriteTimeoutHandler.class);
 
-        // TODO make these configurable
+        // TODO: We should only be adding the WriteTimeoutHandler handler here,
+        // and remove it once the request is written.  Similarly,
+        // ReadTimeoutHandler should be added during the the request execution
+        // as necessary when we make read() calls, and removed after the data
+        // is read.
         channel.pipeline().addFirst(new WriteTimeoutHandler(50));
         channel.pipeline().addFirst(new ReadTimeoutHandler(50));
         channel.pipeline().addLast(new HttpStreamsClientHandler());
@@ -108,7 +109,7 @@ public final class RunnableRequest implements AbortableRunnable {
     @Override
     public void abort() {
         if (channel != null) {
-            channel.close().addListener(ignored -> context.channelPool().release(channel));
+            closeAndRelease(channel);
         }
     }
 
@@ -132,11 +133,16 @@ public final class RunnableRequest implements AbortableRunnable {
     private void handleFailure(Supplier<String> msg, Throwable cause) {
         log.error(msg.get(), cause);
         runAndLogError("Exception thrown from AsyncResponseHandler",
-                       () -> context.handler().exceptionOccurred(cause));
+            () -> context.handler().exceptionOccurred(cause));
         if (channel != null) {
             runAndLogError("Unable to release channel back to the pool.",
-                           () -> channel.close().addListener(future -> context.channelPool().release(channel)));
+                () -> closeAndRelease(channel));
         }
+    }
+
+    private static void closeAndRelease(Channel channel) {
+        RequestContext requestCtx = channel.attr(REQUEST_CONTEXT_KEY).get();
+        channel.close().addListener(ignored -> requestCtx.channelPool().release(channel));
     }
 
     /**

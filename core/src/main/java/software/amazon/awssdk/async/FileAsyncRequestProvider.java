@@ -161,8 +161,6 @@ public final class FileAsyncRequestProvider implements AsyncRequestProvider {
                     }
                 }
             } catch (Exception e) {
-                System.out.println("Error in FileAsyncRequestProvider");
-                e.printStackTrace();
                 subscriber.onError(e);
             }
         }

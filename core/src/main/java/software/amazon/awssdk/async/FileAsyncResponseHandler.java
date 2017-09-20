@@ -84,8 +84,8 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
      */
     private class FileSubscriber implements Subscriber<ByteBuffer> {
 
-        private boolean writeInProgress = false;
-        private boolean closeOnLastWrite = false;
+        private volatile boolean writeInProgress = false;
+        private volatile boolean closeOnLastWrite = false;
         private final AtomicLong position = new AtomicLong();
         private Subscription subscription;
 
@@ -130,7 +130,7 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
 
         @Override
         public void onComplete() {
-            // if write in progress, tell write to close on finish
+            // if write in progress, tell write to close on finish.
             synchronized (this) {
                 if (writeInProgress) {
                     closeOnLastWrite = true;
@@ -141,7 +141,6 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
         }
 
         private void close() {
-            // Completion handled by response handler
             if (fileChannel != null) {
                 invokeSafely(fileChannel::close);
             }

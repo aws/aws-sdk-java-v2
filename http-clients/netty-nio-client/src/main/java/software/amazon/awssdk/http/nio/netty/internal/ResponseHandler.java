@@ -17,18 +17,11 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
-
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.RESPONSE_COMPLETE_KEY;
 
 import com.typesafe.netty.http.StreamedHttpResponse;
-import com.typesafe.netty.HandlerPublisher;
-import com.typesafe.netty.HandlerSubscriber;
-import com.typesafe.netty.http.HttpStreamsClientHandler;
-import com.typesafe.netty.http.StreamedHttpResponse;
-
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -38,24 +31,17 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
-import io.netty.handler.codec.http.LastHttpContent;
-import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.AttributeKey;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
@@ -89,23 +75,17 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         if (msg instanceof StreamedHttpResponse) {
             requestContext.handler().onStream(new PublisherAdapter((StreamedHttpResponse) msg, channelContext, requestContext));
         } else if (msg instanceof FullHttpResponse) {
+            // TODO: HttpStreamsClientHandler leaves a dangling LastHttpContent
+            // in the pipeline. Consume it ourselves to make sure the channel
+            // is empty at the end of stream and before releasing it back to he
+            // pool.  The HttpStreamsClientHandler should really be doing this
+            // for us.
+            channelContext.read();
+
             ByteBuf fullContent = ((FullHttpResponse) msg).content();
             final ByteBuffer bb = copyToByteBuffer(fullContent);
             fullContent.release();
-            requestContext.handler().onStream(new Publisher<ByteBuffer>() {
-                // FIXME: According to the spec,the publisher must call
-                // onSubscribe and wait for demand before calling onNext
-                // see item 1.1, 1.9: https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.1/README.md#specification
-                @Override
-                public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-                    subscriber.onNext(bb);
-                    channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY)
-                            .set(subscriber);
-                }
-            });
-        }
-
-        if (msg instanceof LastHttpContent) {
+            requestContext.handler().onStream(new FullResponseContentPublisher(channelContext, bb));
             Subscriber<? super ByteBuffer> subscriber = channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY).get();
             try {
                 subscriber.onComplete();
@@ -121,9 +101,6 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     }
 
     private static void finalizeRequest(RequestContext requestContext, ChannelHandlerContext channelContext) {
-
-        runAndLogError("Could not remove request specific handlers from pipeline",
-                () -> removePerRequestHandlers(channelContext));
         if (!channelContext.channel().attr(KEEP_ALIVE).get()) {
             closeAndRelease(channelContext);
         } else {
@@ -132,28 +109,15 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         channelContext.channel().attr(RESPONSE_COMPLETE_KEY).set(true);
     }
 
-    private static void removePerRequestHandlers(ChannelHandlerContext ctx) {
-        removePerRequestHandlers(ctx, HttpStreamsClientHandler.class, ReadTimeoutHandler.class, WriteTimeoutHandler.class);
-    }
-
-    @SafeVarargs
-    private static void removePerRequestHandlers(ChannelHandlerContext ctx, Class<? extends ChannelHandler>... handlerClasses) {
-        for (Class<? extends ChannelHandler> handlerClass : handlerClasses) {
-            if (ctx.pipeline().get(handlerClass) != null) {
-                ctx.pipeline().remove(handlerClass);
-            }
-        }
-    }
-
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
         log.error("Exception processing request: {}", requestContext.sdkRequest(), cause);
-
-        runAndLogError("Could not remove request handlers",
-                       () -> removePerRequestHandlers(ctx));
         runAndLogError("SdkHttpResponseHandler threw an exception",
-                       () -> requestContext.handler().exceptionOccurred(cause));
+            () -> {
+                requestContext.handler().exceptionOccurred(cause);
+                requestContext.handler().complete();
+            });
         runAndLogError("Could not release channel back to the pool", () -> closeAndRelease(ctx));
     }
 
@@ -163,9 +127,9 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         boolean responseCompleted = handlerCtx.channel().attr(RESPONSE_COMPLETE_KEY).get();
         if (!responseCompleted) {
             runAndLogError("SdkHttpResponseHandler threw an exception when calling exceptionOccurred",
-                    () -> requestCtx.handler().exceptionOccurred(new IOException("Server failed to send complete response")));
+                () -> requestCtx.handler().exceptionOccurred(new IOException("Server failed to send complete response")));
             runAndLogError("Could not release channel",
-                    () -> requestCtx.channelPool().release(handlerCtx.channel()));
+                () -> requestCtx.channelPool().release(handlerCtx.channel()));
         }
     }
 
@@ -177,7 +141,7 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     private static void closeAndRelease(ChannelHandlerContext ctx) {
         RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
         ctx.channel().close()
-           .addListener(channelFuture -> requestContext.channelPool().release(ctx.channel()));
+                .addListener(channelFuture -> requestContext.channelPool().release(ctx.channel()));
     }
 
     /**
@@ -196,8 +160,8 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     private static Map<String, List<String>> fromNettyHeaders(HttpHeaders headers) {
         return headers.entries().stream()
-                      .collect(groupingBy(Map.Entry::getKey,
-                                          mapping(Map.Entry::getValue, Collectors.toList())));
+                .collect(groupingBy(Map.Entry::getKey,
+                        mapping(Map.Entry::getValue, Collectors.toList())));
     }
 
     private static ByteBuffer copyToByteBuffer(ByteBuf byteBuf) {
@@ -247,16 +211,33 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                 public void onComplete() {
                     try {
                         runAndLogError(String.format("Subscriber %s threw an exception in onComplete.", subscriber.toString()),
-                                       subscriber::onComplete);
+                                subscriber::onComplete);
                         requestContext.handler().complete();
                     } finally {
-                        // Run in the event loop to avoid sync issues in finalizeRequest
-                        channelContext.channel().eventLoop().submit(() ->
-                                finalizeRequest(requestContext, channelContext)
-                        );
+                        finalizeRequest(requestContext, channelContext);
                     }
                 }
             });
+        }
+    }
+
+    private static class FullResponseContentPublisher implements Publisher<ByteBuffer> {
+        private final ChannelHandlerContext channelContext;
+        private final ByteBuffer fullContent;
+
+        FullResponseContentPublisher(ChannelHandlerContext channelContext, ByteBuffer fullContent) {
+            this.channelContext = channelContext;
+            this.fullContent = fullContent;
+        }
+
+        // FIXME: According to the spec,the publisher must call
+        // onSubscribe and wait for demand before calling onNext
+        // see item 1.1, 1.9: https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.1/README.md#specification
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+            subscriber.onNext(fullContent);
+            channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY)
+                    .set(subscriber);
         }
     }
 }

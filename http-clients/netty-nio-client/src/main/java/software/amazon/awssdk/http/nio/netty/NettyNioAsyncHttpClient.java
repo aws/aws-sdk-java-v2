@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.nio.netty;
 
+import static io.netty.handler.ssl.SslContext.defaultClientProvider;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.SOCKET_TIMEOUT;
@@ -35,7 +36,6 @@ import io.netty.channel.pool.FixedChannelPool;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.net.URI;
 import java.util.Optional;
@@ -145,7 +145,7 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
     private SslContext sslContext(String scheme) {
         if (scheme.equalsIgnoreCase("https")) {
-            SslContextBuilder builder = SslContextBuilder.forClient().sslProvider(SslProvider.JDK);
+            SslContextBuilder builder = SslContextBuilder.forClient().sslProvider(defaultClientProvider());
             if (trustAllCertificates) {
                 builder.trustManager(InsecureTrustManagerFactory.INSTANCE);
             }
