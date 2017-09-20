@@ -84,6 +84,8 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
      */
     private class FileSubscriber implements Subscriber<ByteBuffer> {
 
+        private boolean writeInProgress = false;
+        private boolean closeOnLastWrite = false;
         private final AtomicLong position = new AtomicLong();
         private Subscription subscription;
 
@@ -96,13 +98,20 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
+            writeInProgress = true;
             fileChannel.write(byteBuffer, position.get(), byteBuffer, new CompletionHandler<Integer, ByteBuffer>() {
                 @Override
                 public void completed(Integer result, ByteBuffer attachment) {
                     if (result > 0) {
                         position.addAndGet(result);
-                        // Request another chunk of data
-                        subscription.request(1);
+                        synchronized (FileSubscriber.this) {
+                            if (closeOnLastWrite) {
+                                invokeSafely(fileChannel::close);
+                            } else {
+                                subscription.request(1);
+                            }
+                            writeInProgress = false;
+                        }
                     }
                 }
 
@@ -121,7 +130,21 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
 
         @Override
         public void onComplete() {
+            // if write in progress, tell write to close on finish
+            synchronized (this) {
+                if (writeInProgress) {
+                    closeOnLastWrite = true;
+                } else {
+                    close();
+                }
+            }
+        }
+
+        private void close() {
             // Completion handled by response handler
+            if (fileChannel != null) {
+                invokeSafely(fileChannel::close);
+            }
         }
 
         @Override

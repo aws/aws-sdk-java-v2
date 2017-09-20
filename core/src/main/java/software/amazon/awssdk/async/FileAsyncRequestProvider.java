@@ -151,13 +151,19 @@ public final class FileAsyncRequestProvider implements AsyncRequestProvider {
 
         @Override
         public void request(long n) {
-            outstandingRequests.addAndGet(n);
+            try {
+                outstandingRequests.addAndGet(n);
 
-            synchronized (this) {
-                if (!writeInProgress) {
-                    writeInProgress = true;
-                    readData();
+                synchronized (this) {
+                    if (!writeInProgress) {
+                        writeInProgress = true;
+                        readData();
+                    }
                 }
+            } catch (Exception e) {
+                System.out.println("Error in FileAsyncRequestProvider");
+                e.printStackTrace();
+                subscriber.onError(e);
             }
         }
 

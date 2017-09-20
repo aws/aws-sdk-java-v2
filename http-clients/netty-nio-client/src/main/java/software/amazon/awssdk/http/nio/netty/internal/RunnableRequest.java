@@ -17,6 +17,8 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_CONTEXT_KEY;
 
+import com.typesafe.netty.HandlerPublisher;
+import com.typesafe.netty.HandlerSubscriber;
 import com.typesafe.netty.http.HttpStreamsClientHandler;
 import com.typesafe.netty.http.StreamedHttpRequest;
 import io.netty.buffer.ByteBuf;
@@ -29,6 +31,8 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.Future;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -74,9 +78,13 @@ public final class RunnableRequest implements AbortableRunnable {
      */
     private void initializePerRequestHandlers() {
         // Remove any existing handlers from the pipeline from the previous request.
-        removeIfExists(HttpStreamsClientHandler.class);
-        removeIfExists(ResponseHandler.class);
+        removeIfExists(HttpStreamsClientHandler.class, ResponseHandler.class,
+                       ReadTimeoutHandler.class, WriteTimeoutHandler.class,
+                       HandlerPublisher.class, HandlerSubscriber.class);
 
+        // TODO make these configurable
+        channel.pipeline().addFirst(new WriteTimeoutHandler(50));
+        channel.pipeline().addFirst(new ReadTimeoutHandler(50));
         channel.pipeline().addLast(new HttpStreamsClientHandler());
         channel.pipeline().addLast(new ResponseHandler());
     }
@@ -84,18 +92,21 @@ public final class RunnableRequest implements AbortableRunnable {
     /**
      * Removes the handler from the pipeline if present.
      *
-     * @param handler Handler to remove, identified by class.
+     * @param handlers Handlers to remove, identified by class.
      */
-    private void removeIfExists(Class<? extends ChannelHandler> handler) {
-        if (channel.pipeline().get(handler) != null) {
-            channel.pipeline().remove(handler);
+    @SafeVarargs
+    private final void removeIfExists(Class<? extends ChannelHandler>... handlers) {
+        for (Class<? extends ChannelHandler> handler : handlers) {
+            if (channel.pipeline().get(handler) != null) {
+                channel.pipeline().remove(handler);
+            }
         }
     }
 
     @Override
     public void abort() {
         if (channel != null) {
-            channel.disconnect().addListener(ignored -> context.channelPool().release(channel));
+            channel.close().addListener(ignored -> context.channelPool().release(channel));
         }
     }
 
@@ -119,10 +130,10 @@ public final class RunnableRequest implements AbortableRunnable {
     private void handleFailure(Supplier<String> msg, Throwable cause) {
         log.error(msg.get(), cause);
         runAndLogError("Exception thrown from AsyncResponseHandler",
-            () -> context.handler().exceptionOccurred(cause));
+                       () -> context.handler().exceptionOccurred(cause));
         if (channel != null) {
             runAndLogError("Unable to release channel back to the pool.",
-                () -> context.channelPool().release(channel));
+                           () -> channel.close().addListener(future -> context.channelPool().release(channel)));
         }
     }
 
