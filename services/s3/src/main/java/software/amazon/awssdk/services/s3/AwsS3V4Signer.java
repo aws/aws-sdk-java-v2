@@ -161,9 +161,9 @@ public class AwsS3V4Signer extends Aws4Signer {
         /**
          * If we aren't using https we should always sign the payload.
          */
-        //        if (!request.getEndpoint().getScheme().equals("https")) {
-        //            return true;
-        //        }
+        if (!request.getEndpoint().getScheme().equals("https")) {
+            return true;
+        }
 
         return enablePayloadSigning != null && enablePayloadSigning;
     }
