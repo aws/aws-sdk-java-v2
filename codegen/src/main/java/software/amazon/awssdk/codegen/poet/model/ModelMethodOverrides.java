@@ -77,20 +77,24 @@ public class ModelMethodOverrides {
                                                              .returns(String.class)
                                                              .addAnnotation(Override.class)
                                                              .addModifiers(Modifier.PUBLIC)
-                                                             .addStatement("$T sb = new $T()", StringBuilder.class,
-                                                                           StringBuilder.class)
-                                                             .addStatement("sb.append(\"{\")");
+                                                             .addStatement("$T sb = new $T(\"{\")", StringBuilder.class,
+                                                                           StringBuilder.class);
 
         shapeModel.getNonStreamingMembers()
-                  .forEach(m -> {
-                      String getterName = m.getFluentGetterMethodName();
-                      toStringMethodBuilder.beginControlFlow("if ($N() != null)", getterName)
-                                           .addStatement("sb.append(\"$N: \").append($N()).append(\",\")", m.getName(),
-                                                         getterName)
-                                           .endControlFlow();
-                  });
+                .forEach(m -> {
+                    String getterName = m.getFluentGetterMethodName();
+                    toStringMethodBuilder.beginControlFlow("if ($N() != null)", getterName)
+                            .addStatement("sb.append(\"$N: \").append($N()).append(\",\")", m.getName(),
+                                    getterName)
+                            .endControlFlow();
+                });
+
+        toStringMethodBuilder.beginControlFlow("if (sb.length() > 1)")
+                .addStatement("sb.setLength(sb.length() - 1)")
+                .endControlFlow();
 
         toStringMethodBuilder.addStatement("sb.append(\"}\")");
+
         toStringMethodBuilder.addStatement("return sb.toString()");
 
         return toStringMethodBuilder.build();

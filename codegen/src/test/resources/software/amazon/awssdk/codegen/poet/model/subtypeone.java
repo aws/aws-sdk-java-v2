@@ -70,10 +70,12 @@ public class SubTypeOne implements StructuredPojo, ToCopyableBuilder<SubTypeOne.
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
+        StringBuilder sb = new StringBuilder("{");
         if (subTypeOneMember() != null) {
             sb.append("SubTypeOneMember: ").append(subTypeOneMember()).append(",");
+        }
+        if (sb.length() > 1) {
+            sb.setLength(sb.length() - 1);
         }
         sb.append("}");
         return sb.toString();
