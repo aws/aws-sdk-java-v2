@@ -16,6 +16,8 @@
 package software.amazon.awssdk.async;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -60,6 +62,29 @@ public interface AsyncRequestProvider extends Publisher<ByteBuffer> {
      */
     static AsyncRequestProvider fromFile(Path path) {
         return FileAsyncRequestProvider.builder().path(path).build();
+    }
+
+    /**
+     * Creates an {@link AsyncRequestProvider} that uses a single string as data.
+     *
+     * @param string The string to provide.
+     * @param cs The {@link Charset} to use.
+     * @return Implementation of {@link AsyncRequestProvider} that uses the specified string.
+     * @see SingleByteArrayAsyncRequestProvider
+     */
+    static AsyncRequestProvider fromString(String string, Charset cs) {
+        return new SingleByteArrayAsyncRequestProvider(string.getBytes(cs));
+    }
+
+    /**
+     * Creates an {@link AsyncRequestProvider} that uses a single string as data with UTF_8 encoding.
+     *
+     * @param string The string to provider.
+     * @return Implementation of {@link AsyncRequestProvider} that uses the specified string.
+     * @see #fromString(String, Charset)
+     */
+    static AsyncRequestProvider fromString(String string) {
+        return fromString(string, StandardCharsets.UTF_8);
     }
 
 }
