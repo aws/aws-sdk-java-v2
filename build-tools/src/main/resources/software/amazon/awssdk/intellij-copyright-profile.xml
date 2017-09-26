@@ -1,0 +1,6 @@
+<component name="CopyrightManager">
+  <copyright>
+    <option name="notice" value="Copyright 2010-&amp;#36;{today.year} Amazon.com, Inc. or its affiliates. All Rights Reserved.&#10; &#10;Licensed under the Apache License, Version 2.0 (the &quot;License&quot;).&#10;You may not use this file except in compliance with the License.&#10;A copy of the License is located at&#10; &#10; http://aws.amazon.com/apache2.0&#10; &#10;or in the &quot;license&quot; file accompanying this file. This file is distributed&#10;on an &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either&#10;express or implied. See the License for the specific language governing&#10;permissions and limitations under the License." />
+    <option name="myName" value="AWS Java SDK 2.0" />
+  </copyright>
+</component>
