@@ -123,8 +123,7 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
+        StringBuilder sb = new StringBuilder("{");
         if (listOfListOfStrings() != null) {
             sb.append("ListOfListOfStrings: ").append(listOfListOfStrings()).append(",");
         }
@@ -133,6 +132,9 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
         }
         if (mapOfStringToListOfListOfStrings() != null) {
             sb.append("MapOfStringToListOfListOfStrings: ").append(mapOfStringToListOfListOfStrings()).append(",");
+        }
+        if (sb.length() > 1) {
+            sb.setLength(sb.length() - 1);
         }
         sb.append("}");
         return sb.toString();

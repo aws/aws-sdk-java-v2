@@ -137,8 +137,7 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
+        StringBuilder sb = new StringBuilder("{");
         if (noRecurse() != null) {
             sb.append("NoRecurse: ").append(noRecurse()).append(",");
         }
@@ -150,6 +149,9 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
         }
         if (recursiveMap() != null) {
             sb.append("RecursiveMap: ").append(recursiveMap()).append(",");
+        }
+        if (sb.length() > 1) {
+            sb.setLength(sb.length() - 1);
         }
         sb.append("}");
         return sb.toString();

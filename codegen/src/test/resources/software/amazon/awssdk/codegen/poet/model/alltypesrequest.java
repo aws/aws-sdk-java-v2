@@ -506,8 +506,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
+        StringBuilder sb = new StringBuilder("{");
         if (stringMember() != null) {
             sb.append("StringMember: ").append(stringMember()).append(",");
         }
@@ -573,6 +572,9 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         }
         if (enumType() != null) {
             sb.append("EnumType: ").append(enumType()).append(",");
+        }
+        if (sb.length() > 1) {
+            sb.setLength(sb.length() - 1);
         }
         sb.append("}");
         return sb.toString();
