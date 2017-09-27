@@ -24,7 +24,6 @@ import java.time.Instant;
 import java.util.Date;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.util.DateUtils;
 
 @SdkInternalApi
 public class SimpleTypeCborUnmarshallers {
@@ -218,8 +217,7 @@ public class SimpleTypeCborUnmarshallers {
         }
 
         public Instant unmarshall(JsonUnmarshallerContext unmarshallerContext) throws Exception {
-            return DateUtils.parseServiceSpecificInstant(unmarshallerContext
-                    .readText());
+            return Instant.ofEpochMilli(unmarshallerContext.getJsonParser().getLongValue());
         }
     }
 
