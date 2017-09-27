@@ -43,7 +43,7 @@ public class HttpResponseAdaptingStage
     @Override
     public Pair<SdkHttpFullRequest, HttpResponse> execute(Pair<SdkHttpFullRequest, SdkHttpFullResponse> input,
                                                           RequestExecutionContext context) throws Exception {
-        return new Pair<>(input.left(),
+        return Pair.of(input.left(),
                           SdkHttpResponseAdapter.adapt(calculateCrc32FromCompressedData, input.left(), input.right()));
     }
 

@@ -116,16 +116,16 @@ abstract class OperationDocProvider {
      */
     final List<Pair<String, String>> getThrows() {
         List<Pair<String, String>> throwsDocs = opModel.getExceptions().stream()
-                                                       .map(exception -> new Pair<>(exception.getExceptionName(),
+                                                       .map(exception -> Pair.of(exception.getExceptionName(),
                                                                                     stripHtmlTags(exception.getDocumentation())))
                                                        .collect(Collectors.toList());
         String baseServiceException = model.getMetadata().getBaseExceptionName();
         Collections.addAll(throwsDocs,
-                           new Pair<>("SdkBaseException ", "Base class for all exceptions that can be thrown by the SDK " +
+                           Pair.of("SdkBaseException ", "Base class for all exceptions that can be thrown by the SDK " +
                                                            "(both service and client). Can be used for catch all scenarios."),
-                           new Pair<>("SdkClientException ", "If any client side error occurs such as an IO related failure, " +
+                           Pair.of("SdkClientException ", "If any client side error occurs such as an IO related failure, " +
                                                              "failure to get credentials, etc."),
-                           new Pair<>(baseServiceException, "Base class for all service exceptions. Unknown exceptions will be " +
+                           Pair.of(baseServiceException, "Base class for all service exceptions. Unknown exceptions will be " +
                                                             "thrown as an instance of this type."));
         return throwsDocs;
     }

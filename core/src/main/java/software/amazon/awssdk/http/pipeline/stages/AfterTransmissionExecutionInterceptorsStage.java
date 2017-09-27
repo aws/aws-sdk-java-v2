@@ -45,6 +45,6 @@ public class AfterTransmissionExecutionInterceptorsStage
         // AbortedExceptionClientExecutionTimerIntegrationTest
         InterruptMonitor.checkInterrupted(interceptorContext.httpResponse());
 
-        return new Pair<>(input.left(), interceptorContext.httpResponse());
+        return Pair.of(input.left(), interceptorContext.httpResponse());
     }
 }
