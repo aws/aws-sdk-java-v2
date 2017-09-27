@@ -54,7 +54,7 @@ public class MakeHttpRequestStage
         final SdkHttpFullResponse httpResponse = executeHttpRequest(request, context);
         publishProgress(listener, ProgressEventType.HTTP_REQUEST_COMPLETED_EVENT);
 
-        return new Pair<>(request, httpResponse);
+        return Pair.of(request, httpResponse);
     }
 
     private SdkHttpFullResponse executeHttpRequest(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {

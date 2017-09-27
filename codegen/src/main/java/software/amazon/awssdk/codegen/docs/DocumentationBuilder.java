@@ -60,7 +60,7 @@ public final class DocumentationBuilder {
      * @return This builder for method chaining.
      */
     public DocumentationBuilder param(String paramName, String paramDocs) {
-        this.params.add(new Pair<>(paramName, paramDocs));
+        this.params.add(Pair.of(paramName, paramDocs));
         return this;
     }
 
@@ -110,7 +110,7 @@ public final class DocumentationBuilder {
      * @return This builder for method chaining.
      */
     public DocumentationBuilder asyncThrows(String exceptionClass, String exceptionDoc) {
-        return asyncThrows(singletonList(new Pair<>(exceptionClass, exceptionDoc)));
+        return asyncThrows(singletonList(Pair.of(exceptionClass, exceptionDoc)));
     }
 
     /**
@@ -144,7 +144,7 @@ public final class DocumentationBuilder {
      * @return This builder for method chaining.
      */
     public DocumentationBuilder syncThrows(String exceptionClass, String exceptionDoc) {
-        return syncThrows(singletonList(new Pair<>(exceptionClass, exceptionDoc)));
+        return syncThrows(singletonList(Pair.of(exceptionClass, exceptionDoc)));
     }
 
     /**
@@ -179,7 +179,7 @@ public final class DocumentationBuilder {
      * @return This builder for method chaining.
      */
     public DocumentationBuilder tag(String tagName, String... tagValues) {
-        tags.add(new Pair<>(tagName, Arrays.asList(tagValues)));
+        tags.add(Pair.of(tagName, Arrays.asList(tagValues)));
         return this;
     }
 
