@@ -16,6 +16,9 @@
 package software.amazon.awssdk.testutils;
 
 import java.lang.reflect.Field;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.rules.ExternalResource;
@@ -36,10 +39,11 @@ public class EnvironmentVariableHelper extends ExternalResource {
             // CHECKSTYLE:OFF - This is a specific utility around system environment variables
             originalEnvironmentVariables = new HashMap<>(System.getenv());
             Field f = System.getenv().getClass().getDeclaredField("m");
-            f.setAccessible(true);
+            AccessController.doPrivileged(setAccessible(f));
+
             modifiableMap = (Map<String, String>) f.get(System.getenv());
             // CHECKSTYLE:ON
-        } catch (Exception e) {
+        } catch (ReflectiveOperationException | PrivilegedActionException e) {
             throw new RuntimeException(e);
         }
     }
@@ -64,5 +68,12 @@ public class EnvironmentVariableHelper extends ExternalResource {
     @Override
     protected void after() {
         reset();
+    }
+
+    private PrivilegedExceptionAction<Void> setAccessible(Field f) {
+        return () -> {
+            f.setAccessible(true);
+            return null;
+        };
     }
 }

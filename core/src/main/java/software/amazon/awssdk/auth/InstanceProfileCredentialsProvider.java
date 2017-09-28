@@ -29,6 +29,7 @@ public class InstanceProfileCredentialsProvider extends HttpCredentialsProvider 
 
     //TODO: make this private
     static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
+    private final CredentialsEndpointProvider credentialsEndpointProvider = new InstanceProviderCredentialsEndpointProvider();
 
     /**
      * @see #builder()
@@ -54,24 +55,24 @@ public class InstanceProfileCredentialsProvider extends HttpCredentialsProvider 
 
     @Override
     protected CredentialsEndpointProvider getCredentialsEndpointProvider() {
+        return credentialsEndpointProvider;
+    }
 
+    private static class InstanceProviderCredentialsEndpointProvider implements CredentialsEndpointProvider {
+        @Override
+        public URI endpoint() throws IOException {
+            String host = AwsSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
 
-        return new CredentialsEndpointProvider() {
-            @Override
-            public URI endpoint() throws IOException {
-                String host = AwsSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
+            URI endpoint = URI.create(host + SECURITY_CREDENTIALS_RESOURCE);
+            String securityCredentialsList = HttpCredentialsUtils.getInstance().readResource(endpoint);
+            String[] securityCredentials = securityCredentialsList.trim().split("\n");
 
-                URI endpoint = URI.create(host + SECURITY_CREDENTIALS_RESOURCE);
-                String securityCredentialsList = HttpCredentialsUtils.getInstance().readResource(endpoint);
-                String[] securityCredentials = securityCredentialsList.trim().split("\n");
-
-                if (securityCredentials.length == 0) {
-                    throw new SdkClientException("Unable to load credentials path");
-                }
-
-                return URI.create(host + SECURITY_CREDENTIALS_RESOURCE + securityCredentials[0]);
+            if (securityCredentials.length == 0) {
+                throw new SdkClientException("Unable to load credentials path");
             }
-        };
+
+            return URI.create(host + SECURITY_CREDENTIALS_RESOURCE + securityCredentials[0]);
+        }
     }
 
 
