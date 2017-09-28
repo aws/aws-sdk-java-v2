@@ -59,7 +59,6 @@ import software.amazon.awssdk.util.json.JacksonUtils;
 public class EC2MetadataUtils {
 
     /** Default resource path for credentials in the Amazon EC2 Instance Metadata Service. */
-    public static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
     private static final String REGION = "region";
     private static final String INSTANCE_IDENTITY_DOCUMENT = "instance-identity/document";
     private static final String EC2_METADATA_ROOT = "/latest/meta-data";
@@ -377,7 +376,7 @@ public class EC2MetadataUtils {
 
         List<String> items;
         try {
-            String hostAddress = getHostAddressForEc2MetadataService();
+            String hostAddress = AwsSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
             String response = HttpCredentialsUtils.getInstance().readResource(new URI(hostAddress + path));
             if (slurp) {
                 items = Collections.singletonList(response);
@@ -414,13 +413,6 @@ public class EC2MetadataUtils {
         } catch (RuntimeException e) {
             return null;
         }
-    }
-
-    /**
-     * Returns the host address of the Amazon EC2 Instance Metadata Service.
-     */
-    public static String getHostAddressForEc2MetadataService() {
-        return AwsSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
     }
 
     /**

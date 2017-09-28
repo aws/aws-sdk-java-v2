@@ -17,17 +17,21 @@ package software.amazon.awssdk.auth;
 
 import java.io.IOException;
 import java.net.URI;
+import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.internal.CredentialsEndpointProvider;
 import software.amazon.awssdk.internal.HttpCredentialsUtils;
-import software.amazon.awssdk.util.EC2MetadataUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * Credentials provider implementation that loads credentials from the Amazon EC2 Instance Metadata Service.
  */
 public class InstanceProfileCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
+
+    //TODO: make this private
+    static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
+
     /**
      * The client to use to fetch the Amazon ECS credentials.
      */
@@ -76,9 +80,9 @@ public class InstanceProfileCredentialsProvider implements AwsCredentialsProvide
     private static class InstanceMetadataCredentialsEndpointProvider implements CredentialsEndpointProvider {
         @Override
         public URI endpoint() throws IOException {
-            String host = EC2MetadataUtils.getHostAddressForEc2MetadataService();
+            String host = AwsSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
 
-            URI endpoint = URI.create(host + EC2MetadataUtils.SECURITY_CREDENTIALS_RESOURCE);
+            URI endpoint = URI.create(host + SECURITY_CREDENTIALS_RESOURCE);
             String securityCredentialsList = HttpCredentialsUtils.getInstance().readResource(endpoint);
             String[] securityCredentials = securityCredentialsList.trim().split("\n");
 
@@ -86,7 +90,7 @@ public class InstanceProfileCredentialsProvider implements AwsCredentialsProvide
                 throw new SdkClientException("Unable to load credentials path");
             }
 
-            return URI.create(host + EC2MetadataUtils.SECURITY_CREDENTIALS_RESOURCE + securityCredentials[0]);
+            return URI.create(host + SECURITY_CREDENTIALS_RESOURCE + securityCredentials[0]);
         }
     }
 

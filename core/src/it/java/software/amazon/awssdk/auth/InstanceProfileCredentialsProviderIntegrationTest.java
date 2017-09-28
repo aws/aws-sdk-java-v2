@@ -35,7 +35,7 @@ public class InstanceProfileCredentialsProviderIntegrationTest extends LogCaptor
     /** Starts up the mock EC2 Instance Metadata Service. */
     @Before
     public void setUp() throws Exception {
-        mockServer = new EC2MetadataServiceMock();
+        mockServer = new EC2MetadataServiceMock(InstanceProfileCredentialsProvider.SECURITY_CREDENTIALS_RESOURCE);
         mockServer.start();
     }
 
