@@ -59,15 +59,4 @@ public interface CredentialsEndpointProvider {
         return Collections.emptyMap();
     }
 
-    /**
-     * Determines if this provider is enabled (i.e. if pre-requisites about the environment are met, typically looking
-     * at environment variables).
-     */
-    default boolean isEnabled() {
-        return true;
-    }
-
-    default String disabledExceptionMessage() {
-        return getClass() + " disabled";
-    }
 }

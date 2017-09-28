@@ -39,25 +39,26 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * a container (e.g. an EC2 instance).
  */
 @SdkInternalApi
-class HttpCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
-    private final CredentialsEndpointProvider credentialsEndpointProvider;
+abstract class HttpCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
     private final CachedSupplier<AwsCredentials> credentialsCache;
 
-    HttpCredentialsProvider(CredentialsEndpointProvider credentialsEndpointProvider,
-                            boolean asyncRefreshEnabled,
-                            String asyncThreadName) {
-        this.credentialsEndpointProvider = credentialsEndpointProvider;
+    HttpCredentialsProvider(Builder<?, ?> builder) {
+        this(builder.asyncCredentialUpdateEnabled, builder.asyncThreadName);
+    }
 
+    HttpCredentialsProvider(Boolean asyncCredentialUpdateEnabled, String asyncThreadName) {
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials);
-        if (asyncRefreshEnabled) {
+        if (asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(asyncThreadName));
         }
         this.credentialsCache = cacheBuilder.build();
     }
 
+    protected abstract CredentialsEndpointProvider getCredentialsEndpointProvider();
+
     private RefreshResult<AwsCredentials> refreshCredentials() {
         try {
-            String credentialsResponse = HttpCredentialsUtils.getInstance().readResource(credentialsEndpointProvider);
+            String credentialsResponse = HttpCredentialsUtils.getInstance().readResource(getCredentialsEndpointProvider());
 
             JsonNode node = JacksonUtils.jsonNodeOf(credentialsResponse);
             JsonNode accessKey = node.get("AccessKeyId");
@@ -126,5 +127,38 @@ class HttpCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseabl
     @Override
     public String toString() {
         return getClass().getSimpleName();
+    }
+
+
+    /**
+     * A builder for creating a custom a {@link InstanceProfileCredentialsProvider}.
+     */
+    protected abstract static class Builder<TypeToBuildT extends HttpCredentialsProvider, BuilderT extends Builder> {
+        private Boolean asyncCredentialUpdateEnabled = false;
+        private String asyncThreadName;
+
+        /**
+         * Created using {@link #builder()}.
+         */
+        protected Builder() {}
+
+        /**
+         * Configure whether this provider should fetch credentials asynchronously in the background. If this is true, threads are
+         * less likely to block when {@link #getCredentials()} is called, but additional resources are used to maintain the
+         * provider.
+         *
+         * <p>By default, this is disabled.</p>
+         */
+        public BuilderT asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {
+            this.asyncCredentialUpdateEnabled = asyncCredentialUpdateEnabled;
+            return (BuilderT) this;
+        }
+
+        public BuilderT asyncThreadName(String asyncThreadName) {
+            this.asyncThreadName = asyncThreadName;
+            return (BuilderT) this;
+        }
+
+        public abstract TypeToBuildT build();
     }
 }

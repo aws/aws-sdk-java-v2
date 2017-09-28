@@ -26,13 +26,13 @@ import org.junit.AfterClass;
 import org.junit.Test;
 import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.auth.ContainerCredentialsProvider.FullUriGenericCredentialsEndpointProvider;
+import software.amazon.awssdk.auth.ContainerCredentialsProvider.ContainerCredentialsEndpointProvider;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
-public class FullUriGenericCredentialsEndpointProviderTest {
+public class ContainerCredentialsEndpointProviderTest {
 
     private static final EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
-    private static final FullUriGenericCredentialsEndpointProvider sut = new FullUriGenericCredentialsEndpointProvider();
+    private static final ContainerCredentialsEndpointProvider sut = new ContainerCredentialsEndpointProvider();
 
     @AfterClass
     public static void restoreOriginal() {

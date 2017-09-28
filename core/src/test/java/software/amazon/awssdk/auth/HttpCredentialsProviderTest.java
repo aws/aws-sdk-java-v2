@@ -150,8 +150,13 @@ public class HttpCredentialsProviderTest {
 
 
     private HttpCredentialsProvider testCredentialsProvider() {
-        return new HttpCredentialsProvider(new TestCredentialsEndpointProvider("http://localhost:" + mockServer.port()),
-                                           false, "");
+        return new HttpCredentialsProvider(false, "") {
+
+            @Override
+            protected CredentialsEndpointProvider getCredentialsEndpointProvider() {
+                return new TestCredentialsEndpointProvider("http://localhost:" + mockServer.port());
+            }
+        };
     }
 
     /**

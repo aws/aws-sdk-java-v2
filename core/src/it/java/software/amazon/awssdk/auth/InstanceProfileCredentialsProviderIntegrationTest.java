@@ -52,7 +52,7 @@ public class InstanceProfileCredentialsProviderIntegrationTest extends LogCaptor
         mockServer.setResponseFileName("sessionResponse");
         mockServer.setAvailableSecurityCredentials("aws-dr-tools-test");
 
-        InstanceProfileCredentialsProvider credentialsProvider = new InstanceProfileCredentialsProvider();
+        InstanceProfileCredentialsProvider credentialsProvider = InstanceProfileCredentialsProvider.create();
         AwsSessionCredentials credentials = (AwsSessionCredentials) credentialsProvider.getCredentials();
 
         assertEquals("ACCESS_KEY_ID", credentials.accessKeyId());
@@ -69,7 +69,7 @@ public class InstanceProfileCredentialsProviderIntegrationTest extends LogCaptor
         mockServer.setResponseFileName("sessionResponse");
         mockServer.setAvailableSecurityCredentials("test-credentials");
 
-        InstanceProfileCredentialsProvider credentialsProvider = new InstanceProfileCredentialsProvider();
+        InstanceProfileCredentialsProvider credentialsProvider = InstanceProfileCredentialsProvider.create();
         AwsSessionCredentials credentials = (AwsSessionCredentials) credentialsProvider.getCredentials();
 
         assertEquals("ACCESS_KEY_ID", credentials.accessKeyId());
@@ -86,7 +86,7 @@ public class InstanceProfileCredentialsProviderIntegrationTest extends LogCaptor
         mockServer.setResponseFileName("sessionResponse");
         mockServer.setAvailableSecurityCredentials("");
 
-        InstanceProfileCredentialsProvider credentialsProvider = new InstanceProfileCredentialsProvider();
+        InstanceProfileCredentialsProvider credentialsProvider = InstanceProfileCredentialsProvider.create();
 
         try {
             credentialsProvider.getCredentials();

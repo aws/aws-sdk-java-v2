@@ -19,103 +19,75 @@ import java.io.IOException;
 import java.net.URI;
 import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.internal.CredentialsEndpointProvider;
 import software.amazon.awssdk.internal.HttpCredentialsUtils;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * Credentials provider implementation that loads credentials from the Amazon EC2 Instance Metadata Service.
  */
-public class InstanceProfileCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
+public class InstanceProfileCredentialsProvider extends HttpCredentialsProvider {
 
     //TODO: make this private
     static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
 
     /**
-     * The client to use to fetch the Amazon ECS credentials.
-     */
-    private final HttpCredentialsProvider credentialsFetcher;
-
-    /**
-     * Create an {@link InstanceProfileCredentialsProvider} using the default configuration. See {@link #builder()} for
-     * customizing the configuration.
-     */
-    @ReviewBeforeRelease("This is inconsistent with client builders. Should this be a static create method?")
-    public InstanceProfileCredentialsProvider() {
-        this(builder());
-    }
-
-    /**
      * @see #builder()
      */
     private InstanceProfileCredentialsProvider(Builder builder) {
-        this.credentialsFetcher = new HttpCredentialsProvider(new InstanceMetadataCredentialsEndpointProvider(),
-                                                              builder.asyncCredentialUpdateEnabled,
-                                                              "instance-profile-credentials-provider");
+        super(builder);
     }
 
     /**
      * Create a builder for creating a {@link InstanceProfileCredentialsProvider}.
      */
     public static Builder builder() {
-        return new Builder();
+        return new Builder().asyncThreadName("instance-profile-credentials-provider");
+    }
+
+    /**
+     * Create a {@link InstanceProfileCredentialsProvider} with default values.
+     * @return a {@link InstanceProfileCredentialsProvider}
+     */
+    public static InstanceProfileCredentialsProvider create() {
+        return builder().build();
     }
 
     @Override
-    public AwsCredentials getCredentials() {
-        return credentialsFetcher.getCredentials();
+    protected CredentialsEndpointProvider getCredentialsEndpointProvider() {
+
+
+        return new CredentialsEndpointProvider() {
+            @Override
+            public URI endpoint() throws IOException {
+                String host = AwsSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
+
+                URI endpoint = URI.create(host + SECURITY_CREDENTIALS_RESOURCE);
+                String securityCredentialsList = HttpCredentialsUtils.getInstance().readResource(endpoint);
+                String[] securityCredentials = securityCredentialsList.trim().split("\n");
+
+                if (securityCredentials.length == 0) {
+                    throw new SdkClientException("Unable to load credentials path");
+                }
+
+                return URI.create(host + SECURITY_CREDENTIALS_RESOURCE + securityCredentials[0]);
+            }
+        };
     }
 
-    @Override
-    public void close() {
-        credentialsFetcher.close();
-    }
 
     @Override
     public String toString() {
         return getClass().getSimpleName();
     }
 
-    private static class InstanceMetadataCredentialsEndpointProvider implements CredentialsEndpointProvider {
-        @Override
-        public URI endpoint() throws IOException {
-            String host = AwsSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
-
-            URI endpoint = URI.create(host + SECURITY_CREDENTIALS_RESOURCE);
-            String securityCredentialsList = HttpCredentialsUtils.getInstance().readResource(endpoint);
-            String[] securityCredentials = securityCredentialsList.trim().split("\n");
-
-            if (securityCredentials.length == 0) {
-                throw new SdkClientException("Unable to load credentials path");
-            }
-
-            return URI.create(host + SECURITY_CREDENTIALS_RESOURCE + securityCredentials[0]);
-        }
-    }
-
     /**
      * A builder for creating a custom a {@link InstanceProfileCredentialsProvider}.
      */
-    public static final class Builder {
-        private Boolean asyncCredentialUpdateEnabled = false;
-        
+    public static final class Builder extends HttpCredentialsProvider.Builder<InstanceProfileCredentialsProvider, Builder> {
         /**
          * Created using {@link #builder()}.
          */
-        private Builder() {}
-
-        /**
-         * Configure whether this provider should fetch credentials asynchronously in the background. If this is true, threads are
-         * less likely to block when {@link #getCredentials()} is called, but additional resources are used to maintain the
-         * provider.
-         *
-         * <p>By default, this is disabled.</p>
-         */
-        public Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {
-            this.asyncCredentialUpdateEnabled = asyncCredentialUpdateEnabled;
-            return this;
-        }
+        private Builder() { }
 
         /**
          * Build a {@link InstanceProfileCredentialsProvider} from the provided configuration.

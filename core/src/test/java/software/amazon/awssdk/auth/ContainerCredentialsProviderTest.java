@@ -30,7 +30,6 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.auth.ContainerCredentialsProvider.EcsCredentialsEndpointProvider;
 import software.amazon.awssdk.internal.CredentialsEndpointProvider;
 
 /**
@@ -62,7 +61,6 @@ public class ContainerCredentialsProviderTest {
     @Test(expected = SdkClientException.class)
     public void testEnvVariableNotSet() {
         ContainerCredentialsProvider.builder()
-                                    .credentialsEndpointProvider(new EcsCredentialsEndpointProvider())
                                     .build()
                                     .getCredentials();
     }

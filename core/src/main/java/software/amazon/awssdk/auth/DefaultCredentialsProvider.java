@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.auth;
 
-import software.amazon.awssdk.auth.ContainerCredentialsProvider.EcsCredentialsEndpointProvider;
-import software.amazon.awssdk.auth.ContainerCredentialsProvider.FullUriGenericCredentialsEndpointProvider;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
@@ -70,11 +68,6 @@ public class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAu
             new EnvironmentVariableCredentialsProvider(),
             new ProfileCredentialsProvider(),
             ContainerCredentialsProvider.builder()
-                                        .credentialsEndpointProvider(new EcsCredentialsEndpointProvider())
-                                        .asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled)
-                                        .build(),
-            ContainerCredentialsProvider.builder()
-                                        .credentialsEndpointProvider(new FullUriGenericCredentialsEndpointProvider())
                                         .asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled)
                                         .build(),
             InstanceProfileCredentialsProvider.builder()

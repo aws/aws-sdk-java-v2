@@ -64,8 +64,6 @@ public class EC2MetadataUtils {
     private static final String EC2_METADATA_ROOT = "/latest/meta-data";
     private static final String EC2_USERDATA_ROOT = "/latest/user-data/";
     private static final String EC2_DYNAMICDATA_ROOT = "/latest/dynamic/";
-    /** Default endpoint for the Amazon EC2 Instance Metadata Service. */
-    private static final String EC2_METADATA_SERVICE_URL = "http://169.254.169.254";
     private static final int DEFAULT_QUERY_RETRIES = 3;
     private static final int MINIMUM_RETRY_WAIT_TIME_MILLISECONDS = 250;
     private static final ObjectMapper MAPPER = new ObjectMapper();
