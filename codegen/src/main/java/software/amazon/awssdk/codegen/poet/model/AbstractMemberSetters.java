@@ -115,7 +115,8 @@ abstract class AbstractMemberSetters implements MemberSetters {
             return ParameterSpec.builder(listType, fieldName()).build();
         }
         if (memberModel.isMap() && hasBuilder(memberModel.getMapModel().getValueModel())) {
-            TypeName keyType = typeProvider.getTypeNameForSimpleType(memberModel.getMapModel().getKeyType());
+            TypeName keyType = typeProvider.getTypeNameForSimpleType(memberModel.getMapModel().getKeyModel()
+                                                                                .getVariable().getVariableType());
             TypeName valueType = poetExtensions.getModelClass(memberModel.getMapModel().getValueModel().getC2jShape())
                                                .nestedClass("BuilderImpl");
             TypeName mapType = ParameterizedTypeName.get(ClassName.get(Map.class), keyType, valueType);

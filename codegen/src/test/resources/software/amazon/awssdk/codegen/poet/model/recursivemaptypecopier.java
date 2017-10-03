@@ -5,7 +5,6 @@ import static java.util.stream.Collectors.toMap;
 import java.util.Collections;
 import java.util.Map;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.runtime.StandardMemberCopier;
 
 @Generated("software.amazon.awssdk:codegen")
 final class RecursiveMapTypeCopier {
@@ -14,12 +13,12 @@ final class RecursiveMapTypeCopier {
             return null;
         }
         Map<String, RecursiveStructType> recursiveMapTypeParamCopy = recursiveMapTypeParam.entrySet().stream()
-                                                                                          .collect(toMap(e -> StandardMemberCopier.copy(e.getKey()), Map.Entry::getValue));
+                                                                                          .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
         return Collections.unmodifiableMap(recursiveMapTypeParamCopy);
     }
 
     static Map<String, RecursiveStructType> copyFromBuilder(
-        Map<String, ? extends RecursiveStructType.Builder> recursiveMapTypeParam) {
+            Map<String, ? extends RecursiveStructType.Builder> recursiveMapTypeParam) {
         if (recursiveMapTypeParam == null) {
             return null;
         }

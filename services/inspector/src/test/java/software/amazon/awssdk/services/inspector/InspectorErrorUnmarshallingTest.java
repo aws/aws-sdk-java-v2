@@ -63,7 +63,7 @@ public class InspectorErrorUnmarshallingTest {
             inspector.listRulesPackages(ListRulesPackagesRequest.builder().build());
         } catch (AccessDeniedException e) {
             assertEquals("AccessDeniedException", e.getErrorCode());
-            assertEquals("ACCESS_DENIED_TO_RULES_PACKAGE", e.inspectorErrorCode());
+            assertEquals("ACCESS_DENIED_TO_RULES_PACKAGE", e.inspectorErrorCodeString());
         }
     }
 

@@ -56,7 +56,7 @@ public class ObjectTaggingIntegrationTest extends S3IntegrationTestBase {
                                                          .bucket(BUCKET)
                                                          .versioningConfiguration(
                                                                  VersioningConfiguration.builder()
-                                                                                        .status(BucketVersioningStatus.Enabled)
+                                                                                        .status(BucketVersioningStatus.ENABLED)
                                                                                         .build())
                                                          .build());
     }

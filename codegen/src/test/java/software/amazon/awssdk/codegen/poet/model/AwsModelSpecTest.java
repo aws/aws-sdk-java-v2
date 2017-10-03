@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Locale;
+import java.util.concurrent.Executors;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -38,7 +39,6 @@ import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
 
 @RunWith(Parameterized.class)
 public class AwsModelSpecTest {
-    private static File serviceModelFile;
     private static IntermediateModel intermediateModel;
     private final ShapeModel shapeModel;
 
@@ -61,8 +61,8 @@ public class AwsModelSpecTest {
         return shapeModel.getShapeName().toLowerCase(Locale.ENGLISH) + ".java";
     }
 
-    private static void setUp() throws URISyntaxException, IOException {
-        serviceModelFile = new File(AwsModelSpecTest.class.getResource("service-2.json").getFile());
+    private static void setUp() throws IOException {
+        File serviceModelFile = new File(AwsModelSpecTest.class.getResource("service-2.json").getFile());
         File customizationConfigFile = new File(AwsModelSpecTest.class
                                                     .getResource("customization.config")
                                                     .getFile());

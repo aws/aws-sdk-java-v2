@@ -31,7 +31,6 @@ import software.amazon.awssdk.services.machinelearning.model.CreateRealtimeEndpo
 import software.amazon.awssdk.services.machinelearning.model.DeleteDataSourceRequest;
 import software.amazon.awssdk.services.machinelearning.model.DeleteMLModelRequest;
 import software.amazon.awssdk.services.machinelearning.model.DeleteRealtimeEndpointRequest;
-import software.amazon.awssdk.services.machinelearning.model.EntityStatus;
 import software.amazon.awssdk.services.machinelearning.model.GetDataSourceRequest;
 import software.amazon.awssdk.services.machinelearning.model.GetDataSourceResponse;
 import software.amazon.awssdk.services.machinelearning.model.GetMLModelRequest;
@@ -40,7 +39,6 @@ import software.amazon.awssdk.services.machinelearning.model.MLModelType;
 import software.amazon.awssdk.services.machinelearning.model.PredictRequest;
 import software.amazon.awssdk.services.machinelearning.model.Prediction;
 import software.amazon.awssdk.services.machinelearning.model.RealtimeEndpointInfo;
-import software.amazon.awssdk.services.machinelearning.model.RealtimeEndpointStatus;
 import software.amazon.awssdk.services.machinelearning.model.S3DataSpec;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -117,7 +115,7 @@ public class AmazonMachineLearningIntegrationTest extends AwsTestBase {
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET_NAME)
                                      .key(KEY)
-                                     .acl(ObjectCannedACL.PublicRead)
+                                     .acl(ObjectCannedACL.PUBLIC_READ)
                                      .build(),
                      RequestBody.of(DATA.getBytes()));
     }
@@ -232,8 +230,7 @@ public class AmazonMachineLearningIntegrationTest extends AwsTestBase {
 
             System.out.println(result);
 
-            String status = result.status();
-            switch (EntityStatus.valueOf(status)) {
+            switch (result.status()) {
                 case PENDING:
                 case INPROGRESS:
                     Thread.sleep(10000);
@@ -242,11 +239,11 @@ public class AmazonMachineLearningIntegrationTest extends AwsTestBase {
                 case FAILED:
                 case COMPLETED:
                 case DELETED:
-                    return status;
+                    return result.statusString();
 
                 default:
                     Assert.fail("Unrecognized data source validation status: "
-                                + status);
+                                + result.statusString());
             }
         }
 
@@ -263,8 +260,7 @@ public class AmazonMachineLearningIntegrationTest extends AwsTestBase {
 
             System.out.println(result);
 
-            String status = result.status();
-            switch (EntityStatus.valueOf(status)) {
+            switch (result.status()) {
                 case PENDING:
                 case INPROGRESS:
                     Thread.sleep(10000);
@@ -273,11 +269,11 @@ public class AmazonMachineLearningIntegrationTest extends AwsTestBase {
                 case FAILED:
                 case COMPLETED:
                 case DELETED:
-                    return status;
+                    return result.statusString();
 
                 default:
                     throw new IllegalStateException("Unrecognized status: "
-                                                    + status);
+                                                    + result.statusString());
             }
         }
 
@@ -300,8 +296,7 @@ public class AmazonMachineLearningIntegrationTest extends AwsTestBase {
                 continue;
             }
 
-            String status = info.endpointStatus();
-            switch (RealtimeEndpointStatus.valueOf(status)) {
+            switch (info.endpointStatus()) {
                 case READY:
                     return info.endpointUrl();
 

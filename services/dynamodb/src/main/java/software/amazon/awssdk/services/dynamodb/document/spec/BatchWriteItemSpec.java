@@ -64,7 +64,7 @@ public class BatchWriteItemSpec extends AbstractSpec<BatchWriteItemRequest> {
 
 
     public String getReturnConsumedCapacity() {
-        return getRequest().returnConsumedCapacity();
+        return getRequest().returnConsumedCapacityString();
     }
 
 

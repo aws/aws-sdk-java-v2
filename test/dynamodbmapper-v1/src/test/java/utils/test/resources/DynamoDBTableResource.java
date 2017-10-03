@@ -143,9 +143,9 @@ public abstract class DynamoDBTableResource implements TestResource {
             }
         }
 
-        String tableStatus = table.tableStatus();
+        TableStatus tableStatus = table.tableStatus();
 
-        if (tableStatus.equals(TableStatus.ACTIVE.toString())) {
+        if (tableStatus == TableStatus.ACTIVE) {
             // returns AVAILABLE only if table KeySchema + LSIs + GSIs all match.
             if (UnorderedCollectionComparator.equalUnorderedCollections(createRequest.keySchema(), table.keySchema())
                 && equalUnorderedGsiLists(createRequest.globalSecondaryIndexes(), table.globalSecondaryIndexes())
@@ -154,9 +154,9 @@ public abstract class DynamoDBTableResource implements TestResource {
             } else {
                 return ResourceStatus.EXIST_INCOMPATIBLE_RESOURCE;
             }
-        } else if (tableStatus.equals(TableStatus.CREATING.toString())
-                   || tableStatus.equals(TableStatus.UPDATING.toString())
-                   || tableStatus.equals(TableStatus.DELETING.toString())) {
+        } else if (tableStatus == TableStatus.CREATING
+                   || tableStatus == TableStatus.UPDATING
+                   || tableStatus == TableStatus.DELETING) {
             return ResourceStatus.TRANSIENT;
         } else {
             return ResourceStatus.NOT_EXIST;

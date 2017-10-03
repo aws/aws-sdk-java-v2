@@ -5,7 +5,6 @@ import static java.util.stream.Collectors.toMap;
 import java.util.Collections;
 import java.util.Map;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.runtime.StandardMemberCopier;
 
 @Generated("software.amazon.awssdk:codegen")
 final class MapOfStringToSimpleStructCopier {
@@ -14,7 +13,7 @@ final class MapOfStringToSimpleStructCopier {
             return null;
         }
         Map<String, SimpleStruct> mapOfStringToSimpleStructParamCopy = mapOfStringToSimpleStructParam.entrySet().stream()
-                                                                                                     .collect(toMap(e -> StandardMemberCopier.copy(e.getKey()), Map.Entry::getValue));
+                                                                                                     .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
         return Collections.unmodifiableMap(mapOfStringToSimpleStructParamCopy);
     }
 
@@ -22,6 +21,7 @@ final class MapOfStringToSimpleStructCopier {
         if (mapOfStringToSimpleStructParam == null) {
             return null;
         }
-        return copy(mapOfStringToSimpleStructParam.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().build())));
+        return copy(mapOfStringToSimpleStructParam.entrySet().stream()
+                                                  .collect(toMap(Map.Entry::getKey, e -> e.getValue().build())));
     }
 }

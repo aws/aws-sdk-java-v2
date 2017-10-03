@@ -26,11 +26,16 @@ import com.squareup.javapoet.WildcardTypeName;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.VariableModel;
@@ -39,6 +44,7 @@ import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.protocol.StructuredPojo;
+import software.amazon.awssdk.core.runtime.TypeConverter;
 
 /**
  * Provides the Poet specs for AWS Service models.
@@ -163,13 +169,87 @@ public class AwsServiceModel implements ClassSpec {
     private List<MethodSpec> memberGetters() {
         return shapeModel.getNonStreamingMembers().stream()
                          .filter(m -> !m.getHttp().getIsStreaming())
-                         .map(m -> MethodSpec.methodBuilder(m.getFluentGetterMethodName())
-                                             .addJavadoc("$L", m.getGetterDocumentation())
-                                             .returns(typeProvider.fieldType(m))
-                                             .addModifiers(Modifier.PUBLIC)
-                                             .addCode(getterStatement(m))
-                                             .build())
+                         .flatMap(this::memberGetters)
                          .collect(Collectors.toList());
+    }
+
+    private Stream<MethodSpec> memberGetters(MemberModel member) {
+        List<MethodSpec> result = new ArrayList<>();
+
+        if (shouldGenerateEnumGetter(member)) {
+            result.add(enumMemberGetter(member));
+        }
+
+        result.add(memberGetter(member));
+
+        return result.stream();
+    }
+
+    private boolean shouldGenerateEnumGetter(MemberModel member) {
+        return Utils.isOrContainsEnum(member);
+    }
+
+    private MethodSpec enumMemberGetter(MemberModel member) {
+        return MethodSpec.methodBuilder(member.getFluentEnumGetterMethodName())
+                         .addJavadoc("$L", member.getGetterDocumentation())
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(typeProvider.enumReturnType(member))
+                         .addCode(enumGetterStatement(member))
+                         .build();
+    }
+
+    private MethodSpec memberGetter(MemberModel member) {
+        return MethodSpec.methodBuilder(member.getFluentGetterMethodName())
+                         .addJavadoc("$L", member.getGetterDocumentation())
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(typeProvider.returnType(member))
+                         .addCode(getterStatement(member))
+                         .build();
+    }
+
+    private CodeBlock enumGetterStatement(MemberModel member) {
+        String fieldName = member.getVariable().getVariableName();
+
+        if (member.isList()) {
+            ClassName valueEnumClass = poetExtensions.getModelClass(member.getListModel().getListMemberModel().getEnumType());
+            return CodeBlock.of("return $T.convert($N, $T::fromValue);", TypeConverter.class, fieldName, valueEnumClass);
+        } else if (member.isMap()) {
+            MapModel mapModel = member.getMapModel();
+            String keyEnumType = mapModel.getKeyModel().getEnumType();
+            String valueEnumType = mapModel.getValueModel().getEnumType();
+
+            CodeBlock keyConverter = keyEnumType != null ? enumConverterFunction(poetExtensions.getModelClass(keyEnumType))
+                                                         : identityFunction();
+            CodeBlock valueConverter = valueEnumType != null ? enumConverterFunction(poetExtensions.getModelClass(valueEnumType))
+                                                             : identityFunction();
+
+            CodeBlock entryPredicate = mapEntryFilter(keyEnumType);
+
+            return CodeBlock.builder()
+                            .add("return $T.convert($N, ", TypeConverter.class, fieldName)
+                            .add(keyConverter).add(", ")
+                            .add(valueConverter).add(", ")
+                            .add(entryPredicate).add(");")
+                            .build();
+        } else {
+            ClassName enumClass = poetExtensions.getModelClass(member.getEnumType());
+            return CodeBlock.of("return $T.fromValue($N);", enumClass, fieldName);
+        }
+    }
+
+    private CodeBlock mapEntryFilter(String keyEnumType) {
+        // Don't include UNKNOWN_TO_SDK_VERSION keys in the enum map. Customers should use the string version to get at that data.
+        return keyEnumType != null ? CodeBlock.of("(k, v) -> !$T.equals(k, $T.UNKNOWN_TO_SDK_VERSION)",
+                                                  Objects.class, poetExtensions.getModelClass(keyEnumType))
+                                   : CodeBlock.of("(k, v) -> true");
+    }
+
+    private CodeBlock enumConverterFunction(ClassName enumClass) {
+        return CodeBlock.of("$T::fromValue", enumClass);
+    }
+
+    private CodeBlock identityFunction() {
+        return CodeBlock.of("$T.identity()", Function.class);
     }
 
     private CodeBlock getterStatement(MemberModel model) {

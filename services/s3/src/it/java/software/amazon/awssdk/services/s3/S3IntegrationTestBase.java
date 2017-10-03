@@ -69,7 +69,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
                                        .bucket(bucketName)
                                        .createBucketConfiguration(
                                                CreateBucketConfiguration.builder()
-                                                                        .locationConstraint(BucketLocationConstraint.UsWest2)
+                                                                        .locationConstraint(BucketLocationConstraint.US_WEST_2)
                                                                         .build())
                                        .build());
         } catch (S3Exception e) {

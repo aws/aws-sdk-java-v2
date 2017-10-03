@@ -507,8 +507,7 @@ public class Table implements PutItemApi, GetItemApi, QueryApi, ScanApi,
         try {
             for (; ; ) {
                 TableDescription desc = describe();
-                final String status = desc.tableStatus();
-                if (TableStatus.fromValue(status) == TableStatus.ACTIVE) {
+                if (desc.tableStatus() == TableStatus.ACTIVE) {
                     return desc;
                 } else {
                     Thread.sleep(SLEEP_TIME_MILLIS);
@@ -541,14 +540,12 @@ public class Table implements PutItemApi, GetItemApi, QueryApi, ScanApi,
             retry:
             for (; ; ) {
                 TableDescription desc = describe();
-                String status = desc.tableStatus();
-                if (TableStatus.fromValue(status) == TableStatus.ACTIVE) {
+                if (desc.tableStatus() == TableStatus.ACTIVE) {
                     List<GlobalSecondaryIndexDescription> descriptions =
                             desc.globalSecondaryIndexes();
                     if (descriptions != null) {
                         for (GlobalSecondaryIndexDescription d : descriptions) {
-                            status = d.indexStatus();
-                            if (IndexStatus.fromValue(status) != IndexStatus.ACTIVE) {
+                            if (d.indexStatus() != IndexStatus.ACTIVE) {
                                 // Some index is not active.  Keep waiting.
                                 Thread.sleep(SLEEP_TIME_MILLIS);
                                 continue retry;

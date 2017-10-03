@@ -78,13 +78,12 @@ public class DynamoDBTestBase extends AwsTestBase {
                 DescribeTableRequest request = DescribeTableRequest.builder().tableName(tableName).build();
                 TableDescription table = dynamo.describeTable(request).table();
 
-                String tableStatus = table.tableStatus();
-                log.info(() -> "  - current state: " + tableStatus);
-                if (tableStatus.equals(TableStatus.DELETING.toString())) {
+                log.info(() -> "  - current state: " + table.tableStatusString());
+                if (table.tableStatus() == TableStatus.DELETING) {
                     continue;
                 }
             } catch (AmazonServiceException ase) {
-                if (ase.getErrorCode().equalsIgnoreCase("ResourceNotFoundException") == true) {
+                if (ase.getErrorCode().equalsIgnoreCase("ResourceNotFoundException")) {
                     log.info(() -> "successfully deleted");
                     return;
                 }

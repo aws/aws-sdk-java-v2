@@ -43,7 +43,7 @@
                     if (${memberModel.variable.variableName} == null) {
                         ${memberModel.variable.variableName} = new java.util.HashMap<>();
                     }
-                    Entry<${memberModel.mapModel.keyType}, ${memberModel.mapModel.valueType}> entry = ${memberModel.name}MapEntryUnmarshaller.getInstance().unmarshall(context);
+                    Entry<${memberModel.mapModel.keyModel.variable.variableType}, ${memberModel.mapModel.valueModel.variable.variableType}> entry = ${memberModel.name}MapEntryUnmarshaller.getInstance().unmarshall(context);
                     // ${shapeVarName}.add${memberModel.name}Entry(entry.getKey(), entry.getValue());
 
                     ${memberModel.variable.variableName}.put(entry.getKey(), entry.getValue());

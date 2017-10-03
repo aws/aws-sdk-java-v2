@@ -50,7 +50,7 @@ public class FilterConditionTest {
         Condition ddbscanFilter_value = ddbscanFilter.getValue();
 
         Assert.assertEquals("foo", ddbscanFilter_attrName);
-        Assert.assertEquals(ComparisonOperator.EQ.toString(), ddbscanFilter_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.EQ, ddbscanFilter_value.comparisonOperator());
         Assert.assertEquals(1, ddbscanFilter_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbscanFilter_value.attributeValueList().get(0).s());
 
@@ -60,7 +60,7 @@ public class FilterConditionTest {
         ddbscanFilter_value = ddbscanFilter.getValue();
 
         Assert.assertEquals("foo", ddbscanFilter_attrName);
-        Assert.assertEquals(ComparisonOperator.EQ.toString(), ddbscanFilter_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.EQ, ddbscanFilter_value.comparisonOperator());
         Assert.assertEquals(1, ddbscanFilter_value.attributeValueList().size());
         Assert.assertEquals(true, ddbscanFilter_value.attributeValueList().get(0).nul());
     }
@@ -73,7 +73,7 @@ public class FilterConditionTest {
         Condition ddbscanFilter_value = ddbscanFilter.getValue();
 
         Assert.assertEquals("foo", ddbscanFilter_attrName);
-        Assert.assertEquals(ComparisonOperator.NE.toString(), ddbscanFilter_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.NE, ddbscanFilter_value.comparisonOperator());
         Assert.assertEquals(1, ddbscanFilter_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbscanFilter_value.attributeValueList().get(0).s());
     }
@@ -86,7 +86,7 @@ public class FilterConditionTest {
         Condition ddbscanFilter_value = ddbscanFilter.getValue();
 
         Assert.assertEquals("foo", ddbscanFilter_attrName);
-        Assert.assertEquals(ComparisonOperator.NOT_NULL.toString(), ddbscanFilter_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.NOT_NULL, ddbscanFilter_value.comparisonOperator());
         Assert.assertEquals(null, ddbscanFilter_value.attributeValueList());
     }
 
@@ -98,7 +98,7 @@ public class FilterConditionTest {
         Condition ddbscanFilter_value = ddbscanFilter.getValue();
 
         Assert.assertEquals("foo", ddbscanFilter_attrName);
-        Assert.assertEquals(ComparisonOperator.NULL.toString(), ddbscanFilter_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.NULL, ddbscanFilter_value.comparisonOperator());
         Assert.assertEquals(null, ddbscanFilter_value.attributeValueList());
     }
 
@@ -110,7 +110,7 @@ public class FilterConditionTest {
         Condition ddbscanFilter_value = ddbscanFilter.getValue();
 
         Assert.assertEquals("foo", ddbscanFilter_attrName);
-        Assert.assertEquals(ComparisonOperator.CONTAINS.toString(), ddbscanFilter_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.CONTAINS, ddbscanFilter_value.comparisonOperator());
         Assert.assertEquals(1, ddbscanFilter_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbscanFilter_value.attributeValueList().get(0).s());
     }
@@ -123,7 +123,7 @@ public class FilterConditionTest {
         Condition ddbscanFilter_value = ddbscanFilter.getValue();
 
         Assert.assertEquals("foo", ddbscanFilter_attrName);
-        Assert.assertEquals(ComparisonOperator.NOT_CONTAINS.toString(), ddbscanFilter_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.NOT_CONTAINS, ddbscanFilter_value.comparisonOperator());
         Assert.assertEquals(1, ddbscanFilter_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbscanFilter_value.attributeValueList().get(0).s());
     }
@@ -136,7 +136,7 @@ public class FilterConditionTest {
         Condition ddbscanFilter_value = ddbscanFilter.getValue();
 
         Assert.assertEquals("foo", ddbscanFilter_attrName);
-        Assert.assertEquals(ComparisonOperator.BEGINS_WITH.toString(), ddbscanFilter_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.BEGINS_WITH, ddbscanFilter_value.comparisonOperator());
         Assert.assertEquals(1, ddbscanFilter_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbscanFilter_value.attributeValueList().get(0).s());
     }
@@ -150,7 +150,7 @@ public class FilterConditionTest {
         Condition ddbscanFilter_value = ddbscanFilter.getValue();
 
         Assert.assertEquals("foo", ddbscanFilter_attrName);
-        Assert.assertEquals(ComparisonOperator.IN.toString(), ddbscanFilter_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.IN, ddbscanFilter_value.comparisonOperator());
         Assert.assertEquals(1, ddbscanFilter_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbscanFilter_value.attributeValueList().get(0).s());
 
@@ -165,7 +165,7 @@ public class FilterConditionTest {
         Assert.assertEquals("bar", ddbscanFilter_value.attributeValueList().get(0).s());
         Assert.assertEquals("charlie", ddbscanFilter_value.attributeValueList().get(1).s());
         Assert.assertEquals(true, ddbscanFilter_value.attributeValueList().get(2).nul());
-        Assert.assertEquals(ComparisonOperator.IN.toString(), ddbscanFilter_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.IN, ddbscanFilter_value.comparisonOperator());
 
         // Null values
         try {
@@ -195,7 +195,7 @@ public class FilterConditionTest {
         Assert.assertEquals(2, ddbscanFilter_value.attributeValueList().size());
         Assert.assertEquals("0", ddbscanFilter_value.attributeValueList().get(0).n());
         Assert.assertEquals("100", ddbscanFilter_value.attributeValueList().get(1).n());
-        Assert.assertEquals(ComparisonOperator.BETWEEN.toString(), ddbscanFilter_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.BETWEEN, ddbscanFilter_value.comparisonOperator());
     }
 
     @Test
@@ -206,7 +206,7 @@ public class FilterConditionTest {
         Condition ddbscanFilter_value = ddbscanFilter.getValue();
 
         Assert.assertEquals("foo", ddbscanFilter_attrName);
-        Assert.assertEquals(ComparisonOperator.GE.toString(), ddbscanFilter_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.GE, ddbscanFilter_value.comparisonOperator());
         Assert.assertEquals(1, ddbscanFilter_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbscanFilter_value.attributeValueList().get(0).s());
     }
@@ -219,7 +219,7 @@ public class FilterConditionTest {
         Condition ddbscanFilter_value = ddbscanFilter.getValue();
 
         Assert.assertEquals("foo", ddbscanFilter_attrName);
-        Assert.assertEquals(ComparisonOperator.GT.toString(), ddbscanFilter_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.GT, ddbscanFilter_value.comparisonOperator());
         Assert.assertEquals(1, ddbscanFilter_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbscanFilter_value.attributeValueList().get(0).s());
     }
@@ -232,7 +232,7 @@ public class FilterConditionTest {
         Condition ddbscanFilter_value = ddbscanFilter.getValue();
 
         Assert.assertEquals("foo", ddbscanFilter_attrName);
-        Assert.assertEquals(ComparisonOperator.LE.toString(), ddbscanFilter_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.LE, ddbscanFilter_value.comparisonOperator());
         Assert.assertEquals(1, ddbscanFilter_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbscanFilter_value.attributeValueList().get(0).s());
     }
@@ -245,7 +245,7 @@ public class FilterConditionTest {
         Condition ddbscanFilter_value = ddbscanFilter.getValue();
 
         Assert.assertEquals("foo", ddbscanFilter_attrName);
-        Assert.assertEquals(ComparisonOperator.LT.toString(), ddbscanFilter_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.LT, ddbscanFilter_value.comparisonOperator());
         Assert.assertEquals(1, ddbscanFilter_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbscanFilter_value.attributeValueList().get(0).s());
     }

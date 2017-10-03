@@ -65,6 +65,8 @@
         </Or>
         <!-- URF_UNREAD_FIELD, DLS_DEAD_LOCAL_STORE: Sometimes we have unread variables and fields because they're only
         conditionally used. It's cleaner to just always generate them, even if we may not actually be using them. -->
-        <Bug pattern="URF_UNREAD_FIELD,DLS_DEAD_LOCAL_STORE" />
+        <!-- REC_CATCH_EXCEPTION: Sometimes we want to convert runtime exceptions into sdk exceptions, so we catch it and
+        wrap it in an sdk-specific exception. -->
+        <Bug pattern="URF_UNREAD_FIELD,DLS_DEAD_LOCAL_STORE, REC_CATCH_EXCEPTION" />
     </Match>
 </FindBugsFilter>

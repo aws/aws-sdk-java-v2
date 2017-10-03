@@ -183,17 +183,17 @@ public class Topics {
     public static String subscribeQueue(SNSClient sns, SQSClient sqs, String snsTopicArn, String sqsQueueUrl,
                                         boolean extendPolicy)
             throws AmazonClientException, AmazonServiceException {
-        List<String> sqsAttrNames = Arrays.asList(QueueAttributeName.QueueArn.toString(),
-                                                  QueueAttributeName.Policy.toString());
+        List<String> sqsAttrNames = Arrays.asList(QueueAttributeName.QUEUE_ARN.toString(),
+                                                  QueueAttributeName.POLICY.toString());
         Map<String, String> sqsAttrs =
                 sqs.getQueueAttributes(GetQueueAttributesRequest.builder()
                         .queueUrl(sqsQueueUrl)
                         .attributeNames(sqsAttrNames)
                         .build())
-                        .attributes();
-        String sqsQueueArn = sqsAttrs.get(QueueAttributeName.QueueArn.toString());
+                        .attributesStrings();
+        String sqsQueueArn = sqsAttrs.get(QueueAttributeName.QUEUE_ARN.toString());
 
-        String policyJson = sqsAttrs.get(QueueAttributeName.Policy.toString());
+        String policyJson = sqsAttrs.get(QueueAttributeName.POLICY.toString());
         Policy policy = extendPolicy && policyJson != null && policyJson.length() > 0
                         ? Policy.fromJson(policyJson) : new Policy();
         policy.getStatements().add(new Statement(Effect.Allow)
@@ -204,7 +204,7 @@ public class Topics {
                                            .withConditions(ConditionFactory.newSourceArnCondition(snsTopicArn)));
 
         Map<String, String> newAttrs = new HashMap<String, String>();
-        newAttrs.put(QueueAttributeName.Policy.toString(), policy.toJson());
+        newAttrs.put(QueueAttributeName.POLICY.toString(), policy.toJson());
         sqs.setQueueAttributes(SetQueueAttributesRequest.builder().queueUrl(sqsQueueUrl).attributes(newAttrs).build());
 
         SubscribeResponse subscribeResult = sns.subscribe(SubscribeRequest.builder()

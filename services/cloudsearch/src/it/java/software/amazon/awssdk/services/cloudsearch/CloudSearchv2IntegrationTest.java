@@ -178,7 +178,7 @@ public class CloudSearchv2IntegrationTest extends AwsIntegrationTestBase {
     public void testIndexDocuments() {
 
         IndexField indexField = IndexField.builder().indexFieldName(
-                testIndexName).indexFieldType(IndexFieldType.Literal).build();
+                testIndexName).indexFieldType(IndexFieldType.LITERAL).build();
 
         cloudSearch.defineIndexField(DefineIndexFieldRequest.builder()
                                                             .domainName(testDomainName).indexField(indexField).build());
@@ -322,7 +322,7 @@ public class CloudSearchv2IntegrationTest extends AwsIntegrationTestBase {
                                                                                          IndexField.builder()
                                                                                                    .indexFieldName(testIndexName)
                                                                                                    .indexFieldType(
-                                                                                                           IndexFieldType.Text)
+                                                                                                           IndexFieldType.TEXT)
                                                                                                    .textOptions(
                                                                                                            TextOptions.builder()
                                                                                                                       .analysisScheme(
@@ -381,7 +381,7 @@ public class CloudSearchv2IntegrationTest extends AwsIntegrationTestBase {
 
         AnalysisScheme analysisScheme = AnalysisScheme.builder()
                                                       .analysisSchemeName(testAnalysisSchemeName)
-                                                      .analysisSchemeLanguage(AnalysisSchemeLanguage.Ar).build();
+                                                      .analysisSchemeLanguage(AnalysisSchemeLanguage.AR).build();
         cloudSearch.defineAnalysisScheme(DefineAnalysisSchemeRequest.builder()
                                                                     .domainName(testDomainName).analysisScheme(
                         analysisScheme).build());
@@ -393,7 +393,7 @@ public class CloudSearchv2IntegrationTest extends AwsIntegrationTestBase {
                                        .domainName(testDomainName)
                                        .indexField(IndexField.builder()
                                                              .indexFieldName(testIndexName)
-                                                             .indexFieldType(IndexFieldType.Text)
+                                                             .indexFieldType(IndexFieldType.TEXT)
                                                              .textOptions(TextOptions.builder()
                                                                                      .analysisScheme(testAnalysisSchemeName)
                                                                                      .build()).build()).build();
@@ -407,7 +407,7 @@ public class CloudSearchv2IntegrationTest extends AwsIntegrationTestBase {
         assertEquals(schemeStatus.options().analysisSchemeName(),
                      testAnalysisSchemeName);
         assertEquals(schemeStatus.options().analysisSchemeLanguage(),
-                     AnalysisSchemeLanguage.Ar.toString());
+                     AnalysisSchemeLanguage.AR);
 
         DescribeIndexFieldsResponse describeIndexFieldsResult = cloudSearch
                 .describeIndexFields(DescribeIndexFieldsRequest.builder()
@@ -427,7 +427,7 @@ public class CloudSearchv2IntegrationTest extends AwsIntegrationTestBase {
     @Test
     public void testScalingParameters() {
         ScalingParameters scalingParameters = ScalingParameters.builder()
-                                                               .desiredInstanceType(PartitionInstanceType.SearchM1Small)
+                                                               .desiredInstanceType(PartitionInstanceType.SEARCH_M1_SMALL)
                                                                .desiredReplicationCount(5)
                                                                .desiredPartitionCount(5).build();
         cloudSearch.updateScalingParameters(UpdateScalingParametersRequest.builder()

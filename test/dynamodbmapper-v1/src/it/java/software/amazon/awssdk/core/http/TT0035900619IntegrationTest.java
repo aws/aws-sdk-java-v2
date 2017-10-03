@@ -65,8 +65,8 @@ public class TT0035900619IntegrationTest {
             throws InterruptedException {
         DescribeTableResponse result = client.describeTable(DescribeTableRequest.builder().tableName(tableName).build());
         TableDescription desc = result.table();
-        String status = desc.tableStatus();
-        for (;; status = desc.tableStatus()) {
+        String status = desc.tableStatusString();
+        for (;; status = desc.tableStatusString()) {
             if ("ACTIVE".equals(status)) {
                 return desc;
             } else if ("CREATING".equals(status) || "UPDATING".equals(status)) {
