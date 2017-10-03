@@ -69,7 +69,7 @@ public class ServiceIntegrationTest extends AwsTestBase {
                         .ebsOptions(EBSOptions.builder()
                                               .ebsEnabled(true)
                                               .volumeSize(10)
-                                              .volumeType(VolumeType.Standard)
+                                              .volumeType(VolumeType.STANDARD)
                                               .build())
                         .domainName(DOMAIN_NAME)
                         .build()).domainStatus();

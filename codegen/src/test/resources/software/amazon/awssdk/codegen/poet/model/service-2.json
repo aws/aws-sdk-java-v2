@@ -69,11 +69,16 @@
         "DoubleMember":{"shape":"Double"},
         "LongMember":{"shape":"Long"},
         "SimpleList":{"shape":"ListOfStrings"},
+        "ListOfEnums":{"shape":"ListOfEnums"},
         "ListOfMaps":{"shape":"ListOfMapStringToString"},
         "ListOfStructs":{"shape":"ListOfSimpleStructs"},
         "MapOfStringToIntegerList":{"shape":"MapOfStringToIntegerList"},
         "MapOfStringToString":{"shape":"MapOfStringToString"},
-        "MapOfStringToStruct":{"shape":"MapOfStringToSimpleStruct"},
+        "MapOfStringToSimpleStruct":{"shape":"MapOfStringToSimpleStruct"},
+        "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"},
+        "MapOfEnumToString":{"shape":"MapOfEnumToString"},
+        "MapOfStringToEnum":{"shape":"MapOfStringToEnum"},
+        "MapOfEnumToSimpleStruct":{"shape":"MapOfEnumToSimpleStruct"},
         "TimestampMember":{"shape":"Timestamp"},
         "StructWithNestedTimestampMember":{"shape":"StructWithTimestamp"},
         "BlobArg":{"shape":"BlobType"},
@@ -145,6 +150,10 @@
       "type":"list",
       "member":{"shape":"String"}
     },
+    "ListOfEnums":{
+      "type":"list",
+      "member":{"shape":"EnumType"}
+    },
     "Long":{"type":"long"},
     "MapOfStringToIntegerList":{
       "type":"map",
@@ -165,6 +174,26 @@
       "type":"map",
       "key":{"shape":"String"},
       "value":{"shape":"String"}
+    },
+    "MapOfEnumToEnum":{
+      "type":"map",
+      "key":{"shape":"EnumType"},
+      "value":{"shape":"EnumType"}
+    },
+    "MapOfEnumToString":{
+      "type":"map",
+      "key":{"shape":"EnumType"},
+      "value":{"shape":"String"}
+    },
+    "MapOfStringToEnum":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"EnumType"}
+    },
+    "MapOfEnumToSimpleStruct":{
+      "type":"map",
+      "key":{"shape":"EnumType"},
+      "value":{"shape":"SimpleStruct"}
     },
     "NestedContainersStructure":{
       "type":"structure",

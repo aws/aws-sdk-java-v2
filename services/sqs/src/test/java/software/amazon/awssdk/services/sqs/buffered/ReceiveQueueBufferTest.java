@@ -36,7 +36,7 @@ public class ReceiveQueueBufferTest {
     private static final Map<String, String> QUEUE_ATTRIBUTES = new HashMap<String, String>();
 
     static {
-        QUEUE_ATTRIBUTES.put(QueueAttributeName.VisibilityTimeout.toString(),
+        QUEUE_ATTRIBUTES.put(QueueAttributeName.VISIBILITY_TIMEOUT.toString(),
                 String.valueOf(VISIBILITY_TIMEOUT_SECONDS));
     }
 

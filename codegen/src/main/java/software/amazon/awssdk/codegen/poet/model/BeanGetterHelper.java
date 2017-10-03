@@ -61,7 +61,8 @@ public final class BeanGetterHelper {
     }
 
     private MethodSpec mapOfBuildersGetter(MemberModel memberModel) {
-        TypeName keyType = typeProvider.getTypeNameForSimpleType(memberModel.getMapModel().getKeyType());
+        TypeName keyType = typeProvider.getTypeNameForSimpleType(memberModel.getMapModel().getKeyModel()
+                                                                            .getVariable().getVariableType());
         ClassName valueType = poetExtensions.getModelClass(memberModel.getMapModel().getValueModel().getC2jShape());
         TypeName returnType = ParameterizedTypeName.get(ClassName.get(Map.class), keyType, valueType.nestedClass("Builder"));
 

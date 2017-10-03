@@ -68,7 +68,7 @@ public class HelloWorldIntegrationTest extends IntegrationTestBase {
                 .code(FunctionCode.builder().zipFile(ByteBuffer.wrap(functionBits)).build())
                 .handler("helloworld.handler")
                 .memorySize(128)
-                .runtime(Runtime.Nodejs43)
+                .runtime(Runtime.NODEJS4_3)
                 .timeout(10)
                 .role(lambdaServiceRoleArn)
                 .build())
@@ -137,10 +137,10 @@ public class HelloWorldIntegrationTest extends IntegrationTestBase {
     }
 
     public static interface HelloWorldService {
-        @LambdaFunction(functionName = "helloWorld", invocationType = InvocationType.Event)
+        @LambdaFunction(functionName = "helloWorld", invocationType = InvocationType.EVENT)
         void helloWorldAsync();
 
-        @LambdaFunction(functionName = "helloWorld", invocationType = InvocationType.DryRun)
+        @LambdaFunction(functionName = "helloWorld", invocationType = InvocationType.DRY_RUN)
         void helloWorldDryRun();
 
         @LambdaFunction
@@ -149,7 +149,7 @@ public class HelloWorldIntegrationTest extends IntegrationTestBase {
         @LambdaFunction
         String helloWorld(String input);
 
-        @LambdaFunction(logType = LogType.Tail)
+        @LambdaFunction(logType = LogType.TAIL)
         String helloWorld(ComplexInput input);
 
         @LambdaFunction(functionName = "helloWorld")

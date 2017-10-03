@@ -7,17 +7,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.runtime.StandardMemberCopier;
 
 @Generated("software.amazon.awssdk:codegen")
 final class MapOfStringToListOfListOfStringsCopier {
-    static Map<String, List<List<String>>> copy(Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStringsParam) {
+    static Map<String, List<List<String>>> copy(
+            Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStringsParam) {
         if (mapOfStringToListOfListOfStringsParam == null) {
             return null;
         }
         Map<String, List<List<String>>> mapOfStringToListOfListOfStringsParamCopy = mapOfStringToListOfListOfStringsParam
-            .entrySet().stream()
-            .collect(toMap(e -> StandardMemberCopier.copy(e.getKey()), e -> ListOfListOfStringsCopier.copy(e.getValue())));
+                .entrySet().stream().collect(toMap(Map.Entry::getKey, e -> ListOfListOfStringsCopier.copy(e.getValue())));
         return Collections.unmodifiableMap(mapOfStringToListOfListOfStringsParamCopy);
     }
 }

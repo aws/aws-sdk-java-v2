@@ -150,7 +150,7 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
         CreateFunctionResponse result = lambda.createFunction(CreateFunctionRequest.builder()
                 .description("My cloud function").functionName(FUNCTION_NAME)
                 .code(FunctionCode.builder().zipFile(ByteBuffer.wrap(functionBits)).build())
-                .handler("helloworld.handler").memorySize(128).runtime(Runtime.Nodejs43).timeout(10)
+                .handler("helloworld.handler").memorySize(128).runtime(Runtime.NODEJS4_3).timeout(10)
                 .role(lambdaServiceRoleArn).build()).join();
 
         checkValid_CreateFunctionResponse(result);
@@ -182,14 +182,14 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
 
         // Invoke the function
         InvokeResponse invokeResult = lambda.invoke(InvokeRequest.builder().functionName(FUNCTION_NAME)
-                .invocationType(InvocationType.Event).payload(ByteBuffer.wrap("{}".getBytes())).build()).join();
+                .invocationType(InvocationType.EVENT).payload(ByteBuffer.wrap("{}".getBytes())).build()).join();
 
         Assert.assertEquals(202, invokeResult.statusCode().intValue());
         Assert.assertNull(invokeResult.logResult());
         Assert.assertEquals(0, invokeResult.payload().remaining());
 
         invokeResult = lambda.invoke(InvokeRequest.builder().functionName(FUNCTION_NAME)
-                .invocationType(InvocationType.RequestResponse).logType(LogType.Tail)
+                .invocationType(InvocationType.REQUEST_RESPONSE).logType(LogType.TAIL)
                 .payload(ByteBuffer.wrap("{}".getBytes())).build()).join();
 
         Assert.assertEquals(200, invokeResult.statusCode().intValue());

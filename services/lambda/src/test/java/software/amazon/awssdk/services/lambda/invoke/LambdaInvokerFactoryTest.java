@@ -500,16 +500,16 @@ public class LambdaInvokerFactoryTest {
         @LambdaFunction
         void doIt();
 
-        @LambdaFunction(functionName = "doIt", invocationType = InvocationType.Event)
+        @LambdaFunction(functionName = "doIt", invocationType = InvocationType.EVENT)
         void doItAsynchronously();
 
-        @LambdaFunction(functionName = "doIt", logType = LogType.Tail)
+        @LambdaFunction(functionName = "doIt", logType = LogType.TAIL)
         void doItWithLogs();
 
-        @LambdaFunction(functionName = "doIt", invocationType = InvocationType.Event, logType = LogType.Tail)
+        @LambdaFunction(functionName = "doIt", invocationType = InvocationType.EVENT, logType = LogType.TAIL)
         void doItAsyncLogs();
 
-        @LambdaFunction(functionName = "doIt", invocationType = InvocationType.DryRun, logType = LogType.Tail)
+        @LambdaFunction(functionName = "doIt", invocationType = InvocationType.DRY_RUN, logType = LogType.TAIL)
         void doItDryRunLogs();
 
         @LambdaFunction

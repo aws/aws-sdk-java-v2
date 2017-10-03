@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.runtime.StandardMemberCopier;
 
 @Generated("software.amazon.awssdk:codegen")
 final class MapOfStringToIntegerListCopier {
@@ -16,7 +15,7 @@ final class MapOfStringToIntegerListCopier {
             return null;
         }
         Map<String, List<Integer>> mapOfStringToIntegerListParamCopy = mapOfStringToIntegerListParam.entrySet().stream()
-                                                                                                    .collect(toMap(e -> StandardMemberCopier.copy(e.getKey()), e -> ListOfIntegersCopier.copy(e.getValue())));
+                                                                                                    .collect(toMap(Map.Entry::getKey, e -> ListOfIntegersCopier.copy(e.getValue())));
         return Collections.unmodifiableMap(mapOfStringToIntegerListParamCopy);
     }
 }

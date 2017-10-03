@@ -188,11 +188,11 @@ public class UpdateItemSpec extends AbstractSpecWithPrimaryKey<UpdateItemRequest
     }
 
     public String getConditionalOperator() {
-        return getRequest().conditionalOperator();
+        return getRequest().conditionalOperatorString();
     }
 
     public String getReturnConsumedCapacity() {
-        return getRequest().returnConsumedCapacity();
+        return getRequest().returnConsumedCapacityString();
     }
 
     public UpdateItemSpec withReturnConsumedCapacity(
@@ -208,7 +208,7 @@ public class UpdateItemSpec extends AbstractSpecWithPrimaryKey<UpdateItemRequest
     }
 
     public String getReturnItemCollectionMetrics() {
-        return getRequest().returnItemCollectionMetrics();
+        return getRequest().returnItemCollectionMetricsString();
     }
 
     public UpdateItemSpec withReturnItemCollectionMetrics(
@@ -224,7 +224,7 @@ public class UpdateItemSpec extends AbstractSpecWithPrimaryKey<UpdateItemRequest
     }
 
     public String getReturnValues() {
-        return getRequest().returnValues();
+        return getRequest().returnValuesString();
     }
 
     public UpdateItemSpec withReturnValues(ReturnValue returnValues) {

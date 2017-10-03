@@ -5,7 +5,6 @@ import static java.util.stream.Collectors.toMap;
 import java.util.Collections;
 import java.util.Map;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.runtime.StandardMemberCopier;
 
 @Generated("software.amazon.awssdk:codegen")
 final class MapOfStringToStringCopier {
@@ -13,11 +12,8 @@ final class MapOfStringToStringCopier {
         if (mapOfStringToStringParam == null) {
             return null;
         }
-
         Map<String, String> mapOfStringToStringParamCopy = mapOfStringToStringParam.entrySet().stream()
-                                                                                   .collect(toMap(e -> StandardMemberCopier.copy(e.getKey()), Map.Entry::getValue));
-
+                                                                                   .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
         return Collections.unmodifiableMap(mapOfStringToStringParamCopy);
     }
 }
-

@@ -463,8 +463,7 @@ public class KinesisIntegrationTests extends AbstractTestCase {
             Assert.assertNotNull(description.streamARN());
             Assert.assertFalse(description.hasMoreShards());
 
-            StreamStatus status =
-                    StreamStatus.valueOf(description.streamStatus());
+            StreamStatus status = description.streamStatus();
             Assert.assertNotNull(status);
 
             if (status == StreamStatus.ACTIVE) {

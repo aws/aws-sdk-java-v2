@@ -113,7 +113,7 @@ public class ServiceModelCopiers {
         } else if (memberModel.isMap()) {
             MapModel mapModel = memberModel.getMapModel();
             // NOTE: keys are always simple, so don't bother checking
-            if (!mapModel.isValueSimple()) {
+            if (!mapModel.getValueModel().isSimple()) {
                 MemberModel valueMember = mapModel.getValueModel();
                 allMembers.put(valueMember.getC2jShape(), valueMember);
                 putMembersOfMember(valueMember, allMembers);

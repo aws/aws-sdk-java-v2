@@ -59,7 +59,7 @@ public @interface LambdaFunction {
      *                                      </code>
      * @see InvokeRequest#invocationType(InvocationType)
      */
-    InvocationType invocationType() default InvocationType.RequestResponse;
+    InvocationType invocationType() default InvocationType.REQUEST_RESPONSE;
 
     /**
      * The type of log to request from the service. If unspecified, no logs will be requested. If
@@ -71,5 +71,5 @@ public @interface LambdaFunction {
      * @see InvokeRequest#logType(LogType)
      * @see LoggerFactory.getLogger(Class)
      */
-    LogType logType() default LogType.None;
+    LogType logType() default LogType.NONE;
 }

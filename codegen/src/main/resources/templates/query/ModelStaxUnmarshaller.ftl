@@ -91,7 +91,7 @@ public class ${shape.shapeName}Unmarshaller implements Unmarshaller<${shape.shap
 
         <#if !memberModel.http.location?? || memberModel.http.location != "headers">
             <#if memberModel.map>
-                java.util.Map<${memberModel.mapModel.keyType}, ${memberModel.mapModel.valueType}> ${memberModel.variable.variableName} = null;
+                java.util.Map<${memberModel.mapModel.keyModel.variable.variableType}, ${memberModel.mapModel.valueModel.variable.variableType}> ${memberModel.variable.variableName} = null;
             </#if>
             <#if memberModel.list>
                 java.util.List<${memberModel.listModel.memberType}> ${memberModel.variable.variableName} = null;
@@ -102,7 +102,7 @@ public class ${shape.shapeName}Unmarshaller implements Unmarshaller<${shape.shap
 
 <#list shape.members as memberModel>
     <#if memberModel.map && memberModel.http.location?? && memberModel.http.location == "headers">
-    Map<${memberModel.mapModel.keyType}, ${memberModel.mapModel.valueType}> ${memberModel.variable.variableName} = new HashMap<>();
+    Map<${memberModel.mapModel.keyModel.variable.variableType}, ${memberModel.mapModel.valueModel.variable.variableType}> ${memberModel.variable.variableName} = new HashMap<>();
     context.getHeaders().entrySet().stream().filter(e -> e.getKey().startsWith("${memberModel.http.unmarshallLocationName}")).forEach(e -> {
         ${memberModel.variable.variableName}.put(e.getKey().replace("${memberModel.http.unmarshallLocationName}", ""), e.getValue());
     });
@@ -115,7 +115,7 @@ public class ${shape.shapeName}Unmarshaller implements Unmarshaller<${shape.shap
 <#list shape.members as memberModel>
     <#if !memberModel.http.location?? || memberModel.http.location != "headers">
         <#if memberModel.map>
-            java.util.Map<${memberModel.mapModel.keyType}, ${memberModel.mapModel.valueType}> ${memberModel.variable.variableName} = null;
+            java.util.Map<${memberModel.mapModel.keyModel.variable.variableType}, ${memberModel.mapModel.valueModel.variable.variableType}> ${memberModel.variable.variableName} = null;
         </#if>
         <#if memberModel.list>
             java.util.List<${memberModel.listModel.memberType}> ${memberModel.variable.variableName} = null;

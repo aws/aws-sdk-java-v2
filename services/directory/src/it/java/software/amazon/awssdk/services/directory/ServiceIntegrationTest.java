@@ -49,7 +49,7 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
         String dsId = dsClient
                 .createDirectory(CreateDirectoryRequest.builder().description("This is my directory!")
                                                              .name("AWS.Java.SDK.Directory").shortName("md").password("My.Awesome.Password.2015")
-                                                             .size(DirectorySize.Small).vpcSettings(
+                                                             .size(DirectorySize.SMALL).vpcSettings(
                                 DirectoryVpcSettings.builder().vpcId(vpcId).subnetIds(subnetId_0, subnetId_1).build()).build())
                 .directoryId();
 

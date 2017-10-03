@@ -59,6 +59,141 @@
     }
   },
   {
+    "description": "Enum with known values unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"EnumMember\": \"EnumValue1\"}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "EnumMember": "EnumValue1"
+      }
+    }
+  },
+  {
+    "description": "Enum with unknown values unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"EnumMember\": \"XXXXX\"}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "EnumMember": "XXXXX"
+      }
+    }
+  },
+  {
+    "description": "Enum list with known values unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"ListOfEnums\": [\"EnumValue1\", \"EnumValue2\"]}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "ListOfEnums": ["EnumValue1", "EnumValue2"]
+      }
+    }
+  },
+  {
+    "description": "Enum list with unknown values unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"ListOfEnums\": [\"XXXXX\", \"EnumValue2\"]}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "ListOfEnums": ["XXXXX", "EnumValue2"]
+      }
+    }
+  },
+  {
+    "description": "Enum map with known everything unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"MapOfEnumToEnum\": { \"EnumValue1\": \"EnumValue1\", \"EnumValue2\": \"EnumValue2\" }}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "MapOfEnumToEnum": {
+          "EnumValue1": "EnumValue1",
+          "EnumValue2": "EnumValue2"
+        }
+      }
+    }
+  },
+  {
+    "description": "Enum map with unknown keys unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"MapOfEnumToEnum\": { \"XXXXX\": \"EnumValue1\", \"EnumValue2\": \"EnumValue2\" }}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "MapOfEnumToEnum": {
+          "XXXXX": "EnumValue1",
+          "EnumValue2": "EnumValue2"
+        }
+      }
+    }
+  },
+  {
+    "description": "Enum map with unknown values unmarshalled correctly",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "body": "{\"MapOfEnumToEnum\": { \"EnumValue1\": \"XXXXX\", \"EnumValue2\": \"EnumValue2\" }}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "deserializedAs": {
+        "MapOfEnumToEnum": {
+          "EnumValue1": "XXXXX",
+          "EnumValue2": "EnumValue2"
+        }
+      }
+    }
+  },
+  {
     "description": "Base64 encoded blob member is unmarshalled correctly",
     "given": {
       "response": {

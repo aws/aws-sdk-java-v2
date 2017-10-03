@@ -99,7 +99,7 @@ public class ${shapeName}Marshaller implements Marshaller<Request<${shapeName}>,
                    <#elseif member.isMap()>
                       <#local loopVariable = member.variable.variableName + "Entry"/>
                       jsonGenerator.writeStartObject();
-                      for(Map.Entry<${member.mapModel.keyType},${member.mapModel.valueType}> ${loopVariable} : ${member.variable.variableName}.entrySet()) {
+                      for(Map.Entry<${member.mapModel.keyModel.variable.variableType},${member.mapModel.valueModel.variable.variableType}> ${loopVariable} : ${member.variable.variableName}.entrySet()) {
                           if (${loopVariable}.getValue() != null) {
                               jsonGenerator.writeFieldName(${loopVariable}.getKey());
 

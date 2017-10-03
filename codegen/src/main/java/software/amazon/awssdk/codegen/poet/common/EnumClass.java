@@ -15,12 +15,10 @@
 
 package software.amazon.awssdk.codegen.poet.common;
 
-import static java.util.Collections.singletonList;
 import static software.amazon.awssdk.codegen.poet.PoetUtils.addDeprecated;
 import static software.amazon.awssdk.codegen.poet.PoetUtils.addJavadoc;
 import static software.amazon.awssdk.codegen.poet.PoetUtils.createEnumBuilder;
 import static software.amazon.awssdk.codegen.poet.PoetUtils.toStringBuilder;
-import static software.amazon.awssdk.codegen.poet.StaticImport.staticMethodImport;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
@@ -30,8 +28,6 @@ import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.StaticImport;
-import software.amazon.awssdk.utils.StringUtils;
 
 public final class EnumClass implements ClassSpec {
 
@@ -48,7 +44,7 @@ public final class EnumClass implements ClassSpec {
     public TypeSpec poetSpec() {
         Builder enumBuilder = createEnumBuilder(className)
             .addField(String.class, VALUE, Modifier.PRIVATE, Modifier.FINAL)
-            .addMethod(toStringBuilder().addStatement("return $N", VALUE).build())
+            .addMethod(toStringBuilder().addStatement("return $T.valueOf($N)", String.class, VALUE).build())
             .addMethod(fromValueSpec())
             .addMethod(createConstructor());
 
@@ -58,6 +54,7 @@ public final class EnumClass implements ClassSpec {
         shape.getEnums().forEach(
             e -> enumBuilder.addEnumConstant(e.getName(), TypeSpec.anonymousClassBuilder("$S", e.getValue()).build())
         );
+        enumBuilder.addEnumConstant("UNKNOWN_TO_SDK_VERSION", TypeSpec.anonymousClassBuilder("null").build());
 
         return enumBuilder.build();
     }
@@ -65,11 +62,6 @@ public final class EnumClass implements ClassSpec {
     @Override
     public ClassName className() {
         return className;
-    }
-
-    @Override
-    public Iterable<StaticImport> staticImports() {
-        return singletonList(staticMethodImport(StringUtils.class, "isBlank"));
     }
 
     private MethodSpec createConstructor() {
@@ -84,23 +76,21 @@ public final class EnumClass implements ClassSpec {
         return MethodSpec.methodBuilder("fromValue")
                          .returns(className)
                          .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                         .addJavadoc("Use this in place of valueOf.\n\n" +
+                         .addJavadoc("Use this in place of valueOf to convert the raw string returned by the service into the " +
+                                     "enum value.\n\n" +
                                      "@param $N real value\n" +
                                      "@return $T corresponding to the value\n", VALUE, className)
                          .addParameter(String.class, VALUE)
-                         .beginControlFlow("if ($T.isBlank($N))", StringUtils.class, VALUE)
-                         .addStatement("throw new $T($S)", IllegalArgumentException.class, "Value cannot be null or empty!")
+                         .beginControlFlow("if ($N == null)", VALUE)
+                         .addStatement("return null")
                          .endControlFlow()
                          .addStatement("return $1T.of($2T.values())\n" +
                                        ".filter(e -> e.toString().equals($3N))\n" +
                                        ".findFirst()\n" +
-                                       ".orElseThrow(() -> new $4T($5S + $3N + $6S))",
+                                       ".orElse(UNKNOWN_TO_SDK_VERSION)",
                                        Stream.class,
                                        className,
-                                       VALUE,
-                                       IllegalArgumentException.class,
-                                       "Cannot create enum from ",
-                                       " value!")
+                                       VALUE)
                          .build();
     }
 }

@@ -68,13 +68,13 @@ public class JsonIntegrationTest extends AwsTestBase {
         Thread.sleep(10000);
 
         while (true) {
-            String status = client.describeTable(DescribeTableRequest.builder().tableName(TABLE_NAME).build())
-                                  .table()
-                                  .tableStatus();
+            TableStatus status = client.describeTable(DescribeTableRequest.builder().tableName(TABLE_NAME).build())
+                                       .table()
+                                       .tableStatus();
 
-            if (status.equals(TableStatus.ACTIVE.toString())) {
+            if (status == TableStatus.ACTIVE) {
                 break;
-            } else if (!status.equals(TableStatus.CREATING.toString())) {
+            } else if (status != TableStatus.CREATING) {
                 throw new RuntimeException("Table creation failed");
             }
 

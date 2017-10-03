@@ -81,8 +81,8 @@
 
 <#elseif member.map>
     <#local mapModel = member.mapModel/>
-    <#local mapKeyType = mapModel.keyType/>
-    <#local mapValueType = mapModel.valueType/>
+    <#local mapKeyType = mapModel.keyModel.variable.variableType/>
+    <#local mapValueType = mapModel.valueModel.variable.variableType/>
     <#local keyVariableName = "key">
     <#local valueVariableName = "value"/>
 
