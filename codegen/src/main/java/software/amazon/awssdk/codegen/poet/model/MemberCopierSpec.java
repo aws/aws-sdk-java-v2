@@ -108,7 +108,8 @@ class MemberCopierSpec implements ClassSpec {
     }
 
     private MethodSpec builderCopyMethodForList() {
-        TypeName keyType = typeProvider.getTypeNameForSimpleType(memberModel.getMapModel().getKeyType());
+        TypeName keyType = typeProvider.getTypeNameForSimpleType(memberModel.getMapModel().getKeyModel()
+                                                                            .getVariable().getVariableType());
         ClassName valueParameter = poetExtensions.getModelClass(memberModel.getMapModel().getValueModel().getC2jShape());
         ClassName builderForParameter = valueParameter.nestedClass("Builder");
         TypeName parameterType =

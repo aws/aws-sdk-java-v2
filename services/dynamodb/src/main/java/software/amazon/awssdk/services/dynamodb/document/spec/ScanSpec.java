@@ -79,7 +79,7 @@ public class ScanSpec extends AbstractCollectionSpec<ScanRequest> {
      * @see ScanRequest#getConditionalOperator()
      */
     public String getConditionalOperator() {
-        return getRequest().conditionalOperator();
+        return getRequest().conditionalOperatorString();
     }
 
     /**
@@ -194,7 +194,7 @@ public class ScanSpec extends AbstractCollectionSpec<ScanRequest> {
      * @see ScanRequest#getReturnConsumedCapacity()
      */
     public String getReturnConsumedCapacity() {
-        return getRequest().returnConsumedCapacity();
+        return getRequest().returnConsumedCapacityString();
     }
 
     /**
@@ -212,7 +212,7 @@ public class ScanSpec extends AbstractCollectionSpec<ScanRequest> {
      */
     // ALL_ATTRIBUTES | ALL_PROJECTED_ATTRIBUTES | SPECIFIC_ATTRIBUTES | COUNT
     public String select() {
-        return getRequest().select();
+        return getRequest().selectString();
     }
 
     /**

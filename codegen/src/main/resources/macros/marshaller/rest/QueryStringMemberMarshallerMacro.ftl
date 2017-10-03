@@ -10,12 +10,12 @@
 
             ${mapModel.templateType} ${variable.variableName} = ${getMember}();
             if(${variable.variableName} != null) {
-                for (Map.Entry<${mapModel.keyType},${mapModel.valueType}> entry : ${variable.variableName}.entrySet()) {
+                for (Map.Entry<${mapModel.keyModel.variable.variableType},${mapModel.valueModel.variable.variableType}> entry : ${variable.variableName}.entrySet()) {
                     if (entry.getValue() != null) {
                         <#if mapModel.valueModel.list>
-                            request.addParameters(StringUtils.from${mapModel.keyType}(entry.getKey()), entry.getValue());
+                            request.addParameters(StringUtils.from${mapModel.keyModel.variable.variableType}(entry.getKey()), entry.getValue());
                         <#else>
-                            request.addParameter(StringUtils.from${mapModel.keyType}(entry.getKey()), StringUtils.from${mapModel.valueType}(entry.getValue()));
+                            request.addParameter(StringUtils.from${mapModel.keyModel.variable.variableType}(entry.getKey()), StringUtils.from${mapModel.valueModel.variable.variableType}(entry.getValue()));
                         </#if>
                     }
                 }

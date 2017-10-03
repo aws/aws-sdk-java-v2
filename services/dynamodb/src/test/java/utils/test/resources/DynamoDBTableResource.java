@@ -133,7 +133,7 @@ public abstract class DynamoDBTableResource implements TestResource {
     @Override
     public ResourceStatus getResourceStatus() {
         CreateTableRequest createRequest = getCreateTableRequest();
-        TableDescription table = null;
+        TableDescription table;
         try {
             table = getClient().describeTable(DescribeTableRequest.builder().tableName(
                     createRequest.tableName()).build()).table();
@@ -141,11 +141,10 @@ public abstract class DynamoDBTableResource implements TestResource {
             if (ase.getErrorCode().equalsIgnoreCase("ResourceNotFoundException")) {
                 return ResourceStatus.NOT_EXIST;
             }
+            throw ase;
         }
 
-        String tableStatus = table.tableStatus();
-
-        if (tableStatus.equals(TableStatus.ACTIVE.toString())) {
+        if (table.tableStatus() == TableStatus.ACTIVE) {
             // returns AVAILABLE only if table KeySchema + LSIs + GSIs all match.
             if (UnorderedCollectionComparator.equalUnorderedCollections(createRequest.keySchema(), table.keySchema())
                 && equalUnorderedGsiLists(createRequest.globalSecondaryIndexes(), table.globalSecondaryIndexes())
@@ -154,9 +153,9 @@ public abstract class DynamoDBTableResource implements TestResource {
             } else {
                 return ResourceStatus.EXIST_INCOMPATIBLE_RESOURCE;
             }
-        } else if (tableStatus.equals(TableStatus.CREATING.toString())
-                   || tableStatus.equals(TableStatus.UPDATING.toString())
-                   || tableStatus.equals(TableStatus.DELETING.toString())) {
+        } else if (table.tableStatus() == TableStatus.CREATING
+                   || table.tableStatus() == TableStatus.UPDATING
+                   || table.tableStatus() == TableStatus.DELETING) {
             return ResourceStatus.TRANSIENT;
         } else {
             return ResourceStatus.NOT_EXIST;

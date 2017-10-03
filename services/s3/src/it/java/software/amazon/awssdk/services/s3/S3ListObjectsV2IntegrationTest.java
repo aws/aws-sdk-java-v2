@@ -337,7 +337,7 @@ public class S3ListObjectsV2IntegrationTest extends S3IntegrationTestBase {
             long offset = obj.lastModified().toEpochMilli() - Instant.now().toEpochMilli();
             assertTrue(offset < ONE_HOUR_IN_MILLISECONDS);
 
-            assertTrue(obj.storageClass().length() > 1);
+            assertTrue(obj.storageClassString().length() > 1);
 
             if (shouldIncludeOwner) {
                 assertNotNull(obj.owner());

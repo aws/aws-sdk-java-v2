@@ -15,7 +15,7 @@ final class BlobMapTypeCopier {
             return null;
         }
         Map<String, ByteBuffer> blobMapTypeParamCopy = blobMapTypeParam.entrySet().stream()
-                                                                       .collect(toMap(e -> StandardMemberCopier.copy(e.getKey()), e -> StandardMemberCopier.copy(e.getValue())));
+                                                                       .collect(toMap(Map.Entry::getKey, e -> StandardMemberCopier.copy(e.getValue())));
         return Collections.unmodifiableMap(blobMapTypeParamCopy);
     }
 }

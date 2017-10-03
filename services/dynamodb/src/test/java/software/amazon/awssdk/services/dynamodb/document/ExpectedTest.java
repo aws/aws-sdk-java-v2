@@ -47,7 +47,7 @@ public class ExpectedTest {
         ExpectedAttributeValue ddbExpected_value = ddbExpected.getValue();
 
         Assert.assertEquals("foo", ddbExpected_attrName);
-        Assert.assertEquals(ComparisonOperator.EQ.toString(), ddbExpected_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.EQ, ddbExpected_value.comparisonOperator());
         Assert.assertEquals(1, ddbExpected_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbExpected_value.attributeValueList().get(0).s());
         Assert.assertEquals(null, ddbExpected_value.value());
@@ -59,7 +59,7 @@ public class ExpectedTest {
         ddbExpected_value = ddbExpected.getValue();
 
         Assert.assertEquals("foo", ddbExpected_attrName);
-        Assert.assertEquals(ComparisonOperator.EQ.toString(), ddbExpected_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.EQ, ddbExpected_value.comparisonOperator());
         Assert.assertEquals(1, ddbExpected_value.attributeValueList().size());
         Assert.assertEquals(true, ddbExpected_value.attributeValueList().get(0).nul());
         Assert.assertEquals(null, ddbExpected_value.value());
@@ -74,7 +74,7 @@ public class ExpectedTest {
         ExpectedAttributeValue ddbExpected_value = ddbExpected.getValue();
 
         Assert.assertEquals("foo", ddbExpected_attrName);
-        Assert.assertEquals(ComparisonOperator.NE.toString(), ddbExpected_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.NE, ddbExpected_value.comparisonOperator());
         Assert.assertEquals(1, ddbExpected_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbExpected_value.attributeValueList().get(0).s());
         Assert.assertEquals(null, ddbExpected_value.value());
@@ -89,7 +89,7 @@ public class ExpectedTest {
         ExpectedAttributeValue ddbExpected_value = ddbExpected.getValue();
 
         Assert.assertEquals("foo", ddbExpected_attrName);
-        Assert.assertEquals(ComparisonOperator.NOT_NULL.toString(), ddbExpected_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.NOT_NULL, ddbExpected_value.comparisonOperator());
         Assert.assertEquals(null, ddbExpected_value.attributeValueList());
         Assert.assertEquals(null, ddbExpected_value.value());
         Assert.assertEquals(null, ddbExpected_value.exists());
@@ -103,7 +103,7 @@ public class ExpectedTest {
         ExpectedAttributeValue ddbExpected_value = ddbExpected.getValue();
 
         Assert.assertEquals("foo", ddbExpected_attrName);
-        Assert.assertEquals(ComparisonOperator.NULL.toString(), ddbExpected_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.NULL, ddbExpected_value.comparisonOperator());
         Assert.assertEquals(null, ddbExpected_value.attributeValueList());
         Assert.assertEquals(null, ddbExpected_value.value());
         Assert.assertEquals(null, ddbExpected_value.exists());
@@ -117,7 +117,7 @@ public class ExpectedTest {
         ExpectedAttributeValue ddbExpected_value = ddbExpected.getValue();
 
         Assert.assertEquals("foo", ddbExpected_attrName);
-        Assert.assertEquals(ComparisonOperator.CONTAINS.toString(), ddbExpected_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.CONTAINS, ddbExpected_value.comparisonOperator());
         Assert.assertEquals(1, ddbExpected_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbExpected_value.attributeValueList().get(0).s());
         Assert.assertEquals(null, ddbExpected_value.value());
@@ -132,7 +132,7 @@ public class ExpectedTest {
         ExpectedAttributeValue ddbExpected_value = ddbExpected.getValue();
 
         Assert.assertEquals("foo", ddbExpected_attrName);
-        Assert.assertEquals(ComparisonOperator.NOT_CONTAINS.toString(), ddbExpected_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.NOT_CONTAINS, ddbExpected_value.comparisonOperator());
         Assert.assertEquals(1, ddbExpected_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbExpected_value.attributeValueList().get(0).s());
         Assert.assertEquals(null, ddbExpected_value.value());
@@ -147,7 +147,7 @@ public class ExpectedTest {
         ExpectedAttributeValue ddbExpected_value = ddbExpected.getValue();
 
         Assert.assertEquals("foo", ddbExpected_attrName);
-        Assert.assertEquals(ComparisonOperator.BEGINS_WITH.toString(), ddbExpected_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.BEGINS_WITH, ddbExpected_value.comparisonOperator());
         Assert.assertEquals(1, ddbExpected_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbExpected_value.attributeValueList().get(0).s());
         Assert.assertEquals(null, ddbExpected_value.value());
@@ -163,7 +163,7 @@ public class ExpectedTest {
         ExpectedAttributeValue ddbExpected_value = ddbExpected.getValue();
 
         Assert.assertEquals("foo", ddbExpected_attrName);
-        Assert.assertEquals(ComparisonOperator.IN.toString(), ddbExpected_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.IN, ddbExpected_value.comparisonOperator());
         Assert.assertEquals(1, ddbExpected_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbExpected_value.attributeValueList().get(0).s());
         Assert.assertEquals(null, ddbExpected_value.value());
@@ -180,7 +180,7 @@ public class ExpectedTest {
         Assert.assertEquals("bar", ddbExpected_value.attributeValueList().get(0).s());
         Assert.assertEquals("charlie", ddbExpected_value.attributeValueList().get(1).s());
         Assert.assertEquals(true, ddbExpected_value.attributeValueList().get(2).nul());
-        Assert.assertEquals(ComparisonOperator.IN.toString(), ddbExpected_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.IN, ddbExpected_value.comparisonOperator());
         Assert.assertEquals(null, ddbExpected_value.value());
         Assert.assertEquals(null, ddbExpected_value.exists());
 
@@ -212,7 +212,7 @@ public class ExpectedTest {
         Assert.assertEquals(2, ddbExpected_value.attributeValueList().size());
         Assert.assertEquals("0", ddbExpected_value.attributeValueList().get(0).n());
         Assert.assertEquals("100", ddbExpected_value.attributeValueList().get(1).n());
-        Assert.assertEquals(ComparisonOperator.BETWEEN.toString(), ddbExpected_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.BETWEEN, ddbExpected_value.comparisonOperator());
         Assert.assertEquals(null, ddbExpected_value.value());
         Assert.assertEquals(null, ddbExpected_value.exists());
     }
@@ -225,7 +225,7 @@ public class ExpectedTest {
         ExpectedAttributeValue ddbExpected_value = ddbExpected.getValue();
 
         Assert.assertEquals("foo", ddbExpected_attrName);
-        Assert.assertEquals(ComparisonOperator.GE.toString(), ddbExpected_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.GE, ddbExpected_value.comparisonOperator());
         Assert.assertEquals(1, ddbExpected_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbExpected_value.attributeValueList().get(0).s());
         Assert.assertEquals(null, ddbExpected_value.value());
@@ -240,7 +240,7 @@ public class ExpectedTest {
         ExpectedAttributeValue ddbExpected_value = ddbExpected.getValue();
 
         Assert.assertEquals("foo", ddbExpected_attrName);
-        Assert.assertEquals(ComparisonOperator.GT.toString(), ddbExpected_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.GT, ddbExpected_value.comparisonOperator());
         Assert.assertEquals(1, ddbExpected_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbExpected_value.attributeValueList().get(0).s());
         Assert.assertEquals(null, ddbExpected_value.value());
@@ -255,7 +255,7 @@ public class ExpectedTest {
         ExpectedAttributeValue ddbExpected_value = ddbExpected.getValue();
 
         Assert.assertEquals("foo", ddbExpected_attrName);
-        Assert.assertEquals(ComparisonOperator.LE.toString(), ddbExpected_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.LE, ddbExpected_value.comparisonOperator());
         Assert.assertEquals(1, ddbExpected_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbExpected_value.attributeValueList().get(0).s());
         Assert.assertEquals(null, ddbExpected_value.value());
@@ -270,7 +270,7 @@ public class ExpectedTest {
         ExpectedAttributeValue ddbExpected_value = ddbExpected.getValue();
 
         Assert.assertEquals("foo", ddbExpected_attrName);
-        Assert.assertEquals(ComparisonOperator.LT.toString(), ddbExpected_value.comparisonOperator());
+        Assert.assertEquals(ComparisonOperator.LT, ddbExpected_value.comparisonOperator());
         Assert.assertEquals(1, ddbExpected_value.attributeValueList().size());
         Assert.assertEquals("bar", ddbExpected_value.attributeValueList().get(0).s());
         Assert.assertEquals(null, ddbExpected_value.value());

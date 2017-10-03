@@ -147,7 +147,7 @@ public class DeleteItemSpec extends AbstractSpecWithPrimaryKey<DeleteItemRequest
     }
 
     public String getConditionalOperator() {
-        return getRequest().conditionalOperator();
+        return getRequest().conditionalOperatorString();
     }
 
     public DeleteItemSpec withConditionalOperator(ConditionalOperator conditionalOperator) {
@@ -156,7 +156,7 @@ public class DeleteItemSpec extends AbstractSpecWithPrimaryKey<DeleteItemRequest
     }
 
     public String getReturnConsumedCapacity() {
-        return getRequest().returnConsumedCapacity();
+        return getRequest().returnConsumedCapacityString();
     }
 
     public DeleteItemSpec withReturnConsumedCapacity(
@@ -166,7 +166,7 @@ public class DeleteItemSpec extends AbstractSpecWithPrimaryKey<DeleteItemRequest
     }
 
     public String getReturnItemCollectionMetrics() {
-        return getRequest().returnItemCollectionMetrics();
+        return getRequest().returnItemCollectionMetricsString();
     }
 
     public DeleteItemSpec withReturnItemCollectionMetrics(
@@ -176,7 +176,7 @@ public class DeleteItemSpec extends AbstractSpecWithPrimaryKey<DeleteItemRequest
     }
 
     public String getReturnValues() {
-        return getRequest().returnValues();
+        return getRequest().returnValuesString();
     }
 
     public DeleteItemSpec withReturnValues(ReturnValue returnValues) {

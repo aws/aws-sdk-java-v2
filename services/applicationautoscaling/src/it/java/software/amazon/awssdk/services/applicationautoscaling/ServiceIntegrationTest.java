@@ -38,7 +38,7 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
     @Test
     public void testScalingPolicy() {
         DescribeScalingPoliciesResponse res = autoscaling.describeScalingPolicies(DescribeScalingPoliciesRequest.builder()
-                .serviceNamespace(ServiceNamespace.Ecs).build());
+                .serviceNamespace(ServiceNamespace.ECS).build());
         Assert.assertNotNull(res);
         Assert.assertNotNull(res.scalingPolicies());
     }

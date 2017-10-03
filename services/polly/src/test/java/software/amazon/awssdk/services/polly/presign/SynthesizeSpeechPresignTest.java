@@ -107,7 +107,7 @@ public class SynthesizeSpeechPresignTest {
         final URL url = presigners.getPresignedSynthesizeSpeechUrl(
                 new SynthesizeSpeechPresignRequest()
                         .withText("Hello world")
-                        .withOutputFormat(OutputFormat.Pcm)
+                        .withOutputFormat(OutputFormat.PCM)
                         .withLexiconNames("AwsLexicon")
                         .withVoiceId("Salli"));
         assertEquals(
@@ -122,7 +122,7 @@ public class SynthesizeSpeechPresignTest {
                 new SynthesizeSpeechPresignRequest()
                         .withExpirationDate(Date.from(instant))
                         .withText("S3 is an AWS service")
-                        .withOutputFormat(OutputFormat.Mp3)
+                        .withOutputFormat(OutputFormat.MP3)
                         .withLexiconNames("FooLexicon", "AwsLexicon")
                         .withVoiceId("Salli"));
         assertEquals(

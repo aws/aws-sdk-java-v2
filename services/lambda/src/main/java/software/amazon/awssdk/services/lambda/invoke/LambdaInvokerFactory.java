@@ -227,7 +227,7 @@ public final class LambdaInvokerFactory {
                 throw new LambdaSerializationException("No LambdaFunction annotation for method " + method.getName());
             }
 
-            if (annotation.invocationType() != InvocationType.RequestResponse && annotation.logType() != LogType.None) {
+            if (annotation.invocationType() != InvocationType.REQUEST_RESPONSE && annotation.logType() != LogType.NONE) {
                 throw new LambdaSerializationException("InvocationType must be RequestResponse if LogType " + "is set");
             }
 

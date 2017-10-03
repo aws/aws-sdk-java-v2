@@ -67,10 +67,10 @@
             xmlWriter.value(${loopVariable}.getKey());
             xmlWriter.endElement();
             xmlWriter.startElement("${mapModel.valueLocationName}");
-            <#if mapModel.valueSimple>
+            <#if mapModel.valueModel.simple>
                 xmlWriter.value(${loopVariable}.getValue());
             <#else>
-                <@MemberMarshallerMacro.content customConfig mapModel.valueType loopVariable shapes/>
+                <@MemberMarshallerMacro.content customConfig mapModel.valueModel.variable.variableType loopVariable shapes/>
             </#if>
             xmlWriter.endElement();
             xmlWriter.endElement();

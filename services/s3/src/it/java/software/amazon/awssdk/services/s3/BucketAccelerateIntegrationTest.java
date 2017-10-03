@@ -120,7 +120,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
             }
         }, new RetryableParams().withMaxAttempts(30).withDelayInMs(200));
 
-        assertEquals(BucketVersioningStatus.Enabled.name(),
+        assertEquals(BucketVersioningStatus.ENABLED.name(),
                      accelerateClient.getBucketVersioning(GetBucketVersioningRequest.builder()
                                                                                     .bucket(US_BUCKET_NAME)
                                                                                     .build())
@@ -135,21 +135,21 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
         String status = s3.getBucketAccelerateConfiguration(GetBucketAccelerateConfigurationRequest.builder()
                                                                                                    .bucket(US_BUCKET_NAME)
                                                                                                    .build())
-                          .status();
+                          .statusString();
 
         if (status == null || !status.equals("Enabled")) {
             enableAccelerateOnBucket();
         }
 
         assertEquals(
-                BucketAccelerateStatus.Enabled.toString(),
+                BucketAccelerateStatus.ENABLED.toString(),
                 s3.getBucketAccelerateConfiguration(GetBucketAccelerateConfigurationRequest.builder()
                                                                                            .bucket(US_BUCKET_NAME)
                                                                                            .build())
                   .status());
 
         disableAccelerateOnBucket();
-        assertEquals(BucketAccelerateStatus.Suspended.toString(),
+        assertEquals(BucketAccelerateStatus.SUSPENDED.toString(),
                      s3.getBucketAccelerateConfiguration(GetBucketAccelerateConfigurationRequest.builder()
                                                                                                 .bucket(US_BUCKET_NAME)
                                                                                                 .build())
@@ -162,7 +162,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
         String status = s3.getBucketAccelerateConfiguration(GetBucketAccelerateConfigurationRequest.builder()
                                                                                                    .bucket(US_BUCKET_NAME)
                                                                                                    .build())
-                          .status();
+                          .statusString();
 
         if (status == null || !status.equals("Enabled")) {
             enableAccelerateOnBucket();
@@ -182,7 +182,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
                 PutBucketAccelerateConfigurationRequest.builder()
                                                        .bucket(US_BUCKET_NAME)
                                                        .accelerateConfiguration(AccelerateConfiguration.builder()
-                                                                                                       .status(BucketAccelerateStatus.Enabled)
+                                                                                                       .status(BucketAccelerateStatus.ENABLED)
                                                                                                        .build())
                                                        .build());
         // Wait a bit for accelerate to kick in
@@ -194,7 +194,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
                 PutBucketAccelerateConfigurationRequest.builder()
                                                        .bucket(US_BUCKET_NAME)
                                                        .accelerateConfiguration(AccelerateConfiguration.builder()
-                                                                                                       .status(BucketAccelerateStatus.Suspended)
+                                                                                                       .status(BucketAccelerateStatus.SUSPENDED)
                                                                                                        .build())
                                                        .build());
     }

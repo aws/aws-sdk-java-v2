@@ -32,6 +32,8 @@ import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.service.Output;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
+import software.amazon.awssdk.codegen.model.service.Shape;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -39,6 +41,8 @@ import software.amazon.awssdk.utils.StringUtils;
  * CustomizationConfig}.
  */
 public class DefaultNamingStrategy implements NamingStrategy {
+
+    private static Logger log = Logger.loggerFor(DefaultNamingStrategy.class);
 
     private static final Set<String> RESERVED_KEYWORDS = new HashSet<String>() {
         {
@@ -125,21 +129,42 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
     @Override
     public String getEnumValueName(String enumValue) {
-        StringBuilder builder = new StringBuilder();
+        String result = enumValue;
 
-        String sanitizedEnumValue = enumValue.replace("::", ":").replace("/", "").replace("(", "")
-                                             .replace(")", "");
+        // Special cases
+        result = result.replaceAll("IoT", "IOT")
+                       .replaceAll("textORcsv", "TEXT_OR_CSV");
 
-        for (String part : sanitizedEnumValue.split("[ -.:]")) {
-            if (part.length() > 1) {
-                builder.append(StringUtils.upperCase(part.substring(0, 1)))
-                       .append(part.substring(1));
-            } else {
-                builder.append(StringUtils.upperCase(part));
-            }
+        // Convert non-underscore word boundaries into underscore word boundaries
+        result = result.replaceAll("[:/()-. ]+", "_"); // acm-success -> acm_success
+
+        // If the number had a standalone v in front of it, separate it out (version).
+        result = result.replaceAll("([^a-z]{2,})v([0-9]+)", "$1_v$2_") // TESTv4 -> TEST_v4_
+                       .replaceAll("([^A-Z]{2,})V([0-9]+)", "$1_V$2_"); // TestV4 -> Test_V4_
+
+        // Add an underscore between camelCased words
+        result = result.replaceAll("([a-z])([A-Z])", "$1_$2"); // AcmSuccess -> Acm_Success
+
+        // Add an underscore after acronyms
+        result = result.replaceAll("([A-Z]+)([A-Z][a-z])", "$1_$2"); // ACMSuccess -> ACM_Success
+
+        // Add an underscore after a number in the middle of a word
+        result = result.replaceAll("([0-9])([a-zA-Z])", "$1_$2"); // s3ec2 -> s3_ec2
+
+        // Remove extra underscores - multiple consecutive ones or those and the beginning/end of words
+        result = result.replaceAll("_+", "_") // Foo__Bar -> Foo_Bar
+                       .replaceAll("^_*([^_].*[^_])_*$", "$1"); // _Foo_ -> Foo
+
+        // Convert all lower-case words
+        result = StringUtils.upperCase(result);
+
+        if (!result.matches("^[A-Z][A-Z0-9_]*$")) {
+            String attempt = result;
+            log.warn(() -> "Invalid enum member generated for input '" + enumValue + "'. Best attempt: '" + attempt + "' If this "
+                           + "enum is not customized out, the build will fail.");
         }
 
-        return builder.toString();
+        return result;
     }
 
     @Override
@@ -157,14 +182,32 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
-    public String getFluentGetterMethodName(String memberName) {
+    public String getFluentGetterMethodName(String memberName, Shape shape) {
+        String getterMethodName = Utils.unCapitialize(memberName);
+
+        if (Utils.isOrContainsEnumShape(shape, serviceModel.getShapes())) {
+            getterMethodName += "String";
+
+            if (Utils.isListShape(shape) || Utils.isMapShape(shape)) {
+                getterMethodName += "s";
+            }
+        }
+
+        return getterMethodName;
+    }
+
+    @Override
+    public String getFluentEnumGetterMethodName(String memberName, Shape shape) {
+        if (!Utils.isOrContainsEnumShape(shape, serviceModel.getShapes())) {
+            return null;
+        }
+
         return Utils.unCapitialize(memberName);
     }
 
     @Override
     public String getBeanStyleGetterMethodName(String memberName) {
         return String.format("get%s", Utils.capitialize(memberName));
-
     }
 
     @Override

@@ -29,6 +29,7 @@ import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchReq
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
@@ -286,7 +287,7 @@ public class ReceiveQueueBuffer {
                                                                                    .attributeNames("VisibilityTimeout").build();
                 ResultConverter.appendUserAgent(request, SqsBufferedAsyncClient.USER_AGENT);
                 long visibilityTimeoutSeconds = Long.parseLong(sqsClient.getQueueAttributes(request).join().attributes()
-                                                                        .get("VisibilityTimeout"));
+                                                                        .get(QueueAttributeName.VISIBILITY_TIMEOUT));
                 visibilityTimeoutNanos = TimeUnit.NANOSECONDS.convert(visibilityTimeoutSeconds, TimeUnit.SECONDS);
             }
 

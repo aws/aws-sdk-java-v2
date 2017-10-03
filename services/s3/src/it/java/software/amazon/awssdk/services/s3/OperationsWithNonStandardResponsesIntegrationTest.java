@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.services.s3.model.BucketLocationConstraint.UsWest2;
+import static software.amazon.awssdk.services.s3.model.BucketLocationConstraint.US_WEST_2;
 
 import java.time.Instant;
 import org.junit.AfterClass;
@@ -48,7 +48,7 @@ public final class OperationsWithNonStandardResponsesIntegrationTest extends S3I
         s3.createBucket(CreateBucketRequest.builder()
                                            .bucket(bucketName)
                                            .createBucketConfiguration(CreateBucketConfiguration.builder()
-                                                                                               .locationConstraint(UsWest2)
+                                                                                               .locationConstraint(US_WEST_2)
                                                                                                .build())
                                            .build());
     }

@@ -237,8 +237,7 @@ public class Index implements QueryApi, ScanApi {
             if (list != null) {
                 for (GlobalSecondaryIndexDescription d : list) {
                     if (d.indexName().equals(indexName)) {
-                        final String status = d.indexStatus();
-                        switch (IndexStatus.fromValue(status)) {
+                        switch (d.indexStatus()) {
                             case ACTIVE:
                                 return desc;
                             case CREATING:
@@ -250,7 +249,7 @@ public class Index implements QueryApi, ScanApi {
                                         "Global Secondary Index "
                                         + indexName
                                         + " is not being created or updated (with status="
-                                        + status + ")");
+                                        + d.indexStatusString() + ")");
                         }
                     }
                 }
@@ -285,14 +284,13 @@ public class Index implements QueryApi, ScanApi {
             if (list != null) {
                 for (GlobalSecondaryIndexDescription d : list) {
                     if (d.indexName().equals(indexName)) {
-                        final String status = d.indexStatus();
-                        if (IndexStatus.fromValue(status) == IndexStatus.DELETING) {
+                        if (d.indexStatus() == IndexStatus.DELETING) {
                             Thread.sleep(SLEEP_TIME_MILLIS);
                             continue retry;
                         }
                         throw new IllegalArgumentException(
                                 "Global Secondary Index " + indexName
-                                + " is not being deleted (with status=" + status + ")");
+                                + " is not being deleted (with status=" + d.indexStatusString() + ")");
                     }
                 }
             }
@@ -326,8 +324,7 @@ public class Index implements QueryApi, ScanApi {
             if (list != null) {
                 for (GlobalSecondaryIndexDescription d : desc.globalSecondaryIndexes()) {
                     if (d.indexName().equals(indexName)) {
-                        final String status = d.indexStatus();
-                        if (IndexStatus.fromValue(status) == IndexStatus.ACTIVE) {
+                        if (d.indexStatus() == IndexStatus.ACTIVE) {
                             return desc;
                         }
                         Thread.sleep(SLEEP_TIME_MILLIS);

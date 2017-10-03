@@ -136,7 +136,7 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
                                                      .roleNameArn(roleArn).destinationS3BucketName(BUCKET_NAME)
                                                      .snsTopicArn(topicArn)
                                                      .destinationS3BucketName(BUCKET_NAME).destinationS3Prefix("some-prefix")
-                                                     .dataSetType(DataSetType.Customer_subscriber_hourly_monthly_subscriptions)
+                                                     .dataSetType(DataSetType.CUSTOMER_SUBSCRIBER_HOURLY_MONTHLY_SUBSCRIPTIONS)
                                                      .build());
     }
 

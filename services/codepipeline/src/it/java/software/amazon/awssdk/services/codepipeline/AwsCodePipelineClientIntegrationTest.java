@@ -83,10 +83,10 @@ public class AwsCodePipelineClientIntegrationTest extends AwsTestBase {
     @Test
     public void createFindDelete_ActionType() {
         ActionTypeId actionTypeId = ActionTypeId.builder()
-                .category(ActionCategory.Build)
+                .category(ActionCategory.BUILD)
                 .provider("test-provider")
                 .version("1")
-                .owner(ActionOwner.Custom)
+                .owner(ActionOwner.CUSTOM)
                 .build();
         ArtifactDetails artifactDetails = ArtifactDetails.builder()
                 .maximumCount(1)

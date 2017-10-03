@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.naming;
 
+import software.amazon.awssdk.codegen.model.service.Shape;
+
 /**
  * Strategy to name various Java constructs based on the naming in the model and potentially customizations.
  */
@@ -65,9 +67,17 @@ public interface NamingStrategy {
 
     /**
      * @param memberName Member name to name getter for.
+     * @param shape The shape associated with the member.
      * @return Name of the getter method for a model class member.
      */
-    String getFluentGetterMethodName(String memberName);
+    String getFluentGetterMethodName(String memberName, Shape shape);
+
+    /**
+     * @param memberName The full member to get the name for.
+     * @param shape The shape associated with the member.
+     * @return Name of the getter method for an enum model class member.
+     */
+    String getFluentEnumGetterMethodName(String memberName, Shape shape);
 
     /**
      * @param memberName Member name to name getter for.

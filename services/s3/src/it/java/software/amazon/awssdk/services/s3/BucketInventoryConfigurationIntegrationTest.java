@@ -92,9 +92,9 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
                                                               .isEnabled(true)
                                                               .id(configId)
                                                               .destination(destination)
-                                                              .includedObjectVersions(InventoryIncludedObjectVersions.All)
+                                                              .includedObjectVersions(InventoryIncludedObjectVersions.ALL)
                                                               .schedule(InventorySchedule.builder()
-                                                                                         .frequency(InventoryFrequency.Daily)
+                                                                                         .frequency(InventoryFrequency.DAILY)
                                                                                          .build())
                                                               .build();
 
@@ -113,8 +113,8 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
 
         assertEquals(configId, config.id());
         assertTrue(config.isEnabled());
-        assertEquals(InventoryIncludedObjectVersions.All.toString(), config.includedObjectVersions());
-        assertEquals(InventoryFrequency.Daily.toString(), config.schedule().frequency());
+        assertEquals(InventoryIncludedObjectVersions.ALL.toString(), config.includedObjectVersions());
+        assertEquals(InventoryFrequency.DAILY.toString(), config.schedule().frequency());
         s3BucketDestination = config.destination().s3BucketDestination();
         assertEquals(BUCKET_ARN, s3BucketDestination.bucket());
         assertEquals(InventoryFormat.CSV.toString(), s3BucketDestination.format());
@@ -142,8 +142,8 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
         String accountId = "test-account";
         List<String> optionalFields = new ArrayList<String>() {
             {
-                add(InventoryOptionalField.ETag.toString());
-                add(InventoryOptionalField.Size.toString());
+                add(InventoryOptionalField.E_TAG.toString());
+                add(InventoryOptionalField.SIZE.toString());
             }
         };
 
@@ -160,9 +160,9 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
                                                               .isEnabled(true)
                                                               .id(configId)
                                                               .destination(destination)
-                                                              .includedObjectVersions(InventoryIncludedObjectVersions.All)
+                                                              .includedObjectVersions(InventoryIncludedObjectVersions.ALL)
                                                               .schedule(InventorySchedule.builder()
-                                                                                         .frequency(InventoryFrequency.Daily)
+                                                                                         .frequency(InventoryFrequency.DAILY)
                                                                                          .build())
                                                               .filter(InventoryFilter.builder().prefix(prefix).build())
                                                               .optionalFields(optionalFields)
@@ -182,8 +182,8 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
 
         assertEquals(configId, config.id());
         assertTrue(config.isEnabled());
-        assertEquals(InventoryIncludedObjectVersions.All.toString(), config.includedObjectVersions());
-        assertEquals(InventoryFrequency.Daily.toString(), config.schedule().frequency());
+        assertEquals(InventoryIncludedObjectVersions.ALL.toString(), config.includedObjectVersions());
+        assertEquals(InventoryFrequency.DAILY.toString(), config.schedule().frequency());
         s3BucketDestination = config.destination().s3BucketDestination();
         assertEquals(BUCKET_ARN, s3BucketDestination.bucket());
         assertEquals(InventoryFormat.CSV.toString(), s3BucketDestination.format());

@@ -93,7 +93,7 @@ public class EmailIntegrationTest extends IntegrationTestBase {
     @Test
     public void listIdentities_FilteredForDomainIdentities_OnlyHasDomainIdentityInList() {
         List<String> identities = email.listIdentities(
-                ListIdentitiesRequest.builder().identityType(IdentityType.Domain).build()).identities();
+                ListIdentitiesRequest.builder().identityType(IdentityType.DOMAIN).build()).identities();
         assertThat(identities, not(hasItem(EMAIL)));
         assertThat(identities, hasItem(DOMAIN));
     }
@@ -101,7 +101,7 @@ public class EmailIntegrationTest extends IntegrationTestBase {
     @Test
     public void listIdentities_FilteredForEmailIdentities_OnlyHasEmailIdentityInList() {
         List<String> identities = email.listIdentities(
-                ListIdentitiesRequest.builder().identityType(IdentityType.EmailAddress).build()).identities();
+                ListIdentitiesRequest.builder().identityType(IdentityType.EMAIL_ADDRESS).build()).identities();
         assertThat(identities, hasItem(EMAIL));
         assertThat(identities, not(hasItem(DOMAIN)));
     }
@@ -127,7 +127,7 @@ public class EmailIntegrationTest extends IntegrationTestBase {
         GetIdentityVerificationAttributesResponse result = email
                 .getIdentityVerificationAttributes(GetIdentityVerificationAttributesRequest.builder().identities(EMAIL).build());
         IdentityVerificationAttributes identityVerificationAttributes = result.verificationAttributes().get(EMAIL);
-        assertEquals(VerificationStatus.Pending.toString(), identityVerificationAttributes.verificationStatus());
+        assertEquals(VerificationStatus.PENDING, identityVerificationAttributes.verificationStatus());
         // Verificaton token not applicable for email identities
         assertNull(identityVerificationAttributes.verificationToken());
     }
@@ -138,7 +138,7 @@ public class EmailIntegrationTest extends IntegrationTestBase {
                 .getIdentityVerificationAttributes(GetIdentityVerificationAttributesRequest.builder()
                                                            .identities(DOMAIN).build());
         IdentityVerificationAttributes identityVerificationAttributes = result.verificationAttributes().get(DOMAIN);
-        assertEquals(VerificationStatus.Pending.toString(), identityVerificationAttributes.verificationStatus());
+        assertEquals(VerificationStatus.PENDING, identityVerificationAttributes.verificationStatus());
         assertEquals(DOMAIN_VERIFICATION_TOKEN, identityVerificationAttributes.verificationToken());
     }
 
@@ -154,7 +154,7 @@ public class EmailIntegrationTest extends IntegrationTestBase {
             // should be no tokens and no verification
             IdentityDkimAttributes attributes = result.dkimAttributes().get(testDomain);
             assertFalse(attributes.dkimEnabled());
-            assertEquals(VerificationStatus.NotStarted.toString(), attributes.dkimVerificationStatus());
+            assertEquals(VerificationStatus.NOT_STARTED, attributes.dkimVerificationStatus());
 
             VerifyDomainDkimResponse dkim = email.verifyDomainDkim(VerifyDomainDkimRequest.builder().domain(testDomain).build());
             Thread.sleep(5 * 1000);
@@ -164,7 +164,7 @@ public class EmailIntegrationTest extends IntegrationTestBase {
 
             attributes = result.dkimAttributes().get(testDomain);
             assertTrue(attributes.dkimEnabled());
-            assertTrue(attributes.dkimVerificationStatus().equals(VerificationStatus.Pending.toString()));
+            assertTrue(attributes.dkimVerificationStatus().equals(VerificationStatus.PENDING));
             assertTrue(attributes.dkimTokens().size() == dkim.dkimTokens().size());
 
             try {

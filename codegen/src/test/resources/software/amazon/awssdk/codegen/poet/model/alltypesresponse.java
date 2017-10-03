@@ -6,12 +6,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Generated;
 import software.amazon.awssdk.AmazonWebServiceResult;
 import software.amazon.awssdk.ResponseMetadata;
 import software.amazon.awssdk.runtime.StandardMemberCopier;
+import software.amazon.awssdk.runtime.TypeConverter;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -35,6 +38,8 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
     private final List<String> simpleList;
 
+    private final List<String> listOfEnums;
+
     private final List<Map<String, String>> listOfMaps;
 
     private final List<SimpleStruct> listOfStructs;
@@ -43,7 +48,15 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
     private final Map<String, String> mapOfStringToString;
 
-    private final Map<String, SimpleStruct> mapOfStringToStruct;
+    private final Map<String, SimpleStruct> mapOfStringToSimpleStruct;
+
+    private final Map<String, String> mapOfEnumToEnum;
+
+    private final Map<String, String> mapOfEnumToString;
+
+    private final Map<String, String> mapOfStringToEnum;
+
+    private final Map<String, SimpleStruct> mapOfEnumToSimpleStruct;
 
     private final Instant timestampMember;
 
@@ -73,11 +86,16 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
         this.doubleMember = builder.doubleMember;
         this.longMember = builder.longMember;
         this.simpleList = builder.simpleList;
+        this.listOfEnums = builder.listOfEnums;
         this.listOfMaps = builder.listOfMaps;
         this.listOfStructs = builder.listOfStructs;
         this.mapOfStringToIntegerList = builder.mapOfStringToIntegerList;
         this.mapOfStringToString = builder.mapOfStringToString;
-        this.mapOfStringToStruct = builder.mapOfStringToStruct;
+        this.mapOfStringToSimpleStruct = builder.mapOfStringToSimpleStruct;
+        this.mapOfEnumToEnum = builder.mapOfEnumToEnum;
+        this.mapOfEnumToString = builder.mapOfEnumToString;
+        this.mapOfStringToEnum = builder.mapOfStringToEnum;
+        this.mapOfEnumToSimpleStruct = builder.mapOfEnumToSimpleStruct;
         this.timestampMember = builder.timestampMember;
         this.structWithNestedTimestampMember = builder.structWithNestedTimestampMember;
         this.blobArg = builder.blobArg;
@@ -157,6 +175,30 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
     }
 
     /**
+     * Returns the value of the ListOfEnums property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
+     *
+     * @return The value of the ListOfEnums property for this object.
+     */
+    public List<EnumType> listOfEnums() {
+        return TypeConverter.convert(listOfEnums, EnumType::fromValue);
+    }
+
+    /**
+     * Returns the value of the ListOfEnums property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
+     *
+     * @return The value of the ListOfEnums property for this object.
+     */
+    public List<String> listOfEnumsStrings() {
+        return listOfEnums;
+    }
+
+    /**
      * Returns the value of the ListOfMaps property for this object.
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
@@ -205,15 +247,114 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
     }
 
     /**
-     * Returns the value of the MapOfStringToStruct property for this object.
+     * Returns the value of the MapOfStringToSimpleStruct property for this object.
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
      *
-     * @return The value of the MapOfStringToStruct property for this object.
+     * @return The value of the MapOfStringToSimpleStruct property for this object.
      */
-    public Map<String, SimpleStruct> mapOfStringToStruct() {
-        return mapOfStringToStruct;
+    public Map<String, SimpleStruct> mapOfStringToSimpleStruct() {
+        return mapOfStringToSimpleStruct;
+    }
+
+    /**
+     * Returns the value of the MapOfEnumToEnum property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
+     *
+     * @return The value of the MapOfEnumToEnum property for this object.
+     */
+    public Map<EnumType, EnumType> mapOfEnumToEnum() {
+        return TypeConverter.convert(mapOfEnumToEnum, EnumType::fromValue, EnumType::fromValue,
+                                     (k, v) -> !Objects.equals(k, EnumType.UNKNOWN));
+    }
+
+    /**
+     * Returns the value of the MapOfEnumToEnum property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
+     *
+     * @return The value of the MapOfEnumToEnum property for this object.
+     */
+    public Map<String, String> mapOfEnumToEnumStrings() {
+        return mapOfEnumToEnum;
+    }
+
+    /**
+     * Returns the value of the MapOfEnumToString property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
+     *
+     * @return The value of the MapOfEnumToString property for this object.
+     */
+    public Map<EnumType, String> mapOfEnumToString() {
+        return TypeConverter.convert(mapOfEnumToString, EnumType::fromValue, Function.identity(),
+                                     (k, v) -> !Objects.equals(k, EnumType.UNKNOWN));
+    }
+
+    /**
+     * Returns the value of the MapOfEnumToString property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
+     *
+     * @return The value of the MapOfEnumToString property for this object.
+     */
+    public Map<String, String> mapOfEnumToStringStrings() {
+        return mapOfEnumToString;
+    }
+
+    /**
+     * Returns the value of the MapOfStringToEnum property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
+     *
+     * @return The value of the MapOfStringToEnum property for this object.
+     */
+    public Map<String, EnumType> mapOfStringToEnum() {
+        return TypeConverter.convert(mapOfStringToEnum, Function.identity(), EnumType::fromValue, (k, v) -> true);
+    }
+
+    /**
+     * Returns the value of the MapOfStringToEnum property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
+     *
+     * @return The value of the MapOfStringToEnum property for this object.
+     */
+    public Map<String, String> mapOfStringToEnumStrings() {
+        return mapOfStringToEnum;
+    }
+
+    /**
+     * Returns the value of the MapOfEnumToSimpleStruct property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
+     *
+     * @return The value of the MapOfEnumToSimpleStruct property for this object.
+     */
+    public Map<EnumType, SimpleStruct> mapOfEnumToSimpleStruct() {
+        return TypeConverter.convert(mapOfEnumToSimpleStruct, EnumType::fromValue, Function.identity(),
+                                     (k, v) -> !Objects.equals(k, EnumType.UNKNOWN));
+    }
+
+    /**
+     * Returns the value of the MapOfEnumToSimpleStruct property for this object.
+     * <p>
+     * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
+     * </p>
+     *
+     * @return The value of the MapOfEnumToSimpleStruct property for this object.
+     */
+    public Map<String, SimpleStruct> mapOfEnumToSimpleStructStrings() {
+        return mapOfEnumToSimpleStruct;
     }
 
     /**
@@ -308,11 +449,29 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
     /**
      * Returns the value of the EnumType property for this object.
+     * <p>
+     * If the service returns an enum value that is not available in the current SDK version, {@link #enumType} will
+     * return {@link EnumType#UNKNOWN}. The raw value returned by the service is available from {@link #enumTypeString}.
+     * </p>
      *
      * @return The value of the EnumType property for this object.
      * @see EnumType
      */
-    public String enumType() {
+    public EnumType enumType() {
+        return EnumType.fromValue(enumType);
+    }
+
+    /**
+     * Returns the value of the EnumType property for this object.
+     * <p>
+     * If the service returns an enum value that is not available in the current SDK version, {@link #enumType} will
+     * return {@link EnumType#UNKNOWN}. The raw value returned by the service is available from {@link #enumTypeString}.
+     * </p>
+     *
+     * @return The value of the EnumType property for this object.
+     * @see EnumType
+     */
+    public String enumTypeString() {
         return enumType;
     }
 
@@ -339,11 +498,16 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
         hashCode = 31 * hashCode + ((doubleMember() == null) ? 0 : doubleMember().hashCode());
         hashCode = 31 * hashCode + ((longMember() == null) ? 0 : longMember().hashCode());
         hashCode = 31 * hashCode + ((simpleList() == null) ? 0 : simpleList().hashCode());
+        hashCode = 31 * hashCode + ((listOfEnumsStrings() == null) ? 0 : listOfEnumsStrings().hashCode());
         hashCode = 31 * hashCode + ((listOfMaps() == null) ? 0 : listOfMaps().hashCode());
         hashCode = 31 * hashCode + ((listOfStructs() == null) ? 0 : listOfStructs().hashCode());
         hashCode = 31 * hashCode + ((mapOfStringToIntegerList() == null) ? 0 : mapOfStringToIntegerList().hashCode());
         hashCode = 31 * hashCode + ((mapOfStringToString() == null) ? 0 : mapOfStringToString().hashCode());
-        hashCode = 31 * hashCode + ((mapOfStringToStruct() == null) ? 0 : mapOfStringToStruct().hashCode());
+        hashCode = 31 * hashCode + ((mapOfStringToSimpleStruct() == null) ? 0 : mapOfStringToSimpleStruct().hashCode());
+        hashCode = 31 * hashCode + ((mapOfEnumToEnumStrings() == null) ? 0 : mapOfEnumToEnumStrings().hashCode());
+        hashCode = 31 * hashCode + ((mapOfEnumToStringStrings() == null) ? 0 : mapOfEnumToStringStrings().hashCode());
+        hashCode = 31 * hashCode + ((mapOfStringToEnumStrings() == null) ? 0 : mapOfStringToEnumStrings().hashCode());
+        hashCode = 31 * hashCode + ((mapOfEnumToSimpleStructStrings() == null) ? 0 : mapOfEnumToSimpleStructStrings().hashCode());
         hashCode = 31 * hashCode + ((timestampMember() == null) ? 0 : timestampMember().hashCode());
         hashCode = 31 * hashCode
                    + ((structWithNestedTimestampMember() == null) ? 0 : structWithNestedTimestampMember().hashCode());
@@ -354,7 +518,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
         hashCode = 31 * hashCode + ((recursiveStruct() == null) ? 0 : recursiveStruct().hashCode());
         hashCode = 31 * hashCode + ((polymorphicTypeWithSubTypes() == null) ? 0 : polymorphicTypeWithSubTypes().hashCode());
         hashCode = 31 * hashCode + ((polymorphicTypeWithoutSubTypes() == null) ? 0 : polymorphicTypeWithoutSubTypes().hashCode());
-        hashCode = 31 * hashCode + ((enumType() == null) ? 0 : enumType().hashCode());
+        hashCode = 31 * hashCode + ((enumTypeString() == null) ? 0 : enumTypeString().hashCode());
         return hashCode;
     }
 
@@ -412,6 +576,12 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
         if (other.simpleList() != null && !other.simpleList().equals(this.simpleList())) {
             return false;
         }
+        if (other.listOfEnumsStrings() == null ^ this.listOfEnumsStrings() == null) {
+            return false;
+        }
+        if (other.listOfEnumsStrings() != null && !other.listOfEnumsStrings().equals(this.listOfEnumsStrings())) {
+            return false;
+        }
         if (other.listOfMaps() == null ^ this.listOfMaps() == null) {
             return false;
         }
@@ -436,10 +606,36 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
         if (other.mapOfStringToString() != null && !other.mapOfStringToString().equals(this.mapOfStringToString())) {
             return false;
         }
-        if (other.mapOfStringToStruct() == null ^ this.mapOfStringToStruct() == null) {
+        if (other.mapOfStringToSimpleStruct() == null ^ this.mapOfStringToSimpleStruct() == null) {
             return false;
         }
-        if (other.mapOfStringToStruct() != null && !other.mapOfStringToStruct().equals(this.mapOfStringToStruct())) {
+        if (other.mapOfStringToSimpleStruct() != null
+            && !other.mapOfStringToSimpleStruct().equals(this.mapOfStringToSimpleStruct())) {
+            return false;
+        }
+        if (other.mapOfEnumToEnumStrings() == null ^ this.mapOfEnumToEnumStrings() == null) {
+            return false;
+        }
+        if (other.mapOfEnumToEnumStrings() != null && !other.mapOfEnumToEnumStrings().equals(this.mapOfEnumToEnumStrings())) {
+            return false;
+        }
+        if (other.mapOfEnumToStringStrings() == null ^ this.mapOfEnumToStringStrings() == null) {
+            return false;
+        }
+        if (other.mapOfEnumToStringStrings() != null && !other.mapOfEnumToStringStrings().equals(this.mapOfEnumToStringStrings())) {
+            return false;
+        }
+        if (other.mapOfStringToEnumStrings() == null ^ this.mapOfStringToEnumStrings() == null) {
+            return false;
+        }
+        if (other.mapOfStringToEnumStrings() != null && !other.mapOfStringToEnumStrings().equals(this.mapOfStringToEnumStrings())) {
+            return false;
+        }
+        if (other.mapOfEnumToSimpleStructStrings() == null ^ this.mapOfEnumToSimpleStructStrings() == null) {
+            return false;
+        }
+        if (other.mapOfEnumToSimpleStructStrings() != null
+            && !other.mapOfEnumToSimpleStructStrings().equals(this.mapOfEnumToSimpleStructStrings())) {
             return false;
         }
         if (other.timestampMember() == null ^ this.timestampMember() == null) {
@@ -499,10 +695,10 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
             && !other.polymorphicTypeWithoutSubTypes().equals(this.polymorphicTypeWithoutSubTypes())) {
             return false;
         }
-        if (other.enumType() == null ^ this.enumType() == null) {
+        if (other.enumTypeString() == null ^ this.enumTypeString() == null) {
             return false;
         }
-        if (other.enumType() != null && !other.enumType().equals(this.enumType())) {
+        if (other.enumTypeString() != null && !other.enumTypeString().equals(this.enumTypeString())) {
             return false;
         }
         return true;
@@ -532,6 +728,9 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
         if (simpleList() != null) {
             sb.append("SimpleList: ").append(simpleList()).append(",");
         }
+        if (listOfEnumsStrings() != null) {
+            sb.append("ListOfEnums: ").append(listOfEnumsStrings()).append(",");
+        }
         if (listOfMaps() != null) {
             sb.append("ListOfMaps: ").append(listOfMaps()).append(",");
         }
@@ -544,8 +743,20 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
         if (mapOfStringToString() != null) {
             sb.append("MapOfStringToString: ").append(mapOfStringToString()).append(",");
         }
-        if (mapOfStringToStruct() != null) {
-            sb.append("MapOfStringToStruct: ").append(mapOfStringToStruct()).append(",");
+        if (mapOfStringToSimpleStruct() != null) {
+            sb.append("MapOfStringToSimpleStruct: ").append(mapOfStringToSimpleStruct()).append(",");
+        }
+        if (mapOfEnumToEnumStrings() != null) {
+            sb.append("MapOfEnumToEnum: ").append(mapOfEnumToEnumStrings()).append(",");
+        }
+        if (mapOfEnumToStringStrings() != null) {
+            sb.append("MapOfEnumToString: ").append(mapOfEnumToStringStrings()).append(",");
+        }
+        if (mapOfStringToEnumStrings() != null) {
+            sb.append("MapOfStringToEnum: ").append(mapOfStringToEnumStrings()).append(",");
+        }
+        if (mapOfEnumToSimpleStructStrings() != null) {
+            sb.append("MapOfEnumToSimpleStruct: ").append(mapOfEnumToSimpleStructStrings()).append(",");
         }
         if (timestampMember() != null) {
             sb.append("TimestampMember: ").append(timestampMember()).append(",");
@@ -574,8 +785,8 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
         if (polymorphicTypeWithoutSubTypes() != null) {
             sb.append("PolymorphicTypeWithoutSubTypes: ").append(polymorphicTypeWithoutSubTypes()).append(",");
         }
-        if (enumType() != null) {
-            sb.append("EnumType: ").append(enumType()).append(",");
+        if (enumTypeString() != null) {
+            sb.append("EnumType: ").append(enumTypeString()).append(",");
         }
         if (sb.length() > 1) {
             sb.setLength(sb.length() - 1);
@@ -586,52 +797,62 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "StringMember":
-            return Optional.of(clazz.cast(stringMember()));
-        case "IntegerMember":
-            return Optional.of(clazz.cast(integerMember()));
-        case "BooleanMember":
-            return Optional.of(clazz.cast(booleanMember()));
-        case "FloatMember":
-            return Optional.of(clazz.cast(floatMember()));
-        case "DoubleMember":
-            return Optional.of(clazz.cast(doubleMember()));
-        case "LongMember":
-            return Optional.of(clazz.cast(longMember()));
-        case "SimpleList":
-            return Optional.of(clazz.cast(simpleList()));
-        case "ListOfMaps":
-            return Optional.of(clazz.cast(listOfMaps()));
-        case "ListOfStructs":
-            return Optional.of(clazz.cast(listOfStructs()));
-        case "MapOfStringToIntegerList":
-            return Optional.of(clazz.cast(mapOfStringToIntegerList()));
-        case "MapOfStringToString":
-            return Optional.of(clazz.cast(mapOfStringToString()));
-        case "MapOfStringToStruct":
-            return Optional.of(clazz.cast(mapOfStringToStruct()));
-        case "TimestampMember":
-            return Optional.of(clazz.cast(timestampMember()));
-        case "StructWithNestedTimestampMember":
-            return Optional.of(clazz.cast(structWithNestedTimestampMember()));
-        case "BlobArg":
-            return Optional.of(clazz.cast(blobArg()));
-        case "StructWithNestedBlob":
-            return Optional.of(clazz.cast(structWithNestedBlob()));
-        case "BlobMap":
-            return Optional.of(clazz.cast(blobMap()));
-        case "ListOfBlobs":
-            return Optional.of(clazz.cast(listOfBlobs()));
-        case "RecursiveStruct":
-            return Optional.of(clazz.cast(recursiveStruct()));
-        case "PolymorphicTypeWithSubTypes":
-            return Optional.of(clazz.cast(polymorphicTypeWithSubTypes()));
-        case "PolymorphicTypeWithoutSubTypes":
-            return Optional.of(clazz.cast(polymorphicTypeWithoutSubTypes()));
-        case "EnumType":
-            return Optional.of(clazz.cast(enumType()));
-        default:
-            return Optional.empty();
+            case "StringMember":
+                return Optional.of(clazz.cast(stringMember()));
+            case "IntegerMember":
+                return Optional.of(clazz.cast(integerMember()));
+            case "BooleanMember":
+                return Optional.of(clazz.cast(booleanMember()));
+            case "FloatMember":
+                return Optional.of(clazz.cast(floatMember()));
+            case "DoubleMember":
+                return Optional.of(clazz.cast(doubleMember()));
+            case "LongMember":
+                return Optional.of(clazz.cast(longMember()));
+            case "SimpleList":
+                return Optional.of(clazz.cast(simpleList()));
+            case "ListOfEnums":
+                return Optional.of(clazz.cast(listOfEnumsStrings()));
+            case "ListOfMaps":
+                return Optional.of(clazz.cast(listOfMaps()));
+            case "ListOfStructs":
+                return Optional.of(clazz.cast(listOfStructs()));
+            case "MapOfStringToIntegerList":
+                return Optional.of(clazz.cast(mapOfStringToIntegerList()));
+            case "MapOfStringToString":
+                return Optional.of(clazz.cast(mapOfStringToString()));
+            case "MapOfStringToSimpleStruct":
+                return Optional.of(clazz.cast(mapOfStringToSimpleStruct()));
+            case "MapOfEnumToEnum":
+                return Optional.of(clazz.cast(mapOfEnumToEnumStrings()));
+            case "MapOfEnumToString":
+                return Optional.of(clazz.cast(mapOfEnumToStringStrings()));
+            case "MapOfStringToEnum":
+                return Optional.of(clazz.cast(mapOfStringToEnumStrings()));
+            case "MapOfEnumToSimpleStruct":
+                return Optional.of(clazz.cast(mapOfEnumToSimpleStructStrings()));
+            case "TimestampMember":
+                return Optional.of(clazz.cast(timestampMember()));
+            case "StructWithNestedTimestampMember":
+                return Optional.of(clazz.cast(structWithNestedTimestampMember()));
+            case "BlobArg":
+                return Optional.of(clazz.cast(blobArg()));
+            case "StructWithNestedBlob":
+                return Optional.of(clazz.cast(structWithNestedBlob()));
+            case "BlobMap":
+                return Optional.of(clazz.cast(blobMap()));
+            case "ListOfBlobs":
+                return Optional.of(clazz.cast(listOfBlobs()));
+            case "RecursiveStruct":
+                return Optional.of(clazz.cast(recursiveStruct()));
+            case "PolymorphicTypeWithSubTypes":
+                return Optional.of(clazz.cast(polymorphicTypeWithSubTypes()));
+            case "PolymorphicTypeWithoutSubTypes":
+                return Optional.of(clazz.cast(polymorphicTypeWithoutSubTypes()));
+            case "EnumType":
+                return Optional.of(clazz.cast(enumTypeString()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -709,6 +930,24 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
         Builder simpleList(String... simpleList);
 
         /**
+         * Sets the value of the ListOfEnums property for this object.
+         *
+         * @param listOfEnums
+         *        The new value for the ListOfEnums property for this object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder listOfEnums(Collection<String> listOfEnums);
+
+        /**
+         * Sets the value of the ListOfEnums property for this object.
+         *
+         * @param listOfEnums
+         *        The new value for the ListOfEnums property for this object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder listOfEnums(String... listOfEnums);
+
+        /**
          * Sets the value of the ListOfMaps property for this object.
          *
          * @param listOfMaps
@@ -763,13 +1002,49 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
         Builder mapOfStringToString(Map<String, String> mapOfStringToString);
 
         /**
-         * Sets the value of the MapOfStringToStruct property for this object.
+         * Sets the value of the MapOfStringToSimpleStruct property for this object.
          *
-         * @param mapOfStringToStruct
-         *        The new value for the MapOfStringToStruct property for this object.
+         * @param mapOfStringToSimpleStruct
+         *        The new value for the MapOfStringToSimpleStruct property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
-        Builder mapOfStringToStruct(Map<String, SimpleStruct> mapOfStringToStruct);
+        Builder mapOfStringToSimpleStruct(Map<String, SimpleStruct> mapOfStringToSimpleStruct);
+
+        /**
+         * Sets the value of the MapOfEnumToEnum property for this object.
+         *
+         * @param mapOfEnumToEnum
+         *        The new value for the MapOfEnumToEnum property for this object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder mapOfEnumToEnum(Map<String, String> mapOfEnumToEnum);
+
+        /**
+         * Sets the value of the MapOfEnumToString property for this object.
+         *
+         * @param mapOfEnumToString
+         *        The new value for the MapOfEnumToString property for this object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder mapOfEnumToString(Map<String, String> mapOfEnumToString);
+
+        /**
+         * Sets the value of the MapOfStringToEnum property for this object.
+         *
+         * @param mapOfStringToEnum
+         *        The new value for the MapOfStringToEnum property for this object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder mapOfStringToEnum(Map<String, String> mapOfStringToEnum);
+
+        /**
+         * Sets the value of the MapOfEnumToSimpleStruct property for this object.
+         *
+         * @param mapOfEnumToSimpleStruct
+         *        The new value for the MapOfEnumToSimpleStruct property for this object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder mapOfEnumToSimpleStruct(Map<String, SimpleStruct> mapOfEnumToSimpleStruct);
 
         /**
          * Sets the value of the TimestampMember property for this object.
@@ -903,6 +1178,8 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
         private List<String> simpleList;
 
+        private List<String> listOfEnums;
+
         private List<Map<String, String>> listOfMaps;
 
         private List<SimpleStruct> listOfStructs;
@@ -911,7 +1188,15 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
         private Map<String, String> mapOfStringToString;
 
-        private Map<String, SimpleStruct> mapOfStringToStruct;
+        private Map<String, SimpleStruct> mapOfStringToSimpleStruct;
+
+        private Map<String, String> mapOfEnumToEnum;
+
+        private Map<String, String> mapOfEnumToString;
+
+        private Map<String, String> mapOfStringToEnum;
+
+        private Map<String, SimpleStruct> mapOfEnumToSimpleStruct;
 
         private Instant timestampMember;
 
@@ -944,11 +1229,16 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
             doubleMember(model.doubleMember);
             longMember(model.longMember);
             simpleList(model.simpleList);
+            listOfEnums(model.listOfEnums);
             listOfMaps(model.listOfMaps);
             listOfStructs(model.listOfStructs);
             mapOfStringToIntegerList(model.mapOfStringToIntegerList);
             mapOfStringToString(model.mapOfStringToString);
-            mapOfStringToStruct(model.mapOfStringToStruct);
+            mapOfStringToSimpleStruct(model.mapOfStringToSimpleStruct);
+            mapOfEnumToEnum(model.mapOfEnumToEnum);
+            mapOfEnumToString(model.mapOfEnumToString);
+            mapOfStringToEnum(model.mapOfStringToEnum);
+            mapOfEnumToSimpleStruct(model.mapOfEnumToSimpleStruct);
             timestampMember(model.timestampMember);
             structWithNestedTimestampMember(model.structWithNestedTimestampMember);
             blobArg(model.blobArg);
@@ -1066,6 +1356,27 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
             this.simpleList = ListOfStringsCopier.copy(simpleList);
         }
 
+        public final Collection<String> getListOfEnums() {
+            return listOfEnums;
+        }
+
+        @Override
+        public final Builder listOfEnums(Collection<String> listOfEnums) {
+            this.listOfEnums = ListOfEnumsCopier.copy(listOfEnums);
+            return this;
+        }
+
+        @Override
+        @SafeVarargs
+        public final Builder listOfEnums(String... listOfEnums) {
+            listOfEnums(Arrays.asList(listOfEnums));
+            return this;
+        }
+
+        public final void setListOfEnums(Collection<String> listOfEnums) {
+            this.listOfEnums = ListOfEnumsCopier.copy(listOfEnums);
+        }
+
         public final Collection<Map<String, String>> getListOfMaps() {
             return listOfMaps;
         }
@@ -1137,18 +1448,76 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
             this.mapOfStringToString = MapOfStringToStringCopier.copy(mapOfStringToString);
         }
 
-        public final Map<String, SimpleStruct.Builder> getMapOfStringToStruct() {
-            return mapOfStringToStruct != null ? CollectionUtils.mapValues(mapOfStringToStruct, SimpleStruct::toBuilder) : null;
+        public final Map<String, SimpleStruct.Builder> getMapOfStringToSimpleStruct() {
+            return mapOfStringToSimpleStruct != null ? CollectionUtils.mapValues(mapOfStringToSimpleStruct,
+                                                                                 SimpleStruct::toBuilder) : null;
         }
 
         @Override
-        public final Builder mapOfStringToStruct(Map<String, SimpleStruct> mapOfStringToStruct) {
-            this.mapOfStringToStruct = MapOfStringToSimpleStructCopier.copy(mapOfStringToStruct);
+        public final Builder mapOfStringToSimpleStruct(Map<String, SimpleStruct> mapOfStringToSimpleStruct) {
+            this.mapOfStringToSimpleStruct = MapOfStringToSimpleStructCopier.copy(mapOfStringToSimpleStruct);
             return this;
         }
 
-        public final void setMapOfStringToStruct(Map<String, SimpleStruct.BuilderImpl> mapOfStringToStruct) {
-            this.mapOfStringToStruct = MapOfStringToSimpleStructCopier.copyFromBuilder(mapOfStringToStruct);
+        public final void setMapOfStringToSimpleStruct(Map<String, SimpleStruct.BuilderImpl> mapOfStringToSimpleStruct) {
+            this.mapOfStringToSimpleStruct = MapOfStringToSimpleStructCopier.copyFromBuilder(mapOfStringToSimpleStruct);
+        }
+
+        public final Map<String, String> getMapOfEnumToEnum() {
+            return mapOfEnumToEnum;
+        }
+
+        @Override
+        public final Builder mapOfEnumToEnum(Map<String, String> mapOfEnumToEnum) {
+            this.mapOfEnumToEnum = MapOfEnumToEnumCopier.copy(mapOfEnumToEnum);
+            return this;
+        }
+
+        public final void setMapOfEnumToEnum(Map<String, String> mapOfEnumToEnum) {
+            this.mapOfEnumToEnum = MapOfEnumToEnumCopier.copy(mapOfEnumToEnum);
+        }
+
+        public final Map<String, String> getMapOfEnumToString() {
+            return mapOfEnumToString;
+        }
+
+        @Override
+        public final Builder mapOfEnumToString(Map<String, String> mapOfEnumToString) {
+            this.mapOfEnumToString = MapOfEnumToStringCopier.copy(mapOfEnumToString);
+            return this;
+        }
+
+        public final void setMapOfEnumToString(Map<String, String> mapOfEnumToString) {
+            this.mapOfEnumToString = MapOfEnumToStringCopier.copy(mapOfEnumToString);
+        }
+
+        public final Map<String, String> getMapOfStringToEnum() {
+            return mapOfStringToEnum;
+        }
+
+        @Override
+        public final Builder mapOfStringToEnum(Map<String, String> mapOfStringToEnum) {
+            this.mapOfStringToEnum = MapOfStringToEnumCopier.copy(mapOfStringToEnum);
+            return this;
+        }
+
+        public final void setMapOfStringToEnum(Map<String, String> mapOfStringToEnum) {
+            this.mapOfStringToEnum = MapOfStringToEnumCopier.copy(mapOfStringToEnum);
+        }
+
+        public final Map<String, SimpleStruct.Builder> getMapOfEnumToSimpleStruct() {
+            return mapOfEnumToSimpleStruct != null ? CollectionUtils.mapValues(mapOfEnumToSimpleStruct, SimpleStruct::toBuilder)
+                                                   : null;
+        }
+
+        @Override
+        public final Builder mapOfEnumToSimpleStruct(Map<String, SimpleStruct> mapOfEnumToSimpleStruct) {
+            this.mapOfEnumToSimpleStruct = MapOfEnumToSimpleStructCopier.copy(mapOfEnumToSimpleStruct);
+            return this;
+        }
+
+        public final void setMapOfEnumToSimpleStruct(Map<String, SimpleStruct.BuilderImpl> mapOfEnumToSimpleStruct) {
+            this.mapOfEnumToSimpleStruct = MapOfEnumToSimpleStructCopier.copyFromBuilder(mapOfEnumToSimpleStruct);
         }
 
         public final Instant getTimestampMember() {
@@ -1177,7 +1546,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
         public final void setStructWithNestedTimestampMember(StructWithTimestamp.BuilderImpl structWithNestedTimestampMember) {
             this.structWithNestedTimestampMember = structWithNestedTimestampMember != null ? structWithNestedTimestampMember
-                .build() : null;
+                    .build() : null;
         }
 
         public final ByteBuffer getBlobArg() {

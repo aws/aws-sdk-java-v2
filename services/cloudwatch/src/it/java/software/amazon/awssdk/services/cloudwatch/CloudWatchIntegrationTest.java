@@ -236,7 +236,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
          * Get the history
          */
         DescribeAlarmHistoryRequest alarmHistoryRequest = DescribeAlarmHistoryRequest.builder()
-                .alarmName(rq1.alarmName()).historyItemType(HistoryItemType.StateUpdate)
+                .alarmName(rq1.alarmName()).historyItemType(HistoryItemType.STATE_UPDATE)
                 .build();
         DescribeAlarmHistoryResponse historyResult = cloudwatch
                 .describeAlarmHistory(alarmHistoryRequest);

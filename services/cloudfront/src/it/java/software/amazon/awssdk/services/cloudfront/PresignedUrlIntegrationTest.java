@@ -124,12 +124,12 @@ public class PresignedUrlIntegrationTest extends IntegrationTestBase {
         s3.putObjectAcl(PutObjectAclRequest.builder()
                                            .bucket(bucketName)
                                            .key("key")
-                                           .acl(ObjectCannedACL.AuthenticatedRead)
+                                           .acl(ObjectCannedACL.AUTHENTICATED_READ)
                                            .accessControlPolicy(
                                                AccessControlPolicy.builder()
                                                                   .grants(Grant.builder()
                                                                                .grantee(Grantee.builder()
-                                                                                               .type(Type.CanonicalUser)
+                                                                                               .type(Type.CANONICAL_USER)
                                                                                                .id(s3CanonicalUserId)
                                                                                                .build())
                                                                                .permission(Permission.READ)
@@ -142,7 +142,7 @@ public class PresignedUrlIntegrationTest extends IntegrationTestBase {
             CreateDistributionRequest.builder()
                                      .distributionConfig(
                                          DistributionConfig.builder()
-                                                           .priceClass(PriceClass.PriceClass_100)
+                                                           .priceClass(PriceClass.PRICE_CLASS_100)
                                                            .defaultCacheBehavior(
                                                                DefaultCacheBehavior.builder()
                                                                                    .minTTL(100L)
@@ -157,7 +157,7 @@ public class PresignedUrlIntegrationTest extends IntegrationTestBase {
                                                                                    .forwardedValues(
                                                                                        ForwardedValues.builder()
                                                                                                       .cookies(CookiePreference.builder()
-                                                                                                                               .forward(ItemSelection.None)
+                                                                                                                               .forward(ItemSelection.NONE)
                                                                                                                                .build())
                                                                                                       .queryString(true)
                                                                                                       .build())
@@ -192,7 +192,7 @@ public class PresignedUrlIntegrationTest extends IntegrationTestBase {
                                                                                                   ForwardedValues.builder()
                                                                                                                  .cookies(
                                                                                                                      CookiePreference.builder()
-                                                                                                                                     .forward(ItemSelection.None)
+                                                                                                                                     .forward(ItemSelection.NONE)
                                                                                                                                      .build())
                                                                                                                  .queryString(true)
                                                                                                                  .build())
