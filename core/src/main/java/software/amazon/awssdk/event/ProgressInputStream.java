@@ -32,7 +32,7 @@ public abstract class ProgressInputStream extends SdkFilterInputStream {
     /** The threshold of bytes between notifications. */
     private static final int DEFAULT_NOTIFICATION_THRESHOLD = 8 * 1024;
     private final ProgressListener listener;
-    private final int notifyThresHold;
+    private final int notifyThreshold;
     /** The number of bytes read that the listener hasn't been notified about yet. */
     private int unnotifiedByteCount;
     private boolean hasBeenRead;
@@ -43,12 +43,12 @@ public abstract class ProgressInputStream extends SdkFilterInputStream {
         this(is, listener, DEFAULT_NOTIFICATION_THRESHOLD);
     }
 
-    public ProgressInputStream(InputStream is, ProgressListener listener, int notifyThresHold) {
+    public ProgressInputStream(InputStream is, ProgressListener listener, int notifyThreshold) {
         super(is);
         if (is == null || listener == null) {
             throw new IllegalArgumentException();
         }
-        this.notifyThresHold = notifyThresHold;
+        this.notifyThreshold = notifyThreshold;
         this.listener = listener;
     }
 
@@ -138,7 +138,7 @@ public abstract class ProgressInputStream extends SdkFilterInputStream {
      */
     private void onBytesRead(int bytesRead) {
         unnotifiedByteCount += bytesRead;
-        if (unnotifiedByteCount >= notifyThresHold) {
+        if (unnotifiedByteCount >= notifyThreshold) {
             onNotifyBytesRead();
             notifiedByteCount += unnotifiedByteCount;
             unnotifiedByteCount = 0;

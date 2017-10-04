@@ -339,7 +339,7 @@ public class QueueBufferConfig {
     /**
      * Custom visibility timeout to use when retrieving messages from SQS. If set to a value greater
      * than zero, this timeout will override the default visibility timeout set on the SQS queue.
-     * Set it to -1 to use the default visiblity timeout of the queue. Visibility timeout of 0
+     * Set it to -1 to use the default visibility timeout of the queue. Visibility timeout of 0
      * seconds is not supported.
      */
     public int getVisibilityTimeoutSeconds() {
@@ -349,7 +349,7 @@ public class QueueBufferConfig {
     /**
      * Custom visibility timeout to use when retrieving messages from SQS. If set to a value greater
      * than zero, this timeout will override the default visibility timeout set on the SQS queue.
-     * Set it to -1 to use the default visiblity timeout of the queue. Visibility timeout of 0
+     * Set it to -1 to use the default visibility timeout of the queue. Visibility timeout of 0
      * seconds is not supported.
      */
     public void setVisibilityTimeoutSeconds(int visibilityTimeoutSeconds) {
@@ -359,7 +359,7 @@ public class QueueBufferConfig {
     /**
      * Custom visibility timeout to use when retrieving messages from SQS. If set to a value greater
      * than zero, this timeout will override the default visibility timeout set on the SQS queue.
-     * Set it to -1 to use the default visiblity timeout of the queue. Visibility timeout of 0
+     * Set it to -1 to use the default visibility timeout of the queue. Visibility timeout of 0
      * seconds is not supported.
      */
     public QueueBufferConfig withVisibilityTimeoutSeconds(int visibilityTimeoutSeconds) {

@@ -61,7 +61,7 @@ public class ClientExecutionTimedStage<OutputT> implements RequestToResponsePipe
 
     /**
      * Start and end client execution timer around the execution of the request. It's important
-     * that the client execution task is canceled before the InterruptedExecption is handled by
+     * that the client execution task is canceled before the InterruptedException is handled by
      * {@link #wrapped#execute(Request)} so the interrupt status doesn't leak out to the callers code
      */
     private Response<OutputT> executeWithTimer(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {

@@ -204,7 +204,7 @@ final class ShapeModifiersProcessor implements CodegenCustomizationProcessor {
     private void doModifyShapeMembers(ServiceModel serviceModel, Shape shape, String memberToModify,
                                       ModifyModelShapeModifier modifyModel) {
 
-        // Currrenly only supports emitPropertyName which is to rename the member
+        // Currently only supports emitPropertyName which is to rename the member
         if (modifyModel.getEmitPropertyName() != null) {
             Member member = shape.getMembers().remove(memberToModify);
 

@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.protocol;
 
-public class RestJsonProtocolMetdataProvider extends BaseJsonProtocolMetadataProvider {
+public class RestJsonProtocolMetadataProvider extends BaseJsonProtocolMetadataProvider {
     public static final long serialVersionUID = 1L;
 
     /**

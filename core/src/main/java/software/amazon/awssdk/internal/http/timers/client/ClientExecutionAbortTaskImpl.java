@@ -48,7 +48,7 @@ public class ClientExecutionAbortTaskImpl implements ClientExecutionAbortTask {
 
     @Override
     public void setCurrentHttpRequest(Abortable newRequest) {
-        this.currentRequest = notNull(newRequest, "Abortable caonnot be null");
+        this.currentRequest = notNull(newRequest, "Abortable cannot be null");
     }
 
     public boolean hasClientExecutionAborted() {

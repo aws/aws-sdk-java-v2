@@ -42,7 +42,7 @@ public class LambdaFunctionException extends AmazonClientException {
     @Deprecated
     public LambdaFunctionException(String message, boolean handled, String type) {
         this(type, message, null, null);
-        setFunctionError(handled ? "Handeled" : "Unhandled");
+        setFunctionError(handled ? "Handled" : "Unhandled");
     }
 
     @SdkInternalApi

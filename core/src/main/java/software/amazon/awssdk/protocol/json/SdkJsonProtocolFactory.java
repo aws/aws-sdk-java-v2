@@ -91,8 +91,8 @@ public class SdkJsonProtocolFactory {
      * Creates a response handler for handling a error response (non 2xx response).
      */
     public HttpResponseHandler<AmazonServiceException> createErrorResponseHandler(
-            JsonErrorResponseMetadata errorResponsMetadata) {
-        return getSdkFactory().createErrorResponseHandler(errorUnmarshallers, errorResponsMetadata
+            JsonErrorResponseMetadata errorResponseMetadata) {
+        return getSdkFactory().createErrorResponseHandler(errorUnmarshallers, errorResponseMetadata
                 .getCustomErrorCodeFieldName());
     }
 

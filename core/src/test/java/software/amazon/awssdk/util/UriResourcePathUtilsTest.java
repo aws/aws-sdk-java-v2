@@ -25,14 +25,14 @@ public class UriResourcePathUtilsTest {
 
     @Test
     public void request_null_returns_null() {
-        Assert.assertNull(UriResourcePathUtils.addStaticQueryParamtersToRequest(null,
-                                                                                "foo"));
+        Assert.assertNull(UriResourcePathUtils.addStaticQueryParametersToRequest(null,
+                                                                                 "foo"));
     }
 
     @Test
     public void uri_resource_path_null_returns_null() {
         Assert.assertNull(UriResourcePathUtils
-                                  .addStaticQueryParamtersToRequest(new DefaultRequest<Object>
+                                  .addStaticQueryParametersToRequest(new DefaultRequest<Object>
                                                                             (null, null), null));
     }
 
@@ -42,7 +42,7 @@ public class UriResourcePathUtilsTest {
         final String uriResourcePath = "/foo/bar";
 
         Assert.assertEquals(uriResourcePath, UriResourcePathUtils
-                .addStaticQueryParamtersToRequest(new DefaultRequest<Object>
+                .addStaticQueryParametersToRequest(new DefaultRequest<Object>
                                                           (null, null), uriResourcePath));
 
     }
@@ -54,7 +54,7 @@ public class UriResourcePathUtilsTest {
         final String pathWithEmptyStaticQueryParams = expectedResourcePath + "?";
 
         Assert.assertEquals(expectedResourcePath, UriResourcePathUtils
-                .addStaticQueryParamtersToRequest(new DefaultRequest<Object>
+                .addStaticQueryParametersToRequest(new DefaultRequest<Object>
                                                           (null, null), pathWithEmptyStaticQueryParams));
 
     }
@@ -69,8 +69,8 @@ public class UriResourcePathUtilsTest {
                 (null, null);
 
         Assert.assertEquals(uriResourcePath, UriResourcePathUtils
-                .addStaticQueryParamtersToRequest(request,
-                                                  uriResourcePathWithParams));
+                .addStaticQueryParametersToRequest(request,
+                                                   uriResourcePathWithParams));
         Assert.assertTrue(request.getParameters().containsKey("param1"));
         Assert.assertEquals(Arrays.asList(""), request.getParameters().get("param1"));
     }
@@ -84,8 +84,8 @@ public class UriResourcePathUtilsTest {
                 (null, null);
 
         Assert.assertEquals(uriResourcePath, UriResourcePathUtils
-                .addStaticQueryParamtersToRequest(request,
-                                                  uriResourcePathWithParams));
+                .addStaticQueryParametersToRequest(request,
+                                                   uriResourcePathWithParams));
         Assert.assertTrue(request.getParameters().containsKey("param1"));
         Assert.assertTrue(request.getParameters().containsKey("param2"));
         Assert.assertEquals(Arrays.asList("value1"), request.getParameters().get("param1"));
@@ -100,7 +100,7 @@ public class UriResourcePathUtilsTest {
                 uriResourcePath + "?param";
         final Request<Object> request = new DefaultRequest<Object>(null, null);
 
-        Assert.assertEquals(uriResourcePath, UriResourcePathUtils.addStaticQueryParamtersToRequest(request, uriResourcePathWithParams));
+        Assert.assertEquals(uriResourcePath, UriResourcePathUtils.addStaticQueryParametersToRequest(request, uriResourcePathWithParams));
 
         Assert.assertTrue(request.getParameters().containsKey("param"));
         Assert.assertEquals(Arrays.asList((String) null), request.getParameters().get("param"));

@@ -49,7 +49,7 @@ public class QueryStringSigner extends AbstractAwsSigner {
      */
     public SdkHttpFullRequest sign(Context.BeforeTransmission execution, ExecutionAttributes executionAttributes)
             throws SdkClientException {
-        // annonymous credentials, don't sign
+        // anonymous credentials, don't sign
         if (CredentialUtils.isAnonymous(executionAttributes.getAttribute(AWS_CREDENTIALS))) {
             return execution.httpRequest();
         }

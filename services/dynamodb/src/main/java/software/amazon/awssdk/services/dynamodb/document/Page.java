@@ -37,7 +37,7 @@ public abstract class Page<T, R> implements Iterable<T> {
 
     /**
      * @param content an unmodifiable list of content
-     * @param lowLevelResult the low level (response) result from AWSS
+     * @param lowLevelResult the low level (response) result from AWS
      */
     public Page(List<T> content, R lowLevelResult) {
         if (content == null || lowLevelResult == null) {
