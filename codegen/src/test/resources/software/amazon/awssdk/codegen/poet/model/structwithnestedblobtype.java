@@ -1,6 +1,7 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.protocol.ProtocolMarshaller;
@@ -14,7 +15,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public class StructWithNestedBlobType implements StructuredPojo,
-                                                 ToCopyableBuilder<StructWithNestedBlobType.Builder, StructWithNestedBlobType> {
+        ToCopyableBuilder<StructWithNestedBlobType.Builder, StructWithNestedBlobType> {
     private final ByteBuffer nestedBlob;
 
     private StructWithNestedBlobType(BuilderImpl builder) {
@@ -85,6 +86,15 @@ public class StructWithNestedBlobType implements StructuredPojo,
         }
         sb.append("}");
         return sb.toString();
+    }
+
+    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+        switch (fieldName) {
+        case "NestedBlob":
+            return Optional.of(clazz.cast(nestedBlob()));
+        default:
+            return Optional.empty();
+        }
     }
 
     @SdkInternalApi

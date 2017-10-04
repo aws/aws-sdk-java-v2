@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Generated;
 import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.runtime.StandardMemberCopier;
@@ -16,7 +17,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public class AllTypesRequest extends AmazonWebServiceRequest implements
-                                                             ToCopyableBuilder<AllTypesRequest.Builder, AllTypesRequest> {
+        ToCopyableBuilder<AllTypesRequest.Builder, AllTypesRequest> {
     private final String stringMember;
 
     private final Integer integerMember;
@@ -342,7 +343,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         hashCode = 31 * hashCode + ((mapOfStringToStruct() == null) ? 0 : mapOfStringToStruct().hashCode());
         hashCode = 31 * hashCode + ((timestampMember() == null) ? 0 : timestampMember().hashCode());
         hashCode = 31 * hashCode
-                   + ((structWithNestedTimestampMember() == null) ? 0 : structWithNestedTimestampMember().hashCode());
+                + ((structWithNestedTimestampMember() == null) ? 0 : structWithNestedTimestampMember().hashCode());
         hashCode = 31 * hashCode + ((blobArg() == null) ? 0 : blobArg().hashCode());
         hashCode = 31 * hashCode + ((structWithNestedBlob() == null) ? 0 : structWithNestedBlob().hashCode());
         hashCode = 31 * hashCode + ((blobMap() == null) ? 0 : blobMap().hashCode());
@@ -448,7 +449,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
             return false;
         }
         if (other.structWithNestedTimestampMember() != null
-            && !other.structWithNestedTimestampMember().equals(this.structWithNestedTimestampMember())) {
+                && !other.structWithNestedTimestampMember().equals(this.structWithNestedTimestampMember())) {
             return false;
         }
         if (other.blobArg() == null ^ this.blobArg() == null) {
@@ -485,14 +486,14 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
             return false;
         }
         if (other.polymorphicTypeWithSubTypes() != null
-            && !other.polymorphicTypeWithSubTypes().equals(this.polymorphicTypeWithSubTypes())) {
+                && !other.polymorphicTypeWithSubTypes().equals(this.polymorphicTypeWithSubTypes())) {
             return false;
         }
         if (other.polymorphicTypeWithoutSubTypes() == null ^ this.polymorphicTypeWithoutSubTypes() == null) {
             return false;
         }
         if (other.polymorphicTypeWithoutSubTypes() != null
-            && !other.polymorphicTypeWithoutSubTypes().equals(this.polymorphicTypeWithoutSubTypes())) {
+                && !other.polymorphicTypeWithoutSubTypes().equals(this.polymorphicTypeWithoutSubTypes())) {
             return false;
         }
         if (other.enumType() == null ^ this.enumType() == null) {
@@ -578,6 +579,57 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         }
         sb.append("}");
         return sb.toString();
+    }
+
+    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+        switch (fieldName) {
+        case "StringMember":
+            return Optional.of(clazz.cast(stringMember()));
+        case "IntegerMember":
+            return Optional.of(clazz.cast(integerMember()));
+        case "BooleanMember":
+            return Optional.of(clazz.cast(booleanMember()));
+        case "FloatMember":
+            return Optional.of(clazz.cast(floatMember()));
+        case "DoubleMember":
+            return Optional.of(clazz.cast(doubleMember()));
+        case "LongMember":
+            return Optional.of(clazz.cast(longMember()));
+        case "SimpleList":
+            return Optional.of(clazz.cast(simpleList()));
+        case "ListOfMaps":
+            return Optional.of(clazz.cast(listOfMaps()));
+        case "ListOfStructs":
+            return Optional.of(clazz.cast(listOfStructs()));
+        case "MapOfStringToIntegerList":
+            return Optional.of(clazz.cast(mapOfStringToIntegerList()));
+        case "MapOfStringToString":
+            return Optional.of(clazz.cast(mapOfStringToString()));
+        case "MapOfStringToStruct":
+            return Optional.of(clazz.cast(mapOfStringToStruct()));
+        case "TimestampMember":
+            return Optional.of(clazz.cast(timestampMember()));
+        case "StructWithNestedTimestampMember":
+            return Optional.of(clazz.cast(structWithNestedTimestampMember()));
+        case "BlobArg":
+            return Optional.of(clazz.cast(blobArg()));
+        case "StructWithNestedBlob":
+            return Optional.of(clazz.cast(structWithNestedBlob()));
+        case "BlobMap":
+            return Optional.of(clazz.cast(blobMap()));
+        case "ListOfBlobs":
+            return Optional.of(clazz.cast(listOfBlobs()));
+        case "RecursiveStruct":
+            return Optional.of(clazz.cast(recursiveStruct()));
+        case "PolymorphicTypeWithSubTypes":
+            return Optional.of(clazz.cast(polymorphicTypeWithSubTypes()));
+        case "PolymorphicTypeWithoutSubTypes":
+            return Optional.of(clazz.cast(polymorphicTypeWithoutSubTypes()));
+        case "EnumType":
+            return Optional.of(clazz.cast(enumType()));
+        default:
+            return Optional.empty();
+        }
     }
 
     public interface Builder extends CopyableBuilder<Builder, AllTypesRequest> {

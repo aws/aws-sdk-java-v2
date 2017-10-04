@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.util.Optional;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.protocol.ProtocolMarshaller;
@@ -79,6 +80,15 @@ public class BaseType implements StructuredPojo, ToCopyableBuilder<BaseType.Buil
         }
         sb.append("}");
         return sb.toString();
+    }
+
+    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+        switch (fieldName) {
+        case "BaseMember":
+            return Optional.of(clazz.cast(baseMember()));
+        default:
+            return Optional.empty();
+        }
     }
 
     @SdkInternalApi

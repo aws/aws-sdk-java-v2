@@ -17,12 +17,11 @@ package software.amazon.awssdk.services.s3.handlers;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
-import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.interceptor.Context;
@@ -44,25 +43,20 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
     @Override
     public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
         SdkHttpFullRequest request = context.httpRequest();
-        Object originalRequest = context.request();
+        SdkRequest sdkRequest = context.request();
 
         S3AdvancedConfiguration advancedConfiguration =
                 (S3AdvancedConfiguration) executionAttributes.getAttribute(AwsExecutionAttributes.SERVICE_ADVANCED_CONFIG);
         SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
 
-        mutableRequest.endpoint(resolveEndpoint(request.getEndpoint(), originalRequest,
-                                                executionAttributes, advancedConfiguration));
+        mutableRequest.endpoint(resolveEndpoint(request.getEndpoint(), sdkRequest, executionAttributes, advancedConfiguration));
 
         if (advancedConfiguration == null || !advancedConfiguration.pathStyleAccessEnabled()) {
-            try {
-                String bucketName = getBucketName(originalRequest);
-
-                if (BucketUtils.isValidDnsBucketName(bucketName, false)) {
-                    changeToDnsEndpoint(mutableRequest, bucketName);
+            sdkRequest.getValueForField("Bucket", String.class).ifPresent(b -> {
+                if (BucketUtils.isValidDnsBucketName(b, false)) {
+                    changeToDnsEndpoint(mutableRequest, b);
                 }
-            } catch (Exception e) {
-                // Unable to convert to DNS style addressing. Fall back to continue using path style.
-            }
+            });
         }
 
         return mutableRequest.build();
@@ -124,15 +118,6 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException(e);
         }
-    }
-
-    @ReviewBeforeRelease("Remove reflection here. Have some kind of interface where we can get bucket name or pass it" +
-                         "in the handler context")
-    private String getBucketName(Object originalRequest) throws IllegalAccessException, InvocationTargetException,
-                                                                NoSuchMethodException {
-        return (String) originalRequest.getClass()
-                                       .getMethod("bucket")
-                                       .invoke(originalRequest);
     }
 
     /**

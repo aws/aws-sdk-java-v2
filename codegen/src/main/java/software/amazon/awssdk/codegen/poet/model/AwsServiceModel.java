@@ -21,10 +21,12 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotation.SdkInternalApi;
@@ -115,6 +117,7 @@ public class AwsServiceModel implements ClassSpec {
                 methodSpecs.add(modelMethodOverrides.hashCodeMethod(shapeModel));
                 methodSpecs.add(modelMethodOverrides.equalsMethod(shapeModel));
                 methodSpecs.add(modelMethodOverrides.toStringMethod(shapeModel));
+                methodSpecs.add(getValueForField());
                 break;
         }
 
@@ -124,6 +127,38 @@ public class AwsServiceModel implements ClassSpec {
 
         return methodSpecs;
     }
+
+    private MethodSpec getValueForField() {
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("getValueForField")
+                                                     .addModifiers(Modifier.PUBLIC)
+                                                     .addTypeVariable(TypeVariableName.get("T"))
+                                                     .returns(ParameterizedTypeName.get(ClassName.get(Optional.class),
+                                                                                        TypeVariableName.get("T")))
+                                                     .addParameter(String.class, "fieldName")
+                                                     .addParameter(ParameterizedTypeName.get(ClassName.get(Class.class),
+                                                                                             TypeVariableName.get("T")),
+                                                                   "clazz");
+
+        if (shapeModel.getNonStreamingMembers().isEmpty()) {
+            methodBuilder.addStatement("return $T.empty()", Optional.class);
+            return methodBuilder.build();
+        }
+
+
+        methodBuilder.beginControlFlow("switch ($L)", "fieldName");
+
+        shapeModel.getNonStreamingMembers().forEach(m -> methodBuilder.addCode("case $S:", m.getC2jName())
+                                                                      .addStatement("return $T.of(clazz.cast($L()))",
+                                                                                    Optional.class,
+                                                                                    m.getFluentGetterMethodName()));
+
+        methodBuilder.addCode("default:");
+        methodBuilder.addStatement("return $T.empty()", Optional.class);
+        methodBuilder.endControlFlow();
+
+        return methodBuilder.build();
+    }
+
 
     private List<MethodSpec> memberGetters() {
         return shapeModel.getNonStreamingMembers().stream()

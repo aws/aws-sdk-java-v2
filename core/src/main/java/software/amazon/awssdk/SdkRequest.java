@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk;
 
+import java.util.Optional;
+
 /**
  * The base class for all SDK requests.
  *
@@ -23,4 +25,8 @@ package software.amazon.awssdk;
  * @see SdkResponse
  */
 public abstract class SdkRequest {
+
+    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+        return Optional.empty();
+    }
 }

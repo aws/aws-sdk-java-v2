@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Generated;
 import software.amazon.awssdk.AmazonWebServiceResult;
 import software.amazon.awssdk.ResponseMetadata;
@@ -579,6 +580,57 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
         }
         sb.append("}");
         return sb.toString();
+    }
+
+    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+        switch (fieldName) {
+        case "StringMember":
+            return Optional.of(clazz.cast(stringMember()));
+        case "IntegerMember":
+            return Optional.of(clazz.cast(integerMember()));
+        case "BooleanMember":
+            return Optional.of(clazz.cast(booleanMember()));
+        case "FloatMember":
+            return Optional.of(clazz.cast(floatMember()));
+        case "DoubleMember":
+            return Optional.of(clazz.cast(doubleMember()));
+        case "LongMember":
+            return Optional.of(clazz.cast(longMember()));
+        case "SimpleList":
+            return Optional.of(clazz.cast(simpleList()));
+        case "ListOfMaps":
+            return Optional.of(clazz.cast(listOfMaps()));
+        case "ListOfStructs":
+            return Optional.of(clazz.cast(listOfStructs()));
+        case "MapOfStringToIntegerList":
+            return Optional.of(clazz.cast(mapOfStringToIntegerList()));
+        case "MapOfStringToString":
+            return Optional.of(clazz.cast(mapOfStringToString()));
+        case "MapOfStringToStruct":
+            return Optional.of(clazz.cast(mapOfStringToStruct()));
+        case "TimestampMember":
+            return Optional.of(clazz.cast(timestampMember()));
+        case "StructWithNestedTimestampMember":
+            return Optional.of(clazz.cast(structWithNestedTimestampMember()));
+        case "BlobArg":
+            return Optional.of(clazz.cast(blobArg()));
+        case "StructWithNestedBlob":
+            return Optional.of(clazz.cast(structWithNestedBlob()));
+        case "BlobMap":
+            return Optional.of(clazz.cast(blobMap()));
+        case "ListOfBlobs":
+            return Optional.of(clazz.cast(listOfBlobs()));
+        case "RecursiveStruct":
+            return Optional.of(clazz.cast(recursiveStruct()));
+        case "PolymorphicTypeWithSubTypes":
+            return Optional.of(clazz.cast(polymorphicTypeWithSubTypes()));
+        case "PolymorphicTypeWithoutSubTypes":
+            return Optional.of(clazz.cast(polymorphicTypeWithoutSubTypes()));
+        case "EnumType":
+            return Optional.of(clazz.cast(enumType()));
+        default:
+            return Optional.empty();
+        }
     }
 
     public interface Builder extends CopyableBuilder<Builder, AllTypesResponse> {
@@ -1255,4 +1307,3 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
         }
     }
 }
-
