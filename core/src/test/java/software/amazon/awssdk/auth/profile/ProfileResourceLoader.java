@@ -19,6 +19,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -111,6 +112,10 @@ public class ProfileResourceLoader {
         return new ProfileResourceLoader("RoleProfileMissingSource.tst");
     }
 
+    public static ProfileResourceLoader roleProfileWithSourceHavingNoCredentials() {
+        return new ProfileResourceLoader("RoleProfileWithSourceHavingNoCredentials.tst");
+    }
+
     public static ProfileResourceLoader roleProfileWithEmptySourceName() {
         return new ProfileResourceLoader("RoleProfileWithEmptySourceName.tst");
     }
@@ -126,8 +131,8 @@ public class ProfileResourceLoader {
     /**
      * Load resource as a {@link File} object
      */
-    public File asFile() {
-        return Paths.get(asUri()).toFile();
+    public Path asPath() {
+        return Paths.get(asUri());
     }
 
     /**

@@ -76,6 +76,17 @@ public enum IoUtils {
     }
 
     /**
+     * Closes the given Closeable quietly.
+     * @param is the given closeable
+     * @param log logger used to log any failure should the close fail
+     */
+    public static void closeIfCloseable(Object maybeCloseable, Logger log) {
+        if (maybeCloseable instanceof AutoCloseable) {
+            IoUtils.closeQuietly((AutoCloseable) maybeCloseable, log);
+        }
+    }
+
+    /**
      * Copies all bytes from the given input stream to the given output stream.
      * Caller is responsible for closing the streams.
      *
