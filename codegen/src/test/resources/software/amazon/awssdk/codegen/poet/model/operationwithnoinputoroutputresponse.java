@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.util.Optional;
 import javax.annotation.Generated;
 import software.amazon.awssdk.AmazonWebServiceResult;
 import software.amazon.awssdk.ResponseMetadata;
@@ -55,6 +56,10 @@ public class OperationWithNoInputOrOutputResponse extends AmazonWebServiceResult
         return sb.toString();
     }
 
+    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+        return Optional.empty();
+    }
+
     public interface Builder extends CopyableBuilder<Builder, OperationWithNoInputOrOutputResponse> {
     }
 
@@ -71,4 +76,3 @@ public class OperationWithNoInputOrOutputResponse extends AmazonWebServiceResult
         }
     }
 }
-

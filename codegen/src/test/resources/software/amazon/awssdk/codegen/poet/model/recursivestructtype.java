@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.protocol.ProtocolMarshaller;
@@ -155,6 +156,21 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
         }
         sb.append("}");
         return sb.toString();
+    }
+
+    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+        switch (fieldName) {
+        case "NoRecurse":
+            return Optional.of(clazz.cast(noRecurse()));
+        case "RecursiveStruct":
+            return Optional.of(clazz.cast(recursiveStruct()));
+        case "RecursiveList":
+            return Optional.of(clazz.cast(recursiveList()));
+        case "RecursiveMap":
+            return Optional.of(clazz.cast(recursiveMap()));
+        default:
+            return Optional.empty();
+        }
     }
 
     @SdkInternalApi
