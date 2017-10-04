@@ -26,6 +26,17 @@ import java.util.Optional;
  */
 public abstract class SdkRequest {
 
+    /**
+     * Used to retrieve the value of a field from any class that extends {@link SdkRequest}. The field name
+     * specified should match the member name from the corresponding service-2.json model specified in the
+     * codegen-resources folder for a given service. The class specifies what class to cast the returned value to.
+     * If the returned value is also a modeled class, the {@link #getValueForField(String, Class)} method will
+     * again be available.
+     *
+     * @param fieldName The name of the member to be retrieved.
+     * @param clazz The class to cast the returned object to.
+     * @return Optional containing the casted return value
+     */
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         return Optional.empty();
     }
