@@ -146,7 +146,7 @@ public interface SdkHttpFullRequest
         Builder queryParameters(Map<String, List<String>> queryParameters);
 
         /**
-         * Removes all values for the query paramter from the builder.
+         * Removes all values for the query parameter from the builder.
          *
          * @param paramName Query param to remove.
          * @return This builder for method chaining.

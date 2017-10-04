@@ -52,7 +52,7 @@ public final class MoveParametersToBodyStage implements MutableRequestToRequestP
     @ReviewBeforeRelease("SigV2 expects query params to be signed as query params despite being in the body. Moving" +
                          " before signing breaks SimpleDB which still uses SigV2. Probably the best thing to do is" +
                          " make the SigV2 signer be aware that params are being moved into the body and move them back out" +
-                         " and unencode and sign them as query params. We did a similiar thing in the V4 signer in 1.11.x" +
+                         " and unencode and sign them as query params. We did a similar thing in the V4 signer in 1.11.x" +
                          " but I'd rather have the grossness in the legacy signer implementation")
     private boolean notSimpleDb(RequestExecutionContext context) {
         return !"SimpleDBClient".equals(context.executionAttributes().getAttribute(AwsExecutionAttributes.SERVICE_NAME));

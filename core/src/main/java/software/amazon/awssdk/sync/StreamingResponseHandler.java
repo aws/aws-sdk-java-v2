@@ -45,9 +45,9 @@ import software.amazon.awssdk.utils.IoUtils;
  *
  * <p>
  * <h3>Thread Interrupts</h3>
- * Implementations should have proper handling of Thread interrupts. For long running, non-interruptable tasks, it is recommended
+ * Implementations should have proper handling of Thread interrupts. For long running, non-interruptible tasks, it is recommended
  * to check the thread interrupt status periodically and throw an {@link InterruptedException} if set. When an {@link
- * InterruptedException} is thrown from a interruptable task, you should either re-interrupt the current thread or throw that
+ * InterruptedException} is thrown from a interruptible task, you should either re-interrupt the current thread or throw that
  * {@link InterruptedException} from the {@link #apply(Object, AbortableInputStream)} method. Failure to do these things will
  * prevent the total execution timeout from working (see {@link ClientOverrideConfiguration#totalExecutionTimeout()} and may
  * prevent the SDK from stopping the request in a timely manner in the event the thread is interrupted externally.

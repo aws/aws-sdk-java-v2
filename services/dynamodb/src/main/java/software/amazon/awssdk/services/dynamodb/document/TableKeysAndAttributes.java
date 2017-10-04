@@ -235,22 +235,6 @@ public class TableKeysAndAttributes {
     }
 
     /**
-     * @deprecated by {@link #withAttributeNames(String...)}.
-     */
-    @Deprecated
-    public TableKeysAndAttributes withAttrbuteNames(String... attributeNames) {
-        return withAttributeNames(attributeNames);
-    }
-
-    /**
-     * @deprecated by {@link #withAttributeNames(List)}.
-     */
-    @Deprecated
-    public TableKeysAndAttributes withAttrbuteNames(List<String> attributeNames) {
-        return withAttributeNames(attributeNames);
-    }
-
-    /**
      * Used to specify the attributes to be retrieved in each item returned
      * from the batch get-item operation.
      *

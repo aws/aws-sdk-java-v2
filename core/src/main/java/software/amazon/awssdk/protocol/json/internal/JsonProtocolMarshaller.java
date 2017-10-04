@@ -67,7 +67,7 @@ public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolRequestMars
     private Request<OrigRequestT> fillBasicRequestParams(OperationInfo operationInfo, OrigRequestT originalRequest) {
         Request<OrigRequestT> request = createRequest(operationInfo, originalRequest);
         request.setHttpMethod(operationInfo.httpMethodName());
-        request.setResourcePath(UriResourcePathUtils.addStaticQueryParamtersToRequest(request, operationInfo.requestUri()));
+        request.setResourcePath(UriResourcePathUtils.addStaticQueryParametersToRequest(request, operationInfo.requestUri()));
         if (operationInfo.operationIdentifier() != null) {
             request.addHeader("X-Amz-Target", operationInfo.operationIdentifier());
         }

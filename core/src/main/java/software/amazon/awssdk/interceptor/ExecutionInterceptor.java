@@ -36,7 +36,7 @@ import software.amazon.awssdk.retry.v2.RetryPolicy;
  *     <li>{@link #beforeMarshalling} - Read the request that has potentially been modified by other request interceptors before
  *     it is marshalled into an HTTP request.</li>
  *     <li>{@link #afterMarshalling} - Read the HTTP request after it is created and before it can be modified by other
- *     inteceptors.</li>
+ *     interceptors.</li>
  *     <li>{@link #modifyHttpRequest} - Modify the HTTP request object before it is transmitted.</li>
  *     <li>{@link #beforeTransmission} - Read the HTTP request that has potentially been modified by other request interceptors
  *     before it is sent to the service.</li>

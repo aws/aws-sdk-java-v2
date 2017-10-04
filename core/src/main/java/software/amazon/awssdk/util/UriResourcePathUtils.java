@@ -25,8 +25,8 @@ public final class UriResourcePathUtils {
      *
      * Returns the updated uriResourcePath.
      */
-    public static String addStaticQueryParamtersToRequest(final Request<?> request,
-                                                          final String uriResourcePath) {
+    public static String addStaticQueryParametersToRequest(final Request<?> request,
+                                                           final String uriResourcePath) {
 
         if (request == null || uriResourcePath == null) {
             return null;

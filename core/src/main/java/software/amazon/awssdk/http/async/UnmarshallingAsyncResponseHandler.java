@@ -27,7 +27,7 @@ import software.amazon.awssdk.utils.FunctionalUtils.UnsafeFunction;
  * on the initial response (headers/status code).
  *
  * @param <ResponseT> Response POJO type.
- * @param <ReturnT>   Tranformation result type. Returned by {@link #complete()}
+ * @param <ReturnT>   Transformation result type. Returned by {@link #complete()}
  */
 public class UnmarshallingAsyncResponseHandler<ResponseT, ReturnT> implements SdkHttpResponseHandler<ReturnT> {
 

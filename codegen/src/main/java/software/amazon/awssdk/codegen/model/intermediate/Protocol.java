@@ -20,17 +20,17 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import software.amazon.awssdk.codegen.protocol.ApiGatewayProtocolMetadataProvider;
 import software.amazon.awssdk.codegen.protocol.AwsCborProtocolMetadataProvider;
 import software.amazon.awssdk.codegen.protocol.AwsJsonProtocolMetadataProvider;
-import software.amazon.awssdk.codegen.protocol.Ec2ProtocolMetdataProvider;
+import software.amazon.awssdk.codegen.protocol.Ec2ProtocolMetadataProvider;
 import software.amazon.awssdk.codegen.protocol.IonProtocolMetadataProvider;
 import software.amazon.awssdk.codegen.protocol.ProtocolMetadataProvider;
 import software.amazon.awssdk.codegen.protocol.QueryProtocolMetadataProvider;
-import software.amazon.awssdk.codegen.protocol.RestJsonProtocolMetdataProvider;
+import software.amazon.awssdk.codegen.protocol.RestJsonProtocolMetadataProvider;
 import software.amazon.awssdk.codegen.protocol.RestXmlProtocolMetadataProvider;
 
 public enum Protocol {
-    EC2("ec2", new Ec2ProtocolMetdataProvider()),
+    EC2("ec2", new Ec2ProtocolMetadataProvider()),
     AWS_JSON("json", new AwsJsonProtocolMetadataProvider()),
-    REST_JSON("rest-json", new RestJsonProtocolMetdataProvider()),
+    REST_JSON("rest-json", new RestJsonProtocolMetadataProvider()),
     CBOR("cbor", new AwsCborProtocolMetadataProvider()),
     QUERY("query", new QueryProtocolMetadataProvider()),
     REST_XML("rest-xml", new RestXmlProtocolMetadataProvider()),

@@ -44,9 +44,9 @@ public class SdkHttpFullRequestAdapter {
     }
 
     private static Map<String, List<String>> adaptHeaders(Map<String, String> headers) {
-        Map<String, List<String>> adapated = new HashMap<>(headers.size());
-        headers.forEach((k, v) -> adapated.put(k, singletonList(v)));
-        return adapated;
+        Map<String, List<String>> adapted = new HashMap<>(headers.size());
+        headers.forEach((k, v) -> adapted.put(k, singletonList(v)));
+        return adapted;
     }
 
 }

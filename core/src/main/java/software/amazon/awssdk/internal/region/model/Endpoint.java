@@ -159,7 +159,7 @@ public class Endpoint implements Cloneable {
     }
 
     /**
-     * A convienient methods that returns true if the endpoint support HTTPS
+     * A convenient method that returns true if the endpoint support HTTPS
      * scheme. Returns false otherwise.
      */
     public boolean hasHttpsSupport() {
@@ -167,7 +167,7 @@ public class Endpoint implements Cloneable {
     }
 
     /**
-     * A convienient methods that returns true if the endpoint support HTTP
+     * A convenient method that returns true if the endpoint support HTTP
      * scheme. Returns false otherwise.
      */
     public boolean hasHttpSupport() {
