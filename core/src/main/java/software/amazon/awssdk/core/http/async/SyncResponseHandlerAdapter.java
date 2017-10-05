@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.async;
+package software.amazon.awssdk.core.http.async;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -22,13 +22,15 @@ import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.function.Function;
 import org.reactivestreams.Publisher;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.util.Throwables;
 import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.http.HttpResponse;
-import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.util.Throwables;
+import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
+import software.amazon.awssdk.http.async.SimpleSubscriber;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**

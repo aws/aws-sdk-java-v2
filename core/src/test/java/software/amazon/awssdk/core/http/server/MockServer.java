@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.server;
+package software.amazon.awssdk.core.http.server;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -27,7 +27,7 @@ import org.apache.http.ProtocolVersion;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
-import software.amazon.awssdk.util.StringInputStream;
+import software.amazon.awssdk.core.util.StringInputStream;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**

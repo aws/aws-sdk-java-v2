@@ -13,11 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth;
+package software.amazon.awssdk.core.auth;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+import software.amazon.awssdk.core.auth.AwsCredentials;
+import software.amazon.awssdk.core.auth.AwsCredentialsProviderChain;
+import software.amazon.awssdk.core.auth.ProfileCredentialsProvider;
+import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
 
 public class AwsCredentialsProviderChainTest {
 

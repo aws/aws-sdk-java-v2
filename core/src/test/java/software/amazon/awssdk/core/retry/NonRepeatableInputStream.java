@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retry;
+package software.amazon.awssdk.core.retry;
 
 import java.io.IOException;
 import java.io.InputStream;
-import software.amazon.awssdk.runtime.io.SdkInputStream;
+import software.amazon.awssdk.core.runtime.io.SdkInputStream;
 
 class NonRepeatableInputStream extends SdkInputStream {
 

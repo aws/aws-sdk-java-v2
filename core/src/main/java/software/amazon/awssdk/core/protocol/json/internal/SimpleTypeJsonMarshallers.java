@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol.json.internal;
+package software.amazon.awssdk.core.protocol.json.internal;
 
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
@@ -21,9 +21,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.protocol.MarshallLocation;
-import software.amazon.awssdk.protocol.StructuredPojo;
-import software.amazon.awssdk.protocol.json.StructuredJsonGenerator;
+import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.protocol.StructuredPojo;
+import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 
 @SdkInternalApi
 public class SimpleTypeJsonMarshallers {

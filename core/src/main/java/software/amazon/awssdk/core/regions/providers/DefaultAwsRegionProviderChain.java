@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions.providers;
+package software.amazon.awssdk.core.regions.providers;
 
 /**
  * AWS Region provider that looks for the region in this order:

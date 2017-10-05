@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.collections;
+package software.amazon.awssdk.core.internal.collections;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

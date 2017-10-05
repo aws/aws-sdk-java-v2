@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime.transform;
+package software.amazon.awssdk.core.runtime.transform;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -21,8 +21,8 @@ import java.nio.ByteBuffer;
 import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.util.DateUtils;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.util.DateUtils;
 import software.amazon.awssdk.utils.Base64Utils;
 
 /**

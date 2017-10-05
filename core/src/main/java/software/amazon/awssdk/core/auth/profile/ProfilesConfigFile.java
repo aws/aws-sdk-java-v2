@@ -13,27 +13,26 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.profile;
+package software.amazon.awssdk.core.auth.profile;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.auth.AwsCredentials;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.ProfileCredentialsProvider;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.auth.profile.internal.AllProfiles;
-import software.amazon.awssdk.auth.profile.internal.BasicProfile;
-import software.amazon.awssdk.auth.profile.internal.BasicProfileConfigLoader;
-import software.amazon.awssdk.auth.profile.internal.Profile;
-import software.amazon.awssdk.auth.profile.internal.ProfileAssumeRoleCredentialsProvider;
-import software.amazon.awssdk.auth.profile.internal.ProfileStaticCredentialsProvider;
-import software.amazon.awssdk.auth.profile.internal.securitytoken.ProfileCredentialsService;
-import software.amazon.awssdk.auth.profile.internal.securitytoken.StsProfileCredentialsServiceLoader;
-import software.amazon.awssdk.profile.path.AwsProfileFileLocationProvider;
-import software.amazon.awssdk.util.ValidationUtils;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.auth.AwsCredentials;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.core.auth.profile.internal.AllProfiles;
+import software.amazon.awssdk.core.auth.profile.internal.BasicProfile;
+import software.amazon.awssdk.core.auth.profile.internal.BasicProfileConfigLoader;
+import software.amazon.awssdk.core.auth.profile.internal.Profile;
+import software.amazon.awssdk.core.auth.profile.internal.ProfileAssumeRoleCredentialsProvider;
+import software.amazon.awssdk.core.auth.profile.internal.ProfileStaticCredentialsProvider;
+import software.amazon.awssdk.core.auth.profile.internal.securitytoken.ProfileCredentialsService;
+import software.amazon.awssdk.core.auth.profile.internal.securitytoken.StsProfileCredentialsServiceLoader;
+import software.amazon.awssdk.core.profile.path.AwsProfileFileLocationProvider;
+import software.amazon.awssdk.core.util.ValidationUtils;
 
 /**
  * Loads the local AWS credential profiles from the standard location (~/.aws/credentials), which
@@ -170,7 +169,7 @@ public class ProfilesConfigFile {
 
     @Deprecated
     public Map<String, Profile> getAllProfiles() {
-        Map<String, Profile> legacyProfiles = new HashMap<String, Profile>();
+        Map<String, Profile> legacyProfiles = new HashMap<>();
         for (Map.Entry<String, BasicProfile> entry : getAllBasicProfiles().entrySet()) {
             final String profileName = entry.getKey();
             legacyProfiles.put(profileName,

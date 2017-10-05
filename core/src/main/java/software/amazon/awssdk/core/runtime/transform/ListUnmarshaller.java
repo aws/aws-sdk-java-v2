@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime.transform;
+package software.amazon.awssdk.core.runtime.transform;
 
 import static com.fasterxml.jackson.core.JsonToken.END_ARRAY;
 

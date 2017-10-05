@@ -13,35 +13,35 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.pipeline.stages;
+package software.amazon.awssdk.core.http.pipeline.stages;
 
-import static software.amazon.awssdk.event.SdkProgressPublisher.publishProgress;
+import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishProgress;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.RequestExecutionContext;
-import software.amazon.awssdk.Response;
-import software.amazon.awssdk.SdkBaseException;
-import software.amazon.awssdk.event.ProgressEventType;
-import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.http.HttpAsyncClientDependencies;
-import software.amazon.awssdk.http.HttpResponse;
+import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.SdkBaseException;
+import software.amazon.awssdk.core.event.ProgressEventType;
+import software.amazon.awssdk.core.event.ProgressListener;
+import software.amazon.awssdk.core.http.HttpAsyncClientDependencies;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.http.InterruptMonitor;
+import software.amazon.awssdk.core.http.SdkHttpResponseAdapter;
+import software.amazon.awssdk.core.http.async.SimpleRequestProvider;
+import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.http.HttpStatusFamily;
-import software.amazon.awssdk.http.InterruptMonitor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.http.SdkHttpResponseAdapter;
 import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
-import software.amazon.awssdk.http.async.SimpleRequestProvider;
-import software.amazon.awssdk.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
@@ -49,7 +49,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  * Delegate to the HTTP implementation to make an HTTP request and receive the response.
  */
 public class MakeAsyncHttpRequestStage<OutputT>
-        implements RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> {
+    implements RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> {
 
     private static final Logger log = LoggerFactory.getLogger(MakeAsyncHttpRequestStage.class);
 

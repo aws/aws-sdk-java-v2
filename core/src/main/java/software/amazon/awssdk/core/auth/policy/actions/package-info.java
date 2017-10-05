@@ -19,4 +19,4 @@
  * is evaluated for an incoming request.
  */
 
-package software.amazon.awssdk.auth.policy.actions;
+package software.amazon.awssdk.core.auth.policy.actions;

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions;
+package software.amazon.awssdk.core.regions;
 
 import software.amazon.awssdk.annotation.SdkInternalApi;
 

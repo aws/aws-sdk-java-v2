@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.waiters;
+package software.amazon.awssdk.core.waiters;
 
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.util.ValidationUtils;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.util.ValidationUtils;
 
 @SdkInternalApi
 @ReviewBeforeRelease("Clean up remaining waiter code.")

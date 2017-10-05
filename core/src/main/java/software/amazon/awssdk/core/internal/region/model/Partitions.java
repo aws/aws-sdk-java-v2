@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.region.model;
+package software.amazon.awssdk.core.internal.region.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
-import software.amazon.awssdk.util.ValidationUtils;
+import software.amazon.awssdk.core.util.ValidationUtils;
 
 /**
  * Metadata of all partitions.

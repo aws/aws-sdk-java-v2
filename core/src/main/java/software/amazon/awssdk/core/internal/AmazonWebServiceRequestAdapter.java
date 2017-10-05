@@ -13,19 +13,19 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal;
+package software.amazon.awssdk.core.internal;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.RequestClientOptions;
-import software.amazon.awssdk.RequestConfig;
-import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.event.ProgressListener;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.RequestClientOptions;
+import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.event.ProgressListener;
 
 /**
  * Adapts the configuration present in {@link AmazonWebServiceRequest} to {@link RequestConfig}.

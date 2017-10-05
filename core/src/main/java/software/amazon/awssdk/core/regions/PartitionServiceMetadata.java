@@ -13,16 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions;
+package software.amazon.awssdk.core.regions;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.internal.region.model.CredentialScope;
-import software.amazon.awssdk.internal.region.model.Endpoint;
-import software.amazon.awssdk.internal.region.model.Partition;
-import software.amazon.awssdk.internal.region.model.Service;
+import software.amazon.awssdk.core.internal.region.model.CredentialScope;
+import software.amazon.awssdk.core.internal.region.model.Endpoint;
+import software.amazon.awssdk.core.internal.region.model.Partition;
+import software.amazon.awssdk.core.internal.region.model.Service;
 
 public class PartitionServiceMetadata implements ServiceMetadata {
 

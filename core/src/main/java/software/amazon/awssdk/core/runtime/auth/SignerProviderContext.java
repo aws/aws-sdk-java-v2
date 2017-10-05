@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime.auth;
+package software.amazon.awssdk.core.runtime.auth;
 
-import software.amazon.awssdk.RequestConfig;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.core.RequestConfig;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 @SdkProtectedApi

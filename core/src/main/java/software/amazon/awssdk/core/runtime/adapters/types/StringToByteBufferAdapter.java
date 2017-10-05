@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime.adapters.types;
+package software.amazon.awssdk.core.runtime.adapters.types;
 
 import java.nio.ByteBuffer;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.util.StringUtils;
+import software.amazon.awssdk.core.util.StringUtils;
 
 @SdkProtectedApi
 public class StringToByteBufferAdapter implements TypeAdapter<String, ByteBuffer> {

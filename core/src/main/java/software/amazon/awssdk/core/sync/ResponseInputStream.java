@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.sync;
+package software.amazon.awssdk.core.sync;
 
 import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.core.runtime.io.SdkFilterInputStream;
 import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.runtime.io.SdkFilterInputStream;
 
 /**
  * Input stream that provides access to the unmarshalled POJO response returned by the service in addition to the streamed

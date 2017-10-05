@@ -13,15 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.presign;
+package software.amazon.awssdk.core.auth.presign;
 
 import java.net.URI;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.SdkClock;
-import software.amazon.awssdk.runtime.auth.SignerProvider;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.auth.SdkClock;
+import software.amazon.awssdk.core.runtime.auth.SignerProvider;
 
 /**
  * Params object passed to the presigner extension class for a service client and also for {@link PresignerFacade}.

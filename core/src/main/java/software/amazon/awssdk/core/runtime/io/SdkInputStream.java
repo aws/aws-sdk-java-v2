@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime.io;
+package software.amazon.awssdk.core.runtime.io;
 
 import java.io.IOException;
 import java.io.InputStream;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.AbortedException;
-import software.amazon.awssdk.internal.io.Releasable;
-import software.amazon.awssdk.util.SdkRuntime;
+import software.amazon.awssdk.core.AbortedException;
+import software.amazon.awssdk.core.internal.io.Releasable;
+import software.amazon.awssdk.core.util.SdkRuntime;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**

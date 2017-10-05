@@ -13,16 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth;
+package software.amazon.awssdk.core.auth;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.internal.CredentialsEndpointProvider;
-import software.amazon.awssdk.internal.EC2CredentialsUtils;
-import software.amazon.awssdk.util.EC2MetadataUtils;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.internal.CredentialsEndpointProvider;
+import software.amazon.awssdk.core.internal.EC2CredentialsUtils;
+import software.amazon.awssdk.core.util.EC2MetadataUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**

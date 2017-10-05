@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth;
+package software.amazon.awssdk.core.auth;
 
 /**
  * Interface for loading {@link AwsCredentials} that are used for authentication.

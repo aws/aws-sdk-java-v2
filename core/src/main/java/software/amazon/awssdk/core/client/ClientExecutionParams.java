@@ -13,18 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.client;
+package software.amazon.awssdk.core.client;
 
-import software.amazon.awssdk.Request;
-import software.amazon.awssdk.RequestConfig;
-import software.amazon.awssdk.SdkBaseException;
-import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.annotation.NotThreadSafe;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.async.AsyncRequestProvider;
-import software.amazon.awssdk.http.HttpResponseHandler;
-import software.amazon.awssdk.runtime.transform.Marshaller;
+import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.SdkBaseException;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.async.AsyncRequestProvider;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.runtime.transform.Marshaller;
 
 /**
  * Encapsulates parameters needed for a particular API call. Captures input and output pojo types.

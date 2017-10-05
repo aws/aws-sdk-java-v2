@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.region.model;
+package software.amazon.awssdk.core.internal.region.model;
 
 /**
  * credential scope associated with an endpoint.

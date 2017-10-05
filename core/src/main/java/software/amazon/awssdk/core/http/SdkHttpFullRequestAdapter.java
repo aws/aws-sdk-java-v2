@@ -13,15 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http;
+package software.amazon.awssdk.core.http;
 
 import static java.util.Collections.singletonList;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.Request;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**

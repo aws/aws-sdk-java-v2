@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.profile.path.cred;
+package software.amazon.awssdk.core.profile.path.cred;
 
 import java.io.File;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.profile.path.AwsDirectoryBasePathProvider;
+import software.amazon.awssdk.core.profile.path.AwsDirectoryBasePathProvider;
 
 /**
  * Load shared credentials file from the default location (~/.aws/credentials).

@@ -13,16 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.profile.internal;
+package software.amazon.awssdk.core.auth.profile.internal;
 
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.auth.AwsCredentials;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.AwsSessionCredentials;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.util.StringUtils;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.auth.AwsCredentials;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.auth.AwsSessionCredentials;
+import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.core.util.StringUtils;
 
 /**
  * Serves credentials defined in a {@link BasicProfile}. Does validation that both access key and

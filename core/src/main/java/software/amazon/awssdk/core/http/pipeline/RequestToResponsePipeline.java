@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.pipeline;
+package software.amazon.awssdk.core.http.pipeline;
 
-import software.amazon.awssdk.Response;
+import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 public interface RequestToResponsePipeline<OutputT>

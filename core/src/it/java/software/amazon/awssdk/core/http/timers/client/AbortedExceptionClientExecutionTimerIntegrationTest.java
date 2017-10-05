@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.timers.client;
+package software.amazon.awssdk.core.http.timers.client;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
@@ -22,9 +22,9 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.createMockGetRequest;
-import static software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.execute;
-import static software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.interruptCurrentThreadAfterDelay;
+import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.createMockGetRequest;
+import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.execute;
+import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.interruptCurrentThreadAfterDelay;
 
 import java.io.InputStream;
 import java.util.Arrays;
@@ -33,25 +33,24 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.AbortedException;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.SdkRequest;
+import software.amazon.awssdk.core.AbortedException;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.http.AmazonHttpClient;
+import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.http.MockServerTestBase;
+import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
+import software.amazon.awssdk.core.http.server.MockServer;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.internal.auth.NoOpSignerProvider;
+import software.amazon.awssdk.core.internal.http.request.SlowExecutionInterceptor;
+import software.amazon.awssdk.core.internal.http.response.DummyResponseHandler;
 import software.amazon.awssdk.http.AbortableCallable;
-import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.http.AmazonHttpClient;
-import software.amazon.awssdk.http.ExecutionContext;
-import software.amazon.awssdk.http.MockServerTestBase;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.http.exception.ClientExecutionTimeoutException;
-import software.amazon.awssdk.http.server.MockServer;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.interceptor.ExecutionInterceptorChain;
-import software.amazon.awssdk.interceptor.InterceptorContext;
-import software.amazon.awssdk.internal.auth.NoOpSignerProvider;
-import software.amazon.awssdk.internal.http.request.SlowExecutionInterceptor;
-import software.amazon.awssdk.internal.http.response.DummyResponseHandler;
 import utils.HttpTestUtils;
 
 @RunWith(MockitoJUnitRunner.class)

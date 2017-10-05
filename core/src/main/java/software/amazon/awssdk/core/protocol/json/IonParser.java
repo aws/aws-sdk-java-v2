@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol.json;
+package software.amazon.awssdk.core.protocol.json;
 
 import com.fasterxml.jackson.core.Base64Variant;
 import com.fasterxml.jackson.core.JsonLocation;
@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import software.amazon.awssdk.SdkClientException;
+import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.ion.IonReader;
 import software.amazon.ion.IonType;
 

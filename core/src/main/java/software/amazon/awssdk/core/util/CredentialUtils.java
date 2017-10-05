@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.util;
+package software.amazon.awssdk.core.util;
 
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.RequestConfig;
-import software.amazon.awssdk.auth.AwsCredentials;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.auth.AwsCredentials;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 
 public class CredentialUtils {
     /**

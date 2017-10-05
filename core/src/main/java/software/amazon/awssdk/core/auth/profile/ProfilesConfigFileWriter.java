@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.profile;
+package software.amazon.awssdk.core.auth.profile;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -31,11 +31,11 @@ import java.util.Set;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.auth.profile.internal.AbstractProfilesConfigFileScanner;
-import software.amazon.awssdk.auth.profile.internal.Profile;
-import software.amazon.awssdk.auth.profile.internal.ProfileKeyConstants;
-import software.amazon.awssdk.util.StringUtils;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.auth.profile.internal.AbstractProfilesConfigFileScanner;
+import software.amazon.awssdk.core.auth.profile.internal.Profile;
+import software.amazon.awssdk.core.auth.profile.internal.ProfileKeyConstants;
+import software.amazon.awssdk.core.util.StringUtils;
 
 /**
  * The class for creating and modifying the credential profiles file.

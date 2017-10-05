@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol.json;
+package software.amazon.awssdk.core.protocol.json;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -22,8 +22,8 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.Date;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.ion.IonType;
 import software.amazon.ion.IonWriter;

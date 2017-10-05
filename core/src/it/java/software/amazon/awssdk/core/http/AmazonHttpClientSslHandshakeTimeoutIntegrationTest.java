@@ -13,25 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http;
+package software.amazon.awssdk.core.http;
 
 import static org.junit.Assert.fail;
-import static software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.executionContext;
+import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.executionContext;
 
-import java.net.InetSocketAddress;
 import java.time.Duration;
-import org.apache.http.HttpHost;
-import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.ManagedHttpClientConnection;
-import org.apache.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonClientException;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
+import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
+import software.amazon.awssdk.core.retry.PredefinedRetryPolicies;
 import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
-import software.amazon.awssdk.internal.http.request.EmptyHttpRequest;
-import software.amazon.awssdk.internal.http.response.NullErrorResponseHandler;
-import software.amazon.awssdk.retry.PredefinedRetryPolicies;
 import utils.HttpTestUtils;
 
 /**

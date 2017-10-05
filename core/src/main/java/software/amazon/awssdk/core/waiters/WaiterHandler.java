@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.waiters;
+package software.amazon.awssdk.core.waiters;
 
-import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
 
 /**
  * Callbacks are executed synchronously. That is the same thread the waiter

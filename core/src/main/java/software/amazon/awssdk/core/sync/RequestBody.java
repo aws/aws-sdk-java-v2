@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.sync;
+package software.amazon.awssdk.core.sync;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
@@ -26,7 +26,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.Arrays;
-import software.amazon.awssdk.util.StringInputStream;
+import software.amazon.awssdk.core.util.StringInputStream;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**

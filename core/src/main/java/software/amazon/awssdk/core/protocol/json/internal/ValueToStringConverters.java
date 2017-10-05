@@ -13,13 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol.json.internal;
+package software.amazon.awssdk.core.protocol.json.internal;
 
 import java.time.Instant;
 import java.util.function.Function;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.util.DateUtils;
-import software.amazon.awssdk.util.StringUtils;
+import software.amazon.awssdk.core.util.DateUtils;
+import software.amazon.awssdk.core.util.StringUtils;
 
 /**
  * Converts various types to Strings. Used for Query Param/Header/Path marshalling.

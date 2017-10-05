@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth;
+package software.amazon.awssdk.core.auth;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -21,10 +21,10 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.AwsSystemSetting;
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.auth.profile.ProfileResourceLoader;
-import software.amazon.awssdk.auth.profile.ProfilesConfigFile;
+import software.amazon.awssdk.core.AwsSystemSetting;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.auth.profile.ProfileResourceLoader;
+import software.amazon.awssdk.core.auth.profile.ProfilesConfigFile;
 
 public class ProfileCredentialsProviderTest {
     private static File profileLocation = null;

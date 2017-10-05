@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retry;
+package software.amazon.awssdk.core.retry;
 
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
 
 /**
  * Retry policy that can be configured on a specific service client using

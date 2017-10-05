@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth;
+package software.amazon.awssdk.core.auth;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -22,13 +22,13 @@ import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.internal.CredentialsEndpointProvider;
-import software.amazon.awssdk.internal.EC2CredentialsUtils;
-import software.amazon.awssdk.util.ComparableUtils;
-import software.amazon.awssdk.util.DateUtils;
-import software.amazon.awssdk.util.json.JacksonUtils;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.internal.CredentialsEndpointProvider;
+import software.amazon.awssdk.core.internal.EC2CredentialsUtils;
+import software.amazon.awssdk.core.util.ComparableUtils;
+import software.amazon.awssdk.core.util.DateUtils;
+import software.amazon.awssdk.core.util.json.JacksonUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.cache.CachedSupplier;

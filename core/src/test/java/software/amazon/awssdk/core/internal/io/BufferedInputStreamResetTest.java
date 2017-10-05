@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.io;
+package software.amazon.awssdk.core.internal.io;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;

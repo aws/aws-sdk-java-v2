@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime.io;
+package software.amazon.awssdk.core.runtime.io;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,10 +21,9 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.NotThreadSafe;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.internal.io.Releasable;
+import software.amazon.awssdk.core.SdkClientException;
 
 /**
  * A mark-and-resettable input stream that can be used on files or file input

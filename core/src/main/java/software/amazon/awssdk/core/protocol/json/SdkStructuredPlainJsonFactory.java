@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol.json;
+package software.amazon.awssdk.core.protocol.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import java.math.BigDecimal;
@@ -23,11 +23,10 @@ import java.time.Instant;
 import java.util.Map;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
-import software.amazon.awssdk.runtime.transform.JsonUnmarshallerContext;
-import software.amazon.awssdk.runtime.transform.SimpleTypeJsonUnmarshallers;
-import software.amazon.awssdk.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.util.ImmutableMapParameter;
-
+import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
+import software.amazon.awssdk.core.runtime.transform.SimpleTypeJsonUnmarshallers;
+import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.core.util.ImmutableMapParameter;
 
 /**
  * Creates generators and protocol handlers for plain text JSON wire format.

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.event.request;
+package software.amazon.awssdk.core.event.request;
 
 import software.amazon.awssdk.annotation.ThreadSafe;
 

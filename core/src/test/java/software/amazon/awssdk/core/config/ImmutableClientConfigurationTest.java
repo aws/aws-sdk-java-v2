@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.config;
+package software.amazon.awssdk.core.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -23,14 +23,14 @@ import java.time.Duration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import org.junit.Test;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.DefaultCredentialsProvider;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.auth.DefaultCredentialsProvider;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.internal.auth.NoOpSignerProvider;
+import software.amazon.awssdk.core.retry.v2.RetryPolicy;
+import software.amazon.awssdk.core.retry.v2.RetryPolicyContext;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.internal.auth.NoOpSignerProvider;
-import software.amazon.awssdk.retry.v2.RetryPolicy;
-import software.amazon.awssdk.retry.v2.RetryPolicyContext;
 
 /**
  * Validate the functionality of {@link ImmutableClientConfiguration}.

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal;
+package software.amazon.awssdk.core.internal;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
@@ -22,13 +22,13 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.internal.net.ConnectionUtils;
-import software.amazon.awssdk.retry.internal.CredentialsEndpointRetryParameters;
-import software.amazon.awssdk.retry.internal.CredentialsEndpointRetryPolicy;
-import software.amazon.awssdk.util.json.JacksonUtils;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.internal.net.ConnectionUtils;
+import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryParameters;
+import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryPolicy;
+import software.amazon.awssdk.core.util.json.JacksonUtils;
 import software.amazon.awssdk.utils.IoUtils;
 
 @SdkInternalApi

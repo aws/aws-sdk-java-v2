@@ -13,15 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.event;
+package software.amazon.awssdk.core.event;
 
 import java.io.IOException;
 import java.io.InputStream;
-import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.annotation.NotThreadSafe;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.runtime.io.SdkFilterInputStream;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.runtime.io.SdkFilterInputStream;
 
 /**
  * Used for input stream progress tracking purposes.

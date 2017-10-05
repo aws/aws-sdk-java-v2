@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http;
+package software.amazon.awssdk.core.http;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
@@ -25,8 +25,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.Arrays;
 import org.junit.Test;
-import software.amazon.awssdk.Request;
-import software.amazon.awssdk.util.StringInputStream;
+import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.util.StringInputStream;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
 import utils.ValidSdkObjects;
 
 public class SdkHttpFullRequestAdapterTest {

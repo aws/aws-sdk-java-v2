@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http;
+package software.amazon.awssdk.core.http;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,14 +24,14 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.http.pipeline.stages.ApplyTransactionIdStage;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.util.StringUtils;
-import software.amazon.awssdk.util.XpathUtils;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.http.pipeline.stages.ApplyTransactionIdStage;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.core.util.XpathUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 

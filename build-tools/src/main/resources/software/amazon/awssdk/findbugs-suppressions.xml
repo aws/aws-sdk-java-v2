@@ -27,9 +27,9 @@
     <Match>
         <Or>
             <!-- Container classes do not copy arrays for performance reasons at this time. -->
-            <Class name="software.amazon.awssdk.auth.policy.internal.JsonPolicyWriter" />
-            <Class name="software.amazon.awssdk.protocol.json.JsonContent" />
-            <Class name="software.amazon.awssdk.internal.config.InternalConfigJsonHelper" />
+            <Class name="software.amazon.awssdk.core.auth.policy.internal.JsonPolicyWriter" />
+            <Class name="software.amazon.awssdk.core.protocol.json.JsonContent" />
+            <Class name="software.amazon.awssdk.core.internal.config.InternalConfigJsonHelper" />
 
             <!-- Date types will be switched out for java-8 or joda-style dates in the future,
                  so ignore these errors for now. -->
@@ -43,7 +43,7 @@
 
     <!-- Delegate closes input stream. -->
     <Match>
-        <Class name="software.amazon.awssdk.protocol.json.IonFactory" />
+        <Class name="software.amazon.awssdk.core.protocol.json.IonFactory" />
         <Method name="createParser" />
         <Bug pattern="OBL_UNSATISFIED_OBLIGATION" />
     </Match>
@@ -53,7 +53,7 @@
     <Match>
         <Or>
             <Class name="software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDBMapper$BatchGetItemException"/>
-            <Class name="software.amazon.awssdk.protocol.json.IonFactory"/>
+            <Class name="software.amazon.awssdk.core.protocol.json.IonFactory"/>
         </Or>
         <Bug pattern="SE_TRANSIENT_FIELD_NOT_RESTORED" />
     </Match>

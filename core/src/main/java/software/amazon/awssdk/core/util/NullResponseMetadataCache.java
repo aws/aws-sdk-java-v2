@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.util;
+package software.amazon.awssdk.core.util;
 
-import software.amazon.awssdk.ResponseMetadata;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.core.ResponseMetadata;
+import software.amazon.awssdk.core.SdkClientException;
 
 /**
  * No-op response metadata cache used when a client instance is configured

@@ -13,11 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk;
+package software.amazon.awssdk.core;
 
 import org.junit.Assume;
-import software.amazon.awssdk.util.JavaVersionParser;
-import software.amazon.awssdk.util.JavaVersionParser.KnownJavaVersions;
+import software.amazon.awssdk.core.util.JavaVersionParser;
 
 /**
  * Collection of common preconditions that must be met before a test to run. Used to conditionally
@@ -38,6 +37,6 @@ public class TestPreConditions {
      * @return True if the current running JVM is Java6. False otherwise
      */
     private static boolean isJava6() {
-        return JavaVersionParser.getCurrentJavaVersion().getKnownVersion() == KnownJavaVersions.JAVA_6;
+        return JavaVersionParser.getCurrentJavaVersion().getKnownVersion() == JavaVersionParser.KnownJavaVersions.JAVA_6;
     }
 }

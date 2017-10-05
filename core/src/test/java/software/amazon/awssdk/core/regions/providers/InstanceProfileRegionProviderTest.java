@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions.providers;
+package software.amazon.awssdk.core.regions.providers;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -25,9 +25,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
-import software.amazon.awssdk.AwsSystemSetting;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.util.EC2MetadataUtilsServer;
+import software.amazon.awssdk.core.AwsSystemSetting;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.util.EC2MetadataUtilsServer;
 
 /**
  * Tests broken up by fixture.

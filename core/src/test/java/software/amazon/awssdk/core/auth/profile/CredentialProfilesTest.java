@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.profile;
+package software.amazon.awssdk.core.auth.profile;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -24,10 +24,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.auth.AwsCredentials;
-import software.amazon.awssdk.auth.AwsSessionCredentials;
-import software.amazon.awssdk.auth.profile.internal.Profile;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.auth.AwsCredentials;
+import software.amazon.awssdk.core.auth.AwsSessionCredentials;
+import software.amazon.awssdk.core.auth.profile.internal.Profile;
 
 public class CredentialProfilesTest {
 

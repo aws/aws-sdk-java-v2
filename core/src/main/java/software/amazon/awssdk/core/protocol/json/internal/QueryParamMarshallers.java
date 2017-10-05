@@ -13,13 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol.json.internal;
+package software.amazon.awssdk.core.protocol.json.internal;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.protocol.MarshallLocation;
+import software.amazon.awssdk.core.protocol.MarshallLocation;
 
 @SdkInternalApi
 public class QueryParamMarshallers {

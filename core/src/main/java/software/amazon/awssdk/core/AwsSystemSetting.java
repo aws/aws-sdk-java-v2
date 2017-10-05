@@ -13,23 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk;
+package software.amazon.awssdk.core;
 
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.auth.AwsCredentials;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.AwsSessionCredentials;
-import software.amazon.awssdk.auth.DefaultCredentialsProvider;
-import software.amazon.awssdk.auth.ElasticContainerCredentialsProvider;
-import software.amazon.awssdk.auth.EnvironmentVariableCredentialsProvider;
-import software.amazon.awssdk.auth.InstanceProfileCredentialsProvider;
-import software.amazon.awssdk.auth.ProfileCredentialsProvider;
-import software.amazon.awssdk.auth.SystemPropertyCredentialsProvider;
-import software.amazon.awssdk.client.builder.ClientBuilder;
-import software.amazon.awssdk.profile.path.config.SystemSettingsProfileLocationProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.providers.InstanceProfileRegionProvider;
-import software.amazon.awssdk.regions.providers.SystemSettingsRegionProvider;
 import software.amazon.awssdk.utils.JavaSystemSetting;
 import software.amazon.awssdk.utils.SystemSetting;
 

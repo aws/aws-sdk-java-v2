@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.net;
+package software.amazon.awssdk.core.internal.net;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;

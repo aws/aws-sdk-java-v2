@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.util.json;
+package software.amazon.awssdk.core.util.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import java.io.IOException;
 import java.io.Writer;
-import software.amazon.awssdk.SdkClientException;
+import software.amazon.awssdk.core.SdkClientException;
 
 public final class JacksonUtils {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();

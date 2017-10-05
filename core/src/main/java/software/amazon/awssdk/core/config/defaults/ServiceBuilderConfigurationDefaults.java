@@ -13,20 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.config.defaults;
+package software.amazon.awssdk.core.config.defaults;
 
-import static software.amazon.awssdk.config.AdvancedClientOption.SIGNER_PROVIDER;
-import static software.amazon.awssdk.config.InternalAdvancedClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
+import static software.amazon.awssdk.core.config.AdvancedClientOption.SIGNER_PROVIDER;
+import static software.amazon.awssdk.core.config.InternalAdvancedClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.interceptor.ClasspathInterceptorChainFactory;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.runtime.auth.SignerProvider;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.runtime.auth.SignerProvider;
 
 /**
  * An implementation of {@link ClientConfigurationDefaults} that can be used by client builders to define their service defaults.

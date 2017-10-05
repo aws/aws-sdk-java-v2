@@ -13,24 +13,24 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.timers.client;
+package software.amazon.awssdk.core.http.timers.client;
 
-import static software.amazon.awssdk.internal.http.timers.TimeoutTestConstants.SLOW_REQUEST_HANDLER_TIMEOUT;
-import static software.amazon.awssdk.internal.http.timers.TimeoutTestConstants.TEST_TIMEOUT;
+import static software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants.SLOW_REQUEST_HANDLER_TIMEOUT;
+import static software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants.TEST_TIMEOUT;
 
 import java.util.Collections;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.TestPreConditions;
-import software.amazon.awssdk.http.AmazonHttpClient;
-import software.amazon.awssdk.http.ExecutionContext;
-import software.amazon.awssdk.http.MockServerTestBase;
-import software.amazon.awssdk.http.exception.ClientExecutionTimeoutException;
-import software.amazon.awssdk.http.server.MockServer;
-import software.amazon.awssdk.interceptor.ExecutionInterceptorChain;
-import software.amazon.awssdk.internal.http.request.SlowExecutionInterceptor;
-import software.amazon.awssdk.internal.http.response.NullErrorResponseHandler;
-import software.amazon.awssdk.internal.http.response.UnresponsiveErrorResponseHandler;
+import software.amazon.awssdk.core.TestPreConditions;
+import software.amazon.awssdk.core.http.AmazonHttpClient;
+import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.http.MockServerTestBase;
+import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
+import software.amazon.awssdk.core.http.server.MockServer;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.core.internal.http.request.SlowExecutionInterceptor;
+import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
+import software.amazon.awssdk.core.internal.http.response.UnresponsiveErrorResponseHandler;
 import utils.HttpTestUtils;
 
 /**

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retry;
+package software.amazon.awssdk.core.retry;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -29,20 +29,20 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.internal.verification.Times;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.Request;
-import software.amazon.awssdk.SdkRequest;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.http.AmazonHttpClient;
+import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.internal.AmazonWebServiceRequestAdapter;
+import software.amazon.awssdk.core.internal.auth.NoOpSignerProvider;
 import software.amazon.awssdk.http.AbortableCallable;
-import software.amazon.awssdk.http.AmazonHttpClient;
-import software.amazon.awssdk.http.ExecutionContext;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionInterceptorChain;
-import software.amazon.awssdk.interceptor.InterceptorContext;
-import software.amazon.awssdk.internal.AmazonWebServiceRequestAdapter;
-import software.amazon.awssdk.internal.auth.NoOpSignerProvider;
 import utils.HttpTestUtils;
 
 /**

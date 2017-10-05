@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retry.v2;
+package software.amazon.awssdk.core.retry.v2;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -23,8 +23,9 @@ import java.net.SocketTimeoutException;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Test;
-import software.amazon.awssdk.SdkBaseException;
-import software.amazon.awssdk.SdkClientException;
+
+import software.amazon.awssdk.core.SdkBaseException;
+import software.amazon.awssdk.core.SdkClientException;
 
 public class RetryOnExceptionsConditionTest {
 

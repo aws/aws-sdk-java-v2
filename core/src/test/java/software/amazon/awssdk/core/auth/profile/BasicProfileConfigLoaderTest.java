@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.profile;
+package software.amazon.awssdk.core.auth.profile;
 
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.junit.Assert.assertEquals;
@@ -21,10 +21,10 @@ import static org.junit.Assert.assertThat;
 
 import java.io.File;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.auth.profile.internal.AllProfiles;
-import software.amazon.awssdk.auth.profile.internal.BasicProfile;
-import software.amazon.awssdk.auth.profile.internal.BasicProfileConfigLoader;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.auth.profile.internal.AllProfiles;
+import software.amazon.awssdk.core.auth.profile.internal.BasicProfile;
+import software.amazon.awssdk.core.auth.profile.internal.BasicProfileConfigLoader;
 
 
 public class BasicProfileConfigLoaderTest {

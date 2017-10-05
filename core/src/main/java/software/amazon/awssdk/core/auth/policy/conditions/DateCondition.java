@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.policy.conditions;
+package software.amazon.awssdk.core.auth.policy.conditions;
 
 import java.util.Arrays;
 import java.util.Date;
-import software.amazon.awssdk.auth.policy.Condition;
-import software.amazon.awssdk.util.DateUtils;
+import software.amazon.awssdk.core.auth.policy.Condition;
+import software.amazon.awssdk.core.util.DateUtils;
 
 /**
  * AWS access control policy condition that allows an access control statement

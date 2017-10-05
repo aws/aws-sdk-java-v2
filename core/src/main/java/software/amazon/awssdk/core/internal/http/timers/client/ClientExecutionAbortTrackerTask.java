@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.http.timers.client;
+package software.amazon.awssdk.core.internal.http.timers.client;
 
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.http.Abortable;

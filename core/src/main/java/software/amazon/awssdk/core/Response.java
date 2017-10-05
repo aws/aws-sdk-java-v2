@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk;
+package software.amazon.awssdk.core;
 
-import software.amazon.awssdk.http.HttpResponse;
+import software.amazon.awssdk.core.http.HttpResponse;
 
 /**
  * Response wrapper to provide access to not only the original AWS response

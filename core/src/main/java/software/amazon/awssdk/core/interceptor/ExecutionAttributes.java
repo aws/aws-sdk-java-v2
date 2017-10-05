@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.interceptor;
+package software.amazon.awssdk.core.interceptor;
 
 import java.util.HashMap;
 import java.util.Map;

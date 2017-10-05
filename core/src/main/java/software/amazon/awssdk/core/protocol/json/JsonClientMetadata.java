@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol.json;
+package software.amazon.awssdk.core.protocol.json;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.annotation.NotThreadSafe;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.core.AmazonServiceException;
 
 /**
  * Wrapper object to provide additional metadata about a client and protocol to {@link

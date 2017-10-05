@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol.json;
+package software.amazon.awssdk.core.protocol.json;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
@@ -26,13 +26,13 @@ import java.util.LinkedList;
 import java.util.List;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.http.HttpResponse;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.internal.http.response.JsonErrorResponseHandler;
+import software.amazon.awssdk.core.runtime.transform.JsonErrorUnmarshaller;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.internal.http.response.JsonErrorResponseHandler;
-import software.amazon.awssdk.runtime.transform.JsonErrorUnmarshaller;
 import software.amazon.ion.IonStruct;
 import software.amazon.ion.IonSystem;
 import software.amazon.ion.IonWriter;

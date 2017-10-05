@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.util;
+package software.amazon.awssdk.core.util;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.CRC32;
-import software.amazon.awssdk.runtime.io.SdkFilterInputStream;
+import software.amazon.awssdk.core.runtime.io.SdkFilterInputStream;
 
 /**
  * Simple InputStream wrapper that examines the wrapped stream's contents as

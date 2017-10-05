@@ -61,4 +61,4 @@
  * http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html
  */
 
-package software.amazon.awssdk.auth.profile;
+package software.amazon.awssdk.core.auth.profile;

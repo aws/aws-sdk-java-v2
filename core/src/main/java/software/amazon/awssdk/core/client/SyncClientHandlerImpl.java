@@ -13,30 +13,30 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.client;
+package software.amazon.awssdk.core.client;
 
-import software.amazon.awssdk.Request;
-import software.amazon.awssdk.RequestConfig;
-import software.amazon.awssdk.SdkBaseException;
-import software.amazon.awssdk.SdkRequest;
-import software.amazon.awssdk.SdkResponse;
-import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.annotation.ThreadSafe;
-import software.amazon.awssdk.config.SyncClientConfiguration;
+import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.SdkBaseException;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.config.SyncClientConfiguration;
+import software.amazon.awssdk.core.http.AmazonHttpClient;
+import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
+import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.sync.StreamingResponseHandler;
+import software.amazon.awssdk.core.util.CredentialUtils;
 import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.http.AmazonHttpClient;
-import software.amazon.awssdk.http.ExecutionContext;
-import software.amazon.awssdk.http.HttpResponse;
-import software.amazon.awssdk.http.HttpResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpFullRequestAdapter;
-import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.sync.StreamingResponseHandler;
-import software.amazon.awssdk.util.CredentialUtils;
 
 /**
  * Default implementation of {@link ClientHandler}.
@@ -119,7 +119,7 @@ public class SyncClientHandlerImpl extends ClientHandler {
                                      HttpResponseHandler<? extends SdkBaseException> errorResponseHandler) {
 
         executionContext.setCredentialsProvider(
-                CredentialUtils.getCredentialsProvider(requestConfig, syncClientConfiguration.credentialsProvider()));
+            CredentialUtils.getCredentialsProvider(requestConfig, syncClientConfiguration.credentialsProvider()));
 
         return doInvoke(request, requestConfig, executionContext, responseHandler,
                         errorResponseHandler);

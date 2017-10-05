@@ -13,23 +13,23 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.client;
+package software.amazon.awssdk.core.client;
 
-import software.amazon.awssdk.RequestConfig;
-import software.amazon.awssdk.SdkResponse;
-import software.amazon.awssdk.ServiceAdvancedConfiguration;
-import software.amazon.awssdk.auth.AwsCredentials;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.config.AdvancedClientOption;
-import software.amazon.awssdk.config.ClientConfiguration;
-import software.amazon.awssdk.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.http.ExecutionContext;
-import software.amazon.awssdk.http.HttpResponseHandler;
+import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.auth.AwsCredentials;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.config.AdvancedClientOption;
+import software.amazon.awssdk.core.config.ClientConfiguration;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionInterceptorChain;
-import software.amazon.awssdk.interceptor.InterceptorContext;
 import software.amazon.awssdk.utils.Validate;
 
 abstract class BaseClientHandler {
@@ -123,7 +123,7 @@ abstract class BaseClientHandler {
     }
 
     protected static <OutputT extends SdkResponse>
-            HttpResponseHandler<OutputT> interceptorCalling(HttpResponseHandler<OutputT> delegate, ExecutionContext context) {
+        HttpResponseHandler<OutputT> interceptorCalling(HttpResponseHandler<OutputT> delegate, ExecutionContext context) {
         return (response, executionAttributes) ->
                 runAfterUnmarshallingInterceptors(delegate.handle(response, executionAttributes), context);
     }

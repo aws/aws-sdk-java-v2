@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions.providers;
+package software.amazon.awssdk.core.regions.providers;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -23,8 +23,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.Test;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.regions.Region;
 
 public class AwsRegionProviderChainTest {
 

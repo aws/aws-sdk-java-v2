@@ -13,13 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime.adapters.types;
+package software.amazon.awssdk.core.runtime.adapters.types;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.util.StringInputStream;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.util.StringInputStream;
 
 @SdkProtectedApi
 public class StringToInputStreamAdapter implements TypeAdapter<String, InputStream> {

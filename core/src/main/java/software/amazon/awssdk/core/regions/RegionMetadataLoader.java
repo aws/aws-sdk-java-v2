@@ -13,15 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions;
+package software.amazon.awssdk.core.regions;
 
 import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
 import java.io.InputStream;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.internal.region.PartitionMetadataProvider;
-import software.amazon.awssdk.internal.region.model.Partitions;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.internal.region.PartitionMetadataProvider;
+import software.amazon.awssdk.core.internal.region.model.Partitions;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -36,13 +36,13 @@ public class RegionMetadataLoader {
      * class path from where all partition files are loaded.
      */
     private static final String PARTITIONS_RESOURCE_PATH =
-            "software/amazon/awssdk/internal/region/endpoints.json";
+            "software/amazon/awssdk/core/internal/region/endpoints.json";
 
     /**
      * override class path from where all partition files are loaded.
      */
     private static final String PARTITIONS_OVERRIDE_RESOURCE_PATH =
-            "software/amazon/awssdk/partitions/override/endpoints.json";
+            "software/amazon/awssdk/core/partitions/override/endpoints.json";
 
     /**
      * classloader to to be used for loading the partitions.

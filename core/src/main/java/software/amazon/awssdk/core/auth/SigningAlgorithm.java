@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth;
+package software.amazon.awssdk.core.auth;
 
 import java.security.NoSuchAlgorithmException;
 import javax.crypto.Mac;
-import software.amazon.awssdk.SdkClientException;
+import software.amazon.awssdk.core.SdkClientException;
 
 public enum SigningAlgorithm {
 

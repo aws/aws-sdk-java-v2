@@ -13,13 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.interceptor;
+package software.amazon.awssdk.core.interceptor;
 
-import software.amazon.awssdk.SdkRequest;
-import software.amazon.awssdk.SdkResponse;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.retry.v2.RetryPolicy;
 
 /**
  * An interceptor that is invoked during the execution lifecycle of a request/response (execution). This can be used to publish

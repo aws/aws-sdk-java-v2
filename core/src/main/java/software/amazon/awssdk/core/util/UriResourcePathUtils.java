@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.util;
+package software.amazon.awssdk.core.util;
 
-import software.amazon.awssdk.Request;
+import software.amazon.awssdk.core.Request;
 
 public final class UriResourcePathUtils {
 

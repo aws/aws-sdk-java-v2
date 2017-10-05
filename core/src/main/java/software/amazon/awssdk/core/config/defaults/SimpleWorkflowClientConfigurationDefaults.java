@@ -13,11 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.config.defaults;
+package software.amazon.awssdk.core.config.defaults;
 
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.config.ClientConfiguration;
 
 /**
  * A Simple Workflow-specific decorator for a {@link ClientConfiguration} that adds default values optimal for communicating with

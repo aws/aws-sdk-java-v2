@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.client.builder;
+package software.amazon.awssdk.core.client.builder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -23,8 +23,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static software.amazon.awssdk.config.AdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION;
-import static software.amazon.awssdk.config.AdvancedClientOption.SIGNER_PROVIDER;
+import static software.amazon.awssdk.core.config.AdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION;
+import static software.amazon.awssdk.core.config.AdvancedClientOption.SIGNER_PROVIDER;
 
 import java.beans.BeanInfo;
 import java.beans.Introspector;
@@ -39,20 +39,20 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.auth.AnonymousCredentialsProvider;
-import software.amazon.awssdk.auth.Aws4Signer;
-import software.amazon.awssdk.auth.StaticSignerProvider;
-import software.amazon.awssdk.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.config.ImmutableAsyncClientConfiguration;
-import software.amazon.awssdk.config.ImmutableSyncClientConfiguration;
-import software.amazon.awssdk.config.defaults.ClientConfigurationDefaults;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.auth.AnonymousCredentialsProvider;
+import software.amazon.awssdk.core.auth.Aws4Signer;
+import software.amazon.awssdk.core.auth.StaticSignerProvider;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.config.ImmutableAsyncClientConfiguration;
+import software.amazon.awssdk.core.config.ImmutableSyncClientConfiguration;
+import software.amazon.awssdk.core.config.defaults.ClientConfigurationDefaults;
+import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientFactory;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClientFactory;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**

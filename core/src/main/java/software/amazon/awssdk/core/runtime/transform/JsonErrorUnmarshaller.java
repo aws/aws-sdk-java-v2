@@ -13,17 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime.transform;
+package software.amazon.awssdk.core.runtime.transform;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy.PascalCaseStrategy;
 import java.lang.reflect.Method;
-import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.core.AmazonServiceException;
 
 /**
  * Unmarshaller for JSON error responses from AWS services.
@@ -33,7 +33,7 @@ import software.amazon.awssdk.annotation.ThreadSafe;
 public class JsonErrorUnmarshaller extends AbstractErrorUnmarshaller<JsonNode> {
 
     public static final JsonErrorUnmarshaller DEFAULT_UNMARSHALLER = new JsonErrorUnmarshaller(
-            AmazonServiceException.class, null);
+        AmazonServiceException.class, null);
 
     private static final ObjectMapper MAPPER = new ObjectMapper().configure(
             DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setPropertyNamingStrategy(

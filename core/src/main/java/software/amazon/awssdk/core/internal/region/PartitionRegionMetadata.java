@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.region;
+package software.amazon.awssdk.core.internal.region;
 
-import software.amazon.awssdk.internal.region.model.Partition;
-import software.amazon.awssdk.regions.RegionMetadata;
+import software.amazon.awssdk.core.internal.region.model.Partition;
+import software.amazon.awssdk.core.regions.RegionMetadata;
 import software.amazon.awssdk.utils.Validate;
 
 /**

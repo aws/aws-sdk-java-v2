@@ -13,12 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol;
+package software.amazon.awssdk.core.protocol;
 
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.http.HttpMethodName;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-
+import software.amazon.awssdk.core.http.HttpMethodName;
 
 /**
  * Static information about an API operation used to marshall it correctly.

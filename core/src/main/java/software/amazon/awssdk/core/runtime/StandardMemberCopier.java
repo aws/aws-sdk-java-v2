@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime;
+package software.amazon.awssdk.core.runtime;
 
 import java.io.InputStream;
 import java.math.BigDecimal;

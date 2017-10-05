@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.http.timers.client;
+package software.amazon.awssdk.core.internal.http.timers.client;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -26,14 +26,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.AmazonClientException;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.http.AmazonHttpClient;
+import software.amazon.awssdk.core.internal.http.response.NullResponseHandler;
+import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
+import software.amazon.awssdk.core.retry.PredefinedRetryPolicies;
 import software.amazon.awssdk.http.AbortableCallable;
-import software.amazon.awssdk.http.AmazonHttpClient;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.internal.http.response.NullResponseHandler;
-import software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
-import software.amazon.awssdk.retry.PredefinedRetryPolicies;
 import utils.HttpTestUtils;
 
 /**

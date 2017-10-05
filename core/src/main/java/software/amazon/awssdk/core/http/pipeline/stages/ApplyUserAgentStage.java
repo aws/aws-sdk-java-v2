@@ -13,18 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.pipeline.stages;
+package software.amazon.awssdk.core.http.pipeline.stages;
 
-import software.amazon.awssdk.AwsSystemSetting;
-import software.amazon.awssdk.RequestClientOptions;
-import software.amazon.awssdk.RequestExecutionContext;
-import software.amazon.awssdk.config.AdvancedClientOption;
-import software.amazon.awssdk.config.ClientConfiguration;
-import software.amazon.awssdk.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.http.HttpClientDependencies;
+import software.amazon.awssdk.core.AwsSystemSetting;
+import software.amazon.awssdk.core.RequestClientOptions;
+import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.config.AdvancedClientOption;
+import software.amazon.awssdk.core.config.ClientConfiguration;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.http.HttpClientDependencies;
+import software.amazon.awssdk.core.http.pipeline.MutableRequestToRequestPipeline;
+import software.amazon.awssdk.core.util.UserAgentUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.pipeline.MutableRequestToRequestPipeline;
-import software.amazon.awssdk.util.UserAgentUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**

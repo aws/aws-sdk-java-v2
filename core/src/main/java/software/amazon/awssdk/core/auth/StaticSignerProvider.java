@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth;
+package software.amazon.awssdk.core.auth;
 
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.runtime.auth.SignerProvider;
-import software.amazon.awssdk.runtime.auth.SignerProviderContext;
+import software.amazon.awssdk.core.runtime.auth.SignerProvider;
+import software.amazon.awssdk.core.runtime.auth.SignerProviderContext;
 
 /**
  * Implementation of {@link SignerProvider} that always returns the same signer regardless of

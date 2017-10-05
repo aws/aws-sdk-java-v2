@@ -13,16 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk;
+package software.amazon.awssdk.core;
 
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.internal.AmazonWebServiceRequestAdapter;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.event.ProgressListener;
+import software.amazon.awssdk.core.internal.AmazonWebServiceRequestAdapter;
 
 /**
  * Generic representation of request level configuration. The customer interface for specifying

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.waiters;
+package software.amazon.awssdk.core.waiters;
 
 public class FixedDelayStrategy implements PollingStrategy.DelayStrategy {
 

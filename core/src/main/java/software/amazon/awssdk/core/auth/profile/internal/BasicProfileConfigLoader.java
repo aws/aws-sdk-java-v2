@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.profile.internal;
+package software.amazon.awssdk.core.auth.profile.internal;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,9 +26,9 @@ import java.util.Map.Entry;
 import java.util.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.util.StringUtils;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.util.StringUtils;
 
 /**
  * Class to load a CLI style config or credentials file. Performs only basic validation on

@@ -13,13 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.async;
+package software.amazon.awssdk.core.http.async;
 
 import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
-import software.amazon.awssdk.async.AsyncResponseHandler;
+import software.amazon.awssdk.core.async.AsyncResponseHandler;
+import software.amazon.awssdk.core.util.Throwables;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.util.Throwables;
+import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeFunction;
 
 /**

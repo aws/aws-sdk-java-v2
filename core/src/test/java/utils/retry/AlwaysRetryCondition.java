@@ -15,9 +15,10 @@
 
 package utils.retry;
 
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.retry.RetryPolicy.RetryCondition;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.retry.RetryPolicy.RetryCondition;
 
 /**
  * {@link RetryCondition} used in tests to always retry regardless of exception.

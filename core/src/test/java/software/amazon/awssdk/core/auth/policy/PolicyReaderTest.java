@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.policy;
+package software.amazon.awssdk.core.auth.policy;
 
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
@@ -22,14 +22,13 @@ import static org.junit.Assert.assertThat;
 import java.util.LinkedList;
 import java.util.List;
 import org.junit.Test;
-import software.amazon.awssdk.auth.policy.Principal.Services;
-import software.amazon.awssdk.auth.policy.Statement.Effect;
-import software.amazon.awssdk.auth.policy.conditions.ConditionFactory;
-import software.amazon.awssdk.auth.policy.conditions.IpAddressCondition;
-import software.amazon.awssdk.auth.policy.conditions.IpAddressCondition.IpAddressComparisonType;
-import software.amazon.awssdk.auth.policy.conditions.StringCondition;
-import software.amazon.awssdk.auth.policy.conditions.StringCondition.StringComparisonType;
-
+import software.amazon.awssdk.core.auth.policy.Principal.Services;
+import software.amazon.awssdk.core.auth.policy.Statement.Effect;
+import software.amazon.awssdk.core.auth.policy.conditions.ConditionFactory;
+import software.amazon.awssdk.core.auth.policy.conditions.IpAddressCondition;
+import software.amazon.awssdk.core.auth.policy.conditions.IpAddressCondition.IpAddressComparisonType;
+import software.amazon.awssdk.core.auth.policy.conditions.StringCondition;
+import software.amazon.awssdk.core.auth.policy.conditions.StringCondition.StringComparisonType;
 
 /**
  * Unit tests for generating AWS policy object from JSON string.

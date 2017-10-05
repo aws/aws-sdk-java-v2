@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth;
+package software.amazon.awssdk.core.auth;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -22,8 +22,8 @@ import static org.junit.Assert.fail;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.util.LogCaptor;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.util.LogCaptor;
 
 /**
  * Unit tests for the InstanceProfileCredentialsProvider.

@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http;
+package software.amazon.awssdk.core.http;
 
 import org.junit.After;
 import org.junit.Before;
-import software.amazon.awssdk.http.server.MockServer;
-import software.amazon.awssdk.internal.http.request.EmptyHttpRequest;
+import software.amazon.awssdk.core.http.server.MockServer;
+import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
 
 public abstract class MockServerTestBase {
 

@@ -13,15 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.waiters;
+package software.amazon.awssdk.core.waiters;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.util.ValidationUtils;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.util.ValidationUtils;
 
 @SdkProtectedApi
 public class WaiterImpl<InputT extends AmazonWebServiceRequest, OutputT> implements Waiter<InputT> {

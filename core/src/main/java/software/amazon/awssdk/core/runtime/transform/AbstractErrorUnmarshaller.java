@@ -13,15 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime.transform;
+package software.amazon.awssdk.core.runtime.transform;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import software.amazon.awssdk.AmazonServiceException;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.core.AmazonServiceException;
 
 @SdkProtectedApi
 public abstract class AbstractErrorUnmarshaller<T> implements Unmarshaller<AmazonServiceException, T> {

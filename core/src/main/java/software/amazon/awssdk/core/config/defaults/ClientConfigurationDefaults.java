@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.config.defaults;
+package software.amazon.awssdk.core.config.defaults;
 
 import java.net.URI;
 import java.util.concurrent.ScheduledExecutorService;
@@ -21,11 +21,9 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.client.builder.ClientBuilder;
-import software.amazon.awssdk.config.ClientConfiguration;
-import software.amazon.awssdk.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.config.MutableClientConfiguration;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.config.MutableClientConfiguration;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 

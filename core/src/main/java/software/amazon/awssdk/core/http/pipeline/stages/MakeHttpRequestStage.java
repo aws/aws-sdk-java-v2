@@ -13,28 +13,28 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.pipeline.stages;
+package software.amazon.awssdk.core.http.pipeline.stages;
 
-import static software.amazon.awssdk.event.SdkProgressPublisher.publishProgress;
+import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishProgress;
 
-import software.amazon.awssdk.RequestExecutionContext;
-import software.amazon.awssdk.event.ProgressEventType;
-import software.amazon.awssdk.event.ProgressListener;
+import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.event.ProgressEventType;
+import software.amazon.awssdk.core.event.ProgressListener;
+import software.amazon.awssdk.core.http.HttpSyncClientDependencies;
+import software.amazon.awssdk.core.http.InterruptMonitor;
+import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.http.AbortableCallable;
-import software.amazon.awssdk.http.HttpSyncClientDependencies;
-import software.amazon.awssdk.http.InterruptMonitor;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkRequestContext;
-import software.amazon.awssdk.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.utils.Pair;
 
 /**
  * Delegate to the HTTP implementation to make an HTTP request and receive the response.
  */
 public class MakeHttpRequestStage
-        implements RequestPipeline<SdkHttpFullRequest, Pair<SdkHttpFullRequest, SdkHttpFullResponse>> {
+    implements RequestPipeline<SdkHttpFullRequest, Pair<SdkHttpFullRequest, SdkHttpFullResponse>> {
 
     private final SdkHttpClient sdkHttpClient;
 

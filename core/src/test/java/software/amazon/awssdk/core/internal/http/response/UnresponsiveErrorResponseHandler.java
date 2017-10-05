@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.http.response;
+package software.amazon.awssdk.core.internal.http.response;
 
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.http.HttpResponse;
-import software.amazon.awssdk.http.HttpResponseHandler;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 
 /**
  * Response Handler implementation that hangs forever

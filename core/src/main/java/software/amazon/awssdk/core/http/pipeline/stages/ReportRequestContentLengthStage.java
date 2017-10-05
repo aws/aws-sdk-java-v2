@@ -14,16 +14,16 @@
  */
 
 
-package software.amazon.awssdk.http.pipeline.stages;
+package software.amazon.awssdk.core.http.pipeline.stages;
 
-import static software.amazon.awssdk.event.SdkProgressPublisher.publishRequestContentLength;
+import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishRequestContentLength;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.RequestExecutionContext;
+import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.http.StreamManagingStage;
+import software.amazon.awssdk.core.http.pipeline.RequestToRequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.StreamManagingStage;
-import software.amazon.awssdk.http.pipeline.RequestToRequestPipeline;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**

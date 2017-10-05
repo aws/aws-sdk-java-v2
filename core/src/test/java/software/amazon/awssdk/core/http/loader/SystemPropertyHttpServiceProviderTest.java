@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.loader;
+package software.amazon.awssdk.core.http.loader;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.SdkClientException;
+import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpClientFactory;
 import software.amazon.awssdk.http.SdkHttpService;
 import software.amazon.awssdk.utils.SdkSystemSetting;

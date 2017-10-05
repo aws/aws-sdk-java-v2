@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http;
+package software.amazon.awssdk.core.http;
 
-import static software.amazon.awssdk.event.SdkProgressPublisher.publishProgress;
-import static software.amazon.awssdk.http.AmazonHttpClient.unreliableTestConfig;
+import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishProgress;
+import static software.amazon.awssdk.core.http.AmazonHttpClient.unreliableTestConfig;
 import static software.amazon.awssdk.utils.IoUtils.closeQuietly;
 
 import java.io.FileInputStream;
@@ -24,17 +24,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.RequestConfig;
-import software.amazon.awssdk.RequestExecutionContext;
-import software.amazon.awssdk.Response;
-import software.amazon.awssdk.event.ProgressEventType;
-import software.amazon.awssdk.event.ProgressInputStream;
-import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.runtime.io.ReleasableInputStream;
-import software.amazon.awssdk.runtime.io.ResettableInputStream;
-import software.amazon.awssdk.runtime.io.SdkBufferedInputStream;
-import software.amazon.awssdk.util.UnreliableFilterInputStream;
+import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.event.ProgressEventType;
+import software.amazon.awssdk.core.event.ProgressInputStream;
+import software.amazon.awssdk.core.event.ProgressListener;
+import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.runtime.io.ReleasableInputStream;
+import software.amazon.awssdk.core.runtime.io.ResettableInputStream;
+import software.amazon.awssdk.core.runtime.io.SdkBufferedInputStream;
+import software.amazon.awssdk.core.util.UnreliableFilterInputStream;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
  * Instruments the request input stream for both retry purposes (to allow for mark/reset) and progress reporting. Handles

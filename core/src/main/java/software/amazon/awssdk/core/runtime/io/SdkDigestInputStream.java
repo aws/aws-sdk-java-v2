@@ -13,15 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime.io;
+package software.amazon.awssdk.core.runtime.io;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.internal.io.Releasable;
-import software.amazon.awssdk.internal.io.SdkIoUtils;
+import software.amazon.awssdk.core.internal.io.Releasable;
+import software.amazon.awssdk.core.internal.io.SdkIoUtils;
 
 /**
  * Base class for AWS Java SDK specific {@link DigestInputStream}.

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime.transform;
+package software.amazon.awssdk.core.runtime.transform;
 
 import static com.fasterxml.jackson.core.JsonToken.END_ARRAY;
 import static com.fasterxml.jackson.core.JsonToken.END_OBJECT;
@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.http.HttpResponse;
+import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi

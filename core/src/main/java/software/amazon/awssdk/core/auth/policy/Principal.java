@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.policy;
+package software.amazon.awssdk.core.auth.policy;
 
 /**
  * A principal is an AWS account or AWS web service, which is being allowed or denied access to a

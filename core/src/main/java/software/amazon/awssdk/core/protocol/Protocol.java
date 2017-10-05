@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol;
+package software.amazon.awssdk.core.protocol;
 
 /**
  * Supported protocols for the new marshalling style. Currently only includes JSON based services.

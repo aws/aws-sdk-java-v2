@@ -13,13 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.client.builder;
+package software.amazon.awssdk.core.client.builder;
 
 import java.net.URI;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**

@@ -13,13 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.interceptor;
+package software.amazon.awssdk.core.interceptor;
 
 import java.util.Optional;
-import software.amazon.awssdk.SdkRequest;
-import software.amazon.awssdk.SdkResponse;
 import software.amazon.awssdk.annotation.SdkPublicApi;
 import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 

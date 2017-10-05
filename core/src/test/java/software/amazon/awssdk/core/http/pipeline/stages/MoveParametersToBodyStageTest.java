@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.pipeline.stages;
+package software.amazon.awssdk.core.http.pipeline.stages;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,12 +23,14 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 import org.junit.Test;
-import software.amazon.awssdk.RequestConfig;
-import software.amazon.awssdk.RequestExecutionContext;
-import software.amazon.awssdk.http.ExecutionContext;
+import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
+import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
 import utils.ValidSdkObjects;
 
 public class MoveParametersToBodyStageTest {

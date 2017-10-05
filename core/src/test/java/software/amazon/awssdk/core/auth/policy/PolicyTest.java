@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.policy;
+package software.amazon.awssdk.core.auth.policy;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -25,14 +25,14 @@ import java.util.HashSet;
 import java.util.Set;
 import junit.framework.Assert;
 import org.junit.Test;
-import software.amazon.awssdk.auth.policy.Principal.Services;
-import software.amazon.awssdk.auth.policy.Principal.WebIdentityProviders;
-import software.amazon.awssdk.auth.policy.Statement.Effect;
-import software.amazon.awssdk.auth.policy.conditions.IpAddressCondition;
-import software.amazon.awssdk.auth.policy.conditions.IpAddressCondition.IpAddressComparisonType;
-import software.amazon.awssdk.auth.policy.conditions.StringCondition;
-import software.amazon.awssdk.auth.policy.conditions.StringCondition.StringComparisonType;
-import software.amazon.awssdk.util.json.JacksonUtils;
+import software.amazon.awssdk.core.auth.policy.Principal.Services;
+import software.amazon.awssdk.core.auth.policy.Principal.WebIdentityProviders;
+import software.amazon.awssdk.core.auth.policy.Statement.Effect;
+import software.amazon.awssdk.core.auth.policy.conditions.IpAddressCondition;
+import software.amazon.awssdk.core.auth.policy.conditions.IpAddressCondition.IpAddressComparisonType;
+import software.amazon.awssdk.core.auth.policy.conditions.StringCondition;
+import software.amazon.awssdk.core.auth.policy.conditions.StringCondition.StringComparisonType;
+import software.amazon.awssdk.core.util.json.JacksonUtils;
 
 /**
  * Unit tests for constructing policy objects and serializing them to JSON.
@@ -306,9 +306,7 @@ public class PolicyTest {
                         .withResources(new Resource("resource"))
                         .withConditions(
                                 new IpAddressCondition("192.168.143.0/24"),
-                                new IpAddressCondition(
-                                        IpAddressComparisonType.NotIpAddress,
-                                        "192.168.143.188/32")),
+                                new IpAddressCondition(IpAddressComparisonType.NotIpAddress, "192.168.143.188/32")),
                 new Statement(Effect.Deny).withPrincipals(Principal.ALL_USERS)
                                           .withActions(new Action("action2"))
                                           .withResources(new Resource("resource"))

@@ -13,14 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http;
+package software.amazon.awssdk.core.http;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.InputStream;
 import java.util.Optional;
 import java.util.zip.GZIPInputStream;
-import software.amazon.awssdk.util.Crc32ChecksumValidatingInputStream;
+import software.amazon.awssdk.core.util.Crc32ChecksumValidatingInputStream;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 /**
  * Adapts a {@link SdkHttpFullResponse} object to the legacy {@link HttpResponse}.

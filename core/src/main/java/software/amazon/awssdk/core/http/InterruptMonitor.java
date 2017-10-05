@@ -13,10 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http;
+package software.amazon.awssdk.core.http;
 
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.http.exception.SdkInterruptedException;
+import software.amazon.awssdk.core.http.exception.SdkInterruptedException;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 /**
  * A set of utilities for monitoring the status of the currently-executing SDK thread. This is useful for periodically checking

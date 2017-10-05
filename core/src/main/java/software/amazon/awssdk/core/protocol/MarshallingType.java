@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol;
+package software.amazon.awssdk.core.protocol;
 
 import java.io.InputStream;
 import java.math.BigDecimal;

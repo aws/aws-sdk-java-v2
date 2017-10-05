@@ -13,13 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal;
+package software.amazon.awssdk.core.internal;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.retry.internal.CredentialsEndpointRetryPolicy;
+import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryPolicy;
 
 /**
  * <p>

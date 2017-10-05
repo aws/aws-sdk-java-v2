@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.util;
+package software.amazon.awssdk.core.util;
 
 import static java.time.ZoneOffset.UTC;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static software.amazon.awssdk.util.DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT;
+import static software.amazon.awssdk.core.util.DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import java.nio.charset.Charset;
@@ -36,8 +36,8 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import org.junit.Test;
-import software.amazon.awssdk.protocol.json.SdkJsonGenerator;
-import software.amazon.awssdk.protocol.json.StructuredJsonGenerator;
+import software.amazon.awssdk.core.protocol.json.SdkJsonGenerator;
+import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 
 public class DateUtilsTest {
     private static final boolean DEBUG = false;

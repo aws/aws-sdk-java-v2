@@ -13,26 +13,33 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.client.builder;
+package software.amazon.awssdk.core.client.builder;
 
-import static software.amazon.awssdk.config.AdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION;
+import static software.amazon.awssdk.core.config.AdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import java.net.URI;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.DefaultCredentialsProvider;
-import software.amazon.awssdk.config.AdvancedClientOption;
-import software.amazon.awssdk.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.config.ImmutableAsyncClientConfiguration;
-import software.amazon.awssdk.config.ImmutableSyncClientConfiguration;
-import software.amazon.awssdk.config.MutableClientConfiguration;
-import software.amazon.awssdk.config.defaults.ClientConfigurationDefaults;
-import software.amazon.awssdk.config.defaults.GlobalClientConfigurationDefaults;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.auth.DefaultCredentialsProvider;
+import software.amazon.awssdk.core.config.AdvancedClientOption;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.config.ImmutableAsyncClientConfiguration;
+import software.amazon.awssdk.core.config.ImmutableSyncClientConfiguration;
+import software.amazon.awssdk.core.config.MutableClientConfiguration;
+import software.amazon.awssdk.core.config.defaults.ClientConfigurationDefaults;
+import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
+import software.amazon.awssdk.core.http.loader.DefaultSdkAsyncHttpClientFactory;
+import software.amazon.awssdk.core.http.loader.DefaultSdkHttpClientFactory;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.regions.ServiceMetadata;
+import software.amazon.awssdk.core.regions.providers.AwsRegionProvider;
+import software.amazon.awssdk.core.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.core.util.EndpointUtils;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientFactory;
@@ -46,13 +53,6 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClientFactory;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
-import software.amazon.awssdk.http.loader.DefaultSdkAsyncHttpClientFactory;
-import software.amazon.awssdk.http.loader.DefaultSdkHttpClientFactory;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.ServiceMetadata;
-import software.amazon.awssdk.regions.providers.AwsRegionProvider;
-import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
-import software.amazon.awssdk.util.EndpointUtils;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**

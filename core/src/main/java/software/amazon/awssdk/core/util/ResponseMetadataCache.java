@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.util;
+package software.amazon.awssdk.core.util;
 
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
-import software.amazon.awssdk.ResponseMetadata;
 import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.core.ResponseMetadata;
 
 /**
  * Cache of response metadata for recently executed requests for diagnostic

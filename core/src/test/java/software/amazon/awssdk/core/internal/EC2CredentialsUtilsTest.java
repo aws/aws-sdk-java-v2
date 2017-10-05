@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal;
+package software.amazon.awssdk.core.internal;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -35,11 +35,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.internal.net.ConnectionUtils;
-import software.amazon.awssdk.retry.internal.CredentialsEndpointRetryParameters;
-import software.amazon.awssdk.retry.internal.CredentialsEndpointRetryPolicy;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.internal.net.ConnectionUtils;
+import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryParameters;
+import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryPolicy;
 import utils.http.SocketUtils;
 
 @RunWith(MockitoJUnitRunner.class)

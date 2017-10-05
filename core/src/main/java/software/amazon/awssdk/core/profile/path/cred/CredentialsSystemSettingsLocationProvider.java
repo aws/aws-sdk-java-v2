@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.profile.path.cred;
+package software.amazon.awssdk.core.profile.path.cred;
 
 import java.io.File;
-import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.profile.path.AwsProfileFileLocationProvider;
+import software.amazon.awssdk.core.AwsSystemSetting;
+import software.amazon.awssdk.core.profile.path.AwsProfileFileLocationProvider;
 
 /**
  * If the 'AWS_CONFIG_FILE' environment variable or 'aws.configFile' system property is set, then the shared credentials file is

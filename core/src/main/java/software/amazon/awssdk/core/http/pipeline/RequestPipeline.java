@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.pipeline;
+package software.amazon.awssdk.core.http.pipeline;
 
 import java.util.function.BiFunction;
-import software.amazon.awssdk.RequestExecutionContext;
+import software.amazon.awssdk.core.RequestExecutionContext;
 
 /**
  * Represents a series of transformations when executing a SDK request.

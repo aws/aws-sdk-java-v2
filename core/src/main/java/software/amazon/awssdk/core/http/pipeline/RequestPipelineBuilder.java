@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.pipeline;
+package software.amazon.awssdk.core.http.pipeline;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.safeFunction;
 import static software.amazon.awssdk.utils.FunctionalUtils.toFunction;
@@ -22,12 +22,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.http.HttpAsyncClientDependencies;
-import software.amazon.awssdk.http.HttpClientDependencies;
-import software.amazon.awssdk.http.HttpSyncClientDependencies;
+import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.http.HttpAsyncClientDependencies;
+import software.amazon.awssdk.core.http.HttpClientDependencies;
+import software.amazon.awssdk.core.http.HttpSyncClientDependencies;
 
 /**
  * Builder for a {@link RequestPipeline}.

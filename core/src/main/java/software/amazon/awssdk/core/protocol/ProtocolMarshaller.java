@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol;
+package software.amazon.awssdk.core.protocol;
 
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.core.SdkClientException;
 
 /**
  * Interface used by generated marshallers to marshall a Java POJO.

@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retry;
+package software.amazon.awssdk.core.retry;
 
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.retry.RetryPolicy.BackoffStrategy;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.retry.RetryPolicy.BackoffStrategy;
 
 /**
  * Test implementation of {@link BackoffStrategy} to wait a fixed time between retries

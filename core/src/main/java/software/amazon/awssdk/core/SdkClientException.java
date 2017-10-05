@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk;
+package software.amazon.awssdk.core;
 
 /**
  * Base type for all client exceptions thrown by the SDK.

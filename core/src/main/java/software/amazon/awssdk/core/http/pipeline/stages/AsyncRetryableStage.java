@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.pipeline.stages;
+package software.amazon.awssdk.core.http.pipeline.stages;
 
 import static java.util.Collections.singletonList;
-import static software.amazon.awssdk.event.SdkProgressPublisher.publishProgress;
-import static software.amazon.awssdk.http.pipeline.stages.RetryableStage.HEADER_SDK_RETRY_INFO;
+import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishProgress;
+import static software.amazon.awssdk.core.http.pipeline.stages.RetryableStage.HEADER_SDK_RETRY_INFO;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,24 +28,24 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.RequestExecutionContext;
-import software.amazon.awssdk.ResetException;
-import software.amazon.awssdk.Response;
-import software.amazon.awssdk.SdkBaseException;
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.SdkStandardLoggers;
-import software.amazon.awssdk.event.ProgressEventType;
-import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.http.HttpAsyncClientDependencies;
-import software.amazon.awssdk.http.HttpClientDependencies;
-import software.amazon.awssdk.http.HttpResponse;
+import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.ResetException;
+import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.SdkBaseException;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.SdkStandardLoggers;
+import software.amazon.awssdk.core.event.ProgressEventType;
+import software.amazon.awssdk.core.event.ProgressListener;
+import software.amazon.awssdk.core.http.HttpAsyncClientDependencies;
+import software.amazon.awssdk.core.http.HttpClientDependencies;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.retry.RetryUtils;
+import software.amazon.awssdk.core.retry.v2.RetryPolicy;
+import software.amazon.awssdk.core.retry.v2.RetryPolicyContext;
+import software.amazon.awssdk.core.util.CapacityManager;
+import software.amazon.awssdk.core.util.DateUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.retry.RetryUtils;
-import software.amazon.awssdk.retry.v2.RetryPolicy;
-import software.amazon.awssdk.retry.v2.RetryPolicyContext;
-import software.amazon.awssdk.util.CapacityManager;
-import software.amazon.awssdk.util.DateUtils;
 
 /**
  * Wrapper around the pipeline for a single request to provide retry functionality.

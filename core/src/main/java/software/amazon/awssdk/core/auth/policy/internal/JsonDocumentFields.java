@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.policy.internal;
+package software.amazon.awssdk.core.auth.policy.internal;
 
 public class JsonDocumentFields {
     public static final String VERSION = "Version";

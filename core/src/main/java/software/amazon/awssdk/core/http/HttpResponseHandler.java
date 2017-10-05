@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http;
+package software.amazon.awssdk.core.http;
 
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 
 /**
  * Responsible for handling an HTTP response and returning an object of type T.

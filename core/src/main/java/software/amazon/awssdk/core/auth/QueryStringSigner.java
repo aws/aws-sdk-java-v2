@@ -13,19 +13,19 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth;
+package software.amazon.awssdk.core.auth;
 
-import static software.amazon.awssdk.interceptor.AwsExecutionAttributes.AWS_CREDENTIALS;
-import static software.amazon.awssdk.interceptor.AwsExecutionAttributes.TIME_OFFSET;
+import static software.amazon.awssdk.core.interceptor.AwsExecutionAttributes.AWS_CREDENTIALS;
+import static software.amazon.awssdk.core.interceptor.AwsExecutionAttributes.TIME_OFFSET;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-import software.amazon.awssdk.SdkClientException;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.util.CredentialUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.interceptor.Context;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.util.CredentialUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**

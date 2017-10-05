@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol;
+package software.amazon.awssdk.core.protocol;
 
-import software.amazon.awssdk.Request;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.core.Request;
 
 /**
  * Interface used by generated marshallers to transform a Java POJO in a {@link Request} object which represents an HTTP request.

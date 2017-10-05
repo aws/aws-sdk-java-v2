@@ -13,16 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk;
+package software.amazon.awssdk.core;
 
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.http.AmazonHttpClient;
-import software.amazon.awssdk.http.ExecutionContext;
+import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionAbortTrackerTask;
+import software.amazon.awssdk.core.runtime.auth.SignerProvider;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionInterceptorChain;
-import software.amazon.awssdk.internal.http.timers.client.ClientExecutionAbortTrackerTask;
-import software.amazon.awssdk.runtime.auth.SignerProvider;
 import software.amazon.awssdk.utils.Validate;
 
 /**

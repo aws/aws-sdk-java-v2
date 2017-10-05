@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth;
+package software.amazon.awssdk.core.auth;
 
-import static software.amazon.awssdk.interceptor.AwsExecutionAttributes.AWS_CREDENTIALS;
-import static software.amazon.awssdk.util.DateUtils.numberOfDaysSinceEpoch;
-import static software.amazon.awssdk.util.StringUtils.lowerCase;
+import static software.amazon.awssdk.core.interceptor.AwsExecutionAttributes.AWS_CREDENTIALS;
+import static software.amazon.awssdk.core.util.DateUtils.numberOfDaysSinceEpoch;
+import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,18 +30,19 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
-import software.amazon.awssdk.auth.internal.Aws4SignerRequestParams;
-import software.amazon.awssdk.auth.internal.Aws4SignerUtils;
-import software.amazon.awssdk.auth.internal.SignerConstants;
-import software.amazon.awssdk.auth.internal.SignerKey;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.auth.internal.Aws4SignerRequestParams;
+import software.amazon.awssdk.core.auth.internal.Aws4SignerUtils;
+import software.amazon.awssdk.core.auth.internal.SignerConstants;
+import software.amazon.awssdk.core.auth.internal.SignerKey;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.internal.collections.FifoCache;
+import software.amazon.awssdk.core.util.CredentialUtils;
+import software.amazon.awssdk.core.util.SdkHttpUtils;
+import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.interceptor.Context;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.internal.collections.FifoCache;
-import software.amazon.awssdk.util.CredentialUtils;
-import software.amazon.awssdk.util.StringUtils;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
@@ -190,8 +191,8 @@ public class Aws4Signer extends AbstractAwsSigner
         }
 
         final Aws4SignerRequestParams signerParams = new Aws4SignerRequestParams(
-                execution.request(), mutableRequest, executionAttributes,
-                overriddenDate, regionName, serviceName, SignerConstants.AWS4_SIGNING_ALGORITHM);
+            execution.request(), mutableRequest, executionAttributes,
+            overriddenDate, regionName, serviceName, SignerConstants.AWS4_SIGNING_ALGORITHM);
 
         addHostHeader(mutableRequest);
         mutableRequest.header(SignerConstants.X_AMZ_DATE, signerParams.getFormattedSigningDateTime());
@@ -523,9 +524,9 @@ public class Aws4Signer extends AbstractAwsSigner
 
         if (expirationInSeconds > SignerConstants.PRESIGN_URL_MAX_EXPIRATION_SECONDS) {
             throw new SdkClientException(
-                    "Requests that are pre-signed by SigV4 algorithm are valid for at most 7 days. "
-                    + "The expiration date set on the current request ["
-                    + Aws4SignerUtils.formatTimestamp(expirationDate
+                "Requests that are pre-signed by SigV4 algorithm are valid for at most 7 days. "
+                + "The expiration date set on the current request ["
+                + Aws4SignerUtils.formatTimestamp(expirationDate
                                                               .getTime()) + "] has exceeded this limit.");
         }
         return expirationInSeconds;

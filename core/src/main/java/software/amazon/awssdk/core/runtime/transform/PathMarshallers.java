@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime.transform;
+package software.amazon.awssdk.core.runtime.transform;
 
-import static software.amazon.awssdk.util.ValidationUtils.assertNotNull;
-import static software.amazon.awssdk.util.ValidationUtils.assertStringNotEmpty;
+import static software.amazon.awssdk.core.util.ValidationUtils.assertNotNull;
+import static software.amazon.awssdk.core.util.ValidationUtils.assertStringNotEmpty;
 
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.util.IdempotentUtils;
-import software.amazon.awssdk.util.StringUtils;
+import software.amazon.awssdk.core.util.IdempotentUtils;
+import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkProtectedApi

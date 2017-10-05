@@ -13,20 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.pipeline.stages;
+package software.amazon.awssdk.core.http.pipeline.stages;
 
 import static java.util.Collections.singletonList;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import software.amazon.awssdk.RequestExecutionContext;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.http.pipeline.MutableRequestToRequestPipeline;
+import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.http.pipeline.MutableRequestToRequestPipeline;
-import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 

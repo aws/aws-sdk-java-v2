@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.http.response;
+package software.amazon.awssdk.core.internal.http.response;
 
-import software.amazon.awssdk.AmazonWebServiceResponse;
-import software.amazon.awssdk.http.HttpResponse;
-import software.amazon.awssdk.http.HttpResponseHandler;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.AmazonWebServiceResponse;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 
 public class EmptyAWSResponseHandler implements
                                      HttpResponseHandler<AmazonWebServiceResponse<Object>> {

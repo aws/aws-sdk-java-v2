@@ -13,16 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.internal;
+package software.amazon.awssdk.core.auth.internal;
 
-import static software.amazon.awssdk.interceptor.AwsExecutionAttributes.TIME_OFFSET;
+import static software.amazon.awssdk.core.interceptor.AwsExecutionAttributes.TIME_OFFSET;
 
 import java.util.Date;
-import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.util.AwsHostNameUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.util.AwsHostNameUtils;
 
 /**
  * Parameters that are used for computing a AWS 4 signature for a request.

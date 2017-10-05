@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.event;
+package software.amazon.awssdk.core.event;
 
 /**
  * Used to indicate whether it is safe to deliver progress events to the

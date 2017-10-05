@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime.endpoint;
+package software.amazon.awssdk.core.runtime.endpoint;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.regions.Region;
 
 public class DefaultServiceEndpointBuilderTest {
 

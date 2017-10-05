@@ -13,20 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.pipeline.stages;
+package software.amazon.awssdk.core.http.pipeline.stages;
 
-import software.amazon.awssdk.RequestExecutionContext;
-import software.amazon.awssdk.auth.AwsCredentials;
-import software.amazon.awssdk.auth.CanHandleNullCredentials;
-import software.amazon.awssdk.auth.Signer;
-import software.amazon.awssdk.http.ExecutionContext;
-import software.amazon.awssdk.http.HttpClientDependencies;
-import software.amazon.awssdk.http.InterruptMonitor;
+import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.auth.AwsCredentials;
+import software.amazon.awssdk.core.auth.CanHandleNullCredentials;
+import software.amazon.awssdk.core.auth.Signer;
+import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.http.HttpClientDependencies;
+import software.amazon.awssdk.core.http.InterruptMonitor;
+import software.amazon.awssdk.core.http.pipeline.RequestToRequestPipeline;
+import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.runtime.auth.SignerProviderContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.pipeline.RequestToRequestPipeline;
-import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.runtime.auth.SignerProviderContext;
 
 /**
  * Sign the marshalled request (if applicable).

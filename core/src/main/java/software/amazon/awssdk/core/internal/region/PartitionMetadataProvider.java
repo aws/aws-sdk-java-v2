@@ -13,19 +13,19 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.region;
+package software.amazon.awssdk.core.internal.region;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.internal.region.model.Partition;
-import software.amazon.awssdk.regions.PartitionServiceMetadata;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.RegionMetadata;
-import software.amazon.awssdk.regions.ServiceMetadata;
-import software.amazon.awssdk.regions.ServiceMetadataProvider;
+import software.amazon.awssdk.core.internal.region.model.Partition;
+import software.amazon.awssdk.core.regions.PartitionServiceMetadata;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.regions.RegionMetadata;
+import software.amazon.awssdk.core.regions.ServiceMetadata;
+import software.amazon.awssdk.core.regions.ServiceMetadataProvider;
 import software.amazon.awssdk.utils.Validate;
 
 /**

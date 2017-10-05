@@ -12,7 +12,7 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package software.amazon.awssdk.regions;
+package software.amazon.awssdk.core.regions;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http;
+package software.amazon.awssdk.core.http;
 
-import software.amazon.awssdk.config.AsyncClientConfiguration;
+import software.amazon.awssdk.core.config.AsyncClientConfiguration;
 import software.amazon.awssdk.utils.IoUtils;
 
 public class HttpAsyncClientDependencies extends HttpClientDependencies {

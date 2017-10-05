@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retry.internal;
+package software.amazon.awssdk.core.retry.internal;
 
 import software.amazon.awssdk.annotation.SdkInternalApi;
 

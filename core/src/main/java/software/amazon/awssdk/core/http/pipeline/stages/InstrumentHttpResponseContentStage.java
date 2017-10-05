@@ -13,27 +13,27 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.pipeline.stages;
+package software.amazon.awssdk.core.http.pipeline.stages;
 
-import static software.amazon.awssdk.event.SdkProgressPublisher.publishResponseContentLength;
+import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishResponseContentLength;
 
 import java.io.InputStream;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.RequestExecutionContext;
-import software.amazon.awssdk.event.ProgressInputStream;
-import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.http.HttpResponse;
+import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.event.ProgressInputStream;
+import software.amazon.awssdk.core.event.ProgressListener;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.utils.Pair;
 
 /**
  * Instrument the response content so that it reports events to the {@link ProgressListener}.
  */
 public class InstrumentHttpResponseContentStage
-        implements RequestPipeline<Pair<SdkHttpFullRequest, HttpResponse>, Pair<SdkHttpFullRequest, HttpResponse>> {
+    implements RequestPipeline<Pair<SdkHttpFullRequest, HttpResponse>, Pair<SdkHttpFullRequest, HttpResponse>> {
 
     private static final Logger log = LoggerFactory.getLogger(InstrumentHttpResponseContentStage.class);
 

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.unmarshaller;
+package software.amazon.awssdk.core.unmarshaller;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -23,8 +23,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.http.HttpResponse;
-import software.amazon.awssdk.runtime.http.JsonErrorMessageParser;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.runtime.http.JsonErrorMessageParser;
 
 public class JsonErrorMessageParserTest {
 

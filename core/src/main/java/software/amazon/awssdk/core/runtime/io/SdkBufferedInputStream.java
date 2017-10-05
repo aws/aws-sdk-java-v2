@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime.io;
+package software.amazon.awssdk.core.runtime.io;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import software.amazon.awssdk.AbortedException;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.util.SdkRuntime;
+import software.amazon.awssdk.core.AbortedException;
+import software.amazon.awssdk.core.util.SdkRuntime;
 
 /**
  * A buffered input stream that can be aborted via thread interrupt.

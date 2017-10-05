@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.pipeline.stages;
+package software.amazon.awssdk.core.http.pipeline.stages;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,11 +21,11 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.RequestExecutionContext;
-import software.amazon.awssdk.config.ClientConfiguration;
-import software.amazon.awssdk.http.HttpClientDependencies;
+import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.config.ClientConfiguration;
+import software.amazon.awssdk.core.http.HttpClientDependencies;
+import software.amazon.awssdk.core.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.pipeline.MutableRequestToRequestPipeline;
 
 /**
  * Merge customer supplied headers into the marshalled request.

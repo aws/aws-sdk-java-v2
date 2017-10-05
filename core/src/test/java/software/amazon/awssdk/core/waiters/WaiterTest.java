@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.waiters;
+package software.amazon.awssdk.core.waiters;
 
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
@@ -29,8 +29,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WaiterTest {

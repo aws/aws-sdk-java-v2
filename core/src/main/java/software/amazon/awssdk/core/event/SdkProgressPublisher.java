@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.event;
+package software.amazon.awssdk.core.event;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;

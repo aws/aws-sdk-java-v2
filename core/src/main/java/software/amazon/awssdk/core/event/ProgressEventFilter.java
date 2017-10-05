@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.event;
+package software.amazon.awssdk.core.event;
 
 /**
  * An interface that filters the incoming events before passing
