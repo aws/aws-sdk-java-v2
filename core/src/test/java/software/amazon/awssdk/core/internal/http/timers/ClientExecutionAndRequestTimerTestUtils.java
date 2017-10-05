@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.http.timers;
+package software.amazon.awssdk.core.internal.http.timers;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -21,21 +21,21 @@ import static org.junit.Assert.assertNull;
 import java.util.Collections;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import software.amazon.awssdk.Request;
-import software.amazon.awssdk.SdkRequest;
-import software.amazon.awssdk.http.AmazonHttpClient;
-import software.amazon.awssdk.http.ExecutionContext;
-import software.amazon.awssdk.http.HttpMethodName;
+import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.http.AmazonHttpClient;
+import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.http.HttpMethodName;
+import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.internal.auth.NoOpSignerProvider;
+import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
+import software.amazon.awssdk.core.internal.http.response.ErrorDuringUnmarshallingResponseHandler;
+import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
+import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpFullRequestAdapter;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionInterceptorChain;
-import software.amazon.awssdk.interceptor.InterceptorContext;
-import software.amazon.awssdk.internal.auth.NoOpSignerProvider;
-import software.amazon.awssdk.internal.http.request.EmptyHttpRequest;
-import software.amazon.awssdk.internal.http.response.ErrorDuringUnmarshallingResponseHandler;
-import software.amazon.awssdk.internal.http.response.NullErrorResponseHandler;
-import software.amazon.awssdk.internal.http.timers.client.ClientExecutionTimer;
 
 /**
  * Useful asserts and utilities for verifying behavior or the client execution timeout and request

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk;
+package software.amazon.awssdk.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -24,11 +24,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
-import software.amazon.awssdk.RequestClientOptions.Marker;
-import software.amazon.awssdk.auth.AwsCredentials;
-import software.amazon.awssdk.event.ProgressEvent;
-import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.event.SyncProgressListener;
+import software.amazon.awssdk.core.RequestClientOptions.Marker;
+import software.amazon.awssdk.core.auth.AwsCredentials;
+import software.amazon.awssdk.core.event.ProgressEvent;
+import software.amazon.awssdk.core.event.ProgressListener;
+import software.amazon.awssdk.core.event.SyncProgressListener;
 import utils.model.EmptyAmazonWebServiceRequest;
 
 public class AmazonWebServiceRequestTest {
@@ -63,7 +63,7 @@ public class AmazonWebServiceRequestTest {
         RequestClientOptions toOptions = to.getRequestClientOptions();
         assertEquals(
                 from.getRequestClientOptions().getClientMarker(
-                        Marker.USER_AGENT),
+                    Marker.USER_AGENT),
                 toOptions.getClientMarker(Marker.USER_AGENT));
         assertTrue(1234 == toOptions.getReadLimit());
     }

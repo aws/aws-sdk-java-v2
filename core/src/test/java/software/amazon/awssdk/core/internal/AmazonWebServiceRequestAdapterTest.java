@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal;
+package software.amazon.awssdk.core.internal;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
@@ -27,11 +27,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.RequestClientOptions;
-import software.amazon.awssdk.auth.AwsCredentials;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.event.ProgressListener;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.RequestClientOptions;
+import software.amazon.awssdk.core.auth.AwsCredentials;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.event.ProgressListener;
 import utils.model.EmptyAmazonWebServiceRequest;
 
 public class AmazonWebServiceRequestAdapterTest {
@@ -155,7 +155,7 @@ public class AmazonWebServiceRequestAdapterTest {
         request.getRequestClientOptions().appendUserAgent("foo-agent");
         AmazonWebServiceRequestAdapter adapter = new AmazonWebServiceRequestAdapter(request);
         assertThat(adapter.getRequestClientOptions().getClientMarker(
-                RequestClientOptions.Marker.USER_AGENT), containsString("foo-agent"));
+            RequestClientOptions.Marker.USER_AGENT), containsString("foo-agent"));
     }
 
     private AmazonWebServiceRequestAdapter adaptEmpty() {

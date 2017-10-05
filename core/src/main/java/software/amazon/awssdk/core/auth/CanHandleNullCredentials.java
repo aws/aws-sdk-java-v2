@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth;
+package software.amazon.awssdk.core.auth;
 
-import software.amazon.awssdk.SignableRequest;
+import software.amazon.awssdk.core.SignableRequest;
 
 /**
  * Used to explicitly indicate that a {@link Signer} can gracefully handle

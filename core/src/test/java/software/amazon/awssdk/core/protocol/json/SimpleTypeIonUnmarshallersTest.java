@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol.json;
+package software.amazon.awssdk.core.protocol.json;
 
 import static org.junit.Assert.assertEquals;
 
@@ -24,21 +24,21 @@ import java.nio.ByteBuffer;
 import java.util.Calendar;
 import java.util.TimeZone;
 import org.junit.Test;
-import software.amazon.awssdk.runtime.transform.JsonUnmarshallerContext;
-import software.amazon.awssdk.runtime.transform.JsonUnmarshallerContextImpl;
-import software.amazon.awssdk.runtime.transform.SimpleTypeIonUnmarshallers.BigDecimalIonUnmarshaller;
-import software.amazon.awssdk.runtime.transform.SimpleTypeIonUnmarshallers.BigIntegerIonUnmarshaller;
-import software.amazon.awssdk.runtime.transform.SimpleTypeIonUnmarshallers.BooleanIonUnmarshaller;
-import software.amazon.awssdk.runtime.transform.SimpleTypeIonUnmarshallers.ByteBufferIonUnmarshaller;
-import software.amazon.awssdk.runtime.transform.SimpleTypeIonUnmarshallers.ByteIonUnmarshaller;
-import software.amazon.awssdk.runtime.transform.SimpleTypeIonUnmarshallers.DateIonUnmarshaller;
-import software.amazon.awssdk.runtime.transform.SimpleTypeIonUnmarshallers.DoubleIonUnmarshaller;
-import software.amazon.awssdk.runtime.transform.SimpleTypeIonUnmarshallers.FloatIonUnmarshaller;
-import software.amazon.awssdk.runtime.transform.SimpleTypeIonUnmarshallers.IntegerIonUnmarshaller;
-import software.amazon.awssdk.runtime.transform.SimpleTypeIonUnmarshallers.LongIonUnmarshaller;
-import software.amazon.awssdk.runtime.transform.SimpleTypeIonUnmarshallers.ShortIonUnmarshaller;
-import software.amazon.awssdk.runtime.transform.SimpleTypeIonUnmarshallers.StringIonUnmarshaller;
-import software.amazon.awssdk.util.StringInputStream;
+import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
+import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContextImpl;
+import software.amazon.awssdk.core.runtime.transform.SimpleTypeIonUnmarshallers.BigDecimalIonUnmarshaller;
+import software.amazon.awssdk.core.runtime.transform.SimpleTypeIonUnmarshallers.BigIntegerIonUnmarshaller;
+import software.amazon.awssdk.core.runtime.transform.SimpleTypeIonUnmarshallers.BooleanIonUnmarshaller;
+import software.amazon.awssdk.core.runtime.transform.SimpleTypeIonUnmarshallers.ByteBufferIonUnmarshaller;
+import software.amazon.awssdk.core.runtime.transform.SimpleTypeIonUnmarshallers.ByteIonUnmarshaller;
+import software.amazon.awssdk.core.runtime.transform.SimpleTypeIonUnmarshallers.DateIonUnmarshaller;
+import software.amazon.awssdk.core.runtime.transform.SimpleTypeIonUnmarshallers.DoubleIonUnmarshaller;
+import software.amazon.awssdk.core.runtime.transform.SimpleTypeIonUnmarshallers.FloatIonUnmarshaller;
+import software.amazon.awssdk.core.runtime.transform.SimpleTypeIonUnmarshallers.IntegerIonUnmarshaller;
+import software.amazon.awssdk.core.runtime.transform.SimpleTypeIonUnmarshallers.LongIonUnmarshaller;
+import software.amazon.awssdk.core.runtime.transform.SimpleTypeIonUnmarshallers.ShortIonUnmarshaller;
+import software.amazon.awssdk.core.runtime.transform.SimpleTypeIonUnmarshallers.StringIonUnmarshaller;
+import software.amazon.awssdk.core.util.StringInputStream;
 import software.amazon.ion.system.IonSystemBuilder;
 
 public class SimpleTypeIonUnmarshallersTest {

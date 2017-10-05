@@ -13,17 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol.json.internal;
+package software.amazon.awssdk.core.protocol.json.internal;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.protocol.MarshallLocation;
-import software.amazon.awssdk.protocol.MarshallingType;
-import software.amazon.awssdk.protocol.StructuredPojo;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.protocol.MarshallingType;
+import software.amazon.awssdk.core.protocol.StructuredPojo;
 
 @SdkInternalApi
 public class MarshallerRegistry {

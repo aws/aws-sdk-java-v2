@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.http.response;
+package software.amazon.awssdk.core.internal.http.response;
 
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.assertEquals;
@@ -31,18 +31,20 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.AmazonServiceException.ErrorType;
-import software.amazon.awssdk.http.HttpResponse;
-import software.amazon.awssdk.http.HttpResponseHandler;
-import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.internal.http.JsonErrorCodeParser;
-import software.amazon.awssdk.runtime.http.JsonErrorMessageParser;
-import software.amazon.awssdk.runtime.transform.JsonErrorUnmarshaller;
-import software.amazon.awssdk.util.StringInputStream;
-import software.amazon.awssdk.util.StringUtils;
 import utils.ValidSdkObjects;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonServiceException.ErrorType;
+import software.amazon.awssdk.core.DefaultRequest;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
+import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.internal.http.JsonErrorCodeParser;
+import software.amazon.awssdk.core.runtime.http.JsonErrorMessageParser;
+import software.amazon.awssdk.core.runtime.transform.JsonErrorUnmarshaller;
+import software.amazon.awssdk.core.util.StringInputStream;
+import software.amazon.awssdk.utils.StringUtils;
 
 public class JsonErrorResponseHandlerTest {
 

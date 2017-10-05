@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth;
+package software.amazon.awssdk.core.auth;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -24,8 +24,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
 import org.apache.commons.io.IOUtils;
-import software.amazon.awssdk.AwsSystemSetting;
-import software.amazon.awssdk.util.EC2MetadataUtils;
+import software.amazon.awssdk.core.AwsSystemSetting;
+import software.amazon.awssdk.core.util.EC2MetadataUtils;
 
 /**
  * Mock server for imitating the Amazon EC2 Instance Metadata Service. Tests can

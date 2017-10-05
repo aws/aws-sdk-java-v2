@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime.transform;
+package software.amazon.awssdk.core.runtime.transform;
 
 import static software.amazon.awssdk.http.Headers.CONTENT_LENGTH;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
-import software.amazon.awssdk.Request;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.sync.RequestBody;
+import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.sync.RequestBody;
 
 /**
  * Augments a {@link Marshaller} to add contents for a streamed request.

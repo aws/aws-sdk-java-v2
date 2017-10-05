@@ -165,8 +165,8 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <velocitySources>${basedir}/src/main/resources/software/amazon/awssdk/util</velocitySources>
-                    <resourcesOutputDirectory>${project.build.directory}/generated-sources/sdk/software/amazon/awssdk/util</resourcesOutputDirectory>
+                    <velocitySources>${basedir}/src/main/resources/software/amazon/awssdk/core/util</velocitySources>
+                    <resourcesOutputDirectory>${project.build.directory}/generated-sources/sdk/software/amazon/awssdk/core/util</resourcesOutputDirectory>
                     <properties>
                         <sdkVersion>${awsjavasdk.version}</sdkVersion>
                     </properties>

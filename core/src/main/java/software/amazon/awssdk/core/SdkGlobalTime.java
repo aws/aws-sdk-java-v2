@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk;
+package software.amazon.awssdk.core;
 
 /**
  * Used for clock skew adjustment between the client JVM where the SDK is run,

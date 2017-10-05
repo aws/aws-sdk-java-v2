@@ -13,17 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.http.request;
+package software.amazon.awssdk.core.internal.http.request;
 
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.ReadLimitInfo;
-import software.amazon.awssdk.Request;
-import software.amazon.awssdk.http.HttpMethodName;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.ReadLimitInfo;
+import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.http.HttpMethodName;
 
 public class EmptyHttpRequest implements Request<Object> {
 

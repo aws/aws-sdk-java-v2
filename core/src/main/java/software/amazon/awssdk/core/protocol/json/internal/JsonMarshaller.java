@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol.json.internal;
+package software.amazon.awssdk.core.protocol.json.internal;
 
 import software.amazon.awssdk.annotation.SdkInternalApi;
 

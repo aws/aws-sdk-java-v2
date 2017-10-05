@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http;
+package software.amazon.awssdk.core.http;
 
 import software.amazon.awssdk.annotation.SdkPublicApi;
-import software.amazon.awssdk.util.StringUtils;
+import software.amazon.awssdk.core.util.StringUtils;
 
 @SdkPublicApi
 public enum HttpMethodName {

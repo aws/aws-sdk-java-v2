@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime.endpoint;
+package software.amazon.awssdk.core.runtime.endpoint;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import software.amazon.awssdk.annotation.NotThreadSafe;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.ServiceMetadata;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.regions.ServiceMetadata;
 
 /**
  * Uses service metadata and the request region to construct an endpoint for a specific service

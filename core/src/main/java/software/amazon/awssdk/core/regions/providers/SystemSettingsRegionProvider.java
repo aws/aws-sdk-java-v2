@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions.providers;
+package software.amazon.awssdk.core.regions.providers;
 
-import software.amazon.awssdk.AwsSystemSetting;
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.AwsSystemSetting;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.regions.Region;
 
 /**
  * Loads region information from the 'aws.region' system property or the 'AWS_REGION' environment variable. If both are specified,

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.config;
+package software.amazon.awssdk.core.config;
 
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotation.SdkInternalApi;

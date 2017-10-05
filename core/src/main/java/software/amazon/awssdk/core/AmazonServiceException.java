@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk;
+package software.amazon.awssdk.core;
 
 import java.util.Map;
-import software.amazon.awssdk.util.StringUtils;
+import software.amazon.awssdk.core.util.StringUtils;
 
 /**
  * Extension of SdkClientException that represents an error response returned

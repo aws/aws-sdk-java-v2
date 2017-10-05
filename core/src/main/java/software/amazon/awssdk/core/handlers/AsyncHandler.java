@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.handlers;
+package software.amazon.awssdk.core.handlers;
 
-import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
 
 /**
  * Callback interface for notification on web service requests executed with the

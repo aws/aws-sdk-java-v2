@@ -13,14 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol.json;
+package software.amazon.awssdk.core.protocol.json;
 
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.protocol.OperationInfo;
-import software.amazon.awssdk.protocol.ProtocolMarshaller;
-import software.amazon.awssdk.protocol.ProtocolRequestMarshaller;
-import software.amazon.awssdk.protocol.json.internal.JsonProtocolMarshaller;
-import software.amazon.awssdk.protocol.json.internal.NullAsEmptyBodyProtocolRequestMarshaller;
+import software.amazon.awssdk.core.protocol.OperationInfo;
+import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
+import software.amazon.awssdk.core.protocol.json.internal.JsonProtocolMarshaller;
+import software.amazon.awssdk.core.protocol.json.internal.NullAsEmptyBodyProtocolRequestMarshaller;
 
 /**
  * Builder to create an appropriate implementation of {@link ProtocolMarshaller} for JSON based services.

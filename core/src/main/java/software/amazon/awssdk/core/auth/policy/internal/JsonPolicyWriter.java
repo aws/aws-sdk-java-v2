@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.policy.internal;
+package software.amazon.awssdk.core.auth.policy.internal;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -27,15 +27,15 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.auth.policy.Action;
-import software.amazon.awssdk.auth.policy.Condition;
-import software.amazon.awssdk.auth.policy.Policy;
-import software.amazon.awssdk.auth.policy.Principal;
-import software.amazon.awssdk.auth.policy.Resource;
-import software.amazon.awssdk.auth.policy.Statement;
-import software.amazon.awssdk.util.json.JacksonUtils;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.auth.policy.Action;
+import software.amazon.awssdk.core.auth.policy.Condition;
+import software.amazon.awssdk.core.auth.policy.Policy;
+import software.amazon.awssdk.core.auth.policy.Principal;
+import software.amazon.awssdk.core.auth.policy.Resource;
+import software.amazon.awssdk.core.auth.policy.Statement;
+import software.amazon.awssdk.core.util.json.JacksonUtils;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**

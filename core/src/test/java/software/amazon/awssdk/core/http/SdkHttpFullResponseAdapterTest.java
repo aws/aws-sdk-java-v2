@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http;
+package software.amazon.awssdk.core.http;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
@@ -28,8 +28,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.unitils.util.ReflectionUtils;
-import software.amazon.awssdk.util.Crc32ChecksumValidatingInputStream;
-import software.amazon.awssdk.util.StringInputStream;
+import software.amazon.awssdk.core.util.Crc32ChecksumValidatingInputStream;
+import software.amazon.awssdk.core.util.StringInputStream;
+import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)

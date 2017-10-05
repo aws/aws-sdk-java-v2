@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.util;
+package software.amazon.awssdk.core.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -22,12 +22,12 @@ import static org.mockito.Mockito.when;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.RequestConfig;
-import software.amazon.awssdk.auth.AwsCredentials;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.DefaultCredentialsProvider;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.auth.AwsCredentials;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.auth.DefaultCredentialsProvider;
+import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
 import utils.model.EmptyAmazonWebServiceRequest;
 
 public class CredentialUtilsTest {

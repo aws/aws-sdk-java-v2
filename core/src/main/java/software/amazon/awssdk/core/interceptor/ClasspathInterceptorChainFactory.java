@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.interceptor;
+package software.amazon.awssdk.core.interceptor;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,9 +27,9 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.util.ClassLoaderHelper;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.util.ClassLoaderHelper;
 import software.amazon.awssdk.utils.Validate;
 
 /**

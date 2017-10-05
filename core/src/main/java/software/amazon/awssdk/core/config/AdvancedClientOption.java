@@ -13,12 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.config;
+package software.amazon.awssdk.core.config;
 
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.client.builder.ClientBuilder;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.runtime.auth.SignerProvider;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.runtime.auth.SignerProvider;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**

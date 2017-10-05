@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.util;
+package software.amazon.awssdk.core.util;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import software.amazon.awssdk.util.json.JacksonUtils;
+import software.amazon.awssdk.core.util.json.JacksonUtils;
 
 /**
  * An internal class used solely for the purpose of testing via failure

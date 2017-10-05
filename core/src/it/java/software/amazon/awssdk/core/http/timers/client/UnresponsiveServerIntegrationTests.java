@@ -13,38 +13,38 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.timers.client;
+package software.amazon.awssdk.core.http.timers.client;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.assertClientExecutionTimerExecutorNotCreated;
-import static software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.assertNumberOfTasksTriggered;
-import static software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.interruptCurrentThreadAfterDelay;
-import static software.amazon.awssdk.internal.http.timers.TimeoutTestConstants.CLIENT_EXECUTION_TIMEOUT;
-import static software.amazon.awssdk.internal.http.timers.TimeoutTestConstants.PRECISION_MULTIPLIER;
-import static software.amazon.awssdk.internal.http.timers.TimeoutTestConstants.TEST_TIMEOUT;
+import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.assertClientExecutionTimerExecutorNotCreated;
+import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.assertNumberOfTasksTriggered;
+import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.interruptCurrentThreadAfterDelay;
+import static software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants.CLIENT_EXECUTION_TIMEOUT;
+import static software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants.PRECISION_MULTIPLIER;
+import static software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants.TEST_TIMEOUT;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.time.Duration;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.TestPreConditions;
-import software.amazon.awssdk.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.config.MutableClientConfiguration;
-import software.amazon.awssdk.http.AmazonHttpClient;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.TestPreConditions;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.config.MutableClientConfiguration;
+import software.amazon.awssdk.core.http.AmazonHttpClient;
+import software.amazon.awssdk.core.http.UnresponsiveMockServerTestBase;
+import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
+import software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants;
+import software.amazon.awssdk.core.retry.FixedTimeBackoffStrategy;
+import software.amazon.awssdk.core.retry.PredefinedRetryPolicies;
+import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.retry.RetryPolicyAdapter;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.UnresponsiveMockServerTestBase;
 import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
-import software.amazon.awssdk.http.exception.ClientExecutionTimeoutException;
-import software.amazon.awssdk.internal.http.timers.TimeoutTestConstants;
-import software.amazon.awssdk.retry.FixedTimeBackoffStrategy;
-import software.amazon.awssdk.retry.PredefinedRetryPolicies;
-import software.amazon.awssdk.retry.RetryPolicy;
-import software.amazon.awssdk.retry.RetryPolicyAdapter;
 import utils.HttpTestUtils;
 
 public class UnresponsiveServerIntegrationTests extends UnresponsiveMockServerTestBase {

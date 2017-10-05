@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.unmarshaller;
+package software.amazon.awssdk.core.unmarshaller;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -25,12 +25,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
-import software.amazon.awssdk.protocol.json.SdkStructuredPlainJsonFactory;
-import software.amazon.awssdk.runtime.transform.JsonUnmarshallerContext;
-import software.amazon.awssdk.runtime.transform.JsonUnmarshallerContextImpl;
-import software.amazon.awssdk.runtime.transform.ListUnmarshaller;
-import software.amazon.awssdk.runtime.transform.MapUnmarshaller;
-import software.amazon.awssdk.runtime.transform.SimpleTypeJsonUnmarshallers;
+import software.amazon.awssdk.core.protocol.json.SdkStructuredPlainJsonFactory;
+import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
+import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContextImpl;
+import software.amazon.awssdk.core.runtime.transform.ListUnmarshaller;
+import software.amazon.awssdk.core.runtime.transform.MapUnmarshaller;
+import software.amazon.awssdk.core.runtime.transform.SimpleTypeJsonUnmarshallers;
 
 
 public class JsonUnmarshallerTest {
@@ -42,8 +42,8 @@ public class JsonUnmarshallerTest {
     public void testSimpleMap() throws Exception {
         JsonUnmarshallerContext unmarshallerContext = setupUnmarshaller(SIMPLE_MAP);
         MapUnmarshaller<String, String> unmarshaller = new MapUnmarshaller<String, String>(
-                SimpleTypeJsonUnmarshallers.StringJsonUnmarshaller.getInstance(),
-                SimpleTypeJsonUnmarshallers.StringJsonUnmarshaller.getInstance());
+            SimpleTypeJsonUnmarshallers.StringJsonUnmarshaller.getInstance(),
+            SimpleTypeJsonUnmarshallers.StringJsonUnmarshaller.getInstance());
         Map<String, String> map = unmarshaller.unmarshall(unmarshallerContext);
         assertTrue(map.size() == 2);
         assertEquals("value1", map.get("key1"));

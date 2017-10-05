@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.interceptor;
+package software.amazon.awssdk.core.interceptor;
 
 /**
  * An attribute attached to a particular execution, stored in {@link ExecutionAttributes}.

@@ -13,15 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol.json;
+package software.amazon.awssdk.core.protocol.json;
 
 import java.util.List;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.internal.http.response.JsonErrorResponseHandler;
-import software.amazon.awssdk.runtime.http.response.JsonResponseHandler;
-import software.amazon.awssdk.runtime.transform.JsonErrorUnmarshaller;
-import software.amazon.awssdk.runtime.transform.JsonUnmarshallerContext;
-import software.amazon.awssdk.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.core.internal.http.response.JsonErrorResponseHandler;
+import software.amazon.awssdk.core.runtime.http.response.JsonResponseHandler;
+import software.amazon.awssdk.core.runtime.transform.JsonErrorUnmarshaller;
+import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
+import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
 /**
  * Common interface for creating generators (writers) and protocol handlers for JSON like protocols.

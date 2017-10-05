@@ -13,20 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.config.defaults;
+package software.amazon.awssdk.core.config.defaults;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.config.AdvancedClientOption.SIGNER_PROVIDER;
+import static software.amazon.awssdk.core.config.AdvancedClientOption.SIGNER_PROVIDER;
 
 import java.net.URI;
 import org.junit.Test;
-import software.amazon.awssdk.auth.AnonymousCredentialsProvider;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.config.ImmutableAsyncClientConfiguration;
-import software.amazon.awssdk.config.ImmutableSyncClientConfiguration;
-import software.amazon.awssdk.config.MutableClientConfiguration;
-import software.amazon.awssdk.internal.auth.NoOpSignerProvider;
+import software.amazon.awssdk.core.auth.AnonymousCredentialsProvider;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.config.ImmutableAsyncClientConfiguration;
+import software.amazon.awssdk.core.config.ImmutableSyncClientConfiguration;
+import software.amazon.awssdk.core.config.MutableClientConfiguration;
+import software.amazon.awssdk.core.internal.auth.NoOpSignerProvider;
 
 /**
  * Validate functionality of {@link GlobalClientConfigurationDefaults}.

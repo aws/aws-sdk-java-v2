@@ -13,15 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.http.response;
+package software.amazon.awssdk.core.internal.http.response;
 
 import java.util.function.Supplier;
-import software.amazon.awssdk.AmazonWebServiceResponse;
-import software.amazon.awssdk.SdkStandardLoggers;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.http.HttpResponse;
-import software.amazon.awssdk.http.HttpResponseHandler;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.AmazonWebServiceResponse;
+import software.amazon.awssdk.core.SdkStandardLoggers;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 
 /**
  * Adapts an {@code HttpResponseHandler<AmazonWebServiceResponse<T>>} to an {@code HttpResponseHandler<T>} (unwrapped result)

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.http;
+package software.amazon.awssdk.core.internal.http;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -21,8 +21,8 @@ import static org.junit.Assert.assertNull;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
-import software.amazon.awssdk.http.HttpResponse;
-import software.amazon.awssdk.protocol.json.JsonContent;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.protocol.json.JsonContent;
 
 public class JsonErrorCodeParserTest {
 

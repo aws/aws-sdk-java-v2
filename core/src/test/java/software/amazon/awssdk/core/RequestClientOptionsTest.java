@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk;
+package software.amazon.awssdk.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -22,7 +22,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-import software.amazon.awssdk.RequestClientOptions.Marker;
+import software.amazon.awssdk.core.RequestClientOptions.Marker;
 
 public class RequestClientOptionsTest {
     @Test

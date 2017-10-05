@@ -30,4 +30,4 @@
  * is also provided.
  */
 
-package software.amazon.awssdk.auth.policy.conditions;
+package software.amazon.awssdk.core.auth.policy.conditions;

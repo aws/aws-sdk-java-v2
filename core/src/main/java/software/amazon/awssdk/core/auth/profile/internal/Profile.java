@@ -13,16 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.profile.internal;
+package software.amazon.awssdk.core.auth.profile.internal;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotation.Immutable;
-import software.amazon.awssdk.auth.AwsCredentials;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.AwsSessionCredentials;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.auth.profile.internal.securitytoken.RoleInfo;
+import software.amazon.awssdk.core.auth.AwsCredentials;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.auth.AwsSessionCredentials;
+import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.core.auth.profile.internal.securitytoken.RoleInfo;
 
 /**
  * Contains the information stored in an AWS profile, such as AWS security

@@ -13,43 +13,43 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.client;
+package software.amazon.awssdk.core.client;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import software.amazon.awssdk.Request;
-import software.amazon.awssdk.RequestConfig;
-import software.amazon.awssdk.SdkBaseException;
-import software.amazon.awssdk.SdkRequest;
-import software.amazon.awssdk.SdkResponse;
-import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.annotation.ThreadSafe;
-import software.amazon.awssdk.async.AsyncRequestProvider;
-import software.amazon.awssdk.async.AsyncResponseHandler;
-import software.amazon.awssdk.config.AsyncClientConfiguration;
-import software.amazon.awssdk.config.InternalAdvancedClientOption;
-import software.amazon.awssdk.http.AmazonAsyncHttpClient;
-import software.amazon.awssdk.http.ExecutionContext;
-import software.amazon.awssdk.http.HttpResponse;
-import software.amazon.awssdk.http.HttpResponseHandler;
+import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.SdkBaseException;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.async.AsyncRequestProvider;
+import software.amazon.awssdk.core.async.AsyncResponseHandler;
+import software.amazon.awssdk.core.config.AsyncClientConfiguration;
+import software.amazon.awssdk.core.config.InternalAdvancedClientOption;
+import software.amazon.awssdk.core.http.AmazonAsyncHttpClient;
+import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
+import software.amazon.awssdk.core.http.SdkHttpResponseAdapter;
+import software.amazon.awssdk.core.http.async.SyncResponseHandlerAdapter;
+import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.util.CredentialUtils;
+import software.amazon.awssdk.core.util.Throwables;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.http.SdkHttpResponseAdapter;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
-import software.amazon.awssdk.http.async.SyncResponseHandlerAdapter;
-import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
-import software.amazon.awssdk.interceptor.InterceptorContext;
-import software.amazon.awssdk.util.CredentialUtils;
-import software.amazon.awssdk.util.Throwables;
 
 /**
  * Default implementation of {@link ClientHandler}.

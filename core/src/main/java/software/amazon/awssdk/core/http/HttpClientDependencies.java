@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http;
+package software.amazon.awssdk.core.http;
 
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
-import software.amazon.awssdk.SdkGlobalTime;
-import software.amazon.awssdk.config.ClientConfiguration;
-import software.amazon.awssdk.internal.http.timers.client.ClientExecutionTimer;
-import software.amazon.awssdk.util.CapacityManager;
+import software.amazon.awssdk.core.SdkGlobalTime;
+import software.amazon.awssdk.core.config.ClientConfiguration;
+import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
+import software.amazon.awssdk.core.util.CapacityManager;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**

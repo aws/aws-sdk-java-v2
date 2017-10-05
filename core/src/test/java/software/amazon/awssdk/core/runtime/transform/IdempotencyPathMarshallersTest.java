@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime.transform;
+package software.amazon.awssdk.core.runtime.transform;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

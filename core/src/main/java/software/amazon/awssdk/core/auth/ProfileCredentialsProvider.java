@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth;
+package software.amazon.awssdk.core.auth;
 
 import java.io.File;
-import software.amazon.awssdk.AwsSystemSetting;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
-import software.amazon.awssdk.auth.profile.ProfilesConfigFile;
-import software.amazon.awssdk.profile.path.AwsProfileFileLocationProvider;
+import software.amazon.awssdk.core.AwsSystemSetting;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.auth.profile.ProfilesConfigFile;
+import software.amazon.awssdk.core.profile.path.AwsProfileFileLocationProvider;
 import software.amazon.awssdk.utils.Validate;
 
 /**

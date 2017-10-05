@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol.json.internal;
+package software.amazon.awssdk.core.protocol.json.internal;
 
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.runtime.transform.PathMarshallers;
+import software.amazon.awssdk.core.runtime.transform.PathMarshallers;
 
 @SdkInternalApi
 public class SimpleTypePathMarshallers {

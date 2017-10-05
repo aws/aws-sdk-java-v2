@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.http;
+package software.amazon.awssdk.core.internal.http;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.http.HttpResponse;
-import software.amazon.awssdk.protocol.json.JsonContent;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.protocol.json.JsonContent;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.ion.IonReader;
 import software.amazon.ion.IonSystem;

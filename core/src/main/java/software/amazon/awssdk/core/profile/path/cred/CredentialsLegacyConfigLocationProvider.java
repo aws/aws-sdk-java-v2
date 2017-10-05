@@ -13,13 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.profile.path.cred;
+package software.amazon.awssdk.core.profile.path.cred;
 
 import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.profile.path.AwsDirectoryBasePathProvider;
+import software.amazon.awssdk.core.profile.path.AwsDirectoryBasePathProvider;
 
 /**
  * Treats the CLI config file as the source of credentials. We support this for legacy reasons,

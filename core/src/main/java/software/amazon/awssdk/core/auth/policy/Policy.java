@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.policy;
+package software.amazon.awssdk.core.auth.policy;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,8 +21,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import software.amazon.awssdk.auth.policy.internal.JsonPolicyReader;
-import software.amazon.awssdk.auth.policy.internal.JsonPolicyWriter;
+import software.amazon.awssdk.core.auth.policy.internal.JsonPolicyReader;
+import software.amazon.awssdk.core.auth.policy.internal.JsonPolicyWriter;
 
 /**
  * An AWS access control policy is a object that acts as a container for one or

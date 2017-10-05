@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retry;
+package software.amazon.awssdk.core.retry;
 
 import java.util.Random;
-import software.amazon.awssdk.retry.v2.BackoffStrategy;
-import software.amazon.awssdk.retry.v2.RetryPolicyContext;
-import software.amazon.awssdk.util.ValidationUtils;
+import software.amazon.awssdk.core.retry.v2.BackoffStrategy;
+import software.amazon.awssdk.core.retry.v2.RetryPolicyContext;
+import software.amazon.awssdk.core.util.ValidationUtils;
 
 /**
  * This class includes a set of pre-defined backoff policies.

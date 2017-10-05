@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retry.v2;
+package software.amazon.awssdk.core.retry.v2;
 
 /**
  * Super interface for {@link RetryPolicy} that defines a strategy for backing off between retries.

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.async;
+package software.amazon.awssdk.core.async;
 
 import java.io.File;
 import java.io.IOException;

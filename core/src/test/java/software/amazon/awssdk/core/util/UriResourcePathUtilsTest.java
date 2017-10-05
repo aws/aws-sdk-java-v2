@@ -13,13 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.util;
+package software.amazon.awssdk.core.util;
 
 import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Test;
-import software.amazon.awssdk.DefaultRequest;
-import software.amazon.awssdk.Request;
+import software.amazon.awssdk.core.DefaultRequest;
+import software.amazon.awssdk.core.Request;
 
 public class UriResourcePathUtilsTest {
 

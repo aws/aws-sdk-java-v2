@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.util;
+package software.amazon.awssdk.core.util;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -33,12 +33,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.AwsSystemSetting;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.internal.EC2CredentialsUtils;
-import software.amazon.awssdk.util.json.JacksonUtils;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.AwsSystemSetting;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.internal.EC2CredentialsUtils;
+import software.amazon.awssdk.core.util.json.JacksonUtils;
 
 /**
  * Utility class for retrieving Amazon EC2 instance metadata.<br>

@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions.providers;
+package software.amazon.awssdk.core.regions.providers;
 
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.regions.Region;
 
 /**
  * Interface for providing AWS region information. Implementations are free to use any strategy for

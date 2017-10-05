@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.http.timers.client;
+package software.amazon.awssdk.core.internal.http.timers.client;
 
-import static software.amazon.awssdk.util.ValidationUtils.assertNotNull;
+import static software.amazon.awssdk.core.util.ValidationUtils.assertNotNull;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;

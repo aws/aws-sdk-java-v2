@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retry;
+package software.amazon.awssdk.core.retry;
 
 import java.util.HashSet;
 import java.util.Set;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.SdkBaseException;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.SdkBaseException;
 import software.amazon.awssdk.http.HttpStatusCodes;
 
 public class RetryUtils {

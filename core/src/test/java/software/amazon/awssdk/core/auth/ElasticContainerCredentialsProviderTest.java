@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth;
+package software.amazon.awssdk.core.auth;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -27,9 +27,9 @@ import java.net.URISyntaxException;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
-import software.amazon.awssdk.AwsSystemSetting;
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.internal.CredentialsEndpointProvider;
+import software.amazon.awssdk.core.AwsSystemSetting;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.internal.CredentialsEndpointProvider;
 
 /**
  * Tests for the {@link ElasticContainerCredentialsProviderTest}.

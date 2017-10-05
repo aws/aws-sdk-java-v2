@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.profile.internal;
+package software.amazon.awssdk.core.auth.profile.internal;
 
 import software.amazon.awssdk.annotation.SdkInternalApi;
 

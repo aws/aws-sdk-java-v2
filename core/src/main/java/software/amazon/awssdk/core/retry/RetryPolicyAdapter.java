@@ -13,15 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retry;
+package software.amazon.awssdk.core.retry;
 
-import static software.amazon.awssdk.util.ValidationUtils.assertNotNull;
+import static software.amazon.awssdk.core.util.ValidationUtils.assertNotNull;
 
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.retry.v2.RetryPolicyContext;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.retry.v2.RetryPolicyContext;
 
 /**
  * Adapts a legacy {@link RetryPolicy} to the new {@link software.amazon.awssdk.retry.v2.RetryPolicy}. This class is
@@ -29,7 +29,7 @@ import software.amazon.awssdk.retry.v2.RetryPolicyContext;
  */
 @SdkInternalApi
 @ReviewBeforeRelease("Should be removed in retry policy refactor.")
-public class RetryPolicyAdapter implements software.amazon.awssdk.retry.v2.RetryPolicy {
+public class RetryPolicyAdapter implements software.amazon.awssdk.core.retry.v2.RetryPolicy {
 
     private final RetryPolicy legacyRetryPolicy;
 

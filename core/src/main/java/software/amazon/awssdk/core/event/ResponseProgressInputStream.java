@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.event;
+package software.amazon.awssdk.core.event;
 
-import static software.amazon.awssdk.event.SdkProgressPublisher.publishResponseBytesTransferred;
-import static software.amazon.awssdk.event.SdkProgressPublisher.publishResponseReset;
+import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishResponseBytesTransferred;
+import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishResponseReset;
 
 import java.io.InputStream;
 

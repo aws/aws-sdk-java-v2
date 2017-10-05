@@ -13,17 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.event;
+package software.amazon.awssdk.core.event;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
-import static software.amazon.awssdk.event.SdkProgressPublisher.publishProgress;
+import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishProgress;
 
 import java.util.concurrent.CountDownLatch;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.event.ProgressListener.ExceptionReporter;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.event.ProgressListener.ExceptionReporter;
 
 public class ProgressListenerTest {
     // Listener is executed synchronously
@@ -35,8 +35,7 @@ public class ProgressListenerTest {
                 throw new Error();
             }
         };
-        ExceptionReporter reporter =
-                ExceptionReporter.wrap(syncListener);
+        ExceptionReporter reporter = ExceptionReporter.wrap(syncListener);
         publishProgress(syncListener, ProgressEventType.CLIENT_REQUEST_STARTED_EVENT);
         assertNull(reporter.getCause());
         publishProgress(reporter, ProgressEventType.CLIENT_REQUEST_STARTED_EVENT);

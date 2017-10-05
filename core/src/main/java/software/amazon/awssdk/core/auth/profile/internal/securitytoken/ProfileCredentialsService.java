@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.profile.internal.securitytoken;
+package software.amazon.awssdk.core.auth.profile.internal.securitytoken;
 
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 
 @SdkProtectedApi
 public interface ProfileCredentialsService {

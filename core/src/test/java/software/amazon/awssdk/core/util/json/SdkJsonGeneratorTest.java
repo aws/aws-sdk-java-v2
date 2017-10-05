@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.util.json;
+package software.amazon.awssdk.core.util.json;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -26,8 +26,8 @@ import java.nio.ByteBuffer;
 import java.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.protocol.json.SdkJsonGenerator;
-import software.amazon.awssdk.protocol.json.StructuredJsonGenerator;
+import software.amazon.awssdk.core.protocol.json.SdkJsonGenerator;
+import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 import software.amazon.awssdk.utils.Base64Utils;
 
 public class SdkJsonGeneratorTest {

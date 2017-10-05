@@ -13,13 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.util;
+package software.amazon.awssdk.core.util;
 
 import java.io.IOException;
 import java.io.InputStream;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.NotThreadSafe;
-import software.amazon.awssdk.runtime.io.SdkFilterInputStream;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.runtime.io.SdkFilterInputStream;
 
 /**
  * Used to perform length check to ensure the number of bytes read from the

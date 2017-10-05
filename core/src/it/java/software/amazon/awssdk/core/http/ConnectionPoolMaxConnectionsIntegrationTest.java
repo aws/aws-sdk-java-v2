@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http;
+package software.amazon.awssdk.core.http;
 
-import static software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.executionContext;
+import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.executionContext;
 
 import java.time.Duration;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
@@ -23,13 +23,13 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.Request;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.http.server.MockServer;
+import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
+import software.amazon.awssdk.core.internal.http.response.EmptyAWSResponseHandler;
+import software.amazon.awssdk.core.retry.PredefinedRetryPolicies;
 import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
-import software.amazon.awssdk.http.server.MockServer;
-import software.amazon.awssdk.internal.http.request.EmptyHttpRequest;
-import software.amazon.awssdk.internal.http.response.EmptyAWSResponseHandler;
-import software.amazon.awssdk.retry.PredefinedRetryPolicies;
 import utils.HttpTestUtils;
 
 public class ConnectionPoolMaxConnectionsIntegrationTest {

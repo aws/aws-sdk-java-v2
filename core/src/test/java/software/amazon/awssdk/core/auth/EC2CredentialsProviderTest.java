@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth;
+package software.amazon.awssdk.core.auth;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -32,9 +32,9 @@ import java.util.Date;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.internal.CredentialsEndpointProvider;
-import software.amazon.awssdk.util.DateUtils;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.internal.CredentialsEndpointProvider;
+import software.amazon.awssdk.core.util.DateUtils;
 import software.amazon.awssdk.utils.IoUtils;
 
 public class EC2CredentialsProviderTest {

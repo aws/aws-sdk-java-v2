@@ -13,14 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.interceptor;
+package software.amazon.awssdk.core.interceptor;
 
-import software.amazon.awssdk.RequestConfig;
-import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.auth.AwsCredentials;
-import software.amazon.awssdk.auth.Signer;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.auth.AwsCredentials;
+import software.amazon.awssdk.core.regions.Region;
 
 /**
  * AWS-specific attributes attached to the execution. This information is available to {@link ExecutionInterceptor}s and

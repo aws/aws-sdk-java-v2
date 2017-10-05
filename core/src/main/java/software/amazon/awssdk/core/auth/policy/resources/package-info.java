@@ -20,4 +20,4 @@
  * Amazon S3 buckets and objects are all examples of AWS resources.
  */
 
-package software.amazon.awssdk.auth.policy.resources;
+package software.amazon.awssdk.core.auth.policy.resources;

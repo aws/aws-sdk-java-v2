@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.http.response;
+package software.amazon.awssdk.core.internal.http.response;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import java.util.List;
@@ -21,18 +21,18 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.AmazonServiceException.ErrorType;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.http.HttpResponse;
-import software.amazon.awssdk.http.HttpResponseHandler;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonServiceException.ErrorType;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.internal.http.ErrorCodeParser;
+import software.amazon.awssdk.core.protocol.json.JsonContent;
+import software.amazon.awssdk.core.runtime.http.JsonErrorMessageParser;
+import software.amazon.awssdk.core.runtime.transform.JsonErrorUnmarshaller;
 import software.amazon.awssdk.http.HttpStatusFamily;
-import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.internal.http.ErrorCodeParser;
-import software.amazon.awssdk.protocol.json.JsonContent;
-import software.amazon.awssdk.runtime.http.JsonErrorMessageParser;
-import software.amazon.awssdk.runtime.transform.JsonErrorUnmarshaller;
 
 @SdkInternalApi
 public class JsonErrorResponseHandler implements HttpResponseHandler<AmazonServiceException> {

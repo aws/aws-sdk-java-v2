@@ -13,13 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions.providers;
+package software.amazon.awssdk.core.regions.providers;
 
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.util.EC2MetadataUtils;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.util.EC2MetadataUtils;
 
 /**
  * Attempts to load region information from the EC2 Metadata service. If the application is not

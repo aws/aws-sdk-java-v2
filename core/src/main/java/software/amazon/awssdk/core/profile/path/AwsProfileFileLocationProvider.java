@@ -13,15 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.profile.path;
+package software.amazon.awssdk.core.profile.path;
 
 import java.io.File;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.profile.path.config.SharedConfigDefaultLocationProvider;
-import software.amazon.awssdk.profile.path.config.SystemSettingsProfileLocationProvider;
-import software.amazon.awssdk.profile.path.cred.CredentialsDefaultLocationProvider;
-import software.amazon.awssdk.profile.path.cred.CredentialsLegacyConfigLocationProvider;
-import software.amazon.awssdk.profile.path.cred.CredentialsSystemSettingsLocationProvider;
+import software.amazon.awssdk.core.profile.path.config.SharedConfigDefaultLocationProvider;
+import software.amazon.awssdk.core.profile.path.config.SystemSettingsProfileLocationProvider;
+import software.amazon.awssdk.core.profile.path.cred.CredentialsDefaultLocationProvider;
+import software.amazon.awssdk.core.profile.path.cred.CredentialsLegacyConfigLocationProvider;
+import software.amazon.awssdk.core.profile.path.cred.CredentialsSystemSettingsLocationProvider;
 
 /**
  * Provides the location of both the AWS Shared credentials file (~/.aws/credentials) or the AWS
@@ -37,15 +37,15 @@ public interface AwsProfileFileLocationProvider {
      * legacy config file (~/.aws/config) that we still support loading credentials from.
      */
     AwsProfileFileLocationProvider DEFAULT_CREDENTIALS_LOCATION_PROVIDER = new AwsProfileFileLocationProviderChain(
-            new CredentialsSystemSettingsLocationProvider(), new CredentialsDefaultLocationProvider(),
-            new CredentialsLegacyConfigLocationProvider());
+        new CredentialsSystemSettingsLocationProvider(), new CredentialsDefaultLocationProvider(),
+        new CredentialsLegacyConfigLocationProvider());
 
     /**
      * Location provider for the shared AWS Config file. Checks environment variable override first then
      * falls back to the default location (~/.aws/config) if not present.
      */
     AwsProfileFileLocationProvider DEFAULT_CONFIG_LOCATION_PROVIDER = new AwsProfileFileLocationProviderChain(
-            new SystemSettingsProfileLocationProvider(), new SharedConfigDefaultLocationProvider());
+        new SystemSettingsProfileLocationProvider(), new SharedConfigDefaultLocationProvider());
 
     /**
      * @return Location of file containing profile data. Null if implementation cannot provide the

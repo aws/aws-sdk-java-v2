@@ -15,7 +15,7 @@
 
 package utils.model;
 
-import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
 
 public class EmptyAmazonWebServiceRequest extends AmazonWebServiceRequest {
 }

@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.event;
+package software.amazon.awssdk.core.event;
 
-import software.amazon.awssdk.event.request.Progress;
-import software.amazon.awssdk.event.request.ProgressSupport;
+import software.amazon.awssdk.core.event.request.Progress;
+import software.amazon.awssdk.core.event.request.ProgressSupport;
 
 /**
  * Default implementation for progress tracking.

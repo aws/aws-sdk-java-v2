@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retry;
+package software.amazon.awssdk.core.retry;
 
-import software.amazon.awssdk.retry.v2.BackoffStrategy;
+import software.amazon.awssdk.core.retry.v2.BackoffStrategy;
 
 /**
  * Adapter interface for backoff strategies that can be used in both legacy RetryPolicies and the new V2 retry policy.

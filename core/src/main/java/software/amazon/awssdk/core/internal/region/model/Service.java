@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.region.model;
+package software.amazon.awssdk.core.internal.region.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
-import software.amazon.awssdk.util.ValidationUtils;
+import software.amazon.awssdk.core.util.ValidationUtils;
 
 /**
  * Endpoint configuration for a service in a partition.

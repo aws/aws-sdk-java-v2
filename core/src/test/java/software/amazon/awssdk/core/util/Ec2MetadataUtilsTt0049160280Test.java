@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.util;
+package software.amazon.awssdk.core.util;
 
 import org.junit.Assert;
 import org.junit.Test;
-import software.amazon.awssdk.util.EC2MetadataUtils.InstanceInfo;
+import software.amazon.awssdk.core.util.EC2MetadataUtils.InstanceInfo;
 
 public class Ec2MetadataUtilsTt0049160280Test {
     private static final String JSON = "{"

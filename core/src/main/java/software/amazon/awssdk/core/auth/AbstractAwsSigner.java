@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth;
+package software.amazon.awssdk.core.auth;
 
-import static software.amazon.awssdk.interceptor.AwsExecutionAttributes.REQUEST_CONFIG;
+import static software.amazon.awssdk.core.interceptor.AwsExecutionAttributes.REQUEST_CONFIG;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -33,14 +33,15 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.RequestClientOptions;
-import software.amazon.awssdk.RequestConfig;
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.auth.internal.Aws4SignerRequestParams;
-import software.amazon.awssdk.event.ProgressInputStream;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.RequestClientOptions;
+import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.auth.internal.Aws4SignerRequestParams;
+import software.amazon.awssdk.core.event.ProgressInputStream;
+import software.amazon.awssdk.core.runtime.io.SdkDigestInputStream;
+import software.amazon.awssdk.core.util.SdkHttpUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.runtime.io.SdkDigestInputStream;
 import software.amazon.awssdk.utils.Base64Utils;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.StringUtils;

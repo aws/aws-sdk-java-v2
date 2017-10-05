@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime.http;
+package software.amazon.awssdk.core.runtime.http;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.http.HttpResponse;
+import software.amazon.awssdk.core.http.HttpResponse;
 
 @SdkProtectedApi
 public class JsonErrorMessageParser {

@@ -18,16 +18,16 @@ package utils;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
-import software.amazon.awssdk.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.config.MutableClientConfiguration;
-import software.amazon.awssdk.config.defaults.GlobalClientConfigurationDefaults;
-import software.amazon.awssdk.http.AmazonHttpClient;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.config.MutableClientConfiguration;
+import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
+import software.amazon.awssdk.core.http.AmazonHttpClient;
+import software.amazon.awssdk.core.http.loader.DefaultSdkHttpClientFactory;
+import software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants;
+import software.amazon.awssdk.core.retry.RetryPolicyAdapter;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
-import software.amazon.awssdk.http.loader.DefaultSdkHttpClientFactory;
-import software.amazon.awssdk.internal.http.timers.TimeoutTestConstants;
-import software.amazon.awssdk.retry.RetryPolicy;
-import software.amazon.awssdk.retry.RetryPolicyAdapter;
 import software.amazon.awssdk.utils.AttributeMap;
 
 public class HttpTestUtils {

@@ -13,13 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.util;
+package software.amazon.awssdk.core.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static software.amazon.awssdk.util.AwsHostNameUtils.parseRegion;
-import static software.amazon.awssdk.util.AwsHostNameUtils.parseRegionName;
-import static software.amazon.awssdk.util.AwsHostNameUtils.parseServiceName;
+import static software.amazon.awssdk.core.util.AwsHostNameUtils.parseRegion;
+import static software.amazon.awssdk.core.util.AwsHostNameUtils.parseRegionName;
+import static software.amazon.awssdk.core.util.AwsHostNameUtils.parseServiceName;
 
 import java.net.URI;
 import org.junit.Test;

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk;
+package software.amazon.awssdk.core;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -23,9 +23,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotation.NotThreadSafe;
-import software.amazon.awssdk.event.ProgressInputStream;
-import software.amazon.awssdk.http.HttpMethodName;
-import software.amazon.awssdk.util.json.JacksonUtils;
+import software.amazon.awssdk.core.event.ProgressInputStream;
+import software.amazon.awssdk.core.http.HttpMethodName;
+import software.amazon.awssdk.core.util.json.JacksonUtils;
 
 /**
  * Default implementation of the {@linkplain Request} interface.

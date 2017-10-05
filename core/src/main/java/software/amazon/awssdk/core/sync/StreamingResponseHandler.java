@@ -13,13 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.sync;
+package software.amazon.awssdk.core.sync;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import software.amazon.awssdk.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -67,7 +66,7 @@ public interface StreamingResponseHandler<ResponseT, ReturnT> {
      * @param inputStream Input stream of streamed data.
      * @return Transformed type.
      * @throws Exception if any error occurs during processing of the response. This will be re-thrown by the SDK, possibly
-     *                   wrapped in an {@link software.amazon.awssdk.SdkClientException}.
+     *                   wrapped in an {@link software.amazon.awssdk.core.SdkClientException}.
      */
     ReturnT apply(ResponseT response, AbortableInputStream inputStream) throws Exception;
 

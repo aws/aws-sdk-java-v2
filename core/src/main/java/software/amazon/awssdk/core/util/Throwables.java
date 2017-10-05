@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.util;
+package software.amazon.awssdk.core.util;
 
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.AbortedException;
-import software.amazon.awssdk.AmazonClientException;
+import software.amazon.awssdk.core.AbortedException;
+import software.amazon.awssdk.core.AmazonClientException;
 
 /**
  * Utility for use with errors or exceptions.

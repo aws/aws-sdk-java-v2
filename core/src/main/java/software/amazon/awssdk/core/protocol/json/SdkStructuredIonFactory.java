@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol.json;
+package software.amazon.awssdk.core.protocol.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import java.math.BigDecimal;
@@ -22,14 +22,14 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.Map;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.internal.http.CompositeErrorCodeParser;
-import software.amazon.awssdk.internal.http.ErrorCodeParser;
-import software.amazon.awssdk.internal.http.IonErrorCodeParser;
-import software.amazon.awssdk.internal.http.JsonErrorCodeParser;
-import software.amazon.awssdk.runtime.transform.JsonUnmarshallerContext;
-import software.amazon.awssdk.runtime.transform.SimpleTypeIonUnmarshallers;
-import software.amazon.awssdk.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.util.ImmutableMapParameter;
+import software.amazon.awssdk.core.internal.http.CompositeErrorCodeParser;
+import software.amazon.awssdk.core.internal.http.ErrorCodeParser;
+import software.amazon.awssdk.core.internal.http.IonErrorCodeParser;
+import software.amazon.awssdk.core.internal.http.JsonErrorCodeParser;
+import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
+import software.amazon.awssdk.core.runtime.transform.SimpleTypeIonUnmarshallers;
+import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.core.util.ImmutableMapParameter;
 import software.amazon.ion.IonSystem;
 import software.amazon.ion.system.IonBinaryWriterBuilder;
 import software.amazon.ion.system.IonSystemBuilder;

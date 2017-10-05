@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.client.builder;
+package software.amazon.awssdk.core.client.builder;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;

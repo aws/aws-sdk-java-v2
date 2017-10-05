@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http;
+package software.amazon.awssdk.core.http;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
@@ -23,17 +23,15 @@ import java.util.Map;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
-import software.amazon.awssdk.ResponseMetadata;
-import software.amazon.awssdk.SdkStandardLoggers;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.async.AsyncResponseHandler;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.runtime.transform.StaxUnmarshallerContext;
-import software.amazon.awssdk.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.runtime.transform.VoidStaxUnmarshaller;
-import software.amazon.awssdk.sync.StreamingResponseHandler;
-import software.amazon.awssdk.util.StringUtils;
+import software.amazon.awssdk.core.ResponseMetadata;
+import software.amazon.awssdk.core.SdkStandardLoggers;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.runtime.transform.StaxUnmarshallerContext;
+import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.core.runtime.transform.VoidStaxUnmarshaller;
+import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeFunction;
 import software.amazon.awssdk.utils.Logger;
 

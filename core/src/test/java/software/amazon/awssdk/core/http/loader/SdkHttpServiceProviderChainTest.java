@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.loader;
+package software.amazon.awssdk.core.http.loader;
 
 
 import static org.assertj.core.api.Assertions.assertThat;

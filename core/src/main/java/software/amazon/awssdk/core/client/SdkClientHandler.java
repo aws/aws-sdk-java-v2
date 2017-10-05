@@ -13,18 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.client;
+package software.amazon.awssdk.core.client;
 
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.SdkRequest;
-import software.amazon.awssdk.SdkResponse;
-import software.amazon.awssdk.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.ThreadSafe;
-import software.amazon.awssdk.config.SyncClientConfiguration;
-import software.amazon.awssdk.internal.AmazonWebServiceRequestAdapter;
-import software.amazon.awssdk.internal.http.response.AwsErrorResponseHandler;
-import software.amazon.awssdk.sync.StreamingResponseHandler;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.config.SyncClientConfiguration;
+import software.amazon.awssdk.core.internal.AmazonWebServiceRequestAdapter;
+import software.amazon.awssdk.core.internal.http.response.AwsErrorResponseHandler;
+import software.amazon.awssdk.core.sync.StreamingResponseHandler;
 
 /**
  * Client handler for SDK clients.

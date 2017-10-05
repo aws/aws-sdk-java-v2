@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.internal.auth;
+package software.amazon.awssdk.core.internal.auth;
 
-import software.amazon.awssdk.auth.Signer;
-import software.amazon.awssdk.runtime.auth.SignerProvider;
-import software.amazon.awssdk.runtime.auth.SignerProviderContext;
+import software.amazon.awssdk.core.auth.Signer;
+import software.amazon.awssdk.core.runtime.auth.SignerProvider;
+import software.amazon.awssdk.core.runtime.auth.SignerProviderContext;
 
 public class DefaultSignerProvider extends SignerProvider {
 

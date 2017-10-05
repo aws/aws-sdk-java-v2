@@ -13,12 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retry.v2;
+package software.amazon.awssdk.core.retry.v2;
 
-import software.amazon.awssdk.Request;
-import software.amazon.awssdk.SdkBaseException;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBaseException;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**

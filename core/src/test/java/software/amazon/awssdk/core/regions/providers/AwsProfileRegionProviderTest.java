@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions.providers;
+package software.amazon.awssdk.core.regions.providers;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -26,13 +26,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import software.amazon.awssdk.auth.profile.ProfileResourceLoader;
-import software.amazon.awssdk.auth.profile.internal.AllProfiles;
-import software.amazon.awssdk.auth.profile.internal.BasicProfile;
-import software.amazon.awssdk.auth.profile.internal.BasicProfileConfigLoader;
-import software.amazon.awssdk.auth.profile.internal.ProfileKeyConstants;
-import software.amazon.awssdk.profile.path.AwsProfileFileLocationProvider;
-import software.amazon.awssdk.util.ImmutableMapParameter;
+import software.amazon.awssdk.core.auth.profile.ProfileResourceLoader;
+import software.amazon.awssdk.core.auth.profile.internal.AllProfiles;
+import software.amazon.awssdk.core.auth.profile.internal.BasicProfile;
+import software.amazon.awssdk.core.auth.profile.internal.BasicProfileConfigLoader;
+import software.amazon.awssdk.core.auth.profile.internal.ProfileKeyConstants;
+import software.amazon.awssdk.core.profile.path.AwsProfileFileLocationProvider;
+import software.amazon.awssdk.core.util.ImmutableMapParameter;
 
 public class AwsProfileRegionProviderTest {
 

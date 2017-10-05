@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.policy.conditions;
+package software.amazon.awssdk.core.auth.policy.conditions;
 
-import software.amazon.awssdk.auth.policy.Condition;
-import software.amazon.awssdk.auth.policy.conditions.ArnCondition.ArnComparisonType;
+import software.amazon.awssdk.core.auth.policy.Condition;
+import software.amazon.awssdk.core.auth.policy.conditions.ArnCondition.ArnComparisonType;
 
 /**
  * Factory for creating common AWS access control policy conditions. These

@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.exception;
+package software.amazon.awssdk.core.http.exception;
 
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkPublicApi;
+import software.amazon.awssdk.core.SdkClientException;
 
 @SdkPublicApi
 public class ClientExecutionTimeoutException extends SdkClientException {

@@ -13,26 +13,23 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.pipeline.stages;
+package software.amazon.awssdk.core.http.pipeline.stages;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
-import software.amazon.awssdk.AbortedException;
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.Request;
-import software.amazon.awssdk.RequestConfig;
-import software.amazon.awssdk.RequestExecutionContext;
-import software.amazon.awssdk.Response;
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.config.ClientConfiguration;
-import software.amazon.awssdk.http.HttpClientDependencies;
+import software.amazon.awssdk.core.AbortedException;
+import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.config.ClientConfiguration;
+import software.amazon.awssdk.core.http.HttpClientDependencies;
+import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
+import software.amazon.awssdk.core.http.exception.SdkInterruptedException;
+import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.http.pipeline.RequestToResponsePipeline;
+import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionAbortTrackerTask;
+import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.exception.ClientExecutionTimeoutException;
-import software.amazon.awssdk.http.exception.SdkInterruptedException;
-import software.amazon.awssdk.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.http.pipeline.RequestToResponsePipeline;
-import software.amazon.awssdk.internal.http.timers.client.ClientExecutionAbortTrackerTask;
-import software.amazon.awssdk.internal.http.timers.client.ClientExecutionTimer;
 
 /**
  * Wrapper around a {@link RequestPipeline} to manage the client execution timeout feature.

@@ -13,22 +13,21 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol.json.internal;
+package software.amazon.awssdk.core.protocol.json.internal;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.DefaultRequest;
-import software.amazon.awssdk.Request;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.protocol.MarshallingInfo;
-import software.amazon.awssdk.protocol.MarshallingType;
-import software.amazon.awssdk.protocol.OperationInfo;
-import software.amazon.awssdk.protocol.ProtocolMarshaller;
-import software.amazon.awssdk.protocol.ProtocolRequestMarshaller;
-import software.amazon.awssdk.protocol.json.StructuredJsonGenerator;
-import software.amazon.awssdk.util.UriResourcePathUtils;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.DefaultRequest;
+import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.protocol.MarshallingInfo;
+import software.amazon.awssdk.core.protocol.MarshallingType;
+import software.amazon.awssdk.core.protocol.OperationInfo;
+import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
+import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
+import software.amazon.awssdk.core.util.UriResourcePathUtils;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**

@@ -13,26 +13,26 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.util;
+package software.amazon.awssdk.core.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static software.amazon.awssdk.util.XpathUtils.asBoolean;
-import static software.amazon.awssdk.util.XpathUtils.asByte;
-import static software.amazon.awssdk.util.XpathUtils.asByteBuffer;
-import static software.amazon.awssdk.util.XpathUtils.asDate;
-import static software.amazon.awssdk.util.XpathUtils.asDouble;
-import static software.amazon.awssdk.util.XpathUtils.asFloat;
-import static software.amazon.awssdk.util.XpathUtils.asInteger;
-import static software.amazon.awssdk.util.XpathUtils.asLong;
-import static software.amazon.awssdk.util.XpathUtils.asNode;
-import static software.amazon.awssdk.util.XpathUtils.asString;
-import static software.amazon.awssdk.util.XpathUtils.documentFrom;
-import static software.amazon.awssdk.util.XpathUtils.isEmpty;
-import static software.amazon.awssdk.util.XpathUtils.xpath;
+import static software.amazon.awssdk.core.util.XpathUtils.asBoolean;
+import static software.amazon.awssdk.core.util.XpathUtils.asByte;
+import static software.amazon.awssdk.core.util.XpathUtils.asByteBuffer;
+import static software.amazon.awssdk.core.util.XpathUtils.asDate;
+import static software.amazon.awssdk.core.util.XpathUtils.asDouble;
+import static software.amazon.awssdk.core.util.XpathUtils.asFloat;
+import static software.amazon.awssdk.core.util.XpathUtils.asInteger;
+import static software.amazon.awssdk.core.util.XpathUtils.asLong;
+import static software.amazon.awssdk.core.util.XpathUtils.asNode;
+import static software.amazon.awssdk.core.util.XpathUtils.asString;
+import static software.amazon.awssdk.core.util.XpathUtils.documentFrom;
+import static software.amazon.awssdk.core.util.XpathUtils.isEmpty;
+import static software.amazon.awssdk.core.util.XpathUtils.xpath;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

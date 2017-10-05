@@ -13,13 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.config.defaults;
+package software.amazon.awssdk.core.config.defaults;
 
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.config.ClientConfiguration;
-import software.amazon.awssdk.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.retry.PredefinedRetryPolicies;
-import software.amazon.awssdk.retry.RetryPolicyAdapter;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.retry.PredefinedRetryPolicies;
+import software.amazon.awssdk.core.retry.RetryPolicyAdapter;
 
 /**
  * A DynamoDB-specific decorator for a {@link ClientConfiguration} that adds default values optimal for communicating with

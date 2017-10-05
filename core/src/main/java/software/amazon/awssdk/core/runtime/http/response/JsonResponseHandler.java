@@ -13,25 +13,25 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.runtime.http.response;
+package software.amazon.awssdk.core.runtime.http.response;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import java.io.IOException;
 import java.util.Map;
-import software.amazon.awssdk.SdkStandardLoggers;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.http.HttpResponse;
-import software.amazon.awssdk.http.HttpResponseHandler;
-import software.amazon.awssdk.http.StaxResponseHandler;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.internal.Crc32MismatchException;
-import software.amazon.awssdk.runtime.transform.JsonUnmarshallerContext;
-import software.amazon.awssdk.runtime.transform.JsonUnmarshallerContextImpl;
-import software.amazon.awssdk.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.runtime.transform.VoidJsonUnmarshaller;
-import software.amazon.awssdk.util.ValidationUtils;
+import software.amazon.awssdk.core.SdkStandardLoggers;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.http.StaxResponseHandler;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.internal.Crc32MismatchException;
+import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
+import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContextImpl;
+import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.core.runtime.transform.VoidJsonUnmarshaller;
+import software.amazon.awssdk.core.util.ValidationUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http;
+package software.amazon.awssdk.core.http;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
@@ -27,9 +27,10 @@ import static org.junit.Assert.fail;
 
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.http.pipeline.stages.ApplyTransactionIdStage;
-import software.amazon.awssdk.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.http.pipeline.stages.ApplyTransactionIdStage;
+import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import utils.HttpTestUtils;
 import utils.http.WireMockTestBase;
 

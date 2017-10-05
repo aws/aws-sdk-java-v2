@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.config.defaults;
+package software.amazon.awssdk.core.config.defaults;
 
-import static software.amazon.awssdk.config.AdvancedClientOption.USER_AGENT_PREFIX;
-import static software.amazon.awssdk.config.AdvancedClientOption.USER_AGENT_SUFFIX;
-import static software.amazon.awssdk.config.InternalAdvancedClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
+import static software.amazon.awssdk.core.config.AdvancedClientOption.USER_AGENT_PREFIX;
+import static software.amazon.awssdk.core.config.AdvancedClientOption.USER_AGENT_SUFFIX;
+import static software.amazon.awssdk.core.config.InternalAdvancedClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
 import static software.amazon.awssdk.utils.CollectionUtils.mergeLists;
 
 import java.util.List;
@@ -25,13 +25,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.config.ClientConfiguration;
-import software.amazon.awssdk.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.interceptor.ClasspathInterceptorChainFactory;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.retry.PredefinedRetryPolicies;
-import software.amazon.awssdk.retry.RetryPolicyAdapter;
-import software.amazon.awssdk.util.UserAgentUtils;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.retry.PredefinedRetryPolicies;
+import software.amazon.awssdk.core.retry.RetryPolicyAdapter;
+import software.amazon.awssdk.core.util.UserAgentUtils;
 
 /**
  * A decorator for {@link ClientConfiguration} that adds global default values. This is the lowest-priority configuration

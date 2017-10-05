@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.profile.internal.securitytoken;
+package software.amazon.awssdk.core.auth.profile.internal.securitytoken;
 
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.ThreadSafe;
-import software.amazon.awssdk.auth.AwsCredentials;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.auth.AwsCredentials;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 
 @ThreadSafe
 public class StsProfileCredentialsServiceProvider implements AwsCredentialsProvider {

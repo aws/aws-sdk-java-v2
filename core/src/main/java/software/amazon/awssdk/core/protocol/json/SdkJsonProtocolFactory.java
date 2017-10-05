@@ -13,23 +13,23 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.protocol.json;
+package software.amazon.awssdk.core.protocol.json;
 
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
 import software.amazon.awssdk.annotation.ThreadSafe;
-import software.amazon.awssdk.http.HttpResponseHandler;
-import software.amazon.awssdk.protocol.OperationInfo;
-import software.amazon.awssdk.protocol.Protocol;
-import software.amazon.awssdk.protocol.ProtocolRequestMarshaller;
-import software.amazon.awssdk.runtime.http.response.JsonResponseHandler;
-import software.amazon.awssdk.runtime.transform.JsonErrorUnmarshaller;
-import software.amazon.awssdk.runtime.transform.JsonUnmarshallerContext;
-import software.amazon.awssdk.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.AwsSystemSetting;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.protocol.OperationInfo;
+import software.amazon.awssdk.core.protocol.Protocol;
+import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
+import software.amazon.awssdk.core.runtime.http.response.JsonResponseHandler;
+import software.amazon.awssdk.core.runtime.transform.JsonErrorUnmarshaller;
+import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
+import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
 /**
  * Factory to generate the various JSON protocol handlers and generators depending on the wire protocol to be used for

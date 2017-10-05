@@ -21,6 +21,6 @@
  */
 
 @SdkInternalApi
-package software.amazon.awssdk.internal.http.timers;
+package software.amazon.awssdk.core.internal.http.timers;
 
 import software.amazon.awssdk.annotation.SdkInternalApi;

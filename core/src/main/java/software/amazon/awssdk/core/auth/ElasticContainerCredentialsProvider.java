@@ -13,17 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth;
+package software.amazon.awssdk.core.auth;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.AwsSystemSetting;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkTestInternalApi;
-import software.amazon.awssdk.internal.CredentialsEndpointProvider;
-import software.amazon.awssdk.retry.internal.CredentialsEndpointRetryPolicy;
+import software.amazon.awssdk.core.AwsSystemSetting;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.internal.CredentialsEndpointProvider;
+import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryPolicy;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**

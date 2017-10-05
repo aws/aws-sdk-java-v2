@@ -13,18 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.pipeline.stages;
+package software.amazon.awssdk.core.http.pipeline.stages;
 
-import static software.amazon.awssdk.event.SdkProgressPublisher.publishProgress;
+import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishProgress;
 
-import software.amazon.awssdk.RequestExecutionContext;
-import software.amazon.awssdk.Response;
-import software.amazon.awssdk.event.ProgressEventType;
-import software.amazon.awssdk.event.ProgressListener;
-import software.amazon.awssdk.event.SdkProgressPublisher;
+import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.event.ProgressEventType;
+import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.http.pipeline.RequestToResponsePipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.http.pipeline.RequestToResponsePipeline;
 
 /**
  * Calls {@link SdkProgressPublisher#publishProgress(ProgressListener, ProgressEventType)} if the execution fails.

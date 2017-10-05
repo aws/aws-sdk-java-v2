@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.pipeline.stages;
+package software.amazon.awssdk.core.http.pipeline.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -21,17 +21,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.junit.Test;
-import software.amazon.awssdk.AbortedException;
-import software.amazon.awssdk.RequestConfig;
-import software.amazon.awssdk.RequestExecutionContext;
-import software.amazon.awssdk.Response;
-import software.amazon.awssdk.config.SyncClientConfiguration;
-import software.amazon.awssdk.http.ExecutionContext;
-import software.amazon.awssdk.http.HttpSyncClientDependencies;
+import software.amazon.awssdk.core.AbortedException;
+import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.config.SyncClientConfiguration;
+import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.http.HttpSyncClientDependencies;
+import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
+import software.amazon.awssdk.core.util.CapacityManager;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.internal.http.timers.client.ClientExecutionTimer;
-import software.amazon.awssdk.util.CapacityManager;
 
 
 /**
@@ -60,11 +60,11 @@ public class ClientExecutionTimedStageTest {
         RequestPipeline<SdkHttpFullRequest, Response<Void>> wrapped =
                 (RequestPipeline<SdkHttpFullRequest, Response<Void>>) mock(RequestPipeline.class);
         ClientExecutionTimedStage<Void> stage = new ClientExecutionTimedStage<>(HttpSyncClientDependencies.builder()
-                .clientExecutionTimer(new ClientExecutionTimer())
-                .syncClientConfiguration(mock(SyncClientConfiguration.class))
-                .capacityManager(mock(CapacityManager.class))
-                .build(),
-                wrapped);
+                                                                                                          .clientExecutionTimer(new ClientExecutionTimer())
+                                                                                                          .syncClientConfiguration(mock(SyncClientConfiguration.class))
+                                                                                                          .capacityManager(mock(CapacityManager.class))
+                                                                                                          .build(),
+                                                                                wrapped);
 
         when(wrapped.execute(any(SdkHttpFullRequest.class), any(RequestExecutionContext.class))).thenAnswer(invocationOnMock -> {
             Thread.currentThread().interrupt();

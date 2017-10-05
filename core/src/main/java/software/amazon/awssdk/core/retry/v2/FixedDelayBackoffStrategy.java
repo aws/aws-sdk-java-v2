@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retry.v2;
+package software.amazon.awssdk.core.retry.v2;
 
-import static software.amazon.awssdk.util.ValidationUtils.assertIsPositive;
+import static software.amazon.awssdk.core.util.ValidationUtils.assertIsPositive;
 
 /**
  * Simple backoff strategy that always uses a fixed delay.

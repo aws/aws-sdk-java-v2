@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.util;
+package software.amazon.awssdk.core.util;
 
 import java.io.IOException;
 import java.util.Map;
@@ -21,7 +21,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.AwsSystemSetting;
+import software.amazon.awssdk.core.AwsSystemSetting;
 
 public class EC2MetadataUtilsIntegrationTest {
 

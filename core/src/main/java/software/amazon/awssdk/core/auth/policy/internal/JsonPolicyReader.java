@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.policy.internal;
+package software.amazon.awssdk.core.auth.policy.internal;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Iterator;
@@ -21,14 +21,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.auth.policy.Action;
-import software.amazon.awssdk.auth.policy.Condition;
-import software.amazon.awssdk.auth.policy.Policy;
-import software.amazon.awssdk.auth.policy.Principal;
-import software.amazon.awssdk.auth.policy.Resource;
-import software.amazon.awssdk.auth.policy.Statement;
-import software.amazon.awssdk.util.json.JacksonUtils;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.auth.policy.Action;
+import software.amazon.awssdk.core.auth.policy.Condition;
+import software.amazon.awssdk.core.auth.policy.Policy;
+import software.amazon.awssdk.core.auth.policy.Principal;
+import software.amazon.awssdk.core.auth.policy.Resource;
+import software.amazon.awssdk.core.auth.policy.Statement;
+import software.amazon.awssdk.core.util.json.JacksonUtils;
 
 /**
  * Generate an AWS policy object by parsing the given JSON string.
@@ -68,7 +68,7 @@ public class JsonPolicyReader {
         JsonNode idNode;
         JsonNode statementNodes;
         Policy policy = new Policy();
-        List<Statement> statements = new LinkedList<Statement>();
+        List<Statement> statements = new LinkedList<>();
 
         try {
             policyNode = JacksonUtils.jsonNodeOf(jsonString);
@@ -162,7 +162,7 @@ public class JsonPolicyReader {
      * @return the list of actions.
      */
     private List<Action> actionsOf(JsonNode actionNodes) {
-        List<Action> actions = new LinkedList<Action>();
+        List<Action> actions = new LinkedList<>();
 
         if (actionNodes.isArray()) {
             for (JsonNode action : actionNodes) {
@@ -182,7 +182,7 @@ public class JsonPolicyReader {
      * @return the list of resources.
      */
     private List<Resource> resourcesOf(JsonNode resourceNodes) {
-        List<Resource> resources = new LinkedList<Resource>();
+        List<Resource> resources = new LinkedList<>();
 
         if (resourceNodes.isArray()) {
             for (JsonNode resource : resourceNodes) {
@@ -203,7 +203,7 @@ public class JsonPolicyReader {
      * @return a list of principals
      */
     private List<Principal> principalOf(JsonNode principalNodes) {
-        List<Principal> principals = new LinkedList<Principal>();
+        List<Principal> principals = new LinkedList<>();
 
         if (principalNodes.asText().equals("*")) {
             principals.add(Principal.ALL);
@@ -269,7 +269,7 @@ public class JsonPolicyReader {
      */
     private List<Condition> conditionsOf(JsonNode conditionNodes) {
 
-        List<Condition> conditionList = new LinkedList<Condition>();
+        List<Condition> conditionList = new LinkedList<>();
         Iterator<Map.Entry<String, JsonNode>> mapOfConditions = conditionNodes
                 .fields();
 

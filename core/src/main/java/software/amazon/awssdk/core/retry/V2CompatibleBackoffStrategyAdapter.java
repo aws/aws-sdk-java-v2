@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retry;
+package software.amazon.awssdk.core.retry;
 
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.AmazonWebServiceRequest;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.retry.v2.RetryPolicyContext;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.retry.v2.RetryPolicyContext;
 
 /**
  * Adapts the legacy backoff strategy to the new v2 backoff strategy. Strategies that extend this can be used in both legacy and

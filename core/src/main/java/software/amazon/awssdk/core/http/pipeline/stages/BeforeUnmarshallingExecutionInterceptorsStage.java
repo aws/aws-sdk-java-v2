@@ -13,13 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.pipeline.stages;
+package software.amazon.awssdk.core.http.pipeline.stages;
 
-import software.amazon.awssdk.RequestExecutionContext;
-import software.amazon.awssdk.http.HttpResponse;
+import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -27,7 +26,7 @@ import software.amazon.awssdk.utils.Pair;
  * before it is handed off to the unmarshaller.
  */
 public class BeforeUnmarshallingExecutionInterceptorsStage
-        implements RequestPipeline<Pair<SdkHttpFullRequest, HttpResponse>, HttpResponse> {
+    implements RequestPipeline<Pair<SdkHttpFullRequest, HttpResponse>, HttpResponse> {
 
     @Override
     public HttpResponse execute(Pair<SdkHttpFullRequest, HttpResponse> input,

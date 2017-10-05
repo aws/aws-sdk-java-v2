@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.presign;
+package software.amazon.awssdk.core.auth.presign;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
@@ -21,20 +21,20 @@ import java.net.URL;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.RequestConfig;
-import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.annotation.Immutable;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.Presigner;
+import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.auth.Presigner;
+import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.runtime.auth.SignerProvider;
+import software.amazon.awssdk.core.runtime.auth.SignerProviderContext;
+import software.amazon.awssdk.core.util.CredentialUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.interceptor.InterceptorContext;
-import software.amazon.awssdk.runtime.auth.SignerProvider;
-import software.amazon.awssdk.runtime.auth.SignerProviderContext;
-import software.amazon.awssdk.util.CredentialUtils;
 
 /**
  * Really thin facade over {@link Presigner} to deal with some common concerns like credential resolution, adding custom headers

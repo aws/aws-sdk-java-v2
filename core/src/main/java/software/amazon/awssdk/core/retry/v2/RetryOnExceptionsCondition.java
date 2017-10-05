@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retry.v2;
+package software.amazon.awssdk.core.retry.v2;
 
-import static software.amazon.awssdk.util.ValidationUtils.assertNotNull;
+import static software.amazon.awssdk.core.util.ValidationUtils.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.List;

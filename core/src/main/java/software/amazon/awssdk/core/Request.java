@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk;
+package software.amazon.awssdk.core;
 
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.http.HttpMethodName;
+import software.amazon.awssdk.core.http.HttpMethodName;
 
 /**
  * Represents a request being sent to an Amazon Web Service, including the

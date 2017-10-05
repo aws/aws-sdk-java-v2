@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk;
+package software.amazon.awssdk.core;
 
 /**
  * Exception that is automatically retried in default retry policies. Used for streaming handlers to notify the SDK a retry
