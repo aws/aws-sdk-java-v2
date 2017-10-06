@@ -58,8 +58,8 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
  * Interceptors can be registered in one of many ways.
  * <ol>
  *     <li><i>Override Configuration Interceptors</i> are the most common method for SDK users to register an interceptor. These
- *     interceptors are explicitly added to the client builder's override configuration when a client is created using the
- *     {@link software.amazon.awssdk.core.config.ClientOverrideConfiguration.Builder#addLastExecutionInterceptor(ExecutionInterceptor)}
+ *     interceptors are explicitly added to the client builder's override configuration when a client is created using the {@link
+ *     software.amazon.awssdk.core.config.ClientOverrideConfiguration.Builder#addLastExecutionInterceptor(ExecutionInterceptor)}
  *     method.</li>
  *
  *     <li><i>Global Interceptors</i> are interceptors loaded from the classpath for all clients. When any service client is
@@ -89,8 +89,8 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
  *     interceptors later in the classpath. Interceptors earlier within a specific file on the classpath will be placed earlier in
  *     the order than interceptors later in the file.</li>
  *
- *     <li><i>Override Configuration Interceptors</i>. Any interceptors registered using
- *     {@link software.amazon.awssdk.core.config.ClientOverrideConfiguration.Builder#addLastExecutionInterceptor(ExecutionInterceptor)}
+ *     <li><i>Override Configuration Interceptors</i>. Any interceptors registered using {@link
+ *     software.amazon.awssdk.core.config.ClientOverrideConfiguration.Builder#addLastExecutionInterceptor(ExecutionInterceptor)}
  *     in the order they were added.</li>
  * </ol>
  * When a request is being processed (up to and including {@link #beforeTransmission}, interceptors are applied in forward-order,
