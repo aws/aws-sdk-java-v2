@@ -18,7 +18,7 @@ package software.amazon.awssdk.codegen.docs;
 import java.util.Map;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.util.ImmutableMapParameter;
+import software.amazon.awssdk.core.util.ImmutableMapParameter;
 
 /**
  * Implementations of {@link OperationDocProvider} for async client methods. This implementation is for the typical

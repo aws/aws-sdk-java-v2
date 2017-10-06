@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.protocol;
 
-import software.amazon.awssdk.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonServiceException;
 
 /**
  * Base class for all {@link ProtocolMetadataProvider}. Provides convenient default implementations

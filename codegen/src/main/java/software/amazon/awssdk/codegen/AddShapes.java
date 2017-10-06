@@ -44,7 +44,7 @@ import software.amazon.awssdk.codegen.model.service.Member;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
-import software.amazon.awssdk.util.StringUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 abstract class AddShapes {
 

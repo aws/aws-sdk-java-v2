@@ -44,7 +44,7 @@ public final class PoetMatchers {
                 } catch (AssertionError e) {
                     //Unfortunately for string comparisons Hamcrest doesn't really give us a nice diff. On the other hand
                     //IDEs know how to nicely display JUnit's ComparisonFailure - makes debugging tests much easier
-                    throw new ComparisonFailure("Output class does not match expected", expectedClass, actualClass);
+                    throw new ComparisonFailure(String.format("Output class does not match expected [test-file: %s]", expectedTestFile), expectedClass, actualClass);
                 }
                 return true;
             }

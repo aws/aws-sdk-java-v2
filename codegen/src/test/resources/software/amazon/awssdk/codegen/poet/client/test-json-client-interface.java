@@ -2,9 +2,12 @@ package software.amazon.awssdk.services.json;
 
 import java.nio.file.Path;
 import javax.annotation.Generated;
-import software.amazon.awssdk.SdkBaseException;
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.regions.ServiceMetadata;
+import software.amazon.awssdk.core.SdkBaseException;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.regions.ServiceMetadata;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.sync.ResponseInputStream;
+import software.amazon.awssdk.core.sync.StreamingResponseHandler;
 import software.amazon.awssdk.services.acm.presign.AcmClientPresigners;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
@@ -18,9 +21,6 @@ import software.amazon.awssdk.services.json.model.StreamingInputOperationRequest
 import software.amazon.awssdk.services.json.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationResponse;
-import software.amazon.awssdk.sync.RequestBody;
-import software.amazon.awssdk.sync.ResponseInputStream;
-import software.amazon.awssdk.sync.StreamingResponseHandler;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
@@ -34,8 +34,8 @@ public interface JsonClient extends SdkAutoCloseable {
 
     /**
      * Create a {@link JsonClient} with the region loaded from the
-     * {@link software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from the
-     * {@link software.amazon.awssdk.auth.DefaultCredentialsProvider}.
+     * {@link software.amazon.awssdk.core.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from the
+     * {@link software.amazon.awssdk.core.auth.DefaultCredentialsProvider}.
      */
     static JsonClient create() {
         return builder().build();
@@ -219,7 +219,7 @@ public interface JsonClient extends SdkAutoCloseable {
      *        Functional interface for processing the streamed response content. The unmarshalled
      *        StreamingInputOperationRequest and an InputStream to the response content are provided as parameters to
      *        the callback. The callback may return a transformed type which will be the return value of this method.
-     *        See {@link software.amazon.awssdk.runtime.transform.StreamingResponseHandler} for details on implementing
+     *        See {@link software.amazon.awssdk.core.sync.StreamingResponseHandler} for details on implementing
      *        this interface and for links to pre-canned implementations for common scenarios like downloading to a
      *        file. The service documentation for the response content is as follows 'This be a stream'.
      * @return The transformed result of the StreamingResponseHandler.

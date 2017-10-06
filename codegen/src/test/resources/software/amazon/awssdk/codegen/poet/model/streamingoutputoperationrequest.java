@@ -2,7 +2,7 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Optional;
 import javax.annotation.Generated;
-import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 

@@ -21,7 +21,7 @@ import static software.amazon.awssdk.codegen.docs.SyncOperationDocProvider.syncF
 import java.util.Map;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.util.ImmutableMapParameter;
+import software.amazon.awssdk.core.util.ImmutableMapParameter;
 
 /**
  * Provides documentation for an operation method on the client interface. Use

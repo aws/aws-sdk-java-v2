@@ -24,14 +24,14 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.client.AsyncClientHandler;
-import software.amazon.awssdk.client.SdkAsyncClientHandler;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
-import software.amazon.awssdk.config.AsyncClientConfiguration;
+import software.amazon.awssdk.core.client.AsyncClientHandler;
+import software.amazon.awssdk.core.client.SdkAsyncClientHandler;
+import software.amazon.awssdk.core.config.AsyncClientConfiguration;
 
 public final class AsyncClientClass extends AsyncClientInterface {
     private final PoetExtensions poetExtensions;

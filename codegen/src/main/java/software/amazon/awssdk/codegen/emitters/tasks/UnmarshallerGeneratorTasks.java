@@ -27,7 +27,7 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
-import software.amazon.awssdk.util.ImmutableMapParameter;
+import software.amazon.awssdk.core.util.ImmutableMapParameter;
 
 public class UnmarshallerGeneratorTasks extends BaseGeneratorTasks {
 

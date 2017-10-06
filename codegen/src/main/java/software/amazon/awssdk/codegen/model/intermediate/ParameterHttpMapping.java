@@ -16,7 +16,7 @@
 package software.amazon.awssdk.codegen.model.intermediate;
 
 import software.amazon.awssdk.codegen.model.service.Location;
-import software.amazon.awssdk.protocol.MarshallLocation;
+import software.amazon.awssdk.core.protocol.MarshallLocation;
 
 public class ParameterHttpMapping {
 

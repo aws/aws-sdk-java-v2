@@ -20,7 +20,7 @@ import com.squareup.javapoet.CodeBlock;
 import java.util.Optional;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.http.HttpResponseHandler;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
 
 public final class ClientClassUtils {
     private ClientClassUtils() {
