@@ -70,7 +70,6 @@ import software.amazon.awssdk.services.protocolrestjson.model.MembersInHeadersRe
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingInputOperationRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Verify that request handler hooks are behaving as expected.
@@ -404,11 +403,11 @@ public class ExecutionInterceptorTest {
 
         assertThat(failedRequest.stringMember()).isEqualTo("1");
         assertThat(failedExecutionArg.getValue().httpRequest()).hasValueSatisfying(httpRequest -> {
-            assertThat(SdkHttpUtils.firstMatchingHeader(httpRequest.headers(), "x-amz-string")).hasValue("1");
-            assertThat(SdkHttpUtils.firstMatchingHeader(httpRequest.headers(), "x-amz-integer")).hasValue("2");
+            assertThat(httpRequest.firstMatchingHeader("x-amz-string")).hasValue("1");
+            assertThat(httpRequest.firstMatchingHeader("x-amz-integer")).hasValue("2");
         });
         assertThat(failedExecutionArg.getValue().httpResponse()).hasValueSatisfying(httpResponse -> {
-            assertThat(SdkHttpUtils.firstMatchingHeader(httpResponse.headers(), "x-amz-integer")).hasValue("3");
+            assertThat(httpResponse.firstMatchingHeader("x-amz-integer")).hasValue("3");
         });
 
         if (expectResponse) {
@@ -430,18 +429,18 @@ public class ExecutionInterceptorTest {
     private void validateArgs(Context.AfterMarshalling context,
                               String expectedStringMemberValue, String expectedIntegerHeaderValue) {
         validateArgs(context, expectedStringMemberValue);
-        assertThat(SdkHttpUtils.firstMatchingHeader(context.httpRequest().headers(),
-                                                    "x-amz-integer")).isEqualTo(Optional.ofNullable(expectedIntegerHeaderValue));
-        assertThat(SdkHttpUtils.firstMatchingHeader(context.httpRequest().headers(),
-                                                    "x-amz-string")).isEqualTo(Optional.ofNullable(expectedStringMemberValue));
+        assertThat(context.httpRequest().firstMatchingHeader("x-amz-integer"))
+                .isEqualTo(Optional.ofNullable(expectedIntegerHeaderValue));
+        assertThat(context.httpRequest().firstMatchingHeader("x-amz-string"))
+                .isEqualTo(Optional.ofNullable(expectedStringMemberValue));
     }
 
     private void validateArgs(Context.AfterTransmission context,
                               String expectedStringMemberValue, String expectedIntegerHeaderValue,
                               String expectedResponseIntegerHeaderValue) {
         validateArgs(context, expectedStringMemberValue, expectedIntegerHeaderValue);
-        assertThat(SdkHttpUtils.firstMatchingHeader(context.httpResponse().headers(),
-                                                    "x-amz-integer")).isEqualTo(Optional.ofNullable(expectedResponseIntegerHeaderValue));
+        assertThat(context.httpResponse().firstMatchingHeader("x-amz-integer"))
+                .isEqualTo(Optional.ofNullable(expectedResponseIntegerHeaderValue));
     }
 
     private void validateArgs(Context.AfterUnmarshalling context,

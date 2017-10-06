@@ -22,7 +22,6 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.services.glacier.model.DescribeJobRequest;
 import software.amazon.awssdk.services.glacier.model.GetJobOutputRequest;
 import software.amazon.awssdk.services.glacier.model.UploadMultipartPartRequest;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 public class GlacierExecutionInterceptor implements ExecutionInterceptor {
 
@@ -42,9 +41,9 @@ public class GlacierExecutionInterceptor implements ExecutionInterceptor {
         mutableRequest.header("x-amz-content-sha256", "required");
 
         if (originalRequest instanceof UploadMultipartPartRequest) {
-            SdkHttpUtils.firstMatchingHeader(mutableRequest.headers(), "Content-Range")
-                        .ifPresent(range -> mutableRequest.header("Content-Length",
-                                                             Long.toString(parseContentLengthFromRange(range))));
+            mutableRequest.firstMatchingHeader("Content-Range")
+                          .ifPresent(range -> mutableRequest.header("Content-Length",
+                                                                    Long.toString(parseContentLengthFromRange(range))));
 
         } else if (originalRequest instanceof GetJobOutputRequest || originalRequest instanceof DescribeJobRequest) {
             String resourcePath = mutableRequest.encodedPath();

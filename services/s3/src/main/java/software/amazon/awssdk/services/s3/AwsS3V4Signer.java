@@ -30,7 +30,6 @@ import software.amazon.awssdk.services.s3.auth.AwsChunkedEncodingInputStream;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * AWS4 signer implementation for AWS S3
@@ -97,8 +96,8 @@ public class AwsS3V4Signer extends Aws4Signer {
 
         if (isPayloadSigningEnabled(requestToSign)) {
             if (useChunkEncoding(signerRequestParams)) {
-                final String contentLength = SdkHttpUtils.firstMatchingHeader(requestToSign.headers(), CONTENT_LENGTH)
-                                                         .orElse(null);
+                final String contentLength = requestToSign.firstMatchingHeader(CONTENT_LENGTH)
+                                                          .orElse(null);
                 final long originalContentLength;
                 if (contentLength != null) {
                     originalContentLength = Long.parseLong(contentLength);

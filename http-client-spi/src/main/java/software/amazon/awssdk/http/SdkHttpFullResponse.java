@@ -25,6 +25,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * An immutable HTTP response with a possible HTTP body.
@@ -85,6 +86,22 @@ public interface SdkHttpFullResponse
          * {@link #header(String, String)} and {@link #header(String, List)}.
          */
         Map<String, List<String>> headers();
+
+        /**
+         * Perform a case-insensitive search for a particular header in this request, returning the first matching header, if one
+         * is found.
+         *
+         * <p>This is useful for headers like 'Content-Type' or 'Content-Length' of which there is expected to be only one value
+         * present.</p>
+         *
+         * <p>This is equivalent to invoking {@link SdkHttpUtils#firstMatchingHeader(Map, String)}</p>.
+         *
+         * @param header The header to search for (case insensitively).
+         * @return The first header that matched the requested one, or empty if one was not found.
+         */
+        default Optional<String> firstMatchingHeader(String header) {
+            return SdkHttpUtils.firstMatchingHeader(headers(), header);
+        }
 
         /**
          * Add a single header to be included in the created HTTP response.

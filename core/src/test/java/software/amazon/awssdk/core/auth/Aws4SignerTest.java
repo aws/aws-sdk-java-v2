@@ -30,7 +30,6 @@ import org.junit.Test;
 import software.amazon.awssdk.core.auth.internal.Aws4SignerUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Unit tests for the {@link Aws4Signer}.
@@ -64,7 +63,7 @@ public class Aws4SignerTest {
         signer.setServiceName("demo");
 
         SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.build(), credentials);
-        assertThat(SdkHttpUtils.firstMatchingHeader(signed.headers(), "Authorization"))
+        assertThat(signed.firstMatchingHeader("Authorization"))
                 .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
 
 
@@ -73,9 +72,7 @@ public class Aws4SignerTest {
         request.header("x-amz-sha256", "required");
 
         signed = SignerTestUtils.signRequest(signer, request.build(), credentials);
-        assertThat(
-                SdkHttpUtils
-                        .firstMatchingHeader(signed.headers(), "Authorization")).hasValue(expectedAuthorizationHeaderWithSha256Header);
+        assertThat(signed.firstMatchingHeader("Authorization")).hasValue(expectedAuthorizationHeaderWithSha256Header);
     }
 
     @Test
@@ -97,7 +94,7 @@ public class Aws4SignerTest {
         signer.setServiceName("demo");
 
         SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.build(), credentials);
-        assertThat(SdkHttpUtils.firstMatchingHeader(signed.headers(), "Authorization"))
+        assertThat(signed.firstMatchingHeader("Authorization"))
                 .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
     }
 
@@ -163,7 +160,7 @@ public class Aws4SignerTest {
 
         SdkHttpFullRequest actual = SignerTestUtils.signRequest(signer, request.build(), credentials);
 
-        assertThat(SdkHttpUtils.firstMatchingHeader(actual.headers(), "Authorization"))
+        assertThat(actual.firstMatchingHeader("Authorization"))
                 .hasValue("AWS4-HMAC-SHA256 Credential=akid/19810216/us-east-1/demo/aws4_request, " +
                           "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
                           "Signature=581d0042389009a28d461124138f1fe8eeb8daed87611d2a2b47fd3d68d81d73");

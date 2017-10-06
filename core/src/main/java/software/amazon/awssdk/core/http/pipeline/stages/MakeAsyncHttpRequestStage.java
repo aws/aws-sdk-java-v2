@@ -43,7 +43,6 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Delegate to the HTTP implementation to make an HTTP request and receive the response.
@@ -112,7 +111,7 @@ public class MakeAsyncHttpRequestStage<OutputT>
 
     private boolean shouldSetContentLength(SdkHttpFullRequest request, SdkHttpRequestProvider requestProvider) {
         return requestProvider != null
-               && !SdkHttpUtils.firstMatchingHeader(request.headers(), "Content-Length").isPresent()
+               && !request.firstMatchingHeader("Content-Length").isPresent()
                // Can cause issues with signing if content length is present for these method
                && request.method() != SdkHttpMethod.GET
                && request.method() != SdkHttpMethod.HEAD;

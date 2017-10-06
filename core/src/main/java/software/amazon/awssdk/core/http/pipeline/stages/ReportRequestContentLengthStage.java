@@ -24,7 +24,6 @@ import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.http.StreamManagingStage;
 import software.amazon.awssdk.core.http.pipeline.RequestToRequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Report the Content-Length of the request input stream to the {@link software.amazon.awssdk.core.event.ProgressListener}.
@@ -36,9 +35,9 @@ public class ReportRequestContentLengthStage implements RequestToRequestPipeline
     @Override
     public SdkHttpFullRequest execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         try {
-            SdkHttpUtils.firstMatchingHeader(request.headers(), "Content-Length")
-                        .map(Long::parseLong)
-                        .ifPresent(l -> publishRequestContentLength(context.requestConfig().getProgressListener(), l));
+            request.firstMatchingHeader("Content-Length")
+                   .map(Long::parseLong)
+                   .ifPresent(l -> publishRequestContentLength(context.requestConfig().getProgressListener(), l));
         } catch (NumberFormatException e) {
             log.warn("Cannot parse the Content-Length header of the request.");
         }
