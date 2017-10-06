@@ -16,8 +16,8 @@
 package software.amazon.awssdk.http;
 
 import java.util.Optional;
-import software.amazon.awssdk.annotation.Immutable;
-import software.amazon.awssdk.annotation.SdkPublicApi;
+import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * An immutable HTTP response without access to the response body. {@link SdkHttpFullResponse} should be used when access to a

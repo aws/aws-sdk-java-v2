@@ -40,7 +40,6 @@ import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.core.event.ProgressInputStream;
 import software.amazon.awssdk.core.runtime.io.SdkDigestInputStream;
-import software.amazon.awssdk.core.util.SdkHttpUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.Base64Utils;
 import software.amazon.awssdk.utils.BinaryUtils;

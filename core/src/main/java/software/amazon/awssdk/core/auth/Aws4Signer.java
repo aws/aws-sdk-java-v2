@@ -40,7 +40,6 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.collections.FifoCache;
 import software.amazon.awssdk.core.util.CredentialUtils;
-import software.amazon.awssdk.core.util.SdkHttpUtils;
 import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
