@@ -17,8 +17,8 @@ package software.amazon.awssdk.http;
 
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.annotation.Immutable;
-import software.amazon.awssdk.annotation.SdkPublicApi;
+import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * An immutable set of HTTP headers. {@link SdkHttpRequest} should be used for requests, and {@link SdkHttpResponse} should be
