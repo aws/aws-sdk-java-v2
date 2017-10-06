@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.dynamodb.document;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import software.amazon.awssdk.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonServiceException;
 
 /**
  * A page contains a list of items; accessing methods on the list are

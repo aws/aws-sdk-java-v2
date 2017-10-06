@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.testutils.service;
 
-import software.amazon.awssdk.event.ProgressEvent;
-import software.amazon.awssdk.event.ProgressEventType;
-import software.amazon.awssdk.event.SyncProgressListener;
+import software.amazon.awssdk.core.event.ProgressEvent;
+import software.amazon.awssdk.core.event.ProgressEventType;
+import software.amazon.awssdk.core.event.SyncProgressListener;
 
 /**
  * Validates the events received by the progress listener.

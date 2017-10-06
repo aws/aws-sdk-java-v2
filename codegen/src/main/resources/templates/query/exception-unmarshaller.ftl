@@ -4,8 +4,8 @@ package ${transformPackage};
 import org.w3c.dom.Node;
 import javax.annotation.Generated;
 
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.util.XpathUtils;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.util.XpathUtils;
 
 import ${metadata.fullModelPackageName}.${shape.shapeName};
 

@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-import software.amazon.awssdk.util.StringUtils;
+import software.amazon.awssdk.core.util.StringUtils;
 
 /**
  * Asserts on the query parameters of the marshalled request.

@@ -28,13 +28,14 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.AmazonServiceException.ErrorType;
-import software.amazon.awssdk.SdkGlobalTime;
-import software.amazon.awssdk.auth.policy.Action;
-import software.amazon.awssdk.auth.policy.Policy;
-import software.amazon.awssdk.auth.policy.Resource;
-import software.amazon.awssdk.auth.policy.Statement;
-import software.amazon.awssdk.auth.policy.Statement.Effect;
+import software.amazon.awssdk.core.AmazonServiceException.ErrorType;
+import software.amazon.awssdk.core.SdkGlobalTime;
+import software.amazon.awssdk.core.auth.policy.Action;
+import software.amazon.awssdk.core.auth.policy.Policy;
+import software.amazon.awssdk.core.auth.policy.Resource;
+import software.amazon.awssdk.core.auth.policy.Statement;
+import software.amazon.awssdk.core.auth.policy.Statement.Effect;
+import software.amazon.awssdk.core.util.json.JacksonUtils;
 import software.amazon.awssdk.services.cloudformation.model.AlreadyExistsException;
 import software.amazon.awssdk.services.cloudformation.model.CancelUpdateStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.CreateStackRequest;
@@ -65,7 +66,6 @@ import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 import software.amazon.awssdk.services.cloudformation.model.StackSummary;
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackResponse;
-import software.amazon.awssdk.util.json.JacksonUtils;
 
 /**
  * Tests of the Stack APIs : CloudFormation

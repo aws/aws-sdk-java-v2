@@ -49,7 +49,7 @@
  *
  *
  * <p>
- * You can use {@link software.amazon.awssdk.auth.ProfileCredentialsProvider} to
+ * You can use {@link software.amazon.awssdk.core.auth.ProfileCredentialsProvider} to
  * access your AWS configuration profiles and supply your credentials to code
  * using the AWS SDK for Java.
  *

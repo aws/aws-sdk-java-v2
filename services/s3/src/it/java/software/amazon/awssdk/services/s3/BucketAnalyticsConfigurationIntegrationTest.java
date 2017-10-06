@@ -25,6 +25,7 @@ import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.AnalyticsConfiguration;
 import software.amazon.awssdk.services.s3.model.AnalyticsExportDestination;
 import software.amazon.awssdk.services.s3.model.AnalyticsFilter;
@@ -43,7 +44,6 @@ import software.amazon.awssdk.services.s3.model.StorageClassAnalysis;
 import software.amazon.awssdk.services.s3.model.StorageClassAnalysisDataExport;
 import software.amazon.awssdk.services.s3.model.StorageClassAnalysisSchemaVersion;
 import software.amazon.awssdk.services.s3.model.Tag;
-import software.amazon.awssdk.sync.RequestBody;
 import software.amazon.awssdk.testutils.RandomTempFile;
 
 public class BucketAnalyticsConfigurationIntegrationTest extends S3IntegrationTestBase {

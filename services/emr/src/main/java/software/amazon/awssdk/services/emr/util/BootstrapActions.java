@@ -18,9 +18,9 @@ package software.amazon.awssdk.services.emr.util;
 import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.services.emr.model.BootstrapActionConfig;
 import software.amazon.awssdk.services.emr.model.ScriptBootstrapActionConfig;
-import software.amazon.awssdk.util.StringUtils;
 
 /**
  * Class that provides helper methods for constructing predefined bootstrap actions.

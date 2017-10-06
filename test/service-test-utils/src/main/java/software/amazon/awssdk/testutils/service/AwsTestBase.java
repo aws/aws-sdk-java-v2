@@ -22,11 +22,11 @@ import java.io.InputStream;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.auth.AwsCredentialsProviderChain;
-import software.amazon.awssdk.auth.EnvironmentVariableCredentialsProvider;
-import software.amazon.awssdk.auth.ProfileCredentialsProvider;
-import software.amazon.awssdk.auth.SystemPropertyCredentialsProvider;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.auth.AwsCredentialsProviderChain;
+import software.amazon.awssdk.core.auth.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.core.auth.ProfileCredentialsProvider;
+import software.amazon.awssdk.core.auth.SystemPropertyCredentialsProvider;
 import software.amazon.awssdk.utils.IoUtils;
 
 public abstract class AwsTestBase {

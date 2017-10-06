@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.services.rds;
 
-import software.amazon.awssdk.Request;
+import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.util.ImmutableObjectUtils;
 import software.amazon.awssdk.services.rds.model.CreateDBInstanceReadReplicaRequest;
 import software.amazon.awssdk.services.rds.transform.CreateDBInstanceReadReplicaRequestMarshaller;
-import software.amazon.awssdk.util.ImmutableObjectUtils;
 
 /**
  * Handler for pre-signing {@link CreateDBInstanceReadReplicaRequest}.

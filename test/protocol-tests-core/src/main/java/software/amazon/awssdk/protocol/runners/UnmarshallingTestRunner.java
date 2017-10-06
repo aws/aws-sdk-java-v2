@@ -25,12 +25,12 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import java.lang.reflect.Method;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
+import software.amazon.awssdk.core.sync.StreamingResponseHandler;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.protocol.asserts.unmarshalling.UnmarshallingTestContext;
 import software.amazon.awssdk.protocol.model.GivenResponse;
 import software.amazon.awssdk.protocol.model.TestCase;
 import software.amazon.awssdk.protocol.reflect.ClientReflector;
-import software.amazon.awssdk.sync.StreamingResponseHandler;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**

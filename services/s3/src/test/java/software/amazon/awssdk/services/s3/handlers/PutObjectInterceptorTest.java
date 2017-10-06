@@ -18,14 +18,14 @@ package software.amazon.awssdk.services.s3.handlers;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
-import software.amazon.awssdk.SdkRequest;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.interceptor.Context;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 public class PutObjectInterceptorTest {
     private final PutObjectInterceptor interceptor = new PutObjectInterceptor();

@@ -22,14 +22,14 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import org.junit.Before;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.services.iam.IAMClient;
 import software.amazon.awssdk.services.iam.model.GetUserRequest;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.CreateQueueResponse;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
-import software.amazon.awssdk.util.StringUtils;
 
 /**
  * Base class for SQS integration tests. Provides convenience methods for creating test data, and

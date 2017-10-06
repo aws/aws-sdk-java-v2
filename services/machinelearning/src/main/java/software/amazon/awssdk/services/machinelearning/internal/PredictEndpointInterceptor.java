@@ -17,11 +17,11 @@ package software.amazon.awssdk.services.machinelearning.internal;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import software.amazon.awssdk.AmazonClientException;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.interceptor.Context;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.machinelearning.model.PredictRequest;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 

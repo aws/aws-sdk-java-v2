@@ -27,6 +27,8 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.services.cloudfront.model.Aliases;
 import software.amazon.awssdk.services.cloudfront.model.CacheBehavior;
 import software.amazon.awssdk.services.cloudfront.model.CacheBehaviors;
@@ -63,9 +65,7 @@ import software.amazon.awssdk.services.s3.model.Permission;
 import software.amazon.awssdk.services.s3.model.PutObjectAclRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.Type;
-import software.amazon.awssdk.sync.RequestBody;
 import software.amazon.awssdk.testutils.RandomTempFile;
-import software.amazon.awssdk.util.StringUtils;
 
 /**
  * Tests pre-signed URLs

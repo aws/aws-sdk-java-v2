@@ -24,7 +24,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.SdkGlobalTime;
+import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.services.directconnect.model.CreateConnectionRequest;
 import software.amazon.awssdk.services.directconnect.model.CreateConnectionResponse;
 import software.amazon.awssdk.services.directconnect.model.DeleteConnectionRequest;

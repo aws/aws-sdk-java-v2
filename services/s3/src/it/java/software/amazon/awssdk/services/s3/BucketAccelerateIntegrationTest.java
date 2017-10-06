@@ -24,7 +24,8 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.AccelerateConfiguration;
 import software.amazon.awssdk.services.s3.model.BucketAccelerateStatus;
 import software.amazon.awssdk.services.s3.model.BucketVersioningStatus;
@@ -42,12 +43,10 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.Tagging;
 import software.amazon.awssdk.services.s3.model.VersioningConfiguration;
-import software.amazon.awssdk.sync.RequestBody;
 import software.amazon.awssdk.testutils.retry.AssertCallable;
 import software.amazon.awssdk.testutils.retry.RetryableAssertion;
 import software.amazon.awssdk.testutils.retry.RetryableParams;
 import software.amazon.awssdk.testutils.RandomTempFile;
-
 
 /**
  * Integration tests for S3 bucket accelerate configuration.

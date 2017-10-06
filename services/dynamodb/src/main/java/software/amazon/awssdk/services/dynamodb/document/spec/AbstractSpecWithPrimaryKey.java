@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.dynamodb.document.spec;
 
 import java.util.Arrays;
 import java.util.Collection;
-import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
 import software.amazon.awssdk.services.dynamodb.document.KeyAttribute;
 import software.amazon.awssdk.services.dynamodb.document.PrimaryKey;
 

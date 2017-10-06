@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.protocol;
 
+import software.amazon.awssdk.core.SdkBaseException;
+
 public class ApiGatewayProtocolMetadataProvider extends BaseJsonProtocolMetadataProvider {
     public static final long serialVersionUID = 1L;
 
@@ -30,7 +32,7 @@ public class ApiGatewayProtocolMetadataProvider extends BaseJsonProtocolMetadata
 
     @Override
     public String getBaseExceptionFqcn() {
-        return "software.amazon.awssdk.SdkBaseException";
+        return SdkBaseException.class.getName();
     }
 
     @Override

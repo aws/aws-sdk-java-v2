@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.codegen.protocol;
 
+import software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory;
+import software.amazon.awssdk.core.protocol.json.internal.JsonMarshallerContext;
+
 /**
  * Base class for all JSON based protocols. This includes {@link AwsCborProtocolMetadataProvider}.
  */
@@ -27,7 +30,7 @@ public abstract class BaseJsonProtocolMetadataProvider extends BaseProtocolMetad
 
     @Override
     public String getUnmarshallerContextClassName() {
-        return "JsonUnmarshallerContext";
+        return JsonMarshallerContext.class.getSimpleName();
     }
 
     /**
@@ -40,6 +43,6 @@ public abstract class BaseJsonProtocolMetadataProvider extends BaseProtocolMetad
 
     @Override
     public String getProtocolFactoryImplFqcn() {
-        return "software.amazon.awssdk.protocol.json.SdkJsonProtocolFactory";
+        return SdkJsonProtocolFactory.class.getName();
     }
 }

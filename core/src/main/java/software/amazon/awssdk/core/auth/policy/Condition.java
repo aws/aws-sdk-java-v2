@@ -50,12 +50,12 @@ import java.util.List;
  * </ul>
  * <p>
  * There are many expressive conditions available in the
- * <code>software.amazon.awssdk.auth.policy.conditions</code> package to use in access
+ * <code>software.amazon.awssdk.core.auth.policy.conditions</code> package to use in access
  * control policy statements.
  * <p>
  * This class is not intended to be directly subclassed by users, instead users
  * should use the many available conditions and condition factories in the
- * software.amazon.awssdk.auth.policy.conditions package.
+ * software.amazon.awssdk.core.auth.policy.conditions package.
  */
 public class Condition {
     protected String type;

@@ -3,12 +3,12 @@ ${fileHeader}
 
 package ${metadata.fullWaitersPackageName};
 
-import software.amazon.awssdk.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.waiters.WaiterAcceptor;
-import software.amazon.awssdk.waiters.WaiterState;
-import software.amazon.awssdk.waiters.AcceptorPathMatcher;
-import software.amazon.awssdk.waiters.ObjectMapperSingleton;
+import software.amazon.awssdk.core.waiters.WaiterAcceptor;
+import software.amazon.awssdk.core.waiters.WaiterState;
+import software.amazon.awssdk.core.waiters.AcceptorPathMatcher;
+import software.amazon.awssdk.core.waiters.ObjectMapperSingleton;
 import ${metadata.fullModelPackageName}.*;
 
 import com.fasterxml.jackson.databind.JsonNode;

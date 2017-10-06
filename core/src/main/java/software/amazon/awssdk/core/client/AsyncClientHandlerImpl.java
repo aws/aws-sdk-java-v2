@@ -266,7 +266,7 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
 
     /**
      * Adapter to {@link AsyncResponseHandler} that performs unmarshalling and calls {@link
-     * software.amazon.awssdk.interceptor.ExecutionInterceptor}
+     * software.amazon.awssdk.core.interceptor.ExecutionInterceptor}
      * callbacks.
      *
      * @param <OutputT> Unmarshalled POJO response type.

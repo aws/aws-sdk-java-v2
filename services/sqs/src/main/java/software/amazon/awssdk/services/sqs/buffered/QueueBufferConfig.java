@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.sqs.buffered;
 
-import software.amazon.awssdk.AmazonClientException;
+import software.amazon.awssdk.core.AmazonClientException;
 
 public class QueueBufferConfig {
 

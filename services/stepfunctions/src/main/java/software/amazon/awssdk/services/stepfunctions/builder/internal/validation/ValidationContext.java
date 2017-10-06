@@ -20,8 +20,8 @@ import com.jayway.jsonpath.JsonPath;
 import java.util.Collection;
 import java.util.Map;
 import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
-import software.amazon.awssdk.util.CollectionUtils;
-import software.amazon.awssdk.util.StringUtils;
+import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Contains context about the current validation scope and factory methods
@@ -86,7 +86,7 @@ final class ValidationContext {
      * @param propertyName  Name of property.
      */
     public void assertStringNotEmpty(String propertyValue, String propertyName) {
-        if (StringUtils.isNullOrEmpty(propertyValue)) {
+        if (StringUtils.isBlank(propertyValue)) {
             problemReporter.report(new Problem(this, String.format("%s is a required property.", propertyName)));
         }
     }

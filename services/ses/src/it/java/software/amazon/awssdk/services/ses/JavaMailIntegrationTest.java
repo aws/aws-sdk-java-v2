@@ -29,7 +29,7 @@ import javax.mail.internet.MimeMessage;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import software.amazon.awssdk.auth.AwsCredentials;
+import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.services.simpleemail.AwsJavaMailTransport;
 
 /**

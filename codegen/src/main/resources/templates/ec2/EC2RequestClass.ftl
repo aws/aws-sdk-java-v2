@@ -3,8 +3,8 @@ package ${metadata.fullModelPackageName};
 
 import javax.annotation.Generated;
 
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.Request;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.Request;
 import ${metadata.fullTransformPackageName}.${shape.shapeName}Marshaller;
 
 /**

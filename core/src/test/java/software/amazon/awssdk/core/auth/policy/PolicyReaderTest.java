@@ -328,7 +328,7 @@ public class PolicyReaderTest {
      *
      *      When a service is mentioned in the principal, we always try to
      *      figure out the service from
-     *      <code>software.amazon.awssdk.auth.policy.Principal.Services</code> enum. For
+     *      <code>software.amazon.awssdk.core.auth.policy.Principal.Services</code> enum. For
      *      new services introduced, if the enum is not updated, then the parsing
      *      fails.
      */

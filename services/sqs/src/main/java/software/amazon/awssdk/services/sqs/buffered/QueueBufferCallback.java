@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.services.sqs.buffered;
 
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.handlers.AsyncHandler;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.handlers.AsyncHandler;
 
 /**
  * This class combines the handler we are supposed to call after the request is completed and the

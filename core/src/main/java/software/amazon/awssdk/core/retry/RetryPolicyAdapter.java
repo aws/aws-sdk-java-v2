@@ -24,7 +24,7 @@ import software.amazon.awssdk.core.AmazonWebServiceRequest;
 import software.amazon.awssdk.core.retry.v2.RetryPolicyContext;
 
 /**
- * Adapts a legacy {@link RetryPolicy} to the new {@link software.amazon.awssdk.retry.v2.RetryPolicy}. This class is
+ * Adapts a legacy {@link RetryPolicy} to the new {@link software.amazon.awssdk.core.retry.v2.RetryPolicy}. This class is
  * intended for internal use by the SDK.
  */
 @SdkInternalApi
