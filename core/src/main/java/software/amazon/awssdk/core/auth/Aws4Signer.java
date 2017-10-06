@@ -197,9 +197,9 @@ public class Aws4Signer extends AbstractAwsSigner
         mutableRequest.header(SignerConstants.X_AMZ_DATE, signerParams.getFormattedSigningDateTime());
 
         String contentSha256 = calculateContentHash(signerParams, mutableRequest);
-        SdkHttpUtils.firstMatchingHeader(mutableRequest.headers(), SignerConstants.X_AMZ_CONTENT_SHA256)
-                    .filter(h -> h.equals("required"))
-                    .ifPresent(h -> mutableRequest.header(SignerConstants.X_AMZ_CONTENT_SHA256, contentSha256));
+        mutableRequest.firstMatchingHeader(SignerConstants.X_AMZ_CONTENT_SHA256)
+                      .filter(h -> h.equals("required"))
+                      .ifPresent(h -> mutableRequest.header(SignerConstants.X_AMZ_CONTENT_SHA256, contentSha256));
 
         final String canonicalRequest = createCanonicalRequest(mutableRequest, contentSha256);
 

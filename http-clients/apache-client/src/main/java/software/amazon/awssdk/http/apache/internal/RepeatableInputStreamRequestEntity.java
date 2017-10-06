@@ -24,7 +24,6 @@ import org.apache.http.entity.InputStreamEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Custom implementation of {@link org.apache.http.HttpEntity} that delegates to an
@@ -79,9 +78,9 @@ public class RepeatableInputStreamRequestEntity extends BasicHttpEntity {
          * buffer the entire stream contents into memory to determine
          * the content length.
          */
-        long contentLength = SdkHttpUtils.firstMatchingHeader(request.headers(), "Content-Length")
-                                         .map(this::parseContentLength)
-                                         .orElse(-1L);
+        long contentLength = request.firstMatchingHeader("Content-Length")
+                                    .map(this::parseContentLength)
+                                    .orElse(-1L);
 
         content = getContent(request);
         // TODO v2 MetricInputStreamEntity
@@ -89,7 +88,7 @@ public class RepeatableInputStreamRequestEntity extends BasicHttpEntity {
         setContent(content);
         setContentLength(contentLength);
 
-        SdkHttpUtils.firstMatchingHeader(request.headers(), "Content-Type").ifPresent(contentType -> {
+        request.firstMatchingHeader("Content-Type").ifPresent(contentType -> {
             inputStreamRequestEntity.setContentType(contentType);
             setContentType(contentType);
         });

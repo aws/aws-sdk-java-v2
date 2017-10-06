@@ -23,7 +23,6 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
@@ -46,7 +45,7 @@ public class PutObjectInterceptorTest {
 
         final SdkHttpFullRequest modifiedRequest = interceptor.modifyHttpRequest(ctx, new ExecutionAttributes());
 
-        assertThat(SdkHttpUtils.firstMatchingHeader(modifiedRequest.headers(), "Expect")).hasValue("100-continue");
+        assertThat(modifiedRequest.firstMatchingHeader("Expect")).hasValue("100-continue");
     }
 
     @Test
@@ -65,7 +64,7 @@ public class PutObjectInterceptorTest {
 
         final SdkHttpFullRequest modifiedRequest = interceptor.modifyHttpRequest(ctx, new ExecutionAttributes());
 
-        assertThat(SdkHttpUtils.firstMatchingHeader(modifiedRequest.headers(), "Expect")).isNotPresent();
+        assertThat(modifiedRequest.firstMatchingHeader("Expect")).isNotPresent();
     }
 
     private SdkHttpFullRequest sdkHttpFullRequest() {

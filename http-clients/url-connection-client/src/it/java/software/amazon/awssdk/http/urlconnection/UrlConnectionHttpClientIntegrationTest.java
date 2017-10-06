@@ -23,18 +23,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,7 +39,6 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.utils.IoUtils;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @RunWith(MockitoJUnitRunner.class)
 public final class UrlConnectionHttpClientIntegrationTest {
@@ -75,8 +67,8 @@ public final class UrlConnectionHttpClientIntegrationTest {
             .withHeader("Host", containing("localhost"))
             .withHeader("User-Agent", containing("hello")));
         assertThat(IoUtils.toString(response.content().orElse(null))).isEqualTo("hello");
-        assertThat(SdkHttpUtils.firstMatchingHeader(response.headers(), "Some-Header")).contains("With Value");
-        assertThat(SdkHttpUtils.firstMatchingHeader(response.headers(), "Some-Header")).contains("With Value");
+        assertThat(response.firstMatchingHeader("Some-Header")).contains("With Value");
+        assertThat(response.firstMatchingHeader("Some-Header")).contains("With Value");
     }
 
     @Test
