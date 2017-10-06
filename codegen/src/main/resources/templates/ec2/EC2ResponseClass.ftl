@@ -3,7 +3,7 @@ package ${metadata.fullModelPackageName};
 
 import javax.annotation.Generated;
 
-import software.amazon.awssdk.AmazonWebServiceResult;
+import software.amazon.awssdk.core.AmazonWebServiceResult;
 
 /**
  * <#if shape.documentation?has_content>${shape.documentation}</#if>
@@ -28,7 +28,7 @@ public class ${shape.shapeName} extends ${baseClassFqcn}
      */
     public String getDecodedOutput() {
         byte[] bytes = software.amazon.awssdk.utils.BinaryUtils.fromBase64(output);
-        return new String(bytes, software.amazon.awssdk.util.StringUtils.UTF8);
+        return new String(bytes, software.amazon.awssdk.core.util.StringUtils.UTF8);
     }
     </#if>
 

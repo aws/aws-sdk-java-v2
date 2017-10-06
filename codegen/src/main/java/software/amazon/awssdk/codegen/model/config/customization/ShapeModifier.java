@@ -79,7 +79,7 @@ public class ShapeModifier {
     }
 
     /**
-     * @return a FQCN to an implementation of {@link software.amazon.awssdk.runtime.transform.Unmarshaller} to
+     * @return a FQCN to an implementation of {@link software.amazon.awssdk.core.runtime.transform.Unmarshaller} to
      * be used to unmarshall this shape
      */
     public String getCustomUnmarshallerFqcn() {

@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
-import software.amazon.awssdk.Request;
+import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.transform.AssumeRoleRequestMarshaller;
 

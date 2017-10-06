@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.sts.auth;
 
 import software.amazon.awssdk.annotation.NotThreadSafe;
 import software.amazon.awssdk.annotation.ThreadSafe;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.services.sts.STSClient;
 import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.services.sts.model.GetFederationTokenRequest;

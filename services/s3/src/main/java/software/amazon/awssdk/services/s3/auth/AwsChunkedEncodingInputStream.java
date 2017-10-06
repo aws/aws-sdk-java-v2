@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.s3.auth;
 
-import static software.amazon.awssdk.util.StringUtils.UTF8;
+import static software.amazon.awssdk.core.util.StringUtils.UTF8;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,11 +27,11 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.auth.AbstractAwsSigner;
-import software.amazon.awssdk.auth.Aws4Signer;
-import software.amazon.awssdk.auth.SigningAlgorithm;
-import software.amazon.awssdk.runtime.io.SdkInputStream;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.auth.AbstractAwsSigner;
+import software.amazon.awssdk.core.auth.Aws4Signer;
+import software.amazon.awssdk.core.auth.SigningAlgorithm;
+import software.amazon.awssdk.core.runtime.io.SdkInputStream;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**

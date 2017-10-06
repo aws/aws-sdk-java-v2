@@ -3,11 +3,11 @@ package ${metadata.fullClientPackageName};
 
 import javax.annotation.Generated;
 
-import software.amazon.awssdk.LegacyClientConfigurationFactory;
+import software.amazon.awssdk.core.LegacyClientConfigurationFactory;
 import software.amazon.awssdk.annotation.NotThreadSafe;
-import software.amazon.awssdk.client.builder.AwsSyncClientBuilder;
-import software.amazon.awssdk.client.AwsSyncClientParams;
-import software.amazon.awssdk.handlers.ClasspathInterceptorChainFactory;
+import software.amazon.awssdk.core.client.builder.AwsSyncClientBuilder;
+import software.amazon.awssdk.core.client.AwsSyncClientParams;
+import software.amazon.awssdk.core.handlers.ClasspathInterceptorChainFactory;
 
 /**
  * Fluent builder for {@link ${metadata.fullClientPackageName + "." + metadata.syncInterface}}. Use of the
@@ -28,8 +28,8 @@ public final class ${metadata.syncClientBuilderClassName}
     }
 
     /**
-     * @return Default client using the {@link software.amazon.awssdk.auth.DefaultAwsCredentialsProviderChain}
-     * and {@link software.amazon.awssdk.regions.DefaultAwsRegionProviderChain} chain
+     * @return Default client using the {@link software.amazon.awssdk.core.auth.DefaultAwsCredentialsProviderChain}
+     * and {@link software.amazon.awssdk.core.regions.DefaultAwsRegionProviderChain} chain
      */
     public static ${metadata.syncInterface} defaultClient() {
         return standard().build();

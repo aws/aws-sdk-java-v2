@@ -13,16 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.policy;
+package software.amazon.awssdk.core.auth.policy;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.After;
 import org.junit.Test;
-import software.amazon.awssdk.auth.policy.Statement.Effect;
-import software.amazon.awssdk.auth.policy.conditions.DateCondition;
-import software.amazon.awssdk.auth.policy.conditions.DateCondition.DateComparisonType;
+import software.amazon.awssdk.core.auth.policy.Statement.Effect;
+import software.amazon.awssdk.core.auth.policy.conditions.DateCondition;
+import software.amazon.awssdk.core.auth.policy.conditions.DateCondition.DateComparisonType;
 import software.amazon.awssdk.services.sqs.IntegrationTestBase;
 import software.amazon.awssdk.services.sqs.auth.policy.resources.SqsQueueResource;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;

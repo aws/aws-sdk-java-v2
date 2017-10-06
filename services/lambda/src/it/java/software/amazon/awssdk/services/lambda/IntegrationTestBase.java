@@ -24,7 +24,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.iam.IAMClient;
 import software.amazon.awssdk.services.iam.model.AttachRolePolicyRequest;
 import software.amazon.awssdk.services.iam.model.CreatePolicyRequest;

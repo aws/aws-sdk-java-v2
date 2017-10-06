@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.sqs.auth.policy.resources;
 
-import software.amazon.awssdk.auth.policy.Resource;
+import software.amazon.awssdk.core.auth.policy.Resource;
 
 /**
  * AWS access control policy resource that identifies an Amazon SQS queue.

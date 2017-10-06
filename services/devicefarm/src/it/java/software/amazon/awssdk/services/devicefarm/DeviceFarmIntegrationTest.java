@@ -19,8 +19,8 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.devicefarm.model.CreateProjectRequest;
 import software.amazon.awssdk.services.devicefarm.model.CreateProjectResponse;
 import software.amazon.awssdk.services.devicefarm.model.ListDevicePoolsRequest;

@@ -4,10 +4,10 @@ package ${metadata.fullAuthPolicyPackageName};
 
 import javax.annotation.Generated;
 <#if hasPlacement>
-import software.amazon.awssdk.ImmutableRequest;
-import software.amazon.awssdk.SignableRequest;
+import software.amazon.awssdk.core.ImmutableRequest;
+import software.amazon.awssdk.core.SignableRequest;
 </#if>
-import software.amazon.awssdk.auth.RequestSigner;
+import software.amazon.awssdk.core.auth.RequestSigner;
 import ${metadata.fullClientPackageName}.${metadata.syncInterface};
 import ${metadata.fullClientPackageName}.${metadata.syncInterface}Builder;
 

@@ -33,17 +33,17 @@ import javax.mail.URLName;
 import javax.mail.event.TransportEvent;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.auth.AwsCredentials;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.auth.AwsCredentials;
+import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.util.AwsHostNameUtils;
+import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.services.ses.SESClient;
 import software.amazon.awssdk.services.ses.SESClientBuilder;
 import software.amazon.awssdk.services.ses.model.RawMessage;
 import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
 import software.amazon.awssdk.services.ses.model.SendRawEmailResponse;
-import software.amazon.awssdk.util.AwsHostNameUtils;
-import software.amazon.awssdk.util.VersionInfo;
 
 /**
  * A transport implementation using Amazon Web Service's E-mail Service. For

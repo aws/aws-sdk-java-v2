@@ -429,7 +429,7 @@ public class MemberModel extends DocumentationModel {
      * Currently used only for JSON services.
      *
      * @return Marshalling type to use when creating a {@link MarshallingInfo}. Must be a field of {@link
-     * software.amazon.awssdk.protocol.MarshallingType}.
+     * software.amazon.awssdk.core.protocol.MarshallingType}.
      */
     public String getMarshallingType() {
         if (isList()) {

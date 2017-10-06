@@ -24,15 +24,15 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.waiters.WaiterParameters;
 import software.amazon.awssdk.services.cloudformation.model.CreateStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.DeleteStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRequest;
 import software.amazon.awssdk.services.cloudformation.model.Tag;
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackRequest;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
-import software.amazon.awssdk.waiters.WaiterParameters;
 
 /**
  * See https://github.com/aws/aws-sdk-java/issues/721. Cloudformation treats empty lists as removing

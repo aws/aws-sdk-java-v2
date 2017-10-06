@@ -18,10 +18,10 @@ package software.amazon.awssdk.services.ec2.transform;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.interceptor.Context;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.ec2.model.DescribeSpotFleetRequestHistoryRequest;
 import software.amazon.awssdk.services.ec2.model.RequestSpotFleetRequest;
 

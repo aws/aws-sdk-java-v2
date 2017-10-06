@@ -23,8 +23,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import software.amazon.awssdk.runtime.io.SdkDigestInputStream;
-import software.amazon.awssdk.runtime.io.SdkFilterInputStream;
+import software.amazon.awssdk.core.runtime.io.SdkDigestInputStream;
+import software.amazon.awssdk.core.runtime.io.SdkFilterInputStream;
 import software.amazon.awssdk.services.glacier.TreeHashGenerator;
 
 /**

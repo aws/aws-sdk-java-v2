@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.sts.auth;
 import java.util.Date;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.annotation.ThreadSafe;
-import software.amazon.awssdk.auth.AwsSessionCredentials;
+import software.amazon.awssdk.core.auth.AwsSessionCredentials;
 import software.amazon.awssdk.services.sts.model.Credentials;
 
 /**

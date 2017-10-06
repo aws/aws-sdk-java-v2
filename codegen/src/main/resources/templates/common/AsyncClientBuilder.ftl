@@ -3,11 +3,11 @@ package ${metadata.fullClientPackageName};
 
 import javax.annotation.Generated;
 
-import software.amazon.awssdk.LegacyClientConfigurationFactory;
+import software.amazon.awssdk.core.LegacyClientConfigurationFactory;
 import software.amazon.awssdk.annotation.NotThreadSafe;
-import software.amazon.awssdk.client.builder.AwsAsyncClientBuilder;
-import software.amazon.awssdk.client.AwsAsyncClientParams;
-import software.amazon.awssdk.handlers.ClasspathInterceptorChainFactory;
+import software.amazon.awssdk.core.client.builder.AwsAsyncClientBuilder;
+import software.amazon.awssdk.core.client.AwsAsyncClientParams;
+import software.amazon.awssdk.core.handlers.ClasspathInterceptorChainFactory;
 
 /**
  * Fluent builder for {@link ${metadata.fullClientPackageName + "." + metadata.asyncInterface}}. Use of the
@@ -28,8 +28,8 @@ public final class ${metadata.asyncClientBuilderClassName}
     }
 
     /**
-     * @return Default async client using the {@link software.amazon.awssdk.auth.DefaultAwsCredentialsProviderChain}
-     * and {@link software.amazon.awssdk.regions.DefaultAwsRegionProviderChain} chain
+     * @return Default async client using the {@link software.amazon.awssdk.core.auth.DefaultAwsCredentialsProviderChain}
+     * and {@link software.amazon.awssdk.core.regions.DefaultAwsRegionProviderChain} chain
      */
     public static ${metadata.asyncInterface} defaultClient() {
         return standard().build();

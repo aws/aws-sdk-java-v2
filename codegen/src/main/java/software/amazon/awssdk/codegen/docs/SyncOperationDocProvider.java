@@ -124,7 +124,7 @@ class SyncOperationDocProvider extends OperationDocProvider {
     }
 
     /**
-     * Provider for streaming output simple methods that return an {@link software.amazon.awssdk.sync.ResponseInputStream}
+     * Provider for streaming output simple methods that return an {@link software.amazon.awssdk.core.sync.ResponseInputStream}
      * containing response content and unmarshalled POJO. Only applicable to operations that have a streaming member in
      * the output shape.
      */

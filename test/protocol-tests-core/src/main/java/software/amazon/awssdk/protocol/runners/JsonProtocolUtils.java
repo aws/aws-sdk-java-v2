@@ -17,8 +17,9 @@ package software.amazon.awssdk.protocol.runners;
 
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
-import software.amazon.awssdk.protocol.json.JsonClientMetadata;
-import software.amazon.awssdk.protocol.json.SdkJsonProtocolFactory;
+import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
+import software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory;
+
 
 public class JsonProtocolUtils {
 

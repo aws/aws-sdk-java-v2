@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling;
 
+import software.amazon.awssdk.core.util.ValidationUtils;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
-import software.amazon.awssdk.util.ValidationUtils;
 
 
 /**

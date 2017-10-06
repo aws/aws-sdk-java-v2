@@ -10,10 +10,10 @@ import javax.xml.stream.events.XMLEvent;
 import javax.annotation.Generated;
 
 import ${metadata.fullModelPackageName}.*;
-import software.amazon.awssdk.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.runtime.transform.MapEntry;
-import software.amazon.awssdk.runtime.transform.StaxUnmarshallerContext;
-import software.amazon.awssdk.runtime.transform.SimpleTypeStaxUnmarshallers.*;
+import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.core.runtime.transform.MapEntry;
+import software.amazon.awssdk.core.runtime.transform.StaxUnmarshallerContext;
+import software.amazon.awssdk.core.runtime.transform.SimpleTypeStaxUnmarshallers.*;
 
 
 /**
@@ -73,7 +73,7 @@ public class ${shape.shapeName}Unmarshaller implements Unmarshaller<${shape.shap
             context.setCurrentHeader("${memberModel.http.unmarshallLocationName}");
             ${shape.variable.variableName}.${memberModel.fluentSetterMethodName}(
             <#if memberModel.variable.simpleType == "Instant">
-                software.amazon.awssdk.util.DateUtils.parseRfc1123Date(context.readText()));
+                software.amazon.awssdk.core.util.DateUtils.parseRfc1123Date(context.readText()));
             <#else>
                 ${memberModel.variable.simpleType}Unmarshaller.getInstance().unmarshall(context));
             </#if>

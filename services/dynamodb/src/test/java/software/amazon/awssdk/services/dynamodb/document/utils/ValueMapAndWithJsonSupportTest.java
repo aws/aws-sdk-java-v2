@@ -22,7 +22,7 @@ import static org.junit.Assert.assertThat;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonClientException;
+import software.amazon.awssdk.core.AmazonClientException;
 
 
 public class ValueMapAndWithJsonSupportTest {

@@ -22,7 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import software.amazon.awssdk.event.ProgressListener;
+import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.services.dynamodb.document.TableKeysAndAttributes;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;

@@ -20,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
-import software.amazon.awssdk.SdkGlobalTime;
+import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.services.sqs.model.ListQueuesRequest;
 
 /**

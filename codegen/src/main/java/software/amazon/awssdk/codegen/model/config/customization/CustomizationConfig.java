@@ -71,7 +71,7 @@ public class CustomizationConfig {
      *
      * Example: for backwards compatibility, this is set to "AmazonDynamoDBv2" for DynamoDB client.
      *
-     * @see {@link software.amazon.awssdk.Request#getServiceName()}
+     * @see {@link software.amazon.awssdk.core.Request#getServiceName()}
      */
     private String customServiceNameForRequest;
     /**

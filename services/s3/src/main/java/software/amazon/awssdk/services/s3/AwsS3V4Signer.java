@@ -15,16 +15,16 @@
 
 package software.amazon.awssdk.services.s3;
 
-import static software.amazon.awssdk.auth.internal.SignerConstants.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.core.auth.internal.SignerConstants.X_AMZ_CONTENT_SHA256;
 import static software.amazon.awssdk.utils.Validate.validState;
 
 import java.io.IOException;
 import java.io.InputStream;
-import software.amazon.awssdk.ResetException;
-import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.auth.Aws4Signer;
-import software.amazon.awssdk.auth.internal.Aws4SignerRequestParams;
+import software.amazon.awssdk.core.ResetException;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.auth.Aws4Signer;
+import software.amazon.awssdk.core.auth.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.services.s3.auth.AwsChunkedEncodingInputStream;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;

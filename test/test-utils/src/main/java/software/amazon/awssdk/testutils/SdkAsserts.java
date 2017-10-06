@@ -143,10 +143,10 @@ public class SdkAsserts {
         final long fileLen = actual.length();
         Assert.assertTrue("expectedFileLen=" + expectedFileLen + ", fileLen=" + fileLen + ", expectedFile=" + expected
                           + ", file=" + actual, expectedFileLen == fileLen);
-        try {
+        try (InputStream expectedIs = new FileInputStream(expected); InputStream actualIs = new FileInputStream(actual)) {
             assertStreamEqualsStream("expected file: " + expected + " vs. actual file: " + actual,
-                                     new FileInputStream(expected), new FileInputStream(actual));
-        } catch (Exception e) {
+                                     expectedIs, actualIs);
+        } catch (IOException e) {
             fail("Unable to compare files: " + e.getMessage());
         }
     }

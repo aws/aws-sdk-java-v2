@@ -18,8 +18,8 @@ package software.amazon.awssdk.services.emr.util;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.services.emr.model.HadoopJarStepConfig;
-import software.amazon.awssdk.util.StringUtils;
 
 /**
  * This class provides helper methods for creating common Elastic MapReduce step

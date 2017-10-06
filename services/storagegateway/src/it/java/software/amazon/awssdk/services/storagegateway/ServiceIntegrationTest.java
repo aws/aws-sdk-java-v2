@@ -21,8 +21,8 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.storagegateway.model.DeleteGatewayRequest;
 import software.amazon.awssdk.services.storagegateway.model.InvalidGatewayRequestException;
 import software.amazon.awssdk.services.storagegateway.model.ListGatewaysRequest;

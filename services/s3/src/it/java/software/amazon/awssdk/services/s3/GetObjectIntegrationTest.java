@@ -27,14 +27,14 @@ import java.nio.file.Path;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.sync.ResponseInputStream;
+import software.amazon.awssdk.core.sync.StreamingResponseHandler;
 import software.amazon.awssdk.services.s3.GetObjectAsyncIntegrationTest.AssertingExecutionInterceptor;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.sync.ResponseInputStream;
-import software.amazon.awssdk.sync.StreamingResponseHandler;
 import software.amazon.awssdk.testutils.RandomTempFile;
 
 public class GetObjectIntegrationTest extends S3IntegrationTestBase {

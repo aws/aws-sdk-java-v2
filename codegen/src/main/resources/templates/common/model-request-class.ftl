@@ -3,9 +3,9 @@ package ${metadata.fullModelPackageName};
 
 import javax.annotation.Generated;
 
-import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
 <#if shape.requestSignerAware>
-import software.amazon.awssdk.auth.RequestSigner;
+import software.amazon.awssdk.core.auth.RequestSigner;
 import software.amazon.awssdk.opensdk.protect.auth.RequestSignerAware;
 </#if>
 

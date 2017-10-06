@@ -17,8 +17,8 @@ package software.amazon.awssdk.services.ec2;
 
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.auth.AwsCredentials;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.core.auth.AwsCredentials;
+import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.services.ec2.model.AssociateDhcpOptionsRequest;
 import software.amazon.awssdk.services.ec2.model.CreateCustomerGatewayRequest;
 import software.amazon.awssdk.services.ec2.model.CreateCustomerGatewayResponse;

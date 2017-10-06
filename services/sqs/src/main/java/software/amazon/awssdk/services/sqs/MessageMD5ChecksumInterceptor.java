@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.sqs;
 
-import static software.amazon.awssdk.util.StringUtils.UTF8;
+import static software.amazon.awssdk.core.util.StringUtils.UTF8;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -27,10 +27,11 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.interceptor.Context;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.util.Md5Utils;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
@@ -41,7 +42,6 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
-import software.amazon.awssdk.util.Md5Utils;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**

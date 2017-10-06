@@ -70,7 +70,7 @@ public class SigningStage implements RequestToRequestPipeline {
     }
 
     /**
-     * Obtain a signer from the {@link software.amazon.awssdk.runtime.auth.SignerProvider}.
+     * Obtain a signer from the {@link software.amazon.awssdk.core.runtime.auth.SignerProvider}.
      */
     private Signer newSigner(final SdkHttpFullRequest request, RequestExecutionContext context) {
         final SignerProviderContext.Builder signerProviderContext = SignerProviderContext

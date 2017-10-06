@@ -2,18 +2,18 @@ ${fileHeader}
 package ${metadata.fullClientPackageName};
 
 import software.amazon.awssdk.annotation.NotThreadSafe;
-import software.amazon.awssdk.client.AwsSyncClientParams;
+import software.amazon.awssdk.core.client.AwsSyncClientParams;
 import software.amazon.awssdk.opensdk.protect.client.SdkSyncClientBuilder;
 import software.amazon.awssdk.opensdk.internal.config.ApiGatewayLegacyClientConfigurationFactory;
 <#if metadata.requiresIamSigners>
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.Signer;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.auth.Signer;
 </#if>
 <#list customAuthorizers?values as customSigner>
 import ${metadata.fullAuthPolicyPackageName}.${customSigner.interfaceName};
 </#list>
-import software.amazon.awssdk.util.RuntimeHttpUtils;
-import software.amazon.awssdk.Protocol;
+import software.amazon.awssdk.core.util.RuntimeHttpUtils;
+import software.amazon.awssdk.core.Protocol;
 
 import java.net.URI;
 import javax.annotation.Generated;

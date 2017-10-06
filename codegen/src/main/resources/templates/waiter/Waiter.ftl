@@ -6,7 +6,7 @@ import javax.annotation.Generated;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import ${metadata.fullClientPackageName}.${metadata.syncInterface};
 import ${metadata.fullModelPackageName}.*;
-import software.amazon.awssdk.waiters.*;
+import software.amazon.awssdk.core.waiters.*;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

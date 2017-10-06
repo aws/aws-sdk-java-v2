@@ -122,7 +122,7 @@ import software.amazon.awssdk.annotation.SdkInternalApi;
  * <p>#ThreadSafe#</p>
  * @see java.lang.String
  */
-@ReviewBeforeRelease("Remove the methods we don't end up using (and we've removed software.amazon.awssdk.util.StringUtils).")
+@ReviewBeforeRelease("Remove the methods we don't end up using (and we've removed software.amazon.awssdk.core.util.StringUtils).")
 @SdkInternalApi
 public class StringUtils {
     // Performance testing notes (JDK 1.4, Jul03, scolebourne)

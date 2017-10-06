@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.services.sqs.buffered;
 
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.AmazonServiceException.ErrorType;
-import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonServiceException.ErrorType;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
 import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;

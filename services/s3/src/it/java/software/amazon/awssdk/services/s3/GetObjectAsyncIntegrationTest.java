@@ -29,18 +29,18 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
-import software.amazon.awssdk.SdkResponse;
-import software.amazon.awssdk.async.AsyncResponseHandler;
-import software.amazon.awssdk.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.async.AsyncResponseHandler;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.util.ImmutableMapParameter;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
-import software.amazon.awssdk.interceptor.Context;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
-import software.amazon.awssdk.util.ImmutableMapParameter;
 
 public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
 

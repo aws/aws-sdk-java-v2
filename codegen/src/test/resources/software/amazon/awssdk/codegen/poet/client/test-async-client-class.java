@@ -260,7 +260,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         clientHandler.close();
     }
 
-    private software.amazon.awssdk.protocol.json.SdkJsonProtocolFactory init() {
+    private software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory init() {
         return new SdkJsonProtocolFactory(new JsonClientMetadata()
                                                   .withProtocolVersion("1.1")
                                                   .withSupportsCbor(false)

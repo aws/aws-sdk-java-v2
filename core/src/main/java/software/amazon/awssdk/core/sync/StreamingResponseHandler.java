@@ -36,10 +36,10 @@ import software.amazon.awssdk.utils.IoUtils;
  * <h3>Retries</h3>
  * Exceptions thrown from the handler's {@link #apply(Object, AbortableInputStream)} method are not automatically retried by the
  * RetryPolicy of the client. Since we can't know if a handler implementation is idempotent or safe to retry, if you wish to
- * retry on the event of a failure you must throw a {@link software.amazon.awssdk.RetryableException} from the handler. This
+ * retry on the event of a failure you must throw a {@link software.amazon.awssdk.core.RetryableException} from the handler. This
  * exception can wrap the original exception that was thrown. Note that throwing a {@link
- * software.amazon.awssdk.RetryableException} from the handler does not guarantee the request will be retried, retries are still
- * limited by the max retry attempts and retry throttling feature of the {@link software.amazon.awssdk.retry.v2.RetryPolicy}.
+ * software.amazon.awssdk.core.RetryableException} from the handler does not guarantee the request will be retried, retries are still
+ * limited by the max retry attempts and retry throttling feature of the {@link software.amazon.awssdk.core.retry.v2.RetryPolicy}.
  * </p>
  *
  * <p>
@@ -118,7 +118,7 @@ public interface StreamingResponseHandler<ResponseT, ReturnT> {
      * <p>
      * Note that the returned stream is not subject to the retry policy or timeout settings (except for socket timeout)
      * of the client. No retries will be performed in the event of a socket read failure or connection reset. Similarly,
-     * the total execution timeout (see {@link software.amazon.awssdk.config.ClientOverrideConfiguration#totalExecutionTimeout})
+     * the total execution timeout (see {@link software.amazon.awssdk.core.config.ClientOverrideConfiguration#totalExecutionTimeout})
      * will stop once the input stream has been returned by the SDK.
      * </p>
      *

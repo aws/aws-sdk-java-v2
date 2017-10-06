@@ -25,7 +25,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.waiters.WaiterHandler;
+import software.amazon.awssdk.core.waiters.WaiterParameters;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
@@ -36,8 +38,6 @@ import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
-import software.amazon.awssdk.waiters.WaiterHandler;
-import software.amazon.awssdk.waiters.WaiterParameters;
 
 public class DynamoDbWaiterIntegrationTest extends AwsIntegrationTestBase {
 

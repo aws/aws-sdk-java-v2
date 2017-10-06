@@ -69,7 +69,7 @@ public final class EnumClass implements ClassSpec {
 
     @Override
     public Iterable<StaticImport> staticImports() {
-        return singletonList(staticMethodImport(StringUtils.class, "isNullOrEmpty"));
+        return singletonList(staticMethodImport(StringUtils.class, "isBlank"));
     }
 
     private MethodSpec createConstructor() {
@@ -88,7 +88,7 @@ public final class EnumClass implements ClassSpec {
                                      "@param $N real value\n" +
                                      "@return $T corresponding to the value\n", VALUE, className)
                          .addParameter(String.class, VALUE)
-                         .beginControlFlow("if ($T.isNullOrEmpty($N))", StringUtils.class, VALUE)
+                         .beginControlFlow("if ($T.isBlank($N))", StringUtils.class, VALUE)
                          .addStatement("throw new $T($S)", IllegalArgumentException.class, "Value cannot be null or empty!")
                          .endControlFlow()
                          .addStatement("return $1T.of($2T.values())\n" +

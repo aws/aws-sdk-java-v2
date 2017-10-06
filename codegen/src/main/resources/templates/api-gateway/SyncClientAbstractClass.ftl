@@ -3,7 +3,7 @@ package ${metadata.fullClientPackageName};
 
 import javax.annotation.Generated;
 import ${metadata.fullModelPackageName}.*;
-import software.amazon.awssdk.*;
+import software.amazon.awssdk.core.*;
 import software.amazon.awssdk.opensdk.*;
 import software.amazon.awssdk.opensdk.model.*;
 

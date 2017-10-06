@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.ec2.util;
 
-import static software.amazon.awssdk.util.StringUtils.UTF8;
+import static software.amazon.awssdk.core.util.StringUtils.UTF8;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;

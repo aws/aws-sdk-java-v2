@@ -21,7 +21,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.services.dynamodb.document.spec.DeleteItemSpec;
 import software.amazon.awssdk.services.dynamodb.document.utils.ValueMap;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;

@@ -16,10 +16,10 @@
 package software.amazon.awssdk.services.route53.internal;
 
 import java.util.stream.Collectors;
-import software.amazon.awssdk.SdkResponse;
-import software.amazon.awssdk.interceptor.Context;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.route53.model.AliasTarget;
 import software.amazon.awssdk.services.route53.model.ChangeInfo;
 import software.amazon.awssdk.services.route53.model.ChangeResourceRecordSetsResponse;

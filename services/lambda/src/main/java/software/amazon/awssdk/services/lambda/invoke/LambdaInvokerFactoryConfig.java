@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.lambda.invoke;
 
 import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.util.ValidationUtils;
+import software.amazon.awssdk.core.util.ValidationUtils;
 
 /**
  * Configuration for {@link LambdaInvokerFactory} to override default behavior.

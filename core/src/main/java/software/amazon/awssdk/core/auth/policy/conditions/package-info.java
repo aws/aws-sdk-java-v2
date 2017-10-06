@@ -17,12 +17,12 @@
  * Collection of AWS access control policy conditions.  The primary access policy
  * conditions are:
  * <ul>
- *    <li> {@link software.amazon.awssdk.auth.policy.conditions.ArnCondition}
- *    <li> {@link software.amazon.awssdk.auth.policy.conditions.BooleanCondition}
- *    <li> {@link software.amazon.awssdk.auth.policy.conditions.DateCondition}
- *    <li> {@link software.amazon.awssdk.auth.policy.conditions.IpAddressCondition}
- *    <li> {@link software.amazon.awssdk.auth.policy.conditions.NumericCondition}
- *    <li> {@link software.amazon.awssdk.auth.policy.conditions.StringCondition}
+ *    <li> {@link software.amazon.awssdk.core.auth.policy.conditions.ArnCondition}
+ *    <li> {@link software.amazon.awssdk.core.auth.policy.conditions.BooleanCondition}
+ *    <li> {@link software.amazon.awssdk.core.auth.policy.conditions.DateCondition}
+ *    <li> {@link software.amazon.awssdk.core.auth.policy.conditions.IpAddressCondition}
+ *    <li> {@link software.amazon.awssdk.core.auth.policy.conditions.NumericCondition}
+ *    <li> {@link software.amazon.awssdk.core.auth.policy.conditions.StringCondition}
  * </ul>
  *
  * <p>

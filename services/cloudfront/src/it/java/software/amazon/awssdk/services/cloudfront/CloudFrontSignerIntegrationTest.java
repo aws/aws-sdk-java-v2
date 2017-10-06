@@ -11,10 +11,10 @@ import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Date;
 import org.junit.Test;
+import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.services.cloudfront.CloudFrontCookieSigner.CookiesForCannedPolicy;
 import software.amazon.awssdk.services.cloudfront.util.SignerUtils;
 import software.amazon.awssdk.services.cloudfront.util.SignerUtils.Protocol;
-import software.amazon.awssdk.util.StringUtils;
 import software.amazon.awssdk.utils.Base64Utils;
 
 public class CloudFrontSignerIntegrationTest {

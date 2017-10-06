@@ -36,9 +36,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import software.amazon.awssdk.core.util.json.JacksonUtils;
 import software.amazon.awssdk.services.dynamodb.document.internal.InternalUtils;
 import software.amazon.awssdk.services.dynamodb.document.internal.ItemValueConformer;
-import software.amazon.awssdk.util.json.JacksonUtils;
 import software.amazon.awssdk.utils.Base64Utils;
 
 /**

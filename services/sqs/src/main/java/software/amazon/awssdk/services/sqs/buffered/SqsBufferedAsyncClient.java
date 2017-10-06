@@ -17,7 +17,8 @@ package software.amazon.awssdk.services.sqs.buffered;
 
 import java.util.LinkedHashMap;
 import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.AmazonClientException;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.services.sqs.SQSAsyncClient;
 import software.amazon.awssdk.services.sqs.model.AddPermissionRequest;
 import software.amazon.awssdk.services.sqs.model.AddPermissionResponse;
@@ -53,7 +54,6 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesResponse;
-import software.amazon.awssdk.util.VersionInfo;
 
 /**
  * AmazonSQSBufferedAsyncClient provides client-side batching of outgoing sendMessage, deleteMessage
@@ -152,8 +152,8 @@ public class SqsBufferedAsyncClient implements SQSAsyncClient {
 
     @Override
     public CompletableFuture<SetQueueAttributesResponse> setQueueAttributes(SetQueueAttributesRequest setQueueAttributesRequest)
-            throws 
-                   AmazonClientException {
+            throws
+            AmazonClientException {
         ResultConverter.appendUserAgent(setQueueAttributesRequest, USER_AGENT);
         return realSqs.setQueueAttributes(setQueueAttributesRequest);
     }

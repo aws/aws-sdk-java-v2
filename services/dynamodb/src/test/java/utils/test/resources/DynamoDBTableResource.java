@@ -16,7 +16,7 @@
 package utils.test.resources;
 
 import java.util.List;
-import software.amazon.awssdk.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;

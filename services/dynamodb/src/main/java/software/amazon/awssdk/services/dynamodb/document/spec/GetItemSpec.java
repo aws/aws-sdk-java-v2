@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.event.ProgressListener;
+import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.services.dynamodb.document.KeyAttribute;
 import software.amazon.awssdk.services.dynamodb.document.PrimaryKey;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;

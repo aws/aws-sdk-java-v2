@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.document.spec;
 
-import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
 
 
 /**

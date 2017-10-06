@@ -16,11 +16,11 @@
 package software.amazon.awssdk.services.machinelearning.internal;
 
 import java.util.UUID;
-import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.interceptor.Context;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.machinelearning.model.CreateBatchPredictionRequest;
 import software.amazon.awssdk.services.machinelearning.model.CreateDataSourceFromRDSRequest;
 import software.amazon.awssdk.services.machinelearning.model.CreateDataSourceFromRedshiftRequest;

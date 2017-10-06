@@ -19,7 +19,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import java.io.IOException;
-import software.amazon.awssdk.http.HttpMethodName;
+import software.amazon.awssdk.core.http.HttpMethodName;
 
 public class HttpMethodNameDeserializer extends JsonDeserializer<HttpMethodName> {
 

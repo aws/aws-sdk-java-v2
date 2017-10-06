@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.cloudfront.util;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static software.amazon.awssdk.util.StringUtils.UTF8;
+import static software.amazon.awssdk.core.util.StringUtils.UTF8;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,10 +30,10 @@ import java.security.Signature;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Date;
-import software.amazon.awssdk.AmazonClientException;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.services.cloudfront.auth.Pem;
 import software.amazon.awssdk.services.cloudfront.auth.Rsa;
-import software.amazon.awssdk.util.StringUtils;
 import software.amazon.awssdk.utils.Base64Utils;
 import software.amazon.awssdk.utils.IoUtils;
 

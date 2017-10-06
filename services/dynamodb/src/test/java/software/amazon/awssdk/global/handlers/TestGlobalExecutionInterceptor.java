@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.global.handlers;
 
-import software.amazon.awssdk.interceptor.Context;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 
 public class TestGlobalExecutionInterceptor implements ExecutionInterceptor {
 

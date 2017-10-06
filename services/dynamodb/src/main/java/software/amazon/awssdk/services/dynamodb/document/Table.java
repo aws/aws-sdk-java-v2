@@ -19,6 +19,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.core.waiters.FixedDelayStrategy;
+import software.amazon.awssdk.core.waiters.MaxAttemptsRetryStrategy;
+import software.amazon.awssdk.core.waiters.PollingStrategy;
+import software.amazon.awssdk.core.waiters.Waiter;
+import software.amazon.awssdk.core.waiters.WaiterParameters;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.document.api.DeleteItemApi;
 import software.amazon.awssdk.services.dynamodb.document.api.GetItemApi;
@@ -56,11 +61,6 @@ import software.amazon.awssdk.services.dynamodb.model.TableDescription;
 import software.amazon.awssdk.services.dynamodb.model.TableStatus;
 import software.amazon.awssdk.services.dynamodb.model.UpdateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.UpdateTableResponse;
-import software.amazon.awssdk.waiters.FixedDelayStrategy;
-import software.amazon.awssdk.waiters.MaxAttemptsRetryStrategy;
-import software.amazon.awssdk.waiters.PollingStrategy;
-import software.amazon.awssdk.waiters.Waiter;
-import software.amazon.awssdk.waiters.WaiterParameters;
 
 /**
  * A DynamoDB table. Instance of this class is typically obtained via

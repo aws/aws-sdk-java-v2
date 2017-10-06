@@ -21,14 +21,14 @@ import java.util.UUID;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.waiters.WaiterParameters;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbTableMapper;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.pojos.GsiWithAlwaysUpdateTimestamp;
-import software.amazon.awssdk.waiters.WaiterParameters;
 
 public class GsiAlwaysUpdateIntegrationTest extends DynamoDBMapperIntegrationTestBase {
 

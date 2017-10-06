@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.emr.util;
 
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.services.emr.model.HadoopJarStepConfig;
 
 /**

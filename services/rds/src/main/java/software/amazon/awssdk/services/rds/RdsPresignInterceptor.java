@@ -17,23 +17,24 @@ package software.amazon.awssdk.services.rds;
 
 import java.net.URI;
 import java.util.Date;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.Protocol;
-import software.amazon.awssdk.Request;
-import software.amazon.awssdk.SdkRequest;
-import software.amazon.awssdk.auth.Aws4Signer;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.Protocol;
+import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.auth.Aws4Signer;
+import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.runtime.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.core.util.AwsHostNameUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.interceptor.Context;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.interceptor.InterceptorContext;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.runtime.endpoint.DefaultServiceEndpointBuilder;
-import software.amazon.awssdk.util.AwsHostNameUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
+
 
 /**
  * Abstract pre-sign handler that follows the pre-signing scheme outlined in the 'RDS Presigned URL for Cross-Region Copying'

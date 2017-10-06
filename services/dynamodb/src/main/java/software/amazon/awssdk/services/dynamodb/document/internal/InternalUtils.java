@@ -29,7 +29,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.services.dynamodb.document.AttributeUpdate;
 import software.amazon.awssdk.services.dynamodb.document.Expected;
 import software.amazon.awssdk.services.dynamodb.document.IncompatibleTypeException;
@@ -41,7 +42,6 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValueUpdate;
 import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
 import software.amazon.awssdk.services.dynamodb.model.Condition;
 import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
-import software.amazon.awssdk.util.VersionInfo;
 
 /**
  * Internal utilities.  Not meant for general use.  May change without notice.

@@ -3,8 +3,8 @@ package ${metadata.fullModelPackageName};
 
 import javax.annotation.Generated;
 <#if shouldEmitStructuredPojoInterface>
-import software.amazon.awssdk.protocol.StructuredPojo;
-import software.amazon.awssdk.protocol.ProtocolMarshaller;
+import software.amazon.awssdk.core.protocol.StructuredPojo;
+import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 </#if>
 
 <#if shape.documentation?has_content || awsDocsUrl?has_content>

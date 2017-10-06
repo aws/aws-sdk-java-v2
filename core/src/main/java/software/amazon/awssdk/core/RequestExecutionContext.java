@@ -78,7 +78,7 @@ public final class RequestExecutionContext {
     }
 
     /**
-     * @return SignerProvider used to obtain an instance of a {@link software.amazon.awssdk.auth.Signer}.
+     * @return SignerProvider used to obtain an instance of a {@link software.amazon.awssdk.core.auth.Signer}.
      */
     public SignerProvider signerProvider() {
         return executionContext.signerProvider();

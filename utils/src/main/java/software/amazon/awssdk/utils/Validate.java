@@ -64,7 +64,7 @@ import software.amazon.awssdk.annotation.SdkInternalApi;
  * <p>#ThreadSafe#</p>
  * @see java.lang.String#format(String, Object...)
  */
-@ReviewBeforeRelease("Remove the methods we don't end up using (and we've removed software.amazon.awssdk.util.ValidationUtils).")
+@ReviewBeforeRelease("Remove the methods we don't end up using (and software.amazon.awssdk.core.util.ValidationUtils).")
 @SdkInternalApi
 public class Validate {
     private static final String DEFAULT_IS_NULL_EX_MESSAGE = "The validated object is null";

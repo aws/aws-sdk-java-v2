@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.policy;
+package software.amazon.awssdk.core.auth.policy;
 
 import org.junit.After;
 import org.junit.Test;
-import software.amazon.awssdk.auth.policy.Statement.Effect;
-import software.amazon.awssdk.auth.policy.conditions.SnsConditionFactory;
+import software.amazon.awssdk.core.auth.policy.Statement.Effect;
+import software.amazon.awssdk.core.auth.policy.conditions.SnsConditionFactory;
 import software.amazon.awssdk.services.sns.IntegrationTestBase;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.DeleteTopicRequest;

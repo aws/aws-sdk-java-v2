@@ -27,7 +27,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
- * Report the Content-Length of the request input stream to the {@link software.amazon.awssdk.event.ProgressListener}.
+ * Report the Content-Length of the request input stream to the {@link software.amazon.awssdk.core.event.ProgressListener}.
  */
 public class ReportRequestContentLengthStage implements RequestToRequestPipeline {
 
