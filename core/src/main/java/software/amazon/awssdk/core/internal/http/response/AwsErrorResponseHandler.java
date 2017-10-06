@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http.response;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.SdkBaseException;
 import software.amazon.awssdk.core.http.HttpResponse;

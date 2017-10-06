@@ -20,8 +20,8 @@ import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;

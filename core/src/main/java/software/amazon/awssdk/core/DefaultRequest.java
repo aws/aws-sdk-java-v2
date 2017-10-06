@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.annotation.NotThreadSafe;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.core.event.ProgressInputStream;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.util.json.JacksonUtils;

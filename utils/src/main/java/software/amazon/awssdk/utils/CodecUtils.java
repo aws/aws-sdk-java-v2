@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.utils;
 
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Codec internal utilities

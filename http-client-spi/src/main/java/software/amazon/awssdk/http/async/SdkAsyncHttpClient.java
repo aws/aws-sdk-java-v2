@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.http.async;
 
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.http.ConfigurationProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkRequestContext;

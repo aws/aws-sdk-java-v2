@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.simpledb.internal;
 
 import java.util.Map;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.ResponseMetadata;
 import software.amazon.awssdk.core.http.StaxResponseHandler;
 import software.amazon.awssdk.core.runtime.transform.StaxUnmarshallerContext;

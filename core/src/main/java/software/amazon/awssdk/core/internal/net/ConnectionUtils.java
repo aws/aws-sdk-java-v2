@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.internal.net;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
 public class ConnectionUtils {

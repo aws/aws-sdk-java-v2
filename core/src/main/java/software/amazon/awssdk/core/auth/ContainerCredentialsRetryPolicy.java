@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.auth;
 
 import java.io.IOException;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryParameters;
 import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryPolicy;
 import software.amazon.awssdk.http.HttpStatusFamily;

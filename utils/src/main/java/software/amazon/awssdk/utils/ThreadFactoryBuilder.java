@@ -18,8 +18,8 @@ package software.amazon.awssdk.utils;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.annotation.SdkTestInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 
 /**
  * A builder for creating a thread factory. This allows changing the behavior of the created thread factory.

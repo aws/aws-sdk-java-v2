@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.internal.auth;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.auth.NoOpSigner;
 import software.amazon.awssdk.core.auth.Signer;
 import software.amazon.awssdk.core.runtime.auth.SignerProvider;

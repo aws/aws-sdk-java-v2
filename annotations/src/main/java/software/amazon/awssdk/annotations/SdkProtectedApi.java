@@ -13,17 +13,19 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.annotation;
+package software.amazon.awssdk.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * Marker interface for 'internal' APIs that should not be used outside the core module. Breaking
- * changes can and will be introduced to elements marked as {@link SdkInternalApi}. Users of the SDK
- * and the generated clients themselves should not depend on any packages, types, fields,
- * constructors, or methods with this annotation.
+ * Marker for elements that should only be accessed by the generated clients and not users of the
+ * SDK. Do not make breaking changes to these APIs - they won't directly break customers, but
+ * they'll break old versions of generated clients.
+ * <p>
+ * TODO: Write a linter that makes sure generated code only depends on public or
+ * {@code @InternalApi} classes.
  */
 @Target({ElementType.PACKAGE, ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD})
-public @interface SdkInternalApi {
+public @interface SdkProtectedApi {
 }

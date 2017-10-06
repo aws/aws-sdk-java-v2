@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.lambda.invoke;
 
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.util.ValidationUtils;
 
 /**

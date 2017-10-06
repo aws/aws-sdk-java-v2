@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.core.client;
 
-import software.amazon.awssdk.annotation.Immutable;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.RequestConfig;
 import software.amazon.awssdk.core.SdkBaseException;

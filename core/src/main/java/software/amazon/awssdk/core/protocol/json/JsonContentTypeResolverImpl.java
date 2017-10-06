@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.protocol.json;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Prefers an explicit content type if provided. Otherwise computes the correct content type based

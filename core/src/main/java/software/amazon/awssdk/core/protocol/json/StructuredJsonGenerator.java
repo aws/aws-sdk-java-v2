@@ -19,7 +19,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.time.Instant;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Interface for generating a JSON

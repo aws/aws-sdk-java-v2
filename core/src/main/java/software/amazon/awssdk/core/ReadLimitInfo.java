@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core;
 
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 @ReviewBeforeRelease("This isn't used except in unit tests. Can it be removed?")
 public interface ReadLimitInfo {

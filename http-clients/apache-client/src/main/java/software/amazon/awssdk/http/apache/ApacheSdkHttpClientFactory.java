@@ -23,7 +23,7 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.SOCKET_TIME
 import java.net.InetAddress;
 import java.time.Duration;
 import java.util.Optional;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientFactory;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;

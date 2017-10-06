@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.auth.profile.internal;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import software.amazon.awssdk.annotation.Immutable;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.auth.AwsSessionCredentials;

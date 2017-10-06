@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.waiters;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.AmazonWebServiceRequest;
 import software.amazon.awssdk.core.util.ValidationUtils;

@@ -23,7 +23,7 @@ import static utils.S3MockUtils.mockListObjectsResponse;
 import java.net.URI;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.builder.ClientHttpConfiguration;

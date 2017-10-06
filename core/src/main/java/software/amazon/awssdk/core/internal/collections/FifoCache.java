@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.internal.collections;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
-import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * A bounded cache that has a FIFO eviction policy when the cache is full.

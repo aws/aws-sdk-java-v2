@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.polly.presign;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.services.polly.model.OutputFormat;

@@ -20,7 +20,7 @@ import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishProg
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.RetryableException;

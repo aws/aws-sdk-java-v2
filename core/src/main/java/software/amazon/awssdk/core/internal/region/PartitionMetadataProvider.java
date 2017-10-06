@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.region.model.Partition;
 import software.amazon.awssdk.core.regions.PartitionServiceMetadata;
 import software.amazon.awssdk.core.regions.Region;

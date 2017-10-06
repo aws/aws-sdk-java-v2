@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.runtime.transform;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Simple StAX unmarshaller that iterates through the XML events but always

@@ -4,7 +4,7 @@ package ${metadata.fullClientPackageName};
 import javax.annotation.Generated;
 
 import software.amazon.awssdk.core.LegacyClientConfigurationFactory;
-import software.amazon.awssdk.annotation.NotThreadSafe;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.core.client.builder.AwsAsyncClientBuilder;
 import software.amazon.awssdk.core.client.AwsAsyncClientParams;
 import software.amazon.awssdk.core.handlers.ClasspathInterceptorChainFactory;

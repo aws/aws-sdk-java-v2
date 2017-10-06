@@ -17,9 +17,9 @@ package software.amazon.awssdk.core.protocol.json;
 
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.annotation.SdkTestInternalApi;
-import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.AwsSystemSetting;
 import software.amazon.awssdk.core.http.HttpResponseHandler;

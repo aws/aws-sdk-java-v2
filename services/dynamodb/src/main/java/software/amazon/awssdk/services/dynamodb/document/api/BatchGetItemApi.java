@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.dynamodb.document.api;
 
 import java.util.Map;
-import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.services.dynamodb.document.BatchGetItemOutcome;
 import software.amazon.awssdk.services.dynamodb.document.TableKeysAndAttributes;
 import software.amazon.awssdk.services.dynamodb.document.spec.BatchGetItemSpec;

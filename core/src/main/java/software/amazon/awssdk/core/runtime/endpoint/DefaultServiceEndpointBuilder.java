@@ -17,8 +17,8 @@ package software.amazon.awssdk.core.runtime.endpoint;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import software.amazon.awssdk.annotation.NotThreadSafe;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.core.regions.ServiceMetadata;
 

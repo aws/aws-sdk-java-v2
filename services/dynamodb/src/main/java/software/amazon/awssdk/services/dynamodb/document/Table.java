@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.dynamodb.document;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.waiters.FixedDelayStrategy;
 import software.amazon.awssdk.core.waiters.MaxAttemptsRetryStrategy;
 import software.amazon.awssdk.core.waiters.PollingStrategy;

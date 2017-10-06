@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.http;
 
-import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * Service Provider interface for HTTP implementations. The core uses {@link java.util.ServiceLoader} to find appropriate

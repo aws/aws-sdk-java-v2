@@ -17,8 +17,8 @@ package software.amazon.awssdk.core.http;
 
 import java.util.Collections;
 import java.util.Map;
-import software.amazon.awssdk.annotation.Immutable;
-import software.amazon.awssdk.annotation.SdkPublicApi;
+import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * Metadata about the HTTP response.

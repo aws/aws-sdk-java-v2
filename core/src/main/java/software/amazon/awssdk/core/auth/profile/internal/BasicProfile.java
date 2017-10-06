@@ -17,8 +17,8 @@ package software.amazon.awssdk.core.auth.profile.internal;
 
 import java.util.Collections;
 import java.util.Map;
-import software.amazon.awssdk.annotation.Immutable;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Represents a CLI style config profile with a name and simple properties. Provides convenient

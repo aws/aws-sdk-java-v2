@@ -38,8 +38,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Predicate;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * <p>This class assists in validating arguments. The validation methods are

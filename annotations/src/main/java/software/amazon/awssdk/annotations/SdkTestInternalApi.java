@@ -13,21 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.annotation;
+package software.amazon.awssdk.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * An annotation applied during SDK 2.0 developer preview. This makes note of something we know will change before GA or are
- * unsure about. By applying this annotation and making sure all instances of it are removed before GA, we will make sure not to
- * miss anything we intended to review.
+ * Marker interface for methods used by test code in the same module. Methods/Constructors annotated
+ * with this method should not be accessed in production code. This annotation should be used
+ * sparingly as it's a code smell to need access to internal data/functionality to properly unit
+ * test a class. Typically there is a better way to test a class.
+ * <p>
+ * TODO: Write a linter that makes sure only test code depends on methods or constructors annotated
+ * with this method
  */
-@Target({ElementType.PACKAGE, ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD})
-public @interface ReviewBeforeRelease {
-    /**
-     * An explanation of why we should review this before general availability. Will it definitely change? Are we just testing
-     * something?
-     */
-    String value();
+@Target({ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.FIELD, ElementType.TYPE})
+public @interface SdkTestInternalApi {
 }

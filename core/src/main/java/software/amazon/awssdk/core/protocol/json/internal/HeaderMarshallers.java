@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.protocol.json.internal;
 
 import java.time.Instant;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
 public class HeaderMarshallers {

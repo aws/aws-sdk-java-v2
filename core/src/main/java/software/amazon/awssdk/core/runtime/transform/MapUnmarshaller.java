@@ -22,7 +22,7 @@ import static com.fasterxml.jackson.core.JsonToken.FIELD_NAME;
 import com.fasterxml.jackson.core.JsonToken;
 import java.util.HashMap;
 import java.util.Map;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
 public class MapUnmarshaller<K, V> implements Unmarshaller<Map<K, V>, JsonUnmarshallerContext> {

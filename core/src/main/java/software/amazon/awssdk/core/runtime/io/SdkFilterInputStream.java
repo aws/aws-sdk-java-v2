@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.runtime.io;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.AbortedException;
 import software.amazon.awssdk.core.internal.io.Releasable;
 import software.amazon.awssdk.core.internal.io.SdkIoUtils;

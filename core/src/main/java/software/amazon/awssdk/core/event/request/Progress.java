@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.event.request;
 
-import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * Base class used to represent the progress of a logical request/response,

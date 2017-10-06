@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.retry;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.AmazonWebServiceRequest;
 import software.amazon.awssdk.core.retry.v2.RetryPolicyContext;

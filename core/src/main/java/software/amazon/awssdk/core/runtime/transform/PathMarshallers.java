@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.runtime.transform;
 import static software.amazon.awssdk.core.util.ValidationUtils.assertNotNull;
 import static software.amazon.awssdk.core.util.ValidationUtils.assertStringNotEmpty;
 
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.util.IdempotentUtils;
 import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;

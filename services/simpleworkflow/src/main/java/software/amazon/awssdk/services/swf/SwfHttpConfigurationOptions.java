@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.swf;
 
 import java.time.Duration;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.utils.AttributeMap;
 

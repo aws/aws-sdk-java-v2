@@ -1,7 +1,7 @@
 ${fileHeader}
 package ${metadata.fullClientPackageName};
 
-import software.amazon.awssdk.annotation.NotThreadSafe;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.core.client.AwsSyncClientParams;
 import software.amazon.awssdk.opensdk.protect.client.SdkSyncClientBuilder;
 import software.amazon.awssdk.opensdk.internal.config.ApiGatewayLegacyClientConfigurationFactory;

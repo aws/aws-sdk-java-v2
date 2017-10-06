@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.core.retry.v2;
 
-import software.amazon.awssdk.annotation.Immutable;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBaseException;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 

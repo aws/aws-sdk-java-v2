@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.util;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.JavaSystemSetting;
 
 /**

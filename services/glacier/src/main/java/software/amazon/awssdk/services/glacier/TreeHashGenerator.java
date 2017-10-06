@@ -24,7 +24,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.runtime.io.ResettableInputStream;
 import software.amazon.awssdk.services.glacier.internal.TreeHashInputStream;

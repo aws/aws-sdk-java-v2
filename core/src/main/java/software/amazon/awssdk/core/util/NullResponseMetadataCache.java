@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.util;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ResponseMetadata;
 import software.amazon.awssdk.core.SdkClientException;
 

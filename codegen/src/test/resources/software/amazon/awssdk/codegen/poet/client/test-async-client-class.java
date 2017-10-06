@@ -2,7 +2,7 @@ package software.amazon.awssdk.services.json;
 
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Generated;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.async.AsyncRequestProvider;
 import software.amazon.awssdk.core.async.AsyncResponseHandler;

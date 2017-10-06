@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.retry.v2;
 
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 /**
  * Aggregate interface combining a {@link RetryCondition} and {@link BackoffStrategy} into a single policy.

@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.internal;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryPolicy;
 
 /**

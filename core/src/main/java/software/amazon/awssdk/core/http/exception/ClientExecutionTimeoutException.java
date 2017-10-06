@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.http.exception;
 
-import software.amazon.awssdk.annotation.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkClientException;
 
 @SdkPublicApi

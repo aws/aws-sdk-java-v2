@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.async;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import org.reactivestreams.Publisher;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Implementation of {@link AsyncResponseHandler} that dumps content into a string using the specified {@link Charset}.

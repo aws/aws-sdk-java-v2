@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.protocol.json;
 
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.protocol.OperationInfo;
 import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
 import software.amazon.awssdk.core.protocol.json.internal.JsonProtocolMarshaller;

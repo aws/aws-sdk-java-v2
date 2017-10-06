@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.regions;
 import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
 import java.io.InputStream;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.internal.region.PartitionMetadataProvider;
 import software.amazon.awssdk.core.internal.region.model.Partitions;

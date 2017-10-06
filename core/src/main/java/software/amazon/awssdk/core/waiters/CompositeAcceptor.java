@@ -17,8 +17,8 @@ package software.amazon.awssdk.core.waiters;
 
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.util.ValidationUtils;
 

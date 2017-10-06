@@ -3,7 +3,7 @@ package ${metadata.fullModelPackageName};
 
 import software.amazon.awssdk.opensdk.SdkErrorHttpMetadata;
 import software.amazon.awssdk.opensdk.internal.BaseException;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import javax.annotation.Generated;
 
 /**

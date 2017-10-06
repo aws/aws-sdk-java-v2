@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.sts.internal;
 
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.auth.profile.internal.securitytoken.ProfileCredentialsService;
 import software.amazon.awssdk.core.auth.profile.internal.securitytoken.RoleInfo;

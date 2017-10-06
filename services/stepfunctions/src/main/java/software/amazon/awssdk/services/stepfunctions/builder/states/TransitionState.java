@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.stepfunctions.builder.states;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Do not directly use this class, it is intended for internal usage only.

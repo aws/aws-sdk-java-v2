@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.event.request;
 
-import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * An actual implementation to represent the progress of a request/response.

@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.core.runtime.adapters.types;
 
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Adapter interface to convert one type to another

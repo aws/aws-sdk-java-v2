@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.annotation;
+package software.amazon.awssdk.annotations;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

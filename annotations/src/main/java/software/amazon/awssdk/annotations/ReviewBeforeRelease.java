@@ -13,19 +13,21 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.annotation;
+package software.amazon.awssdk.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * Marker for elements that should only be accessed by the generated clients and not users of the
- * SDK. Do not make breaking changes to these APIs - they won't directly break customers, but
- * they'll break old versions of generated clients.
- * <p>
- * TODO: Write a linter that makes sure generated code only depends on public or
- * {@code @InternalApi} classes.
+ * An annotation applied during SDK 2.0 developer preview. This makes note of something we know will change before GA or are
+ * unsure about. By applying this annotation and making sure all instances of it are removed before GA, we will make sure not to
+ * miss anything we intended to review.
  */
 @Target({ElementType.PACKAGE, ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD})
-public @interface SdkProtectedApi {
+public @interface ReviewBeforeRelease {
+    /**
+     * An explanation of why we should review this before general availability. Will it definitely change? Are we just testing
+     * something?
+     */
+    String value();
 }

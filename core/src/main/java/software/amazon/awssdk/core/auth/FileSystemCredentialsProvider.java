@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.auth;
 
 import java.time.Duration;
 import java.time.Instant;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.RefreshResult;
 

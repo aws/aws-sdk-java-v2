@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.annotation.SdkTestInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.core.auth.internal.Aws4SignerUtils;

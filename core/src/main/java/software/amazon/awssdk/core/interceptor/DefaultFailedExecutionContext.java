@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.interceptor;
 
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.http.SdkHttpFullRequest;

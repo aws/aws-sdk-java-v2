@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.waiters;
 
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
 public interface SdkFunction<InputT, OutputT> {

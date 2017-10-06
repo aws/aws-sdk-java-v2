@@ -28,7 +28,7 @@ import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.core.util.IdempotentUtils;
 import software.amazon.awssdk.core.util.StringInputStream;
 import software.amazon.awssdk.core.protocol.*;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * ${shapeName} Marshaller

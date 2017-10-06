@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.config;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Client options that are internal to the SDK. Customers should not rely on these settings, and they are subject to change

@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.internal.http.timers;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Utility class to build the {@link ScheduledThreadPoolExecutor} for the request timeout and client

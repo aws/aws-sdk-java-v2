@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.runtime.adapters.types;
 
 import java.nio.ByteBuffer;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.util.StringUtils;
 
 @SdkProtectedApi

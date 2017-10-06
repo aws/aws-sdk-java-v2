@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.utils;
 
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * An implementation of {@link AutoCloseable} that does not throw any checked exceptions. The SDK does not throw checked

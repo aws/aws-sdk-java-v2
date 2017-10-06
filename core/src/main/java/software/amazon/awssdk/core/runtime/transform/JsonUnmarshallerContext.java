@@ -20,7 +20,7 @@ import com.fasterxml.jackson.core.JsonToken;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.http.HttpResponse;
 
 /**

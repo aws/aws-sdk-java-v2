@@ -21,7 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 /**
  * Interface to allow non-blocking streaming of request content. This follows the reactive streams pattern where

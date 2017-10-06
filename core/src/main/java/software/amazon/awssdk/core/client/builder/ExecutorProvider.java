@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.client.builder;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 /**
  * A supplier for {@link ScheduledExecutorService} instances that should be used for async processing within the SDK. This

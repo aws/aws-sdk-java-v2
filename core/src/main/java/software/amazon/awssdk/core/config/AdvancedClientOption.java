@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.config;
 
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.core.runtime.auth.SignerProvider;
 import software.amazon.awssdk.utils.AttributeMap;

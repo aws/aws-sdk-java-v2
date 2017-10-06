@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.event;
 
 import java.util.EnumMap;
 import java.util.Map;
-import software.amazon.awssdk.annotation.Immutable;
+import software.amazon.awssdk.annotations.Immutable;
 
 /**
  * A progress event. Typically this is used to notify a chunk of bytes has been

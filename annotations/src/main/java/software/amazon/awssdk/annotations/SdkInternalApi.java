@@ -13,14 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.annotation;
+package software.amazon.awssdk.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * Marker interface for 'public' APIs.
+ * Marker interface for 'internal' APIs that should not be used outside the core module. Breaking
+ * changes can and will be introduced to elements marked as {@link SdkInternalApi}. Users of the SDK
+ * and the generated clients themselves should not depend on any packages, types, fields,
+ * constructors, or methods with this annotation.
  */
 @Target({ElementType.PACKAGE, ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD})
-public @interface SdkPublicApi {
+public @interface SdkInternalApi {
 }

@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.http;
 
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Container for extra dependencies needed during execution of a request.

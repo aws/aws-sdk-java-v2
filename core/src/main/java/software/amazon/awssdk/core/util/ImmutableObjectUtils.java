@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.util;
 
 import java.util.Arrays;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 @ReviewBeforeRelease("Remove before GA")
 public class ImmutableObjectUtils {

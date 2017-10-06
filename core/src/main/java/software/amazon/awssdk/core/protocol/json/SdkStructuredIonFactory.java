@@ -21,7 +21,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.Map;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.http.CompositeErrorCodeParser;
 import software.amazon.awssdk.core.internal.http.ErrorCodeParser;
 import software.amazon.awssdk.core.internal.http.IonErrorCodeParser;

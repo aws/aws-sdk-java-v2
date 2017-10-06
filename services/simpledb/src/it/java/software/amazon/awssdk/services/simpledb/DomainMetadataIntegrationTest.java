@@ -19,7 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.services.simpledb.model.DomainMetadataRequest;
 import software.amazon.awssdk.services.simpledb.model.MissingParameterException;
 import software.amazon.awssdk.services.simpledb.model.NoSuchDomainException;

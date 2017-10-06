@@ -27,7 +27,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.util.ClassLoaderHelper;
 import software.amazon.awssdk.utils.Validate;

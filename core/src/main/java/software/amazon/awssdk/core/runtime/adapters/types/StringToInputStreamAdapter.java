@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.runtime.adapters.types;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.util.StringInputStream;
 

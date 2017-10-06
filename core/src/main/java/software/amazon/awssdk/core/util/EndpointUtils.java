@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.util;
 
 import java.net.URI;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.core.runtime.endpoint.DefaultServiceEndpointBuilder;
 

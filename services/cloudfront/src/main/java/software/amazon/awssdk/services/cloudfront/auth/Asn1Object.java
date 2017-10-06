@@ -22,7 +22,7 @@ package software.amazon.awssdk.services.cloudfront.auth;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 /**
  * An ASN.1 TLV. The object is not parsed. It can
