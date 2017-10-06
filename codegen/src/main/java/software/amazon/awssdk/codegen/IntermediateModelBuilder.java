@@ -48,7 +48,7 @@ import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Waiters;
 import software.amazon.awssdk.codegen.naming.DefaultNamingStrategy;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
-import software.amazon.awssdk.util.StringUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Builds an intermediate model to be used by the templates from the service model and
@@ -180,7 +180,7 @@ public class IntermediateModelBuilder {
                 // Only link when output shape is not a result wrapper. When it is a result wrapper
                 // we only preserve the single member the wrapper has in the intermediate model
                 // so this lookup will fail.
-                if (StringUtils.isNullOrEmpty(operation.getOutput().getResultWrapper())) {
+                if (StringUtils.isBlank(operation.getOutput().getResultWrapper())) {
                     entry.getValue().setOutputShape(model.getShapeByC2jName(outputShapeName));
                 }
             }

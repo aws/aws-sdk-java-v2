@@ -19,10 +19,10 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
-import software.amazon.awssdk.client.builder.SyncClientBuilder;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.core.client.builder.SyncClientBuilder;
 
 public class SyncClientBuilderInterface implements ClassSpec {
     private final ClassName builderInterfaceName;

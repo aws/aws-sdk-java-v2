@@ -3,8 +3,8 @@ package software.amazon.awssdk.services.json;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Generated;
-import software.amazon.awssdk.async.AsyncRequestProvider;
-import software.amazon.awssdk.async.AsyncResponseHandler;
+import software.amazon.awssdk.core.async.AsyncRequestProvider;
+import software.amazon.awssdk.core.async.AsyncResponseHandler;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -27,8 +27,8 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 public interface JsonAsyncClient extends SdkAutoCloseable {
     /**
      * Create a {@link JsonAsyncClient} with the region loaded from the
-     * {@link software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from the
-     * {@link software.amazon.awssdk.auth.DefaultCredentialsProvider}.
+     * {@link software.amazon.awssdk.core.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from the
+     * {@link software.amazon.awssdk.core.auth.DefaultCredentialsProvider}.
      */
     static JsonAsyncClient create() {
         return builder().build();

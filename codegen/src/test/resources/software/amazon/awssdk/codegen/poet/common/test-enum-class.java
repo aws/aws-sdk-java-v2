@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.poet.common.model;
 
-import static software.amazon.awssdk.util.StringUtils.isNullOrEmpty;
+import static software.amazon.awssdk.utils.StringUtils.isNullOrEmpty;
 
 import java.util.stream.Stream;
 import javax.annotation.Generated;

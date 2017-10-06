@@ -21,10 +21,10 @@ import com.squareup.javapoet.MethodSpec;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import software.amazon.awssdk.client.ClientHandler;
-import software.amazon.awssdk.client.SdkClientHandler;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.core.client.ClientHandler;
+import software.amazon.awssdk.core.client.SdkClientHandler;
 
 public interface ProtocolSpec {
 

@@ -28,7 +28,7 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.WaiterDefinitionModel;
-import software.amazon.awssdk.util.ImmutableMapParameter;
+import software.amazon.awssdk.core.util.ImmutableMapParameter;
 
 public class WaitersGeneratorTasks extends BaseGeneratorTasks {
 

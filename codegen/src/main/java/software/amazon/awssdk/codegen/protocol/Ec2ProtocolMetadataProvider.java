@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.protocol;
 
-import software.amazon.awssdk.runtime.transform.LegacyErrorUnmarshaller;
+import software.amazon.awssdk.core.runtime.transform.LegacyErrorUnmarshaller;
 
 public class Ec2ProtocolMetadataProvider extends BaseXmlProtocolMetadataProvider {
     public static final long serialVersionUID = 1L;

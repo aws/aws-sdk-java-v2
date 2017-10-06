@@ -38,7 +38,7 @@ public interface ClassSpec {
      * An optional hook to allow inclusion of static imports for example converting:
      *
      * <pre><code>
-     * import software.amazon.awssdk.util.StringUtils;
+     * import software.amazon.awssdk.utils.StringUtils;
      * //...
      *   if(StringUtils.isNullOrEmpty(value))...
      * </code></pre>
@@ -46,7 +46,7 @@ public interface ClassSpec {
      * to
      *
      * <pre><code>
-     * import software.amazon.awssdk.util.StringUtils.isNullOrEmpty;
+     * import software.amazon.awssdk.utils.StringUtils.isBlank;
      * //...
      *   if(isNullOrEmpty(value))...
      * </code></pre>

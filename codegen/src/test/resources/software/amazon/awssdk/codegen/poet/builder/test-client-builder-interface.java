@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.json;
 
 import javax.annotation.Generated;
-import software.amazon.awssdk.client.builder.ClientBuilder;
+import software.amazon.awssdk.core.client.builder.ClientBuilder;
 
 /**
  * This includes configuration specific to Json Service that is supported by both {@link JsonClientBuilder} and
