@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.AmazonServiceException.ErrorType;
 import software.amazon.awssdk.core.http.HttpResponse;

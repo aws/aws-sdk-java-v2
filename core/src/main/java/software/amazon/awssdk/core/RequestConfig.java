@@ -17,8 +17,8 @@ package software.amazon.awssdk.core;
 
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.core.internal.AmazonWebServiceRequestAdapter;

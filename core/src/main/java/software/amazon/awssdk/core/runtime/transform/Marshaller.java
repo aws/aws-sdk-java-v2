@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.runtime.transform;
 
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
 public interface Marshaller<T, R> {

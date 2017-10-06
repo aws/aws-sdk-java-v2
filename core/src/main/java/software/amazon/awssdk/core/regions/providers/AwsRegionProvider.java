@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.regions.providers;
 
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.regions.Region;
 

@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.jar.JarInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.JavaSystemSetting;
 

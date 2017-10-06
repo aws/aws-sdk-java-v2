@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.regions;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
 public interface ServiceMetadataProvider {

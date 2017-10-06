@@ -18,8 +18,8 @@ package software.amazon.awssdk.http;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.annotation.Immutable;
-import software.amazon.awssdk.annotation.SdkPublicApi;
+import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**

@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.waiters;
 
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.AmazonWebServiceRequest;
 
 @SdkProtectedApi

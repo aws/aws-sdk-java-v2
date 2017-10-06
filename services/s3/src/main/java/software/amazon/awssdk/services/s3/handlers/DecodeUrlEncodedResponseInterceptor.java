@@ -21,7 +21,7 @@ package software.amazon.awssdk.services.s3.handlers;
 //import software.amazon.awssdk.core.Request;
 //import software.amazon.awssdk.Response;
 
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 //import software.amazon.awssdk.services.s3.model.ListObjectVersionsResponse;
 //import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;

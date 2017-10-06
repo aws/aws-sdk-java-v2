@@ -17,7 +17,7 @@ package software.amazon.awssdk.utils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * A Base 64 codec API.

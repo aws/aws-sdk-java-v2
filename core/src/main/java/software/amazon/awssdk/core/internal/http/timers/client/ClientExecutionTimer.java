@@ -18,9 +18,9 @@ package software.amazon.awssdk.core.internal.http.timers.client;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.annotation.SdkTestInternalApi;
-import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutThreadPoolBuilder;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 

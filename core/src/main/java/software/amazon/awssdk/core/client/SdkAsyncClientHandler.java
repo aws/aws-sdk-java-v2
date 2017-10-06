@@ -16,8 +16,8 @@
 package software.amazon.awssdk.core.client;
 
 import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.annotation.Immutable;
-import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.AmazonWebServiceRequest;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;

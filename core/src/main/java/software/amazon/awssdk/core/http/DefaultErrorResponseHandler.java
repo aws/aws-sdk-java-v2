@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.http.pipeline.stages.ApplyTransactionIdStage;

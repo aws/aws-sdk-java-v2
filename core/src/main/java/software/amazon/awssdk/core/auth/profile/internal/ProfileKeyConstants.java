@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.auth.profile.internal;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Keys the Java SDK uses in the CLI credentials and config files.

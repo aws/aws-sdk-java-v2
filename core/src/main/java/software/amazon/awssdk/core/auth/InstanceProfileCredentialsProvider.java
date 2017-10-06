@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.auth;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.internal.CredentialsEndpointProvider;
 import software.amazon.awssdk.core.internal.EC2CredentialsUtils;

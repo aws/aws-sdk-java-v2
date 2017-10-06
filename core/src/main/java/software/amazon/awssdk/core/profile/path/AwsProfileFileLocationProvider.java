@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.profile.path;
 
 import java.io.File;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.profile.path.config.SharedConfigDefaultLocationProvider;
 import software.amazon.awssdk.core.profile.path.config.SystemSettingsProfileLocationProvider;
 import software.amazon.awssdk.core.profile.path.cred.CredentialsDefaultLocationProvider;

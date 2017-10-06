@@ -20,8 +20,8 @@ import static software.amazon.awssdk.core.util.XpathUtils.xpath;
 
 import javax.xml.xpath.XPath;
 import org.w3c.dom.Node;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.AmazonServiceException;
 
 /**

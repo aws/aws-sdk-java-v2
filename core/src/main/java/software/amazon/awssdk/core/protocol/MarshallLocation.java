@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.protocol;
 
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Enum representing the various locations data can be marshalled to.

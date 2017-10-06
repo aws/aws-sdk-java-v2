@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.runtime.transform;
 import static software.amazon.awssdk.http.Headers.CONTENT_LENGTH;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.sync.RequestBody;
 

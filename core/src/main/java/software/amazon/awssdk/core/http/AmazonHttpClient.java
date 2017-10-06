@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.core.http;
 
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.annotation.SdkTestInternalApi;
-import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.AmazonWebServiceResponse;
 import software.amazon.awssdk.core.Request;

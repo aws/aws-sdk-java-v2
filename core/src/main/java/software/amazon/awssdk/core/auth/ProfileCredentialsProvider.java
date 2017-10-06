@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.auth;
 
 import java.io.File;
-import software.amazon.awssdk.annotation.SdkTestInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.AwsSystemSetting;
 import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.profile.ProfilesConfigFile;

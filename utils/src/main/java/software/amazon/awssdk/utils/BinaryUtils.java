@@ -18,7 +18,7 @@ package software.amazon.awssdk.utils;
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Utilities for encoding and decoding binary data to and from different forms.

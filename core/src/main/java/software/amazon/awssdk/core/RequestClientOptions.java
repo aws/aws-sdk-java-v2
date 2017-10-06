@@ -17,7 +17,7 @@ package software.amazon.awssdk.core;
 
 import java.io.InputStream;
 import java.util.EnumMap;
-import software.amazon.awssdk.annotation.NotThreadSafe;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 
 /**
  * Client request options such as client markers for individual

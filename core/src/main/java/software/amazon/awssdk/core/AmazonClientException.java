@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Base exception class for any errors that occur while attempting to use an AWS

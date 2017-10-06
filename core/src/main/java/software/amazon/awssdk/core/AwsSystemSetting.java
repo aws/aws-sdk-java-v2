@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core;
 
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.utils.JavaSystemSetting;
 import software.amazon.awssdk.utils.SystemSetting;
 

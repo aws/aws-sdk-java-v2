@@ -16,9 +16,9 @@
 package software.amazon.awssdk.core.auth.presign;
 
 import java.net.URI;
-import software.amazon.awssdk.annotation.Immutable;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.annotation.SdkTestInternalApi;
+import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.auth.SdkClock;
 import software.amazon.awssdk.core.runtime.auth.SignerProvider;

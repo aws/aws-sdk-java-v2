@@ -35,8 +35,8 @@
 package software.amazon.awssdk.utils;
 
 import java.util.Locale;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * <p>Operations on {@link java.lang.String} that are

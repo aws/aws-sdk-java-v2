@@ -19,7 +19,7 @@ import static software.amazon.awssdk.core.util.ValidationUtils.assertNotNull;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Abortable;
 
 /**

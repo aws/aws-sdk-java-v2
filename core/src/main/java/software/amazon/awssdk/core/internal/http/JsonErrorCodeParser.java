@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.internal.http;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Map;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.protocol.json.JsonContent;
 

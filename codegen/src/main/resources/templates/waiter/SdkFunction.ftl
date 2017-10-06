@@ -8,7 +8,7 @@ package ${metadata.fullWaitersPackageName};
 
 import javax.annotation.Generated;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.waiters.SdkFunction;
 import ${metadata.fullModelPackageName}.${inputType};
 import ${metadata.fullModelPackageName}.${outputType};

@@ -20,7 +20,7 @@ import static software.amazon.awssdk.utils.Validate.validState;
 
 import java.io.IOException;
 import java.io.InputStream;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.ResetException;
 import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.Aws4Signer;

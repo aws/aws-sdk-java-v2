@@ -20,7 +20,7 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.AfterClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.core.auth.policy.Action;

@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.emr.spi.security;
 
 import java.util.HashMap;
 import java.util.Map;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 /**
  * Context information that can help users to determine which encryption materials

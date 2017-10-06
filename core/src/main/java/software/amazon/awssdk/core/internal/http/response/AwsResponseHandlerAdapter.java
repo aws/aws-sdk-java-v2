@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.internal.http.response;
 
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.AmazonWebServiceResponse;
 import software.amazon.awssdk.core.SdkStandardLoggers;
 import software.amazon.awssdk.core.http.HttpResponse;

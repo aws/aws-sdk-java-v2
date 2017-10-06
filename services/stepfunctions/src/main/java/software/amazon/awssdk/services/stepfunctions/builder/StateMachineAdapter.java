@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.stepfunctions.builder;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.runtime.adapters.types.TypeAdapter;
 
 /**

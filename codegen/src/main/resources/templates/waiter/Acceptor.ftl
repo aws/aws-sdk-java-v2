@@ -4,7 +4,7 @@ ${fileHeader}
 package ${metadata.fullWaitersPackageName};
 
 import software.amazon.awssdk.core.AmazonServiceException;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.core.waiters.WaiterState;
 import software.amazon.awssdk.core.waiters.AcceptorPathMatcher;

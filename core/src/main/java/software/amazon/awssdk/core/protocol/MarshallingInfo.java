@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.protocol;
 
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Metadata about the marshalling requirements of a given member. Includes things like where to put the

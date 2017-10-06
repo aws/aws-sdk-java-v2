@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.protocol.json.internal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 
 @SdkInternalApi

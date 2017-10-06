@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.util;
 
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ResponseMetadata;
 
 /**

@@ -17,8 +17,8 @@ package software.amazon.awssdk.core.util;
 
 import java.util.UUID;
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
-import software.amazon.awssdk.annotation.SdkTestInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 
 /**
  * Utility class to manage idempotency token

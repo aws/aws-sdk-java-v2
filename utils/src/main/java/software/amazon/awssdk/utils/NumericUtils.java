@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.utils;
 
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 public class NumericUtils {
 

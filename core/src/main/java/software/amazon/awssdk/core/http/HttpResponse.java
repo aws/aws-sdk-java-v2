@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.http;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
-import software.amazon.awssdk.annotation.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.http.HttpStatusCodes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;

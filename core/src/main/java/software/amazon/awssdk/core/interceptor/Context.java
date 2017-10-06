@@ -16,8 +16,8 @@
 package software.amazon.awssdk.core.interceptor;
 
 import java.util.Optional;
-import software.amazon.awssdk.annotation.SdkPublicApi;
-import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.http.SdkHttpFullRequest;

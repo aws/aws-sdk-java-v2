@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.auth;
 
 import java.util.Date;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Clock interface to prevent static coupling to {@link System#currentTimeMillis()}.

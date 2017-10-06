@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.runtime.transform;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Simple unmarshaller that iterates through the JSON events but always

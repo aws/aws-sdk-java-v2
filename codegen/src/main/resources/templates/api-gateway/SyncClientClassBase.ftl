@@ -26,7 +26,7 @@ import software.amazon.awssdk.core.regions.*;
 import software.amazon.awssdk.core.runtime.transform.*;
 import software.amazon.awssdk.core.util.*;
 import software.amazon.awssdk.core.protocol.json.*;
-import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.client.AwsSyncClientParams;
 import software.amazon.awssdk.core.client.ClientHandler;
 import software.amazon.awssdk.core.client.ClientHandler;

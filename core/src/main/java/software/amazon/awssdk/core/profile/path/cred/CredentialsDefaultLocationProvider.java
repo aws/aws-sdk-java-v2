@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.profile.path.cred;
 
 import java.io.File;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.profile.path.AwsDirectoryBasePathProvider;
 
 /**

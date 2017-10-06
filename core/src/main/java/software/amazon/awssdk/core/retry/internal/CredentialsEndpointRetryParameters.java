@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.retry.internal;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Parameters that are used in {@link CredentialsEndpointRetryPolicy}.

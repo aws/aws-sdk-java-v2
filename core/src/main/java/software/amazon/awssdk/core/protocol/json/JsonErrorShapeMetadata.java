@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.core.protocol.json;
 
-import software.amazon.awssdk.annotation.NotThreadSafe;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Wrapper object to provide additional metadata about a client's error shapes to {@link

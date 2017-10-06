@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.protocol.json.internal;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Interface to marshall data according to the JSON protocol specification.

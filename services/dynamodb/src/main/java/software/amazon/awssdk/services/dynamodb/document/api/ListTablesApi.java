@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.document.api;
 
-import software.amazon.awssdk.annotation.ThreadSafe;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.services.dynamodb.document.TableCollection;
 import software.amazon.awssdk.services.dynamodb.document.spec.ListTablesSpec;
 import software.amazon.awssdk.services.dynamodb.model.ListTablesResponse;

@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.retry.internal;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Custom retry policy for credentials providers ({@link InstanceProfileCredentialsProvider},

@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.cloudfront.auth;
 
-import software.amazon.awssdk.annotation.Immutable;
+import software.amazon.awssdk.annotations.Immutable;
 
 /**
  * A PEM object in a PEM file.

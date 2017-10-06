@@ -48,7 +48,7 @@ public class ${shape.shapeName} <#if baseClassFqcn??>extends ${baseClassFqcn}</#
     }
 
     <#if shouldEmitStructuredPojoInterface>
-    @software.amazon.awssdk.annotation.SdkInternalApi
+    @software.amazon.awssdk.annotations.SdkInternalApi
     @Override
     public void marshall(ProtocolMarshaller protocolMarshaller) {
        ${transformPackage}.${shape.shapeName}Marshaller.getInstance().marshall(this, protocolMarshaller);

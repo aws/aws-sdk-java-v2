@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.config.defaults;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.retry.PredefinedRetryPolicies;
 import software.amazon.awssdk.core.retry.RetryPolicyAdapter;

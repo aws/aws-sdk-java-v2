@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.protocol;
 
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Interface implemented by model classes so that they may marshaller themselves.

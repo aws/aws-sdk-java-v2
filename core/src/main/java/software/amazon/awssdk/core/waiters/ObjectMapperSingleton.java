@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.waiters;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 @ReviewBeforeRelease("Find a permanent solution to allow waiters to serialize model objects to JSON (or to avoid doing it)")
 public final class ObjectMapperSingleton {

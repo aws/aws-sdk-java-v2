@@ -22,7 +22,7 @@ import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.internal.CredentialsEndpointProvider;
 import software.amazon.awssdk.core.internal.EC2CredentialsUtils;

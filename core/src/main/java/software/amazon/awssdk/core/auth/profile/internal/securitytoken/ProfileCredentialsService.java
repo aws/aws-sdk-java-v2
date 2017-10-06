@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.auth.profile.internal.securitytoken;
 
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 
 @SdkProtectedApi

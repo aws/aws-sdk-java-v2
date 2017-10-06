@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.simpledb;
 
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 /**
  * Tests that constructors provided by the SimpleDB model classes are available. This test is

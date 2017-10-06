@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.internal.region;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.core.regions.RegionMetadata;
 

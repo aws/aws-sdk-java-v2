@@ -22,7 +22,7 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.SOCKET_TIME
 import io.netty.channel.EventLoopGroup;
 import java.time.Duration;
 import java.util.Optional;
-import software.amazon.awssdk.annotation.Immutable;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClientFactory;

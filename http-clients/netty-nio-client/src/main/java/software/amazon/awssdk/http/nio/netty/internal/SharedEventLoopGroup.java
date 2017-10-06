@@ -18,8 +18,8 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
-import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.annotation.SdkTestInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.nio.netty.DefaultEventLoopGroupFactory;
 
 /**

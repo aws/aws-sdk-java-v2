@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.http;
 
-import software.amazon.awssdk.annotation.SdkTestInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 
 /**
  * Used to configure the conditions for injecting content input stream failures

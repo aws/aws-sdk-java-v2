@@ -17,7 +17,7 @@ package software.amazon.awssdk.utils;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * An decorator for {@link ThreadFactory} that allows naming threads based on a format.

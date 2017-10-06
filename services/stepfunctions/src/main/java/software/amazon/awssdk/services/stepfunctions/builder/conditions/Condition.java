@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.stepfunctions.builder.conditions;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.stepfunctions.builder.internal.Buildable;
 
 /**

@@ -3,7 +3,7 @@ package ${metadata.fullWaitersPackageName};
 
 import javax.annotation.Generated;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import ${metadata.fullClientPackageName}.${metadata.syncInterface};
 import ${metadata.fullModelPackageName}.*;
 import software.amazon.awssdk.core.waiters.*;

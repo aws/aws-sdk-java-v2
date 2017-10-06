@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.config;
 
 import java.util.concurrent.ScheduledExecutorService;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 
 /**

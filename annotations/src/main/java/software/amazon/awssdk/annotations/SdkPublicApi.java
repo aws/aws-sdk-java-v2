@@ -13,20 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.annotation;
+package software.amazon.awssdk.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * Marker interface for methods used by test code in the same module. Methods/Constructors annotated
- * with this method should not be accessed in production code. This annotation should be used
- * sparingly as it's a code smell to need access to internal data/functionality to properly unit
- * test a class. Typically there is a better way to test a class.
- * <p>
- * TODO: Write a linter that makes sure only test code depends on methods or constructors annotated
- * with this method
+ * Marker interface for 'public' APIs.
  */
-@Target({ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.FIELD, ElementType.TYPE})
-public @interface SdkTestInternalApi {
+@Target({ElementType.PACKAGE, ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD})
+public @interface SdkPublicApi {
 }

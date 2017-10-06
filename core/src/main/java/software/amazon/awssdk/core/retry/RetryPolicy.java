@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.core.retry;
 
-import software.amazon.awssdk.annotation.Immutable;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.AmazonWebServiceRequest;
 

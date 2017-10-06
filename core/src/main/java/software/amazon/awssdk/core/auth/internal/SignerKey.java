@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.auth.internal;
 
-import software.amazon.awssdk.annotation.Immutable;
+import software.amazon.awssdk.annotations.Immutable;
 
 /**
  * Holds the signing key and the number of days since epoch for the date for

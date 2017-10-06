@@ -23,7 +23,7 @@ import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.SimpleTypeCborUnmarshallers;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;

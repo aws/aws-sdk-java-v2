@@ -20,7 +20,7 @@ import static com.fasterxml.jackson.core.JsonToken.END_ARRAY;
 import com.fasterxml.jackson.core.JsonToken;
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * This unmarshaller assumes that the start array token as already been consumed before getting

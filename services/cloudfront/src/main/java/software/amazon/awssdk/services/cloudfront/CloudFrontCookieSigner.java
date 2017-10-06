@@ -33,7 +33,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.util.DateUtils;
 import software.amazon.awssdk.services.cloudfront.util.SignerUtils.Protocol;

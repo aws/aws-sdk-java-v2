@@ -17,8 +17,8 @@ package software.amazon.awssdk.core.interceptor;
 
 import java.util.HashMap;
 import java.util.Map;
-import software.amazon.awssdk.annotation.NotThreadSafe;
-import software.amazon.awssdk.annotation.SdkPublicApi;
+import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * A mutable collection of {@link ExecutionAttribute}s that can be modified by {@link ExecutionInterceptor}s in order to save and

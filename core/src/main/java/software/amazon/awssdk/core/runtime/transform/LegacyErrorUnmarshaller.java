@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.runtime.transform;
 
 import javax.xml.xpath.XPath;
 import org.w3c.dom.Node;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.util.XpathUtils;
 

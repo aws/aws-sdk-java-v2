@@ -18,8 +18,8 @@ package software.amazon.awssdk.core.auth;
 import static software.amazon.awssdk.utils.StringUtils.trimToNull;
 
 import java.util.Objects;
-import software.amazon.awssdk.annotation.Immutable;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Validate;
 
 /**

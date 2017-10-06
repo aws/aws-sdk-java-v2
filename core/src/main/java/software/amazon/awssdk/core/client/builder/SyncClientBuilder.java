@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.client.builder;
 
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 /**
  * This includes required and optional override configuration required by every sync client builder. An instance can be acquired

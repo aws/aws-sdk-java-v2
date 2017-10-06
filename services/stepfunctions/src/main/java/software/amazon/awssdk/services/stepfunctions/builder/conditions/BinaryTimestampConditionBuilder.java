@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.stepfunctions.builder.conditions;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Date;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.stepfunctions.builder.internal.DateModule;
 
 @SdkInternalApi

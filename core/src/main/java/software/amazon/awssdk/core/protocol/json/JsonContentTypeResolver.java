@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.protocol.json;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Interface to compute the content type to send in requests for JSON based protocols.
