@@ -18,8 +18,9 @@ package software.amazon.awssdk.core.http.pipeline.stages;
 import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishProgress;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.Response;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * Unmarshalls an HTTP response into either a successful response POJO, or into a (possibly modeled) exception. Returns a wrapper
@@ -41,6 +43,7 @@ import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
  */
 @ReviewBeforeRelease("Should this be broken up? It's doing quite a lot...")
 public class HandleResponseStage<OutputT> implements RequestPipeline<HttpResponse, Response<OutputT>> {
+    private static final Logger log = LoggerFactory.getLogger(HandleResponseStage.class);
 
     private final HttpResponseHandler<OutputT> successResponseHandler;
     private final HttpResponseHandler<? extends SdkBaseException> errorResponseHandler;
@@ -131,22 +134,12 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
      * Close the input stream if required.
      */
     private void closeInputStreamIfNeeded(HttpResponse httpResponse,
-                                          boolean didRequestFail) throws IOException {
-        final Optional<InputStream> inputStreamOptional =
-                Optional.ofNullable(httpResponse)
-                        // If no content no need to close
-                        .map(HttpResponse::getContent)
-                        // Always close on failed requests. Close on successful unless streaming operation.
-                        .filter(i -> didRequestFail || !successResponseHandler.needsConnectionLeftOpen());
-        if (inputStreamOptional.isPresent()) {
-            try {
-                inputStreamOptional.get().close();
-            } catch (Exception e) {
-                // We don't want failure to close to hide the original exception.
-                if (!didRequestFail) {
-                    throw e;
-                }
-            }
+                                          boolean didRequestFail) {
+        // Always close on failed requests. Close on successful unless streaming operation.
+        if (didRequestFail || !successResponseHandler.needsConnectionLeftOpen()) {
+            Optional.ofNullable(httpResponse)
+                    .map(HttpResponse::getContent) // If no content, no need to close
+                    .ifPresent(s -> IoUtils.closeQuietly(s, log));
         }
     }
 
