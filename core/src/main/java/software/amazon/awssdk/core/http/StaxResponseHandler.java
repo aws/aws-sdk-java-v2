@@ -50,8 +50,7 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
     /**
      * Shared factory for creating XML event readers.
      */
-    private static final XMLInputFactory XML_INPUT_FACTORY = XMLInputFactory.newInstance();
-
+    private static final XMLInputFactory XML_INPUT_FACTORY = createXmlInputFactory();
     /**
      * The StAX unmarshaller to use when handling the response.
      */
@@ -167,6 +166,17 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
                 return true;
             }
         };
+    }
+
+    /**
+     * Create an {@link XMLInputFactory} with features that may cause security problems disabled
+     * @return an instance of {@link XMLInputFactory}
+     */
+    private static XMLInputFactory createXmlInputFactory() {
+        XMLInputFactory factory = XMLInputFactory.newInstance();
+        factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+        factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+        return factory;
     }
 
     /**
