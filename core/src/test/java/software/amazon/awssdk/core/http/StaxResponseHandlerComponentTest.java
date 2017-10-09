@@ -20,9 +20,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.client.VerificationException;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -42,7 +41,7 @@ import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 public class StaxResponseHandlerComponentTest {
 
     @Rule
-    public WireMockRule wireMockServer = new WireMockRule();
+    public WireMockRule wireMockServer = new WireMockRule(0);
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
