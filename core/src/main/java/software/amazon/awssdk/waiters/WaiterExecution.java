@@ -16,12 +16,12 @@
 package software.amazon.awssdk.waiters;
 
 import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.util.ValidationUtils;
 
 @SdkProtectedApi
-public class WaiterExecution<InputT extends AmazonWebServiceRequest, OutputT> {
+public class WaiterExecution<InputT extends SdkRequest<?, ?, ?>, OutputT> {
 
     /**
      * Resource specific function that makes a call to the

@@ -24,6 +24,7 @@ import com.squareup.javapoet.TypeSpec;
 import java.util.ArrayList;
 import java.util.List;
 import javax.lang.model.element.Modifier;
+
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
@@ -41,9 +42,10 @@ class ModelBuilderSpecs {
     private final PoetExtensions poetExtensions;
     private final AccessorsFactory accessorsFactory;
 
-    ModelBuilderSpecs(IntermediateModel intermediateModel, ShapeModel shapeModel,
-                             ShapeModelSpec shapeModelSpec,
-                             TypeProvider typeProvider) {
+    ModelBuilderSpecs(IntermediateModel intermediateModel,
+                      ShapeModel shapeModel,
+                      ShapeModelSpec shapeModelSpec,
+                      TypeProvider typeProvider) {
         this.intermediateModel = intermediateModel;
         this.shapeModel = shapeModel;
         this.shapeModelSpec = shapeModelSpec;
@@ -62,7 +64,7 @@ class ModelBuilderSpecs {
 
     public TypeSpec builderInterface() {
         TypeSpec.Builder builder = TypeSpec.interfaceBuilder(builderInterfaceName())
-                .addSuperinterface(copyableBuilderSuperInterface())
+                .addSuperinterface(builderSuperInterface())
                 .addModifiers(Modifier.PUBLIC);
 
         shapeModel.getNonStreamingMembers()
@@ -78,12 +80,10 @@ class ModelBuilderSpecs {
         return builder.build();
     }
 
-
     public TypeSpec beanStyleBuilder() {
         TypeSpec.Builder builderClassBuilder = TypeSpec.classBuilder(builderImplName())
                 .addSuperinterface(builderInterfaceName())
-                // TODO: Uncomment this once property shadowing is fixed
-                //.addSuperinterface(copyableBuilderSuperInterface())
+                .superclass(builderImplSuperClass())
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
 
         builderClassBuilder.addFields(fields());
@@ -93,6 +93,24 @@ class ModelBuilderSpecs {
         builderClassBuilder.addMethod(buildMethod());
 
         return builderClassBuilder.build();
+    }
+
+    private TypeName builderImplSuperClass() {
+        if (shapeModel.getShapeType() == ShapeType.Request) {
+            return ParameterizedTypeName.get(
+                    new AwsServiceBaseRequestSpec(intermediateModel).className().nestedClass("BuilderImpl"),
+                    builderInterfaceName(),
+                    classToBuild());
+        }
+
+        if (shapeModel.getShapeType() == ShapeType.Response) {
+            return ParameterizedTypeName.get(
+                    new AwsServiceBaseResponseSpec(intermediateModel).className().nestedClass("BuilderImpl"),
+                    builderInterfaceName(),
+                    classToBuild());
+        }
+
+        return ClassName.OBJECT;
     }
 
     private List<FieldSpec> fields() {
@@ -108,15 +126,22 @@ class ModelBuilderSpecs {
     }
 
     private MethodSpec noargConstructor() {
-        return MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PRIVATE)
-                .build();
+        MethodSpec.Builder ctorBuilder = MethodSpec.constructorBuilder()
+                .addModifiers(Modifier.PRIVATE);
+        if (shapeModel.getShapeType() == ShapeType.Request || shapeModel.getShapeType() == ShapeType.Response) {
+            ctorBuilder.addStatement("super($T.class)", builderInterfaceName());
+        }
+        return ctorBuilder.build();
     }
 
     private MethodSpec modelCopyConstructor() {
         MethodSpec.Builder copyBuilderCtor = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PRIVATE)
                 .addParameter(classToBuild(), "model");
+
+        if (builderImplSuperClass() != ClassName.OBJECT) {
+            copyBuilderCtor.addStatement("super($T.class, model)", builderInterfaceName());
+        }
 
         shapeModel.getNonStreamingMembers().forEach(m -> {
             String name = m.getVariable().getVariableName();
@@ -164,10 +189,20 @@ class ModelBuilderSpecs {
         return shapeModel.getShapeType() == ShapeType.Exception;
     }
 
-    private TypeName copyableBuilderSuperInterface() {
-        return ParameterizedTypeName.get(ClassName.get(CopyableBuilder.class),
-                classToBuild().nestedClass("Builder"),
-                classToBuild());
+    private TypeName builderSuperInterface() {
+        ClassName superInterface;
+        switch (shapeModel.getShapeType()) {
+            case Request:
+                superInterface = new AwsServiceBaseRequestSpec(intermediateModel).className().nestedClass("Builder");
+                break;
+            case Response:
+                superInterface = new AwsServiceBaseResponseSpec(intermediateModel).className().nestedClass("Builder");
+                break;
+            default:
+                superInterface = ClassName.get(CopyableBuilder.class);
+                break;
+        }
+        return ParameterizedTypeName.get(superInterface, classToBuild().nestedClass("Builder"), classToBuild());
     }
 
     private List<MethodSpec> exceptionMessageGetters() {

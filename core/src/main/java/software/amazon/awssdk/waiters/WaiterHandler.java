@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.waiters;
 
-import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.SdkRequest;
 
 /**
  * Callbacks are executed synchronously. That is the same thread the waiter
  * completes on and it's not submitted back to the executor.
  */
-public abstract class WaiterHandler<InputT extends AmazonWebServiceRequest> {
+public abstract class WaiterHandler<InputT extends SdkRequest<?, ?, ?>> {
 
     public abstract void onWaitSuccess(InputT request);
 

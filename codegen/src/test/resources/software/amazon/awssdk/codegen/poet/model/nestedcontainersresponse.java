@@ -5,16 +5,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Generated;
-import software.amazon.awssdk.AmazonWebServiceResult;
-import software.amazon.awssdk.ResponseMetadata;
-import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMetadata> implements
-                                                                                       ToCopyableBuilder<NestedContainersResponse.Builder, NestedContainersResponse> {
+public class NestedContainersResponse extends
+        JsonProtocolTestsResponse<NestedContainersResponse.Builder, NestedContainersResponse> {
     private final List<List<String>> listOfListOfStrings;
 
     private final List<List<List<String>>> listOfListOfListOfStrings;
@@ -22,6 +18,7 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
     private final Map<String, List<List<String>>> mapOfStringToListOfListOfStrings;
 
     private NestedContainersResponse(BuilderImpl builder) {
+        super(builder);
         this.listOfListOfStrings = builder.listOfListOfStrings;
         this.listOfListOfListOfStrings = builder.listOfListOfListOfStrings;
         this.mapOfStringToListOfListOfStrings = builder.mapOfStringToListOfListOfStrings;
@@ -32,7 +29,7 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
-     *
+     * 
      * @return The value of the ListOfListOfStrings property for this object.
      */
     public List<List<String>> listOfListOfStrings() {
@@ -44,7 +41,7 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
-     *
+     * 
      * @return The value of the ListOfListOfListOfStrings property for this object.
      */
     public List<List<List<String>>> listOfListOfListOfStrings() {
@@ -56,7 +53,7 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
-     *
+     * 
      * @return The value of the MapOfStringToListOfListOfStrings property for this object.
      */
     public Map<String, List<List<String>>> mapOfStringToListOfListOfStrings() {
@@ -82,7 +79,7 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
         hashCode = 31 * hashCode + ((listOfListOfStrings() == null) ? 0 : listOfListOfStrings().hashCode());
         hashCode = 31 * hashCode + ((listOfListOfListOfStrings() == null) ? 0 : listOfListOfListOfStrings().hashCode());
         hashCode = 31 * hashCode
-                   + ((mapOfStringToListOfListOfStrings() == null) ? 0 : mapOfStringToListOfListOfStrings().hashCode());
+                + ((mapOfStringToListOfListOfStrings() == null) ? 0 : mapOfStringToListOfListOfStrings().hashCode());
         return hashCode;
     }
 
@@ -108,14 +105,14 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
             return false;
         }
         if (other.listOfListOfListOfStrings() != null
-            && !other.listOfListOfListOfStrings().equals(this.listOfListOfListOfStrings())) {
+                && !other.listOfListOfListOfStrings().equals(this.listOfListOfListOfStrings())) {
             return false;
         }
         if (other.mapOfStringToListOfListOfStrings() == null ^ this.mapOfStringToListOfListOfStrings() == null) {
             return false;
         }
         if (other.mapOfStringToListOfListOfStrings() != null
-            && !other.mapOfStringToListOfListOfStrings().equals(this.mapOfStringToListOfListOfStrings())) {
+                && !other.mapOfStringToListOfListOfStrings().equals(this.mapOfStringToListOfListOfStrings())) {
             return false;
         }
         return true;
@@ -138,7 +135,7 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
         return sb.toString();
     }
 
-    public interface Builder extends CopyableBuilder<Builder, NestedContainersResponse> {
+    public interface Builder extends JsonProtocolTestsResponse.Builder<Builder, NestedContainersResponse> {
         /**
          * Sets the value of the ListOfListOfStrings property for this object.
          *
@@ -186,7 +183,8 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
                 Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings);
     }
 
-    private static final class BuilderImpl implements Builder {
+    private static final class BuilderImpl extends JsonProtocolTestsResponse.BuilderImpl<Builder, NestedContainersResponse>
+            implements Builder {
         private List<List<String>> listOfListOfStrings;
 
         private List<List<List<String>>> listOfListOfListOfStrings;
@@ -194,9 +192,11 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
         private Map<String, List<List<String>>> mapOfStringToListOfListOfStrings;
 
         private BuilderImpl() {
+            super(Builder.class);
         }
 
         private BuilderImpl(NestedContainersResponse model) {
+            super(Builder.class, model);
             setListOfListOfStrings(model.listOfListOfStrings);
             setListOfListOfListOfStrings(model.listOfListOfListOfStrings);
             setMapOfStringToListOfListOfStrings(model.mapOfStringToListOfListOfStrings);
@@ -268,3 +268,4 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
         }
     }
 }
+

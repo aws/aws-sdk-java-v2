@@ -1,15 +1,12 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import javax.annotation.Generated;
-import software.amazon.awssdk.AmazonWebServiceResult;
-import software.amazon.awssdk.ResponseMetadata;
-import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @Generated("software.amazon.awssdk:codegen")
-public class StreamingInputOperationResponse extends AmazonWebServiceResult<ResponseMetadata> implements
-                                                                                              ToCopyableBuilder<StreamingInputOperationResponse.Builder, StreamingInputOperationResponse> {
+public class StreamingInputOperationResponse extends
+        JsonProtocolTestsResponse<StreamingInputOperationResponse.Builder, StreamingInputOperationResponse> {
     private StreamingInputOperationResponse(BuilderImpl builder) {
+        super(builder);
     }
 
     @Override
@@ -53,14 +50,17 @@ public class StreamingInputOperationResponse extends AmazonWebServiceResult<Resp
         return sb.toString();
     }
 
-    public interface Builder extends CopyableBuilder<Builder, StreamingInputOperationResponse> {
+    public interface Builder extends JsonProtocolTestsResponse.Builder<Builder, StreamingInputOperationResponse> {
     }
 
-    private static final class BuilderImpl implements Builder {
+    private static final class BuilderImpl extends
+            JsonProtocolTestsResponse.BuilderImpl<Builder, StreamingInputOperationResponse> implements Builder {
         private BuilderImpl() {
+            super(Builder.class);
         }
 
         private BuilderImpl(StreamingInputOperationResponse model) {
+            super(Builder.class, model);
         }
 
         @Override
@@ -69,3 +69,4 @@ public class StreamingInputOperationResponse extends AmazonWebServiceResult<Resp
         }
     }
 }
+

@@ -19,12 +19,12 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 import software.amazon.awssdk.util.ValidationUtils;
 
 @SdkProtectedApi
-public class WaiterImpl<InputT extends AmazonWebServiceRequest, OutputT> implements Waiter<InputT> {
+public class WaiterImpl<InputT extends SdkRequest<?, ?, ?>, OutputT> implements Waiter<InputT> {
 
     /**
      * Represents the operation function
@@ -76,8 +76,9 @@ public class WaiterImpl<InputT extends AmazonWebServiceRequest, OutputT> impleme
 
         ValidationUtils.assertNotNull(waiterParameters, "waiterParameters");
         @SuppressWarnings("unchecked")
-        InputT request = (InputT) ValidationUtils.assertNotNull(waiterParameters.getRequest(), "request").clone();
-        request.getRequestClientOptions().appendUserAgent("waiter-request");
+        InputT request = (InputT) ValidationUtils.assertNotNull(waiterParameters.getRequest(), "request").toBuilder().build();
+        // TODO(dongie)
+        // request.getRequestClientOptions().appendUserAgent("waiter-request");
         WaiterExecution<InputT, OutputT> waiterExecution = new WaiterExecutionBuilder<InputT, OutputT>()
                 .withRequest(request)
                 .withPollingStrategy(waiterParameters.getPollingStrategy() != null ? waiterParameters.getPollingStrategy()

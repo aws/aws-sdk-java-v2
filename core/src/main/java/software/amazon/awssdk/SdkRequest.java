@@ -15,12 +15,63 @@
 
 package software.amazon.awssdk;
 
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
+
+import java.util.Optional;
+
 /**
  * The base class for all SDK requests.
  *
- * TODO: SDK-specific options on the {@link AmazonWebServiceRequest} should be migrated here as part of the base-model refactor.
- *
  * @see SdkResponse
  */
-public abstract class SdkRequest {
+public abstract class SdkRequest<B extends SdkRequest.Builder<B, R, RequestOverrideConfigT>,
+        R extends SdkRequest<B, R, RequestOverrideConfigT>,
+        RequestOverrideConfigT>
+        implements ToCopyableBuilder<B, R> {
+
+    private final RequestOverrideConfigT requestOverrideConfig;
+
+    protected SdkRequest(B builder) {
+        requestOverrideConfig = builder.requestOverrideConfig();
+    }
+
+    public Optional<RequestOverrideConfigT> requestOverrideConfig() {
+        return Optional.ofNullable(requestOverrideConfig);
+    }
+
+    public interface Builder<B extends SdkRequest.Builder<B, R, RequestOverrideConfigT>,
+            R extends SdkRequest<B, R, RequestOverrideConfigT>,
+            RequestOverrideConfigT> extends CopyableBuilder<B, R> {
+
+        B requestOverrideConfig(RequestOverrideConfigT sdkRequestOverrideConfig);
+        RequestOverrideConfigT requestOverrideConfig();
+    }
+
+    protected abstract static class BuilderImpl<B extends Builder<B, R, RequestOverrideConfigT>,
+            R extends SdkRequest<B, R, RequestOverrideConfigT>,
+            RequestOverrideConfigT> implements Builder<B, R, RequestOverrideConfigT> {
+        private final Class<B> concrete;
+
+        private RequestOverrideConfigT requestOverrideConfig;
+
+        protected BuilderImpl(Class<B> concrete) {
+            this.concrete = concrete;
+        }
+
+        protected BuilderImpl(Class<B> concrete, R request) {
+            this(concrete);
+            request.requestOverrideConfig().map(c -> requestOverrideConfig = c);
+        }
+
+        public RequestOverrideConfigT requestOverrideConfig() {
+            return requestOverrideConfig;
+        }
+
+        @Override
+        public B requestOverrideConfig(RequestOverrideConfigT requestOverrideConfig) {
+            this.requestOverrideConfig = requestOverrideConfig;
+            return concrete.cast(this);
+        }
+    }
 }

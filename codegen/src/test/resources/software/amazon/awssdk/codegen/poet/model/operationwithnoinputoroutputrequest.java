@@ -1,14 +1,12 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import javax.annotation.Generated;
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @Generated("software.amazon.awssdk:codegen")
-public class OperationWithNoInputOrOutputRequest extends AmazonWebServiceRequest implements
-        ToCopyableBuilder<OperationWithNoInputOrOutputRequest.Builder, OperationWithNoInputOrOutputRequest> {
+public class OperationWithNoInputOrOutputRequest extends
+        JsonProtocolTestsRequest<OperationWithNoInputOrOutputRequest.Builder, OperationWithNoInputOrOutputRequest> {
     private OperationWithNoInputOrOutputRequest(BuilderImpl builder) {
+        super(builder);
     }
 
     @Override
@@ -52,14 +50,17 @@ public class OperationWithNoInputOrOutputRequest extends AmazonWebServiceRequest
         return sb.toString();
     }
 
-    public interface Builder extends CopyableBuilder<Builder, OperationWithNoInputOrOutputRequest> {
+    public interface Builder extends JsonProtocolTestsRequest.Builder<Builder, OperationWithNoInputOrOutputRequest> {
     }
 
-    private static final class BuilderImpl implements Builder {
+    private static final class BuilderImpl extends
+            JsonProtocolTestsRequest.BuilderImpl<Builder, OperationWithNoInputOrOutputRequest> implements Builder {
         private BuilderImpl() {
+            super(Builder.class);
         }
 
         private BuilderImpl(OperationWithNoInputOrOutputRequest model) {
+            super(Builder.class, model);
         }
 
         @Override

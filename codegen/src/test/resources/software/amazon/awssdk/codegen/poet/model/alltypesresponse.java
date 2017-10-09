@@ -7,17 +7,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Generated;
-import software.amazon.awssdk.AmazonWebServiceResult;
-import software.amazon.awssdk.ResponseMetadata;
 import software.amazon.awssdk.runtime.StandardMemberCopier;
-import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> implements
-        ToCopyableBuilder<AllTypesResponse.Builder, AllTypesResponse> {
+public class AllTypesResponse extends JsonProtocolTestsResponse<AllTypesResponse.Builder, AllTypesResponse> {
     private final String stringMember;
 
     private final Integer integerMember;
@@ -63,6 +58,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
     private final String enumType;
 
     private AllTypesResponse(BuilderImpl builder) {
+        super(builder);
         this.stringMember = builder.stringMember;
         this.integerMember = builder.integerMember;
         this.booleanMember = builder.booleanMember;
@@ -89,7 +85,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
     /**
      * Returns the value of the StringMember property for this object.
-     *
+     * 
      * @return The value of the StringMember property for this object.
      */
     public String stringMember() {
@@ -98,7 +94,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
     /**
      * Returns the value of the IntegerMember property for this object.
-     *
+     * 
      * @return The value of the IntegerMember property for this object.
      */
     public Integer integerMember() {
@@ -107,7 +103,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
     /**
      * Returns the value of the BooleanMember property for this object.
-     *
+     * 
      * @return The value of the BooleanMember property for this object.
      */
     public Boolean booleanMember() {
@@ -116,7 +112,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
     /**
      * Returns the value of the FloatMember property for this object.
-     *
+     * 
      * @return The value of the FloatMember property for this object.
      */
     public Float floatMember() {
@@ -125,7 +121,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
     /**
      * Returns the value of the DoubleMember property for this object.
-     *
+     * 
      * @return The value of the DoubleMember property for this object.
      */
     public Double doubleMember() {
@@ -134,7 +130,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
     /**
      * Returns the value of the LongMember property for this object.
-     *
+     * 
      * @return The value of the LongMember property for this object.
      */
     public Long longMember() {
@@ -146,7 +142,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
-     *
+     * 
      * @return The value of the SimpleList property for this object.
      */
     public List<String> simpleList() {
@@ -158,7 +154,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
-     *
+     * 
      * @return The value of the ListOfMaps property for this object.
      */
     public List<Map<String, String>> listOfMaps() {
@@ -170,7 +166,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
-     *
+     * 
      * @return The value of the ListOfStructs property for this object.
      */
     public List<SimpleStruct> listOfStructs() {
@@ -182,7 +178,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
-     *
+     * 
      * @return The value of the MapOfStringToIntegerList property for this object.
      */
     public Map<String, List<Integer>> mapOfStringToIntegerList() {
@@ -194,7 +190,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
-     *
+     * 
      * @return The value of the MapOfStringToString property for this object.
      */
     public Map<String, String> mapOfStringToString() {
@@ -206,7 +202,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
-     *
+     * 
      * @return The value of the MapOfStringToStruct property for this object.
      */
     public Map<String, SimpleStruct> mapOfStringToStruct() {
@@ -215,7 +211,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
     /**
      * Returns the value of the TimestampMember property for this object.
-     *
+     * 
      * @return The value of the TimestampMember property for this object.
      */
     public Instant timestampMember() {
@@ -224,7 +220,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
     /**
      * Returns the value of the StructWithNestedTimestampMember property for this object.
-     *
+     * 
      * @return The value of the StructWithNestedTimestampMember property for this object.
      */
     public StructWithTimestamp structWithNestedTimestampMember() {
@@ -236,7 +232,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
      * <p>
      * This method will return a new read-only {@code ByteBuffer} each time it is invoked.
      * </p>
-     *
+     * 
      * @return The value of the BlobArg property for this object.
      */
     public ByteBuffer blobArg() {
@@ -245,7 +241,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
     /**
      * Returns the value of the StructWithNestedBlob property for this object.
-     *
+     * 
      * @return The value of the StructWithNestedBlob property for this object.
      */
     public StructWithNestedBlobType structWithNestedBlob() {
@@ -257,7 +253,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
-     *
+     * 
      * @return The value of the BlobMap property for this object.
      */
     public Map<String, ByteBuffer> blobMap() {
@@ -269,7 +265,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
      * <p>
      * Attempts to modify the collection returned by this method will result in an UnsupportedOperationException.
      * </p>
-     *
+     * 
      * @return The value of the ListOfBlobs property for this object.
      */
     public List<ByteBuffer> listOfBlobs() {
@@ -278,7 +274,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
     /**
      * Returns the value of the RecursiveStruct property for this object.
-     *
+     * 
      * @return The value of the RecursiveStruct property for this object.
      */
     public RecursiveStructType recursiveStruct() {
@@ -287,7 +283,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
     /**
      * Returns the value of the PolymorphicTypeWithSubTypes property for this object.
-     *
+     * 
      * @return The value of the PolymorphicTypeWithSubTypes property for this object.
      */
     public BaseType polymorphicTypeWithSubTypes() {
@@ -296,7 +292,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
     /**
      * Returns the value of the PolymorphicTypeWithoutSubTypes property for this object.
-     *
+     * 
      * @return The value of the PolymorphicTypeWithoutSubTypes property for this object.
      */
     public SubTypeOne polymorphicTypeWithoutSubTypes() {
@@ -305,7 +301,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
     /**
      * Returns the value of the EnumType property for this object.
-     *
+     * 
      * @return The value of the EnumType property for this object.
      * @see EnumType
      */
@@ -579,7 +575,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
         return sb.toString();
     }
 
-    public interface Builder extends CopyableBuilder<Builder, AllTypesResponse> {
+    public interface Builder extends JsonProtocolTestsResponse.Builder<Builder, AllTypesResponse> {
         /**
          * Sets the value of the StringMember property for this object.
          *
@@ -832,7 +828,8 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
         Builder enumType(EnumType enumType);
     }
 
-    private static final class BuilderImpl implements Builder {
+    private static final class BuilderImpl extends JsonProtocolTestsResponse.BuilderImpl<Builder, AllTypesResponse> implements
+            Builder {
         private String stringMember;
 
         private Integer integerMember;
@@ -878,9 +875,11 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
         private String enumType;
 
         private BuilderImpl() {
+            super(Builder.class);
         }
 
         private BuilderImpl(AllTypesResponse model) {
+            super(Builder.class, model);
             setStringMember(model.stringMember);
             setIntegerMember(model.integerMember);
             setBooleanMember(model.booleanMember);

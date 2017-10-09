@@ -17,7 +17,8 @@ package software.amazon.awssdk.util;
 
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
-import software.amazon.awssdk.ResponseMetadata;
+
+import software.amazon.awssdk.AwsResponseMetadata;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 
 /**
@@ -41,7 +42,7 @@ public class ResponseMetadataCache implements MetadataCache {
     }
 
     @Override
-    public synchronized void add(Object obj, ResponseMetadata metadata) {
+    public synchronized void add(Object obj, AwsResponseMetadata metadata) {
         if (obj == null) {
             return;
         }
@@ -49,7 +50,7 @@ public class ResponseMetadataCache implements MetadataCache {
     }
 
     @Override
-    public synchronized ResponseMetadata get(Object obj) {
+    public synchronized AwsResponseMetadata get(Object obj) {
         // System.identityHashCode isn't guaranteed to be unique
         // on all platforms, but should be reasonable enough to use
         // for a few requests at a time.  We can always easily move
@@ -62,7 +63,7 @@ public class ResponseMetadataCache implements MetadataCache {
      * <code>removeEldestEntry</code> method to turn LinkedHashMap into a
      * FIFO cache that automatically evicts old entries.
      */
-    private static final class InternalCache extends LinkedHashMap<Integer, ResponseMetadata> {
+    private static final class InternalCache extends LinkedHashMap<Integer, AwsResponseMetadata> {
         private static final long serialVersionUID = 1L;
         private int maxSize;
 
@@ -72,7 +73,7 @@ public class ResponseMetadataCache implements MetadataCache {
         }
 
         @Override
-        protected boolean removeEldestEntry(Entry<Integer, ResponseMetadata> eldest) {
+        protected boolean removeEldestEntry(Entry<Integer, AwsResponseMetadata> eldest) {
             return size() > maxSize;
         }
     }

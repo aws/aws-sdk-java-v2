@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.waiters;
 
-import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.SdkRequest;
 
-public final class WaiterParameters<InputT extends AmazonWebServiceRequest> {
+public final class WaiterParameters<InputT extends SdkRequest> {
 
     /**
      * Represents the input of the operation.

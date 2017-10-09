@@ -108,7 +108,7 @@ public interface Request<T> extends SignableRequest<T> {
      * Returns the original, user facing request object which this internal
      * request object is representing.
      */
-    AmazonWebServiceRequest getOriginalRequest();
+    SdkRequest getOriginalRequest();
 
     /**
      * Sets the optional value for time offset for this request.  This

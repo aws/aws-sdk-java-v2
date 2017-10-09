@@ -17,11 +17,11 @@ package software.amazon.awssdk.waiters;
 
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.SdkRequest;
 import software.amazon.awssdk.annotation.SdkProtectedApi;
 
 @SdkProtectedApi
-public class WaiterExecutionBuilder<InputT extends AmazonWebServiceRequest, OutputT> {
+public class WaiterExecutionBuilder<InputT extends SdkRequest<?, ?, ?>, OutputT> {
 
     private SdkFunction<InputT, OutputT> sdkFunction;
 

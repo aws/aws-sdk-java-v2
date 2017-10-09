@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.internal;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,44 +37,48 @@ public final class AmazonWebServiceRequestAdapter extends RequestConfig {
      */
     private static final Map<Class<?>, String> SIMPLE_NAME_CACHE = new ConcurrentHashMap<>();
 
-    private final AmazonWebServiceRequest request;
+    private final SdkRequest request;
     private final String simpleName;
 
-    public AmazonWebServiceRequestAdapter(AmazonWebServiceRequest request) {
+    public AmazonWebServiceRequestAdapter(SdkRequest request) {
         this.request = request;
         this.simpleName = SIMPLE_NAME_CACHE.computeIfAbsent(request.getClass(), Class::getSimpleName);
     }
 
     @Override
     public ProgressListener getProgressListener() {
-        return request.getGeneralProgressListener();
+        // FIXME(dongie)
+        return null;
     }
 
     @Override
     public AwsCredentialsProvider getCredentialsProvider() {
-        return request.getRequestCredentialsProvider();
+        // FIXME(dongie)
+        return null;
     }
 
     @Override
     public Map<String, String> getCustomRequestHeaders() {
-        return (request.getCustomRequestHeaders() == null) ? Collections.<String, String>emptyMap() :
-                request.getCustomRequestHeaders();
+        // FIXME(dongie)
+        return null;
     }
 
     @Override
     public Map<String, List<String>> getCustomQueryParameters() {
-        return (request.getCustomQueryParameters() == null) ? Collections.<String, List<String>>emptyMap() :
-                request.getCustomQueryParameters();
+        // FIXME(dongie)
+        return null;
     }
 
     @Override
     public Integer getClientExecutionTimeout() {
-        return request.getSdkClientExecutionTimeout();
+        // FIXME(dongie)
+        return null;
     }
 
     @Override
     public RequestClientOptions getRequestClientOptions() {
-        return request.getRequestClientOptions();
+        // FIXME(dongie)
+        return null;
     }
 
     @Override
