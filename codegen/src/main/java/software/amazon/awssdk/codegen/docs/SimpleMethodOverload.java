@@ -27,9 +27,19 @@ public enum SimpleMethodOverload {
     NORMAL,
 
     /**
+     * The standard paginated method overload that takes in a request object and returns a response object.
+     */
+    PAGINATED,
+
+    /**
      * Simple method that takes no arguments and creates an empty request object that delegates to the {@link #NORMAL} overload.
      */
     NO_ARG,
+
+    /**
+     * Paginated simple method that takes no arguments and creates an empty request object.
+     */
+    NO_ARG_PAGINATED,
 
     /**
      * Simple method for streaming operations (input or output) that takes in the request object and a file to

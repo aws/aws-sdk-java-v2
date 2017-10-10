@@ -19,6 +19,7 @@ import java.util.Map;
 import software.amazon.awssdk.codegen.internal.ImmutableMapParameter;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.sync.StreamingResponseHandler;
 
 /**
@@ -90,10 +91,14 @@ class SyncOperationDocProvider extends OperationDocProvider {
      * @return Factories to use for the {@link ClientType#SYNC} method type.
      */
     static Map<SimpleMethodOverload, Factory> syncFactories() {
-        return ImmutableMapParameter.of(SimpleMethodOverload.NORMAL, SyncOperationDocProvider::new,
-                                        SimpleMethodOverload.NO_ARG, SyncNoArg::new,
-                                        SimpleMethodOverload.FILE, SyncFile::new,
-                                        SimpleMethodOverload.INPUT_STREAM, SyncInputStream::new);
+        return new ImmutableMapParameter.Builder<SimpleMethodOverload, Factory>()
+                                    .put(SimpleMethodOverload.NORMAL, SyncOperationDocProvider::new)
+                                    .put(SimpleMethodOverload.NO_ARG, SyncNoArg::new)
+                                    .put(SimpleMethodOverload.FILE, SyncFile::new)
+                                    .put(SimpleMethodOverload.INPUT_STREAM, SyncInputStream::new)
+                                    .put(SimpleMethodOverload.PAGINATED, SyncPaginated::new)
+                                    .put(SimpleMethodOverload.NO_ARG_PAGINATED, SyncPaginatedNoArg::new)
+                                    .build();
     }
 
     /**
@@ -166,6 +171,38 @@ class SyncOperationDocProvider extends OperationDocProvider {
         protected void applyParams(DocumentationBuilder docBuilder) {
             // Link to non-simple method for discoverability
             docBuilder.see("#%s(%s)", opModel.getMethodName(), opModel.getInput().getVariableType());
+        }
+    }
+
+    /**
+     * Provider for standard paginated method that that takes in a request object and returns a response object.
+     */
+    private static class SyncPaginated extends SyncOperationDocProvider {
+
+        private SyncPaginated(IntermediateModel model, OperationModel opModel) {
+            super(model, opModel);
+        }
+
+        @Override
+        protected String appendToDescription() {
+            return opModel.isPaginated() ? paginationDocs.getDocsForSyncOperation() : null;
+        }
+    }
+
+    /**
+     * Provider for paginated simple method that takes no arguments and creates an empty request object.
+     */
+    private static class SyncPaginatedNoArg extends SyncPaginated {
+
+        private SyncPaginatedNoArg(IntermediateModel model, OperationModel opModel) {
+            super(model, opModel);
+        }
+
+        @Override
+        protected void applyParams(DocumentationBuilder docBuilder) {
+            // Link to non-simple method for discoverability
+            docBuilder.see("#%s(%s)", PaginatorUtils.getSyncMethodName(opModel.getMethodName()),
+                           opModel.getInput().getVariableType());
         }
     }
 }

@@ -12,6 +12,10 @@ import software.amazon.awssdk.services.json.model.APostOperationWithOutputReques
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputResponse;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersRequest;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersResponse;
+import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest;
+import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse;
+import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest;
+import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse;
 import software.amazon.awssdk.services.json.model.StreamingInputOperationRequest;
 import software.amazon.awssdk.services.json.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationRequest;
@@ -245,6 +249,114 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
         Consumer<GetWithoutRequiredMembersRequest.Builder> getWithoutRequiredMembersRequest) {
         return getWithoutRequiredMembers(GetWithoutRequiredMembersRequest.builder().apply(getWithoutRequiredMembersRequest)
                                                                          .build());
+    }
+
+    /**
+     * Some paginated operation with result_key in paginators.json file
+     *
+     * @param paginatedOperationWithResultKeyRequest
+     * @return A Java Future containing the result of the PaginatedOperationWithResultKey operation returned by the
+     *         service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
+     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.PaginatedOperationWithResultKey
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey(
+        PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Some paginated operation with result_key in paginators.json file<br/>
+     * This is a convenience which creates an instance of the {@link PaginatedOperationWithResultKeyRequest.Builder}
+     * avoiding the need to create one manually via {@link PaginatedOperationWithResultKeyRequest#builder()}
+     *
+     * @param paginatedOperationWithResultKeyRequest
+     *        a {@link Consumer} that will call methods on {@link PaginatedOperationWithResultKeyRequest.Builder}.
+     * @return A Java Future containing the result of the PaginatedOperationWithResultKey operation returned by the
+     *         service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
+     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.PaginatedOperationWithResultKey
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey(
+        Consumer<PaginatedOperationWithResultKeyRequest.Builder> paginatedOperationWithResultKeyRequest) {
+        return paginatedOperationWithResultKey(PaginatedOperationWithResultKeyRequest.builder()
+                                                                                     .apply(paginatedOperationWithResultKeyRequest).build());
+    }
+
+    /**
+     * Some paginated operation without result_key in paginators.json file
+     *
+     * @param paginatedOperationWithoutResultKeyRequest
+     * @return A Java Future containing the result of the PaginatedOperationWithoutResultKey operation returned by the
+     *         service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
+     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.PaginatedOperationWithoutResultKey
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<PaginatedOperationWithoutResultKeyResponse> paginatedOperationWithoutResultKey(
+        PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Some paginated operation without result_key in paginators.json file<br/>
+     * This is a convenience which creates an instance of the {@link PaginatedOperationWithoutResultKeyRequest.Builder}
+     * avoiding the need to create one manually via {@link PaginatedOperationWithoutResultKeyRequest#builder()}
+     *
+     * @param paginatedOperationWithoutResultKeyRequest
+     *        a {@link Consumer} that will call methods on {@link PaginatedOperationWithoutResultKeyRequest.Builder}.
+     * @return A Java Future containing the result of the PaginatedOperationWithoutResultKey operation returned by the
+     *         service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
+     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.PaginatedOperationWithoutResultKey
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<PaginatedOperationWithoutResultKeyResponse> paginatedOperationWithoutResultKey(
+        Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest) {
+        return paginatedOperationWithoutResultKey(PaginatedOperationWithoutResultKeyRequest.builder()
+                                                                                           .apply(paginatedOperationWithoutResultKeyRequest).build());
     }
 
     /**
