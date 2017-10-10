@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -39,6 +40,7 @@ import software.amazon.awssdk.codegen.poet.client.specs.Ec2ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.JsonProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryXmlProtocolSpec;
+import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.auth.presign.PresignerParams;
 import software.amazon.awssdk.core.client.ClientHandler;
 import software.amazon.awssdk.core.config.AdvancedClientOption;
@@ -146,7 +148,31 @@ public class SyncClientClass implements ClassSpec {
                                   .addCode(protocolSpec.executionHandler(opModel))
                                   .build());
 
+        methods.addAll(paginatedMethods(opModel));
+
         return methods;
+    }
+
+    private List<MethodSpec> paginatedMethods(OperationModel opModel) {
+        List<MethodSpec> paginatedMethodSpecs = new ArrayList<>();
+
+        if (opModel.isPaginated()) {
+            paginatedMethodSpecs.add(SyncClientInterface.operationMethodSignature(model,
+                                                                                  opModel,
+                                                                                  SimpleMethodOverload.PAGINATED,
+                                                                                  PaginatorUtils.getSyncMethodName(
+                                                                                      opModel.getMethodName()))
+                                                        .addAnnotation(Override.class)
+                                                        .returns(poetExtensions.getResponseClassForPaginatedSyncOperation(
+                                                            opModel.getOperationName()))
+                                                        .addStatement("return new $T(this, $L)",
+                                                                      poetExtensions.getResponseClassForPaginatedSyncOperation(
+                                                                          opModel.getOperationName()),
+                                                                      opModel.getInput().getVariableName())
+                                                        .build());
+        }
+
+        return paginatedMethodSpecs;
     }
 
     private MethodSpec presigners() {

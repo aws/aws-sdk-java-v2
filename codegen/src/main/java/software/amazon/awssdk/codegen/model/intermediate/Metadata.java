@@ -69,6 +69,8 @@ public class Metadata {
 
     private String requestTransformPackageName;
 
+    private String paginatorsPackageName;
+
     private String authPolicyPackageName;
 
     private String smokeTestsPackageName;
@@ -430,6 +432,23 @@ public class Metadata {
 
     public Metadata withRequestTransformPackageName(String requestTransformPackageName) {
         setRequestTransformPackageName(requestTransformPackageName);
+        return this;
+    }
+
+    public String getFullPaginatorsPackageName() {
+        return joinPackageNames(rootPackageName, getPaginatorsPackageName());
+    }
+
+    public String getPaginatorsPackageName() {
+        return paginatorsPackageName;
+    }
+
+    public void setPaginatorsPackageName(String paginatorsPackageName) {
+        this.paginatorsPackageName = paginatorsPackageName;
+    }
+
+    public Metadata withPaginatorsPackageName(String paginatorsPackageName) {
+        setPaginatorsPackageName(paginatorsPackageName);
         return this;
     }
 

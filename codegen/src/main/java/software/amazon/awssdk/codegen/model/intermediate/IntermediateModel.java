@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.model.intermediate;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +25,7 @@ import java.util.Collections;
 import java.util.Map;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.core.AmazonWebServiceResult;
 import software.amazon.awssdk.core.ResponseMetadata;
 import software.amazon.awssdk.utils.IoUtils;
@@ -47,6 +49,9 @@ public final class IntermediateModel {
 
     private final Map<String, AuthorizerModel> customAuthorizers;
 
+    @JsonIgnore
+    private final Map<String, PaginatorDefinition> paginators;
+
     @JsonCreator
     public IntermediateModel(
             @JsonProperty("metadata") Metadata metadata,
@@ -55,7 +60,7 @@ public final class IntermediateModel {
             @JsonProperty("customizationConfig") CustomizationConfig customizationConfig,
             @JsonProperty("serviceExamples") ServiceExamples examples) {
 
-        this(metadata, operations, shapes, customizationConfig, examples, Collections.emptyMap());
+        this(metadata, operations, shapes, customizationConfig, examples, Collections.emptyMap(), Collections.emptyMap());
     }
 
     public IntermediateModel(
@@ -64,13 +69,15 @@ public final class IntermediateModel {
             Map<String, ShapeModel> shapes,
             CustomizationConfig customizationConfig,
             ServiceExamples examples,
-            Map<String, AuthorizerModel> customAuthorizers) {
+            Map<String, AuthorizerModel> customAuthorizers,
+            Map<String, PaginatorDefinition> paginators) {
         this.metadata = metadata;
         this.operations = operations;
         this.shapes = shapes;
         this.customizationConfig = customizationConfig;
         this.examples = examples;
         this.customAuthorizers = customAuthorizers;
+        this.paginators = paginators;
     }
 
     public Metadata getMetadata() {
@@ -99,6 +106,10 @@ public final class IntermediateModel {
 
     public ServiceExamples getExamples() {
         return examples;
+    }
+
+    public Map<String, PaginatorDefinition> getPaginators() {
+        return paginators;
     }
 
     /**
@@ -170,8 +181,11 @@ public final class IntermediateModel {
                customizationConfig.getCustomResponseMetadataClassName();
     }
 
-
     public Map<String, AuthorizerModel> getCustomAuthorizers() {
         return customAuthorizers;
+    }
+
+    public boolean hasPaginators() {
+        return paginators.size() > 0;
     }
 }
