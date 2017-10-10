@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen;
 import software.amazon.awssdk.codegen.model.config.BasicCodeGenConfig;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.ServiceExamples;
+import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Waiters;
 
@@ -31,14 +32,17 @@ public class C2jModels {
     private final ServiceExamples examplesModel;
     private final BasicCodeGenConfig codeGenConfig;
     private final CustomizationConfig customizationConfig;
+    private final Paginators paginatorsModel;
 
     private C2jModels(ServiceModel serviceModel, Waiters waitersModel, ServiceExamples examplesModel,
-                      BasicCodeGenConfig codeGenConfig, CustomizationConfig customizationConfig) {
+                      BasicCodeGenConfig codeGenConfig, CustomizationConfig customizationConfig,
+                      Paginators paginatorsModel) {
         this.serviceModel = serviceModel;
         this.waitersModel = waitersModel;
         this.examplesModel = examplesModel;
         this.codeGenConfig = codeGenConfig;
         this.customizationConfig = customizationConfig;
+        this.paginatorsModel = paginatorsModel;
     }
 
     public static Builder builder() {
@@ -65,6 +69,10 @@ public class C2jModels {
         return customizationConfig;
     }
 
+    public Paginators paginatorsModel() {
+        return paginatorsModel;
+    }
+
     public static class Builder {
 
         private ServiceModel serviceModel;
@@ -72,6 +80,7 @@ public class C2jModels {
         private ServiceExamples examplesModel;
         private BasicCodeGenConfig codeGenConfig;
         private CustomizationConfig customizationConfig;
+        private Paginators paginatorsModel;
 
         private Builder() {
         }
@@ -101,10 +110,16 @@ public class C2jModels {
             return this;
         }
 
+        public Builder paginatorsModel(Paginators paginatorsModel) {
+            this.paginatorsModel = paginatorsModel;
+            return this;
+        }
+
         public C2jModels build() {
             final Waiters waiters = waitersModel != null ? waitersModel : Waiters.NONE;
+            final Paginators paginators = paginatorsModel != null ? paginatorsModel : Paginators.NONE;
             final ServiceExamples examples = examplesModel != null ? examplesModel : ServiceExamples.NONE;
-            return new C2jModels(serviceModel, waiters, examples, codeGenConfig, customizationConfig);
+            return new C2jModels(serviceModel, waiters, examples, codeGenConfig, customizationConfig, paginators);
         }
     }
 }

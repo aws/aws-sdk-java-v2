@@ -37,7 +37,9 @@ import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
+import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.SdkBaseException;
 import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.DefaultCredentialsProvider;
@@ -53,11 +55,13 @@ public final class SyncClientInterface implements ClassSpec {
     private final IntermediateModel model;
     private final ClassName className;
     private final String clientPackageName;
+    private final PoetExtensions poetExtensions;
 
     public SyncClientInterface(IntermediateModel model) {
         this.model = model;
         this.clientPackageName = model.getMetadata().getFullClientPackageName();
         this.className = ClassName.get(clientPackageName, model.getMetadata().getSyncInterface());
+        this.poetExtensions = new PoetExtensions(model);
     }
 
     @Override
@@ -145,11 +149,13 @@ public final class SyncClientInterface implements ClassSpec {
             methods.add(operationBuilderConsumer(model, opModel));
         }
         methods.addAll(streamingSimpleMethods(opModel));
+        methods.addAll(paginatedMethods(opModel));
 
         return methods;
     }
 
-    private MethodSpec operationBuilderConsumer(IntermediateModel model, OperationModel opModel) {
+    private MethodSpec operationBuilderConsumer(IntermediateModel model,
+                                                OperationModel opModel) {
         ClassName requestType = ClassName.get(model.getMetadata().getFullModelPackageName(),
                                               opModel.getInput().getVariableType());
         ClassName builder = requestType.nestedClass("Builder");
@@ -167,23 +173,34 @@ public final class SyncClientInterface implements ClassSpec {
     private MethodSpec simpleMethod(OperationModel opModel) {
         ClassName requestType = ClassName.get(model.getMetadata().getFullModelPackageName(),
                                               opModel.getInput().getVariableType());
-        return operationSimpleMethodSignature(model, opModel)
-                .addModifiers(Modifier.DEFAULT)
-                .addStatement("return $L($T.builder().build())", opModel.getMethodName(), requestType)
-                .build();
+        return operationSimpleMethodSignature(model, opModel, opModel.getMethodName())
+            .addStatement("return $L($T.builder().build())", opModel.getMethodName(), requestType)
+            .addJavadoc(opModel.getDocs(model, ClientType.SYNC, SimpleMethodOverload.NO_ARG))
+            .build();
     }
 
     private static MethodSpec.Builder operationBaseSignature(IntermediateModel model,
                                                              OperationModel opModel,
                                                              Consumer<MethodSpec.Builder> addFirstParameter) {
+
+        return operationBaseSignature(model, opModel, addFirstParameter, SimpleMethodOverload.NORMAL, opModel.getMethodName());
+    }
+
+    private static MethodSpec.Builder operationBaseSignature(IntermediateModel model,
+                                                             OperationModel opModel,
+                                                             Consumer<MethodSpec.Builder> addFirstParameter,
+                                                             SimpleMethodOverload simpleMethodOverload,
+                                                             String methodName) {
+
         TypeName responseType = ClassName.get(model.getMetadata().getFullModelPackageName(),
                                               opModel.getReturnType().getReturnType());
         TypeName returnType = opModel.hasStreamingOutput() ? STREAMING_TYPE_VARIABLE : responseType;
 
-        final MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(opModel.getMethodName())
+        final MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(methodName)
                                                            .returns(returnType)
                                                            .addModifiers(Modifier.PUBLIC)
-                                                           .addJavadoc(opModel.getDocs(model, ClientType.SYNC))
+                                                           .addJavadoc(opModel.getDocs(model, ClientType.SYNC,
+                                                                                       simpleMethodOverload))
                                                            .addExceptions(getExceptionClasses(model, opModel));
 
         addFirstParameter.accept(methodBuilder);
@@ -192,24 +209,68 @@ public final class SyncClientInterface implements ClassSpec {
         return methodBuilder;
     }
 
+    static MethodSpec.Builder operationMethodSignature(IntermediateModel model,
+                                                       OperationModel opModel) {
+        return operationMethodSignature(model, opModel, SimpleMethodOverload.NORMAL, opModel.getMethodName());
+    }
 
     // TODO This is inconsistent with how async client reuses method signature
-    static MethodSpec.Builder operationMethodSignature(IntermediateModel model, OperationModel opModel) {
+    static MethodSpec.Builder operationMethodSignature(IntermediateModel model,
+                                                       OperationModel opModel,
+                                                       SimpleMethodOverload simpleMethodOverload,
+                                                       String methodName) {
         ClassName requestType = ClassName.get(model.getMetadata().getFullModelPackageName(),
                                               opModel.getInput().getVariableType());
 
-        return operationBaseSignature(model, opModel, b -> b.addParameter(requestType, opModel.getInput().getVariableName()));
+        return operationBaseSignature(model, opModel, b -> b.addParameter(requestType, opModel.getInput().getVariableName()),
+                                      simpleMethodOverload, methodName);
     }
 
-    private MethodSpec.Builder operationSimpleMethodSignature(IntermediateModel model, OperationModel opModel) {
+    private MethodSpec.Builder operationSimpleMethodSignature(IntermediateModel model,
+                                                              OperationModel opModel,
+                                                              String methodName) {
         TypeName returnType = ClassName.get(model.getMetadata().getFullModelPackageName(),
                                             opModel.getReturnType().getReturnType());
 
-        return MethodSpec.methodBuilder(opModel.getMethodName())
+        return MethodSpec.methodBuilder(methodName)
                          .returns(returnType)
                          .addModifiers(Modifier.PUBLIC)
-                         .addJavadoc(opModel.getDocs(model, ClientType.SYNC, SimpleMethodOverload.NO_ARG))
+                         .addModifiers(Modifier.DEFAULT)
                          .addExceptions(getExceptionClasses(model, opModel));
+    }
+
+    private List<MethodSpec> paginatedMethods(OperationModel opModel) {
+        List<MethodSpec> paginatedMethodSpecs = new ArrayList<>();
+
+        if (opModel.isPaginated()) {
+            if (opModel.getInputShape().isSimpleMethod()) {
+                paginatedMethodSpecs.add(paginatedSimpleMethod(opModel));
+            }
+
+            paginatedMethodSpecs.add(operationMethodSignature(model,
+                                                              opModel,
+                                                              SimpleMethodOverload.PAGINATED,
+                                                              PaginatorUtils.getSyncMethodName(opModel.getMethodName()))
+                                         .returns(poetExtensions.getResponseClassForPaginatedSyncOperation(
+                                             opModel.getOperationName()))
+                                         .addModifiers(Modifier.DEFAULT)
+                                         .addStatement("throw new $T()", UnsupportedOperationException.class)
+                                         .build());
+        }
+
+        return paginatedMethodSpecs;
+    }
+
+    private MethodSpec paginatedSimpleMethod(OperationModel opModel) {
+        String paginatedMethodName = PaginatorUtils.getSyncMethodName(opModel.getMethodName());
+        ClassName requestType = ClassName.get(model.getMetadata().getFullModelPackageName(),
+                                              opModel.getInput().getVariableType());
+
+        return operationSimpleMethodSignature(model, opModel, paginatedMethodName)
+                .returns(poetExtensions.getResponseClassForPaginatedSyncOperation(opModel.getOperationName()))
+                .addStatement("return $L($T.builder().build())", paginatedMethodName, requestType)
+                .addJavadoc(opModel.getDocs(model, ClientType.SYNC, SimpleMethodOverload.NO_ARG_PAGINATED))
+                .build();
     }
 
     private static void streamingMethod(MethodSpec.Builder methodBuilder, OperationModel opModel, TypeName responseType) {

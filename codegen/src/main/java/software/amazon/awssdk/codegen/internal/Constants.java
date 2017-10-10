@@ -48,6 +48,8 @@ public final class Constants {
 
     public static final String PACKAGE_NAME_TRANSFORM_PATTERN = "%s.transform";
 
+    public static final String PACKAGE_NAME_PAGINATORS_PATTERN = "%s.paginators";
+
     public static final String PACKAGE_NAME_SMOKE_TEST_PATTERN = "%s.smoketests";
 
     public static final String PACKAGE_NAME_CUSTOM_AUTH_PATTERN = "%s.auth";

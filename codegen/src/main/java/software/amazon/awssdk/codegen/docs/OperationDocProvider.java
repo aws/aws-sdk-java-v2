@@ -51,10 +51,12 @@ abstract class OperationDocProvider {
 
     protected final IntermediateModel model;
     protected final OperationModel opModel;
+    protected final PaginationDocs paginationDocs;
 
     OperationDocProvider(IntermediateModel model, OperationModel opModel) {
         this.model = model;
         this.opModel = opModel;
+        this.paginationDocs = new PaginationDocs(model, opModel);
     }
 
     /**
