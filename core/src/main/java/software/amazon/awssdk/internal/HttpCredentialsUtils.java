@@ -27,32 +27,31 @@ import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.SdkInternalApi;
 import software.amazon.awssdk.internal.net.ConnectionUtils;
 import software.amazon.awssdk.retry.internal.CredentialsEndpointRetryParameters;
-import software.amazon.awssdk.retry.internal.CredentialsEndpointRetryPolicy;
 import software.amazon.awssdk.util.json.JacksonUtils;
 import software.amazon.awssdk.utils.IoUtils;
 
 @SdkInternalApi
-public final class EC2CredentialsUtils {
+public final class HttpCredentialsUtils {
 
-    private static final Logger log = LoggerFactory.getLogger(EC2CredentialsUtils.class);
+    private static final Logger log = LoggerFactory.getLogger(HttpCredentialsUtils.class);
 
-    private static volatile EC2CredentialsUtils instance;
+    private static volatile HttpCredentialsUtils instance;
 
     private final ConnectionUtils connectionUtils;
 
-    private EC2CredentialsUtils() {
+    private HttpCredentialsUtils() {
         this(ConnectionUtils.getInstance());
     }
 
-    EC2CredentialsUtils(ConnectionUtils connectionUtils) {
+    HttpCredentialsUtils(ConnectionUtils connectionUtils) {
         this.connectionUtils = connectionUtils;
     }
 
-    public static EC2CredentialsUtils getInstance() {
+    public static HttpCredentialsUtils getInstance() {
         if (instance == null) {
-            synchronized (EC2CredentialsUtils.class) {
+            synchronized (HttpCredentialsUtils.class) {
                 if (instance == null) {
-                    instance = new EC2CredentialsUtils();
+                    instance = new HttpCredentialsUtils();
                 }
             }
         }
@@ -78,7 +77,7 @@ public final class EC2CredentialsUtils {
      *             If the requested service is not found.
      */
     public String readResource(URI endpoint) throws IOException {
-        return readResource(endpoint, CredentialsEndpointRetryPolicy.NO_RETRY);
+        return readResource(() -> endpoint);
     }
 
     /**
@@ -101,13 +100,14 @@ public final class EC2CredentialsUtils {
      * @throws SdkClientException
      *             If the requested service is not found.
      */
-    public String readResource(URI endpoint, CredentialsEndpointRetryPolicy retryPolicy) throws IOException {
+    public String readResource(CredentialsEndpointProvider endpointProvider) throws IOException {
         int retriesAttempted = 0;
         InputStream inputStream = null;
 
         while (true) {
             try {
-                HttpURLConnection connection = connectionUtils.connectToEndpoint(endpoint);
+                HttpURLConnection connection = connectionUtils.connectToEndpoint(endpointProvider.endpoint(),
+                                                                                 endpointProvider.headers());
 
                 int statusCode = connection.getResponseCode();
 
@@ -118,7 +118,7 @@ public final class EC2CredentialsUtils {
                     // This is to preserve existing behavior of EC2 Instance metadata service.
                     throw new SdkClientException("The requested metadata is not found at " + connection.getURL());
                 } else {
-                    if (!retryPolicy.shouldRetry(retriesAttempted++,
+                    if (!endpointProvider.retryPolicy().shouldRetry(retriesAttempted++,
                                                  CredentialsEndpointRetryParameters.builder()
                                                                                    .withStatusCode(statusCode).build())) {
                         inputStream = connection.getErrorStream();
@@ -126,11 +126,12 @@ public final class EC2CredentialsUtils {
                     }
                 }
             } catch (IOException ioException) {
-                if (!retryPolicy.shouldRetry(retriesAttempted++,
+                if (!endpointProvider.retryPolicy().shouldRetry(retriesAttempted++,
                                              CredentialsEndpointRetryParameters.builder().withException(ioException).build())) {
                     throw ioException;
                 }
-                log.debug("An IOException occurred when connecting to endpoint: {} \n Retrying to connect again", endpoint);
+                log.debug("An IOException occurred when connecting to endpoint: {} \n Retrying to connect again",
+                          endpointProvider.endpoint());
 
             } finally {
                 IoUtils.closeQuietly(inputStream, log);

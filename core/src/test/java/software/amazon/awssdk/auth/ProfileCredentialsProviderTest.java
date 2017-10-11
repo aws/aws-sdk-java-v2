@@ -16,18 +16,22 @@
 package software.amazon.awssdk.auth;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.Map;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.auth.profile.ProfileResourceLoader;
 import software.amazon.awssdk.auth.profile.ProfilesConfigFile;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 public class ProfileCredentialsProviderTest {
     private static File profileLocation = null;
+
+    @Rule
+    public final EnvironmentVariableHelper env = new EnvironmentVariableHelper();
 
     @BeforeClass
     public static void setUp() {
@@ -61,19 +65,13 @@ public class ProfileCredentialsProviderTest {
 
     @Test
     public void testEnvironmentVariable() throws Exception {
-        Map<String, String> env = getMutableSystemEnvironment();
+        env.set(AwsSystemSetting.AWS_DEFAULT_PROFILE.environmentVariable(), "test");
 
-        try {
-            env.put(AwsSystemSetting.AWS_DEFAULT_PROFILE.environmentVariable(), "test");
+        ProfileCredentialsProvider provider = newProvider();
 
-            ProfileCredentialsProvider provider = newProvider();
-
-            AwsCredentials credentials = provider.getCredentials();
-            Assert.assertEquals("test", credentials.accessKeyId());
-            Assert.assertEquals("test key", credentials.secretAccessKey());
-        } finally {
-            env.remove(AwsSystemSetting.AWS_DEFAULT_PROFILE.environmentVariable());
-        }
+        AwsCredentials credentials = provider.getCredentials();
+        Assert.assertEquals("test", credentials.accessKeyId());
+        Assert.assertEquals("test key", credentials.secretAccessKey());
     }
 
     @Test
@@ -93,11 +91,9 @@ public class ProfileCredentialsProviderTest {
 
     @Test
     public void testBoth() throws Exception {
-        Map<String, String> env = getMutableSystemEnvironment();
-
         try {
             // If both are set, property should take precedence.
-            env.put(AwsSystemSetting.AWS_DEFAULT_PROFILE.environmentVariable(), "bogus");
+            env.set(AwsSystemSetting.AWS_DEFAULT_PROFILE.environmentVariable(), "bogus");
             System.setProperty(AwsSystemSetting.AWS_DEFAULT_PROFILE.property(), "test");
 
             ProfileCredentialsProvider provider = newProvider();
@@ -107,16 +103,13 @@ public class ProfileCredentialsProviderTest {
             Assert.assertEquals("test key", credentials.secretAccessKey());
         } finally {
             System.clearProperty(AwsSystemSetting.AWS_DEFAULT_PROFILE.property());
-            env.remove(AwsSystemSetting.AWS_DEFAULT_PROFILE.environmentVariable());
         }
     }
 
     @Test
     public void testExplicit() throws Exception {
-        Map<String, String> env = getMutableSystemEnvironment();
-
         try {
-            env.put(AwsSystemSetting.AWS_DEFAULT_PROFILE.environmentVariable(), "test");
+            env.set(AwsSystemSetting.AWS_DEFAULT_PROFILE.environmentVariable(), "test");
             System.setProperty(AwsSystemSetting.AWS_DEFAULT_PROFILE.property(), "test");
 
             // If an explicit override is provided, that beats anything else.
@@ -135,8 +128,6 @@ public class ProfileCredentialsProviderTest {
 
         } finally {
             System.clearProperty(AwsSystemSetting.AWS_DEFAULT_PROFILE.property());
-
-            env.remove(AwsSystemSetting.AWS_DEFAULT_PROFILE.environmentVariable());
         }
     }
 
@@ -197,45 +188,5 @@ public class ProfileCredentialsProviderTest {
 
         Assert.assertEquals("sessionAccessKey", credentials.accessKeyId());
         Assert.assertEquals("sessionSecretKey", credentials.secretAccessKey());
-    }
-
-    @Test
-    public void testAssumeRoleWithSourceAfterRole() throws Exception {
-        ProfilesConfigFile profilesFile = new ProfilesConfigFile(
-                ProfileResourceLoader.profileWithSourceAfterRole().asFile(), targetRoleInfo -> {
-                    AwsCredentials credentials = targetRoleInfo
-                            .getLongLivedCredentialsProvider().getCredentials();
-                    Assert.assertEquals("sourceProfile AWSAccessKeyId", "defaultAccessKey",
-                                        credentials.accessKeyId());
-                    Assert.assertEquals("sourceProfile AWSSecretKey", "defaultSecretAccessKey",
-                                        credentials.secretAccessKey());
-                    Assert.assertEquals("role_arn", "arn:aws:iam::123456789012:role/testRole",
-                                        targetRoleInfo.getRoleArn());
-                    Assert.assertNull("external_id", targetRoleInfo.getExternalId());
-                    Assert.assertTrue("role_session_name", targetRoleInfo.getRoleSessionName()
-                                                                         .startsWith("aws-sdk-java-"));
-                    return new StaticCredentialsProvider(
-                            new AwsCredentials("sessionAccessKey", "sessionSecretKey"));
-                });
-
-        ProfileCredentialsProvider profileCredentialsProvider = ProfileCredentialsProvider.builder()
-                                                                                          .profilesConfigFile(profilesFile)
-                                                                                          .profileName("test")
-                                                                                          .build();
-        AwsCredentials credentials = profileCredentialsProvider.getCredentials();
-
-        Assert.assertEquals("sessionAccessKey", credentials.accessKeyId());
-        Assert.assertEquals("sessionSecretKey", credentials.secretAccessKey());
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, String> getMutableSystemEnvironment() throws Exception {
-        Map<String, String> immutableEnv = System.getenv();
-
-        Class<?> unMap = Class.forName("java.util.Collections$UnmodifiableMap");
-        Field m = unMap.getDeclaredField("m");
-        m.setAccessible(true);
-
-        return (Map<String, String>) m.get(immutableEnv);
     }
 }

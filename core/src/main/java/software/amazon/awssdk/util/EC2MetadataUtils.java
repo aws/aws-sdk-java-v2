@@ -37,7 +37,7 @@ import software.amazon.awssdk.AmazonClientException;
 import software.amazon.awssdk.AwsSystemSetting;
 import software.amazon.awssdk.SdkClientException;
 import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.internal.EC2CredentialsUtils;
+import software.amazon.awssdk.internal.HttpCredentialsUtils;
 import software.amazon.awssdk.util.json.JacksonUtils;
 
 /**
@@ -59,14 +59,11 @@ import software.amazon.awssdk.util.json.JacksonUtils;
 public class EC2MetadataUtils {
 
     /** Default resource path for credentials in the Amazon EC2 Instance Metadata Service. */
-    public static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
     private static final String REGION = "region";
     private static final String INSTANCE_IDENTITY_DOCUMENT = "instance-identity/document";
     private static final String EC2_METADATA_ROOT = "/latest/meta-data";
     private static final String EC2_USERDATA_ROOT = "/latest/user-data/";
     private static final String EC2_DYNAMICDATA_ROOT = "/latest/dynamic/";
-    /** Default endpoint for the Amazon EC2 Instance Metadata Service. */
-    private static final String EC2_METADATA_SERVICE_URL = "http://169.254.169.254";
     private static final int DEFAULT_QUERY_RETRIES = 3;
     private static final int MINIMUM_RETRY_WAIT_TIME_MILLISECONDS = 250;
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -377,8 +374,8 @@ public class EC2MetadataUtils {
 
         List<String> items;
         try {
-            String hostAddress = getHostAddressForEc2MetadataService();
-            String response = EC2CredentialsUtils.getInstance().readResource(new URI(hostAddress + path));
+            String hostAddress = AwsSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
+            String response = HttpCredentialsUtils.getInstance().readResource(new URI(hostAddress + path));
             if (slurp) {
                 items = Collections.singletonList(response);
             } else {
@@ -414,13 +411,6 @@ public class EC2MetadataUtils {
         } catch (RuntimeException e) {
             return null;
         }
-    }
-
-    /**
-     * Returns the host address of the Amazon EC2 Instance Metadata Service.
-     */
-    public static String getHostAddressForEc2MetadataService() {
-        return AwsSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
     }
 
     /**

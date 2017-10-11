@@ -25,20 +25,26 @@ import java.net.Socket;
 import java.util.List;
 import org.apache.commons.io.IOUtils;
 import software.amazon.awssdk.AwsSystemSetting;
-import software.amazon.awssdk.util.EC2MetadataUtils;
 
 /**
  * Mock server for imitating the Amazon EC2 Instance Metadata Service. Tests can
  * use this class to start up a server on a localhost port, and control what
  * response the server will send when a connection is made.
  */
+
+//TODO: this should really be replaced by WireMock
 public class EC2MetadataServiceMock {
 
     private static final String OUTPUT_HEADERS = "HTTP/1.1 200 OK\r\n" +
                                                  "Content-Type: text/html\r\n" +
                                                  "Content-Length: ";
     private static final String OUTPUT_END_OF_HEADERS = "\r\n\r\n";
+    private final String securityCredentialsResource;
     private EC2MockMetadataServiceListenerThread hosmMockServerThread;
+
+    public EC2MetadataServiceMock(String securityCredentialsResource) {
+        this.securityCredentialsResource = securityCredentialsResource;
+    }
 
     /**
      * Sets the name of the file that should be sent back as the response from
@@ -66,7 +72,7 @@ public class EC2MetadataServiceMock {
     }
 
     public void start() throws IOException {
-        hosmMockServerThread = new EC2MockMetadataServiceListenerThread(startServerSocket());
+        hosmMockServerThread = new EC2MockMetadataServiceListenerThread(startServerSocket(), securityCredentialsResource);
         hosmMockServerThread.start();
     }
 
@@ -95,11 +101,13 @@ public class EC2MetadataServiceMock {
      */
     private static class EC2MockMetadataServiceListenerThread extends Thread {
         private ServerSocket serverSocket;
+        private final String credentialsResource;
         private String responseFileName;
         private String securityCredentialNames;
 
-        public EC2MockMetadataServiceListenerThread(ServerSocket serverSocket) {
+        public EC2MockMetadataServiceListenerThread(ServerSocket serverSocket, String credentialsResource) {
             this.serverSocket = serverSocket;
+            this.credentialsResource = credentialsResource;
         }
 
         public void setResponseFileName(String responseFileName) {
@@ -135,11 +143,11 @@ public class EC2MetadataServiceMock {
 
                     String httpResponse = null;
 
-                    if (resourcePath.equals(EC2MetadataUtils.SECURITY_CREDENTIALS_RESOURCE)) {
+                    if (resourcePath.equals(credentialsResource)) {
                         httpResponse = formHttpResponse(securityCredentialNames);
                         outputStream.write(httpResponse.getBytes());
 
-                    } else if (resourcePath.startsWith(EC2MetadataUtils.SECURITY_CREDENTIALS_RESOURCE)) {
+                    } else if (resourcePath.startsWith(credentialsResource)) {
                         String responseFilePath = "/software/amazon/awssdk/auth/" + responseFileName + ".json";
                         System.out.println("Serving: " + responseFilePath);
 

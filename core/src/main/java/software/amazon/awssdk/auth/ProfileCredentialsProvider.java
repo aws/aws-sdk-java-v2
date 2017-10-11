@@ -39,14 +39,6 @@ public class ProfileCredentialsProvider extends FileSystemCredentialsProvider {
     private final String profileName;
 
     /**
-     * Create a {@link ProfileCredentialsProvider} using the default profile and configuration file. Use {@link #builder()} for
-     * defining a custom {@link ProfileCredentialsProvider}.
-     */
-    public ProfileCredentialsProvider() {
-        this(new Builder());
-    }
-
-    /**
      * @see #builder()
      */
     private ProfileCredentialsProvider(Builder builder) {
@@ -67,6 +59,14 @@ public class ProfileCredentialsProvider extends FileSystemCredentialsProvider {
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+    /**
+     * Create a {@link ProfileCredentialsProvider} using the default profile and configuration file. Use {@link #builder()} for
+     * defining a custom {@link ProfileCredentialsProvider}.
+     */
+    public static ProfileCredentialsProvider create() {
+        return new Builder().build();
     }
 
     @Override

@@ -31,7 +31,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * @see SystemPropertyCredentialsProvider
  * @see EnvironmentVariableCredentialsProvider
  * @see ProfileCredentialsProvider
- * @see ElasticContainerCredentialsProvider
+ * @see ContainerCredentialsProvider
  * @see InstanceProfileCredentialsProvider
  */
 public class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
@@ -64,15 +64,15 @@ public class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAu
      */
     private static AwsCredentialsProviderChain createChain(Builder builder) {
         AwsCredentialsProvider[] credentialsProviders = new AwsCredentialsProvider[] {
-                new SystemPropertyCredentialsProvider(),
-                new EnvironmentVariableCredentialsProvider(),
-                new ProfileCredentialsProvider(),
-                ElasticContainerCredentialsProvider.builder()
-                                                   .asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled)
-                                                   .build(),
-                InstanceProfileCredentialsProvider.builder()
-                                                  .asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled)
-                                                  .build()
+            new SystemPropertyCredentialsProvider(),
+            new EnvironmentVariableCredentialsProvider(),
+            ProfileCredentialsProvider.create(),
+            ContainerCredentialsProvider.builder()
+                                        .asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled)
+                                        .build(),
+            InstanceProfileCredentialsProvider.builder()
+                                              .asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled)
+                                              .build()
         };
 
         return AwsCredentialsProviderChain.builder()

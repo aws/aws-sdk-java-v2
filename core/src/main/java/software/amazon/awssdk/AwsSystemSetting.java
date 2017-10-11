@@ -19,8 +19,8 @@ import software.amazon.awssdk.annotation.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.AwsCredentials;
 import software.amazon.awssdk.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.AwsSessionCredentials;
+import software.amazon.awssdk.auth.ContainerCredentialsProvider;
 import software.amazon.awssdk.auth.DefaultCredentialsProvider;
-import software.amazon.awssdk.auth.ElasticContainerCredentialsProvider;
 import software.amazon.awssdk.auth.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.auth.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.auth.ProfileCredentialsProvider;
@@ -128,7 +128,7 @@ public enum AwsSystemSetting implements SystemSetting {
     AWS_EC2_METADATA_SERVICE_ENDPOINT("aws.ec2MetadataServiceEndpoint", "http://169.254.169.254"),
 
     /**
-     * The elastic container metadata service endpoint that should be called by the {@link ElasticContainerCredentialsProvider}
+     * The elastic container metadata service endpoint that should be called by the {@link ContainerCredentialsProvider}
      * when loading data from the container metadata service.
      *
      * This allows a service running in an elastic container to automatically load its credentials without needing to configure
@@ -139,13 +139,27 @@ public enum AwsSystemSetting implements SystemSetting {
     AWS_CONTAINER_SERVICE_ENDPOINT("aws.containerServiceEndpoint", "http://169.254.170.2"),
 
     /**
-     * The elastic container metadata service path that should be called by the {@link ElasticContainerCredentialsProvider} when
+     * The elastic container metadata service path that should be called by the {@link ContainerCredentialsProvider} when
      * loading credentials form the container metadata service. If this is not specified, credentials will not be automatically
      * loaded from the container metadata service.
      *
      * @see #AWS_CONTAINER_SERVICE_ENDPOINT
      */
     AWS_CONTAINER_CREDENTIALS_RELATIVE_URI("aws.containerCredentialsPath", null),
+
+    /**
+     * The full URI path to a localhost metadata service to be used by {@link ContainerCredentialsProvider} when
+     * loading credentials. If this is not specified, credentials will not be automatically loaded from the container.
+     */
+    AWS_CONTAINER_CREDENTIALS_FULL_URI("aws.containerCredentialsFullUri", null),
+
+    /**
+     * An authorization token to pass to a container metatdata service, only used when {@link #AWS_CONTAINER_CREDENTIALS_FULL_URI}
+     * is specified.
+     *
+     * @see #AWS_CONTAINER_CREDENTIALS_FULL_URI
+     */
+    AWS_CONTAINER_AUTHORIZATION_TOKEN("aws.containerAuthorizationToken", null),
 
     /**
      * Whether CBOR optimization should automatically be used if its support is found on the classpath and the service supports
