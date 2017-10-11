@@ -57,7 +57,7 @@ public final class ContainerCredentialsProvider extends HttpCredentialsProvider 
      * Create a builder for creating a {@link ContainerCredentialsProvider}.
      */
     static Builder builder() {
-        return new Builder().asyncThreadName("container-credentials-provider");
+        return new Builder();
     }
 
     @Override
@@ -133,7 +133,9 @@ public final class ContainerCredentialsProvider extends HttpCredentialsProvider 
         /**
          * Created using {@link #builder()}.
          */
-        private Builder() { }
+        private Builder() {
+            super.asyncThreadName("container-credentials-provider");
+        }
 
         @SdkTestInternalApi
         Builder credentialsEndpointProvider(CredentialsEndpointProvider credentialsEndpointProvider) {

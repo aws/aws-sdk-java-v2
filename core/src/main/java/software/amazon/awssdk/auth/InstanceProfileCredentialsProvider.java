@@ -42,7 +42,7 @@ public class InstanceProfileCredentialsProvider extends HttpCredentialsProvider 
      * Create a builder for creating a {@link InstanceProfileCredentialsProvider}.
      */
     public static Builder builder() {
-        return new Builder().asyncThreadName("instance-profile-credentials-provider");
+        return new Builder();
     }
 
     /**
@@ -88,7 +88,9 @@ public class InstanceProfileCredentialsProvider extends HttpCredentialsProvider 
         /**
          * Created using {@link #builder()}.
          */
-        private Builder() { }
+        private Builder() {
+            super.asyncThreadName("instance-profile-credentials-provider");
+        }
 
         /**
          * Build a {@link InstanceProfileCredentialsProvider} from the provided configuration.

@@ -66,13 +66,13 @@ public class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAu
         AwsCredentialsProvider[] credentialsProviders = new AwsCredentialsProvider[] {
             new SystemPropertyCredentialsProvider(),
             new EnvironmentVariableCredentialsProvider(),
-            new ProfileCredentialsProvider(),
+            ProfileCredentialsProvider.create(),
             ContainerCredentialsProvider.builder()
                                         .asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled)
                                         .build(),
             InstanceProfileCredentialsProvider.builder()
-                                                  .asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled)
-                                                  .build()
+                                              .asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled)
+                                              .build()
         };
 
         return AwsCredentialsProviderChain.builder()
