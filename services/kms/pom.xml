@@ -35,6 +35,7 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>test-utils</artifactId>
             <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
