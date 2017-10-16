@@ -69,9 +69,14 @@ public final class DefaultEventLoopGroupFactory
 
     @ReviewBeforeRelease("We should work with Lambda to get Epoll opened up")
     private boolean isNotAwsLambda() {
-        // CHECKSTYLE:OFF - This is temporary (hopefully!)
-        return isBlank(System.getenv("AWS_LAMBDA_FUNCTION_NAME"));
-        // CHECKSTYLE:ON
+        try {
+            // CHECKSTYLE:OFF - This is temporary (hopefully!)
+            return isBlank(System.getenv("AWS_LAMBDA_FUNCTION_NAME"));
+            // CHECKSTYLE:ON
+        } catch (RuntimeException e) {
+            //Couldn't determine if we're on lambda or not, assume we're not.
+            return true;
+        }
     }
 
     private ThreadFactory resolveThreadFactory() {
