@@ -104,13 +104,13 @@ public class BucketAnalyticsConfigurationIntegrationTest extends S3IntegrationTe
 
         assertEquals(configId, returnedConfig.id());
         assertNull(returnedConfig.filter());
-        assertEquals(StorageClassAnalysisSchemaVersion.V_1.toString(),
+        assertEquals(StorageClassAnalysisSchemaVersion.V_1,
                      returnedConfig.storageClassAnalysis().dataExport().outputSchemaVersion());
 
         AnalyticsS3BucketDestination s3BucketDestination =
                 returnedConfig.storageClassAnalysis().dataExport().destination().s3BucketDestination();
         assertEquals(BUCKET_ARN, s3BucketDestination.bucket());
-        assertEquals(AnalyticsS3ExportFileFormat.CSV.toString(), s3BucketDestination.format());
+        assertEquals(AnalyticsS3ExportFileFormat.CSV, s3BucketDestination.format());
         assertNull(s3BucketDestination.bucketAccountId());
         assertNull(s3BucketDestination.prefix());
     }
@@ -261,13 +261,13 @@ public class BucketAnalyticsConfigurationIntegrationTest extends S3IntegrationTe
         assertEquals(configId, config.id());
         assertEquals("key", config.filter().tag().key());
         assertEquals("value", config.filter().tag().value());
-        assertEquals(StorageClassAnalysisSchemaVersion.V_1.toString(),
+        assertEquals(StorageClassAnalysisSchemaVersion.V_1,
                      config.storageClassAnalysis().dataExport().outputSchemaVersion());
 
         AnalyticsS3BucketDestination s3BucketDestination = config.storageClassAnalysis().dataExport().destination()
                                                                  .s3BucketDestination();
         assertEquals(BUCKET_ARN, s3BucketDestination.bucket());
-        assertEquals(AnalyticsS3ExportFileFormat.CSV.toString(), s3BucketDestination.format());
+        assertEquals(AnalyticsS3ExportFileFormat.CSV, s3BucketDestination.format());
         assertNull(s3BucketDestination.bucketAccountId());
         assertNull(s3BucketDestination.prefix());
     }

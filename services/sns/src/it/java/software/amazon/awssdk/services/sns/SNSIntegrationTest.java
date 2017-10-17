@@ -65,6 +65,7 @@ import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteQueueRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
 
@@ -397,7 +398,7 @@ public class SNSIntegrationTest extends IntegrationTestBase {
         Thread.sleep(1000 * 4);
         String queueArn = sqs.getQueueAttributes(
                 GetQueueAttributesRequest.builder().queueUrl(queueUrl).attributeNames(new String[] {"QueueArn"}).build())
-                             .attributes().get("QueueArn");
+                             .attributes().get(QueueAttributeName.QUEUE_ARN);
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("Policy", generateSqsPolicyForTopic(queueArn, topicArn));
         sqs.setQueueAttributes(SetQueueAttributesRequest.builder().queueUrl(queueUrl).attributes(attributes).build());

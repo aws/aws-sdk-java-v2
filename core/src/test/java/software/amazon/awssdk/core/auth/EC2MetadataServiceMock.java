@@ -140,7 +140,7 @@ public class EC2MetadataServiceMock {
                         outputStream.write(httpResponse.getBytes());
 
                     } else if (resourcePath.startsWith(EC2MetadataUtils.SECURITY_CREDENTIALS_RESOURCE)) {
-                        String responseFilePath = "/software/amazon/awssdk/auth/" + responseFileName + ".json";
+                        String responseFilePath = "/software/amazon/awssdk/core/auth/" + responseFileName + ".json";
                         System.out.println("Serving: " + responseFilePath);
 
                         InputStream responseFileInputStream = this.getClass().getResourceAsStream(responseFilePath);

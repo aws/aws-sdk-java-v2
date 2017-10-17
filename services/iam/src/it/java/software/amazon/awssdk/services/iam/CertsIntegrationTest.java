@@ -26,6 +26,7 @@ import software.amazon.awssdk.services.iam.model.ListSigningCertificatesRequest;
 import software.amazon.awssdk.services.iam.model.ListSigningCertificatesResponse;
 import software.amazon.awssdk.services.iam.model.MalformedCertificateException;
 import software.amazon.awssdk.services.iam.model.SigningCertificate;
+import software.amazon.awssdk.services.iam.model.StatusType;
 import software.amazon.awssdk.services.iam.model.UpdateSigningCertificateRequest;
 import software.amazon.awssdk.services.iam.model.UploadSigningCertificateRequest;
 import software.amazon.awssdk.services.iam.model.UploadSigningCertificateResponse;
@@ -208,18 +209,17 @@ public class CertsIntegrationTest extends IntegrationTestBase {
                                     SAMPLE_CERT).build());
 
             String certId = response.certificate().certificateId();
-            assertEquals("Active", response.certificate().status());
+            assertEquals(StatusType.ACTIVE, response.certificate().status());
 
             iam.updateSigningCertificate(UpdateSigningCertificateRequest.builder()
                                                                         .userName(username).certificateId(certId)
-                                                                        .status("Inactive").build());
+                                                                        .status(StatusType.INACTIVE).build());
 
             ListSigningCertificatesResponse listRes = iam
                     .listSigningCertificates(ListSigningCertificatesRequest.builder()
                                                                            .userName(username).build());
 
-            assertEquals("Inactive", listRes.certificates().iterator()
-                                            .next().status());
+            assertEquals(StatusType.INACTIVE, listRes.certificates().iterator().next().status());
         } catch (Exception e) {
             e.printStackTrace();
             fail(e.getMessage());

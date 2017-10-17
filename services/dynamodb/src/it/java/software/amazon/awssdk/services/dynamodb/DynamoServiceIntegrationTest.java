@@ -232,7 +232,7 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
         assertEquals(tableName, tableDescription.tableName());
         assertNotNull(tableDescription.tableStatus());
         assertEquals(HASH_KEY_NAME, tableDescription.keySchema().get(0).attributeName());
-        assertEquals(KeyType.HASH.toString(), tableDescription.keySchema().get(0).keyType());
+        assertEquals(KeyType.HASH, tableDescription.keySchema().get(0).keyType());
         assertNotNull(tableDescription.provisionedThroughput().numberOfDecreasesToday());
         assertEquals(READ_CAPACITY, tableDescription.provisionedThroughput().readCapacityUnits());
         assertEquals(WRITE_CAPACITY, tableDescription.provisionedThroughput().writeCapacityUnits());

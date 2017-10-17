@@ -27,13 +27,14 @@ import software.amazon.awssdk.core.auth.policy.Policy;
 import software.amazon.awssdk.core.auth.policy.Principal;
 import software.amazon.awssdk.core.auth.policy.Resource;
 import software.amazon.awssdk.core.auth.policy.Statement;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.services.s3.model.BucketLocationConstraint;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketLocationRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketPolicyRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketRequestPaymentRequest;
+import software.amazon.awssdk.services.s3.model.Payer;
 import software.amazon.awssdk.services.s3.model.PutBucketPolicyRequest;
 
 public final class OperationsWithNonStandardResponsesIntegrationTest extends S3IntegrationTestBase {
@@ -62,7 +63,7 @@ public final class OperationsWithNonStandardResponsesIntegrationTest extends S3I
     @Test
     public void getBucketLocationReturnsAResult() {
         GetBucketLocationRequest request = GetBucketLocationRequest.builder().bucket(bucketName).build();
-        assertThat(s3.getBucketLocation(request).locationConstraint()).isEqualTo(Region.US_WEST_2.value());
+        assertThat(s3.getBucketLocation(request).locationConstraint()).isEqualTo(BucketLocationConstraint.US_WEST_2);
     }
 
 
@@ -78,7 +79,7 @@ public final class OperationsWithNonStandardResponsesIntegrationTest extends S3I
     @Test
     public void getRequestPayerReturnsAResult() {
         GetBucketRequestPaymentRequest request = GetBucketRequestPaymentRequest.builder().bucket(bucketName).build();
-        assertThat(s3.getBucketRequestPayment(request).payer()).isEqualTo("BucketOwner");
+        assertThat(s3.getBucketRequestPayment(request).payer()).isEqualTo(Payer.BUCKET_OWNER);
     }
 
     private String createPolicy() {
