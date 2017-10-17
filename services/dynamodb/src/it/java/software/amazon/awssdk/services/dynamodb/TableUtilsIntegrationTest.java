@@ -147,7 +147,7 @@ public class TableUtilsIntegrationTest extends AwsIntegrationTestBase {
     public void waitUntilActive_MethodBlocksUntilTableIsActive() throws Exception {
         createTable();
         TableUtils.waitUntilActive(ddb, tableName);
-        assertEquals(TableStatus.ACTIVE.toString(),
+        assertEquals(TableStatus.ACTIVE,
                      ddb.describeTable(DescribeTableRequest.builder().tableName(tableName).build()).table().tableStatus());
     }
 
