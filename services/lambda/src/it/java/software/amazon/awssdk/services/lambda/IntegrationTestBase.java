@@ -20,6 +20,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.concurrent.TimeoutException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.junit.AfterClass;
@@ -43,6 +46,7 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class IntegrationTestBase extends AwsTestBase {
 
+    private static final Duration MAX_WAIT_TIME = Duration.ofMinutes(2);
     private static final String HELLOWORLD_JS = "helloworld.js";
     private static final String LAMBDA_SERVICE_ROLE_NAME = "lambda-java-sdk-test-role-" + System.currentTimeMillis();
     private static final String LAMBDA_SERVICE_ROLE_POLICY_NAME = LAMBDA_SERVICE_ROLE_NAME + "-policy";
@@ -136,7 +140,11 @@ public class IntegrationTestBase extends AwsTestBase {
         streamArn = description.streamARN();
 
         // Wait till stream is active (less than a minute)
-        while (!StreamStatus.ACTIVE.toString().equals(description.streamStatus())) {
+        Instant start = Instant.now();
+        while (StreamStatus.ACTIVE != description.streamStatus()) {
+            if (Duration.between(start, Instant.now()).toMillis() > MAX_WAIT_TIME.toMillis()) {
+                throw new RuntimeException("Timed out waiting for stream to become active");
+            }
             try {
                 Thread.sleep(5000);
             } catch (InterruptedException ignored) {
