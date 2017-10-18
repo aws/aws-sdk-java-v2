@@ -95,14 +95,19 @@ public class SdkHttpUtilsTest {
     public void urisAppendCorrectly() {
         assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> SdkHttpUtils.appendUri(null, ""));
         assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> SdkHttpUtils.appendUri(null, null));
-        assertThat(SdkHttpUtils.appendUri("", null)).isEqualTo("/");
-        assertThat(SdkHttpUtils.appendUri("", "")).isEqualTo("/");
-        assertThat(SdkHttpUtils.appendUri("foo.com", "")).isEqualTo("foo.com/");
+        assertThat(SdkHttpUtils.appendUri("", null)).isEqualTo("");
+        assertThat(SdkHttpUtils.appendUri("", "")).isEqualTo("");
+        assertThat(SdkHttpUtils.appendUri("", "bar")).isEqualTo("/bar");
+        assertThat(SdkHttpUtils.appendUri("", "/bar")).isEqualTo("/bar");
+        assertThat(SdkHttpUtils.appendUri("", "bar/")).isEqualTo("/bar/");
+        assertThat(SdkHttpUtils.appendUri("", "/bar/")).isEqualTo("/bar/");
+        assertThat(SdkHttpUtils.appendUri("foo.com", null)).isEqualTo("foo.com");
+        assertThat(SdkHttpUtils.appendUri("foo.com", "")).isEqualTo("foo.com");
         assertThat(SdkHttpUtils.appendUri("foo.com/", "")).isEqualTo("foo.com/");
-        assertThat(SdkHttpUtils.appendUri("foo.com", "bar")).isEqualTo("foo.com/bar/");
-        assertThat(SdkHttpUtils.appendUri("foo.com/", "bar")).isEqualTo("foo.com/bar/");
-        assertThat(SdkHttpUtils.appendUri("foo.com", "/bar")).isEqualTo("foo.com/bar/");
-        assertThat(SdkHttpUtils.appendUri("foo.com/", "/bar")).isEqualTo("foo.com/bar/");
+        assertThat(SdkHttpUtils.appendUri("foo.com", "bar")).isEqualTo("foo.com/bar");
+        assertThat(SdkHttpUtils.appendUri("foo.com/", "bar")).isEqualTo("foo.com/bar");
+        assertThat(SdkHttpUtils.appendUri("foo.com", "/bar")).isEqualTo("foo.com/bar");
+        assertThat(SdkHttpUtils.appendUri("foo.com/", "/bar")).isEqualTo("foo.com/bar");
         assertThat(SdkHttpUtils.appendUri("foo.com/", "/bar/")).isEqualTo("foo.com/bar/");
         assertThat(SdkHttpUtils.appendUri("foo.com/", "//bar/")).isEqualTo("foo.com//bar/");
     }

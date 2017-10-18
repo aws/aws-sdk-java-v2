@@ -96,7 +96,7 @@ public class SdkHttpFullRequestAdapterTest {
 
         SdkHttpFullRequest adapted = SdkHttpFullRequestAdapter.toHttpFullRequest(request);
 
-        assertThat(adapted.encodedPath(), equalTo("/foo/bar"));
+        assertThat(adapted.encodedPath(), equalTo("/foo/bar/"));
     }
 
     @Test

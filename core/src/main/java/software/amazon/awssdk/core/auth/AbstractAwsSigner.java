@@ -278,7 +278,7 @@ public abstract class AbstractAwsSigner implements Signer {
     }
 
     protected String getCanonicalizedResourcePath(String resourcePath, boolean urlEncode) {
-        if (resourcePath == null || resourcePath.isEmpty()) {
+        if (StringUtils.isEmpty(resourcePath)) {
             return "/";
         } else {
             String value = urlEncode ? SdkHttpUtils.urlEncodeIgnoreSlashes(resourcePath) : resourcePath;

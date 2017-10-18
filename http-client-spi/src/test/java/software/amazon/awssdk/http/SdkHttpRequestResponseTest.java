@@ -49,12 +49,20 @@ public class SdkHttpRequestResponseTest {
         assertThat(normalizedUri(b -> b.protocol("https").host("localhost").port(443))).isEqualTo("https://localhost");
         assertThat(normalizedUri(b -> b.protocol("https").host("localhost").port(8443))).isEqualTo("https://localhost:8443");
         assertThat(normalizedUri(b -> b.protocol("https").host("localhost").port(80))).isEqualTo("https://localhost:80");
+        assertThat(normalizedUri(b -> b.protocol("http").host("localhost").port(80).encodedPath("foo")))
+                .isEqualTo("http://localhost/foo");
         assertThat(normalizedUri(b -> b.protocol("http").host("localhost").port(80).encodedPath("/foo")))
                 .isEqualTo("http://localhost/foo");
+        assertThat(normalizedUri(b -> b.protocol("http").host("localhost").port(80).encodedPath("foo/")))
+                .isEqualTo("http://localhost/foo/");
+        assertThat(normalizedUri(b -> b.protocol("http").host("localhost").port(80).encodedPath("/foo/")))
+                .isEqualTo("http://localhost/foo/");
         assertThat(normalizedUri(b -> b.protocol("http").host("localhost").port(80).rawQueryParameter("foo", "bar ")))
                 .isEqualTo("http://localhost?foo=bar%20");
         assertThat(normalizedUri(b -> b.protocol("http").host("localhost").port(80).encodedPath("/foo").rawQueryParameter("foo", "bar")))
                 .isEqualTo("http://localhost/foo?foo=bar");
+        assertThat(normalizedUri(b -> b.protocol("http").host("localhost").port(80).encodedPath("foo/").rawQueryParameter("foo", "bar")))
+                .isEqualTo("http://localhost/foo/?foo=bar");
     }
 
     private String normalizedUri(Consumer<SdkHttpFullRequest.Builder> builderMutator) {
@@ -104,17 +112,17 @@ public class SdkHttpRequestResponseTest {
     @Test
     public void requestPathNormalizationIsCorrect() {
         assertThat(normalizedPath(null)).isEqualTo("");
-        assertThat(normalizedPath("/")).isEqualTo("");
+        assertThat(normalizedPath("/")).isEqualTo("/");
         assertThat(normalizedPath(" ")).isEqualTo("/ ");
-        assertThat(normalizedPath(" /")).isEqualTo("/ ");
+        assertThat(normalizedPath(" /")).isEqualTo("/ /");
         assertThat(normalizedPath("/ ")).isEqualTo("/ ");
-        assertThat(normalizedPath("/ /")).isEqualTo("/ ");
+        assertThat(normalizedPath("/ /")).isEqualTo("/ /");
         assertThat(normalizedPath(" / ")).isEqualTo("/ / ");
-        assertThat(normalizedPath("/Foo/")).isEqualTo("/Foo");
-        assertThat(normalizedPath("Foo/")).isEqualTo("/Foo");
+        assertThat(normalizedPath("/Foo/")).isEqualTo("/Foo/");
+        assertThat(normalizedPath("Foo/")).isEqualTo("/Foo/");
         assertThat(normalizedPath("Foo")).isEqualTo("/Foo");
-        assertThat(normalizedPath("/Foo/bar/")).isEqualTo("/Foo/bar");
-        assertThat(normalizedPath("Foo/bar/")).isEqualTo("/Foo/bar");
+        assertThat(normalizedPath("/Foo/bar/")).isEqualTo("/Foo/bar/");
+        assertThat(normalizedPath("Foo/bar/")).isEqualTo("/Foo/bar/");
         assertThat(normalizedPath("/Foo/bar")).isEqualTo("/Foo/bar");
         assertThat(normalizedPath("Foo/bar")).isEqualTo("/Foo/bar");
         assertThat(normalizedPath("%2F")).isEqualTo("/%2F");
@@ -328,7 +336,7 @@ public class SdkHttpRequestResponseTest {
     }
 
     private SdkHttpFullRequest.Builder validRequestBuilder() {
-        return SdkHttpFullRequest.builder().protocol("http").host("localhost").encodedPath("/").method(SdkHttpMethod.GET);
+        return SdkHttpFullRequest.builder().protocol("http").host("localhost").method(SdkHttpMethod.GET);
     }
 
     private SdkHttpFullResponse validResponse() {
