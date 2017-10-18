@@ -69,7 +69,7 @@ class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
     }
 
     private String standardizePath(String path) {
-        if (StringUtils.isEmpty(path) || path.equals("/")) {
+        if (StringUtils.isEmpty(path)) {
             return "";
         }
 
@@ -81,11 +81,6 @@ class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
         }
 
         standardizedPath.append(path);
-
-        // Path must never end with '/', unless they're an empty path.
-        if (standardizedPath.length() > 1 && path.endsWith("/")) {
-            standardizedPath.setLength(standardizedPath.length() - 1);
-        }
 
         return standardizedPath.toString();
     }

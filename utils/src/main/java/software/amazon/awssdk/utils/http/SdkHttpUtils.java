@@ -230,22 +230,19 @@ public class SdkHttpUtils {
     }
 
     /**
-     * Append the given path to the given baseUri, separating them with a slash, if required. The result is always guaranteed to
-     * have a trailing slash.
+     * Append the given path to the given baseUri, separating them with a slash, if required. The result will preserve the
+     * trailing slash of the provided path.
      */
     public static String appendUri(String baseUri, String path) {
+        Validate.paramNotNull(baseUri, "baseUri");
         StringBuilder resultUri = new StringBuilder(baseUri);
 
-        if (!baseUri.endsWith("/")) {
-            resultUri.append('/');
-        }
-
-        if (path != null && path.length() > 0) {
-            resultUri.append(path.startsWith("/") ? path.substring(1) : path);
-
-            if (resultUri.charAt(resultUri.length() - 1) != '/') {
-                resultUri.append('/');
+        if (!StringUtils.isEmpty(path)) {
+            if (!baseUri.endsWith("/")) {
+                resultUri.append("/");
             }
+
+            resultUri.append(path.startsWith("/") ? path.substring(1) : path);
         }
 
         return resultUri.toString();

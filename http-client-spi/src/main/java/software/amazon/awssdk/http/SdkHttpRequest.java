@@ -64,8 +64,9 @@ public interface SdkHttpRequest extends SdkHttpHeaders {
     /**
      * Returns the URL-encoded path that should be used in the HTTP request.
      *
-     * <p>If a path is configured, the path will always start with '/' and never end with '/' (eg. "/my/path").
-     * If a path is not configured, this will always return empty-string (ie. "").</p>
+     * <p>If a path is configured, the path will always start with '/' and may or may not end with '/', depending on what the
+     * service might expect. If a path is not configured, this will always return empty-string (ie. ""). Note that '/' is also a
+     * valid path.</p>
      *
      * @return The path to the resource being requested.
      */

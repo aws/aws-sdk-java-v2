@@ -67,11 +67,11 @@ public class S3EndpointResolutionTest {
 
         assertThat(mockHttpClient.getLastRequest().getUri())
                 .as("Uses regional S3 endpoint without bucket")
-                .isEqualTo(URI.create(ENDPOINT_WITHOUT_BUCKET));
+                .isEqualTo(URI.create(ENDPOINT_WITHOUT_BUCKET + "/"));
 
         assertThat(mockHttpClient.getLastRequest().encodedPath())
                 .as("Bucket is not in resource path")
-                .isEqualTo("");
+                .isEqualTo("/");
     }
 
     /**
@@ -86,7 +86,7 @@ public class S3EndpointResolutionTest {
 
         assertThat(mockHttpClient.getLastRequest().getUri())
                 .as("Uses regional S3 endpoint without bucket")
-                .isEqualTo(URI.create("https://s3.dualstack.ap-south-1.amazonaws.com"));
+                .isEqualTo(URI.create("https://s3.dualstack.ap-south-1.amazonaws.com/"));
     }
 
     /**
@@ -103,7 +103,7 @@ public class S3EndpointResolutionTest {
 
         assertThat(mockHttpClient.getLastRequest().getUri())
                 .as("Uses custom endpoint")
-                .isEqualTo(customEndpoint);
+                .isEqualTo(URI.create(customEndpoint + "/"));
     }
 
     /**
@@ -272,7 +272,7 @@ public class S3EndpointResolutionTest {
 
         assertThat(mockHttpClient.getLastRequest().getUri())
                 .as("Uses regional S3 endpoint")
-                .isEqualTo(URI.create("https://s3.ap-south-1.amazonaws.com"));
+                .isEqualTo(URI.create("https://s3.ap-south-1.amazonaws.com/"));
     }
 
     /**
