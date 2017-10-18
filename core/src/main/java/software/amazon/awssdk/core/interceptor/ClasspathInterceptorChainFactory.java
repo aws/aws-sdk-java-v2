@@ -125,7 +125,7 @@ public final class ClasspathInterceptorChainFactory {
 
     @ReviewBeforeRelease("Can we hard-code our required global and service interceptors and just have this log a warning?")
     private ClassLoader classLoader() {
-        return Validate.notNull(Thread.currentThread().getContextClassLoader(),
-                                "Failed to load the classloader for the current thread.");
+        return Validate.notNull(ClassLoaderHelper.classLoader(),
+                                "Failed to load the classloader for the current thread or the system.");
     }
 }

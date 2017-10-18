@@ -90,7 +90,7 @@ public enum ClassLoaderHelper {
     }
 
     private static URL getResourceViaContext(String resource) {
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        ClassLoader loader = classLoader();
         return loader == null ? null : loader.getResource(resource);
     }
 
@@ -111,7 +111,7 @@ public enum ClassLoaderHelper {
     }
 
     private static Class<?> loadClassViaContext(String fqcn) {
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        ClassLoader loader = classLoader();
         try {
             return loader == null ? null : loader.loadClass(fqcn);
         } catch (ClassNotFoundException e) {
@@ -230,5 +230,17 @@ public enum ClassLoaderHelper {
         } catch (IOException e) {
             return null;
         }
+    }
+
+    /**
+     * Attempt to get the current thread's class loader and fallback to the system classloader if null
+     * @return a {@link ClassLoader} or null if none found
+     */
+    public static ClassLoader classLoader() {
+        ClassLoader threadClassLoader = Thread.currentThread().getContextClassLoader();
+        if (threadClassLoader != null) {
+            return threadClassLoader;
+        }
+        return ClassLoader.getSystemClassLoader();
     }
 }
