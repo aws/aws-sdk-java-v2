@@ -119,7 +119,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
             }
         }, new RetryableParams().withMaxAttempts(30).withDelayInMs(200));
 
-        assertEquals(BucketVersioningStatus.ENABLED.name(),
+        assertEquals(BucketVersioningStatus.ENABLED,
                      accelerateClient.getBucketVersioning(GetBucketVersioningRequest.builder()
                                                                                     .bucket(US_BUCKET_NAME)
                                                                                     .build())
@@ -141,14 +141,14 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
         }
 
         assertEquals(
-                BucketAccelerateStatus.ENABLED.toString(),
+                BucketAccelerateStatus.ENABLED,
                 s3.getBucketAccelerateConfiguration(GetBucketAccelerateConfigurationRequest.builder()
                                                                                            .bucket(US_BUCKET_NAME)
                                                                                            .build())
                   .status());
 
         disableAccelerateOnBucket();
-        assertEquals(BucketAccelerateStatus.SUSPENDED.toString(),
+        assertEquals(BucketAccelerateStatus.SUSPENDED,
                      s3.getBucketAccelerateConfiguration(GetBucketAccelerateConfigurationRequest.builder()
                                                                                                 .bucket(US_BUCKET_NAME)
                                                                                                 .build())

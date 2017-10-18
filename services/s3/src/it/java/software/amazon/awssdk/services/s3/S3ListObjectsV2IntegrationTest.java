@@ -251,7 +251,7 @@ public class S3ListObjectsV2IntegrationTest extends S3IntegrationTestBase {
         List<S3Object> objects = result.contents();
 
         // EncodingType should be returned in the response.
-        assertEquals(encodingType, result.encodingType());
+        assertEquals(encodingType, result.encodingTypeString());
 
         System.out.println(result.contents().get(0).key());
 

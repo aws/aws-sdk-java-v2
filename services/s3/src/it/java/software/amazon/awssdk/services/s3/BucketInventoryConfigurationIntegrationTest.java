@@ -113,11 +113,11 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
 
         assertEquals(configId, config.id());
         assertTrue(config.isEnabled());
-        assertEquals(InventoryIncludedObjectVersions.ALL.toString(), config.includedObjectVersions());
-        assertEquals(InventoryFrequency.DAILY.toString(), config.schedule().frequency());
+        assertEquals(InventoryIncludedObjectVersions.ALL, config.includedObjectVersions());
+        assertEquals(InventoryFrequency.DAILY, config.schedule().frequency());
         s3BucketDestination = config.destination().s3BucketDestination();
         assertEquals(BUCKET_ARN, s3BucketDestination.bucket());
-        assertEquals(InventoryFormat.CSV.toString(), s3BucketDestination.format());
+        assertEquals(InventoryFormat.CSV, s3BucketDestination.format());
         assertNull(s3BucketDestination.accountId());
         assertNull(s3BucketDestination.prefix());
 
@@ -182,15 +182,15 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
 
         assertEquals(configId, config.id());
         assertTrue(config.isEnabled());
-        assertEquals(InventoryIncludedObjectVersions.ALL.toString(), config.includedObjectVersions());
-        assertEquals(InventoryFrequency.DAILY.toString(), config.schedule().frequency());
+        assertEquals(InventoryIncludedObjectVersions.ALL, config.includedObjectVersions());
+        assertEquals(InventoryFrequency.DAILY, config.schedule().frequency());
         s3BucketDestination = config.destination().s3BucketDestination();
         assertEquals(BUCKET_ARN, s3BucketDestination.bucket());
-        assertEquals(InventoryFormat.CSV.toString(), s3BucketDestination.format());
+        assertEquals(InventoryFormat.CSV, s3BucketDestination.format());
         assertEquals(accountId, s3BucketDestination.accountId());
         assertEquals(prefix, s3BucketDestination.prefix());
         assertEquals(prefix, config.filter().prefix());
-        assertTrue(config.optionalFields().containsAll(optionalFields));
+        assertTrue(config.optionalFieldsStrings().containsAll(optionalFields));
 
         s3.deleteBucketInventoryConfiguration(DeleteBucketInventoryConfigurationRequest.builder()
                                                                                        .bucket(BUCKET_NAME)

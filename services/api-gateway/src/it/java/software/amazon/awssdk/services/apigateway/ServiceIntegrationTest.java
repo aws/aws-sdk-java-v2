@@ -204,6 +204,6 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
         Assert.assertNotNull(putIntegrationResult.cacheNamespace());
         Assert.assertNotNull(putIntegrationResult.type());
         Assert.assertEquals(putIntegrationResult.type(),
-                            IntegrationType.MOCK.toString());
+                            IntegrationType.MOCK);
     }
 }

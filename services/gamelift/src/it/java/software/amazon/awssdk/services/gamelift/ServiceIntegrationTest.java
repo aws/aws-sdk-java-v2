@@ -67,7 +67,7 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
         Assert.assertNotNull(createAliasResult);
         Assert.assertNotNull(createAliasResult.alias());
         Assert.assertEquals(createdAlias.name(), aliasName);
-        Assert.assertEquals(strategy.type(), RoutingStrategyType.SIMPLE.toString());
+        Assert.assertEquals(strategy.type(), RoutingStrategyType.SIMPLE);
         Assert.assertEquals(strategy.fleetId(), fleetId);
 
         DescribeAliasResponse describeAliasResult = gameLift

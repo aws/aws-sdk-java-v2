@@ -37,6 +37,7 @@ import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
+import software.amazon.awssdk.services.dynamodb.model.TableStatus;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class DynamoDbWaiterIntegrationTest extends AwsIntegrationTestBase {
@@ -83,7 +84,7 @@ public class DynamoDbWaiterIntegrationTest extends AwsIntegrationTestBase {
               .tableExists()
               .run(new WaiterParameters<DescribeTableRequest>().withRequest(
                       DescribeTableRequest.builder().tableName(tableName).build()));
-        Assert.assertEquals("Table status is not ACTIVE", "ACTIVE",
+        Assert.assertEquals("Table status is not ACTIVE", TableStatus.ACTIVE,
                             client.describeTable(DescribeTableRequest.builder().tableName(tableName).build()).table().tableStatus());
         deleteTableWaiterSync_ThrowsResourceNotFoundException_WhenDeleted(client, tableName);
 
@@ -113,7 +114,7 @@ public class DynamoDbWaiterIntegrationTest extends AwsIntegrationTestBase {
         future.get(5, TimeUnit.MINUTES);
         assertTrue(onWaitSuccessCalled.get());
         assertFalse(onWaitFailureCalled.get());
-        Assert.assertEquals("Table status is not ACTIVE", "ACTIVE",
+        Assert.assertEquals("Table status is not ACTIVE", TableStatus.ACTIVE,
                             client.describeTable(DescribeTableRequest.builder().tableName(tableName).build()).table().tableStatus());
         deleteTableWaiterSync_ThrowsResourceNotFoundException_WhenDeleted(client, tableName);
     }

@@ -48,7 +48,7 @@ public class CloudWatchEventsIntegrationTest extends AwsIntegrationTestBase {
         );
 
         // By default, a newly created rule is enabled
-        Assert.assertEquals(RuleState.ENABLED.toString(),
+        Assert.assertEquals(RuleState.ENABLED,
                             events.describeRule(DescribeRuleRequest.builder().name(RULE_NAME).build())
                                   .state());
     }
@@ -68,12 +68,12 @@ public class CloudWatchEventsIntegrationTest extends AwsIntegrationTestBase {
 
         Assert.assertEquals(RULE_NAME, describeRuleResult.name());
         Assert.assertEquals(RULE_DESCRIPTION, describeRuleResult.description());
-        Assert.assertEquals(RuleState.ENABLED.toString(),
+        Assert.assertEquals(RuleState.ENABLED,
                             describeRuleResult.state());
 
         events.disableRule(DisableRuleRequest.builder().name(RULE_NAME).build());
 
-        Assert.assertEquals(RuleState.DISABLED.toString(),
+        Assert.assertEquals(RuleState.DISABLED,
                             events.describeRule(DescribeRuleRequest.builder().name(RULE_NAME).build())
                                   .state());
 
