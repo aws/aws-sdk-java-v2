@@ -49,4 +49,8 @@ public enum ${shape.shapeName} {
 
         throw new IllegalArgumentException("Cannot create enum from " + value + " value!");
     }
+
+    public static Set<${shape.shapeName}> knownValues() {
+        return Stream.of(values()).filter(v -> v != UNKNOWN_TO_SDK_VERSION).collect(toSet());
+    }
 }
