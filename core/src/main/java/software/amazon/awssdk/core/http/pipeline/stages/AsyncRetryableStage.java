@@ -15,14 +15,10 @@
 
 package software.amazon.awssdk.core.http.pipeline.stages;
 
-import static java.util.Collections.singletonList;
 import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishProgress;
-import static software.amazon.awssdk.core.http.pipeline.stages.RetryableStage.HEADER_SDK_RETRY_INFO;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.Instant;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -38,13 +34,12 @@ import software.amazon.awssdk.core.event.ProgressEventType;
 import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.core.http.HttpAsyncClientDependencies;
 import software.amazon.awssdk.core.http.HttpClientDependencies;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.retry.RetryHandler;
 import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.core.retry.v2.RetryPolicy;
-import software.amazon.awssdk.core.retry.v2.RetryPolicyContext;
 import software.amazon.awssdk.core.util.CapacityManager;
-import software.amazon.awssdk.core.util.DateUtils;
+import software.amazon.awssdk.core.util.ClockSkewUtil;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
@@ -90,26 +85,6 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
     }
 
     /**
-     * Returns the difference between the client's clock time and the service clock time in unit
-     * of seconds.
-     */
-    private static int parseClockSkewOffset(HttpResponse httpResponse) {
-        Optional<String> dateHeader = Optional.ofNullable(httpResponse.getHeader("Date"));
-        try {
-            Instant serverDate = dateHeader
-                    .filter(h -> !h.isEmpty())
-                    .map(DateUtils::parseRfc1123Date)
-                    .orElseThrow(() -> new RuntimeException(
-                            "Unable to parse clock skew offset from response. Server Date header missing"));
-            long diff = System.currentTimeMillis() - serverDate.toEpochMilli();
-            return (int) (diff / 1000);
-        } catch (RuntimeException e) {
-            log.warn("Unable to parse clock skew offset from response: " + dateHeader.orElse(""), e);
-            return 0;
-        }
-    }
-
-    /**
      * Created for every request to encapsulate mutable state between retries.
      */
     private class RetryExecutor {
@@ -117,18 +92,15 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
         private final SdkHttpFullRequest request;
         private final RequestExecutionContext context;
         private final ProgressListener progressListener;
+        private final RetryHandler retryHandler;
 
-        private Optional<SdkBaseException> retriedException;
-        private RetryPolicyContext retryPolicyContext;
         private int requestCount = 0;
-        private long lastBackoffDelay;
-        private boolean retryCapacityConsumed;
 
         private RetryExecutor(SdkHttpFullRequest request, RequestExecutionContext context) {
             this.request = request;
             this.context = context;
             this.progressListener = context.requestConfig().getProgressListener();
-            this.retriedException = Optional.empty();
+            this.retryHandler = new RetryHandler(retryPolicy, retryCapacity);
         }
 
         public CompletableFuture<Response<OutputT>> execute() throws Exception {
@@ -147,16 +119,15 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
                             Throwable err) {
             try {
                 if (resp != null && resp.isSuccess()) {
-                    releaseRetryCapacity();
+                    retryHandler.releaseRetryCapacity();
                     future.complete(resp);
                 } else if (resp != null) {
-                    setRetriedException(handleSdkException(resp));
-                    executeRetry(future);
-                } else if (err instanceof IOException) {
-                    setRetriedException(handleIoException((IOException) err));
+                    retryHandler.setLastRetriedException(handleSdkException(resp));
                     executeRetry(future);
                 } else {
-                    future.completeExceptionally(err);
+                    SdkClientException exception = new SdkClientException(err);
+                    retryHandler.setLastRetriedException(handleSdkException(Response.fromFailure(exception, null)));
+                    executeRetry(future);
                 }
             } catch (Exception e) {
                 future.completeExceptionally(e);
@@ -167,11 +138,10 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
         private void executeRetry(CompletableFuture<Response<OutputT>> future) {
             publishProgress(progressListener, ProgressEventType.CLIENT_REQUEST_RETRY_EVENT);
             final int retriesAttempted = requestCount - 2;
-            long delay = retryPolicy.computeDelayBeforeNextRetry(this.retryPolicyContext);
-            lastBackoffDelay = delay;
+            long delay = retryHandler.computeDelayBeforeNextRetry();
 
             if (log.isDebugEnabled()) {
-                log.debug("Retriable error detected, will retry in " + delay + "ms, attempt number: " +
+                log.debug("Retryable error detected, will retry in " + delay + "ms, attempt number: " +
                           retriesAttempted);
             }
             retrySubmitter.schedule(() -> {
@@ -180,46 +150,27 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
             }, delay, TimeUnit.MILLISECONDS);
         }
 
-        /**
-         * If this was a successful retry attempt we'll release the full retry capacity that the attempt originally consumed.  If
-         * this was a successful initial request we release a lesser amount.
-         */
-        private void releaseRetryCapacity() {
-            if (isRetry() && retryCapacityConsumed) {
-                retryCapacity.release(RetryPolicy.THROTTLED_RETRY_COST);
-            } else {
-                retryCapacity.release();
-            }
-        }
-
         private void beforeExecute() {
-            retryCapacityConsumed = false;
+            retryHandler.retryCapacityConsumed(false);
             ++requestCount;
         }
 
         private CompletableFuture<Response<OutputT>> doExecute() throws Exception {
-            if (isRetry()) {
+            if (retryHandler.isRetry()) {
                 request.content().ifPresent(AsyncRetryableStage::resetRequestInputStream);
             }
 
             request.content().ifPresent(this::markInputStream);
 
-            SdkStandardLoggers.REQUEST_LOGGER.debug(() -> (isRetry() ? "Retrying " : "Sending ") + "Request: " + request);
+            SdkStandardLoggers.REQUEST_LOGGER.debug(() -> (retryHandler.isRetry() ? "Retrying " : "Sending ") +
+                                                          "Request: " + request);
 
-            return requestPipeline.execute(addRetryInfoHeader(request), context);
-        }
-
-        private boolean isRetry() {
-            return retriedException.isPresent();
-        }
-
-        private void setRetriedException(SdkBaseException e) {
-            this.retriedException = Optional.of(e);
+            return requestPipeline.execute(retryHandler.addRetryInfoHeader(request, requestCount), context);
         }
 
         private SdkBaseException handleSdkException(Response<OutputT> response) {
             SdkBaseException exception = response.getException();
-            if (!shouldRetry(response.getHttpResponse(), exception)) {
+            if (!retryHandler.shouldRetry(response.getHttpResponse(), request, context, exception, requestCount)) {
                 throw exception;
             }
             /**
@@ -228,23 +179,10 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
              */
 
             if (RetryUtils.isClockSkewError(exception)) {
-                int clockSkew = parseClockSkewOffset(response.getHttpResponse());
+                int clockSkew = ClockSkewUtil.parseClockSkewOffset(response.getHttpResponse());
                 dependencies.updateTimeOffset(clockSkew);
             }
             return exception;
-        }
-
-        private SdkBaseException handleIoException(IOException ioe) {
-            SdkClientException sdkClientException = new SdkClientException(
-                    "Unable to execute HTTP request: " + ioe.getMessage(), ioe);
-            boolean willRetry = shouldRetry(null, sdkClientException);
-            if (log.isDebugEnabled()) {
-                log.debug(sdkClientException.getMessage() + (willRetry ? " Request will be retried." : ""), ioe);
-            }
-            if (!willRetry) {
-                throw sdkClientException;
-            }
-            return sdkClientException;
         }
 
         /**
@@ -263,64 +201,5 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
         private int readLimit() {
             return context.requestConfig().getRequestClientOptions().getReadLimit();
         }
-
-        /**
-         * Returns true if a failed request should be retried.
-         *
-         * TODO: Can a lot of the duplication between this and RetryableStage be removed?
-         *
-         * @param exception The client/service exception from the failed request.
-         * @return True if the failed request should be retried.
-         */
-        private boolean shouldRetry(HttpResponse httpResponse,
-                                    SdkBaseException exception) {
-            final int retriesAttempted = requestCount - 1;
-
-            // Do not use retry capacity for throttling exceptions
-            if (!RetryUtils.isThrottlingException(exception)) {
-                // See if we have enough available retry capacity to be able to execute this retry attempt.
-                if (!retryCapacity.acquire(RetryPolicy.THROTTLED_RETRY_COST)) {
-                    return false;
-                }
-                this.retryCapacityConsumed = true;
-            }
-
-            this.retryPolicyContext = RetryPolicyContext.builder()
-                                                        .request(request)
-                                                        .originalRequest(context.requestConfig().getOriginalRequest())
-                                                        .exception(exception)
-                                                        .retriesAttempted(retriesAttempted)
-                                                        .httpStatusCode(
-                                                                httpResponse == null ? null : httpResponse.getStatusCode())
-                                                        .build();
-            // Finally, pass all the context information to the RetryCondition and let it decide whether it should be retried.
-            if (!retryPolicy.shouldRetry(retryPolicyContext)) {
-                // If the retry policy fails we immediately return consumed capacity to the pool.
-                if (retryCapacityConsumed) {
-                    retryCapacity.release(RetryPolicy.THROTTLED_RETRY_COST);
-                }
-                return false;
-            }
-
-            return true;
-        }
-
-        /**
-         * Add the {@value RetryableStage#HEADER_SDK_RETRY_INFO} header to the request. Contains metadata about request count,
-         * backoff, and retry capacity.
-         *
-         * @return Request with retry info header added.
-         */
-        private SdkHttpFullRequest addRetryInfoHeader(SdkHttpFullRequest request) throws Exception {
-            int availableRetryCapacity = retryCapacity.availableCapacity();
-            return request.toBuilder()
-                          .header(HEADER_SDK_RETRY_INFO,
-                                  singletonList(String.format("%s/%s/%s",
-                                                              requestCount - 1,
-                                                              lastBackoffDelay,
-                                                              availableRetryCapacity >= 0 ? availableRetryCapacity : "")))
-                          .build();
-        }
-
     }
 }

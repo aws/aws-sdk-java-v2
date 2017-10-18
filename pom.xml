@@ -72,7 +72,7 @@
         <module>utils</module>
     </modules>
     <scm>
-        <url>https://github.com/aws/aws-sdk-java.git</url>
+        <url>https://github.com/aws/aws-sdk-java-v2.git</url>
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
