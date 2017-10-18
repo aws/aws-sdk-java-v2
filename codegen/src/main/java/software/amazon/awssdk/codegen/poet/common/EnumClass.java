@@ -22,16 +22,22 @@ import static software.amazon.awssdk.codegen.poet.PoetUtils.toStringBuilder;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeSpec.Builder;
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
+import software.amazon.awssdk.codegen.poet.StaticImport;
 
 public final class EnumClass implements ClassSpec {
 
     private static final String VALUE = "value";
+    private static final String UNKNOWN_TO_SDK_VERSION = "UNKNOWN_TO_SDK_VERSION";
     private final ShapeModel shape;
     private final ClassName className;
 
@@ -46,6 +52,7 @@ public final class EnumClass implements ClassSpec {
             .addField(String.class, VALUE, Modifier.PRIVATE, Modifier.FINAL)
             .addMethod(toStringBuilder().addStatement("return $T.valueOf($N)", String.class, VALUE).build())
             .addMethod(fromValueSpec())
+            .addMethod(knownValuesSpec())
             .addMethod(createConstructor());
 
         addDeprecated(enumBuilder::addAnnotation, shape);
@@ -54,7 +61,7 @@ public final class EnumClass implements ClassSpec {
         shape.getEnums().forEach(
             e -> enumBuilder.addEnumConstant(e.getName(), TypeSpec.anonymousClassBuilder("$S", e.getValue()).build())
         );
-        enumBuilder.addEnumConstant("UNKNOWN_TO_SDK_VERSION", TypeSpec.anonymousClassBuilder("null").build());
+        enumBuilder.addEnumConstant(UNKNOWN_TO_SDK_VERSION, TypeSpec.anonymousClassBuilder("null").build());
 
         return enumBuilder.build();
     }
@@ -62,6 +69,11 @@ public final class EnumClass implements ClassSpec {
     @Override
     public ClassName className() {
         return className;
+    }
+
+    @Override
+    public Iterable<StaticImport> staticImports() {
+        return Collections.singleton(StaticImport.staticMethodImport(Collectors.class, "toSet"));
     }
 
     private MethodSpec createConstructor() {
@@ -91,6 +103,20 @@ public final class EnumClass implements ClassSpec {
                                        Stream.class,
                                        className,
                                        VALUE)
+                         .build();
+    }
+
+    private MethodSpec knownValuesSpec() {
+        return MethodSpec.methodBuilder("knownValues")
+                         .returns(ParameterizedTypeName.get(ClassName.get(Set.class), className))
+                         .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                         .addJavadoc("Use this in place of {@link #values()} to return a {@link Set} of all values known to the "
+                                     + "SDK.\n"
+                                     + "This will return all known enum values except {@link #$N}.\n\n"
+                                     + "@return a {@link $T} of known {@link $T}s", UNKNOWN_TO_SDK_VERSION, Set.class, className)
+                         .addStatement("return $T.of(values()).filter(v -> v != $N).collect(toSet())",
+                                       Stream.class,
+                                       UNKNOWN_TO_SDK_VERSION)
                          .build();
     }
 }
