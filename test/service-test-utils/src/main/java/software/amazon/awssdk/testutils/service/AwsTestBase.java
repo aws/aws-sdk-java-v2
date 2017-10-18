@@ -16,6 +16,7 @@
 package software.amazon.awssdk.testutils.service;
 
 import static org.junit.Assert.assertThat;
+import static software.amazon.awssdk.utils.StringUtils.isBlank;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -80,10 +81,10 @@ public abstract class AwsTestBase {
             private StringBuilder sb = new StringBuilder();
             @Override
             protected boolean matchesSafely(AmazonServiceException item) {
-                testNullOrEmpty(item.getRequestId(), "requestId");
-                testNullOrEmpty(item.getMessage(), "message");
-                testNullOrEmpty(item.getErrorCode(), "errorCode");
-                testNullOrEmpty(item.getServiceName(), "serviceName");
+                isNotBlank(item.getRequestId(), "requestId");
+                isNotBlank(item.getMessage(), "message");
+                isNotBlank(item.getErrorCode(), "errorCode");
+                isNotBlank(item.getServiceName(), "serviceName");
                 return sb.length() == 0;
             }
 
@@ -92,17 +93,12 @@ public abstract class AwsTestBase {
                 description.appendText(sb.toString());
             }
 
-            private void testNullOrEmpty(String value, String fieldName) {
-                if (value == null) {
+            private void isNotBlank(String value, String fieldName) {
+                if (isBlank(value)) {
                     if (sb.length() > 0) {
                         sb.append(", ");
                     }
-                    sb.append(fieldName).append(" should not be null");
-                } else if (value.trim().length() > 0) {
-                    if (sb.length() > 0) {
-                        sb.append(", ");
-                    }
-                    sb.append(fieldName).append(" should not be empty or blank");
+                    sb.append(fieldName).append(" should not be null or blank");
                 }
             }
         };
