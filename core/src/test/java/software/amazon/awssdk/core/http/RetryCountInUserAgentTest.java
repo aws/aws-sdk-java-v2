@@ -23,7 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.fail;
-import static software.amazon.awssdk.core.http.pipeline.stages.RetryableStage.HEADER_SDK_RETRY_INFO;
+import static software.amazon.awssdk.core.retry.RetryHandler.HEADER_SDK_RETRY_INFO;
 
 import org.junit.Test;
 import software.amazon.awssdk.core.AmazonServiceException;
