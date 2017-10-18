@@ -1,28 +1,4 @@
 {
-  "asyncClient": {
-    "mainTemplate" : "/templates/common/AsyncClientClass.ftl",
-    "childTemplates" : [
-      {
-        "location" : "/macros/asyncclientclass/ClientMethodForOperation.ftl",
-        "importAsNamespace" : "AsyncClientMethodForOperation"
-      }, {
-        "location": "/macros/asyncclientclass/ClientMethodForOperationWithSimpleForm.ftl",
-        "importAsNamespace": "AsyncClientMethodForOperationWithSimpleForm"
-      }
-    ]
-  },
-  "requestClass": {
-    "mainTemplate" : "/templates/common/model-request-class.ftl"
-  },
-  "responseClass": {
-    "mainTemplate" : "/templates/common/model-class.ftl"
-  },
-  "modelClass": {
-    "mainTemplate" : "/templates/common/model-class.ftl"
-  },
-  "modelEnum": {
-    "mainTemplate" : "/templates/common/enum-class.ftl"
-  },
   "modelUnmarshaller": {
     "mainTemplate" : "/templates/json/ModelJsonUnmarshaller.ftl",
     "childTemplates" : [
@@ -53,29 +29,11 @@
   "baseExceptionClass": {
     "mainTemplate" : "/templates/common/base-exception-class.ftl"
   },
-  "exceptionClass": {
-    "mainTemplate" : "/templates/common/model-exception-class.ftl"
-  },
   "packageInfo" : {
     "mainTemplate" : "/templates/common/package-info.ftl"
   },
   "commonChildTemplates" : [
     {
-      "location" : "/macros/common/VariableDeclarationMacro.ftl",
-      "importAsNamespace" : "VariableDeclarationMacro"
-    }, {
-      "location" : "/macros/model/json/AdditionalAnnotationsForAccessors.ftl",
-      "importAsNamespace" : "AdditionalAnnotationsForAccessors"
-    }, {
-      "location" : "/macros/common/OverrideMethodsMacro.ftl",
-      "importAsNamespace" : "OverrideMethodsMacro"
-    }, {
-      "location" : "/macros/common/MethodDefinitionMacro.ftl",
-      "importAsNamespace" : "MethodDefinitionMacro"
-    }, {
-      "location" : "/macros/common/ConstructorDefinitionMacro.ftl",
-      "importAsNamespace" : "ConstructorDefinitionMacro"
-    }, {
       "location" : "/macros/marshaller/common/RequiredParameterValidationFunctionMacro.ftl",
       "importAsNamespace" : "RequiredParameterValidationFunctionMacro"
     }, {

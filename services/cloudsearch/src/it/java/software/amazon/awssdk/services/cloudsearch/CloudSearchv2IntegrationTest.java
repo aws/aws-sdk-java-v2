@@ -253,7 +253,7 @@ public class CloudSearchv2IntegrationTest extends AwsIntegrationTestBase {
         IndexField field = null;
         DefineIndexFieldRequest.Builder defineIndexFieldRequest = DefineIndexFieldRequest.builder()
                                                                                          .domainName(testDomainName);
-        for (IndexFieldType type : IndexFieldType.values()) {
+        for (IndexFieldType type : IndexFieldType.knownValues()) {
             indexFieldName = type.toString();
             indexFieldName = indexFieldName.replaceAll("-", "");
             field = IndexField.builder().indexFieldType(type)
@@ -264,7 +264,7 @@ public class CloudSearchv2IntegrationTest extends AwsIntegrationTestBase {
 
         result = cloudSearch.describeIndexFields(describeIndexFieldRequest.toBuilder().deployed(false).build());
         List<IndexFieldStatus> indexFieldStatusList = result.indexFields();
-        assertTrue(indexFieldStatusList.size() == IndexFieldType.values().length);
+        assertTrue(indexFieldStatusList.size() == IndexFieldType.knownValues().size());
     }
 
     /**
