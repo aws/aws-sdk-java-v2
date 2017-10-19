@@ -28,11 +28,11 @@ import software.amazon.awssdk.services.dynamodb.model.LocalSecondaryIndexDescrip
 import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
 import software.amazon.awssdk.services.dynamodb.model.TableStatus;
-import software.amazon.awssdk.services.dynamodb.util.TableUtils;
 import software.amazon.awssdk.testutils.UnorderedCollectionComparator;
 import software.amazon.awssdk.utils.Logger;
 import utils.resources.TestResource;
 import utils.test.util.DynamoDBTestBase;
+import utils.test.util.TableUtils;
 
 public abstract class DynamoDBTableResource implements TestResource {
     private static final Logger log = Logger.loggerFor(DynamoDBTableResource.class);

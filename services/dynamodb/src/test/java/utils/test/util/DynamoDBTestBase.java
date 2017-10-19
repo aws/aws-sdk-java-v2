@@ -67,10 +67,10 @@ public class DynamoDBTestBase extends AwsTestBase {
         log.info(() -> "Waiting for " + tableName + " to become Deleted...");
 
         long startTime = System.currentTimeMillis();
-        long endTime = startTime + (10 * 60 * 1000);
+        long endTime = startTime + (60_000);
         while (System.currentTimeMillis() < endTime) {
             try {
-                Thread.sleep(1000 * 20);
+                Thread.sleep(5_000);
             } catch (Exception e) {
                 // Ignored or expected.
             }
