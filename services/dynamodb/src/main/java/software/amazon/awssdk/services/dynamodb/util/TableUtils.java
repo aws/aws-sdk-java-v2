@@ -152,7 +152,7 @@ public class TableUtils {
                                        final int interval) throws InterruptedException, TableNeverTransitionedToStateException {
         TableDescription table = waitForTableDescription(dynamo, tableName, TableStatus.ACTIVE, timeout, interval);
 
-        if (table == null || !table.tableStatus().equals(TableStatus.ACTIVE.toString())) {
+        if (table == null || !table.tableStatus().equals(TableStatus.ACTIVE)) {
             throw new TableNeverTransitionedToStateException(tableName, TableStatus.ACTIVE);
         }
     }
@@ -195,7 +195,7 @@ public class TableUtils {
         while (System.currentTimeMillis() < endTime) {
             try {
                 table = dynamo.describeTable(DescribeTableRequest.builder().tableName(tableName).build()).table();
-                if (desiredStatus == null || table.tableStatus().equals(desiredStatus.toString())) {
+                if (desiredStatus == null || table.tableStatus().equals(desiredStatus)) {
                     return table;
 
                 }
