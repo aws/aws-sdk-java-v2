@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.cloudfront;
 
 import static org.junit.Assert.assertEquals;
 import static software.amazon.awssdk.testutils.DateUtils.yyMMddhhmmss;
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -28,7 +29,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.services.cloudfront.model.Aliases;
 import software.amazon.awssdk.services.cloudfront.model.CacheBehavior;
 import software.amazon.awssdk.services.cloudfront.model.CacheBehaviors;
@@ -81,8 +81,7 @@ public class PresignedUrlIntegrationTest extends IntegrationTestBase {
     private static final String DEFAULT_ROOT_OBJECT = "key.html";
     private static final String DISTRIBUTION_COMMENT = "comment";
     private static String callerReference = yyMMddhhmmss();
-    private static final String bucketName = StringUtils.lowerCase(PresignedUrlIntegrationTest.class.getSimpleName())
-                                             + "." + callerReference;
+    private static final String bucketName = temporaryBucketName(PresignedUrlIntegrationTest.class);
     private static String dnsName;
     private static String domainName;
 

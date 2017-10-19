@@ -16,9 +16,8 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.services.s3.model.BucketLocationConstraint.US_WEST_2;
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
-import java.time.Instant;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -28,8 +27,6 @@ import software.amazon.awssdk.core.auth.policy.Principal;
 import software.amazon.awssdk.core.auth.policy.Resource;
 import software.amazon.awssdk.core.auth.policy.Statement;
 import software.amazon.awssdk.services.s3.model.BucketLocationConstraint;
-import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketLocationRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketPolicyRequest;
@@ -42,16 +39,11 @@ public final class OperationsWithNonStandardResponsesIntegrationTest extends S3I
     /**
      * The name of the bucket created, used, and deleted by these tests.
      */
-    private static String bucketName = "single-string-integ-test-" + Instant.now().toEpochMilli();
+    private static String bucketName = temporaryBucketName("single-string-integ-test");
 
     @BeforeClass
     public static void setupSuite() {
-        s3.createBucket(CreateBucketRequest.builder()
-                                           .bucket(bucketName)
-                                           .createBucketConfiguration(CreateBucketConfiguration.builder()
-                                                                                               .locationConstraint(US_WEST_2)
-                                                                                               .build())
-                                           .build());
+        createBucket(bucketName);
     }
 
     @AfterClass

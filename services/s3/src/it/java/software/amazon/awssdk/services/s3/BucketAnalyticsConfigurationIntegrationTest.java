@@ -19,8 +19,8 @@ import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
-import java.util.Date;
 import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -51,7 +51,7 @@ public class BucketAnalyticsConfigurationIntegrationTest extends S3IntegrationTe
     /**
      * The bucket created and used by these tests.
      */
-    private static final String BUCKET_NAME = "java-bucket-analytics-integ-test-" + new Date().getTime();
+    private static final String BUCKET_NAME = temporaryBucketName("java-bucket-analytics-integ-test");
 
     private static final String BUCKET_ARN = "arn:aws:s3:::" + BUCKET_NAME;
 

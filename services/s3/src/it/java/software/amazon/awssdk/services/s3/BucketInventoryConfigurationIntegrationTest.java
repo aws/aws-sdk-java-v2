@@ -18,16 +18,14 @@ package software.amazon.awssdk.services.s3;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketInventoryConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketInventoryConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.InventoryConfiguration;
@@ -49,7 +47,7 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
     /**
      * The bucket created and used by these tests.
      */
-    private static final String BUCKET_NAME = "java-bucket-inventory-integ-test-" + new Date().getTime();
+    private static final String BUCKET_NAME = temporaryBucketName("java-bucket-inventory-integ-test");
     private static final String BUCKET_ARN = "arn:aws:s3:::" + BUCKET_NAME;
 
     /**
@@ -60,12 +58,7 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
     @BeforeClass
     public static void setUpFixture() throws Exception {
         S3IntegrationTestBase.setUp();
-        s3.createBucket(CreateBucketRequest.builder()
-                                           .bucket(BUCKET_NAME)
-                                           .createBucketConfiguration(CreateBucketConfiguration.builder()
-                                                                                               .locationConstraint("us-west-2")
-                                                                                               .build())
-                                           .build());
+        createBucket(BUCKET_NAME);
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET_NAME)
                                      .key(KEY)
