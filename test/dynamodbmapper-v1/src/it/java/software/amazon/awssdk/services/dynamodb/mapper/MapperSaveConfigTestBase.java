@@ -37,7 +37,7 @@ import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
-import software.amazon.awssdk.services.dynamodb.util.TableUtils;
+import software.amazon.awssdk.services.dynamodb.TableUtils;
 import utils.test.util.DynamoDBIntegrationTestBase;
 
 public class MapperSaveConfigTestBase extends DynamoDBIntegrationTestBase {

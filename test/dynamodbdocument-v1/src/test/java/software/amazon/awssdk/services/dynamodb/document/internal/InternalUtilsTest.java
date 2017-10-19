@@ -215,7 +215,7 @@ public class InternalUtilsTest {
     @Test
     public void toSimpleListValue_empty() {
         List<AttributeValue> listFrom = new ArrayList<AttributeValue>();
-        List<Object> listTo = InternalUtils.toSimpleList(listFrom);
+        List<Object> listTo = toSimpleList(listFrom);
         assertTrue(listTo.size() == 0);
     }
 
@@ -237,23 +237,23 @@ public class InternalUtilsTest {
 
     @Test
     public void toSimpleValue_null() {
-        assertNull(InternalUtils.toSimpleValue(null));
-        assertNull(InternalUtils.toSimpleValue(AttributeValue.builder().nul(Boolean.TRUE).build()));
+        assertNull(toSimpleValue(null));
+        assertNull(toSimpleValue(AttributeValue.builder().nul(Boolean.TRUE).build()));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void toSimpleValue_empty() {
-        InternalUtils.toSimpleValue(AttributeValue.builder().build());
+        toSimpleValue(AttributeValue.builder().build());
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void toSimpleValue_FalseNull() {
-        InternalUtils.toSimpleValue(AttributeValue.builder().nul(Boolean.FALSE).build());
+        toSimpleValue(AttributeValue.builder().nul(Boolean.FALSE).build());
     }
 
     @Test
     public void toSimpleValue_NS() {
-        Set<BigDecimal> numset = InternalUtils.toSimpleValue(
+        Set<BigDecimal> numset = toSimpleValue(
                 AttributeValue.builder().ns("123", "456").build());
         assertTrue(numset.size() == 2);
         assertTrue(numset.contains(new BigDecimal("123")));
@@ -262,7 +262,7 @@ public class InternalUtilsTest {
 
     @Test
     public void toSimpleValue_emptyNS() {
-        Set<BigDecimal> numset = InternalUtils.toSimpleValue(
+        Set<BigDecimal> numset = toSimpleValue(
                 AttributeValue.builder().ns(new ArrayList<String>()).build());
         assertTrue(numset.size() == 0);
     }
@@ -272,7 +272,7 @@ public class InternalUtilsTest {
         Map<String, AttributeValue> mapFrom = new HashMap<String, AttributeValue>();
         mapFrom.put("fooBOOL", AttributeValue.builder().bool(Boolean.TRUE).build());
         mapFrom.put("fooString", AttributeValue.builder().s("bar").build());
-        Map<String, Object> mapTo = InternalUtils.toSimpleValue(
+        Map<String, Object> mapTo = toSimpleValue(
                 AttributeValue.builder().m(mapFrom).build());
         assertTrue(mapTo.size() == 2);
         assertEquals(Boolean.TRUE, mapTo.get("fooBOOL"));
@@ -282,7 +282,7 @@ public class InternalUtilsTest {
     @Test
     public void toSimpleValue_emptyM() {
         Map<String, AttributeValue> mapFrom = new HashMap<String, AttributeValue>();
-        Map<String, Object> mapTo = InternalUtils.toSimpleValue(
+        Map<String, Object> mapTo = toSimpleValue(
                 AttributeValue.builder().m(mapFrom).build());
         assertTrue(mapTo.size() == 0);
     }
@@ -292,7 +292,7 @@ public class InternalUtilsTest {
         byte[] bytesFrom = new byte[] {1, 2, 3};
         ByteBuffer byteBufferTo = ByteBuffer.allocate(3).put(bytesFrom);
         byteBufferTo.rewind();
-        byte[] bytesTo = InternalUtils.toSimpleValue(
+        byte[] bytesTo = toSimpleValue(
                 AttributeValue.builder().b(byteBufferTo).build());
         assertTrue(Arrays.equals(bytesTo, bytesFrom));
     }
@@ -302,7 +302,7 @@ public class InternalUtilsTest {
         byte[] bytesFrom = new byte[] {1, 2, 3};
         ByteBuffer byteBufferTo = ByteBuffer.allocateDirect(3).put(bytesFrom);
         byteBufferTo.rewind();
-        byte[] bytesTo = InternalUtils.toSimpleValue(
+        byte[] bytesTo = toSimpleValue(
                 AttributeValue.builder().b(byteBufferTo).build());
         assertTrue(Arrays.equals(bytesTo, bytesFrom));
     }

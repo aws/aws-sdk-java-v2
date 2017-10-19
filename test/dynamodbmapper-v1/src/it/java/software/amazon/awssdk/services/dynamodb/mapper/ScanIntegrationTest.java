@@ -48,7 +48,7 @@ import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
-import software.amazon.awssdk.services.dynamodb.util.TableUtils;
+import software.amazon.awssdk.services.dynamodb.TableUtils;
 
 /**
  * Integration tests for the scan operation on DynamoDBMapper.
