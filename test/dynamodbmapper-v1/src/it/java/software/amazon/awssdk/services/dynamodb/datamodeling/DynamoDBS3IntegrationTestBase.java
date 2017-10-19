@@ -30,6 +30,7 @@
 package software.amazon.awssdk.services.dynamodb.datamodeling;
 
 import static org.junit.Assert.fail;
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.util.Iterator;
 import org.junit.AfterClass;
@@ -48,8 +49,8 @@ import software.amazon.awssdk.services.s3.model.S3Object;
 import utils.test.util.DynamoDBIntegrationTestBase;
 
 public class DynamoDBS3IntegrationTestBase extends DynamoDBIntegrationTestBase {
-    public static final String WEST_BUCKET = "java-dynamo-s3-integ-test-west-" + System.currentTimeMillis();
-    public static final String EAST_BUCKET = "java-dynamo-s3-integ-test-east-" + System.currentTimeMillis();
+    public static final String WEST_BUCKET = temporaryBucketName("java-dynamo-s3-integ-test-west");
+    public static final String EAST_BUCKET = temporaryBucketName("java-dynamo-s3-integ-test-east");
 
     protected static S3Client s3East;
     protected static S3Client s3West;

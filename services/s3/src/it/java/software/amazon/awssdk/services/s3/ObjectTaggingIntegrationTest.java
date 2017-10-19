@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +26,6 @@ import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.BucketVersioningStatus;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
-import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectTaggingRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectTaggingRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectTaggingResponse;
@@ -41,16 +40,12 @@ import software.amazon.awssdk.services.s3.model.VersioningConfiguration;
  */
 public class ObjectTaggingIntegrationTest extends S3IntegrationTestBase {
     private static final String KEY_PREFIX = "tagged-object-";
-    private static final String BUCKET = "java-object-tagging-bucket-" + System.currentTimeMillis();
+    private static final String BUCKET = temporaryBucketName("java-object-tagging-bucket-");
 
     @BeforeClass
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
-        s3.createBucket(CreateBucketRequest.builder().bucket(BUCKET)
-                                           .createBucketConfiguration(CreateBucketConfiguration.builder()
-                                                                                               .locationConstraint("us-west-2")
-                                                                                               .build())
-                                           .build());
+        createBucket(BUCKET);
 
         s3.putBucketVersioning(PutBucketVersioningRequest.builder()
                                                          .bucket(BUCKET)

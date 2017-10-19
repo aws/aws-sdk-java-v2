@@ -29,7 +29,8 @@ public enum JavaSystemSetting implements SystemSetting {
 
     USER_HOME("user.home"),
     USER_LANGUAGE("user.language"),
-    USER_REGION("user.region");
+    USER_REGION("user.region"),
+    USER_NAME("user.name");
 
     private final String systemProperty;
 

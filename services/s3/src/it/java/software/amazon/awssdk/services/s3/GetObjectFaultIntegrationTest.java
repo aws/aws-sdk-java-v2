@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.fail;
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,7 +39,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
 
-    private static final String BUCKET = getBucketName(GetObjectFaultIntegrationTest.class);
+    private static final String BUCKET = temporaryBucketName(GetObjectFaultIntegrationTest.class);
 
     private static final String KEY = "some-key";
 
