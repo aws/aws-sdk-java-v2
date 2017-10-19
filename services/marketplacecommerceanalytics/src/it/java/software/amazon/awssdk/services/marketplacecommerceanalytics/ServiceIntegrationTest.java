@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.marketplacecommerceanalytics;
 
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
+
 import java.io.IOException;
 import java.time.Instant;
 import org.junit.After;
@@ -51,7 +53,7 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
 
     private static final String TOPIC_NAME = "marketplace-commerce-analytics-topic";
 
-    private static final String BUCKET_NAME = "java-sdk-integ-mp-commerce-" + System.currentTimeMillis();
+    private static final String BUCKET_NAME = temporaryBucketName("java-sdk-integ-mp-commerce");
 
     private MarketplaceCommerceAnalyticsClient client;
     private S3Client s3;

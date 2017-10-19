@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 import static utils.S3TestUtils.assertMd5MatchesEtag;
 
 import java.io.File;
@@ -44,7 +45,7 @@ import software.amazon.awssdk.testutils.RandomTempFile;
 
 public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
 
-    private static final String BUCKET = getBucketName(GetObjectAsyncIntegrationTest.class);
+    private static final String BUCKET = temporaryBucketName(GetObjectAsyncIntegrationTest.class);
 
     private static final String KEY = "some-key";
 

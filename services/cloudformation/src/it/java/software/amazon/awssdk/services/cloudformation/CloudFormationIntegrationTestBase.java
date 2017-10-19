@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.cloudformation;
 
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
+
 import java.io.File;
 import java.util.List;
 import org.junit.AfterClass;
@@ -38,7 +40,7 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
 public class CloudFormationIntegrationTestBase extends AwsTestBase {
 
     protected static CloudFormationClient cf;
-    protected static String bucketName = "cloudformation-templates" + System.currentTimeMillis();
+    protected static String bucketName = temporaryBucketName("cloudformation-templates");
     protected static String templateForCloudFormationIntegrationTests = "templateForCloudFormationIntegrationTests";
     protected static String templateForStackIntegrationTests = "templateForStackIntegrationTests";
     protected static String templateUrlForCloudFormationIntegrationTests = "https://s3.amazonaws.com/" + bucketName

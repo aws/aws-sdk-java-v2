@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.machinelearning;
 
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
+
 import java.io.IOException;
 import java.util.HashMap;
 import org.junit.AfterClass;
@@ -50,8 +52,7 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class AmazonMachineLearningIntegrationTest extends AwsTestBase {
 
-    private static final String BUCKET_NAME =
-            "aws-java-sdk-eml-test-" + System.currentTimeMillis();
+    private static final String BUCKET_NAME = temporaryBucketName("aws-java-sdk-eml-test");
 
     private static final String KEY = "data.csv";
 

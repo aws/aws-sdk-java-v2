@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.File;
 import java.text.DecimalFormat;
@@ -37,8 +38,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -65,7 +64,7 @@ public class S3ListObjectsV2IntegrationTest extends S3IntegrationTestBase {
     /**
      * The name of the bucket created, used, and deleted by these tests.
      */
-    private static String bucketName = "list-objects-integ-test-" + Instant.now().toEpochMilli();
+    private static String bucketName = temporaryBucketName("list-objects-integ-test");
     /**
      * List of all keys created  by these tests.
      */
@@ -85,12 +84,7 @@ public class S3ListObjectsV2IntegrationTest extends S3IntegrationTestBase {
      */
     @BeforeClass
     public static void createResources() throws Exception {
-        s3.createBucket(CreateBucketRequest.builder()
-                                           .bucket(bucketName)
-                                           .createBucketConfiguration(CreateBucketConfiguration.builder()
-                                                                                               .locationConstraint("us-west-2")
-                                                                                               .build())
-                                           .build());
+        createBucket(bucketName);
 
         NumberFormat numberFormatter = new DecimalFormat("##00");
         for (int i = 1; i <= BUCKET_OBJECTS; i++) {
