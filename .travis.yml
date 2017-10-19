@@ -9,5 +9,5 @@ notifications:
     - github-awsforjava@amazon.com
 script: mvn install
 branches:
-    only:
-        master
+  only:
+    - master
