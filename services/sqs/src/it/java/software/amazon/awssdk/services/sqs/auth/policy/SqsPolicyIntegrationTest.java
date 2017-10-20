@@ -13,18 +13,22 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.auth.policy;
+package software.amazon.awssdk.services.sqs.auth.policy;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.After;
 import org.junit.Test;
+import software.amazon.awssdk.core.auth.policy.Action;
+import software.amazon.awssdk.core.auth.policy.Policy;
+import software.amazon.awssdk.core.auth.policy.Principal;
+import software.amazon.awssdk.core.auth.policy.Statement;
 import software.amazon.awssdk.core.auth.policy.Statement.Effect;
 import software.amazon.awssdk.core.auth.policy.conditions.DateCondition;
 import software.amazon.awssdk.core.auth.policy.conditions.DateCondition.DateComparisonType;
 import software.amazon.awssdk.services.sqs.IntegrationTestBase;
-import software.amazon.awssdk.services.sqs.auth.policy.resources.SqsQueueResource;
+import software.amazon.awssdk.services.sqs.SqsQueueResource;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteQueueRequest;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
@@ -57,9 +61,9 @@ public class SqsPolicyIntegrationTest extends IntegrationTestBase {
         queueUrl = sqsAsync.createQueue(CreateQueueRequest.builder().queueName(queueName).build()).join().queueUrl();
 
         Policy policy = new Policy().withStatements(new Statement(Effect.Allow).withPrincipals(Principal.ALL_USERS)
-                .withActions(new Action("sqs:SendMessage"), new Action("sqs:ReceiveMessage"))
-                .withResources(new SqsQueueResource(ACCOUNT_ID, queueName))
-                .withConditions(new DateCondition(DateComparisonType.DateLessThan,
+                                                                               .withActions(new Action("sqs:SendMessage"), new Action("sqs:ReceiveMessage"))
+                                                                               .withResources(new SqsQueueResource(ACCOUNT_ID, queueName))
+                                                                               .withConditions(new DateCondition(DateComparisonType.DateLessThan,
                         new Date())));
         setQueuePolicy(policy);
     }

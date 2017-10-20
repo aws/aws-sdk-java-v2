@@ -210,7 +210,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
      */
     private static String calculateMessageAttributesMd5(final Map<String, MessageAttributeValue> messageAttributes) {
         if (log.isDebugEnabled()) {
-            log.debug("Message attribtues: " + messageAttributes);
+            log.debug("Message attributes: " + messageAttributes);
         }
         List<String> sortedAttributeNames = new ArrayList<>(messageAttributes.keySet());
         Collections.sort(sortedAttributeNames);
@@ -224,6 +224,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
 
                 // Encoded Name
                 updateLengthAndBytes(md5Digest, attrName);
+
                 // Encoded Type
                 updateLengthAndBytes(md5Digest, attrValue.dataType());
 
@@ -234,12 +235,14 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
                 } else if (attrValue.binaryValue() != null) {
                     md5Digest.update(BINARY_TYPE_FIELD_INDEX);
                     updateLengthAndBytes(md5Digest, attrValue.binaryValue());
-                } else if (attrValue.stringListValues().size() > 0) {
+                } else if (attrValue.stringListValues() != null &&
+                           attrValue.stringListValues().size() > 0) {
                     md5Digest.update(STRING_LIST_TYPE_FIELD_INDEX);
                     for (String strListMember : attrValue.stringListValues()) {
                         updateLengthAndBytes(md5Digest, strListMember);
                     }
-                } else if (attrValue.binaryListValues().size() > 0) {
+                } else if (attrValue.binaryListValues() != null &&
+                           attrValue.binaryListValues().size() > 0) {
                     md5Digest.update(BINARY_LIST_TYPE_FIELD_INDEX);
                     for (ByteBuffer byteListMember : attrValue.binaryListValues()) {
                         updateLengthAndBytes(md5Digest, byteListMember);
