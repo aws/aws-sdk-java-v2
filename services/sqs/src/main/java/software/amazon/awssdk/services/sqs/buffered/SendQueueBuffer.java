@@ -501,30 +501,29 @@ public class SendQueueBuffer {
 
             ResultConverter.appendUserAgent(batchRequest, SqsBufferedAsyncClient.USER_AGENT);
 
-            SendMessageBatchResponse batchResult;
-
-            batchResult = sqsClient.sendMessageBatch(batchRequest).join();
+            SendMessageBatchResponse batchResult = sqsClient.sendMessageBatch(batchRequest).join();
 
             for (SendMessageBatchResultEntry entry : batchResult.successful()) {
                 int index = Integer.parseInt(entry.id());
                 futures.get(index).setSuccess(ResultConverter.convert(entry));
             }
 
-            for (BatchResultErrorEntry errorEntry : batchResult.failed()) {
-                int index = Integer.parseInt(errorEntry.id());
-                if (errorEntry.senderFault()) {
-                    futures.get(index).setFailure(ResultConverter.convert(errorEntry));
-                } else {
-                    // retry.
-                    try {
-                        // this will retry internally up to 3 times.
-                        futures.get(index).setSuccess(sqsClient.sendMessage(requests.get(index)).join());
-                    } catch (AmazonClientException ace) {
-                        futures.get(index).setFailure(ace);
+            if (batchResult.failed() != null) {
+                for (BatchResultErrorEntry errorEntry : batchResult.failed()) {
+                    int index = Integer.parseInt(errorEntry.id());
+                    if (errorEntry.senderFault()) {
+                        futures.get(index).setFailure(ResultConverter.convert(errorEntry));
+                    } else {
+                        // retry.
+                        try {
+                            // this will retry internally up to 3 times.
+                            futures.get(index).setSuccess(sqsClient.sendMessage(requests.get(index)).join());
+                        } catch (AmazonClientException ace) {
+                            futures.get(index).setFailure(ace);
+                        }
                     }
                 }
             }
-
         }
 
     }
