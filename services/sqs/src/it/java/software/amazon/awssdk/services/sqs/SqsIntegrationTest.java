@@ -40,8 +40,8 @@ public class SqsIntegrationTest extends IntegrationTestBase {
 
         SdkGlobalTime.setGlobalTimeOffset(skew);
         assertEquals(skew, SdkGlobalTime.getGlobalTimeOffset());
-        SQSAsyncClient sqsClient = createSqsAyncClient();
-        sqsClient.listQueues(ListQueuesRequest.builder().build()).join();
+        SQSClient sqsClient = createSqsSyncClient();
+        sqsClient.listQueues(ListQueuesRequest.builder().build());
         assertThat("Clockskew is fixed!", SdkGlobalTime.getGlobalTimeOffset(), lessThan(skew));
         // subsequent changes to the global time offset won't affect existing client
         SdkGlobalTime.setGlobalTimeOffset(skew);
