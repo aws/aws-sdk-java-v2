@@ -87,6 +87,7 @@ public class IntegrationTestBase extends AwsTestBase {
 
         if (kinesis != null) {
             kinesis.deleteStream(DeleteStreamRequest.builder().streamName(KINESIS_STREAM_NAME).build());
+            kinesis = null;
         }
     }
 
