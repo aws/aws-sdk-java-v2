@@ -18,7 +18,8 @@ package software.amazon.awssdk.core.auth.policy;
 import org.junit.After;
 import org.junit.Test;
 import software.amazon.awssdk.core.auth.policy.Statement.Effect;
-import software.amazon.awssdk.core.auth.policy.conditions.SnsConditionFactory;
+import software.amazon.awssdk.core.auth.policy.conditions.StringCondition;
+import software.amazon.awssdk.core.auth.policy.conditions.StringCondition.StringComparisonType;
 import software.amazon.awssdk.services.sns.IntegrationTestBase;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.DeleteTopicRequest;
@@ -51,9 +52,10 @@ public class SnsPolicyIntegrationTest extends IntegrationTestBase {
                                         .withActions(new Action("sns:Subscribe"))
                                         .withPrincipals(Principal.ALL_USERS)
                                         .withResources(new Resource(topicArn))
-                                        .withConditions(
-                                                SnsConditionFactory.newEndpointCondition("*@amazon.com"),
-                                                SnsConditionFactory.newProtocolCondition("email")));
+                                        .withConditions(new StringCondition(StringComparisonType.StringLike,
+                                                                            "sns:Endpoint", "*@amazon.com"),
+                                                        new StringCondition(StringComparisonType.StringEquals,
+                                                                            "sns:Protocol", "email")));
         sns.setTopicAttributes(SetTopicAttributesRequest.builder()
                                                         .topicArn(topicArn)
                                                         .attributeName("Policy")
