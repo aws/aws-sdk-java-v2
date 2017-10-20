@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.sqs.auth.policy.resources;
+package software.amazon.awssdk.services.sqs;
 
 import software.amazon.awssdk.core.auth.policy.Resource;
 
