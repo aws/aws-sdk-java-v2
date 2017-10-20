@@ -87,10 +87,12 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
             fullContent.release();
             requestContext.handler().onStream(new FullResponseContentPublisher(channelContext, bb));
             Subscriber<? super ByteBuffer> subscriber = channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY).get();
+            log.info("KWT: channelRead0");
             try {
                 subscriber.onComplete();
                 requestContext.handler().complete();
             } catch (RuntimeException e) {
+                log.info("KWT: channelRead0 caugh RTE:" + e);
                 subscriber.onError(e);
                 requestContext.handler().exceptionOccurred(e);
                 throw e;
@@ -194,6 +196,7 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
                 @Override
                 public void onNext(HttpContent httpContent) {
+                    log.info("KWT: got HttpContent: " + httpContent);
                     // Needed to prevent use-after-free bug if the subscriber's onNext is asynchronous
                     ByteBuffer b = copyToByteBuffer(httpContent.content());
                     httpContent.release();
@@ -203,6 +206,7 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
                 @Override
                 public void onError(Throwable t) {
+                    log.info("KWT: onError occured:" + t);
                     runAndLogError(String.format("Subscriber %s threw an exception in onError.", subscriber.toString()),
                         () -> subscriber.onError(t));
                     requestContext.handler().exceptionOccurred(t);
@@ -210,6 +214,7 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
                 @Override
                 public void onComplete() {
+                    log.info("KWT: onComplete called");
                     try {
                         runAndLogError(String.format("Subscriber %s threw an exception in onComplete.", subscriber.toString()),
                                 subscriber::onComplete);
