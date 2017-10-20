@@ -101,6 +101,7 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     }
 
     private static void finalizeRequest(RequestContext requestContext, ChannelHandlerContext channelContext) {
+        log.info("KWT: In finalizeReqest");
         if (!channelContext.channel().attr(KEEP_ALIVE).get()) {
             closeAndRelease(channelContext);
         } else {

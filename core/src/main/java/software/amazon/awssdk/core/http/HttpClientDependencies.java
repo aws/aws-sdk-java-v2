@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.http;
 
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.core.config.ClientConfiguration;
 import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
@@ -74,6 +75,7 @@ public abstract class HttpClientDependencies implements SdkAutoCloseable {
      * Updates the time offset of the client as well as the global time offset.
      */
     public void updateTimeOffset(int timeOffset) {
+        LoggerFactory.getLogger(HttpClientDependencies.class).info("KWT: updating time offset: " + timeOffset);
         this.timeOffset = timeOffset;
         // TODO think about why we update global. I assume because it's more likely to have the client's clock skewed.
         SdkGlobalTime.setGlobalTimeOffset(timeOffset);
