@@ -111,6 +111,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
 
         public void execute(CompletableFuture<Response<OutputT>> future) throws Exception {
             beforeExecute();
+            log.info("KWT: about to call doExecute");
             doExecute().handle((resp, err) -> handle(future, resp, err));
         }
 
@@ -122,10 +123,12 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
                     retryHandler.releaseRetryCapacity();
                     future.complete(resp);
                 } else if (resp != null) {
+                    log.info("KWT: error response - going to call handleSdkException");
                     retryHandler.setLastRetriedException(handleSdkException(resp));
                     executeRetry(future);
                 } else {
                     SdkClientException exception = new SdkClientException(err);
+                    log.info("KWT: exception - going to call handleSdkException");
                     retryHandler.setLastRetriedException(handleSdkException(Response.fromFailure(exception, null)));
                     executeRetry(future);
                 }
@@ -165,10 +168,12 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
             SdkStandardLoggers.REQUEST_LOGGER.debug(() -> (retryHandler.isRetry() ? "Retrying " : "Sending ") +
                                                           "Request: " + request);
 
+            log.info("KWT: about to execute pipeline");
             return requestPipeline.execute(retryHandler.addRetryInfoHeader(request, requestCount), context);
         }
 
         private SdkBaseException handleSdkException(Response<OutputT> response) {
+            log.info("KWT: in handle exception:" + response.getException());
             SdkBaseException exception = response.getException();
             if (!retryHandler.shouldRetry(response.getHttpResponse(), request, context, exception, requestCount)) {
                 throw exception;
