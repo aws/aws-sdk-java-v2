@@ -18,7 +18,6 @@ package software.amazon.awssdk.http.nio.netty;
 import static software.amazon.awssdk.utils.StringUtils.isBlank;
 
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import java.util.Optional;
@@ -60,11 +59,16 @@ public final class DefaultEventLoopGroupFactory
     @Override
     public EventLoopGroup create() {
         int numThreads = numberOfThreads == null ? 0 : numberOfThreads;
+        return new NioEventLoopGroup(numThreads, resolveThreadFactory());
+        /*
+        Need to investigate why epoll is raising channel inactive after succesful response that causes
+        problems with retries.
+
         if (Epoll.isAvailable() && isNotAwsLambda()) {
             return new EpollEventLoopGroup(numThreads, resolveThreadFactory());
         } else {
-            return new NioEventLoopGroup(numThreads, resolveThreadFactory());
-        }
+
+        }*/
     }
 
     @ReviewBeforeRelease("We should work with Lambda to get Epoll opened up")
