@@ -15,10 +15,11 @@
 
 package software.amazon.awssdk.core.auth.policy.conditions;
 
-import java.util.Arrays;
+import static java.time.format.DateTimeFormatter.ISO_INSTANT;
+
+import java.util.Collections;
 import java.util.Date;
 import software.amazon.awssdk.core.auth.policy.Condition;
-import software.amazon.awssdk.core.util.DateUtils;
 
 /**
  * AWS access control policy condition that allows an access control statement
@@ -42,7 +43,7 @@ public class DateCondition extends Condition {
     public DateCondition(DateComparisonType type, Date date) {
         super.type = type.toString();
         super.conditionKey = ConditionFactory.CURRENT_TIME_CONDITION_KEY;
-        super.values = Arrays.asList(new String[] {DateUtils.formatIso8601Date(date.toInstant())});
+        super.values = Collections.singletonList(ISO_INSTANT.format(date.toInstant()));
     }
 
     ;

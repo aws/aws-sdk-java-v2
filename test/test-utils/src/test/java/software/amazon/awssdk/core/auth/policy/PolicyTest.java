@@ -32,7 +32,7 @@ import software.amazon.awssdk.core.auth.policy.conditions.IpAddressCondition;
 import software.amazon.awssdk.core.auth.policy.conditions.IpAddressCondition.IpAddressComparisonType;
 import software.amazon.awssdk.core.auth.policy.conditions.StringCondition;
 import software.amazon.awssdk.core.auth.policy.conditions.StringCondition.StringComparisonType;
-import software.amazon.awssdk.core.util.json.JacksonUtils;
+import software.amazon.awssdk.core.auth.policy.internal.JacksonUtils;
 
 /**
  * Unit tests for constructing policy objects and serializing them to JSON.

@@ -21,14 +21,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.policy.Action;
 import software.amazon.awssdk.core.auth.policy.Condition;
 import software.amazon.awssdk.core.auth.policy.Policy;
 import software.amazon.awssdk.core.auth.policy.Principal;
 import software.amazon.awssdk.core.auth.policy.Resource;
 import software.amazon.awssdk.core.auth.policy.Statement;
-import software.amazon.awssdk.core.util.json.JacksonUtils;
 
 /**
  * Generate an AWS policy object by parsing the given JSON string.
@@ -257,7 +255,7 @@ public class JsonPolicyReader {
                 return new Principal(PRINICIPAL_SCHEMA_FEDERATED, principalNode.asText());
             }
         }
-        throw new SdkClientException("Schema " + schema + " is not a valid value for the principal.");
+        throw new IllegalArgumentException("Schema " + schema + " is not a valid value for the principal.");
     }
 
     /**

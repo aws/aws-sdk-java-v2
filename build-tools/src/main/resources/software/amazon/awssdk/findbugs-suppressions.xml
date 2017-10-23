@@ -27,16 +27,7 @@
     <Match>
         <Or>
             <!-- Container classes do not copy arrays for performance reasons at this time. -->
-            <Class name="software.amazon.awssdk.core.auth.policy.internal.JsonPolicyWriter" />
             <Class name="software.amazon.awssdk.core.protocol.json.JsonContent" />
-            <Class name="software.amazon.awssdk.core.internal.config.InternalConfigJsonHelper" />
-
-            <!-- Date types will be switched out for java-8 or joda-style dates in the future,
-                 so ignore these errors for now. -->
-            <Class name="software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughputDescription"/>
-            <Class name="software.amazon.awssdk.services.dynamodb.model.StreamDescription"/>
-            <Class name="software.amazon.awssdk.services.dynamodb.model.StreamRecord"/>
-            <Class name="software.amazon.awssdk.services.dynamodb.model.TableDescription"/>
         </Or>
         <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
     </Match>
@@ -67,6 +58,6 @@
         conditionally used. It's cleaner to just always generate them, even if we may not actually be using them. -->
         <!-- REC_CATCH_EXCEPTION: Sometimes we want to convert runtime exceptions into sdk exceptions, so we catch it and
         wrap it in an sdk-specific exception. -->
-        <Bug pattern="URF_UNREAD_FIELD,DLS_DEAD_LOCAL_STORE, REC_CATCH_EXCEPTION" />
+        <Bug pattern="URF_UNREAD_FIELD,DLS_DEAD_LOCAL_STORE,REC_CATCH_EXCEPTION" />
     </Match>
 </FindBugsFilter>

@@ -34,45 +34,12 @@ public class ConditionFactory {
     public static final String CURRENT_TIME_CONDITION_KEY = "aws:CurrentTime";
 
     /**
-     * Condition key for whether or not an incoming request is using a secure
-     * transport to make the request (i.e. HTTPS instead of HTTP).
-     * <p>
-     * This condition key should only be used with {@link BooleanCondition}
-     * objects.
-     */
-    public static final String SECURE_TRANSPORT_CONDITION_KEY = "aws:SecureTransport";
-
-    /**
      * Condition key for the source IP from which a request originates.
      * <p>
      * This condition key should only be used with {@link IpAddressCondition}
      * objects.
      */
     public static final String SOURCE_IP_CONDITION_KEY = "aws:SourceIp";
-
-    /**
-     * Condition key for the user agent included in a request.
-     * <p>
-     * This condition key should only be used with {@link StringCondition}
-     * objects.
-     */
-    public static final String USER_AGENT_CONDITION_KEY = "aws:UserAgent";
-
-    /**
-     * Condition key for the current time, in epoch seconds.
-     * <p>
-     * This condition key should only be used with {@link NumericCondition}
-     * objects.
-     */
-    public static final String EPOCH_TIME_CONDITION_KEY = "aws:EpochTime";
-
-    /**
-     * Condition key for the referer specified by a request.
-     * <p>
-     * This condition key should only be used with {@link StringCondition}
-     * objects.
-     */
-    public static final String REFERER_CONDITION_KEY = "aws:Referer";
 
     /**
      * Condition key for the Amazon Resource Name (ARN) of the source specified
@@ -120,56 +87,5 @@ public class ConditionFactory {
      */
     public static Condition newSourceArnCondition(String arnPattern) {
         return new ArnCondition(ArnComparisonType.ArnLike, SOURCE_ARN_CONDITION_KEY, arnPattern);
-    }
-
-    /**
-     * Constructs a new access control policy condition that tests if the
-     * incoming request was sent over a secure transport (HTTPS).
-     *
-     * @return A new access control policy condition that tests if the incoming
-     *         request was sent over a secure transport (HTTPS).
-     */
-    public static Condition newSecureTransportCondition() {
-        return new BooleanCondition(SECURE_TRANSPORT_CONDITION_KEY, true);
-    }
-
-    /**
-     * Constructs a new access control policy condition that tests the incoming
-     * request's user agent field against the specified value, using the
-     * specified comparison type. This condition can be used to allow or deny
-     * access to a resource based on what user agent is specified in the
-     * request.
-     *
-     * @param comparisonType
-     *            The type of string comparison to perform when testing an
-     *            incoming request's user agent field with the specified value.
-     * @param value
-     *            The value against which to compare the incoming request's user
-     *            agent.
-     *
-     * @return A new access control policy condition that tests an incoming
-     *         request's user agent field.
-     */
-    public static Condition newUserAgentCondition(StringCondition.StringComparisonType comparisonType, String value) {
-        return new StringCondition(comparisonType, USER_AGENT_CONDITION_KEY, value);
-    }
-
-    /**
-     * Constructs a new access control policy condition that tests the incoming
-     * request's referer field against the specified value, using the specified
-     * comparison type.
-     *
-     * @param comparisonType
-     *            The type of string comparison to perform when testing an
-     *            incoming request's referer field with the specified value.
-     * @param value
-     *            The value against which to compare the incoming request's
-     *            referer field.
-     *
-     * @return A new access control policy condition that tests an incoming
-     *         request's referer field.
-     */
-    public static Condition newRefererCondition(StringCondition.StringComparisonType comparisonType, String value) {
-        return new StringCondition(comparisonType, REFERER_CONDITION_KEY, value);
     }
 }
