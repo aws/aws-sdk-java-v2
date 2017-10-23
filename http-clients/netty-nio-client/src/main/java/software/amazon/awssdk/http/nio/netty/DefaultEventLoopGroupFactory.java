@@ -15,15 +15,11 @@
 
 package software.amazon.awssdk.http.nio.netty;
 
-import static software.amazon.awssdk.utils.StringUtils.isBlank;
-
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import java.util.Optional;
 import java.util.concurrent.ThreadFactory;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -60,23 +56,16 @@ public final class DefaultEventLoopGroupFactory
     @Override
     public EventLoopGroup create() {
         int numThreads = numberOfThreads == null ? 0 : numberOfThreads;
+        return new NioEventLoopGroup(numThreads, resolveThreadFactory());
+        /*
+        Need to investigate why epoll is raising channel inactive after succesful response that causes
+        problems with retries.
+
         if (Epoll.isAvailable() && isNotAwsLambda()) {
             return new EpollEventLoopGroup(numThreads, resolveThreadFactory());
         } else {
-            return new NioEventLoopGroup(numThreads, resolveThreadFactory());
-        }
-    }
 
-    @ReviewBeforeRelease("We should work with Lambda to get Epoll opened up")
-    private boolean isNotAwsLambda() {
-        try {
-            // CHECKSTYLE:OFF - This is temporary (hopefully!)
-            return isBlank(System.getenv("AWS_LAMBDA_FUNCTION_NAME"));
-            // CHECKSTYLE:ON
-        } catch (RuntimeException e) {
-            //Couldn't determine if we're on lambda or not, assume we're not.
-            return true;
-        }
+        }*/
     }
 
     private ThreadFactory resolveThreadFactory() {
