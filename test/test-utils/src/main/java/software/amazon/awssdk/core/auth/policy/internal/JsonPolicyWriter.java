@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.auth.policy.internal;
 
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import java.io.IOException;
@@ -27,22 +29,18 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.policy.Action;
 import software.amazon.awssdk.core.auth.policy.Condition;
 import software.amazon.awssdk.core.auth.policy.Policy;
 import software.amazon.awssdk.core.auth.policy.Principal;
 import software.amazon.awssdk.core.auth.policy.Resource;
 import software.amazon.awssdk.core.auth.policy.Statement;
-import software.amazon.awssdk.core.util.json.JacksonUtils;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * Serializes an AWS policy object to a JSON string, suitable for sending to an
  * AWS service.
  */
-@ReviewBeforeRelease("Do we need this? It isn't well encapsulated because of storing non-copied arrays.")
 public class JsonPolicyWriter {
     private static final Logger log = LoggerFactory.getLogger(JsonPolicyWriter.class);
 
@@ -56,13 +54,7 @@ public class JsonPolicyWriter {
      */
     public JsonPolicyWriter() {
         writer = new StringWriter();
-        try {
-            generator = JacksonUtils.jsonGeneratorOf(writer);
-        } catch (IOException ioe) {
-            throw new SdkClientException(
-                    "Unable to instantiate JsonGenerator.", ioe);
-        }
-
+        generator = invokeSafely(() -> JacksonUtils.jsonGeneratorOf(writer));
     }
 
     /**
