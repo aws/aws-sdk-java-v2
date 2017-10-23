@@ -101,12 +101,12 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     }
 
     private static void finalizeRequest(RequestContext requestContext, ChannelHandlerContext channelContext) {
+        channelContext.channel().attr(RESPONSE_COMPLETE_KEY).set(true);
         if (!channelContext.channel().attr(KEEP_ALIVE).get()) {
             closeAndRelease(channelContext);
         } else {
             requestContext.channelPool().release(channelContext.channel());
         }
-        channelContext.channel().attr(RESPONSE_COMPLETE_KEY).set(true);
     }
 
     @Override
