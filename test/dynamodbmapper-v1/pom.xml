@@ -29,6 +29,10 @@
     <description>DynamoDB Mapper largely unchanged from v1. The v1 Mapper is kept for testing purposes only. All classes are in the test directories to prevent use in application code.</description>
     <url>https://aws.amazon.com/sdkforjava</url>
 
+    <properties>
+        <root.offset>../..</root.offset>
+    </properties>
+
     <build>
         <plugins>
             <plugin>

@@ -115,6 +115,11 @@
         <!-- These properties are used by S3 for its test dependencies -->
         <bouncycastle.version>1.56</bouncycastle.version>
 
+        <!-- Sonar -->
+        <root.offset>..</root.offset>
+        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+        <sonar.jacoco.reportPath>${basedir}/${root.offset}/target/jacoco.exec</sonar.jacoco.reportPath>
+
         <skip.unit.tests>${skipTests}</skip.unit.tests>
     </properties>
 
@@ -455,6 +460,10 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.7.8</version>
+                <configuration>
+                    <destFile>${sonar.jacoco.reportPath}</destFile>
+                    <append>true</append>
+                </configuration>
                 <executions>
                     <execution>
                         <id>jacoco-initialize</id>
@@ -476,6 +485,7 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>findbugs-maven-plugin</artifactId>
             </plugin>
+
         </plugins>
     </build>
 

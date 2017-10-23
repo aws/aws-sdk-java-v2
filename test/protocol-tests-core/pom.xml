@@ -29,6 +29,10 @@
     <name>AWS Java SDK :: Test :: Protocol Tests Core</name>
     <description>Contains test drivers and assertions for protocol tests.</description>
 
+    <properties>
+        <root.offset>../..</root.offset>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.unitils</groupId>
