@@ -30,6 +30,10 @@
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
 
+    <properties>
+        <root.offset>../..</root.offset>
+    </properties>
+
     <!-- The dependencies section in pom.xml is auto generated. No manual changes are allowed -->
     <dependencies>
         <dependency>
