@@ -32,6 +32,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
 import software.amazon.awssdk.services.dynamodb.model.TableStatus;
+import software.amazon.awssdk.services.dynamodb.waiters.DynamoDBClientWaiters;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 import software.amazon.awssdk.utils.Logger;
 
@@ -39,6 +40,7 @@ public class DynamoDBTestBase extends AwsTestBase {
     protected static final String ENDPOINT = "http://dynamodb.us-east-1.amazonaws.com/";
 
     protected static DynamoDBClient dynamo;
+    protected static DynamoDBClientWaiters waiters;
 
     private static final Logger log = Logger.loggerFor(DynamoDBTestBase.class);
 
@@ -50,6 +52,7 @@ public class DynamoDBTestBase extends AwsTestBase {
         }
 
         dynamo = DynamoDBClient.builder().region(Region.US_EAST_1).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        waiters = new DynamoDBClientWaiters(dynamo);
     }
 
     public static DynamoDBClient getClient() {

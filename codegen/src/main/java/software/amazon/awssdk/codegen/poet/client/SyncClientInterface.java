@@ -73,9 +73,6 @@ public final class SyncClientInterface implements ClassSpec {
                                         .addMethods(operations())
                                         .addMethod(serviceMetadata());
 
-        if (model.getHasWaiters()) {
-            classBuilder.addMethod(waiters());
-        }
         if (model.getCustomizationConfig().getPresignersFqcn() != null) {
             classBuilder.addMethod(presigners());
         }
@@ -282,14 +279,6 @@ public final class SyncClientInterface implements ClassSpec {
                            ClassName.get(model.getMetadata().getFullModelPackageName(),
                                          model.getSdkModeledExceptionBaseClassName()));
         return exceptions;
-    }
-
-    private MethodSpec waiters() {
-        return MethodSpec.methodBuilder("waiters")
-                         .returns(ClassName.get(model.getMetadata().getFullWaitersPackageName(),
-                                                model.getMetadata().getSyncInterface() + "Waiters"))
-                         .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                         .build();
     }
 
     private MethodSpec presigners() {

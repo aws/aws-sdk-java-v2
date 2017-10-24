@@ -163,18 +163,6 @@ public class Freemarker {
         return getTemplate(templateConfig.getBaseExceptionClass());
     }
 
-    public Template getWaiterSdkFunctionTemplate() throws IOException {
-        return getTemplate(templateConfig.getSdkFunctionClass());
-    }
-
-    public Template getWaiterAcceptorTemplate() throws IOException {
-        return getTemplate(templateConfig.getAcceptorClass());
-    }
-
-    public Template getWaiterTemplate() throws IOException {
-        return getTemplate(templateConfig.getWaiterClass());
-    }
-
     public Template getCustomAuthorizerTemplate() throws IOException {
         return getTemplate(templateConfig.getCustomRequestSignerClass());
     }
