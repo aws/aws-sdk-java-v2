@@ -20,7 +20,6 @@ import static javax.lang.model.element.Modifier.PRIVATE;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.getCustomResponseHandler;
 
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeSpec.Builder;
@@ -87,14 +86,6 @@ public class SyncClientClass implements ClassSpec {
 
         classBuilder.addMethod(protocolSpec.initProtocolFactory(model));
 
-        if (model.getHasWaiters()) {
-            ClassName waiters = poetExtensions.getWaiterClass(model.getMetadata().getSyncInterface() + "Waiters");
-
-            classBuilder.addField(FieldSpec.builder(waiters, "waiters")
-                                           .addModifiers(PRIVATE, Modifier.VOLATILE)
-                                           .build());
-            classBuilder.addMethod(waiters());
-        }
         if (model.getCustomizationConfig().getPresignersFqcn() != null) {
             classBuilder.addMethod(presigners());
         }
@@ -156,22 +147,6 @@ public class SyncClientClass implements ClassSpec {
                                   .build());
 
         return methods;
-    }
-
-    private MethodSpec waiters() {
-        ClassName waiters = poetExtensions.getWaiterClass(model.getMetadata().getSyncInterface() + "Waiters");
-        return MethodSpec.methodBuilder("waiters")
-                         .returns(waiters)
-                         .addModifiers(Modifier.PUBLIC)
-                         .beginControlFlow("if ($N == null)", "waiters")
-                         .beginControlFlow("synchronized(this)")
-                         .beginControlFlow("if ($N == null)", "waiters")
-                         .addStatement("waiters = new $T(this)", waiters)
-                         .endControlFlow()
-                         .endControlFlow()
-                         .endControlFlow()
-                         .addStatement("return $N", "waiters")
-                         .build();
     }
 
     private MethodSpec presigners() {

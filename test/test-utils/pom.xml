@@ -45,6 +45,7 @@
             <artifactId>utils</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+
         <dependency>
             <artifactId>junit</artifactId>
             <groupId>junit</groupId>
@@ -72,6 +73,10 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.burt</groupId>
+            <artifactId>jmespath-jackson</artifactId>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>

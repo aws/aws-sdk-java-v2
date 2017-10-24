@@ -28,7 +28,6 @@ import software.amazon.awssdk.services.query.transform.APostOperationResponseUnm
 import software.amazon.awssdk.services.query.transform.APostOperationWithOutputRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.APostOperationWithOutputResponseUnmarshaller;
 import software.amazon.awssdk.services.query.transform.InvalidInputExceptionUnmarshaller;
-import software.amazon.awssdk.services.query.waiters.QueryClientWaiters;
 
 /**
  * Internal implementation of {@link QueryClient}.
@@ -43,8 +42,6 @@ final class DefaultQueryClient implements QueryClient {
     private final List<Unmarshaller<AmazonServiceException, Node>> exceptionUnmarshallers;
 
     private final ClientConfiguration clientConfiguration;
-
-    private volatile QueryClientWaiters waiters;
 
     protected DefaultQueryClient(SyncClientConfiguration clientConfiguration) {
         this.clientHandler = new SdkClientHandler(clientConfiguration, null);
@@ -128,17 +125,6 @@ final class DefaultQueryClient implements QueryClient {
         unmarshallers.add(new InvalidInputExceptionUnmarshaller());
         unmarshallers.add(new StandardErrorUnmarshaller(QueryException.class));
         return unmarshallers;
-    }
-
-    public QueryClientWaiters waiters() {
-        if (waiters == null) {
-            synchronized (this) {
-                if (waiters == null) {
-                    waiters = new QueryClientWaiters(this);
-                }
-            }
-        }
-        return waiters;
     }
 
     @Override
