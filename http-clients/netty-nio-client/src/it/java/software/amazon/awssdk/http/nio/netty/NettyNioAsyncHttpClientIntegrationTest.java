@@ -26,11 +26,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.reverse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
@@ -42,14 +39,8 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import java.net.URI;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 import org.assertj.core.api.Condition;
 import org.junit.AfterClass;
 import org.junit.Rule;
@@ -58,17 +49,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 
 @RunWith(MockitoJUnitRunner.class)
-public class NettyNioAsyncHttpClientIntegrationTest {
+public class NettyNioAsyncHttpClientIntegrationTest extends NettyIntegrationTestBase {
 
     @Rule
     public WireMockRule mockServer = new WireMockRule(wireMockConfig().dynamicPort().dynamicHttpsPort());
@@ -259,70 +246,6 @@ public class NettyNioAsyncHttpClientIntegrationTest {
 
         assertThat(recorder.fullResponseAsString()).isEqualTo(body);
         verify(1, getRequestedFor(urlMatching("/")));
-    }
-
-    private SdkHttpRequestProvider createProvider(String body) {
-        Stream<ByteBuffer> chunks = splitStringBySize(body).stream()
-                                                           .map(chunk -> ByteBuffer.wrap(chunk.getBytes(UTF_8)));
-        return new SdkHttpRequestProvider() {
-
-            @Override
-            public long contentLength() {
-                return body.length();
-            }
-
-            @Override
-            public void subscribe(Subscriber<? super ByteBuffer> s) {
-                s.onSubscribe(new Subscription() {
-                    @Override
-                    public void request(long n) {
-                        chunks.forEach(s::onNext);
-                        s.onComplete();
-                    }
-
-                    @Override
-                    public void cancel() {
-
-                    }
-                });
-            }
-        };
-    }
-
-    private SdkHttpRequest createRequest(URI uri) {
-        return createRequest(uri, "/", null, SdkHttpMethod.GET, emptyMap());
-    }
-
-    private SdkHttpRequest createRequest(URI uri,
-                                         String resourcePath,
-                                         String body,
-                                         SdkHttpMethod method,
-                                         Map<String, String> params) {
-        String contentLength = body == null ? null : String.valueOf(body.getBytes(UTF_8).length);
-        return SdkHttpFullRequest.builder()
-                                 .host(uri.getHost())
-                                 .protocol(uri.getScheme())
-                                 .port(uri.getPort())
-                                 .method(method)
-                                 .encodedPath(resourcePath)
-                                 .apply(b -> params.forEach(b::rawQueryParameter))
-                                 .apply(b -> {
-                                     b.header("Host", uri.getHost());
-                                     if (contentLength != null) {
-                                         b.header("Content-Length", contentLength);
-                                     }
-                                 }).build();
-    }
-
-    private static Collection<String> splitStringBySize(String str) {
-        if (isBlank(str)) {
-            return Collections.emptyList();
-        }
-        ArrayList<String> split = new ArrayList<>();
-        for (int i = 0; i <= str.length() / 1000; i++) {
-            split.add(str.substring(i * 1000, Math.min((i + 1) * 1000, str.length())));
-        }
-        return split;
     }
 
     // Needs to be a non-anon class in order to spy

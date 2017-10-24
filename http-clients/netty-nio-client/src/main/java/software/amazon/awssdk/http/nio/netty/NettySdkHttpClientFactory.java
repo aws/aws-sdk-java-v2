@@ -22,12 +22,15 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.SOCKET_TIME
 import io.netty.channel.EventLoopGroup;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClientFactory;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.SdkBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
@@ -169,6 +172,14 @@ public final class NettySdkHttpClientFactory
          */
         Builder eventLoopGroupConfiguration(EventLoopGroupConfiguration eventLoopGroupConfiguration);
 
+        /**
+         *
+         * @param eventLoopGroupConfiguration
+         * @return
+         */
+        default Builder eventLoopGroupConfiguration(Function<EventLoopGroupConfiguration.Builder, SdkBuilder<?, EventLoopGroupConfiguration>> eventLoopGroupConfiguration) {
+            return eventLoopGroupConfiguration(eventLoopGroupConfiguration.apply(EventLoopGroupConfiguration.builder()).build());
+        }
     }
 
     private static final class DefaultBuilder implements Builder {
