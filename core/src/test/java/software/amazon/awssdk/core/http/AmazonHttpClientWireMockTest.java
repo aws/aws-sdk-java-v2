@@ -32,7 +32,7 @@ import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandl
 import utils.HttpTestUtils;
 import utils.http.WireMockTestBase;
 
-public class AmazonHttpClientIntegrationTest extends WireMockTestBase {
+public class AmazonHttpClientWireMockTest extends WireMockTestBase {
     private static final String OPERATION = "/some-operation";
     private static final String HEADER = "Some-Header";
     private static final String CONFIG_HEADER_VALUE = "client config header value";

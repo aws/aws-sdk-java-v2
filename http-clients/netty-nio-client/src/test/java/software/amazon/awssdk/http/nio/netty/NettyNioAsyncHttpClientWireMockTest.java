@@ -68,7 +68,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 
 @RunWith(MockitoJUnitRunner.class)
-public class NettyNioAsyncHttpClientIntegrationTest {
+public class NettyNioAsyncHttpClientWireMockTest {
 
     @Rule
     public WireMockRule mockServer = new WireMockRule(wireMockConfig().dynamicPort().dynamicHttpsPort());

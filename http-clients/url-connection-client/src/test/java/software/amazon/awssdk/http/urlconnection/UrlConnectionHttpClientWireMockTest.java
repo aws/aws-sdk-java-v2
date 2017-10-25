@@ -41,7 +41,7 @@ import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.utils.IoUtils;
 
 @RunWith(MockitoJUnitRunner.class)
-public final class UrlConnectionHttpClientIntegrationTest {
+public final class UrlConnectionHttpClientWireMockTest {
 
     @Rule
     public WireMockRule mockServer = new WireMockRule(wireMockConfig().dynamicPort().dynamicHttpsPort());
