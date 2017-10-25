@@ -59,8 +59,6 @@ import software.amazon.awssdk.services.sns.model.SubscribeRequest;
 import software.amazon.awssdk.services.sns.model.SubscribeResponse;
 import software.amazon.awssdk.services.sns.model.Subscription;
 import software.amazon.awssdk.services.sns.model.UnsubscribeRequest;
-import software.amazon.awssdk.services.sns.util.SignatureChecker;
-import software.amazon.awssdk.services.sns.util.Topics;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteQueueRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
@@ -121,28 +119,6 @@ public class SNSIntegrationTest extends IntegrationTestBase {
             assertTrue(ase.getServiceName().length() > 5);
             assertEquals(400, ase.getStatusCode());
         }
-    }
-
-    /** Tests the functionality in the Topics utility class. */
-    @Test
-    public void testTopics_subscribeQueue() throws Exception {
-        topicArn = sns.createTopic(CreateTopicRequest.builder().name("subscribeTopicTest-" + System.currentTimeMillis()).build())
-                      .topicArn();
-        queueUrl = sqs.createQueue(
-                CreateQueueRequest.builder().queueName("subscribeTopicTest-" + System.currentTimeMillis()).build())
-                      .queueUrl();
-
-        subscriptionArn = Topics.subscribeQueue(sns, sqs, topicArn, queueUrl);
-        assertNotNull(subscriptionArn);
-
-        // Verify that the queue is receiving messages
-        sns.publish(PublishRequest.builder().topicArn(topicArn).message("Hello SNS World").subject("Subject").build());
-        String message = receiveMessage();
-        Map<String, String> messageDetails = parseJSON(message);
-        assertEquals("Hello SNS World", messageDetails.get("Message"));
-        assertEquals("Subject", messageDetails.get("Subject"));
-        assertNotNull(messageDetails.get("MessageId"));
-        assertNotNull(messageDetails.get("Signature"));
     }
 
     @Test

@@ -31,5 +31,5 @@
  * </p>
  */
 
-package software.amazon.awssdk.services.simpleworkflow;
+package software.amazon.awssdk.services.swf;
 
