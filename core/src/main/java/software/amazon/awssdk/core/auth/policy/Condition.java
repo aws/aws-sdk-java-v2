@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.auth.policy;
 
 import java.util.Arrays;
 import java.util.List;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 /**
  * AWS access control policy conditions are contained in {@link Statement}
@@ -57,6 +58,7 @@ import java.util.List;
  * should use the many available conditions and condition factories in the
  * software.amazon.awssdk.core.auth.policy.conditions package.
  */
+@ReviewBeforeRelease("Remove or clean this up along with its subclasses.")
 public class Condition {
     protected String type;
     protected String conditionKey;
