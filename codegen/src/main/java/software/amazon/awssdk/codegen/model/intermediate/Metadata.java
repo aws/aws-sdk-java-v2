@@ -69,8 +69,6 @@ public class Metadata {
 
     private String requestTransformPackageName;
 
-    private String waitersPackageName;
-
     private String authPolicyPackageName;
 
     private String smokeTestsPackageName;
@@ -432,23 +430,6 @@ public class Metadata {
 
     public Metadata withRequestTransformPackageName(String requestTransformPackageName) {
         setRequestTransformPackageName(requestTransformPackageName);
-        return this;
-    }
-
-    public String getFullWaitersPackageName() {
-        return joinPackageNames(rootPackageName, getWaitersPackageName());
-    }
-
-    public String getWaitersPackageName() {
-        return waitersPackageName;
-    }
-
-    public void setWaitersPackageName(String waitersPackageName) {
-        this.waitersPackageName = waitersPackageName;
-    }
-
-    public Metadata withWaitersPackageName(String waitersPackageName) {
-        setWaitersPackageName(waitersPackageName);
         return this;
     }
 

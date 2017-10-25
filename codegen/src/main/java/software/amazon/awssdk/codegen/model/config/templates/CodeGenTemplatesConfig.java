@@ -30,14 +30,10 @@ public class CodeGenTemplatesConfig {
 
     private TopLevelTemplate syncClientBuilder = new TopLevelTemplate("/templates/common/SyncClientBuilder.ftl", null);
     private TopLevelTemplate asyncClientBuilder = new TopLevelTemplate("/templates/common/AsyncClientBuilder.ftl", null);
-    private TopLevelTemplate sdkFunctionClass = new TopLevelTemplate("/templates/waiter/SdkFunction.ftl", null);
-    private TopLevelTemplate acceptorClass = new TopLevelTemplate("/templates/waiter/Acceptor.ftl", null);
-    private TopLevelTemplate waiterClass = new TopLevelTemplate("/templates/waiter/Waiter.ftl", null);
     private TopLevelTemplate modelUnmarshaller;
     private TopLevelTemplate modelMarshaller;
     private TopLevelTemplate requestMarshaller;
     private TopLevelTemplate baseExceptionClass;
-    private TopLevelTemplate exceptionClass;
     private TopLevelTemplate exceptionUnmarshaller;
     private TopLevelTemplate policyActionClass;
     private TopLevelTemplate packageInfo;
@@ -133,30 +129,6 @@ public class CodeGenTemplatesConfig {
 
     public void setAsyncClientBuilder(TopLevelTemplate syncClientBuilder) {
         this.asyncClientBuilder = syncClientBuilder;
-    }
-
-    public TopLevelTemplate getWaiterClass() {
-        return waiterClass;
-    }
-
-    public void setWaiterClass(TopLevelTemplate waiterClass) {
-        this.waiterClass = waiterClass;
-    }
-
-    public TopLevelTemplate getAcceptorClass() {
-        return acceptorClass;
-    }
-
-    public void setAcceptorClass(TopLevelTemplate acceptorClass) {
-        this.acceptorClass = acceptorClass;
-    }
-
-    public TopLevelTemplate getSdkFunctionClass() {
-        return sdkFunctionClass;
-    }
-
-    public void setSdkFunctionClass(TopLevelTemplate sdkFunctionClass) {
-        this.sdkFunctionClass = sdkFunctionClass;
     }
 
     public TopLevelTemplate getModelUnmarshaller() {

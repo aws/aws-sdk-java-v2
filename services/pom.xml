@@ -164,11 +164,6 @@
             <artifactId>slf4j-log4j12</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>io.burt</groupId>
-            <artifactId>jmespath-jackson</artifactId>
-            <version>0.2.0</version>
-        </dependency>
     </dependencies>
 
     <build>

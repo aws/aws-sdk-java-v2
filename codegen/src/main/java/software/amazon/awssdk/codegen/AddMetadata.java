@@ -74,7 +74,6 @@ final class AddMetadata {
                 .withModelPackageName(Utils.getModelPackageName(serviceName, customizationConfig))
                 .withTransformPackageName(Utils.getTransformPackageName(serviceName, customizationConfig))
                 .withRequestTransformPackageName(Utils.getRequestTransformPackageName(serviceName, customizationConfig))
-                .withWaitersPackageName(Utils.getWaitersPackageName(serviceName, customizationConfig))
                 .withSmokeTestsPackageName(Utils.getSmokeTestPackageName(serviceName, customizationConfig))
                 .withServiceAbbreviation(serviceMetadata.getServiceAbbreviation())
                 .withServiceFullName(serviceMetadata.getServiceFullName())
