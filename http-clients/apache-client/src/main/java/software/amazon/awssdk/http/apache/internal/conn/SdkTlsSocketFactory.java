@@ -103,6 +103,7 @@ public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
         return false;
     }
 
+    @Override
     public Socket connectSocket(
             final int connectTimeout,
             final Socket socket,
