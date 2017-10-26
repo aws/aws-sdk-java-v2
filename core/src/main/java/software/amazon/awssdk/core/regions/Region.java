@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.utils.AbstractEnum;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * An Amazon Web Services region that hosts a set of Amazon services.
@@ -120,10 +121,11 @@ public class Region extends AbstractEnum {
      * For example, the following conditions will always evaluated to true:
      * {@code Region.of("us-east-1") == Region.of("us-east-1")}, {@code Region.US_EAST_1 == Region.of("us-east-1")}.</p>
      *
-     * @param value The name of the region to load.
+     * @param value The name of the region to load. Can't be null, empty or blank
      * @return The region associated with the provided name.
      */
     public static Region of(String value) {
+        Validate.paramNotBlank(value, "region");
         return AbstractEnum.value(value, Region.class, Region::new);
     }
 

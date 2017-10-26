@@ -141,6 +141,30 @@ public class Validate {
     }
 
     /**
+     * <p>Validate that the specified char sequence is neither
+     * {@code null}, a length of zero (no characters), empty nor
+     * whitespace; otherwise throwing an exception with the specified
+     * message.
+     *
+     * <pre>Validate.paramNotBlank(myCharSequence, "myCharSequence");</pre>
+     *
+     * @param <T> the char sequence type
+     * @param chars  the character sequence to check
+     * @param paramName  The name of the param or field being checked.
+     * @return the validated char sequence (never {@code null} for method chaining)
+     * @throws NullPointerException if the char sequence is {@code null}
+     */
+    public static <T extends CharSequence> T paramNotBlank(final T chars, final String paramName) {
+        if (chars == null) {
+            throw new NullPointerException(String.format("%s must not be null.", paramName));
+        }
+        if (StringUtils.isBlank(chars)) {
+            throw new IllegalArgumentException(String.format("%s must not be blank or empty.", paramName));
+        }
+        return chars;
+    }
+
+    /**
      * <p>Validate the stateful predicate is true for the given object and return the object;
      * otherwise throw an exception with the specified message.</p>
      *
