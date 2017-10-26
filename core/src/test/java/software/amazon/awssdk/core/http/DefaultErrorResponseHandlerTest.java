@@ -38,7 +38,7 @@ import software.amazon.awssdk.core.util.LogCaptor;
 import utils.HttpTestUtils;
 import utils.http.WireMockTestBase;
 
-public class DefaultErrorResponseHandlerIntegrationTest extends WireMockTestBase {
+public class DefaultErrorResponseHandlerTest extends WireMockTestBase {
 
     private static final String RESOURCE = "/some-path";
     private final AmazonHttpClient client = HttpTestUtils.testAmazonHttpClient();
