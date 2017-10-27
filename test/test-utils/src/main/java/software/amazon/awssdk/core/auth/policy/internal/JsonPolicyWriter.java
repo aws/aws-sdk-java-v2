@@ -17,7 +17,6 @@ package software.amazon.awssdk.core.auth.policy.internal;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -94,8 +93,7 @@ public class JsonPolicyWriter {
      *            the policy to be converted.
      * @return a JSON String of the specified policy object.
      */
-    private String jsonStringOf(Policy policy) throws JsonGenerationException,
-                                                      IOException {
+    private String jsonStringOf(Policy policy) throws IOException {
         generator.writeStartObject();
 
         writeJsonKeyValue(JsonDocumentFields.VERSION, policy.getVersion());
@@ -154,8 +152,7 @@ public class JsonPolicyWriter {
      * @param conditions
      *            the conditions to be written.
      */
-    private void writeConditions(List<Condition> conditions)
-            throws JsonGenerationException, IOException {
+    private void writeConditions(List<Condition> conditions) throws IOException {
         Map<String, ConditionsByKey> conditionsByType = groupConditionsByTypeAndKey(conditions);
 
         writeJsonObjectStart(JsonDocumentFields.CONDITION);
@@ -180,8 +177,7 @@ public class JsonPolicyWriter {
      * @param resources
      *            the list of resources to be written.
      */
-    private void writeResources(List<Resource> resources)
-            throws JsonGenerationException, IOException {
+    private void writeResources(List<Resource> resources) throws IOException {
 
         List<String> resourceStrings = new ArrayList<String>();
 
@@ -197,8 +193,7 @@ public class JsonPolicyWriter {
      * @param actions
      *            the list of the actions to be written.
      */
-    private void writeActions(List<Action> actions)
-            throws JsonGenerationException, IOException {
+    private void writeActions(List<Action> actions) throws IOException {
         List<String> actionStrings = new ArrayList<String>();
 
         for (Action action : actions) {
@@ -213,8 +208,7 @@ public class JsonPolicyWriter {
      * @param principals
      *            the list of principals to be written.
      */
-    private void writePrincipals(List<Principal> principals)
-            throws JsonGenerationException, IOException {
+    private void writePrincipals(List<Principal> principals) throws IOException {
         if (principals.size() == 1 && principals.get(0).equals(Principal.ALL)) {
             writeJsonKeyValue(JsonDocumentFields.PRINCIPAL, Principal.ALL.getId());
         } else {
@@ -299,8 +293,7 @@ public class JsonPolicyWriter {
      * @param values
      *            values of the JSON array.
      */
-    private void writeJsonArray(String arrayName, List<String> values)
-            throws JsonGenerationException, IOException {
+    private void writeJsonArray(String arrayName, List<String> values) throws IOException {
         writeJsonArrayStart(arrayName);
         for (String value : values) {
             generator.writeString(value);
@@ -315,15 +308,14 @@ public class JsonPolicyWriter {
      * @param fieldName
      *            name of the JSON Object.
      */
-    private void writeJsonObjectStart(String fieldName)
-            throws JsonGenerationException, IOException {
+    private void writeJsonObjectStart(String fieldName) throws IOException {
         generator.writeObjectFieldStart(fieldName);
     }
 
     /**
      * Writes the End of Object String to the JSONGenerator.
      */
-    private void writeJsonObjectEnd() throws JsonGenerationException, IOException {
+    private void writeJsonObjectEnd() throws IOException {
         generator.writeEndObject();
     }
 
@@ -334,15 +326,14 @@ public class JsonPolicyWriter {
      * @param fieldName
      *            name of the JSON array
      */
-    private void writeJsonArrayStart(String fieldName)
-            throws JsonGenerationException, IOException {
+    private void writeJsonArrayStart(String fieldName) throws IOException {
         generator.writeArrayFieldStart(fieldName);
     }
 
     /**
      * Writes the End of Array String to the JSONGenerator.
      */
-    private void writeJsonArrayEnd() throws JsonGenerationException, IOException {
+    private void writeJsonArrayEnd() throws IOException {
         generator.writeEndArray();
     }
 
@@ -354,8 +345,7 @@ public class JsonPolicyWriter {
      * @param value
      *            value for the field
      */
-    private void writeJsonKeyValue(String fieldName, String value)
-            throws JsonGenerationException, IOException {
+    private void writeJsonKeyValue(String fieldName, String value) throws IOException {
         generator.writeStringField(fieldName, value);
     }
 
