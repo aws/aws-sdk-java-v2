@@ -46,7 +46,6 @@ import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.naming.DefaultNamingStrategy;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
-import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Builds an intermediate model to be used by the templates from the service model and
@@ -161,23 +160,17 @@ public class IntermediateModelBuilder {
 
     private void linkOperationsToInputOutputShapes(IntermediateModel model) {
         for (Map.Entry<String, OperationModel> entry : model.getOperations().entrySet()) {
+
             Operation operation = service.getOperations().get(entry.getKey());
+
             if (entry.getValue().getInput() != null) {
                 entry.getValue().setInputShape(model.getShapes().get(entry.getValue().getInput().getSimpleType()));
             }
+
             if (operation.getOutput() != null) {
                 String outputShapeName = operation.getOutput().getShape();
-                // TODO need to figure this out for wrapper outputs.
-                // See [JAVA-1556]
-
-                // Only link when output shape is not a result wrapper. When it is a result wrapper
-                // we only preserve the single member the wrapper has in the intermediate model
-                // so this lookup will fail.
-                if (StringUtils.isBlank(operation.getOutput().getResultWrapper())) {
-                    entry.getValue().setOutputShape(model.getShapeByC2jName(outputShapeName));
-                }
+                entry.getValue().setOutputShape(model.getShapeByC2jName(outputShapeName));
             }
-
         }
     }
 
