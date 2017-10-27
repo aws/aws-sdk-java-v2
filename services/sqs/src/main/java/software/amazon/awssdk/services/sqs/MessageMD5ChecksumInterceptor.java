@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.sqs;
 
 import static software.amazon.awssdk.core.util.StringUtils.UTF8;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -265,7 +264,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
      * Update the digest using a sequence of bytes that consists of the length (in 4 bytes) of the
      * input String and the actual utf8-encoded byte values.
      */
-    private static void updateLengthAndBytes(MessageDigest digest, String str) throws UnsupportedEncodingException {
+    private static void updateLengthAndBytes(MessageDigest digest, String str) {
         byte[] utf8Encoded = str.getBytes(UTF8);
         ByteBuffer lengthBytes = ByteBuffer.allocate(INTEGER_SIZE_IN_BYTES).putInt(utf8Encoded.length);
         digest.update(lengthBytes.array());
