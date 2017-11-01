@@ -25,7 +25,7 @@ import software.amazon.awssdk.core.util.StringUtils;
  * Converts various types to Strings. Used for Query Param/Header/Path marshalling.
  */
 @SdkInternalApi
-public class ValueToStringConverters {
+public final class ValueToStringConverters {
 
     /**
      * Simple interface to convert a type to a String.
@@ -58,4 +58,7 @@ public class ValueToStringConverters {
      * Marshalls date to an ISO8601 date string.
      */
     public static final ValueToString<Instant> FROM_INSTANT = DateUtils::formatIso8601Date;
+
+    private ValueToStringConverters() {
+    }
 }

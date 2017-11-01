@@ -23,7 +23,10 @@ import java.util.Set;
  * This class includes some utility methods for comparing two unordered
  * collections.
  */
-public class UnorderedCollectionComparator {
+public final class UnorderedCollectionComparator {
+
+    private UnorderedCollectionComparator() {
+    }
 
     /**
      * Compares two unordered lists of the same type.

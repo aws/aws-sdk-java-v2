@@ -40,9 +40,12 @@ import software.amazon.awssdk.core.util.StringUtils;
 /**
  * The class for creating and modifying the credential profiles file.
  */
-public class ProfilesConfigFileWriter {
+public final class ProfilesConfigFileWriter {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProfilesConfigFileWriter.class);
+
+    private ProfilesConfigFileWriter() {
+    }
 
     /**
      * Write all the credential profiles to a file. Note that this method will

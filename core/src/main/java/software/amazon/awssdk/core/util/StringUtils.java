@@ -44,6 +44,9 @@ public class StringUtils {
     private static final char CHAR_CARRIAGE_RETURN = '\r';
     private static final char CHAR_FORM_FEED = '\f';
 
+    private StringUtils() {
+    }
+
     public static String fromInteger(Integer value) {
         return Integer.toString(value);
     }

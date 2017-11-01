@@ -15,8 +15,10 @@
 
 package software.amazon.awssdk.core.util;
 
-public enum SdkRuntime {
-    ;
+public final class SdkRuntime {
+
+    private SdkRuntime() {
+    }
 
     /**
      * Returns true if the current operation should abort; false otherwise.

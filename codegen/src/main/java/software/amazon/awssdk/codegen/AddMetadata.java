@@ -30,8 +30,11 @@ import software.amazon.awssdk.codegen.model.service.ServiceModel;
  * Constructs the metadata that is required for generating the java client from the service meta data.
  */
 final class AddMetadata {
-
     private static final String AWS_PACKAGE_PREFIX = "software.amazon.awssdk.services";
+
+    private AddMetadata() {
+    }
+
 
     public static Metadata constructMetadata(ServiceModel serviceModel,
                                              BasicCodeGenConfig codeGenConfig,

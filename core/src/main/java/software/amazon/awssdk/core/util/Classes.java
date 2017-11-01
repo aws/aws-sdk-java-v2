@@ -23,8 +23,10 @@ import java.util.jar.JarFile;
 /**
  * Classes related utilities.
  */
-public enum Classes {
-    ;
+public final class Classes {
+
+    private Classes() {
+    }
 
     /**
      * Returns the class of the immediate subclass of the given parent class for

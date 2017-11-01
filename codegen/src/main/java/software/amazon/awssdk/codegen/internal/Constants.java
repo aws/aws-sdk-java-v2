@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.internal;
 
-public class Constants {
+public final class Constants {
 
     public static final String CODEGEN_CONFIG_FILE = "codegen.config";
 
@@ -72,4 +72,6 @@ public class Constants {
 
     public static final String APPROVED_SIMPLE_METHOD_VERBS = "(get|list|describe|lookup|batchGet).*";
 
+    private Constants() {
+    }
 }

@@ -34,7 +34,8 @@ import software.amazon.awssdk.core.SdkClientException;
  * Utilities for parsing and formatting dates.
  */
 @ThreadSafe
-public class DateUtils {
+public final class DateUtils {
+
     /** Alternate ISO 8601 format without fractional seconds. */
     static final DateTimeFormatter ALTERNATE_ISO_8601_DATE_FORMAT =
         new DateTimeFormatterBuilder()
@@ -43,6 +44,9 @@ public class DateUtils {
             .withZone(UTC);
 
     private static final int AWS_DATE_MILLI_SECOND_PRECISION = 3;
+
+    private DateUtils() {
+    }
 
     /**
      * Parses the specified date string as an ISO 8601 date (yyyy-MM-dd'T'HH:mm:ss.SSSZZ)

@@ -28,6 +28,10 @@ import software.amazon.awssdk.utils.BinaryUtils;
  */
 @SdkInternalApi
 public final class StandardMemberCopier {
+
+    private StandardMemberCopier() {
+    }
+
     public static String copy(String s) {
         return s;
     }

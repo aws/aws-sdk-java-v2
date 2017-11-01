@@ -99,6 +99,9 @@ public class PredefinedRetryPolicies {
         DYNAMODB_DEFAULT = getDynamoDbDefaultRetryPolicy();
     }
 
+    private PredefinedRetryPolicies() {
+    }
+
     /**
      * Returns the SDK default retry policy. This policy will honor the
      * maxErrorRetry set in ClientConfiguration.

@@ -31,6 +31,9 @@ public final class Aws4SignerUtils {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter
             .ofPattern("yyyyMMdd'T'HHmmss'Z'").withZone(ZoneId.of("UTC"));
 
+    private Aws4SignerUtils() {
+    }
+
     /**
      * Returns a string representation of the given date time in yyyyMMdd
      * format. The date returned is in the UTC zone.

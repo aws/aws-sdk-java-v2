@@ -53,8 +53,12 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  */
 @ReviewBeforeRelease("Remove the methods we don't end up using.")
 @SdkProtectedApi
-public class ArrayUtils {
+public final class ArrayUtils {
+
     public static final int INDEX_NOT_FOUND = -1;
+
+    private ArrayUtils() {
+    }
 
     //-----------------------------------------------------------------------
     /**

@@ -46,8 +46,10 @@ import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
 /**
  * Internal utilities.  Not meant for general use.  May change without notice.
  */
-public enum InternalUtils {
-    ;
+public final class InternalUtils {
+
+    private InternalUtils() {
+    }
 
     /**
      * Returns a non-null list of <code>Item</code>'s given the low level

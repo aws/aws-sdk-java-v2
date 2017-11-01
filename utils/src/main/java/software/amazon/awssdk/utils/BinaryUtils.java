@@ -24,7 +24,11 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * Utilities for encoding and decoding binary data to and from different forms.
  */
 @SdkProtectedApi
-public class BinaryUtils {
+public final class BinaryUtils {
+
+    private BinaryUtils() {
+    }
+
     /**
      * Converts byte data to a Hex-encoded string in lower case.
      *

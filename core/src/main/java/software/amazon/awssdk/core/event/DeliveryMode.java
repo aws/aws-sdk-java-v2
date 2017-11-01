@@ -35,6 +35,10 @@ public interface DeliveryMode {
      * synchronously.
      */
     class Check {
+
+        private Check() {
+        }
+
         public static boolean isSyncCallSafe(ProgressListener listener) {
             if (listener instanceof DeliveryMode) {
                 DeliveryMode mode = (DeliveryMode) listener;

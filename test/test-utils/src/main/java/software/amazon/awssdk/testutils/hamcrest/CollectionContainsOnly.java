@@ -22,7 +22,7 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 
-public class CollectionContainsOnly<T> extends TypeSafeMatcher<Collection<T>> {
+public final class CollectionContainsOnly<T> extends TypeSafeMatcher<Collection<T>> {
     private final List<Matcher<? extends T>> matchers;
 
     private CollectionContainsOnly(List<Matcher<? extends T>> matchers) {

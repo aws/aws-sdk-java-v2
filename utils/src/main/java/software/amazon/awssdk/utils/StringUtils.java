@@ -124,7 +124,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  */
 @ReviewBeforeRelease("Remove the methods we don't end up using (and we've removed software.amazon.awssdk.core.util.StringUtils).")
 @SdkInternalApi
-public class StringUtils {
+public final class StringUtils {
     // Performance testing notes (JDK 1.4, Jul03, scolebourne)
     // Whitespace:
     // Character.isWhitespace() is faster than WHITESPACE.indexOf()

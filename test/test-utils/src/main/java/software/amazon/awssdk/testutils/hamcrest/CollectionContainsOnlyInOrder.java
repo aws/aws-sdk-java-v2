@@ -23,7 +23,7 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 
-public class CollectionContainsOnlyInOrder<T> extends TypeSafeMatcher<Collection<T>> {
+public final class CollectionContainsOnlyInOrder<T> extends TypeSafeMatcher<Collection<T>> {
 
     private final List<Matcher<? extends T>> matchers;
 

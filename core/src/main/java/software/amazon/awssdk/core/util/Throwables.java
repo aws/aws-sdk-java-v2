@@ -22,8 +22,10 @@ import software.amazon.awssdk.core.AmazonClientException;
 /**
  * Utility for use with errors or exceptions.
  */
-public enum Throwables {
-    ;
+public final class Throwables {
+
+    private Throwables() {
+    }
 
     /**
      * Returns the root cause of the given throwable, or null if the given

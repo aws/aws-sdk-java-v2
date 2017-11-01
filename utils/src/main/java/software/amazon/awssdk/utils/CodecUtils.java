@@ -23,8 +23,10 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * @author Hanson Char
  */
 @SdkProtectedApi
-public enum CodecUtils {
-    ;
+public final class CodecUtils {
+
+    private CodecUtils() {
+    }
 
     /**
      * Transforms the given string into the given destination byte array

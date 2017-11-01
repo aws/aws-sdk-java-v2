@@ -27,12 +27,15 @@ import org.slf4j.LoggerFactory;
  * ProgressListener; listener callbacks are executed sequentially in a separate
  * single thread.
  */
-public class SdkProgressPublisher {
+public final class SdkProgressPublisher {
 
     /**
      * Used for testing purposes only.
      */
     private static volatile Future<?> latestFutureTask;
+
+    private SdkProgressPublisher() {
+    }
 
     /**
      * Used to deliver a progress event to the given listener.

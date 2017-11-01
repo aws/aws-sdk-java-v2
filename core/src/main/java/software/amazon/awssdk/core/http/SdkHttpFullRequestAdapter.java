@@ -30,7 +30,10 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  * Adapts a {@link Request} to the new {@link SdkHttpFullRequest} interface.
  */
 @ReviewBeforeRelease("This should eventually be removed and SdkHttpFullRequest should completely replace Request")
-public class SdkHttpFullRequestAdapter {
+public final class SdkHttpFullRequestAdapter {
+
+    private SdkHttpFullRequestAdapter() {
+    }
 
     public static SdkHttpFullRequest toHttpFullRequest(Request<?> request) {
         return toMutableHttpFullRequest(request).build();

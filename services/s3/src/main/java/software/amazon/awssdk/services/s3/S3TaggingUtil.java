@@ -22,7 +22,10 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @ReviewBeforeRelease("This is not hooked up yet. Implement customization to have PutObject tagging member" +
                      "be a map and have the SDK handle marshalling/encoding.")
-public class S3TaggingUtil {
+public final class S3TaggingUtil {
+
+    private S3TaggingUtil() {
+    }
 
     public static String toQueryString(Tagging tagging) {
         StringBuilder tagBuilder = new StringBuilder();

@@ -31,7 +31,10 @@ import java.util.Arrays;
 import org.junit.Assert;
 import software.amazon.awssdk.utils.IoUtils;
 
-public class SdkAsserts {
+public final class SdkAsserts {
+
+    private SdkAsserts() {
+    }
 
     /**
      * Asserts that the specified String is not null and not empty.

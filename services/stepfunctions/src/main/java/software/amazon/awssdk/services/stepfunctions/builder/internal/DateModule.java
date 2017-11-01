@@ -31,7 +31,7 @@ import java.util.Date;
 /**
  * Contains Jackson module for serializing dates to ISO8601 format per the <a href="https://states-language.net/spec.html#timestamps">spec</a>.
  */
-public class DateModule {
+public final class DateModule {
 
     public static final SimpleModule INSTANCE = new SimpleModule();
 
@@ -53,6 +53,9 @@ public class DateModule {
                 return fromJson(jsonParser.getValueAsString());
             }
         });
+    }
+
+    private DateModule() {
     }
 
     public static Date fromJson(String jsonText) {

@@ -32,7 +32,7 @@ import software.amazon.awssdk.core.regions.Region;
                      + "4. The remaining public AWS stuff should be moved to the AWS module. "
                      + "We should also consider making some of the SDK/AWS-owned set of attributes part of the immutable context "
                      + "if we don't want the interceptors to modify them.")
-public class AwsExecutionAttributes {
+public final class AwsExecutionAttributes {
     /**
      * The key under which the request credentials are set.
      */
@@ -64,4 +64,7 @@ public class AwsExecutionAttributes {
      */
     public static final ExecutionAttribute<ServiceAdvancedConfiguration> SERVICE_ADVANCED_CONFIG =
             new ExecutionAttribute<>("ServiceAdvancedConfig");
+
+    private AwsExecutionAttributes() {
+    }
 }
