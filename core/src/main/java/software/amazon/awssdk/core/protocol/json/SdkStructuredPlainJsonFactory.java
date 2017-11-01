@@ -32,7 +32,7 @@ import software.amazon.awssdk.core.util.ImmutableMapParameter;
  * Creates generators and protocol handlers for plain text JSON wire format.
  */
 @SdkProtectedApi
-public class SdkStructuredPlainJsonFactory {
+public final class SdkStructuredPlainJsonFactory {
 
     /**
      * Recommended to share JsonFactory instances per http://wiki.fasterxml
@@ -66,4 +66,6 @@ public class SdkStructuredPlainJsonFactory {
         }
     };
 
+    private SdkStructuredPlainJsonFactory() {
+    }
 }

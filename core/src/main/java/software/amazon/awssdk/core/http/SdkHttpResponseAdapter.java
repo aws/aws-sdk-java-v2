@@ -30,7 +30,10 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
  *
  * TODO this should eventually be removed and SdkHttpFullResponse should completely replace HttpResponse
  */
-public class SdkHttpResponseAdapter {
+public final class SdkHttpResponseAdapter {
+
+    private SdkHttpResponseAdapter() {
+    }
 
     public static HttpResponse adapt(boolean calculateCrc32FromCompressedData,
                                      SdkHttpFullRequest request,

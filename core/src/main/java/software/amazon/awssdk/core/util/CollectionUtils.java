@@ -17,7 +17,10 @@ package software.amazon.awssdk.core.util;
 
 import java.util.Collection;
 
-public class CollectionUtils {
+public final class CollectionUtils {
+
+    private CollectionUtils() {
+    }
 
     public static <T> boolean isNullOrEmpty(Collection<T> collection) {
         return collection == null || collection.isEmpty();

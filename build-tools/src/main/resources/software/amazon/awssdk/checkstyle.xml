@@ -412,5 +412,8 @@
 
         <!-- Checks for redundant public modifier on interfaces and other redundant modifiers -->
         <module name="RedundantModifier" />
+
+        <!-- Checks for utility and constants classes to have private constructor-->
+        <module name="HideUtilityClassConstructor"/>
     </module>
 </module>

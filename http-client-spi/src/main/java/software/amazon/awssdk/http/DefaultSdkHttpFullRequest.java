@@ -37,7 +37,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  */
 @SdkInternalApi
 @Immutable
-class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
+final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
     private final String protocol;
     private final String host;
     private final Integer port;

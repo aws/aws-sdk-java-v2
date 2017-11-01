@@ -22,7 +22,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import software.amazon.awssdk.utils.IoUtils;
 
-public class InputStreamUtils {
+public final class InputStreamUtils {
+
+    private InputStreamUtils() {
+    }
 
     /**
      * Calculates the MD5 digest for the given input stream and returns it.

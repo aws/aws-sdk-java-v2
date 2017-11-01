@@ -23,6 +23,9 @@ import java.util.function.Supplier;
 
 public final class FunctionalUtils {
 
+    private FunctionalUtils() {
+    }
+
     /**
      * A wrapper around a Consumer that throws a checked exception.
      *

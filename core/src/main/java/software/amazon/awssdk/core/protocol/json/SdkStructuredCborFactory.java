@@ -33,7 +33,7 @@ import software.amazon.awssdk.core.util.ImmutableMapParameter;
  * Creates generators and protocol handlers for CBOR wire format.
  */
 @SdkInternalApi
-class SdkStructuredCborFactory {
+final class SdkStructuredCborFactory {
 
     private static final JsonFactory CBOR_FACTORY = new CBORFactory();
 
@@ -65,4 +65,6 @@ class SdkStructuredCborFactory {
         }
     };
 
+    private SdkStructuredCborFactory() {
+    }
 }

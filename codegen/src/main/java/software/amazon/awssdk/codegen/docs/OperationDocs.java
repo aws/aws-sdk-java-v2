@@ -30,11 +30,14 @@ import software.amazon.awssdk.core.util.ImmutableMapParameter;
  * {@link #getDocs(IntermediateModel, OperationModel, ClientType, SimpleMethodOverload)} with the specified
  * convenience overload as defined in {@link SimpleMethodOverload}.
  */
-public class OperationDocs {
+public final class OperationDocs {
 
     private static final Map<ClientType, Map<SimpleMethodOverload, Factory>> FACTORIES =
             ImmutableMapParameter.of(ClientType.SYNC, syncFactories(),
                                      ClientType.ASYNC, asyncFactories());
+
+    private OperationDocs() {
+    }
 
     /**
      * Get documentation for the {@link SimpleMethodOverload#NORMAL} overload. That is, the actual implementation that

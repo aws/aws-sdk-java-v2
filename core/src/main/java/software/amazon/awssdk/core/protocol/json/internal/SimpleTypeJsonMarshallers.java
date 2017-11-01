@@ -26,7 +26,7 @@ import software.amazon.awssdk.core.protocol.StructuredPojo;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 
 @SdkInternalApi
-public class SimpleTypeJsonMarshallers {
+public final class SimpleTypeJsonMarshallers {
 
     public static final JsonMarshaller<Void> NULL = (val, context, paramName) -> {
         // If paramName is non null then we are emitting a field of an object, in that
@@ -139,6 +139,9 @@ public class SimpleTypeJsonMarshallers {
             jsonGenerator.writeEndObject();
         }
     };
+
+    private SimpleTypeJsonMarshallers() {
+    }
 
     /**
      * Base marshaller that emits the field name if present. The field name may be null in cases like

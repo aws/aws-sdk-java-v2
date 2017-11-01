@@ -25,9 +25,12 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * @author Hanson Char
  */
 @SdkProtectedApi
-public enum Base16Lower {
-    ;
+public final class Base16Lower {
+
     private static final Base16Codec CODEC = new Base16Codec(false);
+
+    private Base16Lower() {
+    }
 
     /**
      * Returns a base 16 encoded string (in lower case) of the given bytes.

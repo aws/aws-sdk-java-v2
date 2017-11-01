@@ -27,9 +27,12 @@ import software.amazon.awssdk.utils.IoUtils;
  * @deprecated Use {@link IoUtils}
  */
 @Deprecated
-public enum SdkIoUtils {
-    ;
+public final class SdkIoUtils {
+
     private static final Logger DEFAULT_LOG = LoggerFactory.getLogger(SdkIoUtils.class);
+
+    private SdkIoUtils() {
+    }
 
     public static void closeQuietly(Closeable is) {
         closeQuietly(is, null);

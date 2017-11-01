@@ -66,13 +66,11 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  */
 @ReviewBeforeRelease("Remove the methods we don't end up using (and software.amazon.awssdk.core.util.ValidationUtils).")
 @SdkInternalApi
-public class Validate {
+public final class Validate {
     private static final String DEFAULT_IS_NULL_EX_MESSAGE = "The validated object is null";
 
-    /**
-     * Constructor. This class should not normally be instantiated.
-     */
-    public Validate() {}
+    private Validate() {
+    }
 
     // isTrue
     //---------------------------------------------------------------------------------

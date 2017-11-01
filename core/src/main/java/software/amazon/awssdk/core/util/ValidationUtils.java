@@ -23,7 +23,10 @@ import java.util.Collection;
  * @deprecated By utils module.
  */
 @Deprecated
-public class ValidationUtils {
+public final class ValidationUtils {
+
+    private ValidationUtils() {
+    }
 
     /**
      * Asserts that the given object is non-null and returns it.

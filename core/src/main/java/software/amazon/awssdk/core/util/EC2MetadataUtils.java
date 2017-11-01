@@ -56,7 +56,7 @@ import software.amazon.awssdk.core.util.json.JacksonUtils;
  *      EC2 User Guide: Instance Metadata</a>
  */
 @ReviewBeforeRelease("Cleanup")
-public class EC2MetadataUtils {
+public final class EC2MetadataUtils {
 
     /** Default resource path for credentials in the Amazon EC2 Instance Metadata Service. */
     public static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
@@ -72,6 +72,8 @@ public class EC2MetadataUtils {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final Logger log = LoggerFactory.getLogger(EC2MetadataUtils.class);
     private static Map<String, String> cache = new ConcurrentHashMap<String, String>();
+
+    private EC2MetadataUtils() {}
 
     static {
         MAPPER.configure(

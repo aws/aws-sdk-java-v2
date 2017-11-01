@@ -40,7 +40,10 @@ import software.amazon.awssdk.codegen.model.service.XmlNamespace;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
-public class Utils {
+public final class Utils {
+
+    private Utils() {
+    }
 
     public static boolean isScalar(Shape shape) {
         // enums are treated as scalars in C2j.

@@ -23,8 +23,10 @@ import java.net.URL;
  * @deprecated should be replaced with {@link software.amazon.awssdk.core.util.ClassLoaderHelper}
  */
 @Deprecated
-public enum ClassLoaderHelper {
-    ;
+public final class ClassLoaderHelper {
+
+    private ClassLoaderHelper() {
+    }
 
     /**
      * If classesFirst is false, retrieves the resource via the context class loader of the current

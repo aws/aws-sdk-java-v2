@@ -19,7 +19,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
-public class AcceptorPathMatcher {
+public final class AcceptorPathMatcher {
+
+    private AcceptorPathMatcher() {
+    }
 
     /**
      * PathAll matcher that checks if each element of the final

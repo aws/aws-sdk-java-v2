@@ -20,7 +20,11 @@ import software.amazon.awssdk.core.RequestConfig;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 
-public class CredentialUtils {
+public final class CredentialUtils {
+
+    private CredentialUtils() {
+    }
+
     /**
      *  Returns the credentials provider that will be used to fetch the
      *  credentials when signing the request. Request specific credentials

@@ -43,7 +43,7 @@ import software.amazon.awssdk.utils.Base64Utils;
  * Utility methods for extracting data from XML documents using Xpath
  * expressions.
  */
-public class XpathUtils {
+public final class XpathUtils {
 
     /** The default property name to load the Xalan DTM manager. */
     private static final String DTM_MANAGER_DEFAULT_PROP_NAME = "com.sun.org.apache.xml.internal.dtm.DTMManager";
@@ -98,6 +98,9 @@ public class XpathUtils {
         } catch (Throwable t) {
             log.debug("Ingore failure in speeding up DTMManager", t);
         }
+    }
+
+    private XpathUtils() {
     }
 
     /**

@@ -24,8 +24,10 @@ import java.util.Iterator;
 /**
  * Used to retrieve information about the JVM memory.
  */
-public enum Memory {
-    ;
+public final class Memory {
+
+    private Memory() {
+    }
 
     /**
      * Returns a summary information about the heap memory.

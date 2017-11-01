@@ -22,7 +22,10 @@ import java.util.List;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
 
-public class Matchers {
+public final class Matchers {
+
+    private Matchers() {
+    }
 
     /***
      * Creates a matcher that matches if the examined collection matches the specified matchers in order

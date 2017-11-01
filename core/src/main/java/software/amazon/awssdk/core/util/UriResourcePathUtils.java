@@ -19,6 +19,9 @@ import software.amazon.awssdk.core.Request;
 
 public final class UriResourcePathUtils {
 
+    private UriResourcePathUtils() {
+    }
+
     /**
      * Identifies the static query parameters in Uri resource path for and adds it to
      * request.

@@ -25,7 +25,10 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * execution timeout features
  */
 @SdkInternalApi
-public class TimeoutThreadPoolBuilder {
+public final class TimeoutThreadPoolBuilder {
+
+    private TimeoutThreadPoolBuilder() {
+    }
 
     /**
      * Creates a {@link ScheduledThreadPoolExecutor} with custom name for the threads.
