@@ -31,9 +31,12 @@ import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier;
 import org.w3c.dom.Document;
 import software.amazon.awssdk.core.util.StringInputStream;
 
-public class XmlAsserts {
+public final class XmlAsserts {
 
     private static final DocumentBuilder DOCUMENT_BUILDER = getDocumentBuilder();
+
+    private XmlAsserts() {
+    }
 
     private static DocumentBuilder getDocumentBuilder() {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();

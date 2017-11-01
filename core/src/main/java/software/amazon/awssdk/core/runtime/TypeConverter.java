@@ -30,6 +30,10 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  */
 @SdkProtectedApi
 public final class TypeConverter {
+
+    private TypeConverter() {
+    }
+
     /**
      * Null-safely convert between types by applying a function.
      */

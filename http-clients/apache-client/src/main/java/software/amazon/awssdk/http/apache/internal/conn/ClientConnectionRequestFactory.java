@@ -24,12 +24,15 @@ import org.apache.http.conn.ConnectionRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class ClientConnectionRequestFactory {
+final class ClientConnectionRequestFactory {
     private static final Logger log = LoggerFactory.getLogger(ClientConnectionRequestFactory.class);
     private static final Class<?>[] INTERFACES = {
             ConnectionRequest.class,
             Wrapped.class
     };
+
+    private ClientConnectionRequestFactory() {
+    }
 
     /**
      * Returns a wrapped instance of {@link ConnectionRequest}

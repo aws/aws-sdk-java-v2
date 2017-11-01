@@ -23,7 +23,7 @@ import software.amazon.awssdk.utils.Validate;
  * attempts is reached. All Exceptions except for those wrapped in {@link NonRetryableException} are
  * retried. Only errors wrapped in {@link RetryableError} are retried.
  */
-public class RetryableAction<T> {
+public final class RetryableAction<T> {
 
     private final Callable<T> delegate;
     private final RetryableParams params;

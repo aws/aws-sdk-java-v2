@@ -45,4 +45,7 @@ public final class SignerConstants {
     public static final String AUTHORIZATION = "Authorization";
 
     public static final String HOST = "Host";
+
+    private SignerConstants() {
+    }
 }

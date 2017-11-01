@@ -25,7 +25,7 @@ import software.amazon.awssdk.core.util.ValidationUtils;
  * See this blog for more information on the different algorithms:
  * https://www.awsarchitectureblog.com/2015/03/backoff.html
  */
-public class PredefinedBackoffStrategies {
+public final class PredefinedBackoffStrategies {
 
     /**
      * Default base sleep time (milliseconds) for throttled exceptions.
@@ -50,6 +50,9 @@ public class PredefinedBackoffStrategies {
      * issues during delay calculation.
      **/
     private static final int MAX_RETRIES = 30;
+
+    private PredefinedBackoffStrategies() {
+    }
 
     private static int calculateExponentialDelay(int retriesAttempted, int baseDelay, int maxBackoffTime) {
         int retries = Math.min(retriesAttempted, MAX_RETRIES);

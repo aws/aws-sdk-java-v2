@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * Keys the Java SDK uses in the CLI credentials and config files.
  */
 @SdkInternalApi
-public class ProfileKeyConstants {
+public final class ProfileKeyConstants {
 
     /**
      * Property name for specifying the Amazon AWS Access Key
@@ -62,4 +62,7 @@ public class ProfileKeyConstants {
      * AWS Region to use when creating clients.
      */
     public static final String REGION = "region";
+
+    private ProfileKeyConstants() {
+    }
 }

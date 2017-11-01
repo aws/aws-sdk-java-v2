@@ -27,7 +27,7 @@ import software.amazon.awssdk.utils.JavaSystemSetting;
  * Utility class for accessing AWS SDK versioning information.
  */
 @ThreadSafe
-public class UserAgentUtils {
+public final class UserAgentUtils {
 
     private static final String UA_STRING = "aws-sdk-{platform}/{version} {os.name}/{os.version} {java.vm.name}/{java.vm.version}"
                                             + "/{java.version}{language.and.region}{additional.languages}";
@@ -37,6 +37,9 @@ public class UserAgentUtils {
     private static final String UNKNOWN = "unknown";
     /** User Agent info. */
     private static volatile String userAgent;
+
+    private UserAgentUtils() {
+    }
 
     /**
      * @return Returns the User Agent string to be used when communicating with

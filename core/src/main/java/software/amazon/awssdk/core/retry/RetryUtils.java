@@ -21,7 +21,7 @@ import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.SdkBaseException;
 import software.amazon.awssdk.http.HttpStatusCodes;
 
-public class RetryUtils {
+public final class RetryUtils {
 
     static final Set<String> THROTTLING_ERROR_CODES = new HashSet<>(9);
     static final Set<String> CLOCK_SKEW_ERROR_CODES = new HashSet<>(6);
@@ -48,6 +48,9 @@ public class RetryUtils {
         RETRYABLE_STATUS_CODES.add(HttpStatusCodes.BAD_GATEWAY);
         RETRYABLE_STATUS_CODES.add(HttpStatusCodes.SERVICE_UNAVAILABLE);
         RETRYABLE_STATUS_CODES.add(HttpStatusCodes.GATEWAY_TIMEOUT);
+    }
+
+    private RetryUtils() {
     }
 
     /**

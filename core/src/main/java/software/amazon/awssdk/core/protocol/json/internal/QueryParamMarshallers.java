@@ -22,7 +22,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 
 @SdkInternalApi
-public class QueryParamMarshallers {
+public final class QueryParamMarshallers {
 
     public static final JsonMarshaller<String> STRING = new SimpleQueryParamMarshaller<>(
             ValueToStringConverters.FROM_STRING);
@@ -54,6 +54,9 @@ public class QueryParamMarshallers {
             context.marshall(MarshallLocation.QUERY_PARAM, mapEntry.getValue(), mapEntry.getKey());
         }
     };
+
+    private QueryParamMarshallers() {
+    }
 
     private static class SimpleQueryParamMarshaller<T> implements JsonMarshaller<T> {
 

@@ -21,7 +21,10 @@ import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory;
 
 
-public class JsonProtocolUtils {
+public final class JsonProtocolUtils {
+
+    private JsonProtocolUtils() {
+    }
 
     /**
      * Create the software.amazon.awssdk.protocol factory needed to create the marshallers and response handlers for the

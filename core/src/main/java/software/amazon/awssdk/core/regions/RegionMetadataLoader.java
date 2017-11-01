@@ -28,7 +28,7 @@ import software.amazon.awssdk.utils.IoUtils;
  * Loads all the partition files into memory.
  */
 @SdkInternalApi
-public class RegionMetadataLoader {
+public final class RegionMetadataLoader {
 
     private static volatile PartitionMetadataProvider provider;
 
@@ -48,6 +48,9 @@ public class RegionMetadataLoader {
      * classloader to to be used for loading the partitions.
      */
     private static final ClassLoader CLASS_LOADER = RegionMetadataLoader.class.getClassLoader();
+
+    private RegionMetadataLoader() {
+    }
 
     /**
      * Loads the partition files from the {@link #PARTITIONS_OVERRIDE_RESOURCE_PATH}. If no files are present, then

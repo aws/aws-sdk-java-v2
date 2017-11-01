@@ -18,7 +18,10 @@ package software.amazon.awssdk.testutils;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatterBuilder;
 
-public class DateUtils {
+public final class DateUtils {
+
+    private DateUtils() {
+    }
 
     /**
      * Returns the current time in yyMMdd-hhmmss format.

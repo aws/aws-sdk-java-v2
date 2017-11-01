@@ -19,7 +19,7 @@ import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-public class HeaderMarshallers {
+public final class HeaderMarshallers {
 
     public static final JsonMarshaller<String> STRING = new SimpleHeaderMarshaller<>(ValueToStringConverters.FROM_STRING);
 
@@ -34,6 +34,9 @@ public class HeaderMarshallers {
     public static final JsonMarshaller<Boolean> BOOLEAN = new SimpleHeaderMarshaller<>(ValueToStringConverters.FROM_BOOLEAN);
 
     public static final JsonMarshaller<Instant> INSTANT = new SimpleHeaderMarshaller<>(ValueToStringConverters.FROM_INSTANT);
+
+    private HeaderMarshallers() {
+    }
 
     private static class SimpleHeaderMarshaller<T> implements JsonMarshaller<T> {
 

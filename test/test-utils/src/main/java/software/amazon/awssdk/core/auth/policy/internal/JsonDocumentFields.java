@@ -15,7 +15,8 @@
 
 package software.amazon.awssdk.core.auth.policy.internal;
 
-public class JsonDocumentFields {
+public final class JsonDocumentFields {
+
     public static final String VERSION = "Version";
     public static final String POLICY_ID = "Id";
     public static final String STATEMENT = "Statement";
@@ -26,4 +27,7 @@ public class JsonDocumentFields {
     public static final String ACTION = "Action";
     public static final String RESOURCE = "Resource";
     public static final String CONDITION = "Condition";
+
+    private JsonDocumentFields() {
+    }
 }

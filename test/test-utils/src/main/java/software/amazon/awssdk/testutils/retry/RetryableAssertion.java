@@ -19,7 +19,10 @@ package software.amazon.awssdk.testutils.retry;
  * Utility to repeatedly invoke assertion logic until it succeeds or the max allowed attempts is
  * reached.
  */
-public class RetryableAssertion {
+public final class RetryableAssertion {
+
+    private RetryableAssertion() {
+    }
 
     /**
      * Static method to repeatedly call assertion logic until it succeeds or the max allowed

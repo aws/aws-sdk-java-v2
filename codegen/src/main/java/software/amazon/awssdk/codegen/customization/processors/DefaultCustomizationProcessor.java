@@ -21,6 +21,9 @@ import software.amazon.awssdk.codegen.model.config.customization.CustomizationCo
 
 public final class DefaultCustomizationProcessor {
 
+    private DefaultCustomizationProcessor() {
+    }
+
     public static CodegenCustomizationProcessor getProcessorFor(
             CustomizationConfig config) {
 

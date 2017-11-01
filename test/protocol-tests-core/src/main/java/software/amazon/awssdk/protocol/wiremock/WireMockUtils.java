@@ -29,10 +29,13 @@ import java.util.List;
 /**
  * Utils to start the WireMock server and retrieve the chosen port.
  */
-public class WireMockUtils {
+public final class WireMockUtils {
 
     // Use 0 to dynamically assign an available port.
     private static final WireMockServer WIRE_MOCK = new WireMockServer(wireMockConfig().port(0));
+
+    private WireMockUtils() {
+    }
 
     public static void startWireMockServer() {
         WIRE_MOCK.start();

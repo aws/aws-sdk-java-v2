@@ -28,6 +28,9 @@ public final class IdempotentUtils {
 
     private static Supplier<String> generator = () -> UUID.randomUUID().toString();
 
+    private IdempotentUtils() {
+    }
+
     /**
      * @deprecated By {@link #getGenerator()}
      */

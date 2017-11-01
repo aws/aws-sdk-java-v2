@@ -36,7 +36,7 @@ import software.amazon.awssdk.utils.Validate;
 /**
  * A set of utilities that assist with HTTP message-related interactions.
  */
-public class SdkHttpUtils {
+public final class SdkHttpUtils {
     private static final String DEFAULT_ENCODING = "UTF-8";
 
     /**

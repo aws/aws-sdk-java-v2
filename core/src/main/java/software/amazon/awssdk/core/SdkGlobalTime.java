@@ -19,7 +19,8 @@ package software.amazon.awssdk.core;
  * Used for clock skew adjustment between the client JVM where the SDK is run,
  * and the server side.
  */
-public class SdkGlobalTime {
+public final class SdkGlobalTime {
+
     /**
      * globalTimeOffset is a time difference in seconds between the running JVM
      * and AWS. Used to globally adjust the client clock skew. Java SDK already
@@ -29,6 +30,9 @@ public class SdkGlobalTime {
      * skew automatically.
      */
     private static volatile int globalTimeOffset;
+
+    private SdkGlobalTime() {
+    }
 
     /**
      * Gets the global time difference in seconds between the running JVM and

@@ -24,7 +24,7 @@ import java.util.concurrent.Future;
 /**
  * Test executor services
  */
-public class TestExecutors {
+public final class TestExecutors {
     private TestExecutors() {
     }
 

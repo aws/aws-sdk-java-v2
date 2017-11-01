@@ -19,7 +19,11 @@ import java.util.Arrays;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 @ReviewBeforeRelease("Remove before GA")
-public class ImmutableObjectUtils {
+public final class ImmutableObjectUtils {
+
+    private ImmutableObjectUtils() {
+    }
+
     public static <T> void setObjectMember(Object o, String memberName, T value) {
         Arrays.stream(o.getClass().getDeclaredFields())
                 .filter(f -> f.getName().equals(memberName))

@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 @ReviewBeforeRelease("If we refactor our marshallers, this should also be refactored to match.")
-public class DefaultAccountIdSupplier {
+public final class DefaultAccountIdSupplier {
 
     /**
      * Value that indicates the current account.
@@ -28,8 +28,10 @@ public class DefaultAccountIdSupplier {
 
     private static final Supplier<String> INSTANCE = () -> CURRENT_ACCOUNT_ID;
 
+    private DefaultAccountIdSupplier() {
+    }
+
     public static Supplier<String> getInstance() {
         return INSTANCE;
     }
-
 }

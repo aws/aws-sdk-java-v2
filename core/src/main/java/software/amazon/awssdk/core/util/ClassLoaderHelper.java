@@ -19,8 +19,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
-public enum ClassLoaderHelper {
-    ;
+public final class ClassLoaderHelper {
+
+    private ClassLoaderHelper() {
+    }
 
     /**
      * Retrieves the resource via the context class loader of the current

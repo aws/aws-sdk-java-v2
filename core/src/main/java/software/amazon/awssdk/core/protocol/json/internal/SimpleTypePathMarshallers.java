@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.runtime.transform.PathMarshallers;
 
 @SdkInternalApi
-public class SimpleTypePathMarshallers {
+public final class SimpleTypePathMarshallers {
 
     public static final JsonMarshaller<String> STRING =
             new SimplePathMarshaller<>(ValueToStringConverters.FROM_STRING, PathMarshallers.NON_GREEDY);
@@ -41,6 +41,9 @@ public class SimpleTypePathMarshallers {
         throw new IllegalArgumentException(String.format("Parameter '%s' must not be null", paramName));
     };
 
+    private SimpleTypePathMarshallers() {
+    }
+
     private static class SimplePathMarshaller<T> implements JsonMarshaller<T> {
 
         private final ValueToStringConverters.ValueToString<T> converter;
@@ -59,5 +62,4 @@ public class SimpleTypePathMarshallers {
         }
 
     }
-
 }
