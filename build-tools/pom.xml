@@ -22,7 +22,7 @@
     <artifactId>build-tools</artifactId>
     <name>AWS Java SDK :: Build Tools</name>
     <version>1.0</version>
-    <description>This package holds the resources used for checkstyle and findbugs.
+    <description>This package holds the resources used for checkstyle and spotbugs.
     </description>
 
     <build>
