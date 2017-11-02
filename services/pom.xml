@@ -192,10 +192,10 @@
                     </executions>
                 </plugin>
 
-                <!-- Disable findbugs for service clients to speed up the build. -->
+                <!-- Disable spotbugs for service clients to speed up the build. -->
                 <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>findbugs-maven-plugin</artifactId>
+                    <groupId>com.github.hazendaz.spotbugs</groupId>
+                    <artifactId>spotbugs-maven-plugin</artifactId>
                     <configuration>
                         <skip>true</skip>
                     </configuration>
