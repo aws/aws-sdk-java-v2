@@ -38,7 +38,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 @SuppressWarnings("deprecation") // Intentional use of deprecated class
 public class ImmutableClientConfigurationTest {
     private static final NoOpSignerProvider SIGNER_PROVIDER = new NoOpSignerProvider();
-    private static final AwsCredentialsProvider CREDENTIALS_PROVIDER = new DefaultCredentialsProvider();
+    private static final AwsCredentialsProvider CREDENTIALS_PROVIDER = DefaultCredentialsProvider.create();
     private static final URI ENDPOINT = URI.create("https://www.example.com");
     private static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
     private static final SdkHttpClient SYNC_HTTP_CLIENT = mock(SdkHttpClient.class);

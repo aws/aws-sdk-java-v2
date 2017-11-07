@@ -47,8 +47,8 @@ public class RestJsonCrc32ChecksumTests {
     private static final String JSON_BODY_Crc32_CHECKSUM = "3049587505";
     private static final String JSON_BODY_GZIP_Crc32_CHECKSUM = "3023995622";
     private static final String RESOURCE_PATH = "/2016-03-11/allTypes";
-    private static final AwsCredentialsProvider FAKE_CREDENTIALS_PROVIDER = new StaticCredentialsProvider(
-            new AwsCredentials("foo", "bar"));
+    private static final AwsCredentialsProvider FAKE_CREDENTIALS_PROVIDER = StaticCredentialsProvider.create(
+            AwsCredentials.create("foo", "bar"));
     @Rule
     public WireMockRule mockServer = new WireMockRule(WireMockConfiguration.wireMockConfig()
             .port(0)

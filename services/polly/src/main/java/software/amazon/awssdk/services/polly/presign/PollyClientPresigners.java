@@ -47,7 +47,7 @@ public final class PollyClientPresigners {
     @SdkInternalApi
     public PollyClientPresigners(PresignerParams presignerParams) {
         this.endpoint = presignerParams.endpoint();
-        this.presignerFacade = new PresignerFacade(presignerParams);
+        this.presignerFacade = PresignerFacade.create(presignerParams);
         this.clock = presignerParams.clock();
     }
 

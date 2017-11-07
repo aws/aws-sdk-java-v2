@@ -48,7 +48,7 @@ public class TT0035900619IntegrationTest {
 
     @BeforeClass
     public static void setup() throws InterruptedException {
-        client = DynamoDBClient.builder().credentialsProvider(new StaticCredentialsProvider(awsTestCredentials())).build();
+        client = DynamoDBClient.builder().credentialsProvider(StaticCredentialsProvider.create(awsTestCredentials())).build();
         List<AttributeDefinition> attributeDefinitions = new ArrayList<AttributeDefinition>();
         attributeDefinitions.add(AttributeDefinition.builder().attributeName("hashKey").attributeType(ScalarAttributeType.S).build());
         List<KeySchemaElement> keySchema = new ArrayList<KeySchemaElement>();

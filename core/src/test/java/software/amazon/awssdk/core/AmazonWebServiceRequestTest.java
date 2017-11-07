@@ -91,8 +91,8 @@ public class AmazonWebServiceRequestTest {
             public void progressChanged(ProgressEvent progressEvent) {
             }
         };
-        final AwsCredentials credentials = new AwsCredentials("accesskey",
-                                                              "accessid");
+        final AwsCredentials credentials = AwsCredentials.create("accesskey",
+                                                                 "accessid");
 
         final AmazonWebServiceRequest from = new AmazonWebServiceRequest() {
         };

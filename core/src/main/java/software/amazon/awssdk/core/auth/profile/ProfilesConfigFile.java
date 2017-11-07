@@ -19,7 +19,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
@@ -73,49 +72,51 @@ public class ProfilesConfigFile {
     private volatile AllProfiles allProfiles;
     private volatile long profileFileLastModified;
 
-    /**
-     * Loads the AWS credential profiles file from the default location (~/.aws/credentials) or from
-     * an alternate location if <code>AWS_CREDENTIAL_PROFILES_FILE</code> is set.
-     */
-    public ProfilesConfigFile() throws SdkClientException {
-        this(getCredentialProfilesFile());
-    }
-
-    /**
-     * Loads the AWS credential profiles from the file. The path of the file is specified as a
-     * parameter to the constructor.
-     */
-    public ProfilesConfigFile(String filePath) {
-        this(new File(validateFilePath(filePath)));
-    }
-
-    /**
-     * Loads the AWS credential profiles from the file. The path of the file is specified as a
-     * parameter to the constructor.
-     */
-    public ProfilesConfigFile(String filePath, ProfileCredentialsService credentialsService) throws
-                                                                                             SdkClientException {
-        this(new File(validateFilePath(filePath)), credentialsService);
-    }
-
-    /**
-     * Loads the AWS credential profiles from the file. The reference to the file is specified as a
-     * parameter to the constructor.
-     */
-    public ProfilesConfigFile(File file) throws SdkClientException {
-        this(file, StsProfileCredentialsServiceLoader.getInstance());
-    }
-
-    /**
-     * Loads the AWS credential profiles from the file. The reference to the file is specified as a
-     * parameter to the constructor.
-     */
-    public ProfilesConfigFile(File file, ProfileCredentialsService credentialsService) throws
-                                                                                       SdkClientException {
+    private ProfilesConfigFile(File file, ProfileCredentialsService credentialsService) {
         profileFile = ValidationUtils.assertNotNull(file, "profile file");
         profileCredentialsService = credentialsService;
         profileFileLastModified = file.lastModified();
         allProfiles = loadProfiles(profileFile);
+    }
+
+    /**
+     * Loads the AWS credential profiles file from the default location (~/.aws/credentials) or from
+     * an alternate location if <code>AWS_CREDENTIAL_PROFILES_FILE</code> is set.
+     */
+    public static ProfilesConfigFile create() {
+        return create(getCredentialProfilesFile(), StsProfileCredentialsServiceLoader.getInstance());
+    }
+
+    /**
+     * Loads the AWS credential profiles from the file. The path of the file is specified as a
+     * parameter to the constructor.
+     */
+    public static ProfilesConfigFile create(String filePath) {
+        return create(new File(validateFilePath(filePath)), StsProfileCredentialsServiceLoader.getInstance());
+    }
+
+    /**
+     * Loads the AWS credential profiles from the file. The path of the file is specified as a
+     * parameter to the constructor.
+     */
+    public static ProfilesConfigFile create(String filePath, ProfileCredentialsService credentialsService) {
+        return create(new File(validateFilePath(filePath)), credentialsService);
+    }
+
+    /**
+     * Loads the AWS credential profiles from the file. The reference to the file is specified as a
+     * parameter to the constructor.
+     */
+    public static ProfilesConfigFile create(File file) {
+        return create(file, StsProfileCredentialsServiceLoader.getInstance());
+    }
+
+    /**
+     * Loads the AWS credential profiles from the file. The reference to the file is specified as a
+     * parameter to the constructor.
+     */
+    public static ProfilesConfigFile create(File file, ProfileCredentialsService credentialsService) {
+        return new ProfilesConfigFile(file, credentialsService);
     }
 
     private static String validateFilePath(String filePath) {
@@ -174,7 +175,7 @@ public class ProfilesConfigFile {
             final String profileName = entry.getKey();
             legacyProfiles.put(profileName,
                                new Profile(profileName, entry.getValue().getProperties(),
-                                           new StaticCredentialsProvider(getCredentials(profileName))));
+                                           StaticCredentialsProvider.create((getCredentials(profileName)))));
         }
         return legacyProfiles;
     }

@@ -41,20 +41,19 @@ public class ElasticContainerCredentialsProvider implements AwsCredentialsProvid
     private final EC2CredentialsProvider credentialsFetcher;
 
     /**
-     * Create an instance of this provider using the default configuration. For custom configuration, see {@link #builder()}.
-     */
-    public ElasticContainerCredentialsProvider() {
-        this(builder());
-    }
-
-    /**
      * @see #builder()
      */
     private ElasticContainerCredentialsProvider(Builder builder) {
         this.credentialsFetcher = new EC2CredentialsProvider(builder.credentialsEndpointProvider,
                                                              builder.asyncCredentialUpdateEnabled,
                                                              "elastic-container-credentials-provider");
+    }
 
+    /**
+     * Create an create of this provider using the default configuration. For custom configuration, see {@link #builder()}.
+     */
+    public static ElasticContainerCredentialsProvider create() {
+        return new ElasticContainerCredentialsProvider(builder());
     }
 
     /**

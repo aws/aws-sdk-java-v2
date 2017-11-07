@@ -107,7 +107,7 @@ public class ClientReflector {
      * @return Dummy credentials to create client with.
      */
     private StaticCredentialsProvider getMockCredentials() {
-        return new StaticCredentialsProvider(new AwsCredentials("akid", "skid"));
+        return StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid"));
     }
 
     /**

@@ -35,14 +35,14 @@ public class S3ClientCacheIntegrationTest {
 
     @Before
     public void setUp() {
-        credentials = new AwsCredentials("mock", "mock");
+        credentials = AwsCredentials.create("mock", "mock");
     }
 
     @Test
     public void testBadClientCache() throws Exception {
         S3ClientCache s3cc = new S3ClientCache(credentials);
         S3Client notAnAWSEndpoint = S3Client.builder()
-                                            .credentialsProvider(new StaticCredentialsProvider(credentials))
+                                            .credentialsProvider(StaticCredentialsProvider.create(credentials))
                                             .endpointOverride(new URI("i.am.an.invalid.aws.endpoint.com"))
                                             .build();
 
@@ -60,7 +60,7 @@ public class S3ClientCacheIntegrationTest {
     public void testNonExistantRegion() throws Exception {
         S3ClientCache s3cc = new S3ClientCache(credentials);
         S3Client notAnAWSEndpoint = S3Client.builder()
-                .credentialsProvider(new StaticCredentialsProvider(credentials))
+                .credentialsProvider(StaticCredentialsProvider.create(credentials))
                 .endpointOverride(new URI("s3.mordor.amazonaws.com"))
                 .build();
 

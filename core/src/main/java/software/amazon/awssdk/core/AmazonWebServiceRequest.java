@@ -78,7 +78,7 @@ public abstract class AmazonWebServiceRequest extends SdkRequest implements Clon
      */
     @Deprecated
     public void setRequestCredentials(AwsCredentials credentials) {
-        this.credentialsProvider = credentials == null ? null : new StaticCredentialsProvider(credentials);
+        this.credentialsProvider = credentials == null ? null : StaticCredentialsProvider.create(credentials);
     }
 
     /**

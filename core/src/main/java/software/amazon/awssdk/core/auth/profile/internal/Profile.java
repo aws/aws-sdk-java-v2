@@ -53,7 +53,7 @@ public class Profile {
 
         this.profileName = profileName;
         this.properties = properties;
-        this.awsCredentials = new StaticCredentialsProvider(awsCredentials);
+        this.awsCredentials = StaticCredentialsProvider.create(awsCredentials);
     }
 
     public Profile(String profileName, String sourceProfile, AwsCredentialsProvider awsCredentials, RoleInfo roleInfo) {

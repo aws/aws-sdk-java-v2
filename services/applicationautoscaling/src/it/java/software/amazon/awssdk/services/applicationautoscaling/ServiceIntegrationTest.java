@@ -31,7 +31,7 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
     @BeforeClass
     public static void setUp() {
         autoscaling = ApplicationAutoScalingClient.builder()
-                .credentialsProvider(new StaticCredentialsProvider(getCredentials()))
+                .credentialsProvider(StaticCredentialsProvider.create(getCredentials()))
                 .build();
     }
 

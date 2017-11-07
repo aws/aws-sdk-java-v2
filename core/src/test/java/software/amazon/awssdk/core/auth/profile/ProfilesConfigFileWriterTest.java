@@ -34,17 +34,17 @@ import software.amazon.awssdk.core.util.ImmutableMapParameter;
 
 public class ProfilesConfigFileWriterTest {
 
-    private static final AwsCredentials basicCredA = new AwsCredentials("a", "a");
-    private static final AwsCredentials basicCredB = new AwsCredentials("b", "b");
-    private static final AwsCredentials sessionCredC = new AwsSessionCredentials("c", "c", "c");
-    private static final AwsCredentials sessionCredD = new AwsSessionCredentials("d", "d", "d");
+    private static final AwsCredentials basicCredA = AwsCredentials.create("a", "a");
+    private static final AwsCredentials basicCredB = AwsCredentials.create("b", "b");
+    private static final AwsCredentials sessionCredC = AwsSessionCredentials.create("c", "c", "c");
+    private static final AwsCredentials sessionCredD = AwsSessionCredentials.create("d", "d", "d");
 
     /**
      * Loads the given credentials file and checks that it contains the same
      * set of profiles as expected.
      */
     private static void checkCredentialsFile(File file, Profile... expectedProfiles) {
-        ProfilesConfigFile parsedFile = new ProfilesConfigFile(file);
+        ProfilesConfigFile parsedFile = ProfilesConfigFile.create(file);
         Map<String, Profile> loadedProfiles = parsedFile.getAllProfiles();
 
         assertTrue(expectedProfiles.length == loadedProfiles.size());

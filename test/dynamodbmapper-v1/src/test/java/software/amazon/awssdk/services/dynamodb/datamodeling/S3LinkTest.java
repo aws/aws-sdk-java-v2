@@ -31,12 +31,12 @@ public class S3LinkTest {
 
     @Before
     public void setUp() {
-        AwsCredentials credentials = new AwsCredentials("mock", "mock");
+        AwsCredentials credentials = AwsCredentials.create("mock", "mock");
         DynamoDBClient db = DynamoDBClient.builder()
-                                          .credentialsProvider(new StaticCredentialsProvider(credentials))
+                                          .credentialsProvider(StaticCredentialsProvider.create(credentials))
                                           .region(Region.US_WEST_2)
                                           .build();
-        mapper = new DynamoDbMapper(db, new StaticCredentialsProvider(credentials));
+        mapper = new DynamoDbMapper(db, StaticCredentialsProvider.create(credentials));
     }
 
     @Test(expected = IllegalArgumentException.class)

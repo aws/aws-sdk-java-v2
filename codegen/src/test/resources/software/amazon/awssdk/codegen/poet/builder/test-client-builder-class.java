@@ -32,7 +32,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         Aws4Signer signer = new Aws4Signer();
         signer.setServiceName("json-service");
         signer.setRegionName(signingRegion().value());
-        return new StaticSignerProvider(signer);
+        return StaticSignerProvider.create(signer);
     }
 
     @Override

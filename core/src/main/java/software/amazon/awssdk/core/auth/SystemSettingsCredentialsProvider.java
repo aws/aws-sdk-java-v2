@@ -59,8 +59,8 @@ abstract class SystemSettingsCredentialsProvider implements AwsCredentialsProvid
                                   AwsSystemSetting.AWS_SECRET_ACCESS_KEY.property()));
         }
 
-        return sessionToken == null ? new AwsCredentials(accessKey, secretKey)
-                                    : new AwsSessionCredentials(accessKey, secretKey, sessionToken);
+        return sessionToken == null ? AwsCredentials.create(accessKey, secretKey)
+                                    : AwsSessionCredentials.create(accessKey, secretKey, sessionToken);
     }
 
     @Override
