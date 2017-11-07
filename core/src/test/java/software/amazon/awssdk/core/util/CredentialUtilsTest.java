@@ -32,13 +32,13 @@ import utils.model.EmptyAmazonWebServiceRequest;
 
 public class CredentialUtilsTest {
 
-    private static final AwsCredentialsProvider CLIENT_CREDENTIALS = new DefaultCredentialsProvider();
+    private static final AwsCredentialsProvider CLIENT_CREDENTIALS = DefaultCredentialsProvider.create();
 
     @Test
     public void request_credentials_takes_precendence_over_client_credentials() {
         final String awsAccessKeyId = "foo";
         final String awsSecretAccessKey = "bar";
-        final AwsCredentials reqCredentials = new AwsCredentials(awsAccessKeyId,
+        final AwsCredentials reqCredentials = AwsCredentials.create(awsAccessKeyId,
                                                                  awsSecretAccessKey);
         EmptyAmazonWebServiceRequest req = new EmptyAmazonWebServiceRequest();
         req.setRequestCredentials(reqCredentials);
@@ -54,8 +54,8 @@ public class CredentialUtilsTest {
     public void base_credentials_returned_when_no_request_credentials_is_present() {
         final String awsAccessKeyId = "foo";
         final String awsSecretAccessKey = "bar";
-        final AwsCredentialsProvider base = new StaticCredentialsProvider(new AwsCredentials(awsAccessKeyId,
-                                                                                             awsSecretAccessKey));
+        final AwsCredentialsProvider base = StaticCredentialsProvider.create(AwsCredentials.create(awsAccessKeyId,
+                                                                                                   awsSecretAccessKey));
 
         AwsCredentialsProvider actual = CredentialUtils
                 .getCredentialsProvider((AmazonWebServiceRequest) null, base);

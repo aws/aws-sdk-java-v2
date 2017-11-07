@@ -36,7 +36,7 @@ public class ProfileCredentialsProviderTest {
 
     private ProfileCredentialsProvider newProvider() {
         return ProfileCredentialsProvider.builder()
-                                         .profilesConfigFile(new ProfilesConfigFile(profileLocation.getAbsolutePath()))
+                                         .profilesConfigFile(ProfilesConfigFile.create(profileLocation.getAbsolutePath()))
                                          .build();
     }
 
@@ -122,7 +122,7 @@ public class ProfileCredentialsProviderTest {
             // If an explicit override is provided, that beats anything else.
             ProfileCredentialsProvider provider =
                     ProfileCredentialsProvider.builder()
-                                              .profilesConfigFile(new ProfilesConfigFile(profileLocation.getAbsolutePath()))
+                                              .profilesConfigFile(ProfilesConfigFile.create(profileLocation.getAbsolutePath()))
                                               .profileName("bogus")
                                               .build();
 
@@ -142,7 +142,7 @@ public class ProfileCredentialsProviderTest {
 
     @Test
     public void testAssumeRole() throws Exception {
-        ProfilesConfigFile profilesFile = new ProfilesConfigFile(
+        ProfilesConfigFile profilesFile = ProfilesConfigFile.create(
                 ProfileResourceLoader.profileWithRole().asFile(), targetRoleInfo -> {
                     AwsCredentials credentials = targetRoleInfo.getLongLivedCredentialsProvider()
                                                                .getCredentials();
@@ -155,7 +155,7 @@ public class ProfileCredentialsProviderTest {
                     Assert.assertNull("external_id", targetRoleInfo.getExternalId());
                     Assert.assertTrue("role_session_name",
                                       targetRoleInfo.getRoleSessionName().startsWith("aws-sdk-java-"));
-                    return new StaticCredentialsProvider(
+                    return StaticCredentialsProvider.create(
                             new AwsCredentials("sessionAccessKey", "sessionSecretKey"));
                 });
 
@@ -171,7 +171,7 @@ public class ProfileCredentialsProviderTest {
 
     @Test
     public void testAssumeRoleWithNameAndExternalId() throws Exception {
-        ProfilesConfigFile profilesFile = new ProfilesConfigFile(
+        ProfilesConfigFile profilesFile = ProfilesConfigFile.create(
                 ProfileResourceLoader.profileWithRole2().asFile(), targetRoleInfo -> {
                     AwsCredentials credentials = targetRoleInfo.getLongLivedCredentialsProvider()
                                                                .getCredentials();
@@ -185,7 +185,7 @@ public class ProfileCredentialsProviderTest {
                                         targetRoleInfo.getExternalId());
                     Assert.assertEquals("role_session_name", "testSessionName",
                                         targetRoleInfo.getRoleSessionName());
-                    return new StaticCredentialsProvider(
+                    return StaticCredentialsProvider.create(
                             new AwsCredentials("sessionAccessKey", "sessionSecretKey"));
                 });
 
@@ -201,7 +201,7 @@ public class ProfileCredentialsProviderTest {
 
     @Test
     public void testAssumeRoleWithSourceAfterRole() throws Exception {
-        ProfilesConfigFile profilesFile = new ProfilesConfigFile(
+        ProfilesConfigFile profilesFile = ProfilesConfigFile.create(
                 ProfileResourceLoader.profileWithSourceAfterRole().asFile(), targetRoleInfo -> {
                     AwsCredentials credentials = targetRoleInfo
                             .getLongLivedCredentialsProvider().getCredentials();
@@ -214,8 +214,8 @@ public class ProfileCredentialsProviderTest {
                     Assert.assertNull("external_id", targetRoleInfo.getExternalId());
                     Assert.assertTrue("role_session_name", targetRoleInfo.getRoleSessionName()
                                                                          .startsWith("aws-sdk-java-"));
-                    return new StaticCredentialsProvider(
-                            new AwsCredentials("sessionAccessKey", "sessionSecretKey"));
+                    return StaticCredentialsProvider.create(
+                            AwsCredentials.create("sessionAccessKey", "sessionSecretKey"));
                 });
 
         ProfileCredentialsProvider profileCredentialsProvider = ProfileCredentialsProvider.builder()

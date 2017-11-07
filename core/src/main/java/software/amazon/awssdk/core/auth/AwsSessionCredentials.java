@@ -26,6 +26,11 @@ import software.amazon.awssdk.utils.Validate;
 public class AwsSessionCredentials extends AwsCredentials {
     private final String sessionToken;
 
+    private AwsSessionCredentials(String accessKey, String secretKey, String sessionToken) {
+        super(accessKey, secretKey);
+        this.sessionToken = Validate.notNull(sessionToken, "Session token cannot be null.");
+    }
+
     /**
      * Constructs a new session credentials object, with the specified AWS access key, AWS secret key and AWS session token.
      *
@@ -34,9 +39,8 @@ public class AwsSessionCredentials extends AwsCredentials {
      * @param sessionToken The AWS session token, retrieved from an AWS token service, used for authenticating that this user has
      *                     received temporary permission to access some resource.
      */
-    public AwsSessionCredentials(String accessKey, String secretKey, String sessionToken) {
-        super(accessKey, secretKey);
-        this.sessionToken = Validate.notNull(sessionToken, "Session token cannot be null.");
+    public static AwsSessionCredentials create(String accessKey, String secretKey, String sessionToken) {
+        return new AwsSessionCredentials(accessKey, secretKey, sessionToken);
     }
 
     /**

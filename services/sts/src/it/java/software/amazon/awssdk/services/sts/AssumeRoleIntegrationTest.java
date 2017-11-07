@@ -132,8 +132,8 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
                                               .userName(USER_NAME).policyName("assume-role").build());
         CreateAccessKeyResponse createAccessKeyResult =
                 iam.createAccessKey(CreateAccessKeyRequest.builder().userName(USER_NAME).build());
-        AwsCredentials credentials = new AwsCredentials(createAccessKeyResult.accessKey().accessKeyId(),
+        AwsCredentials credentials = AwsCredentials.create(createAccessKeyResult.accessKey().accessKeyId(),
                                                         createAccessKeyResult.accessKey().secretAccessKey());
-        return STSClient.builder().credentialsProvider(new StaticCredentialsProvider(credentials)).build();
+        return STSClient.builder().credentialsProvider(StaticCredentialsProvider.create(credentials)).build();
     }
 }

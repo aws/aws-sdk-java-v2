@@ -149,7 +149,7 @@ public class SimpleDBIntegrationTest extends IntegrationTestBase {
         sdb.listDomains(ListDomainsRequest.builder().build());
 
         ListDomainsRequest listDomainsRequest = ListDomainsRequest.builder().build();
-        listDomainsRequest.setRequestCredentials(new AwsCredentials("foo", "bar"));
+        listDomainsRequest.setRequestCredentials(AwsCredentials.create("foo", "bar"));
         try {
             sdb.listDomains(listDomainsRequest);
             fail("Expected an authentication exception from bogus request credentials.");

@@ -31,9 +31,9 @@ public class IntegrationTestBase extends AwsIntegrationTestBase {
     @BeforeClass
     public static void setUp() throws IOException {
         System.setProperty("software.amazon.awssdk.sdk.disableCertChecking", "true");
-        cloudTrail = CloudTrailClient.builder().credentialsProvider(new StaticCredentialsProvider(getCredentials())).build();
+        cloudTrail = CloudTrailClient.builder().credentialsProvider(StaticCredentialsProvider.create(getCredentials())).build();
         s3 = S3Client.builder()
-                     .credentialsProvider(new StaticCredentialsProvider(getCredentials()))
+                     .credentialsProvider(StaticCredentialsProvider.create(getCredentials()))
                      .region(region)
                      .build();
     }

@@ -23,6 +23,14 @@ import software.amazon.awssdk.utils.SystemSetting;
  * aws.sessionToken system properties.
  */
 public class SystemPropertyCredentialsProvider extends SystemSettingsCredentialsProvider {
+
+    private SystemPropertyCredentialsProvider() {
+    }
+
+    public static SystemPropertyCredentialsProvider create() {
+        return new SystemPropertyCredentialsProvider();
+    }
+
     @Override
     protected Optional<String> loadSetting(SystemSetting setting) {
         // CHECKSTYLE:OFF - Customers should be able to specify a credentials provider that only looks at the system properties,

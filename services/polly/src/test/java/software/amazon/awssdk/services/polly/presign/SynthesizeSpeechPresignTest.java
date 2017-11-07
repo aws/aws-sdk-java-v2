@@ -53,8 +53,8 @@ public class SynthesizeSpeechPresignTest {
 
     private static final SdkClock CLOCK = new SdkClock.MockClock(SIGNER_DATE);
 
-    private static final AwsCredentialsProvider CREDENTIALS = new StaticCredentialsProvider(
-            new AwsCredentials("akid", "skid"));
+    private static final AwsCredentialsProvider CREDENTIALS = StaticCredentialsProvider.create(
+            AwsCredentials.create("akid", "skid"));
 
     private PollyClientPresigners presigners;
 
@@ -82,7 +82,7 @@ public class SynthesizeSpeechPresignTest {
         final Aws4Signer signer = new Aws4Signer(CLOCK);
         signer.setOverrideDate(SIGNER_DATE);
         signer.setServiceName("polly");
-        return new StaticSignerProvider(signer);
+        return StaticSignerProvider.create(signer);
     }
 
     /**

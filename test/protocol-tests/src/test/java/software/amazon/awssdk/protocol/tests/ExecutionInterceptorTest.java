@@ -467,7 +467,7 @@ public class ExecutionInterceptorTest {
     private <T extends ClientBuilder<?, U>, U> U initializeAndBuild(T builder, ExecutionInterceptor interceptor) {
         return builder.region(Region.US_WEST_1)
                       .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                      .credentialsProvider(new StaticCredentialsProvider(new AwsCredentials("akid", "skid")))
+                      .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
                       .overrideConfiguration(ClientOverrideConfiguration.builder()
                                                                         .addLastExecutionInterceptor(interceptor)
                                                                         .build())

@@ -47,9 +47,13 @@ public final class PresignerFacade {
     private final AwsCredentialsProvider credentialsProvider;
     private final SignerProvider signerProvider;
 
-    public PresignerFacade(PresignerParams presignerParams) {
+    private PresignerFacade(PresignerParams presignerParams) {
         this.credentialsProvider = presignerParams.credentialsProvider();
         this.signerProvider = presignerParams.signerProvider();
+    }
+
+    public static PresignerFacade create(PresignerParams presignerParams) {
+        return new PresignerFacade(presignerParams);
     }
 
     @ReviewBeforeRelease("Can this be cleaned up with the signer refactor?")

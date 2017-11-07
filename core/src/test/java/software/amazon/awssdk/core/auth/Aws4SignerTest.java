@@ -129,7 +129,7 @@ public class Aws4SignerTest {
      */
     @Test
     public void testAnonymous() throws Exception {
-        AwsCredentials credentials = new AnonymousCredentialsProvider().getCredentials();
+        AwsCredentials credentials = AnonymousCredentialsProvider.create().getCredentials();
         SdkHttpFullRequest request = generateBasicRequest().build();
 
         Calendar c = new GregorianCalendar();

@@ -28,8 +28,12 @@ public class StaticSignerProvider extends SignerProvider {
 
     private final Signer signer;
 
-    public StaticSignerProvider(Signer signer) {
+    private StaticSignerProvider(Signer signer) {
         this.signer = signer;
+    }
+
+    public static StaticSignerProvider create(Signer signer) {
+        return new StaticSignerProvider(signer);
     }
 
     @Override

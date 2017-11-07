@@ -68,7 +68,7 @@ public class QueryStringSignerTest {
                                                        .rawQueryParameter("foo", "bar")
                                                        .build();
 
-        request = SignerTestUtils.signRequest(signer, request, new AnonymousCredentialsProvider().getCredentials());
+        request = SignerTestUtils.signRequest(signer, request, AnonymousCredentialsProvider.create().getCredentials());
 
         assertNull(request.rawQueryParameters().get("Signature"));
     }

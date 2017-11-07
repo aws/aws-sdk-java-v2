@@ -236,7 +236,7 @@ public abstract class DefaultClientBuilder<B extends ClientBuilder<B, C>, C>
              */
             @Override
             protected AwsCredentialsProvider getCredentialsDefault() {
-                return new DefaultCredentialsProvider();
+                return DefaultCredentialsProvider.create();
             }
 
             /**

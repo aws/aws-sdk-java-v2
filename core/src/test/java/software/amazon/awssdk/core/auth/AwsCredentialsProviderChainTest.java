@@ -18,10 +18,6 @@ package software.amazon.awssdk.core.auth;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.auth.AwsCredentialsProviderChain;
-import software.amazon.awssdk.core.auth.ProfileCredentialsProvider;
-import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
 
 public class AwsCredentialsProviderChainTest {
 
@@ -95,12 +91,13 @@ public class AwsCredentialsProviderChainTest {
     }
 
 
-    private static final class MockCredentialsProvider extends StaticCredentialsProvider {
+    private static final class MockCredentialsProvider implements AwsCredentialsProvider  {
+        private final StaticCredentialsProvider staticCredentialsProvider;
         public int getCredentialsCallCount = 0;
         public boolean throwException = false;
 
-        public MockCredentialsProvider() {
-            super(new AwsCredentials("accessKey", "secretKey"));
+        private MockCredentialsProvider() {
+            staticCredentialsProvider = StaticCredentialsProvider.create(AwsCredentials.create("accessKey", "secretKey"));
         }
 
         @Override
@@ -110,7 +107,7 @@ public class AwsCredentialsProviderChainTest {
             if (throwException) {
                 throw new RuntimeException("No credentials");
             } else {
-                return super.getCredentials();
+                return staticCredentialsProvider.getCredentials();
             }
         }
     }

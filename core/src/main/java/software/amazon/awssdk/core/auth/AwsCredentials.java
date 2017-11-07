@@ -51,7 +51,7 @@ public class AwsCredentials {
      * @param accessKeyId The AWS access key, used to identify the user interacting with AWS.
      * @param secretAccessKey The AWS secret access key, used to authenticate the user interacting with AWS.
      */
-    public AwsCredentials(String accessKeyId, String secretAccessKey) {
+    protected AwsCredentials(String accessKeyId, String secretAccessKey) {
         this(accessKeyId, secretAccessKey, true);
     }
 
@@ -63,6 +63,16 @@ public class AwsCredentials {
             Validate.notNull(this.accessKeyId, "Access key ID cannot be blank.");
             Validate.notNull(this.secretAccessKey, "Secret access key cannot be blank.");
         }
+    }
+
+    /**
+     * Constructs a new credentials object, with the specified AWS access key, AWS secret key and AWS session token.
+     *
+     * @param accessKeyId The AWS access key, used to identify the user interacting with AWS.
+     * @param secretAccessKey The AWS secret access key, used to authenticate the user interacting with AWS.
+     * */
+    public static AwsCredentials create(String accessKeyId, String secretAccessKey) {
+        return new AwsCredentials(accessKeyId, secretAccessKey);
     }
 
     /**

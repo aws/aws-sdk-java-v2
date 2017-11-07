@@ -49,7 +49,7 @@ public class GlobalClientConfigurationDefaultsTest {
 
             @Override
             protected AwsCredentialsProvider getCredentialsDefault() {
-                return new AnonymousCredentialsProvider();
+                return AnonymousCredentialsProvider.create();
             }
 
             @Override

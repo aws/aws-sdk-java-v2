@@ -37,7 +37,7 @@ public class ProfileStaticCredentialsProvider implements AwsCredentialsProvider 
 
     public ProfileStaticCredentialsProvider(BasicProfile profile) {
         this.profile = profile;
-        this.credentialsProvider = new StaticCredentialsProvider(fromStaticCredentials());
+        this.credentialsProvider = StaticCredentialsProvider.create(fromStaticCredentials());
     }
 
     @Override
@@ -63,8 +63,8 @@ public class ProfileStaticCredentialsProvider implements AwsCredentialsProvider 
         }
 
         if (profile.getAwsSessionToken() == null) {
-            return new AwsCredentials(profile.getAwsAccessIdKey(),
-                                      profile.getAwsSecretAccessKey());
+            return AwsCredentials.create(profile.getAwsAccessIdKey(),
+                                         profile.getAwsSecretAccessKey());
         } else {
             if (profile.getAwsSessionToken().isEmpty()) {
                 throw new SdkClientException(String.format(
@@ -72,7 +72,7 @@ public class ProfileStaticCredentialsProvider implements AwsCredentialsProvider 
                         profile.getProfileName()));
             }
 
-            return new AwsSessionCredentials(profile.getAwsAccessIdKey(),
+            return AwsSessionCredentials.create(profile.getAwsAccessIdKey(),
                                              profile.getAwsSecretAccessKey(),
                                              profile.getAwsSessionToken());
         }

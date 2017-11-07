@@ -75,7 +75,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
      */
     @BeforeClass
     public static void setUp() throws IOException {
-        cloudwatch = CloudWatchClient.builder().credentialsProvider(new StaticCredentialsProvider(getCredentials())).build();
+        cloudwatch = CloudWatchClient.builder().credentialsProvider(StaticCredentialsProvider.create(getCredentials())).build();
     }
 
     /**
@@ -355,7 +355,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
         SdkGlobalTime.setGlobalTimeOffset(3600);
 
         CloudWatchClient cloudwatch = CloudWatchClient.builder()
-                .credentialsProvider(new StaticCredentialsProvider(getCredentials()))
+                .credentialsProvider(StaticCredentialsProvider.create(getCredentials()))
                 .build();
         cloudwatch.listMetrics(ListMetricsRequest.builder().build());
         assertTrue(SdkGlobalTime.getGlobalTimeOffset() < 3600);

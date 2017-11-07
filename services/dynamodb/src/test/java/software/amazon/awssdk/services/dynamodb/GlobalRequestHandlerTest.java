@@ -40,7 +40,7 @@ public class GlobalRequestHandlerTest {
     public void clientCreatedWithConstructor_RegistersGlobalHandlers() {
         assertFalse(TestGlobalExecutionInterceptor.wasCalled());
         DynamoDBClient client = DynamoDBClient.builder()
-                .credentialsProvider(new StaticCredentialsProvider(new AwsCredentials("akid", "skid")))
+                .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
                 .region(Region.US_WEST_2)
                 .build();
         callApi(client);
@@ -52,7 +52,7 @@ public class GlobalRequestHandlerTest {
     public void clientCreatedWithBuilder_RegistersGlobalHandlers() {
         assertFalse(TestGlobalExecutionInterceptor.wasCalled());
         DynamoDBClient client = DynamoDBClient.builder()
-                .credentialsProvider(new StaticCredentialsProvider(new AwsCredentials("akid", "skid")))
+                .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
                 .region(Region.US_WEST_2)
                 .build();
         callApi(client);

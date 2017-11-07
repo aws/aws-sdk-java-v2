@@ -26,7 +26,7 @@ public class ProfilesConfigFileTest {
     // https://github.com/aws/aws-sdk-java/issues/812
     @Test(expected = IllegalArgumentException.class)
     public void file_is_null_throws_exception() {
-        new ProfilesConfigFile((File) null);
+        ProfilesConfigFile.create((File) null);
     }
 
 }

@@ -206,7 +206,7 @@ public final class ProfilesConfigFileWriter {
             }
 
             // Make sure the output is valid and can be loaded by the loader
-            new ProfilesConfigFile(destination);
+            ProfilesConfigFile.create(destination);
 
             if (inPlaceModify && !stashLocation.delete()) {
                 if (LOG.isDebugEnabled()) {
