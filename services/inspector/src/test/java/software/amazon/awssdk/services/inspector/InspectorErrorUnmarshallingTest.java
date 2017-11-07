@@ -39,7 +39,7 @@ public class InspectorErrorUnmarshallingTest {
 
     @Before
     public void setup() {
-        StaticCredentialsProvider credsProvider = new StaticCredentialsProvider(new AwsCredentials("akid", "skid"));
+        StaticCredentialsProvider credsProvider = StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid"));
         inspector = InspectorClient.builder()
                                    .credentialsProvider(credsProvider)
                                    .region(Region.US_EAST_1)

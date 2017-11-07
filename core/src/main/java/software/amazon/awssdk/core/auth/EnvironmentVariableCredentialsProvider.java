@@ -23,6 +23,14 @@ import software.amazon.awssdk.utils.SystemSetting;
  * AWS_SESSION_TOKEN environment variables.
  */
 public class EnvironmentVariableCredentialsProvider extends SystemSettingsCredentialsProvider {
+
+    private EnvironmentVariableCredentialsProvider() {
+    }
+
+    public static EnvironmentVariableCredentialsProvider create() {
+        return new EnvironmentVariableCredentialsProvider();
+    }
+
     @Override
     protected Optional<String> loadSetting(SystemSetting setting) {
         // CHECKSTYLE:OFF - Customers should be able to specify a credentials provider that only looks at the environment

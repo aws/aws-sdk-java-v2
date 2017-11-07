@@ -20,6 +20,14 @@ package software.amazon.awssdk.core.auth;
  * requests and will fail unless the resource or API's policy has been configured to specifically allow anonymous access.
  */
 public class AnonymousCredentialsProvider implements AwsCredentialsProvider {
+
+    private AnonymousCredentialsProvider() {
+    }
+
+    public static AnonymousCredentialsProvider create() {
+        return new AnonymousCredentialsProvider();
+    }
+
     @Override
     public AwsCredentials getCredentials() {
         return AwsCredentials.ANONYMOUS_CREDENTIALS;

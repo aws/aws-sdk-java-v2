@@ -316,12 +316,12 @@ public abstract class AbstractAwsSigner implements Signer {
 
         if (credentials instanceof AwsSessionCredentials) {
             AwsSessionCredentials sessionCredentials = (AwsSessionCredentials) credentials;
-            return new AwsSessionCredentials(accessKeyId,
-                                             secretKey,
-                                             StringUtils.trim(sessionCredentials.sessionToken()));
+            return AwsSessionCredentials.create(accessKeyId,
+                                                secretKey,
+                                                StringUtils.trim(sessionCredentials.sessionToken()));
         }
 
-        return new AwsCredentials(accessKeyId, secretKey);
+        return AwsCredentials.create(accessKeyId, secretKey);
     }
 
     /**

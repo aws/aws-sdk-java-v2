@@ -182,7 +182,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         return CodeBlock.of("$T signer = new $T();\n" +
                             "signer.setServiceName($S);\n" +
                             "signer.setRegionName(signingRegion().value());\n" +
-                            "return new $T(signer);\n",
+                            "return $T.create(signer);\n",
                             Aws4Signer.class,
                             Aws4Signer.class,
                             model.getMetadata().getSigningName(),
@@ -190,7 +190,7 @@ public class BaseClientBuilderClass implements ClassSpec {
     }
 
     private CodeBlock v2SignerDefinitionMethodBody() {
-        return CodeBlock.of("return new $T(new $T());\n",
+        return CodeBlock.of("return $T.create(new $T());\n",
                             StaticSignerProvider.class,
                             QueryStringSigner.class);
     }
@@ -199,7 +199,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         return CodeBlock.of("$T signer = new $T();\n" +
                             "signer.setServiceName(\"$L\");\n" +
                             "signer.setRegionName(signingRegion().value());\n" +
-                            "return new $T(signer);\n",
+                            "return $T.create(signer);\n",
                             ClassName.get("software.amazon.awssdk.services.s3", "AwsS3V4Signer"),
                             ClassName.get("software.amazon.awssdk.services.s3", "AwsS3V4Signer"),
                             model.getMetadata().getSigningName(),

@@ -354,7 +354,7 @@ public class RoleInfo implements Cloneable {
      *         chained together.
      */
     public RoleInfo withLongLivedCredentials(AwsCredentials longLivedCredentials) {
-        setLongLivedCredentialsProvider(new StaticCredentialsProvider(longLivedCredentials));
+        setLongLivedCredentialsProvider(StaticCredentialsProvider.create(longLivedCredentials));
         return this;
     }
 

@@ -40,7 +40,7 @@ import software.amazon.awssdk.services.cloudsearchdomain.model.SearchRequest;
  * Unit tests for {@link SearchRequest}.
  */
 public class SearchRequestUnitTest {
-    private static final AwsCredentials CREDENTIALS = new AwsCredentials("access", "secret");
+    private static final AwsCredentials CREDENTIALS = AwsCredentials.create("access", "secret");
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(new WireMockConfiguration().port(0).notifier(new ConsoleNotifier(true)));
@@ -50,7 +50,7 @@ public class SearchRequestUnitTest {
     @Before
     public void testSetup() {
         searchClient = CloudSearchDomainClient.builder()
-                                              .credentialsProvider(new StaticCredentialsProvider(CREDENTIALS))
+                                              .credentialsProvider(StaticCredentialsProvider.create(CREDENTIALS))
                                               .region(Region.US_EAST_1)
                                               .endpointOverride(URI.create("http://localhost:" + wireMockRule.port()))
                                               .build();

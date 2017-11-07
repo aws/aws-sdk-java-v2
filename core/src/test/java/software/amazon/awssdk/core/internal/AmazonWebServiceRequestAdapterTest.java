@@ -132,7 +132,7 @@ public class AmazonWebServiceRequestAdapterTest {
     @Test
     public void customCredentialsSetInBaseRequest_IsSetOnAdapter() {
         EmptyAmazonWebServiceRequest request = new EmptyAmazonWebServiceRequest();
-        AwsCredentials credentials = new AwsCredentials("akid", "skid");
+        AwsCredentials credentials = AwsCredentials.create("akid", "skid");
         request.setRequestCredentials(credentials);
         AmazonWebServiceRequestAdapter adapter = new AmazonWebServiceRequestAdapter(request);
 

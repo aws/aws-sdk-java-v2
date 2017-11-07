@@ -61,7 +61,7 @@ public class AsyncClientHandlerImplTest {
     @Mock
     private AwsCredentialsProvider credentialsProvider;
 
-    private AwsCredentials awsCredentials = new AwsCredentials("public", "private");
+    private AwsCredentials awsCredentials = AwsCredentials.create("public", "private");
 
     @Mock
     private AmazonWebServiceRequest request;

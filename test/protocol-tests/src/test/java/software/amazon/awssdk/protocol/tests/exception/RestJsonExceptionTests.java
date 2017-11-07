@@ -53,7 +53,7 @@ public class RestJsonExceptionTests {
     @Before
     public void setupClient() {
         client = ProtocolRestJsonClient.builder()
-                                       .credentialsProvider(new StaticCredentialsProvider(new AwsCredentials("akid", "skid")))
+                                       .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
                                        .region(Region.US_EAST_1)
                                        .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                        .build();

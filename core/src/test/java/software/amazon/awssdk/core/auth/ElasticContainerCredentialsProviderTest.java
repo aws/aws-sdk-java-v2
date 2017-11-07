@@ -65,7 +65,7 @@ public class ElasticContainerCredentialsProviderTest {
     @Test(expected = SdkClientException.class)
     public void testEnvVariableNotSet() {
         helper.remove(AwsSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI);
-        new ElasticContainerCredentialsProvider().getCredentials();
+        ElasticContainerCredentialsProvider.create().getCredentials();
     }
 
     /**

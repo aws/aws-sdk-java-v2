@@ -39,27 +39,27 @@ public class ProfileCredentialsProvider extends FileSystemCredentialsProvider {
     private final String profileName;
 
     /**
-     * Create a {@link ProfileCredentialsProvider} using the default profile and configuration file. Use {@link #builder()} for
-     * defining a custom {@link ProfileCredentialsProvider}.
-     */
-    public ProfileCredentialsProvider() {
-        this(new Builder());
-    }
-
-    /**
      * @see #builder()
      */
     private ProfileCredentialsProvider(Builder builder) {
         if (builder.profilesConfigFile == null) {
             Validate.notNull(builder.profileFileLocationProvider, "Profile file location provider must not be null.");
             File defaultProfileFile = builder.profileFileLocationProvider.getLocation();
-            this.profilesConfigFile = defaultProfileFile == null ? null : new ProfilesConfigFile(defaultProfileFile);
+            this.profilesConfigFile = defaultProfileFile == null ? null : ProfilesConfigFile.create(defaultProfileFile);
         } else {
             this.profilesConfigFile = builder.profilesConfigFile;
         }
 
         this.profileName = builder.profileName != null ? builder.profileName
                                                        : AwsSystemSetting.AWS_DEFAULT_PROFILE.getStringValueOrThrow();
+    }
+
+    /**
+     * Create a {@link ProfileCredentialsProvider} using the default profile and configuration file. Use {@link #builder()} for
+     * defining a custom {@link ProfileCredentialsProvider}.
+     */
+    public static ProfileCredentialsProvider create() {
+        return new ProfileCredentialsProvider(builder());
     }
 
     /**

@@ -54,7 +54,7 @@ public class AwsJsonCrc32ChecksumTests {
     private static final String JSON_BODY_EXTRA_DATA_GZIP_Crc32_CHECKSUM = "1561543715";
 
     private static final StaticCredentialsProvider FAKE_CREDENTIALS_PROVIDER =
-            new StaticCredentialsProvider(new AwsCredentials("foo", "bar"));
+            StaticCredentialsProvider.create(AwsCredentials.create("foo", "bar"));
 
     @Test
     public void clientCalculatesCrc32FromCompressedData_WhenCrc32IsValid() {

@@ -72,7 +72,7 @@ public class DynamoDbJavaClientExceptionIntegrationTest extends AwsTestBase {
 
 
         DynamoDBClient client = DynamoDBClient.builder().credentialsProvider(
-                new StaticCredentialsProvider(new AwsSessionCredentials(
+                StaticCredentialsProvider.create(AwsSessionCredentials.create(
                 creds.accessKeyId(),
                 creds.secretAccessKey(),
                 creds.sessionToken()))).build();
