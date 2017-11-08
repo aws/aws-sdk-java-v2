@@ -22,6 +22,7 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.SOCKET_TIME
 import io.netty.channel.EventLoopGroup;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -169,6 +170,16 @@ public final class NettySdkHttpClientFactory
          */
         Builder eventLoopGroupConfiguration(EventLoopGroupConfiguration eventLoopGroupConfiguration);
 
+        /**
+         * Configuration for the Netty {@link EventLoopGroup} which multiplexes IO events.
+         *
+         * @param eventLoopGroupConfiguration consumer that allows a {@link EventLoopGroupConfiguration.Builder} to be mutated.
+         * @return This builder for method chaining.
+         * @see #eventLoopGroupConfiguration(EventLoopGroupConfiguration)
+         */
+        default Builder eventLoopGroupConfiguration(Consumer<EventLoopGroupConfiguration.Builder> eventLoopGroupConfiguration) {
+            return eventLoopGroupConfiguration(EventLoopGroupConfiguration.builder().apply(eventLoopGroupConfiguration).build());
+        }
     }
 
     private static final class DefaultBuilder implements Builder {

@@ -124,6 +124,7 @@ public final class ClientAsyncHttpConfiguration
          */
         // This intentionally returns SdkBuilder so that only httpClient or httpClientFactory may be supplied.
         SdkBuilder<?, ClientAsyncHttpConfiguration> httpClientFactory(SdkAsyncHttpClientFactory sdkClientFactory);
+
     }
 
     /**
