@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -162,16 +163,16 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "NoRecurse":
-            return Optional.of(clazz.cast(noRecurse()));
-        case "RecursiveStruct":
-            return Optional.of(clazz.cast(recursiveStruct()));
-        case "RecursiveList":
-            return Optional.of(clazz.cast(recursiveList()));
-        case "RecursiveMap":
-            return Optional.of(clazz.cast(recursiveMap()));
-        default:
-            return Optional.empty();
+            case "NoRecurse":
+                return Optional.of(clazz.cast(noRecurse()));
+            case "RecursiveStruct":
+                return Optional.of(clazz.cast(recursiveStruct()));
+            case "RecursiveList":
+                return Optional.of(clazz.cast(recursiveList()));
+            case "RecursiveMap":
+                return Optional.of(clazz.cast(recursiveMap()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -199,6 +200,24 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder recursiveStruct(RecursiveStructType recursiveStruct);
+
+        /**
+         * Sets the value of the RecursiveStruct property for this object.
+         *
+         * This is a convenience that creates an instance of the {@link RecursiveStructType.Builder} avoiding the need
+         * to create one manually via {@link RecursiveStructType#builder()}.
+         *
+         * When the {@link Consumer} completes, {@link RecursiveStructType.Builder#build()} is called immediately and
+         * its result is passed to {@link #recursiveStruct(RecursiveStructType)}.
+         *
+         * @param recursiveStruct
+         *        a consumer that will call methods on {@link RecursiveStructType.Builder}
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #recursiveStruct(RecursiveStructType)
+         */
+        default Builder recursiveStruct(Consumer<Builder> recursiveStruct) {
+            return recursiveStruct(RecursiveStructType.builder().apply(recursiveStruct).build());
+        }
 
         /**
          * Sets the value of the RecursiveList property for this object.
