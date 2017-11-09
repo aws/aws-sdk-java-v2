@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Generated;
@@ -450,7 +451,8 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
      * Returns the value of the EnumType property for this object.
      * <p>
      * If the service returns an enum value that is not available in the current SDK version, {@link #enumType} will
-     * return {@link EnumType#UNKNOWN_TO_SDK_VERSION}. The raw value returned by the service is available from {@link #enumTypeString}.
+     * return {@link EnumType#UNKNOWN_TO_SDK_VERSION}. The raw value returned by the service is available from
+     * {@link #enumTypeString}.
      * </p>
      *
      * @return The value of the EnumType property for this object.
@@ -464,7 +466,8 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
      * Returns the value of the EnumType property for this object.
      * <p>
      * If the service returns an enum value that is not available in the current SDK version, {@link #enumType} will
-     * return {@link EnumType#UNKNOWN_TO_SDK_VERSION}. The raw value returned by the service is available from {@link #enumTypeString}.
+     * return {@link EnumType#UNKNOWN_TO_SDK_VERSION}. The raw value returned by the service is available from
+     * {@link #enumTypeString}.
      * </p>
      *
      * @return The value of the EnumType property for this object.
@@ -1064,6 +1067,24 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         Builder structWithNestedTimestampMember(StructWithTimestamp structWithNestedTimestampMember);
 
         /**
+         * Sets the value of the StructWithNestedTimestampMember property for this object.
+         *
+         * This is a convenience that creates an instance of the {@link StructWithTimestamp.Builder} avoiding the need
+         * to create one manually via {@link StructWithTimestamp#builder()}.
+         *
+         * When the {@link Consumer} completes, {@link StructWithTimestamp.Builder#build()} is called immediately and
+         * its result is passed to {@link #structWithNestedTimestampMember(StructWithTimestamp)}.
+         *
+         * @param structWithNestedTimestampMember
+         *        a consumer that will call methods on {@link StructWithTimestamp.Builder}
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #structWithNestedTimestampMember(StructWithTimestamp)
+         */
+        default Builder structWithNestedTimestampMember(Consumer<StructWithTimestamp.Builder> structWithNestedTimestampMember) {
+            return structWithNestedTimestampMember(StructWithTimestamp.builder().apply(structWithNestedTimestampMember).build());
+        }
+
+        /**
          * Sets the value of the BlobArg property for this object.
          * <p>
          * To preserve immutability, the remaining bytes in the provided buffer will be copied into a new buffer when
@@ -1084,6 +1105,24 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder structWithNestedBlob(StructWithNestedBlobType structWithNestedBlob);
+
+        /**
+         * Sets the value of the StructWithNestedBlob property for this object.
+         *
+         * This is a convenience that creates an instance of the {@link StructWithNestedBlobType.Builder} avoiding the
+         * need to create one manually via {@link StructWithNestedBlobType#builder()}.
+         *
+         * When the {@link Consumer} completes, {@link StructWithNestedBlobType.Builder#build()} is called immediately
+         * and its result is passed to {@link #structWithNestedBlob(StructWithNestedBlobType)}.
+         *
+         * @param structWithNestedBlob
+         *        a consumer that will call methods on {@link StructWithNestedBlobType.Builder}
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #structWithNestedBlob(StructWithNestedBlobType)
+         */
+        default Builder structWithNestedBlob(Consumer<StructWithNestedBlobType.Builder> structWithNestedBlob) {
+            return structWithNestedBlob(StructWithNestedBlobType.builder().apply(structWithNestedBlob).build());
+        }
 
         /**
          * Sets the value of the BlobMap property for this object.
@@ -1122,6 +1161,24 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         Builder recursiveStruct(RecursiveStructType recursiveStruct);
 
         /**
+         * Sets the value of the RecursiveStruct property for this object.
+         *
+         * This is a convenience that creates an instance of the {@link RecursiveStructType.Builder} avoiding the need
+         * to create one manually via {@link RecursiveStructType#builder()}.
+         *
+         * When the {@link Consumer} completes, {@link RecursiveStructType.Builder#build()} is called immediately and
+         * its result is passed to {@link #recursiveStruct(RecursiveStructType)}.
+         *
+         * @param recursiveStruct
+         *        a consumer that will call methods on {@link RecursiveStructType.Builder}
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #recursiveStruct(RecursiveStructType)
+         */
+        default Builder recursiveStruct(Consumer<RecursiveStructType.Builder> recursiveStruct) {
+            return recursiveStruct(RecursiveStructType.builder().apply(recursiveStruct).build());
+        }
+
+        /**
          * Sets the value of the PolymorphicTypeWithSubTypes property for this object.
          *
          * @param polymorphicTypeWithSubTypes
@@ -1131,6 +1188,24 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         Builder polymorphicTypeWithSubTypes(BaseType polymorphicTypeWithSubTypes);
 
         /**
+         * Sets the value of the PolymorphicTypeWithSubTypes property for this object.
+         *
+         * This is a convenience that creates an instance of the {@link BaseType.Builder} avoiding the need to create
+         * one manually via {@link BaseType#builder()}.
+         *
+         * When the {@link Consumer} completes, {@link BaseType.Builder#build()} is called immediately and its result is
+         * passed to {@link #polymorphicTypeWithSubTypes(BaseType)}.
+         *
+         * @param polymorphicTypeWithSubTypes
+         *        a consumer that will call methods on {@link BaseType.Builder}
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #polymorphicTypeWithSubTypes(BaseType)
+         */
+        default Builder polymorphicTypeWithSubTypes(Consumer<BaseType.Builder> polymorphicTypeWithSubTypes) {
+            return polymorphicTypeWithSubTypes(BaseType.builder().apply(polymorphicTypeWithSubTypes).build());
+        }
+
+        /**
          * Sets the value of the PolymorphicTypeWithoutSubTypes property for this object.
          *
          * @param polymorphicTypeWithoutSubTypes
@@ -1138,6 +1213,24 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder polymorphicTypeWithoutSubTypes(SubTypeOne polymorphicTypeWithoutSubTypes);
+
+        /**
+         * Sets the value of the PolymorphicTypeWithoutSubTypes property for this object.
+         *
+         * This is a convenience that creates an instance of the {@link SubTypeOne.Builder} avoiding the need to create
+         * one manually via {@link SubTypeOne#builder()}.
+         *
+         * When the {@link Consumer} completes, {@link SubTypeOne.Builder#build()} is called immediately and its result
+         * is passed to {@link #polymorphicTypeWithoutSubTypes(SubTypeOne)}.
+         *
+         * @param polymorphicTypeWithoutSubTypes
+         *        a consumer that will call methods on {@link SubTypeOne.Builder}
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #polymorphicTypeWithoutSubTypes(SubTypeOne)
+         */
+        default Builder polymorphicTypeWithoutSubTypes(Consumer<SubTypeOne.Builder> polymorphicTypeWithoutSubTypes) {
+            return polymorphicTypeWithoutSubTypes(SubTypeOne.builder().apply(polymorphicTypeWithoutSubTypes).build());
+        }
 
         /**
          * Sets the value of the EnumType property for this object.
@@ -1545,7 +1638,7 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
 
         public final void setStructWithNestedTimestampMember(StructWithTimestamp.BuilderImpl structWithNestedTimestampMember) {
             this.structWithNestedTimestampMember = structWithNestedTimestampMember != null ? structWithNestedTimestampMember
-                    .build() : null;
+                .build() : null;
         }
 
         public final ByteBuffer getBlobArg() {
