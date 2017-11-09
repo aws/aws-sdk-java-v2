@@ -49,17 +49,17 @@ class ListSetters extends AbstractMemberSetters {
 
         String setterDocumentation = memberModel().getFluentSetterDocumentation();
 
-        fluentDeclarations.add(fluentSetterDeclaration(memberAsParameter(), returnType)
+        fluentDeclarations.add(fluentAbstractSetterDeclaration(memberAsParameter(), returnType)
                 .addJavadoc("$L", setterDocumentation)
                 .build());
 
-        fluentDeclarations.add(fluentSetterDeclaration(ParameterSpec.builder(asArray(), fieldName()).build(), returnType)
+        fluentDeclarations.add(fluentAbstractSetterDeclaration(ParameterSpec.builder(asArray(), fieldName()).build(), returnType)
                 .addJavadoc("$L", setterDocumentation)
                 .varargs(true)
                 .build());
 
         if (memberModel().getEnumType() != null) {
-            fluentDeclarations.add(fluentSetterDeclaration(ParameterSpec.builder(
+            fluentDeclarations.add(fluentAbstractSetterDeclaration(ParameterSpec.builder(
                     asArrayOfModeledEnum(), fieldName()).build(), returnType)
                     .varargs(true)
                     .addJavadoc("$L", setterDocumentation)
