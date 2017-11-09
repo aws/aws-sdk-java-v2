@@ -15,7 +15,7 @@
 
 package utils.resources;
 
-import software.amazon.awssdk.AmazonClientException;
+import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.utils.Logger;
 import utils.resources.RequiredResources.ResourceCreationPolicy;
 import utils.resources.TestResource.ResourceStatus;

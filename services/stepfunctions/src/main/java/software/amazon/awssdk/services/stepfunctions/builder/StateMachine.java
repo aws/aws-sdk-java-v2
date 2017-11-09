@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import software.amazon.awssdk.SdkClientException;
+import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.services.stepfunctions.builder.internal.Buildable;
 import software.amazon.awssdk.services.stepfunctions.builder.internal.DateModule;
 import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;

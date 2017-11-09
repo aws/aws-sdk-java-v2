@@ -17,10 +17,12 @@ package software.amazon.awssdk.services.kinesis;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.services.kinesis.model.CreateStreamRequest;
 import software.amazon.awssdk.services.kinesis.model.DeleteStreamRequest;
 import software.amazon.awssdk.services.kinesis.model.DescribeStreamRequest;
@@ -44,6 +46,7 @@ import software.amazon.awssdk.services.kinesis.model.ShardIteratorType;
 import software.amazon.awssdk.services.kinesis.model.SplitShardRequest;
 import software.amazon.awssdk.services.kinesis.model.StreamDescription;
 import software.amazon.awssdk.services.kinesis.model.StreamStatus;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 public class KinesisIntegrationTests extends AbstractTestCase {
 
@@ -225,10 +228,13 @@ public class KinesisIntegrationTests extends AbstractTestCase {
         Assert.assertNotNull(record.sequenceNumber());
         new BigInteger(record.sequenceNumber());
 
-        String value = new String(record.data().array());
+        String value = new String(BinaryUtils.copyBytesFrom(record.data()));
         Assert.assertEquals(data, value);
 
         Assert.assertNotNull(record.partitionKey());
+
+        // The timestamp should be relatively recent
+        Assert.assertTrue(Duration.between(record.approximateArrivalTimestamp(), Instant.now()).toMinutes() < 5);
     }
 
     private void testPuts(final String streamName, final Shard shard)
@@ -457,8 +463,7 @@ public class KinesisIntegrationTests extends AbstractTestCase {
             Assert.assertNotNull(description.streamARN());
             Assert.assertFalse(description.hasMoreShards());
 
-            StreamStatus status =
-                    StreamStatus.valueOf(description.streamStatus());
+            StreamStatus status = description.streamStatus();
             Assert.assertNotNull(status);
 
             if (status == StreamStatus.ACTIVE) {

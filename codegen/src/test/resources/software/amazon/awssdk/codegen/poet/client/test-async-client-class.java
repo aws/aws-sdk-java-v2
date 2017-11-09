@@ -2,20 +2,20 @@ package software.amazon.awssdk.services.json;
 
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Generated;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.async.AsyncRequestProvider;
-import software.amazon.awssdk.async.AsyncResponseHandler;
-import software.amazon.awssdk.client.AsyncClientHandler;
-import software.amazon.awssdk.client.ClientExecutionParams;
-import software.amazon.awssdk.client.SdkAsyncClientHandler;
-import software.amazon.awssdk.config.AsyncClientConfiguration;
-import software.amazon.awssdk.http.HttpResponseHandler;
-import software.amazon.awssdk.protocol.json.JsonClientMetadata;
-import software.amazon.awssdk.protocol.json.JsonErrorResponseMetadata;
-import software.amazon.awssdk.protocol.json.JsonErrorShapeMetadata;
-import software.amazon.awssdk.protocol.json.JsonOperationMetadata;
-import software.amazon.awssdk.protocol.json.SdkJsonProtocolFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.async.AsyncRequestProvider;
+import software.amazon.awssdk.core.async.AsyncResponseHandler;
+import software.amazon.awssdk.core.client.AsyncClientHandler;
+import software.amazon.awssdk.core.client.ClientExecutionParams;
+import software.amazon.awssdk.core.client.SdkAsyncClientHandler;
+import software.amazon.awssdk.core.config.AsyncClientConfiguration;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
+import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
+import software.amazon.awssdk.core.protocol.json.JsonErrorShapeMetadata;
+import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
+import software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -260,7 +260,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         clientHandler.close();
     }
 
-    private software.amazon.awssdk.protocol.json.SdkJsonProtocolFactory init() {
+    private software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory init() {
         return new SdkJsonProtocolFactory(new JsonClientMetadata()
                                                   .withProtocolVersion("1.1")
                                                   .withSupportsCbor(false)

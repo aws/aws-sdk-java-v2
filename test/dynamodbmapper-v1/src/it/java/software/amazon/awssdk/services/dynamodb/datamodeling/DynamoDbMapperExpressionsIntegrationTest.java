@@ -22,6 +22,8 @@ import java.io.IOException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.core.util.ImmutableMapParameter;
+import software.amazon.awssdk.core.util.ImmutableMapParameter.Builder;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -39,9 +41,7 @@ import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ResourceInUseException;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
-import software.amazon.awssdk.test.AwsTestBase;
-import software.amazon.awssdk.util.ImmutableMapParameter;
-import software.amazon.awssdk.util.ImmutableMapParameter.Builder;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class DynamoDbMapperExpressionsIntegrationTest extends AwsTestBase {
 

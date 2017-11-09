@@ -19,6 +19,7 @@ import java.util.Map;
 import software.amazon.awssdk.codegen.internal.ImmutableMapParameter;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.core.sync.StreamingResponseHandler;
 
 /**
  * Implementations of {@link OperationDocProvider} for sync client methods. This implementation is for the typical
@@ -40,7 +41,7 @@ class SyncOperationDocProvider extends OperationDocProvider {
             "Functional interface for processing the streamed response content. The unmarshalled %s " +
             "and an InputStream to the response content are provided as parameters to the callback. " +
             "The callback may return a transformed type which will be the return value of this method. " +
-            "See {@link software.amazon.awssdk.runtime.transform.StreamingResponseHandler} for details on " +
+            "See {@link " + StreamingResponseHandler.class.getName() + "} for details on " +
             "implementing this interface and for links to pre-canned implementations for common scenarios " +
             "like downloading to a file. ";
 
@@ -123,7 +124,7 @@ class SyncOperationDocProvider extends OperationDocProvider {
     }
 
     /**
-     * Provider for streaming output simple methods that return an {@link software.amazon.awssdk.sync.ResponseInputStream}
+     * Provider for streaming output simple methods that return an {@link software.amazon.awssdk.core.sync.ResponseInputStream}
      * containing response content and unmarshalled POJO. Only applicable to operations that have a streaming member in
      * the output shape.
      */

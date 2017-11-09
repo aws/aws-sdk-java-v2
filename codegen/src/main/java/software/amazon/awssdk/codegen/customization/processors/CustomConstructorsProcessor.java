@@ -88,7 +88,7 @@ final class CustomConstructorsProcessor implements CodegenCustomizationProcessor
                         throw new RuntimeException(
                                 "Not able to add constructor. Member "
                                 + argument
-                                + " doesnt have variable defined "
+                                + " doesn't have variable defined "
                                 + shapeName);
                     }
 

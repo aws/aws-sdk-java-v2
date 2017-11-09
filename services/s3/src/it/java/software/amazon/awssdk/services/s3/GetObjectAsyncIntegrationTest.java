@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 import static utils.S3TestUtils.assertMd5MatchesEtag;
 
 import java.io.File;
@@ -29,22 +30,22 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
-import software.amazon.awssdk.SdkResponse;
-import software.amazon.awssdk.async.AsyncResponseHandler;
-import software.amazon.awssdk.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.async.AsyncResponseHandler;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.util.ImmutableMapParameter;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
-import software.amazon.awssdk.interceptor.Context;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.test.util.RandomTempFile;
-import software.amazon.awssdk.util.ImmutableMapParameter;
+import software.amazon.awssdk.testutils.RandomTempFile;
 
 public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
 
-    private static final String BUCKET = getBucketName(GetObjectAsyncIntegrationTest.class);
+    private static final String BUCKET = temporaryBucketName(GetObjectAsyncIntegrationTest.class);
 
     private static final String KEY = "some-key";
 

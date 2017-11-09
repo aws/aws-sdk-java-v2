@@ -15,6 +15,7 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.File;
 import java.util.Date;
@@ -23,20 +24,18 @@ import java.util.Map;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.sync.RequestBody;
-import software.amazon.awssdk.test.util.RandomTempFile;
+import software.amazon.awssdk.testutils.RandomTempFile;
 
 public class UserMetadataIntegrationTest extends S3IntegrationTestBase {
 
     /**
      * The S3 bucket created and used by these tests.
      */
-    private static final String BUCKET_NAME = "user-metadata-integ-test-" + new Date().getTime();
+    private static final String BUCKET_NAME = temporaryBucketName("user-metadata-integ-test");
     /**
      * Length of the data uploaded to S3.
      */
@@ -52,12 +51,7 @@ public class UserMetadataIntegrationTest extends S3IntegrationTestBase {
      */
     @BeforeClass
     public static void initializeTestData() throws Exception {
-        s3.createBucket(CreateBucketRequest.builder()
-                                           .bucket(BUCKET_NAME)
-                                           .createBucketConfiguration(CreateBucketConfiguration.builder()
-                                                                                               .locationConstraint("us-west-2")
-                                                                                               .build())
-                                           .build());
+        createBucket(BUCKET_NAME);
 
         file = new RandomTempFile("user-metadata-integ-test-" + new Date().getTime(), CONTENT_LENGTH);
     }

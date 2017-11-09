@@ -15,9 +15,12 @@
 
 package software.amazon.awssdk.utils;
 
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
-public class NumericUtils {
+public final class NumericUtils {
+
+    private NumericUtils() {
+    }
 
     /**
      * Returns the {@code int} nearest in value to {@code value}.

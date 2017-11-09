@@ -20,15 +20,15 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.util.HashSet;
 import java.util.Set;
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.AmazonWebServiceResult;
-import software.amazon.awssdk.ResponseMetadata;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
-import software.amazon.awssdk.protocol.StructuredPojo;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AmazonWebServiceResult;
+import software.amazon.awssdk.core.ResponseMetadata;
+import software.amazon.awssdk.core.protocol.StructuredPojo;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 public class AwsShapePublicInterfaceProvider implements ShapeInterfaceProvider {

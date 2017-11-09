@@ -1,7 +1,8 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.util.Optional;
 import javax.annotation.Generated;
-import software.amazon.awssdk.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -9,7 +10,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public class StreamingInputOperationRequest extends AmazonWebServiceRequest implements
-                                                                            ToCopyableBuilder<StreamingInputOperationRequest.Builder, StreamingInputOperationRequest> {
+        ToCopyableBuilder<StreamingInputOperationRequest.Builder, StreamingInputOperationRequest> {
     private StreamingInputOperationRequest(BuilderImpl builder) {
     }
 
@@ -48,16 +49,22 @@ public class StreamingInputOperationRequest extends AmazonWebServiceRequest impl
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
+        StringBuilder sb = new StringBuilder("{");
+        if (sb.length() > 1) {
+            sb.setLength(sb.length() - 1);
+        }
         sb.append("}");
         return sb.toString();
+    }
+
+    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+        return Optional.empty();
     }
 
     public interface Builder extends CopyableBuilder<Builder, StreamingInputOperationRequest> {
     }
 
-    private static final class BuilderImpl implements Builder {
+    static final class BuilderImpl implements Builder {
         private BuilderImpl() {
         }
 

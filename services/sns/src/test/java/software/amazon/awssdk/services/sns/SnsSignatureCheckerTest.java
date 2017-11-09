@@ -24,8 +24,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import org.junit.Test;
-import software.amazon.awssdk.services.sns.util.SignatureChecker;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class SnsSignatureCheckerTest extends AwsTestBase {
 

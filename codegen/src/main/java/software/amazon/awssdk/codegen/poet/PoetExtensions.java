@@ -54,14 +54,6 @@ public class PoetExtensions {
     }
 
     /**
-     * @param className Simple name of class in waiters package.
-     * @return A Poet {@link ClassName} for the given class in the waiters package.
-     */
-    public ClassName getWaiterClass(String className) {
-        return ClassName.get(model.getMetadata().getFullWaitersPackageName(), className);
-    }
-
-    /**
      * @param className Simple name of class in base service package (i.e. software.amazon.awssdk.services.dynamodb).
      * @return A Poet {@link ClassName} for the given class in the base service package.
      */

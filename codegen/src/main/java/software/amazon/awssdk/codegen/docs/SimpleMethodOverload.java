@@ -39,7 +39,7 @@ public enum SimpleMethodOverload {
 
     /**
      * Simple method only for sync operations that have a streaming output. Takes a request object
-     * and returns an unmanaged {@link software.amazon.awssdk.sync.ResponseInputStream} to read the response
+     * and returns an unmanaged {@link software.amazon.awssdk.core.sync.ResponseInputStream} to read the response
      * contents.
      */
     INPUT_STREAM

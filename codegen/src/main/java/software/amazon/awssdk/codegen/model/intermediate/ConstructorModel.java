@@ -18,7 +18,7 @@ package software.amazon.awssdk.codegen.model.intermediate;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 @ReviewBeforeRelease("If we get rid of 'simple constructors' for simple models, this can be deleted.")
 public class ConstructorModel {

@@ -28,6 +28,9 @@ public class BucketUtils {
 
     private static final Pattern IP_ADDRESS_PATTERN = Pattern.compile("(\\d+\\.){3}\\d+");
 
+    private BucketUtils() {
+    }
+
     /**
      * Validates that the specified bucket name is valid for Amazon S3 V2 naming
      * (i.e. DNS addressable in virtual host style). Throws an

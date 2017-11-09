@@ -1,12 +1,12 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import static java.util.stream.Collectors.toMap;
+
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Generated;
-import software.amazon.awssdk.runtime.StandardMemberCopier;
 
 @Generated("software.amazon.awssdk:codegen")
 final class MapOfStringToListOfListOfStringsCopier {
@@ -15,14 +15,8 @@ final class MapOfStringToListOfListOfStringsCopier {
         if (mapOfStringToListOfListOfStringsParam == null) {
             return null;
         }
-        Map<String, List<List<String>>> mapOfStringToListOfListOfStringsParamCopy = new HashMap<>(
-                mapOfStringToListOfListOfStringsParam.size());
-        for (Map.Entry<String, ? extends Collection<? extends Collection<String>>> e : mapOfStringToListOfListOfStringsParam
-                .entrySet()) {
-            mapOfStringToListOfListOfStringsParamCopy.put(StandardMemberCopier.copy(e.getKey()),
-                    ListOfListOfStringsCopier.copy(e.getValue()));
-        }
+        Map<String, List<List<String>>> mapOfStringToListOfListOfStringsParamCopy = mapOfStringToListOfListOfStringsParam
+                .entrySet().stream().collect(toMap(Map.Entry::getKey, e -> ListOfListOfStringsCopier.copy(e.getValue())));
         return Collections.unmodifiableMap(mapOfStringToListOfListOfStringsParamCopy);
     }
 }
-

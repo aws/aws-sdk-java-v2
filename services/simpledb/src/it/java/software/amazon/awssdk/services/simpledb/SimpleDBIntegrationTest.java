@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.AfterClass;
 import org.junit.Test;
-import software.amazon.awssdk.auth.AwsCredentials;
+import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.services.simpledb.model.Attribute;
 import software.amazon.awssdk.services.simpledb.model.AttributeDoesNotExistException;
 import software.amazon.awssdk.services.simpledb.model.BatchDeleteAttributesRequest;

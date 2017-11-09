@@ -60,12 +60,15 @@
         "FloatMember":{"shape":"Float"},
         "DoubleMember":{"shape":"Double"},
         "LongMember":{"shape":"Long"},
+        "EnumMember":{"shape":"EnumType"},
         "SimpleList":{"shape":"ListOfStrings"},
+        "ListOfEnums":{"shape":"ListOfEnums"},
         "ListOfMaps":{"shape":"ListOfMapStringToString"},
         "ListOfStructs":{"shape":"ListOfSimpleStructs"},
         "MapOfStringToIntegerList":{"shape":"MapOfStringToIntegerList"},
         "MapOfStringToString":{"shape":"MapOfStringToString"},
         "MapOfStringToStruct":{"shape":"MapOfStringToSimpleStruct"},
+        "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"},
         "TimestampMember":{"shape":"Timestamp"},
         "StructWithNestedTimestampMember":{"shape":"StructWithTimestamp"},
         "BlobArg":{"shape":"BlobType"},
@@ -136,6 +139,10 @@
       "type":"list",
       "member":{"shape":"String"}
     },
+    "ListOfEnums":{
+      "type":"list",
+      "member":{"shape":"EnumType"}
+    },
     "Long":{"type":"long"},
     "MapOfStringToIntegerList":{
       "type":"map",
@@ -156,6 +163,11 @@
       "type":"map",
       "key":{"shape":"String"},
       "value":{"shape":"String"}
+    },
+    "MapOfEnumToEnum":{
+      "type":"map",
+      "key":{"shape":"EnumType"},
+      "value":{"shape":"EnumType"}
     },
     "NestedContainersStructure":{
       "type":"structure",
@@ -208,6 +220,12 @@
         "SubTypeOneMember":{"shape":"String"}
       }
     },
-    "Timestamp":{"type":"timestamp"}
+    "Timestamp":{"type":"timestamp"},
+    "EnumType": {
+      "type":"string",
+      "enum": [
+        "EnumValue1", "EnumValue2"
+      ]
+    }
   }
 }

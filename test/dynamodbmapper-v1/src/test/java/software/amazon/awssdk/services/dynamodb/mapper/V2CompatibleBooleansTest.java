@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.core.util.ImmutableMapParameter;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.ConversionSchema;
 import software.amazon.awssdk.services.dynamodb.datamodeling.ConversionSchemas;
@@ -47,7 +48,6 @@ import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
-import software.amazon.awssdk.util.ImmutableMapParameter;
 
 /**
  * The default converters should be able to unmarshall both V1 booleans (numeric 0/1) and native Dynamo booleans. When using the

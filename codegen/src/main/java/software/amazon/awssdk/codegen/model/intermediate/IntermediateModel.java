@@ -16,7 +16,6 @@
 package software.amazon.awssdk.codegen.model.intermediate;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +24,8 @@ import java.util.Collections;
 import java.util.Map;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
-import software.amazon.awssdk.util.ValidationUtils;
+import software.amazon.awssdk.core.AmazonWebServiceResult;
+import software.amazon.awssdk.core.ResponseMetadata;
 import software.amazon.awssdk.utils.IoUtils;
 
 public final class IntermediateModel {
@@ -47,9 +47,6 @@ public final class IntermediateModel {
 
     private final Map<String, AuthorizerModel> customAuthorizers;
 
-    @JsonIgnore
-    private final Map<String, WaiterDefinitionModel> waiters;
-
     @JsonCreator
     public IntermediateModel(
             @JsonProperty("metadata") Metadata metadata,
@@ -58,7 +55,7 @@ public final class IntermediateModel {
             @JsonProperty("customizationConfig") CustomizationConfig customizationConfig,
             @JsonProperty("serviceExamples") ServiceExamples examples) {
 
-        this(metadata, operations, shapes, customizationConfig, examples, Collections.emptyMap(), Collections.emptyMap());
+        this(metadata, operations, shapes, customizationConfig, examples, Collections.emptyMap());
     }
 
     public IntermediateModel(
@@ -67,14 +64,12 @@ public final class IntermediateModel {
             Map<String, ShapeModel> shapes,
             CustomizationConfig customizationConfig,
             ServiceExamples examples,
-            Map<String, WaiterDefinitionModel> waiters,
             Map<String, AuthorizerModel> customAuthorizers) {
         this.metadata = metadata;
         this.operations = operations;
         this.shapes = shapes;
         this.customizationConfig = customizationConfig;
         this.examples = examples;
-        this.waiters = ValidationUtils.assertNotNull(waiters, "waiters");
         this.customAuthorizers = customAuthorizers;
     }
 
@@ -104,10 +99,6 @@ public final class IntermediateModel {
 
     public ServiceExamples getExamples() {
         return examples;
-    }
-
-    public Map<String, WaiterDefinitionModel> getWaiters() {
-        return waiters;
     }
 
     /**
@@ -163,22 +154,19 @@ public final class IntermediateModel {
         return String.format("%d-%d", copyrightStartYear, currentYear);
     }
 
-    public boolean getHasWaiters() {
-        return waiters.size() > 0;
-    }
-
     public String getSdkBaseResponseFqcn() {
         if (metadata.getProtocol() == Protocol.API_GATEWAY) {
             return "software.amazon.awssdk.opensdk.BaseResult";
         } else {
-            return String.format("software.amazon.awssdk.AmazonWebServiceResult<%s>",
+            return String.format("%s<%s>",
+                                 AmazonWebServiceResult.class.getName(),
                                  getResponseMetadataClassName());
         }
     }
 
     private String getResponseMetadataClassName() {
         return customizationConfig.getCustomResponseMetadataClassName() == null ?
-               "software.amazon.awssdk.ResponseMetadata" :
+               ResponseMetadata.class.getName() :
                customizationConfig.getCustomResponseMetadataClassName();
     }
 

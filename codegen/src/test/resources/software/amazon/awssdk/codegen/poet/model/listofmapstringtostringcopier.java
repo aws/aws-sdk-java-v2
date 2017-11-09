@@ -1,6 +1,7 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.util.ArrayList;
+import static java.util.stream.Collectors.toList;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -13,11 +14,8 @@ final class ListOfMapStringToStringCopier {
         if (listOfMapStringToStringParam == null) {
             return null;
         }
-        List<Map<String, String>> listOfMapStringToStringParamCopy = new ArrayList<>(listOfMapStringToStringParam.size());
-        for (Map<String, String> e : listOfMapStringToStringParam) {
-            listOfMapStringToStringParamCopy.add(MapOfStringToStringCopier.copy(e));
-        }
+        List<Map<String, String>> listOfMapStringToStringParamCopy = listOfMapStringToStringParam.stream()
+                                                                                                 .map(MapOfStringToStringCopier::copy).collect(toList());
         return Collections.unmodifiableList(listOfMapStringToStringParamCopy);
     }
 }
-

@@ -25,20 +25,20 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.client.ClientExecutionParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
-import software.amazon.awssdk.http.HttpResponseHandler;
-import software.amazon.awssdk.protocol.json.JsonClientMetadata;
-import software.amazon.awssdk.protocol.json.JsonErrorResponseMetadata;
-import software.amazon.awssdk.protocol.json.JsonErrorShapeMetadata;
-import software.amazon.awssdk.protocol.json.JsonOperationMetadata;
-import software.amazon.awssdk.protocol.json.SdkJsonProtocolFactory;
-import software.amazon.awssdk.runtime.transform.StreamingRequestMarshaller;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.client.ClientExecutionParams;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
+import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
+import software.amazon.awssdk.core.protocol.json.JsonErrorShapeMetadata;
+import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
+import software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory;
+import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 
 public class JsonProtocolSpec implements ProtocolSpec {
 

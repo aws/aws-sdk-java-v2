@@ -26,7 +26,7 @@ import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
-import software.amazon.awssdk.runtime.StandardMemberCopier;
+import software.amazon.awssdk.core.runtime.StandardMemberCopier;
 
 public class ServiceModelCopiers {
     private final IntermediateModel intermediateModel;
@@ -43,10 +43,23 @@ public class ServiceModelCopiers {
         Map<ClassName, ClassSpec> memberSpecs = new HashMap<>();
         allShapeMembers().values().stream()
                 .filter(m -> !(canCopyReference(m) || canUseStandardCopier(m)))
-                .map(m -> new MemberCopierSpec(m, this, typeProvider))
+                .map(m -> new MemberCopierSpec(m, this, typeProvider, poetExtensions))
                 .forEach(spec -> memberSpecs.put(spec.className(), spec));
 
         return memberSpecs.values();
+    }
+
+    public boolean requiresBuilderCopier(MemberModel memberModel) {
+        if (memberModel.isList()) {
+            MemberModel type = memberModel.getListModel().getListMemberModel();
+            return type != null && type.hasBuilder();
+        }
+
+        if (memberModel.isMap()) {
+            MemberModel valueType = memberModel.getMapModel().getValueModel();
+            return valueType != null && valueType.hasBuilder();
+        }
+        return false;
     }
 
     public Optional<ClassName> copierClassFor(MemberModel memberModel) {
@@ -73,6 +86,10 @@ public class ServiceModelCopiers {
         return "copy";
     }
 
+    public String builderCopyMethodName() {
+        return "copyFromBuilder";
+    }
+
     private Map<String, MemberModel> allShapeMembers() {
         Map<String, MemberModel> shapeMembers = new HashMap<>();
         intermediateModel.getShapes().values().stream()
@@ -96,7 +113,7 @@ public class ServiceModelCopiers {
         } else if (memberModel.isMap()) {
             MapModel mapModel = memberModel.getMapModel();
             // NOTE: keys are always simple, so don't bother checking
-            if (!mapModel.isValueSimple()) {
+            if (!mapModel.getValueModel().isSimple()) {
                 MemberModel valueMember = mapModel.getValueModel();
                 allMembers.put(valueMember.getC2jShape(), valueMember);
                 putMembersOfMember(valueMember, allMembers);

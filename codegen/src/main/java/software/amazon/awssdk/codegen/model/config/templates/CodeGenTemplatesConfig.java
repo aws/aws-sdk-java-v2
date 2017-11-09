@@ -30,24 +30,10 @@ public class CodeGenTemplatesConfig {
 
     private TopLevelTemplate syncClientBuilder = new TopLevelTemplate("/templates/common/SyncClientBuilder.ftl", null);
     private TopLevelTemplate asyncClientBuilder = new TopLevelTemplate("/templates/common/AsyncClientBuilder.ftl", null);
-    private TopLevelTemplate sdkFunctionClass = new TopLevelTemplate("/templates/waiter/SdkFunction.ftl", null);
-    private TopLevelTemplate acceptorClass = new TopLevelTemplate("/templates/waiter/Acceptor.ftl", null);
-    private TopLevelTemplate waiterClass = new TopLevelTemplate("/templates/waiter/Waiter.ftl", null);
-    private TopLevelTemplate syncClient;
-    private TopLevelTemplate asyncClient;
-    private TopLevelTemplate syncAbstractClass;
-    private TopLevelTemplate asyncAbstractClass;
-    private TopLevelTemplate syncInterface;
-    private TopLevelTemplate asyncInterface;
-    private TopLevelTemplate requestClass;
-    private TopLevelTemplate responseClass;
-    private TopLevelTemplate modelClass;
-    private TopLevelTemplate modelEnum;
     private TopLevelTemplate modelUnmarshaller;
     private TopLevelTemplate modelMarshaller;
     private TopLevelTemplate requestMarshaller;
     private TopLevelTemplate baseExceptionClass;
-    private TopLevelTemplate exceptionClass;
     private TopLevelTemplate exceptionUnmarshaller;
     private TopLevelTemplate policyActionClass;
     private TopLevelTemplate packageInfo;
@@ -93,33 +79,6 @@ public class CodeGenTemplatesConfig {
 
         CodeGenTemplatesConfig merged = new CodeGenTemplatesConfig();
 
-        merged.setSyncClient(TopLevelTemplate.merge(
-                config.getSyncClient(), override.getSyncClient()));
-        merged.setAsyncClient(TopLevelTemplate.merge(
-                config.getAsyncClient(), override.getAsyncClient()));
-
-        merged.setSyncAbstractClass(TopLevelTemplate.merge(
-                config.getSyncAbstractClass(),
-                override.getSyncAbstractClass()));
-        merged.setAsyncAbstractClass(TopLevelTemplate.merge(
-                config.getAsyncAbstractClass(),
-                override.getAsyncAbstractClass()));
-
-        merged.setSyncInterface(TopLevelTemplate.merge(
-                config.getSyncInterface(), override.getSyncInterface()));
-        merged.setAsyncInterface(TopLevelTemplate.merge(
-                config.getAsyncInterface(), override.getAsyncInterface()));
-
-        merged.setRequestClass(TopLevelTemplate.merge(
-                config.getRequestClass(), override.getRequestClass()));
-        merged.setResponseClass(TopLevelTemplate.merge(
-                config.getResponseClass(), override.getResponseClass()));
-
-        merged.setModelClass(TopLevelTemplate.merge(
-                config.getModelClass(), override.getModelClass()));
-        merged.setModelEnum(TopLevelTemplate.merge(config.getModelEnum(),
-                                                   override.getModelEnum()));
-
         merged.setModelUnmarshaller(TopLevelTemplate.merge(
                 config.getModelUnmarshaller(), override.getModelUnmarshaller()));
         merged.setModelMarshaller(TopLevelTemplate.merge(
@@ -129,8 +88,6 @@ public class CodeGenTemplatesConfig {
 
         merged.setBaseExceptionClass(TopLevelTemplate.merge(
                 config.getBaseExceptionClass(), override.getBaseExceptionClass()));
-        merged.setExceptionClass(TopLevelTemplate.merge(
-                config.getExceptionClass(), override.getExceptionClass()));
         merged.setExceptionUnmarshaller(TopLevelTemplate.merge(
                 config.getExceptionUnmarshaller(),
                 override.getExceptionUnmarshaller()));
@@ -174,110 +131,6 @@ public class CodeGenTemplatesConfig {
         this.asyncClientBuilder = syncClientBuilder;
     }
 
-    public TopLevelTemplate getWaiterClass() {
-        return waiterClass;
-    }
-
-    public void setWaiterClass(TopLevelTemplate waiterClass) {
-        this.waiterClass = waiterClass;
-    }
-
-    public TopLevelTemplate getAcceptorClass() {
-        return acceptorClass;
-    }
-
-    public void setAcceptorClass(TopLevelTemplate acceptorClass) {
-        this.acceptorClass = acceptorClass;
-    }
-
-    public TopLevelTemplate getSdkFunctionClass() {
-        return sdkFunctionClass;
-    }
-
-    public void setSdkFunctionClass(TopLevelTemplate sdkFunctionClass) {
-        this.sdkFunctionClass = sdkFunctionClass;
-    }
-
-    public TopLevelTemplate getSyncClient() {
-        return syncClient;
-    }
-
-    public void setSyncClient(TopLevelTemplate syncClient) {
-        this.syncClient = syncClient;
-    }
-
-    public TopLevelTemplate getAsyncClient() {
-        return asyncClient;
-    }
-
-    public void setAsyncClient(TopLevelTemplate asyncClient) {
-        this.asyncClient = asyncClient;
-    }
-
-    public TopLevelTemplate getSyncAbstractClass() {
-        return syncAbstractClass;
-    }
-
-    public void setSyncAbstractClass(TopLevelTemplate syncAbstractClass) {
-        this.syncAbstractClass = syncAbstractClass;
-    }
-
-    public TopLevelTemplate getAsyncAbstractClass() {
-        return asyncAbstractClass;
-    }
-
-    public void setAsyncAbstractClass(TopLevelTemplate asyncAbstractClass) {
-        this.asyncAbstractClass = asyncAbstractClass;
-    }
-
-    public TopLevelTemplate getSyncInterface() {
-        return syncInterface;
-    }
-
-    public void setSyncInterface(TopLevelTemplate syncInterface) {
-        this.syncInterface = syncInterface;
-    }
-
-    public TopLevelTemplate getAsyncInterface() {
-        return asyncInterface;
-    }
-
-    public void setAsyncInterface(TopLevelTemplate asyncInterface) {
-        this.asyncInterface = asyncInterface;
-    }
-
-    public TopLevelTemplate getRequestClass() {
-        return requestClass;
-    }
-
-    public void setRequestClass(TopLevelTemplate requestClass) {
-        this.requestClass = requestClass;
-    }
-
-    public TopLevelTemplate getResponseClass() {
-        return responseClass;
-    }
-
-    public void setResponseClass(TopLevelTemplate responseClass) {
-        this.responseClass = responseClass;
-    }
-
-    public TopLevelTemplate getModelClass() {
-        return modelClass;
-    }
-
-    public void setModelClass(TopLevelTemplate modelClass) {
-        this.modelClass = modelClass;
-    }
-
-    public TopLevelTemplate getModelEnum() {
-        return modelEnum;
-    }
-
-    public void setModelEnum(TopLevelTemplate modelEnum) {
-        this.modelEnum = modelEnum;
-    }
-
     public TopLevelTemplate getModelUnmarshaller() {
         return modelUnmarshaller;
     }
@@ -300,14 +153,6 @@ public class CodeGenTemplatesConfig {
 
     public void setRequestMarshaller(TopLevelTemplate requestMarshaller) {
         this.requestMarshaller = requestMarshaller;
-    }
-
-    public TopLevelTemplate getExceptionClass() {
-        return exceptionClass;
-    }
-
-    public void setExceptionClass(TopLevelTemplate exceptionClass) {
-        this.exceptionClass = exceptionClass;
     }
 
     public TopLevelTemplate getExceptionUnmarshaller() {

@@ -30,11 +30,11 @@ public interface StaticImport {
     ClassName className();
 
     /**
-     * The members to import from the class for example if memberNames() returned List("trim", "isNullOrEmpty") for
+     * The members to import from the class for example if memberNames() returned List("trim", "isBlank") for
      * StringUtils.class then the following static imports would be generated:
      *
-     * import static software.amazon.awssdk.util.StringUtils.trim;
-     * import static software.amazon.awssdk.util.StringUtils.isNullOrEmpty;
+     * import static software.amazon.awssdk.utils.StringUtils.trim;
+     * import static software.amazon.awssdk.utils.StringUtils.isBlank;
      *
      * @return The members to import from the class representation
      */

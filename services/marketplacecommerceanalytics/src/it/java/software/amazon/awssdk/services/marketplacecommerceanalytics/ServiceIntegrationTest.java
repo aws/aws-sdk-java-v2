@@ -15,13 +15,15 @@
 
 package software.amazon.awssdk.services.marketplacecommerceanalytics;
 
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
+
 import java.io.IOException;
 import java.time.Instant;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.iam.IAMClient;
 import software.amazon.awssdk.services.iam.model.AttachRolePolicyRequest;
 import software.amazon.awssdk.services.iam.model.CreatePolicyRequest;
@@ -37,7 +39,7 @@ import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.sns.SNSClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.DeleteTopicRequest;
-import software.amazon.awssdk.test.AwsIntegrationTestBase;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class ServiceIntegrationTest extends AwsIntegrationTestBase {
 
@@ -51,7 +53,7 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
 
     private static final String TOPIC_NAME = "marketplace-commerce-analytics-topic";
 
-    private static final String BUCKET_NAME = "java-sdk-integ-mp-commerce-" + System.currentTimeMillis();
+    private static final String BUCKET_NAME = temporaryBucketName("java-sdk-integ-mp-commerce");
 
     private MarketplaceCommerceAnalyticsClient client;
     private S3Client s3;
@@ -136,7 +138,7 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
                                                      .roleNameArn(roleArn).destinationS3BucketName(BUCKET_NAME)
                                                      .snsTopicArn(topicArn)
                                                      .destinationS3BucketName(BUCKET_NAME).destinationS3Prefix("some-prefix")
-                                                     .dataSetType(DataSetType.Customer_subscriber_hourly_monthly_subscriptions)
+                                                     .dataSetType(DataSetType.CUSTOMER_SUBSCRIBER_HOURLY_MONTHLY_SUBSCRIPTIONS)
                                                      .build());
     }
 

@@ -28,13 +28,14 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.AmazonServiceException.ErrorType;
-import software.amazon.awssdk.SdkGlobalTime;
-import software.amazon.awssdk.auth.policy.Action;
-import software.amazon.awssdk.auth.policy.Policy;
-import software.amazon.awssdk.auth.policy.Resource;
-import software.amazon.awssdk.auth.policy.Statement;
-import software.amazon.awssdk.auth.policy.Statement.Effect;
+import software.amazon.awssdk.core.AmazonServiceException.ErrorType;
+import software.amazon.awssdk.core.SdkGlobalTime;
+import software.amazon.awssdk.core.auth.policy.Action;
+import software.amazon.awssdk.core.auth.policy.Policy;
+import software.amazon.awssdk.core.auth.policy.Resource;
+import software.amazon.awssdk.core.auth.policy.Statement;
+import software.amazon.awssdk.core.auth.policy.Statement.Effect;
+import software.amazon.awssdk.core.util.json.JacksonUtils;
 import software.amazon.awssdk.services.cloudformation.model.AlreadyExistsException;
 import software.amazon.awssdk.services.cloudformation.model.CancelUpdateStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.CreateStackRequest;
@@ -65,7 +66,6 @@ import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 import software.amazon.awssdk.services.cloudformation.model.StackSummary;
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackResponse;
-import software.amazon.awssdk.util.json.JacksonUtils;
 
 /**
  * Tests of the Stack APIs : CloudFormation
@@ -280,7 +280,7 @@ public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
             assertNotNull(summary);
             assertNotNull(summary.stackStatus());
             assertNotNull(summary.creationTime());
-            if (summary.stackStatus().contains("DELETE")) {
+            if (summary.stackStatusString().contains("DELETE")) {
                 assertNotNull(summary.deletionTime());
             }
             assertNotNull(summary.stackId());
@@ -299,7 +299,7 @@ public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
             assertNotNull(summary);
             assertNotNull(summary.stackStatus());
             assertNotNull(summary.creationTime());
-            if (summary.stackStatus().contains("DELETE")) {
+            if (summary.stackStatusString().contains("DELETE")) {
                 assertNotNull(summary.deletionTime());
             }
             assertNotNull(summary.stackId());
@@ -323,7 +323,7 @@ public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
             assertTrue(summary.stackStatus().equals("CREATE_COMPLETE")
                        || summary.stackStatus().equals("DELETE_COMPLETE"));
             assertNotNull(summary.creationTime());
-            if (summary.stackStatus().contains("DELETE")) {
+            if (summary.stackStatusString().contains("DELETE")) {
                 assertNotNull(summary.deletionTime());
             }
             assertNotNull(summary.stackId());
@@ -399,7 +399,7 @@ public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
                                    .stacks();
             assertEquals(1, stacks.size());
 
-            if (!stacks.get(0).stackStatus().equalsIgnoreCase(oldStatus.toString())) {
+            if (!stacks.get(0).stackStatusString().equalsIgnoreCase(oldStatus.toString())) {
                 return;
             }
 

@@ -15,27 +15,29 @@
 
 package software.amazon.awssdk.codegen.poet.common;
 
-import static java.util.Collections.singletonList;
 import static software.amazon.awssdk.codegen.poet.PoetUtils.addDeprecated;
 import static software.amazon.awssdk.codegen.poet.PoetUtils.addJavadoc;
 import static software.amazon.awssdk.codegen.poet.PoetUtils.createEnumBuilder;
 import static software.amazon.awssdk.codegen.poet.PoetUtils.toStringBuilder;
-import static software.amazon.awssdk.codegen.poet.StaticImport.staticMethodImport;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeSpec.Builder;
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.StaticImport;
-import software.amazon.awssdk.util.StringUtils;
 
 public final class EnumClass implements ClassSpec {
 
     private static final String VALUE = "value";
+    private static final String UNKNOWN_TO_SDK_VERSION = "UNKNOWN_TO_SDK_VERSION";
     private final ShapeModel shape;
     private final ClassName className;
 
@@ -48,8 +50,9 @@ public final class EnumClass implements ClassSpec {
     public TypeSpec poetSpec() {
         Builder enumBuilder = createEnumBuilder(className)
             .addField(String.class, VALUE, Modifier.PRIVATE, Modifier.FINAL)
-            .addMethod(toStringBuilder().addStatement("return $N", VALUE).build())
+            .addMethod(toStringBuilder().addStatement("return $T.valueOf($N)", String.class, VALUE).build())
             .addMethod(fromValueSpec())
+            .addMethod(knownValuesSpec())
             .addMethod(createConstructor());
 
         addDeprecated(enumBuilder::addAnnotation, shape);
@@ -58,6 +61,7 @@ public final class EnumClass implements ClassSpec {
         shape.getEnums().forEach(
             e -> enumBuilder.addEnumConstant(e.getName(), TypeSpec.anonymousClassBuilder("$S", e.getValue()).build())
         );
+        enumBuilder.addEnumConstant(UNKNOWN_TO_SDK_VERSION, TypeSpec.anonymousClassBuilder("null").build());
 
         return enumBuilder.build();
     }
@@ -69,7 +73,7 @@ public final class EnumClass implements ClassSpec {
 
     @Override
     public Iterable<StaticImport> staticImports() {
-        return singletonList(staticMethodImport(StringUtils.class, "isNullOrEmpty"));
+        return Collections.singleton(StaticImport.staticMethodImport(Collectors.class, "toSet"));
     }
 
     private MethodSpec createConstructor() {
@@ -84,23 +88,35 @@ public final class EnumClass implements ClassSpec {
         return MethodSpec.methodBuilder("fromValue")
                          .returns(className)
                          .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                         .addJavadoc("Use this in place of valueOf.\n\n" +
+                         .addJavadoc("Use this in place of valueOf to convert the raw string returned by the service into the " +
+                                     "enum value.\n\n" +
                                      "@param $N real value\n" +
                                      "@return $T corresponding to the value\n", VALUE, className)
                          .addParameter(String.class, VALUE)
-                         .beginControlFlow("if ($T.isNullOrEmpty($N))", StringUtils.class, VALUE)
-                         .addStatement("throw new $T($S)", IllegalArgumentException.class, "Value cannot be null or empty!")
+                         .beginControlFlow("if ($N == null)", VALUE)
+                         .addStatement("return null")
                          .endControlFlow()
                          .addStatement("return $1T.of($2T.values())\n" +
                                        ".filter(e -> e.toString().equals($3N))\n" +
                                        ".findFirst()\n" +
-                                       ".orElseThrow(() -> new $4T($5S + $3N + $6S))",
+                                       ".orElse(UNKNOWN_TO_SDK_VERSION)",
                                        Stream.class,
                                        className,
-                                       VALUE,
-                                       IllegalArgumentException.class,
-                                       "Cannot create enum from ",
-                                       " value!")
+                                       VALUE)
+                         .build();
+    }
+
+    private MethodSpec knownValuesSpec() {
+        return MethodSpec.methodBuilder("knownValues")
+                         .returns(ParameterizedTypeName.get(ClassName.get(Set.class), className))
+                         .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                         .addJavadoc("Use this in place of {@link #values()} to return a {@link Set} of all values known to the "
+                                     + "SDK.\n"
+                                     + "This will return all known enum values except {@link #$N}.\n\n"
+                                     + "@return a {@link $T} of known {@link $T}s", UNKNOWN_TO_SDK_VERSION, Set.class, className)
+                         .addStatement("return $T.of(values()).filter(v -> v != $N).collect(toSet())",
+                                       Stream.class,
+                                       UNKNOWN_TO_SDK_VERSION)
                          .build();
     }
 }

@@ -20,7 +20,7 @@ import static org.junit.Assert.assertTrue;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import org.junit.Test;
-import software.amazon.awssdk.runtime.transform.StaxUnmarshallerContext;
+import software.amazon.awssdk.core.runtime.transform.StaxUnmarshallerContext;
 import software.amazon.awssdk.services.simpledb.model.DomainMetadataResponse;
 
 public class DomainMetadataResultUnmarshallerTest {

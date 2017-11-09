@@ -20,6 +20,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static software.amazon.awssdk.testutils.SdkAsserts.assertNotEmpty;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ import java.util.Set;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import software.amazon.awssdk.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.services.dynamodb.model.AttributeAction;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValueUpdate;
@@ -231,7 +232,7 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
         assertEquals(tableName, tableDescription.tableName());
         assertNotNull(tableDescription.tableStatus());
         assertEquals(HASH_KEY_NAME, tableDescription.keySchema().get(0).attributeName());
-        assertEquals(KeyType.HASH.toString(), tableDescription.keySchema().get(0).keyType());
+        assertEquals(KeyType.HASH, tableDescription.keySchema().get(0).keyType());
         assertNotNull(tableDescription.provisionedThroughput().numberOfDecreasesToday());
         assertEquals(READ_CAPACITY, tableDescription.provisionedThroughput().readCapacityUnits());
         assertEquals(WRITE_CAPACITY, tableDescription.provisionedThroughput().writeCapacityUnits());

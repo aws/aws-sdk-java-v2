@@ -19,15 +19,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.stream.Stream;
-import software.amazon.awssdk.auth.AwsCredentials;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.client.builder.ClientBuilder;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
+import software.amazon.awssdk.core.auth.AwsCredentials;
+import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.core.client.builder.ClientBuilder;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.sync.StreamingResponseHandler;
 import software.amazon.awssdk.protocol.model.TestCase;
 import software.amazon.awssdk.protocol.wiremock.WireMockUtils;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.sync.StreamingResponseHandler;
 
 /**
  * Reflection utils to create the client class and invoke operation methods.

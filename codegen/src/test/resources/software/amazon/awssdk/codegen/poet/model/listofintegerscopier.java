@@ -1,6 +1,7 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.util.ArrayList;
+import static java.util.stream.Collectors.toList;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -12,11 +13,7 @@ final class ListOfIntegersCopier {
         if (listOfIntegersParam == null) {
             return null;
         }
-        List<Integer> listOfIntegersParamCopy = new ArrayList<>(listOfIntegersParam.size());
-        for (Integer e : listOfIntegersParam) {
-            listOfIntegersParamCopy.add(e);
-        }
+        List<Integer> listOfIntegersParamCopy = listOfIntegersParam.stream().collect(toList());
         return Collections.unmodifiableList(listOfIntegersParamCopy);
     }
 }
-

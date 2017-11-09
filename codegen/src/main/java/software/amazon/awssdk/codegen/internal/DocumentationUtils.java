@@ -26,7 +26,7 @@ import java.util.Set;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 
-public class DocumentationUtils {
+public final class DocumentationUtils {
 
     public static final String DEFAULT_SETTER = "Sets the value of the %s property for this object.";
 
@@ -45,6 +45,9 @@ public class DocumentationUtils {
             "discovery", "elastictranscoder", "es", "glacier", "importexport",
             "iot", "data.iot", "machinelearning", "rekognition", "s3", "sdb", "swf"
                                                                                                        ));
+
+    private DocumentationUtils() {
+    }
 
     /**
      * Returns a documentation with HTML tags prefixed and suffixed removed, or

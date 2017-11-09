@@ -19,14 +19,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static software.amazon.awssdk.testutils.SdkAsserts.assertNotEmpty;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.AmazonServiceException.ErrorType;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonServiceException.ErrorType;
 import software.amazon.awssdk.services.cloudformation.model.EstimateTemplateCostRequest;
 import software.amazon.awssdk.services.cloudformation.model.EstimateTemplateCostResponse;
 import software.amazon.awssdk.services.cloudformation.model.TemplateParameter;

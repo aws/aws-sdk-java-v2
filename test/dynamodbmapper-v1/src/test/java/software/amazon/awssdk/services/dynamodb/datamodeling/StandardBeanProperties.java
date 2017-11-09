@@ -21,11 +21,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperFieldModel.Reflect;
 import software.amazon.awssdk.services.dynamodb.datamodeling.StandardAnnotationMaps.FieldMap;
 import software.amazon.awssdk.services.dynamodb.datamodeling.StandardAnnotationMaps.TableMap;
-import software.amazon.awssdk.util.StringUtils;
 
 /**
  * Reflection assistant for {@link DynamoDbMapper}

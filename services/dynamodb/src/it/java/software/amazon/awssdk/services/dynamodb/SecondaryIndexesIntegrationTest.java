@@ -29,7 +29,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import software.amazon.awssdk.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
 import software.amazon.awssdk.services.dynamodb.model.Condition;
@@ -88,11 +88,11 @@ public class SecondaryIndexesIntegrationTest extends DynamoDBTestBase {
         assertEquals(HASH_KEY_NAME,
                      tableDescription.keySchema().get(0)
                                      .attributeName());
-        assertEquals(KeyType.HASH.toString(), tableDescription
+        assertEquals(KeyType.HASH, tableDescription
                 .keySchema().get(0).keyType());
         assertEquals(RANGE_KEY_NAME, tableDescription.keySchema()
                                                      .get(1).attributeName());
-        assertEquals(KeyType.RANGE.toString(), tableDescription
+        assertEquals(KeyType.RANGE, tableDescription
                 .keySchema().get(1).keyType());
 
         assertEquals(1, tableDescription.localSecondaryIndexes().size());
@@ -102,13 +102,13 @@ public class SecondaryIndexesIntegrationTest extends DynamoDBTestBase {
                 .localSecondaryIndexes().get(0).keySchema().size());
         assertEquals(HASH_KEY_NAME, tableDescription
                 .localSecondaryIndexes().get(0).keySchema().get(0).attributeName());
-        assertEquals(KeyType.HASH.toString(), tableDescription
+        assertEquals(KeyType.HASH, tableDescription
                 .localSecondaryIndexes().get(0).keySchema().get(0).keyType());
         assertEquals(LSI_RANGE_KEY_NAME, tableDescription
                 .localSecondaryIndexes().get(0).keySchema().get(1).attributeName());
-        assertEquals(KeyType.RANGE.toString(), tableDescription
+        assertEquals(KeyType.RANGE, tableDescription
                 .localSecondaryIndexes().get(0).keySchema().get(1).keyType());
-        assertEquals(ProjectionType.KEYS_ONLY.toString(),
+        assertEquals(ProjectionType.KEYS_ONLY,
                      tableDescription.localSecondaryIndexes().get(0)
                                      .projection().projectionType());
         assertEquals(null, tableDescription.localSecondaryIndexes().get(0)
@@ -121,13 +121,13 @@ public class SecondaryIndexesIntegrationTest extends DynamoDBTestBase {
                 .globalSecondaryIndexes().get(0).keySchema().size());
         assertEquals(GSI_HASH_KEY_NAME, tableDescription
                 .globalSecondaryIndexes().get(0).keySchema().get(0).attributeName());
-        assertEquals(KeyType.HASH.toString(), tableDescription
+        assertEquals(KeyType.HASH, tableDescription
                 .globalSecondaryIndexes().get(0).keySchema().get(0).keyType());
         assertEquals(GSI_RANGE_KEY_NAME, tableDescription
                 .globalSecondaryIndexes().get(0).keySchema().get(1).attributeName());
-        assertEquals(KeyType.RANGE.toString(), tableDescription
+        assertEquals(KeyType.RANGE, tableDescription
                 .globalSecondaryIndexes().get(0).keySchema().get(1).keyType());
-        assertEquals(ProjectionType.KEYS_ONLY.toString(),
+        assertEquals(ProjectionType.KEYS_ONLY,
                      tableDescription.globalSecondaryIndexes().get(0)
                                      .projection().projectionType());
         assertEquals(null, tableDescription.globalSecondaryIndexes().get(0)

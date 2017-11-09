@@ -18,15 +18,14 @@ package software.amazon.awssdk.services.s3;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.DeleteBucketInventoryConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketInventoryConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.InventoryConfiguration;
@@ -41,15 +40,14 @@ import software.amazon.awssdk.services.s3.model.InventorySchedule;
 import software.amazon.awssdk.services.s3.model.ListBucketInventoryConfigurationsRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketInventoryConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.sync.RequestBody;
-import software.amazon.awssdk.test.util.RandomTempFile;
+import software.amazon.awssdk.testutils.RandomTempFile;
 
 public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTestBase {
 
     /**
      * The bucket created and used by these tests.
      */
-    private static final String BUCKET_NAME = "java-bucket-inventory-integ-test-" + new Date().getTime();
+    private static final String BUCKET_NAME = temporaryBucketName("java-bucket-inventory-integ-test");
     private static final String BUCKET_ARN = "arn:aws:s3:::" + BUCKET_NAME;
 
     /**
@@ -60,12 +58,7 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
     @BeforeClass
     public static void setUpFixture() throws Exception {
         S3IntegrationTestBase.setUp();
-        s3.createBucket(CreateBucketRequest.builder()
-                                           .bucket(BUCKET_NAME)
-                                           .createBucketConfiguration(CreateBucketConfiguration.builder()
-                                                                                               .locationConstraint("us-west-2")
-                                                                                               .build())
-                                           .build());
+        createBucket(BUCKET_NAME);
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET_NAME)
                                      .key(KEY)
@@ -92,9 +85,9 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
                                                               .isEnabled(true)
                                                               .id(configId)
                                                               .destination(destination)
-                                                              .includedObjectVersions(InventoryIncludedObjectVersions.All)
+                                                              .includedObjectVersions(InventoryIncludedObjectVersions.ALL)
                                                               .schedule(InventorySchedule.builder()
-                                                                                         .frequency(InventoryFrequency.Daily)
+                                                                                         .frequency(InventoryFrequency.DAILY)
                                                                                          .build())
                                                               .build();
 
@@ -113,11 +106,11 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
 
         assertEquals(configId, config.id());
         assertTrue(config.isEnabled());
-        assertEquals(InventoryIncludedObjectVersions.All.toString(), config.includedObjectVersions());
-        assertEquals(InventoryFrequency.Daily.toString(), config.schedule().frequency());
+        assertEquals(InventoryIncludedObjectVersions.ALL, config.includedObjectVersions());
+        assertEquals(InventoryFrequency.DAILY, config.schedule().frequency());
         s3BucketDestination = config.destination().s3BucketDestination();
         assertEquals(BUCKET_ARN, s3BucketDestination.bucket());
-        assertEquals(InventoryFormat.CSV.toString(), s3BucketDestination.format());
+        assertEquals(InventoryFormat.CSV, s3BucketDestination.format());
         assertNull(s3BucketDestination.accountId());
         assertNull(s3BucketDestination.prefix());
 
@@ -142,8 +135,8 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
         String accountId = "test-account";
         List<String> optionalFields = new ArrayList<String>() {
             {
-                add(InventoryOptionalField.ETag.toString());
-                add(InventoryOptionalField.Size.toString());
+                add(InventoryOptionalField.E_TAG.toString());
+                add(InventoryOptionalField.SIZE.toString());
             }
         };
 
@@ -160,9 +153,9 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
                                                               .isEnabled(true)
                                                               .id(configId)
                                                               .destination(destination)
-                                                              .includedObjectVersions(InventoryIncludedObjectVersions.All)
+                                                              .includedObjectVersions(InventoryIncludedObjectVersions.ALL)
                                                               .schedule(InventorySchedule.builder()
-                                                                                         .frequency(InventoryFrequency.Daily)
+                                                                                         .frequency(InventoryFrequency.DAILY)
                                                                                          .build())
                                                               .filter(InventoryFilter.builder().prefix(prefix).build())
                                                               .optionalFields(optionalFields)
@@ -182,15 +175,15 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
 
         assertEquals(configId, config.id());
         assertTrue(config.isEnabled());
-        assertEquals(InventoryIncludedObjectVersions.All.toString(), config.includedObjectVersions());
-        assertEquals(InventoryFrequency.Daily.toString(), config.schedule().frequency());
+        assertEquals(InventoryIncludedObjectVersions.ALL, config.includedObjectVersions());
+        assertEquals(InventoryFrequency.DAILY, config.schedule().frequency());
         s3BucketDestination = config.destination().s3BucketDestination();
         assertEquals(BUCKET_ARN, s3BucketDestination.bucket());
-        assertEquals(InventoryFormat.CSV.toString(), s3BucketDestination.format());
+        assertEquals(InventoryFormat.CSV, s3BucketDestination.format());
         assertEquals(accountId, s3BucketDestination.accountId());
         assertEquals(prefix, s3BucketDestination.prefix());
         assertEquals(prefix, config.filter().prefix());
-        assertTrue(config.optionalFields().containsAll(optionalFields));
+        assertTrue(config.optionalFieldsStrings().containsAll(optionalFields));
 
         s3.deleteBucketInventoryConfiguration(DeleteBucketInventoryConfigurationRequest.builder()
                                                                                        .bucket(BUCKET_NAME)

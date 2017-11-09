@@ -15,20 +15,28 @@
 
 package software.amazon.awssdk.http;
 
+import java.util.Optional;
+import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+
+/**
+ * An immutable HTTP response without access to the response body. {@link SdkHttpFullResponse} should be used when access to a
+ * response body stream is required.
+ */
+@SdkPublicApi
+@Immutable
 public interface SdkHttpResponse extends SdkHttpHeaders {
+    /**
+     * Returns the HTTP status text returned by the service.
+     *
+     * <p>If this was not provided by the service, empty will be returned.</p>
+     */
+    Optional<String> statusText();
 
     /**
-     * Returns the HTTP status text associated with this response.
+     * Returns the HTTP status code (eg. 200, 404, etc.) returned by the service.
      *
-     * @return The HTTP status text associated with this response.
+     * <p>This will always be positive.</p>
      */
-    String getStatusText();
-
-    /**
-     * Returns the HTTP status code (ex: 200, 404, etc) associated with this
-     * response.
-     *
-     * @return The HTTP status code associated with this response.
-     */
-    int getStatusCode();
+    int statusCode();
 }

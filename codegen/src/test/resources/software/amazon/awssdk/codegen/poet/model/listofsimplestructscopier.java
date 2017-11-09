@@ -1,6 +1,7 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import java.util.ArrayList;
+import static java.util.stream.Collectors.toList;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -12,11 +13,15 @@ final class ListOfSimpleStructsCopier {
         if (listOfSimpleStructsParam == null) {
             return null;
         }
-        List<SimpleStruct> listOfSimpleStructsParamCopy = new ArrayList<>(listOfSimpleStructsParam.size());
-        for (SimpleStruct e : listOfSimpleStructsParam) {
-            listOfSimpleStructsParamCopy.add(e);
-        }
+        List<SimpleStruct> listOfSimpleStructsParamCopy = listOfSimpleStructsParam.stream().collect(toList());
         return Collections.unmodifiableList(listOfSimpleStructsParamCopy);
+    }
+
+    static List<SimpleStruct> copyFromBuilder(Collection<? extends SimpleStruct.Builder> listOfSimpleStructsParam) {
+        if (listOfSimpleStructsParam == null) {
+            return null;
+        }
+        return copy(listOfSimpleStructsParam.stream().map(SimpleStruct.Builder::build).collect(toList()));
     }
 }
 

@@ -18,8 +18,8 @@ package software.amazon.awssdk.services.dynamodb.datamodeling.unmarshallers;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import software.amazon.awssdk.core.util.DateUtils;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.util.DateUtils;
 
 /**
  * An unmarshaller that unmarshals ISO-8601-formatted dates as Java

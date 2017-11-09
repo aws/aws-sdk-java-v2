@@ -6,14 +6,14 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Generated;
 
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.Request;
-import software.amazon.awssdk.DefaultRequest;
-import software.amazon.awssdk.http.HttpMethodName;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.DefaultRequest;
+import software.amazon.awssdk.core.http.HttpMethodName;
 import ${metadata.fullModelPackageName}.*;
-import software.amazon.awssdk.runtime.transform.Marshaller;
-import software.amazon.awssdk.util.StringUtils;
-import software.amazon.awssdk.util.IdempotentUtils;
+import software.amazon.awssdk.core.runtime.transform.Marshaller;
+import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.core.util.IdempotentUtils;
 
 
 /**

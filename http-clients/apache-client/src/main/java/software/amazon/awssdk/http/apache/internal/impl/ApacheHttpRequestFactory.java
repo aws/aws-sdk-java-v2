@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.apache.internal.impl;
 
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
-import static software.amazon.awssdk.utils.StringUtils.isNotBlank;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.net.URI;
@@ -36,9 +35,11 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
 import software.amazon.awssdk.http.apache.internal.RepeatableInputStreamRequestEntity;
 import software.amazon.awssdk.http.apache.internal.utils.ApacheUtils;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Responsible for creating Apache HttpClient 4 request objects.
@@ -50,22 +51,8 @@ public class ApacheHttpRequestFactory {
     private static final List<String> IGNORE_HEADERS = Arrays.asList(HttpHeaders.CONTENT_LENGTH, HttpHeaders.HOST);
 
     public HttpRequestBase create(final SdkHttpFullRequest request, final ApacheHttpRequestConfig requestConfig) {
-        URI endpoint = request.getEndpoint();
-
-        /*
-         * HttpClient cannot handle url in pattern of "http://host//path", so we
-         * have to escape the double-slash between endpoint and resource-path
-         * into "/%2F"
-         */
-        String uri = SdkHttpUtils.appendUri(endpoint.toString(), request
-                .getResourcePath(), true);
-        String encodedParams = SdkHttpUtils.encodeParameters(request);
-
-        if (isNotBlank(encodedParams)) {
-            uri += "?" + encodedParams;
-        }
-
-        final HttpRequestBase base = createApacheRequest(request, uri, encodedParams);
+        URI uri = request.getUri();
+        final HttpRequestBase base = createApacheRequest(request, uri.toString());
         addHeadersToRequest(base, request);
         addRequestConfig(base, request, requestConfig);
 
@@ -90,7 +77,7 @@ public class ApacheHttpRequestFactory {
          * don't want to do this for all operations since it will cause
          * extra latency in the network interaction.
          */
-        if (SdkHttpMethod.PUT == request.getHttpMethod() && requestConfig.expectContinueEnabled()) {
+        if (SdkHttpMethod.PUT == request.method() && requestConfig.expectContinueEnabled()) {
             requestConfigBuilder.setExpectContinueEnabled(true);
         }
 
@@ -98,8 +85,8 @@ public class ApacheHttpRequestFactory {
     }
 
 
-    private HttpRequestBase createApacheRequest(SdkHttpFullRequest request, String uri, String encodedParams) {
-        switch (request.getHttpMethod()) {
+    private HttpRequestBase createApacheRequest(SdkHttpFullRequest request, String uri) {
+        switch (request.method()) {
             case HEAD:
                 return new HttpHead(uri);
             case GET:
@@ -109,19 +96,18 @@ public class ApacheHttpRequestFactory {
             case OPTIONS:
                 return new HttpOptions(uri);
             case PATCH:
-                return wrapEntity(request, new HttpPatch(uri), encodedParams);
+                return wrapEntity(request, new HttpPatch(uri));
             case POST:
-                return wrapEntity(request, new HttpPost(uri), encodedParams);
+                return wrapEntity(request, new HttpPost(uri));
             case PUT:
-                return wrapEntity(request, new HttpPut(uri), encodedParams);
+                return wrapEntity(request, new HttpPut(uri));
             default:
-                throw new RuntimeException("Unknown HTTP method name: " + request.getHttpMethod());
+                throw new RuntimeException("Unknown HTTP method name: " + request.method());
         }
     }
 
     private HttpRequestBase wrapEntity(SdkHttpFullRequest request,
-                                       HttpEntityEnclosingRequestBase entityEnclosingRequest,
-                                       String encodedParams) {
+                                       HttpEntityEnclosingRequestBase entityEnclosingRequest) {
 
         /*
          * We should never reuse the entity of the previous request, since
@@ -133,9 +119,9 @@ public class ApacheHttpRequestFactory {
          * preparation for the retry. Eventually, these wrappers would
          * return incorrect validation result.
          */
-        if (request.getContent() != null) {
+        if (request.content().isPresent()) {
             HttpEntity entity = new RepeatableInputStreamRequestEntity(request);
-            if (request.getHeaders().get(HttpHeaders.CONTENT_LENGTH) == null) {
+            if (request.headers().get(HttpHeaders.CONTENT_LENGTH) == null) {
                 entity = ApacheUtils.newBufferedHttpEntity(entity);
             }
             entityEnclosingRequest.setEntity(entity);
@@ -149,20 +135,19 @@ public class ApacheHttpRequestFactory {
      */
     private void addHeadersToRequest(HttpRequestBase httpRequest, SdkHttpFullRequest request) {
 
-        httpRequest.addHeader(HttpHeaders.HOST, getHostHeaderValue(request.getEndpoint()));
+        httpRequest.addHeader(HttpHeaders.HOST, getHostHeaderValue(request));
 
 
         // Copy over any other headers already in our request
-        request.getHeaders().entrySet().stream()
-                /*
-                 * HttpClient4 fills in the Content-Length header and complains if
-                 * it's already present, so we skip it here. We also skip the Host
-                 * header to avoid sending it twice, which will interfere with some
-                 * signing schemes.
-                 */
-                .filter(e -> !IGNORE_HEADERS.contains(e.getKey()))
-                .forEach(e -> e.getValue().stream()
-                        .forEach(h -> httpRequest.addHeader(e.getKey(), h)));
+        request.headers().entrySet().stream()
+               /*
+                * HttpClient4 fills in the Content-Length header and complains if
+                * it's already present, so we skip it here. We also skip the Host
+                * header to avoid sending it twice, which will interfere with some
+                * signing schemes.
+                */
+               .filter(e -> !IGNORE_HEADERS.contains(e.getKey()))
+               .forEach(e -> e.getValue().forEach(h -> httpRequest.addHeader(e.getKey(), h)));
 
         /* Set content type and encoding */
         if (httpRequest.getHeaders(HttpHeaders.CONTENT_TYPE) == null ||
@@ -173,17 +158,11 @@ public class ApacheHttpRequestFactory {
         }
     }
 
-    private String getHostHeaderValue(final URI endpoint) {
-        /*
-         * Apache HttpClient omits the port number in the Host header (even if
-         * we explicitly specify it) if it's the default port for the protocol
-         * in use. To ensure that we use the same Host header in the request and
-         * in the calculated string to sign (even if Apache HttpClient changed
-         * and started honoring our explicit host with endpoint), we follow this
-         * same behavior here and in the QueryString signer.
-         */
-        return SdkHttpUtils.isUsingNonDefaultPort(endpoint)
-                ? endpoint.getHost() + ":" + endpoint.getPort()
-                : endpoint.getHost();
+    private String getHostHeaderValue(SdkHttpRequest request) {
+        // Apache doesn't allow us to include the port in the host header if it's a standard port for that protocol. For that
+        // reason, we don't include the port when we sign the message. See {@link SdkHttpRequest#port()}.
+        return !SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())
+                ? request.host() + ":" + request.port()
+                : request.host();
     }
 }

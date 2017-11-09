@@ -25,8 +25,11 @@ import org.apache.http.pool.ConnPoolControl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ClientConnectionManagerFactory {
+public final class ClientConnectionManagerFactory {
     private static final Logger log = LoggerFactory.getLogger(ClientConnectionManagerFactory.class);
+
+    private ClientConnectionManagerFactory() {
+    }
 
     /**
      * Returns a wrapped instance of {@link HttpClientConnectionManager}

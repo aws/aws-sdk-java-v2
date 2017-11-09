@@ -17,8 +17,8 @@ package software.amazon.awssdk.services.directconnect;
 
 import java.io.IOException;
 import org.junit.BeforeClass;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class IntegrationTestBase extends AwsTestBase {
 

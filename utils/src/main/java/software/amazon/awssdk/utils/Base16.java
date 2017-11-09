@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.utils;
 
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * A Base 16 codec API, which encodes into hex string in upper case.
@@ -25,9 +25,12 @@ import software.amazon.awssdk.annotation.SdkProtectedApi;
  * @author Hanson Char
  */
 @SdkProtectedApi
-public enum Base16 {
-    ;
+public final class Base16 {
+
     private static final Base16Codec CODEC = new Base16Codec();
+
+    private Base16() {
+    }
 
     /**
      * Returns a base 16 encoded string (in upper case) of the given bytes.

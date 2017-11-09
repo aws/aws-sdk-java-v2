@@ -1,11 +1,12 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import javax.annotation.Generated;
-import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.protocol.ProtocolMarshaller;
-import software.amazon.awssdk.protocol.StructuredPojo;
-import software.amazon.awssdk.runtime.StandardMemberCopier;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
+import software.amazon.awssdk.core.protocol.StructuredPojo;
+import software.amazon.awssdk.core.runtime.StandardMemberCopier;
 import software.amazon.awssdk.services.jsonprotocoltests.transform.StructWithNestedBlobTypeMarshaller;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -14,7 +15,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public class StructWithNestedBlobType implements StructuredPojo,
-                                                 ToCopyableBuilder<StructWithNestedBlobType.Builder, StructWithNestedBlobType> {
+        ToCopyableBuilder<StructWithNestedBlobType.Builder, StructWithNestedBlobType> {
     private final ByteBuffer nestedBlob;
 
     private StructWithNestedBlobType(BuilderImpl builder) {
@@ -76,13 +77,24 @@ public class StructWithNestedBlobType implements StructuredPojo,
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
+        StringBuilder sb = new StringBuilder("{");
         if (nestedBlob() != null) {
             sb.append("NestedBlob: ").append(nestedBlob()).append(",");
         }
+        if (sb.length() > 1) {
+            sb.setLength(sb.length() - 1);
+        }
         sb.append("}");
         return sb.toString();
+    }
+
+    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+        switch (fieldName) {
+        case "NestedBlob":
+            return Optional.of(clazz.cast(nestedBlob()));
+        default:
+            return Optional.empty();
+        }
     }
 
     @SdkInternalApi
@@ -106,14 +118,14 @@ public class StructWithNestedBlobType implements StructuredPojo,
         Builder nestedBlob(ByteBuffer nestedBlob);
     }
 
-    private static final class BuilderImpl implements Builder {
+    static final class BuilderImpl implements Builder {
         private ByteBuffer nestedBlob;
 
         private BuilderImpl() {
         }
 
         private BuilderImpl(StructWithNestedBlobType model) {
-            setNestedBlob(model.nestedBlob);
+            nestedBlob(model.nestedBlob);
         }
 
         public final ByteBuffer getNestedBlob() {

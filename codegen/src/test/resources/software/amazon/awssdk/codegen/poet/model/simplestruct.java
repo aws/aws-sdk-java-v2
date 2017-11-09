@@ -1,9 +1,10 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.util.Optional;
 import javax.annotation.Generated;
-import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.protocol.ProtocolMarshaller;
-import software.amazon.awssdk.protocol.StructuredPojo;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
+import software.amazon.awssdk.core.protocol.StructuredPojo;
 import software.amazon.awssdk.services.jsonprotocoltests.transform.SimpleStructMarshaller;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -70,13 +71,24 @@ public class SimpleStruct implements StructuredPojo, ToCopyableBuilder<SimpleStr
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
+        StringBuilder sb = new StringBuilder("{");
         if (stringMember() != null) {
             sb.append("StringMember: ").append(stringMember()).append(",");
         }
+        if (sb.length() > 1) {
+            sb.setLength(sb.length() - 1);
+        }
         sb.append("}");
         return sb.toString();
+    }
+
+    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+        switch (fieldName) {
+        case "StringMember":
+            return Optional.of(clazz.cast(stringMember()));
+        default:
+            return Optional.empty();
+        }
     }
 
     @SdkInternalApi
@@ -96,14 +108,14 @@ public class SimpleStruct implements StructuredPojo, ToCopyableBuilder<SimpleStr
         Builder stringMember(String stringMember);
     }
 
-    private static final class BuilderImpl implements Builder {
+    static final class BuilderImpl implements Builder {
         private String stringMember;
 
         private BuilderImpl() {
         }
 
         private BuilderImpl(SimpleStruct model) {
-            setStringMember(model.stringMember);
+            stringMember(model.stringMember);
         }
 
         public final String getStringMember() {

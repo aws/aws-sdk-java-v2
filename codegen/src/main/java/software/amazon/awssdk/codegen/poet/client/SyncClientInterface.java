@@ -31,20 +31,20 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.SdkBaseException;
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.auth.DefaultCredentialsProvider;
 import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.regions.ServiceMetadata;
-import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
-import software.amazon.awssdk.sync.RequestBody;
-import software.amazon.awssdk.sync.ResponseInputStream;
-import software.amazon.awssdk.sync.StreamingResponseHandler;
+import software.amazon.awssdk.core.SdkBaseException;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.auth.DefaultCredentialsProvider;
+import software.amazon.awssdk.core.regions.ServiceMetadata;
+import software.amazon.awssdk.core.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.sync.ResponseInputStream;
+import software.amazon.awssdk.core.sync.StreamingResponseHandler;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public final class SyncClientInterface implements ClassSpec {
@@ -73,9 +73,6 @@ public final class SyncClientInterface implements ClassSpec {
                                         .addMethods(operations())
                                         .addMethod(serviceMetadata());
 
-        if (model.getHasWaiters()) {
-            classBuilder.addMethod(waiters());
-        }
         if (model.getCustomizationConfig().getPresignersFqcn() != null) {
             classBuilder.addMethod(presigners());
         }
@@ -282,14 +279,6 @@ public final class SyncClientInterface implements ClassSpec {
                            ClassName.get(model.getMetadata().getFullModelPackageName(),
                                          model.getSdkModeledExceptionBaseClassName()));
         return exceptions;
-    }
-
-    private MethodSpec waiters() {
-        return MethodSpec.methodBuilder("waiters")
-                         .returns(ClassName.get(model.getMetadata().getFullWaitersPackageName(),
-                                                model.getMetadata().getSyncInterface() + "Waiters"))
-                         .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                         .build();
     }
 
     private MethodSpec presigners() {

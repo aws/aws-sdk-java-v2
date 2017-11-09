@@ -24,15 +24,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
 import software.amazon.awssdk.services.dynamodb.model.TableStatus;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 import software.amazon.awssdk.utils.Logger;
 
 public class DynamoDBTestBase extends AwsTestBase {
@@ -67,10 +67,10 @@ public class DynamoDBTestBase extends AwsTestBase {
         log.info(() -> "Waiting for " + tableName + " to become Deleted...");
 
         long startTime = System.currentTimeMillis();
-        long endTime = startTime + (10 * 60 * 1000);
+        long endTime = startTime + (60_000);
         while (System.currentTimeMillis() < endTime) {
             try {
-                Thread.sleep(1000 * 20);
+                Thread.sleep(5_000);
             } catch (Exception e) {
                 // Ignored or expected.
             }
@@ -78,13 +78,12 @@ public class DynamoDBTestBase extends AwsTestBase {
                 DescribeTableRequest request = DescribeTableRequest.builder().tableName(tableName).build();
                 TableDescription table = dynamo.describeTable(request).table();
 
-                String tableStatus = table.tableStatus();
-                log.info(() -> "  - current state: " + tableStatus);
-                if (tableStatus.equals(TableStatus.DELETING.toString())) {
+                log.info(() -> "  - current state: " + table.tableStatusString());
+                if (table.tableStatus() == TableStatus.DELETING) {
                     continue;
                 }
             } catch (AmazonServiceException ase) {
-                if (ase.getErrorCode().equalsIgnoreCase("ResourceNotFoundException") == true) {
+                if (ase.getErrorCode().equalsIgnoreCase("ResourceNotFoundException")) {
                     log.info(() -> "successfully deleted");
                     return;
                 }

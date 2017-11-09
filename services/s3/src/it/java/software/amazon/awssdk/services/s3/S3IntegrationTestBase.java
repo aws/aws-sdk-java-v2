@@ -16,13 +16,12 @@
 package software.amazon.awssdk.services.s3;
 
 import org.junit.BeforeClass;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.s3.model.BucketLocationConstraint;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.test.AwsTestBase;
-import utils.BucketNamingStrategy;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 import utils.S3TestUtils;
 
 /**
@@ -30,9 +29,6 @@ import utils.S3TestUtils;
  * file and creates an S3 client for callers to use.
  */
 public class S3IntegrationTestBase extends AwsTestBase {
-
-    private static final BucketNamingStrategy BUCKET_NAMING_STRATEGY = new BucketNamingStrategy();
-
     /**
      * The S3 client for all tests to use.
      */
@@ -63,18 +59,32 @@ public class S3IntegrationTestBase extends AwsTestBase {
     }
 
     protected static void createBucket(String bucketName) {
+        createBucket(bucketName, 0);
+    }
+
+    private static void createBucket(String bucketName, int retryCount) {
         try {
             s3.createBucket(
                     CreateBucketRequest.builder()
                                        .bucket(bucketName)
                                        .createBucketConfiguration(
                                                CreateBucketConfiguration.builder()
-                                                                        .locationConstraint(BucketLocationConstraint.UsWest2)
+                                                                        .locationConstraint(BucketLocationConstraint.US_WEST_2)
                                                                         .build())
                                        .build());
         } catch (S3Exception e) {
+            System.err.println("Error attempting to create bucket: " + bucketName);
             if (e.getErrorCode().equals("BucketAlreadyOwnedByYou")) {
                 System.err.printf("%s bucket already exists, likely leaked by a previous run\n", bucketName);
+            } else if (e.getErrorCode().equals("TooManyBuckets")) {
+                System.err.println("Printing all buckets for debug:");
+                s3.listBuckets().buckets().forEach(System.err::println);
+                if (retryCount < 2) {
+                    System.err.println("Retrying...");
+                    createBucket(bucketName, retryCount + 1);
+                } else {
+                    throw e;
+                }
             } else {
                 throw e;
             }
@@ -84,13 +94,4 @@ public class S3IntegrationTestBase extends AwsTestBase {
     protected static void deleteBucketAndAllContents(String bucketName) {
         S3TestUtils.deleteBucketAndAllContents(s3, bucketName);
     }
-
-    protected static String getBucketName(Class<?> testClass) {
-        return BUCKET_NAMING_STRATEGY.getBucketName(testClass);
-    }
-
-    protected String getBucketName() {
-        return BUCKET_NAMING_STRATEGY.getBucketName(getClass());
-    }
-
 }

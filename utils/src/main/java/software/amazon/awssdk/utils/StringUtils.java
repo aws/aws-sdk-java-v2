@@ -35,8 +35,8 @@
 package software.amazon.awssdk.utils;
 
 import java.util.Locale;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * <p>Operations on {@link java.lang.String} that are
@@ -122,9 +122,9 @@ import software.amazon.awssdk.annotation.SdkInternalApi;
  * <p>#ThreadSafe#</p>
  * @see java.lang.String
  */
-@ReviewBeforeRelease("Remove the methods we don't end up using (and we've removed software.amazon.awssdk.util.StringUtils).")
+@ReviewBeforeRelease("Remove the methods we don't end up using (and we've removed software.amazon.awssdk.core.util.StringUtils).")
 @SdkInternalApi
-public class StringUtils {
+public final class StringUtils {
     // Performance testing notes (JDK 1.4, Jul03, scolebourne)
     // Whitespace:
     // Character.isWhitespace() is faster than WHITESPACE.indexOf()

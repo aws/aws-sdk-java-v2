@@ -22,13 +22,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import org.junit.Test;
-import software.amazon.awssdk.Request;
-import software.amazon.awssdk.protocol.json.JsonClientMetadata;
-import software.amazon.awssdk.protocol.json.SdkJsonProtocolFactory;
+import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
+import software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory;
+import software.amazon.awssdk.core.util.ImmutableMapParameter;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.transform.PutItemRequestMarshaller;
-import software.amazon.awssdk.util.ImmutableMapParameter;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 public class PutItemRequestMarshallerTest {

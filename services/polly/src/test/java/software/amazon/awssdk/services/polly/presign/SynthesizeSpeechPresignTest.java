@@ -31,14 +31,14 @@ import java.util.List;
 import java.util.TimeZone;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.auth.Aws4Signer;
-import software.amazon.awssdk.auth.AwsCredentials;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.SdkClock;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.auth.StaticSignerProvider;
-import software.amazon.awssdk.auth.presign.PresignerParams;
-import software.amazon.awssdk.runtime.auth.SignerProvider;
+import software.amazon.awssdk.core.auth.Aws4Signer;
+import software.amazon.awssdk.core.auth.AwsCredentials;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.auth.SdkClock;
+import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.core.auth.StaticSignerProvider;
+import software.amazon.awssdk.core.auth.presign.PresignerParams;
+import software.amazon.awssdk.core.runtime.auth.SignerProvider;
 import software.amazon.awssdk.services.polly.model.OutputFormat;
 import software.amazon.awssdk.services.polly.model.SynthesizeSpeechRequest;
 
@@ -107,7 +107,7 @@ public class SynthesizeSpeechPresignTest {
         final URL url = presigners.getPresignedSynthesizeSpeechUrl(
                 new SynthesizeSpeechPresignRequest()
                         .withText("Hello world")
-                        .withOutputFormat(OutputFormat.Pcm)
+                        .withOutputFormat(OutputFormat.PCM)
                         .withLexiconNames("AwsLexicon")
                         .withVoiceId("Salli"));
         assertEquals(
@@ -122,7 +122,7 @@ public class SynthesizeSpeechPresignTest {
                 new SynthesizeSpeechPresignRequest()
                         .withExpirationDate(Date.from(instant))
                         .withText("S3 is an AWS service")
-                        .withOutputFormat(OutputFormat.Mp3)
+                        .withOutputFormat(OutputFormat.MP3)
                         .withLexiconNames("FooLexicon", "AwsLexicon")
                         .withVoiceId("Salli"));
         assertEquals(

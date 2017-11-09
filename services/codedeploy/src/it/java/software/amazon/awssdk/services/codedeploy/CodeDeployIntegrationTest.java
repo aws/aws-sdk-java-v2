@@ -26,7 +26,7 @@ import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.services.codedeploy.model.ApplicationInfo;
 import software.amazon.awssdk.services.codedeploy.model.CreateApplicationRequest;
 import software.amazon.awssdk.services.codedeploy.model.CreateApplicationResponse;

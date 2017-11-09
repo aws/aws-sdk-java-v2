@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.utils;
 
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Codec internal utilities
@@ -23,8 +23,10 @@ import software.amazon.awssdk.annotation.SdkProtectedApi;
  * @author Hanson Char
  */
 @SdkProtectedApi
-public enum CodecUtils {
-    ;
+public final class CodecUtils {
+
+    private CodecUtils() {
+    }
 
     /**
      * Transforms the given string into the given destination byte array

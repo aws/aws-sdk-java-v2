@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.firehose;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static software.amazon.awssdk.testutils.SdkAsserts.assertNotEmpty;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -26,8 +27,8 @@ import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.auth.ProfileCredentialsProvider;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.auth.ProfileCredentialsProvider;
 import software.amazon.awssdk.services.firehose.model.CreateDeliveryStreamRequest;
 import software.amazon.awssdk.services.firehose.model.ListDeliveryStreamsRequest;
 import software.amazon.awssdk.services.firehose.model.ListDeliveryStreamsResponse;
@@ -36,7 +37,8 @@ import software.amazon.awssdk.services.firehose.model.PutRecordBatchResponseEntr
 import software.amazon.awssdk.services.firehose.model.PutRecordRequest;
 import software.amazon.awssdk.services.firehose.model.Record;
 import software.amazon.awssdk.services.firehose.model.S3DestinationConfiguration;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
+
 
 public class ServiceIntegrationTest extends AwsTestBase {
 

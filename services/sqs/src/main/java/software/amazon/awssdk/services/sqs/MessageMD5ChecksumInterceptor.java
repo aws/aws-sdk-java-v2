@@ -15,9 +15,8 @@
 
 package software.amazon.awssdk.services.sqs;
 
-import static software.amazon.awssdk.util.StringUtils.UTF8;
+import static software.amazon.awssdk.core.util.StringUtils.UTF8;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -27,10 +26,11 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.interceptor.Context;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.util.Md5Utils;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
@@ -41,7 +41,6 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
-import software.amazon.awssdk.util.Md5Utils;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
@@ -210,7 +209,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
      */
     private static String calculateMessageAttributesMd5(final Map<String, MessageAttributeValue> messageAttributes) {
         if (log.isDebugEnabled()) {
-            log.debug("Message attribtues: " + messageAttributes);
+            log.debug("Message attributes: " + messageAttributes);
         }
         List<String> sortedAttributeNames = new ArrayList<>(messageAttributes.keySet());
         Collections.sort(sortedAttributeNames);
@@ -224,6 +223,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
 
                 // Encoded Name
                 updateLengthAndBytes(md5Digest, attrName);
+
                 // Encoded Type
                 updateLengthAndBytes(md5Digest, attrValue.dataType());
 
@@ -234,12 +234,14 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
                 } else if (attrValue.binaryValue() != null) {
                     md5Digest.update(BINARY_TYPE_FIELD_INDEX);
                     updateLengthAndBytes(md5Digest, attrValue.binaryValue());
-                } else if (attrValue.stringListValues().size() > 0) {
+                } else if (attrValue.stringListValues() != null &&
+                           attrValue.stringListValues().size() > 0) {
                     md5Digest.update(STRING_LIST_TYPE_FIELD_INDEX);
                     for (String strListMember : attrValue.stringListValues()) {
                         updateLengthAndBytes(md5Digest, strListMember);
                     }
-                } else if (attrValue.binaryListValues().size() > 0) {
+                } else if (attrValue.binaryListValues() != null &&
+                           attrValue.binaryListValues().size() > 0) {
                     md5Digest.update(BINARY_LIST_TYPE_FIELD_INDEX);
                     for (ByteBuffer byteListMember : attrValue.binaryListValues()) {
                         updateLengthAndBytes(md5Digest, byteListMember);
@@ -262,7 +264,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
      * Update the digest using a sequence of bytes that consists of the length (in 4 bytes) of the
      * input String and the actual utf8-encoded byte values.
      */
-    private static void updateLengthAndBytes(MessageDigest digest, String str) throws UnsupportedEncodingException {
+    private static void updateLengthAndBytes(MessageDigest digest, String str) {
         byte[] utf8Encoded = str.getBytes(UTF8);
         ByteBuffer lengthBytes = ByteBuffer.allocate(INTEGER_SIZE_IN_BYTES).putInt(utf8Encoded.length);
         digest.update(lengthBytes.array());

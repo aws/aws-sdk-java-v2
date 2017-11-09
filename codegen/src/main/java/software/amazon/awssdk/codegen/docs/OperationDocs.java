@@ -21,7 +21,7 @@ import static software.amazon.awssdk.codegen.docs.SyncOperationDocProvider.syncF
 import java.util.Map;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.util.ImmutableMapParameter;
+import software.amazon.awssdk.core.util.ImmutableMapParameter;
 
 /**
  * Provides documentation for an operation method on the client interface. Use
@@ -30,11 +30,14 @@ import software.amazon.awssdk.util.ImmutableMapParameter;
  * {@link #getDocs(IntermediateModel, OperationModel, ClientType, SimpleMethodOverload)} with the specified
  * convenience overload as defined in {@link SimpleMethodOverload}.
  */
-public class OperationDocs {
+public final class OperationDocs {
 
     private static final Map<ClientType, Map<SimpleMethodOverload, Factory>> FACTORIES =
             ImmutableMapParameter.of(ClientType.SYNC, syncFactories(),
                                      ClientType.ASYNC, asyncFactories());
+
+    private OperationDocs() {
+    }
 
     /**
      * Get documentation for the {@link SimpleMethodOverload#NORMAL} overload. That is, the actual implementation that

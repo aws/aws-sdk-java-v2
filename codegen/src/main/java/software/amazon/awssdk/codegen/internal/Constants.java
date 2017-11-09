@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.internal;
 
-public class Constants {
+public final class Constants {
 
     public static final String CODEGEN_CONFIG_FILE = "codegen.config";
 
@@ -48,8 +48,6 @@ public class Constants {
 
     public static final String PACKAGE_NAME_TRANSFORM_PATTERN = "%s.transform";
 
-    public static final String PACKAGE_NAME_WAITERS_PATTERN = "%s.waiters";
-
     public static final String PACKAGE_NAME_SMOKE_TEST_PATTERN = "%s.smoketests";
 
     public static final String PACKAGE_NAME_CUSTOM_AUTH_PATTERN = "%s.auth";
@@ -74,4 +72,6 @@ public class Constants {
 
     public static final String APPROVED_SIMPLE_METHOD_VERBS = "(get|list|describe|lookup|batchGet).*";
 
+    private Constants() {
+    }
 }

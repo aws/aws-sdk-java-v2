@@ -29,7 +29,8 @@ import java.util.Set;
 import java.util.UUID;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.util.ImmutableMapParameter;
 import software.amazon.awssdk.services.dynamodb.DynamoDBMapperIntegrationTestBase;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbHashKey;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
@@ -47,8 +48,7 @@ import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
-import software.amazon.awssdk.services.dynamodb.util.TableUtils;
-import software.amazon.awssdk.util.ImmutableMapParameter;
+import software.amazon.awssdk.services.dynamodb.TableUtils;
 
 /**
  * Integration tests for the scan operation on DynamoDBMapper.

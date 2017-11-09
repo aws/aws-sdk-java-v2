@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.stepfunctions.builder.conditions;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Base class for Binary String conditions. Handles marshalling a {@link JsonNode} into String.

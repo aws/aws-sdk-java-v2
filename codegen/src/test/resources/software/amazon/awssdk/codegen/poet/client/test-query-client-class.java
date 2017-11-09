@@ -4,19 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Generated;
 import org.w3c.dom.Node;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.SdkBaseException;
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.client.ClientExecutionParams;
-import software.amazon.awssdk.client.ClientHandler;
-import software.amazon.awssdk.client.SdkClientHandler;
-import software.amazon.awssdk.config.ClientConfiguration;
-import software.amazon.awssdk.config.SyncClientConfiguration;
-import software.amazon.awssdk.http.DefaultErrorResponseHandler;
-import software.amazon.awssdk.http.StaxResponseHandler;
-import software.amazon.awssdk.runtime.transform.StandardErrorUnmarshaller;
-import software.amazon.awssdk.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.SdkBaseException;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.client.ClientExecutionParams;
+import software.amazon.awssdk.core.client.ClientHandler;
+import software.amazon.awssdk.core.client.SdkClientHandler;
+import software.amazon.awssdk.core.config.ClientConfiguration;
+import software.amazon.awssdk.core.config.SyncClientConfiguration;
+import software.amazon.awssdk.core.http.DefaultErrorResponseHandler;
+import software.amazon.awssdk.core.http.StaxResponseHandler;
+import software.amazon.awssdk.core.runtime.transform.StandardErrorUnmarshaller;
+import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
 import software.amazon.awssdk.services.query.model.APostOperationResponse;
 import software.amazon.awssdk.services.query.model.APostOperationWithOutputRequest;
@@ -28,7 +28,6 @@ import software.amazon.awssdk.services.query.transform.APostOperationResponseUnm
 import software.amazon.awssdk.services.query.transform.APostOperationWithOutputRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.APostOperationWithOutputResponseUnmarshaller;
 import software.amazon.awssdk.services.query.transform.InvalidInputExceptionUnmarshaller;
-import software.amazon.awssdk.services.query.waiters.QueryClientWaiters;
 
 /**
  * Internal implementation of {@link QueryClient}.
@@ -43,8 +42,6 @@ final class DefaultQueryClient implements QueryClient {
     private final List<Unmarshaller<AmazonServiceException, Node>> exceptionUnmarshallers;
 
     private final ClientConfiguration clientConfiguration;
-
-    private volatile QueryClientWaiters waiters;
 
     protected DefaultQueryClient(SyncClientConfiguration clientConfiguration) {
         this.clientHandler = new SdkClientHandler(clientConfiguration, null);
@@ -128,17 +125,6 @@ final class DefaultQueryClient implements QueryClient {
         unmarshallers.add(new InvalidInputExceptionUnmarshaller());
         unmarshallers.add(new StandardErrorUnmarshaller(QueryException.class));
         return unmarshallers;
-    }
-
-    public QueryClientWaiters waiters() {
-        if (waiters == null) {
-            synchronized (this) {
-                if (waiters == null) {
-                    waiters = new QueryClientWaiters(this);
-                }
-            }
-        }
-        return waiters;
     }
 
     @Override

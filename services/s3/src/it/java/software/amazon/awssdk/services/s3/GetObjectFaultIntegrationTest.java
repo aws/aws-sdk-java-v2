@@ -18,27 +18,28 @@ package software.amazon.awssdk.services.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.fail;
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.NonRetryableException;
-import software.amazon.awssdk.RetryableException;
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.NonRetryableException;
+import software.amazon.awssdk.core.RetryableException;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.sync.StreamingResponseHandler;
 import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.http.exception.ClientExecutionTimeoutException;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.sync.RequestBody;
-import software.amazon.awssdk.sync.StreamingResponseHandler;
 
 public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
 
-    private static final String BUCKET = getBucketName(GetObjectFaultIntegrationTest.class);
+    private static final String BUCKET = temporaryBucketName(GetObjectFaultIntegrationTest.class);
 
     private static final String KEY = "some-key";
 

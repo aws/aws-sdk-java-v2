@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Utilities that make it easier to create, use and destroy {@link ExecutorService}s.
  */
-public class ExecutorUtils {
+public final class ExecutorUtils {
     private static Logger LOG = LoggerFactory.getLogger(ExecutorUtils.class);
 
     private ExecutorUtils() {}

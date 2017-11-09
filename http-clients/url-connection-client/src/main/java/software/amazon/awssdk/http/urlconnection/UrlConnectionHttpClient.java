@@ -15,25 +15,23 @@
 
 package software.amazon.awssdk.http.urlconnection;
 
+import static software.amazon.awssdk.http.HttpStatusFamily.CLIENT_ERROR;
+import static software.amazon.awssdk.http.HttpStatusFamily.SERVER_ERROR;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.SOCKET_TIMEOUT;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
-import static software.amazon.awssdk.utils.StringUtils.isNotBlank;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.AbortableCallable;
+import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -68,10 +66,10 @@ final class UrlConnectionHttpClient implements SdkHttpClient {
     }
 
     private HttpURLConnection createAndConfigureConnection(SdkHttpFullRequest request) {
-        HttpURLConnection connection = invokeSafely(() -> (HttpURLConnection) createRequest(request).toURL().openConnection());
-        request.getHeaders().forEach((key, values) -> values.forEach(value -> connection.setRequestProperty(key, value)));
-        invokeSafely(() -> connection.setRequestMethod(request.getHttpMethod().name()));
-        if (request.getContent() != null) {
+        HttpURLConnection connection = invokeSafely(() -> (HttpURLConnection) request.getUri().toURL().openConnection());
+        request.headers().forEach((key, values) -> values.forEach(value -> connection.setRequestProperty(key, value)));
+        invokeSafely(() -> connection.setRequestMethod(request.method().name()));
+        if (request.content().isPresent()) {
             connection.setDoOutput(true);
         }
 
@@ -79,39 +77,6 @@ final class UrlConnectionHttpClient implements SdkHttpClient {
         connection.setReadTimeout(saturatedCast(options.get(SOCKET_TIMEOUT).toMillis()));
 
         return connection;
-    }
-
-    private URI createRequest(SdkHttpFullRequest request) {
-        StringBuilder uriBuilder = new StringBuilder(request.getEndpoint().toString());
-        if (isNotBlank(request.getResourcePath())) {
-            uriBuilder.append(request.getResourcePath());
-        }
-
-        String params = request.getParameters().entrySet().stream()
-                               .flatMap(this::flattenParams)
-                               .collect(Collectors.joining("&"));
-
-        if (isNotBlank(params)) {
-            uriBuilder.append("?").append(params);
-        }
-
-        return invokeSafely(() -> new URI(uriBuilder.toString()));
-    }
-
-    private Stream<String> flattenParams(Map.Entry<String, List<String>> e) {
-        if (e.getValue() == null || e.getValue().size() == 0 || e.getValue().get(0) == null) {
-            return Stream.of(encode(e.getKey()));
-        }
-
-        return e.getValue().stream().map(v -> encode(e.getKey()) + "=" + encode(v));
-    }
-
-    private static <K, V> Collector<Map.Entry<K, V>, ?, Map<K, V>> toMap() {
-        return Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue);
-    }
-
-    private static String encode(String string) {
-        return invokeSafely(() -> URLEncoder.encode(string, StandardCharsets.UTF_8.name()));
     }
 
     private static class RequestCallable implements AbortableCallable<SdkHttpFullResponse> {
@@ -128,16 +93,16 @@ final class UrlConnectionHttpClient implements SdkHttpClient {
         public SdkHttpFullResponse call() throws Exception {
             connection.connect();
 
-            if (request.getContent() != null) {
-                IoUtils.copy(request.getContent(), connection.getOutputStream());
-            }
+            request.content().ifPresent(content -> invokeSafely(() -> IoUtils.copy(content, connection.getOutputStream())));
 
             int responseCode = connection.getResponseCode();
-            InputStream content = responseCode < 400 ? connection.getInputStream() : connection.getErrorStream();
+            boolean isErrorResponse = HttpStatusFamily.of(responseCode).isOneOf(CLIENT_ERROR, SERVER_ERROR);
+            InputStream content = !isErrorResponse ? connection.getInputStream() : connection.getErrorStream();
+
             return SdkHttpFullResponse.builder()
                                       .statusCode(responseCode)
                                       .statusText(connection.getResponseMessage())
-                                      .content(content)
+                                      .content(new AbortableInputStream(content, () -> { /* TODO: Don't ignore abort? */ }))
                                       .headers(extractHeaders(connection))
                                       .build();
         }
@@ -145,7 +110,7 @@ final class UrlConnectionHttpClient implements SdkHttpClient {
         private Map<String, List<String>> extractHeaders(HttpURLConnection response) {
             return response.getHeaderFields().entrySet().stream()
                            .filter(e -> e.getKey() != null)
-                           .collect(toMap());
+                           .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
 
         @Override

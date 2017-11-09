@@ -16,7 +16,7 @@
 package software.amazon.awssdk.http.apache.internal;
 
 import java.time.Duration;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 /**
  * Default configuration values.

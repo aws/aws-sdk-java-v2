@@ -84,12 +84,18 @@ class ListSetters extends AbstractMemberSetters {
     }
 
     @Override
-    public List<MethodSpec> beanStyle() {
-        List<MethodSpec> beanStyle = new ArrayList<>();
+    public MethodSpec beanStyle() {
+        MethodSpec.Builder builder = beanStyleSetterBuilder()
+            .addCode(memberModel().isCollectionWithBuilderMember() ? copySetterBuilderBody() : copySetterBody());
 
-        beanStyle.add(beanStyleCopySetter());
+        if (annotateJsonProperty()) {
+            builder.addAnnotation(
+                AnnotationSpec.builder(JsonProperty.class)
+                              .addMember("value", "$S", memberModel().getHttp().getMarshallLocationName()).build());
+        }
 
-        return beanStyle;
+        return builder.build();
+
     }
 
     private MethodSpec fluentCopySetter(TypeName returnType) {
@@ -98,20 +104,6 @@ class ListSetters extends AbstractMemberSetters {
                         .toBuilder()
                         .addStatement("return this").build())
                 .build();
-    }
-
-    private MethodSpec beanStyleCopySetter() {
-        MethodSpec.Builder builder = beanStyleSetterBuilder()
-                .addCode(copySetterBody());
-
-        if (annotateJsonProperty()) {
-            builder.addAnnotation(
-                    AnnotationSpec.builder(JsonProperty.class)
-                            .addMember("value", "$S", memberModel().getHttp().getMarshallLocationName()).build());
-        }
-
-        return builder.build();
-
     }
 
     private MethodSpec fluentVarargToListSetter(TypeName returnType) {

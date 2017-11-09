@@ -21,14 +21,14 @@ import java.util.UUID;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.waiters.WaiterParameters;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbTableMapper;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.pojos.GsiWithAlwaysUpdateTimestamp;
-import software.amazon.awssdk.waiters.WaiterParameters;
 
 public class GsiAlwaysUpdateIntegrationTest extends DynamoDBMapperIntegrationTestBase {
 
@@ -48,15 +48,13 @@ public class GsiAlwaysUpdateIntegrationTest extends DynamoDBMapperIntegrationTes
                 .withTableNameOverride(new DynamoDbMapperConfig.TableNameOverride(TABLE_NAME))
                 .build()).newTableMapper(GsiWithAlwaysUpdateTimestamp.class);
         mapper.createTable(ProvisionedThroughput.builder().readCapacityUnits(5L).writeCapacityUnits(5L).build());
-        ddb.waiters().tableExists()
-                .run(new WaiterParameters<DescribeTableRequest>(DescribeTableRequest.builder().tableName(TABLE_NAME).build()));
+        waiters.tableExists().run(new WaiterParameters<>(DescribeTableRequest.builder().tableName(TABLE_NAME).build()));
     }
 
     @After
     public void tearDown() {
         mapper.deleteTableIfExists();
-        ddb.waiters().tableNotExists()
-                .run(new WaiterParameters<DescribeTableRequest>(DescribeTableRequest.builder().tableName(TABLE_NAME).build()));
+        waiters.tableNotExists().run(new WaiterParameters<>(DescribeTableRequest.builder().tableName(TABLE_NAME).build()));
     }
 
     @Test

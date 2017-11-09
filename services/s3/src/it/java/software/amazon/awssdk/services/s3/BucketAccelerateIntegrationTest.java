@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.junit.Assert.assertEquals;
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.File;
 import java.util.List;
@@ -23,13 +24,12 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.AccelerateConfiguration;
 import software.amazon.awssdk.services.s3.model.BucketAccelerateStatus;
 import software.amazon.awssdk.services.s3.model.BucketVersioningStatus;
-import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketTaggingRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketAccelerateConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketTaggingRequest;
@@ -42,12 +42,10 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.Tagging;
 import software.amazon.awssdk.services.s3.model.VersioningConfiguration;
-import software.amazon.awssdk.sync.RequestBody;
-import software.amazon.awssdk.test.retry.AssertCallable;
-import software.amazon.awssdk.test.retry.RetryableAssertion;
-import software.amazon.awssdk.test.retry.RetryableParams;
-import software.amazon.awssdk.test.util.RandomTempFile;
-
+import software.amazon.awssdk.testutils.RandomTempFile;
+import software.amazon.awssdk.testutils.retry.AssertCallable;
+import software.amazon.awssdk.testutils.retry.RetryableAssertion;
+import software.amazon.awssdk.testutils.retry.RetryableParams;
 
 /**
  * Integration tests for S3 bucket accelerate configuration.
@@ -58,7 +56,7 @@ import software.amazon.awssdk.test.util.RandomTempFile;
 @Ignore
 public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
 
-    private static final String US_BUCKET_NAME = "s3-accelerate-us-east-1-" + System.currentTimeMillis();
+    private static final String US_BUCKET_NAME = temporaryBucketName("s3-accelerate-us-east-1");
     private static final String KEY_NAME = "key";
 
     private static S3Client accelerateClient;
@@ -84,8 +82,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
     }
 
     private static void setUpBuckets() {
-        s3.createBucket(CreateBucketRequest.builder().bucket(US_BUCKET_NAME).createBucketConfiguration(
-                CreateBucketConfiguration.builder().locationConstraint("us-west-2").build()).build());
+        createBucket(US_BUCKET_NAME);
     }
 
     @Test
@@ -120,7 +117,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
             }
         }, new RetryableParams().withMaxAttempts(30).withDelayInMs(200));
 
-        assertEquals(BucketVersioningStatus.Enabled.name(),
+        assertEquals(BucketVersioningStatus.ENABLED,
                      accelerateClient.getBucketVersioning(GetBucketVersioningRequest.builder()
                                                                                     .bucket(US_BUCKET_NAME)
                                                                                     .build())
@@ -135,21 +132,21 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
         String status = s3.getBucketAccelerateConfiguration(GetBucketAccelerateConfigurationRequest.builder()
                                                                                                    .bucket(US_BUCKET_NAME)
                                                                                                    .build())
-                          .status();
+                          .statusString();
 
         if (status == null || !status.equals("Enabled")) {
             enableAccelerateOnBucket();
         }
 
         assertEquals(
-                BucketAccelerateStatus.Enabled.toString(),
+                BucketAccelerateStatus.ENABLED,
                 s3.getBucketAccelerateConfiguration(GetBucketAccelerateConfigurationRequest.builder()
                                                                                            .bucket(US_BUCKET_NAME)
                                                                                            .build())
                   .status());
 
         disableAccelerateOnBucket();
-        assertEquals(BucketAccelerateStatus.Suspended.toString(),
+        assertEquals(BucketAccelerateStatus.SUSPENDED,
                      s3.getBucketAccelerateConfiguration(GetBucketAccelerateConfigurationRequest.builder()
                                                                                                 .bucket(US_BUCKET_NAME)
                                                                                                 .build())
@@ -162,7 +159,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
         String status = s3.getBucketAccelerateConfiguration(GetBucketAccelerateConfigurationRequest.builder()
                                                                                                    .bucket(US_BUCKET_NAME)
                                                                                                    .build())
-                          .status();
+                          .statusString();
 
         if (status == null || !status.equals("Enabled")) {
             enableAccelerateOnBucket();
@@ -182,7 +179,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
                 PutBucketAccelerateConfigurationRequest.builder()
                                                        .bucket(US_BUCKET_NAME)
                                                        .accelerateConfiguration(AccelerateConfiguration.builder()
-                                                                                                       .status(BucketAccelerateStatus.Enabled)
+                                                                                                       .status(BucketAccelerateStatus.ENABLED)
                                                                                                        .build())
                                                        .build());
         // Wait a bit for accelerate to kick in
@@ -194,7 +191,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
                 PutBucketAccelerateConfigurationRequest.builder()
                                                        .bucket(US_BUCKET_NAME)
                                                        .accelerateConfiguration(AccelerateConfiguration.builder()
-                                                                                                       .status(BucketAccelerateStatus.Suspended)
+                                                                                                       .status(BucketAccelerateStatus.SUSPENDED)
                                                                                                        .build())
                                                        .build());
     }

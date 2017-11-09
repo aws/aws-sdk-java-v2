@@ -17,24 +17,24 @@ package software.amazon.awssdk.services.s3.handlers;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
-import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.regions.RegionMetadata;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.interceptor.AwsExecutionAttributes;
-import software.amazon.awssdk.interceptor.Context;
-import software.amazon.awssdk.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.RegionMetadata;
 import software.amazon.awssdk.services.s3.BucketUtils;
 import software.amazon.awssdk.services.s3.S3AdvancedConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 public class EndpointAddressInterceptor implements ExecutionInterceptor {
 
@@ -44,25 +44,25 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
     @Override
     public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
         SdkHttpFullRequest request = context.httpRequest();
-        Object originalRequest = context.request();
+        SdkRequest sdkRequest = context.request();
 
         S3AdvancedConfiguration advancedConfiguration =
                 (S3AdvancedConfiguration) executionAttributes.getAttribute(AwsExecutionAttributes.SERVICE_ADVANCED_CONFIG);
         SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
 
-        mutableRequest.endpoint(resolveEndpoint(request.getEndpoint(), originalRequest,
-                                                executionAttributes, advancedConfiguration));
+        URI endpoint = resolveEndpoint(request, sdkRequest,
+                                       executionAttributes, advancedConfiguration);
+        mutableRequest.protocol(endpoint.getScheme())
+                      .host(endpoint.getHost())
+                      .port(endpoint.getPort())
+                      .encodedPath(SdkHttpUtils.appendUri(endpoint.getPath(), mutableRequest.encodedPath()));
 
         if (advancedConfiguration == null || !advancedConfiguration.pathStyleAccessEnabled()) {
-            try {
-                String bucketName = getBucketName(originalRequest);
-
-                if (BucketUtils.isValidDnsBucketName(bucketName, false)) {
-                    changeToDnsEndpoint(mutableRequest, bucketName);
+            sdkRequest.getValueForField("Bucket", String.class).ifPresent(b -> {
+                if (BucketUtils.isValidDnsBucketName(b, false)) {
+                    changeToDnsEndpoint(mutableRequest, b);
                 }
-            } catch (Exception e) {
-                // Unable to convert to DNS style addressing. Fall back to continue using path style.
-            }
+            });
         }
 
         return mutableRequest.build();
@@ -73,8 +73,8 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
      * S3 endpoint (i.e. s3.us-east-1.amazonaws.com), the global S3 accelerate endpoint (i.e. s3-accelerate.amazonaws.com) or
      * a regional dualstack endpoint for IPV6 (i.e. s3.dualstack.us-east-1.amazonaws.com).
      */
-    private URI resolveEndpoint(URI originalEndpoint,
-                                Object originalRequest,
+    private URI resolveEndpoint(SdkHttpFullRequest request,
+                                SdkRequest originalRequest,
                                 ExecutionAttributes executionAttributes,
                                 S3AdvancedConfiguration advancedConfiguration) {
         Region region = executionAttributes.getAttribute(AwsExecutionAttributes.AWS_REGION);
@@ -84,7 +84,7 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
         } else if (advancedConfiguration != null && advancedConfiguration.dualstackEnabled()) {
             return dualstackEndpoint(regionMetadata);
         } else {
-            return originalEndpoint;
+            return invokeSafely(() -> new URI(request.protocol(), null, request.host(), request.port(), null, null, null));
         }
     }
 
@@ -126,15 +126,6 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
         }
     }
 
-    @ReviewBeforeRelease("Remove reflection here. Have some kind of interface where we can get bucket name or pass it" +
-                         "in the handler context")
-    private String getBucketName(Object originalRequest) throws IllegalAccessException, InvocationTargetException,
-                                                                NoSuchMethodException {
-        return (String) originalRequest.getClass()
-                                       .getMethod("bucket")
-                                       .invoke(originalRequest);
-    }
-
     /**
      * Changes from path style addressing (which the marshallers produce by default, to DNS style or virtual style addressing
      * where the bucket name is prepended to the host. DNS style addressing is preferred due to the better load balancing
@@ -144,20 +135,11 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
      * @param bucketName     Bucket name for this particular operation.
      */
     private void changeToDnsEndpoint(SdkHttpFullRequest.Builder mutableRequest, String bucketName) {
-        if (mutableRequest.getEndpoint().getHost().startsWith("s3")) {
-            // Replace /bucketName from resourcePath with nothing
-            String resourcePath = mutableRequest.getResourcePath().replaceFirst("/" + bucketName, "");
+        if (mutableRequest.host().startsWith("s3")) {
+            String newHost = mutableRequest.host().replaceFirst("s3", bucketName + "." + "s3");
+            String newPath = mutableRequest.encodedPath().replaceFirst("/" + bucketName, "");
 
-            // Prepend bucket to endpoint
-            URI endpoint = invokeSafely(() -> new URI(
-                    mutableRequest.getEndpoint().getScheme(), // Existing scheme
-                    // replace "s3" with "bucket.s3"
-                    mutableRequest.getEndpoint().getHost().replaceFirst("s3", bucketName + "." + "s3"),
-                    null,
-                    null));
-
-            mutableRequest.endpoint(endpoint);
-            mutableRequest.resourcePath(resourcePath);
+            mutableRequest.host(newHost).encodedPath(newPath);
         }
     }
 }

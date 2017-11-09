@@ -31,7 +31,10 @@ import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import software.amazon.awssdk.http.apache.ProxyConfiguration;
 
-public class ApacheUtils {
+public final class ApacheUtils {
+
+    private ApacheUtils() {
+    }
 
     /**
      * Utility function for creating a new BufferedEntity and wrapping any errors

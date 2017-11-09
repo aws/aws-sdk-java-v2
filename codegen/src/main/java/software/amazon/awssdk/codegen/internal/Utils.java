@@ -23,9 +23,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeMarshaller;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
@@ -38,7 +40,10 @@ import software.amazon.awssdk.codegen.model.service.XmlNamespace;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
-public class Utils {
+public final class Utils {
+
+    private Utils() {
+    }
 
     public static boolean isScalar(Shape shape) {
         // enums are treated as scalars in C2j.
@@ -63,6 +68,22 @@ public class Utils {
 
     public static boolean isExceptionShape(Shape shape) {
         return shape.isException() || shape.isFault();
+    }
+
+    public static boolean isOrContainsEnumShape(Shape shape, Map<String, Shape> allShapes) {
+        boolean isEnum = isEnumShape(shape);
+        boolean isMapWithEnumMember = isMapShape(shape) && (isEnumShape(allShapes.get(shape.getMapKeyType().getShape())) ||
+                                                            isEnumShape(allShapes.get(shape.getMapValueType().getShape())));
+        boolean isListWithEnumMember = isListShape(shape) && isEnumShape(allShapes.get(shape.getListMember().getShape()));
+        return isEnum || isMapWithEnumMember || isListWithEnumMember;
+    }
+
+    public static boolean isOrContainsEnum(MemberModel member) {
+        boolean isEnum = member.getEnumType() != null;
+        boolean isMapWithEnumMember = member.isMap() && (member.getMapModel().getKeyModel().getEnumType() != null ||
+                                                         member.getMapModel().getValueModel().getEnumType() != null);
+        boolean isListWithEnumMember = member.isList() && member.getListModel().getListMemberModel().getEnumType() != null;
+        return isEnum || isMapWithEnumMember || isListWithEnumMember;
     }
 
     public static String getServiceName(ServiceMetadata metadata, CustomizationConfig customizationConfig) {
@@ -111,11 +132,6 @@ public class Utils {
     public static String getRequestTransformPackageName(String serviceName, CustomizationConfig customizationConfig) {
         return getCustomizedPackageName(serviceName,
                                         Constants.PACKAGE_NAME_TRANSFORM_PATTERN);
-    }
-
-    public static String getWaitersPackageName(String serviceName, CustomizationConfig customizationConfig) {
-        return getCustomizedPackageName(serviceName,
-                                        Constants.PACKAGE_NAME_WAITERS_PATTERN);
     }
 
     public static String getSmokeTestPackageName(String serviceName, CustomizationConfig customizationConfig) {

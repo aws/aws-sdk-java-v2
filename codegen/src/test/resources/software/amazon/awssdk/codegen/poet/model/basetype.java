@@ -1,9 +1,10 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.util.Optional;
 import javax.annotation.Generated;
-import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.protocol.ProtocolMarshaller;
-import software.amazon.awssdk.protocol.StructuredPojo;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
+import software.amazon.awssdk.core.protocol.StructuredPojo;
 import software.amazon.awssdk.services.jsonprotocoltests.transform.BaseTypeMarshaller;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -70,13 +71,24 @@ public class BaseType implements StructuredPojo, ToCopyableBuilder<BaseType.Buil
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
+        StringBuilder sb = new StringBuilder("{");
         if (baseMember() != null) {
             sb.append("BaseMember: ").append(baseMember()).append(",");
         }
+        if (sb.length() > 1) {
+            sb.setLength(sb.length() - 1);
+        }
         sb.append("}");
         return sb.toString();
+    }
+
+    public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
+        switch (fieldName) {
+        case "BaseMember":
+            return Optional.of(clazz.cast(baseMember()));
+        default:
+            return Optional.empty();
+        }
     }
 
     @SdkInternalApi
@@ -96,14 +108,14 @@ public class BaseType implements StructuredPojo, ToCopyableBuilder<BaseType.Buil
         Builder baseMember(String baseMember);
     }
 
-    private static final class BuilderImpl implements Builder {
+    static final class BuilderImpl implements Builder {
         private String baseMember;
 
         private BuilderImpl() {
         }
 
         private BuilderImpl(BaseType model) {
-            setBaseMember(model.baseMember);
+            baseMember(model.baseMember);
         }
 
         public final String getBaseMember() {

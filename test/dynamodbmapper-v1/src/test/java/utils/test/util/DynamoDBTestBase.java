@@ -24,21 +24,23 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
 import software.amazon.awssdk.services.dynamodb.model.TableStatus;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.services.dynamodb.waiters.DynamoDBClientWaiters;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 import software.amazon.awssdk.utils.Logger;
 
 public class DynamoDBTestBase extends AwsTestBase {
     protected static final String ENDPOINT = "http://dynamodb.us-east-1.amazonaws.com/";
 
     protected static DynamoDBClient dynamo;
+    protected static DynamoDBClientWaiters waiters;
 
     private static final Logger log = Logger.loggerFor(DynamoDBTestBase.class);
 
@@ -50,6 +52,7 @@ public class DynamoDBTestBase extends AwsTestBase {
         }
 
         dynamo = DynamoDBClient.builder().region(Region.US_EAST_1).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        waiters = new DynamoDBClientWaiters(dynamo);
     }
 
     public static DynamoDBClient getClient() {
@@ -78,9 +81,8 @@ public class DynamoDBTestBase extends AwsTestBase {
                 DescribeTableRequest request = DescribeTableRequest.builder().tableName(tableName).build();
                 TableDescription table = dynamo.describeTable(request).table();
 
-                String tableStatus = table.tableStatus();
-                log.info(() -> "  - current state: " + tableStatus);
-                if (tableStatus.equals(TableStatus.DELETING.toString())) {
+                log.info(() -> "  - current state: " + table.tableStatusString());
+                if (table.tableStatus() == TableStatus.DELETING) {
                     continue;
                 }
             } catch (AmazonServiceException ase) {

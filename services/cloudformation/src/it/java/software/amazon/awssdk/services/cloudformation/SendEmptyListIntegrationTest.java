@@ -24,15 +24,16 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.waiters.WaiterParameters;
 import software.amazon.awssdk.services.cloudformation.model.CreateStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.DeleteStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRequest;
 import software.amazon.awssdk.services.cloudformation.model.Tag;
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackRequest;
-import software.amazon.awssdk.test.AwsIntegrationTestBase;
-import software.amazon.awssdk.waiters.WaiterParameters;
+import software.amazon.awssdk.services.cloudformation.waiters.CloudFormationClientWaiters;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 /**
  * See https://github.com/aws/aws-sdk-java/issues/721. Cloudformation treats empty lists as removing
@@ -61,6 +62,7 @@ public class SendEmptyListIntegrationTest extends AwsIntegrationTestBase {
             "}";
 
     private CloudFormationClient cf;
+    private CloudFormationClientWaiters waiters;
     private String stackName;
 
     @Before
@@ -75,9 +77,11 @@ public class SendEmptyListIntegrationTest extends AwsIntegrationTestBase {
                                          .stackName(stackName)
                                          .templateBody(STARTING_TEMPLATE)
                                          .tags(Tag.builder().key("FooKey").value("FooValue").build()).build());
-        cf.waiters()
-          .stackCreateComplete()
-          .run(getWaiterParameters(stackName));
+
+        waiters = new CloudFormationClientWaiters(cf);
+
+        waiters.stackCreateComplete()
+               .run(getWaiterParameters(stackName));
     }
 
     @After
@@ -92,9 +96,8 @@ public class SendEmptyListIntegrationTest extends AwsIntegrationTestBase {
                                          .stackName(stackName)
                                          .templateBody(STARTING_TEMPLATE)
                                          .tags(Collections.emptyList()).build());
-        cf.waiters()
-          .stackUpdateComplete()
-          .run(getWaiterParameters(stackName));
+        waiters.stackUpdateComplete()
+               .run(getWaiterParameters(stackName));
         assertThat(getTagsForStack(stackName), empty());
     }
 
@@ -104,9 +107,8 @@ public class SendEmptyListIntegrationTest extends AwsIntegrationTestBase {
         cf.updateStack(UpdateStackRequest.builder()
                                          .stackName(stackName)
                                          .templateBody(UPDATED_TEMPLATE).build());
-        cf.waiters()
-          .stackUpdateComplete()
-          .run(getWaiterParameters(stackName));
+        waiters.stackUpdateComplete()
+               .run(getWaiterParameters(stackName));
         assertThat(getTagsForStack(stackName), not(empty()));
     }
 

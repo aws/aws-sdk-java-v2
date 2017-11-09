@@ -37,8 +37,9 @@ package software.amazon.awssdk.utils;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import java.util.function.Predicate;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * <p>This class assists in validating arguments. The validation methods are
@@ -63,15 +64,13 @@ import software.amazon.awssdk.annotation.SdkInternalApi;
  * <p>#ThreadSafe#</p>
  * @see java.lang.String#format(String, Object...)
  */
-@ReviewBeforeRelease("Remove the methods we don't end up using (and we've removed software.amazon.awssdk.util.ValidationUtils).")
+@ReviewBeforeRelease("Remove the methods we don't end up using (and software.amazon.awssdk.core.util.ValidationUtils).")
 @SdkInternalApi
-public class Validate {
+public final class Validate {
     private static final String DEFAULT_IS_NULL_EX_MESSAGE = "The validated object is null";
 
-    /**
-     * Constructor. This class should not normally be instantiated.
-     */
-    public Validate() {}
+    private Validate() {
+    }
 
     // isTrue
     //---------------------------------------------------------------------------------
@@ -137,6 +136,70 @@ public class Validate {
             throw new NullPointerException(String.format("%s must not be null.", paramName));
         }
         return object;
+    }
+
+    /**
+     * <p>Validate that the specified char sequence is neither
+     * {@code null}, a length of zero (no characters), empty nor
+     * whitespace; otherwise throwing an exception with the specified
+     * message.
+     *
+     * <pre>Validate.paramNotBlank(myCharSequence, "myCharSequence");</pre>
+     *
+     * @param <T> the char sequence type
+     * @param chars  the character sequence to check
+     * @param paramName  The name of the param or field being checked.
+     * @return the validated char sequence (never {@code null} for method chaining)
+     * @throws NullPointerException if the char sequence is {@code null}
+     */
+    public static <T extends CharSequence> T paramNotBlank(final T chars, final String paramName) {
+        if (chars == null) {
+            throw new NullPointerException(String.format("%s must not be null.", paramName));
+        }
+        if (StringUtils.isBlank(chars)) {
+            throw new IllegalArgumentException(String.format("%s must not be blank or empty.", paramName));
+        }
+        return chars;
+    }
+
+    /**
+     * <p>Validate the stateful predicate is true for the given object and return the object;
+     * otherwise throw an exception with the specified message.</p>
+     *
+     * <pre>String value = Validate.validState(someString, s -> s.length() == 0, "must be blank got: %s", someString);</pre>
+     *
+     *
+     * @param <T> the object type
+     * @param object  the object to check
+     * @param test  the predicate to apply, will return true if the object is valid
+     * @param message  the {@link String#format(String, Object...)} exception message if invalid, not null
+     * @param values  the optional values for the formatted exception message
+     * @return the validated object
+     * @throws NullPointerException if the object is {@code null}
+     */
+    public static <T> T validState(final T object, final Predicate<T> test, final String message, final Object... values) {
+        if (!test.test(object)) {
+            throw new IllegalStateException(String.format(message, values));
+        }
+        return object;
+    }
+
+    /**
+     * <p>Validate the stateful predicate is true for the given object and return the object;
+     * otherwise throw an exception with a precanned message that includes the parameter name.</p>
+     *
+     * <pre>String value = Validate.validState(someString, s -> s.length() == 0, "someString");</pre>
+     *
+     * @param <T> the object type
+     * @param object  the object to check
+     * @param test  the predicate to apply, will return true if the object is valid
+     * @param message  the {@link String#format(String, Object...)} exception message if invalid, not null
+     * @param values  the optional values for the formatted exception message
+     * @return the validated object
+     * @throws NullPointerException if the object is {@code null}
+     */
+    public static <T> T paramValidState(final T object, final Predicate<T> test, final String paramName) {
+        return validState(object, test, "%s has invalid state", paramName);
     }
 
     // notEmpty array

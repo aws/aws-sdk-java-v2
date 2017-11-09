@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.stepfunctions.builder;
 
 import org.junit.Test;
-import software.amazon.awssdk.SdkClientException;
+import software.amazon.awssdk.core.SdkClientException;
 
 public class ChoiceStateTest {
 

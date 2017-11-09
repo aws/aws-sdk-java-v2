@@ -16,7 +16,7 @@
 package utils.test.util;
 
 import org.junit.BeforeClass;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
@@ -30,7 +30,8 @@ import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
-import software.amazon.awssdk.services.dynamodb.util.TableUtils;
+import software.amazon.awssdk.services.dynamodb.TableUtils;
+import software.amazon.awssdk.services.dynamodb.waiters.DynamoDBClientWaiters;
 
 public class DynamoDBIntegrationTestBase extends DynamoDBTestBase {
 
@@ -44,6 +45,7 @@ public class DynamoDBIntegrationTestBase extends DynamoDBTestBase {
     public static void setUp() throws Exception {
         setUpCredentials();
         dynamo = DynamoDBClient.builder().region(Region.US_EAST_1).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        waiters = new DynamoDBClientWaiters(dynamo);
 
         // Create a table
         String keyName = KEY_NAME;

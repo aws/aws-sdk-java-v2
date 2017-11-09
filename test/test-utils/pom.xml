@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.0.0-preview-4</version>
+        <version>2.0.0-preview-5-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>test-utils</artifactId>
@@ -30,13 +30,22 @@
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
 
+    <properties>
+        <root.offset>../..</root.offset>
+    </properties>
+
     <!-- The dependencies section in pom.xml is auto generated. No manual changes are allowed -->
     <dependencies>
         <dependency>
-            <artifactId>core</artifactId>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>utils</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+
         <dependency>
             <artifactId>junit</artifactId>
             <groupId>junit</groupId>
@@ -62,9 +71,21 @@
             <artifactId>hamcrest-all</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.burt</groupId>
+            <artifactId>jmespath-jackson</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
         </dependency>
     </dependencies>
 
@@ -81,51 +102,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <!-- This profile uses the JAPICMP plugin to generate a report of changes between the release version and the latest version -->
-    <!-- For more information on the plugin, see https://github.com/siom79/japicmp -->
-    <profiles>
-        <profile>
-            <id>versiondiff</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.github.siom79.japicmp</groupId>
-                        <artifactId>japicmp-maven-plugin</artifactId>
-                        <version>0.5.0</version>
-                        <executions>
-                            <execution>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>cmp</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <oldVersion>
-                                <dependency>
-                                    <groupId>software.amazon.awssdk</groupId>
-                                    <artifactId>test-utils</artifactId>
-                                    <version>RELEASE</version>
-                                </dependency>
-                            </oldVersion>
-                            <newVersion>
-                                <file>
-                                    <path>${project.build.directory}/${project.artifactId}-${project.version}.jar</path>
-                                </file>
-                            </newVersion>
-                            <parameter>
-                                <onlyModified>true</onlyModified>
-                                <accessModifier>public</accessModifier>
-                                <breakBuildOnModifications>false</breakBuildOnModifications>
-                                <breakBuildOnBinaryIncompatibleModifications>false
-                                </breakBuildOnBinaryIncompatibleModifications>
-                                <onlyBinaryIncompatible>false</onlyBinaryIncompatible>
-                            </parameter>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

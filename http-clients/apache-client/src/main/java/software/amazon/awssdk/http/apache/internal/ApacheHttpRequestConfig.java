@@ -17,7 +17,7 @@ package software.amazon.awssdk.http.apache.internal;
 
 import java.net.InetAddress;
 import java.time.Duration;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.apache.ProxyConfiguration;
 
 /**

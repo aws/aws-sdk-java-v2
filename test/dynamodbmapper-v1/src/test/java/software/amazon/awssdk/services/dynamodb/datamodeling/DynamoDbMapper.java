@@ -34,12 +34,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.retry.RetryUtils;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.retry.RetryUtils;
+import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.BatchLoadRetryStrategy;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.BatchWriteRetryStrategy;
@@ -78,7 +79,6 @@ import software.amazon.awssdk.services.dynamodb.model.Select;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
-import software.amazon.awssdk.util.VersionInfo;
 
 /**
  * Object mapper for domain-object interaction with DynamoDB.
@@ -2252,7 +2252,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
             for (Entry<String, AttributeValueUpdate> entry : putValues.entrySet()) {
                 String attributeName = entry.getKey();
                 AttributeValue attributeValue = entry.getValue().value();
-                String attributeAction = entry.getValue().action();
+                String attributeAction = entry.getValue().actionString();
 
                 /*
                  * AttributeValueUpdate allows nulls for its values, since they are

@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.poet;
 
-import static software.amazon.awssdk.util.StringUtils.isNotBlank;
+import static software.amazon.awssdk.utils.StringUtils.isNotBlank;
 
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;

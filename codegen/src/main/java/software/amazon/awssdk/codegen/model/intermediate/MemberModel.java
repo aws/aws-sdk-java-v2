@@ -29,8 +29,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
-import software.amazon.awssdk.protocol.MarshallingInfo;
-import software.amazon.awssdk.runtime.transform.PathMarshallers;
+import software.amazon.awssdk.core.runtime.transform.PathMarshallers;
 import software.amazon.awssdk.utils.StringUtils;
 
 public class MemberModel extends DocumentationModel {
@@ -64,6 +63,8 @@ public class MemberModel extends DocumentationModel {
     private ShapeModel shape;
 
     private String fluentGetterMethodName;
+
+    private String fluentEnumGetterMethodName;
 
     private String fluentSetterMethodName;
 
@@ -146,6 +147,19 @@ public class MemberModel extends DocumentationModel {
 
     public MemberModel withFluentGetterMethodName(String getterMethodName) {
         setFluentGetterMethodName(getterMethodName);
+        return this;
+    }
+
+    public String getFluentEnumGetterMethodName() {
+        return fluentEnumGetterMethodName;
+    }
+
+    public void setFluentEnumGetterMethodName(String fluentEnumGetterMethodName) {
+        this.fluentEnumGetterMethodName = fluentEnumGetterMethodName;
+    }
+
+    public MemberModel withFluentEnumGetterMethodName(String fluentEnumGetterMethodName) {
+        setFluentEnumGetterMethodName(fluentEnumGetterMethodName);
         return this;
     }
 
@@ -253,13 +267,13 @@ public class MemberModel extends DocumentationModel {
         this.listModel = listModel;
     }
 
-    public MapModel getMapModel() {
-        return mapModel;
-    }
-
     public MemberModel withListModel(ListModel list) {
         setListModel(list);
         return this;
+    }
+
+    public MapModel getMapModel() {
+        return mapModel;
     }
 
     public void setMapModel(MapModel map) {
@@ -302,7 +316,7 @@ public class MemberModel extends DocumentationModel {
 
         docBuilder.append(StringUtils.isNotBlank(documentation) ? documentation : DEFAULT_SETTER.replace("%s", name) + "\n");
 
-        if (ByteBuffer.class.getName().equals(this.getGetterModel().getReturnType())) {
+        if (returnTypeIs(ByteBuffer.class)) {
             appendParagraph(docBuilder, "To preserve immutability, the remaining bytes in the provided buffer will be copied "
                                         + "into a new buffer when set.");
         }
@@ -314,20 +328,37 @@ public class MemberModel extends DocumentationModel {
     }
 
     public String getGetterDocumentation() {
-        String returnType = this.getGetterModel().getReturnType();
         StringBuilder docBuilder = new StringBuilder();
         docBuilder.append(StringUtils.isNotBlank(documentation) ? documentation : DEFAULT_GETTER.replace("%s", name))
                 .append(LF);
 
-        if (returnType != null) {
-            if (returnType.equals(ByteBuffer.class.getName())) {
-                appendParagraph(docBuilder,
-                                "This method will return a new read-only {@code ByteBuffer} each time it is invoked.");
-            }
+        if (returnTypeIs(ByteBuffer.class)) {
+            appendParagraph(docBuilder,
+                            "This method will return a new read-only {@code ByteBuffer} each time it is invoked.");
+        } else if (returnTypeIs(List.class) || returnTypeIs(Map.class)) {
+            appendParagraph(docBuilder, "Attempts to modify the collection returned by this method will result in an "
+                                        + "UnsupportedOperationException.");
+        }
 
-            if (returnType.startsWith(List.class.getName()) || returnType.startsWith(Map.class.getName())) {
-                appendParagraph(docBuilder, "Attempts to modify the collection returned by this method will result in an "
-                                            + "UnsupportedOperationException.");
+        if (enumType != null) {
+            if (returnTypeIs(List.class)) {
+                appendParagraph(docBuilder,
+                                "If the list returned by the service includes enum values that are not available in the "
+                                + "current SDK version, {@link #%s} will use {@link %s#UNKNOWN_TO_SDK_VERSION} in place of those "
+                                + "values in the list. The raw values returned by the service are available from {@link #%s}.",
+                                getFluentEnumGetterMethodName(), getEnumType(), getFluentGetterMethodName());
+            } else if (returnTypeIs(Map.class)) {
+                appendParagraph(docBuilder,
+                                "If the map returned by the service includes enum values that are not available in the "
+                                + "current SDK version, {@link #%s} will not include those keys in the map. {@link #%s} "
+                                + "will include all data from the service.",
+                                getFluentEnumGetterMethodName(), getEnumType(), getFluentGetterMethodName());
+            } else {
+                appendParagraph(docBuilder,
+                                "If the service returns an enum value that is not available in the current SDK version, "
+                                + "{@link #%s} will return {@link %s#UNKNOWN_TO_SDK_VERSION}. The raw value returned by the "
+                                + "service is available from {@link #%s}.",
+                                getFluentEnumGetterMethodName(), getEnumType(), getFluentGetterMethodName());
             }
         }
 
@@ -338,6 +369,11 @@ public class MemberModel extends DocumentationModel {
                   .append(getEnumDoc());
 
         return docBuilder.toString();
+    }
+
+    private boolean returnTypeIs(Class<?> clazz) {
+        String returnType = this.getGetterModel().getReturnType();
+        return returnType != null && returnType.startsWith(clazz.getName()); // Use startsWith in case it's parametrized
     }
 
     public String getFluentSetterDocumentation() {
@@ -415,11 +451,22 @@ public class MemberModel extends DocumentationModel {
         return upperCase(this.name) + "_BINDING";
     }
 
+    @JsonIgnore
+    public boolean hasBuilder() {
+        return !(isSimple() || isList() || isMap());
+    }
+
+    @JsonIgnore
+    public boolean isCollectionWithBuilderMember() {
+        return (isList() && getListModel().getListMemberModel() != null && getListModel().getListMemberModel().hasBuilder()) ||
+               (isMap() && getMapModel().getValueModel() != null && getMapModel().getValueModel().hasBuilder());
+    }
+
     /**
      * Currently used only for JSON services.
      *
      * @return Marshalling type to use when creating a {@link MarshallingInfo}. Must be a field of {@link
-     * software.amazon.awssdk.protocol.MarshallingType}.
+     * software.amazon.awssdk.core.protocol.MarshallingType}.
      */
     public String getMarshallingType() {
         if (isList()) {
@@ -464,10 +511,10 @@ public class MemberModel extends DocumentationModel {
         return c2jName;
     }
 
-    private void appendParagraph(StringBuilder builder, String content) {
+    private void appendParagraph(StringBuilder builder, String content, Object... contentArgs) {
         builder.append("<p>")
                .append(LF)
-               .append(content)
+               .append(String.format(content, contentArgs))
                .append(LF)
                .append("</p>")
                .append(LF);

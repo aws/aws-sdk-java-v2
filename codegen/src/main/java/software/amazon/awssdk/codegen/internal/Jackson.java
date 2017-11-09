@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
 
-public class Jackson {
+public final class Jackson {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -43,6 +43,9 @@ public class Jackson {
         MAPPER.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
         // TODO: Un comment this once we know for sure, we capture everything in C2j model.
         MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
+
+    private Jackson() {
     }
 
     public static <T> T load(Class<T> clazz, File file)

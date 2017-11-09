@@ -21,7 +21,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.waf.model.ChangeAction;
 import software.amazon.awssdk.services.waf.model.CreateIPSetRequest;
 import software.amazon.awssdk.services.waf.model.CreateIPSetResponse;
@@ -37,7 +37,7 @@ import software.amazon.awssdk.services.waf.model.IPSetUpdate;
 import software.amazon.awssdk.services.waf.model.ListIPSetsRequest;
 import software.amazon.awssdk.services.waf.model.ListIPSetsResponse;
 import software.amazon.awssdk.services.waf.model.UpdateIPSetRequest;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class WafIntegrationTest extends AwsTestBase {
 

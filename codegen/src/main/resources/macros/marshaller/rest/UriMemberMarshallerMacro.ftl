@@ -5,7 +5,7 @@
     String uriResourcePath = "${resourcePath}";
 
     <#if resourcePath?contains("?")>
-        uriResourcePath = software.amazon.awssdk.util.UriResourcePathUtils.addStaticQueryParamtersToRequest(request, uriResourcePath);
+        uriResourcePath = software.amazon.awssdk.core.util.UriResourcePathUtils.addStaticQueryParametersToRequest(request, uriResourcePath);
     </#if>
 
     <#if shape.members?has_content>

@@ -22,14 +22,14 @@ import java.util.UUID;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.services.efs.model.CreateFileSystemRequest;
 import software.amazon.awssdk.services.efs.model.DeleteFileSystemRequest;
 import software.amazon.awssdk.services.efs.model.DescribeFileSystemsRequest;
 import software.amazon.awssdk.services.efs.model.FileSystemAlreadyExistsException;
 import software.amazon.awssdk.services.efs.model.FileSystemNotFoundException;
-import software.amazon.awssdk.test.AwsIntegrationTestBase;
-import software.amazon.awssdk.util.StringUtils;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class ElasticFileSystemIntegrationTest extends AwsIntegrationTestBase {
 

@@ -33,8 +33,7 @@ public class AwsGeneratorTasks implements Iterable<GeneratorTask> {
     }
 
     private Iterable<GeneratorTask> createAwsTasks(GeneratorTaskParams params) {
-        return new CompositeIterable<>(new AsyncClientGeneratorTasks(params),
-                                       new WaitersGeneratorTasks(params));
+        return new CompositeIterable<>(new AsyncClientGeneratorTasks(params));
     }
 
     @Override

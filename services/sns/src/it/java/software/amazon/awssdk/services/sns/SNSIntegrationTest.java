@@ -36,8 +36,8 @@ import java.util.Map.Entry;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.AmazonServiceException.ErrorType;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonServiceException.ErrorType;
 import software.amazon.awssdk.services.sns.model.AddPermissionRequest;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.CreateTopicResponse;
@@ -59,12 +59,11 @@ import software.amazon.awssdk.services.sns.model.SubscribeRequest;
 import software.amazon.awssdk.services.sns.model.SubscribeResponse;
 import software.amazon.awssdk.services.sns.model.Subscription;
 import software.amazon.awssdk.services.sns.model.UnsubscribeRequest;
-import software.amazon.awssdk.services.sns.util.SignatureChecker;
-import software.amazon.awssdk.services.sns.util.Topics;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteQueueRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
 import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
 
@@ -120,28 +119,6 @@ public class SNSIntegrationTest extends IntegrationTestBase {
             assertTrue(ase.getServiceName().length() > 5);
             assertEquals(400, ase.getStatusCode());
         }
-    }
-
-    /** Tests the functionality in the Topics utility class. */
-    @Test
-    public void testTopics_subscribeQueue() throws Exception {
-        topicArn = sns.createTopic(CreateTopicRequest.builder().name("subscribeTopicTest-" + System.currentTimeMillis()).build())
-                      .topicArn();
-        queueUrl = sqs.createQueue(
-                CreateQueueRequest.builder().queueName("subscribeTopicTest-" + System.currentTimeMillis()).build())
-                      .queueUrl();
-
-        subscriptionArn = Topics.subscribeQueue(sns, sqs, topicArn, queueUrl);
-        assertNotNull(subscriptionArn);
-
-        // Verify that the queue is receiving messages
-        sns.publish(PublishRequest.builder().topicArn(topicArn).message("Hello SNS World").subject("Subject").build());
-        String message = receiveMessage();
-        Map<String, String> messageDetails = parseJSON(message);
-        assertEquals("Hello SNS World", messageDetails.get("Message"));
-        assertEquals("Subject", messageDetails.get("Subject"));
-        assertNotNull(messageDetails.get("MessageId"));
-        assertNotNull(messageDetails.get("Signature"));
     }
 
     @Test
@@ -397,7 +374,7 @@ public class SNSIntegrationTest extends IntegrationTestBase {
         Thread.sleep(1000 * 4);
         String queueArn = sqs.getQueueAttributes(
                 GetQueueAttributesRequest.builder().queueUrl(queueUrl).attributeNames(new String[] {"QueueArn"}).build())
-                             .attributes().get("QueueArn");
+                             .attributes().get(QueueAttributeName.QUEUE_ARN);
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("Policy", generateSqsPolicyForTopic(queueArn, topicArn));
         sqs.setQueueAttributes(SetQueueAttributesRequest.builder().queueUrl(queueUrl).attributes(attributes).build());

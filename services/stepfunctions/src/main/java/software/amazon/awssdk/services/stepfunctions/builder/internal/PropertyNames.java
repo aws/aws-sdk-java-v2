@@ -40,7 +40,7 @@ public class PropertyNames {
     // FailState property names
     public static final String ERROR = "Error";
     public static final String CAUSE = "Cause";
-    // ChoiceState propert names
+    // ChoiceState property names
     public static final String DEFAULT_STATE = "Default";
     public static final String CHOICES = "Choices";
     // Retrier/Catcher property names

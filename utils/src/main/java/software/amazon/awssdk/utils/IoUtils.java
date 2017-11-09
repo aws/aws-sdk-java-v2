@@ -26,10 +26,13 @@ import org.slf4j.LoggerFactory;
 /**
  * Utilities for IO operations.
  */
-public enum IoUtils {
-    ;
+public final class IoUtils {
+
     private static final int BUFFER_SIZE = 1024 * 4;
     private static final Logger DEFAULT_LOG = LoggerFactory.getLogger(IoUtils.class);
+
+    private IoUtils() {
+    }
 
     /**
      * Reads and returns the rest of the given input stream as a byte array.

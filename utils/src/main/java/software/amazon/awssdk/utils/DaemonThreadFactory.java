@@ -16,7 +16,7 @@
 package software.amazon.awssdk.utils;
 
 import java.util.concurrent.ThreadFactory;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * An decorator for {@link ThreadFactory} that sets all threads it creates to be daemon threads.

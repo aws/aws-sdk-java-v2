@@ -29,6 +29,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollSocketChannel;
+import io.netty.channel.pool.ChannelHealthChecker;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolMap;
 import io.netty.channel.pool.FixedChannelPool;
@@ -38,8 +39,8 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.net.URI;
 import java.util.Optional;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkRequestContext;
@@ -88,11 +89,12 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                                 .channel(resolveSocketChannelClass())
                                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, serviceDefaults.getConnectionTimeout())
                                 .option(ChannelOption.TCP_NODELAY, true)
-                                .remoteAddress(key.getHost(), port(key));
+                                .remoteAddress(key.getHost(), key.getPort());
                 SslContext sslContext = sslContext(key.getScheme());
                 return new FixedChannelPool(bootstrap,
                                             // TODO expose better options for this
-                                            new ChannelPipelineInitializer(sslContext), maxConnectionsPerEndpoint);
+                                            new ChannelPipelineInitializer(sslContext), ChannelHealthChecker.ACTIVE,
+                                            FixedChannelPool.AcquireTimeoutAction.FAIL, 1000, maxConnectionsPerEndpoint, 10_000);
             }
         };
     }
@@ -102,7 +104,7 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                                             SdkRequestContext requestContext,
                                             SdkHttpRequestProvider requestProvider,
                                             SdkHttpResponseHandler handler) {
-        final RequestContext context = new RequestContext(pools.get(stripPath(sdkRequest.getEndpoint())),
+        final RequestContext context = new RequestContext(pools.get(poolKey(sdkRequest)),
                                                           sdkRequest, requestProvider,
                                                           requestAdapter.adapt(sdkRequest),
                                                           handler);
@@ -133,12 +135,9 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         return unwrapped instanceof EpollEventLoopGroup ? EpollSocketChannel.class : NioSocketChannel.class;
     }
 
-    private static URI stripPath(URI uri) {
-        return invokeSafely(() -> new URI(uri.getScheme(), null, uri.getHost(), port(uri), null, null, null));
-    }
-
-    private static int port(URI uri) {
-        return uri.getPort() != -1 ? uri.getPort() : uri.getScheme().equalsIgnoreCase("https") ? 443 : 80;
+    private static URI poolKey(SdkHttpRequest sdkRequest) {
+        return invokeSafely(() -> new URI(sdkRequest.protocol(), null, sdkRequest.host(),
+                                          sdkRequest.port(), null, null, null));
     }
 
     private SslContext sslContext(String scheme) {

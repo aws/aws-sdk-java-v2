@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.0.0-preview-4</version>
+    <version>2.0.0-preview-5-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -63,22 +63,25 @@
         <module>codegen-maven-plugin</module>
         <module>bundle</module>
         <module>build-tools</module>
+        <module>test/dynamodbdocument-v1</module>
         <module>test/dynamodbmapper-v1</module>
+        <module>test/http-client-tests</module>
         <module>test/protocol-tests</module>
         <module>test/protocol-tests-core</module>
+        <module>test/service-test-utils</module>
         <module>test/test-utils</module>
         <module>annotations</module>
         <module>utils</module>
     </modules>
     <scm>
-        <url>https://github.com/aws/aws-sdk-java.git</url>
+        <url>https://github.com/aws/aws-sdk-java-v2.git</url>
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <jackson.version>2.8.8</jackson.version>
+        <jackson.version>2.9.1</jackson.version>
         <ion.java.version>1.0.2</ion.java.version>
         <junit.version>4.12</junit.version>
-        <easymock.version>3.4</easymock.version>
+        <easymock.version>3.5</easymock.version>
         <commons.lang.version>3.4</commons.lang.version>
         <wiremock.version>1.55</wiremock.version>
         <slf4j.version>1.7.25</slf4j.version>
@@ -87,12 +90,12 @@
         <commons.io.version>2.5</commons.io.version>
         <mockito.version>1.10.19</mockito.version>
         <assertj.version>3.8.0</assertj.version>
-        <equalsverifier.version>2.3.1</equalsverifier.version>
+        <equalsverifier.version>2.3.3</equalsverifier.version>
         <guava.version>19.0</guava.version>
         <netty.version>4.1.13.Final</netty.version>
         <unitils.version>3.3</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
-        <jacksonjr.version>2.9.0.pr4</jacksonjr.version>
+        <jacksonjr.version>2.9.1</jacksonjr.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- These properties are used by SWF for its dependencies -->
@@ -112,6 +115,11 @@
 
         <!-- These properties are used by S3 for its test dependencies -->
         <bouncycastle.version>1.56</bouncycastle.version>
+
+        <!-- Sonar -->
+        <root.offset>..</root.offset>
+        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+        <sonar.jacoco.reportPath>${basedir}/${root.offset}/target/jacoco.exec</sonar.jacoco.reportPath>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
     </properties>
@@ -290,6 +298,16 @@
                 <artifactId>netty-reactive-streams-http</artifactId>
                 <version>2.0.0</version>
             </dependency>
+            <dependency>
+                <groupId>io.burt</groupId>
+                <artifactId>jmespath-jackson</artifactId>
+                <version>0.2.0</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.annotation</groupId>
+                <artifactId>javax.annotation-api</artifactId>
+                <version>1.3.1</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -382,14 +400,14 @@
                     </executions>
                 </plugin>
                 <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>findbugs-maven-plugin</artifactId>
-                    <version>3.0.5</version>
+                    <groupId>com.github.hazendaz.spotbugs</groupId>
+                    <artifactId>spotbugs-maven-plugin</artifactId>
+                    <version>3.1.0-RC4</version>
                     <dependencies>
                         <dependency>
                             <groupId>software.amazon.awssdk</groupId>
                             <artifactId>build-tools</artifactId>
-                            <version>${awsjavasdk.version}</version>
+                            <version>1.0</version>
                         </dependency>
                     </dependencies>
                     <executions>
@@ -405,7 +423,7 @@
                         <failOnError>true</failOnError>
                         <fork>false</fork>
                         <findbugsXmlOutput>true</findbugsXmlOutput>
-                        <excludeFilterFile>software/amazon/awssdk/findbugs-suppressions.xml</excludeFilterFile>
+                        <excludeFilterFile>software/amazon/awssdk/spotbugs-suppressions.xml</excludeFilterFile>
                         <threshold>Low</threshold>
                         <effort>Max</effort>
                     </configuration>
@@ -427,7 +445,7 @@
                     <dependency>
                         <groupId>software.amazon.awssdk</groupId>
                         <artifactId>build-tools</artifactId>
-                        <version>${awsjavasdk.version}</version>
+                        <version>1.0</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -453,6 +471,10 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.7.8</version>
+                <configuration>
+                    <destFile>${sonar.jacoco.reportPath}</destFile>
+                    <append>true</append>
+                </configuration>
                 <executions>
                     <execution>
                         <id>jacoco-initialize</id>
@@ -471,9 +493,10 @@
             </plugin>
 
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
+                <groupId>com.github.hazendaz.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
             </plugin>
+
         </plugins>
     </build>
 

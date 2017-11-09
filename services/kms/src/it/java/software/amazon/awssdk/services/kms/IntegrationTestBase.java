@@ -16,7 +16,8 @@
 package software.amazon.awssdk.services.kms;
 
 import org.junit.BeforeClass;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class IntegrationTestBase extends AwsTestBase {
 
@@ -25,6 +26,6 @@ public class IntegrationTestBase extends AwsTestBase {
     @BeforeClass
     public static void setup() throws Exception {
         setUpCredentials();
-        kms = KMSClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        kms = KMSClient.builder().region(Region.US_EAST_1).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 }

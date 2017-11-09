@@ -26,7 +26,6 @@ import software.amazon.awssdk.codegen.model.config.templates.CodeGenTemplatesCon
 import software.amazon.awssdk.codegen.model.config.templates.TopLevelTemplate;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
-import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 
 /**
  * Util class that sets up the freemarker configuration and loads the templates.
@@ -100,52 +99,12 @@ public class Freemarker {
         return fmConfig.getTemplate(template.getMainTemplate());
     }
 
-    public Template getSyncClientTemplate() throws IOException {
-        return getTemplate(templateConfig.getSyncClient());
-    }
-
-    public Template getSyncAbstractClassTemplate() throws IOException {
-        return getTemplate(templateConfig.getSyncAbstractClass());
-    }
-
-    public Template getSyncInterfaceTemplate() throws IOException {
-        return getTemplate(templateConfig.getSyncInterface());
-    }
-
-    public Template getAsyncClientTemplate() throws IOException {
-        return getTemplate(templateConfig.getAsyncClient());
-    }
-
-    public Template getAsyncAbstractClassTemplate() throws IOException {
-        return getTemplate(templateConfig.getAsyncAbstractClass());
-    }
-
-    public Template getAsyncInterfaceTemplate() throws IOException {
-        return getTemplate(templateConfig.getAsyncInterface());
-    }
-
     public Template getSyncClientBuilderTemplate() throws IOException {
         return getTemplate(templateConfig.getSyncClientBuilder());
     }
 
     public Template getAsyncClientBuilderTemplate() throws IOException {
         return getTemplate(templateConfig.getAsyncClientBuilder());
-    }
-
-    public Template getRequestClassTemplate() throws IOException {
-        return getTemplate(templateConfig.getRequestClass());
-    }
-
-    public Template getResponseClassTemplate() throws IOException {
-        return getTemplate(templateConfig.getResponseClass());
-    }
-
-    public Template getModelClassTemplate() throws IOException {
-        return getTemplate(templateConfig.getModelClass());
-    }
-
-    public Template getModelEnumTemplate() throws IOException {
-        return getTemplate(templateConfig.getModelEnum());
     }
 
     public Template getModelMarshallerTemplate() throws IOException {
@@ -158,10 +117,6 @@ public class Freemarker {
 
     public Template getModelUnmarshallerTemplate() throws IOException {
         return getTemplate(templateConfig.getModelUnmarshaller());
-    }
-
-    public Template getExceptionClassTemplate() throws IOException {
-        return getTemplate(templateConfig.getExceptionClass());
     }
 
     public Template getExceptionUnmarshallerTemplate() throws IOException {
@@ -200,43 +155,12 @@ public class Freemarker {
         return getTemplate(templateConfig.getApiGatewayReadmeTemplate());
     }
 
-    public Template getShapeTemplate(ShapeModel shape) throws IOException {
-        switch (shape.getShapeType()) {
-            case Request:
-                return getRequestClassTemplate();
-            case Response:
-                return getResponseClassTemplate();
-            case Model:
-                return getModelClassTemplate();
-            case Enum:
-                return getModelEnumTemplate();
-            case Exception:
-                return getExceptionClassTemplate();
-            default:
-                throw new RuntimeException(
-                        "Unable to determine template for shape "
-                        + shape.getShapeName());
-        }
-    }
-
     public Template getPackageInfoTemplate() throws IOException {
         return getTemplate(templateConfig.getPackageInfo());
     }
 
     public Template getBaseExceptionClassTemplate() throws IOException {
         return getTemplate(templateConfig.getBaseExceptionClass());
-    }
-
-    public Template getWaiterSdkFunctionTemplate() throws IOException {
-        return getTemplate(templateConfig.getSdkFunctionClass());
-    }
-
-    public Template getWaiterAcceptorTemplate() throws IOException {
-        return getTemplate(templateConfig.getAcceptorClass());
-    }
-
-    public Template getWaiterTemplate() throws IOException {
-        return getTemplate(templateConfig.getWaiterClass());
     }
 
     public Template getCustomAuthorizerTemplate() throws IOException {

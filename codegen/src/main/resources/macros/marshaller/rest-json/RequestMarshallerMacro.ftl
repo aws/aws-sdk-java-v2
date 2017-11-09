@@ -8,8 +8,8 @@
 ${dataModel.fileHeader}
 package ${metadata.fullRequestTransformPackageName};
 
-import static software.amazon.awssdk.util.StringUtils.UTF8;
-import static software.amazon.awssdk.util.StringUtils.COMMA_SEPARATOR;
+import static software.amazon.awssdk.core.util.StringUtils.UTF8;
+import static software.amazon.awssdk.core.util.StringUtils.COMMA_SEPARATOR;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
@@ -22,18 +22,18 @@ import java.util.List;
 import java.util.regex.Pattern;
 import javax.annotation.Generated;
 
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.Request;
-import software.amazon.awssdk.DefaultRequest;
-import software.amazon.awssdk.http.HttpMethodName;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.DefaultRequest;
+import software.amazon.awssdk.core.http.HttpMethodName;
 import ${metadata.fullModelPackageName}.*;
-import software.amazon.awssdk.runtime.transform.Marshaller;
+import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.util.StringUtils;
-import software.amazon.awssdk.util.IdempotentUtils;
-import software.amazon.awssdk.util.StringInputStream;
-import software.amazon.awssdk.util.SdkHttpUtils;
-import software.amazon.awssdk.protocol.json.*;
+import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.core.util.IdempotentUtils;
+import software.amazon.awssdk.core.util.StringInputStream;
+import software.amazon.awssdk.core.util.SdkHttpUtils;
+import software.amazon.awssdk.core.protocol.json.*;
 
 /**
  * ${shapeName} Marshaller
@@ -99,7 +99,7 @@ public class ${shapeName}Marshaller implements Marshaller<Request<${shapeName}>,
                    <#elseif member.isMap()>
                       <#local loopVariable = member.variable.variableName + "Entry"/>
                       jsonGenerator.writeStartObject();
-                      for(Map.Entry<${member.mapModel.keyType},${member.mapModel.valueType}> ${loopVariable} : ${member.variable.variableName}.entrySet()) {
+                      for(Map.Entry<${member.mapModel.keyModel.variable.variableType},${member.mapModel.valueModel.variable.variableType}> ${loopVariable} : ${member.variable.variableName}.entrySet()) {
                           if (${loopVariable}.getValue() != null) {
                               jsonGenerator.writeFieldName(${loopVariable}.getKey());
 

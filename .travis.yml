@@ -8,3 +8,6 @@ notifications:
   email:
     - github-awsforjava@amazon.com
 script: mvn install
+branches:
+  only:
+    - master

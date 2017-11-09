@@ -16,7 +16,7 @@
 package software.amazon.awssdk.protocol.asserts.marshalling;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import software.amazon.awssdk.http.HttpMethodName;
+import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.protocol.model.HttpMethodNameDeserializer;
 
 /**

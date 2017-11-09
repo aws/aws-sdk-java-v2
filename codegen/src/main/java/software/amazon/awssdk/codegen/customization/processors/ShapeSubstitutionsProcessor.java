@@ -161,7 +161,7 @@ final class ShapeSubstitutionsProcessor implements CodegenCustomizationProcessor
                     Member nestedListMember = memberShape.getListMember();
                     String nestedListMemberOriginalShape = nestedListMember.getShape();
 
-                    ShapeSubstitution appliedSubstitutionOnListMember = substitueMemberShape(nestedListMember);
+                    ShapeSubstitution appliedSubstitutionOnListMember = substituteMemberShape(nestedListMember);
                     if (appliedSubstitutionOnListMember != null &&
                         appliedSubstitutionOnListMember.getEmitFromMember() != null) {
                         // we will handle the emitFromMember customizations in post-process stage
@@ -169,7 +169,7 @@ final class ShapeSubstitutionsProcessor implements CodegenCustomizationProcessor
                     }
                 } else {
                     // Then check if the shape of the member itself is to be substituted
-                    ShapeSubstitution appliedSubstitution = substitueMemberShape(member);
+                    ShapeSubstitution appliedSubstitution = substituteMemberShape(member);
                     if (appliedSubstitution != null &&
                         appliedSubstitution.getEmitFromMember() != null) {
                         // we will handle the emitFromMember customizations in post-process stage
@@ -208,7 +208,7 @@ final class ShapeSubstitutionsProcessor implements CodegenCustomizationProcessor
      *         this member, or null if there is no such customization specified
      *         for this member.
      */
-    private ShapeSubstitution substitueMemberShape(Member member) {
+    private ShapeSubstitution substituteMemberShape(Member member) {
         ShapeSubstitution substitute = shapeSubstitutions.get(member.getShape());
 
         if (substitute != null) {
@@ -254,7 +254,7 @@ final class ShapeSubstitutionsProcessor implements CodegenCustomizationProcessor
                  * the model classes. However the wire representation is not changed.
                  *
                  * TODO This customization has been added to preserve backwards
-                 * compatiblity of EC2 APIs. This should be removed as part of next major
+                 * compatibility of EC2 APIs. This should be removed as part of next major
                  * version bump.
                  */
                 if (!shouldSkipAddingMarshallingPath(shapeSubstitutions.get(originalShapeC2jName), parentShapeC2jName)) {
@@ -301,7 +301,7 @@ final class ShapeSubstitutionsProcessor implements CodegenCustomizationProcessor
                  * the model classes. However the wire representation is not changed.
                  *
                  * TODO This customization has been added to preserve backwards
-                 * compatiblity of EC2 APIs. This should be removed as part of next major
+                 * compatibility of EC2 APIs. This should be removed as part of next major
                  * version bump.
                  */
                 if (!shouldSkipAddingMarshallingPath(shapeSubstitutions.get(nestedListMemberOriginalShapeC2jName),

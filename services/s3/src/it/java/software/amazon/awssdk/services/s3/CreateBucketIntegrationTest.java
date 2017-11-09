@@ -15,17 +15,17 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
-import java.util.Date;
 import org.junit.AfterClass;
 import org.junit.Test;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketLocationRequest;
 
 public class CreateBucketIntegrationTest extends S3IntegrationTestBase {
 
-    private static final String BUCKET_NAME = "java-create-bucket-integ-test-" + new Date().getTime();
+    private static final String BUCKET_NAME = temporaryBucketName("java-create-bucket-integ-test");
 
     @AfterClass
     public static void cleanup() {
@@ -37,7 +37,7 @@ public class CreateBucketIntegrationTest extends S3IntegrationTestBase {
         S3Client client = S3Client.builder().region(Region.US_WEST_2).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
         client.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
 
-        String region = client.getBucketLocation(GetBucketLocationRequest.builder().bucket(BUCKET_NAME).build()).locationConstraint();
+        String region = client.getBucketLocation(GetBucketLocationRequest.builder().bucket(BUCKET_NAME).build()).locationConstraintString();
         assertThat(region).isEqualToIgnoringCase("us-west-2");
     }
 

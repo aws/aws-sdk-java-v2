@@ -47,9 +47,9 @@ class MapSetters extends AbstractMemberSetters {
     }
 
     @Override
-    public List<MethodSpec> beanStyle() {
+    public MethodSpec beanStyle() {
         MethodSpec.Builder builder = beanStyleSetterBuilder()
-                .addCode(copySetterBody());
+                .addCode(memberModel().isCollectionWithBuilderMember() ? copySetterBuilderBody() : copySetterBody());
 
         if (annotateJsonProperty()) {
             builder.addAnnotation(
@@ -57,6 +57,6 @@ class MapSetters extends AbstractMemberSetters {
                             .addMember("value", "$S", memberModel().getHttp().getMarshallLocationName()).build());
         }
 
-        return Collections.singletonList(builder.build());
+        return builder.build();
     }
 }

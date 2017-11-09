@@ -35,8 +35,8 @@
 package software.amazon.awssdk.utils;
 
 import java.lang.reflect.Array;
-import software.amazon.awssdk.annotation.ReviewBeforeRelease;
-import software.amazon.awssdk.annotation.SdkProtectedApi;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * <p>Operations on arrays, primitive arrays (like {@code int[]}) and
@@ -53,8 +53,12 @@ import software.amazon.awssdk.annotation.SdkProtectedApi;
  */
 @ReviewBeforeRelease("Remove the methods we don't end up using.")
 @SdkProtectedApi
-public class ArrayUtils {
+public final class ArrayUtils {
+
     public static final int INDEX_NOT_FOUND = -1;
+
+    private ArrayUtils() {
+    }
 
     //-----------------------------------------------------------------------
     /**

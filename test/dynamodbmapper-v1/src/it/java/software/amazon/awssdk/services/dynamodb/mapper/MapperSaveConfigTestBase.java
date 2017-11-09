@@ -37,7 +37,7 @@ import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
-import software.amazon.awssdk.services.dynamodb.util.TableUtils;
+import software.amazon.awssdk.services.dynamodb.TableUtils;
 import utils.test.util.DynamoDBIntegrationTestBase;
 
 public class MapperSaveConfigTestBase extends DynamoDBIntegrationTestBase {
@@ -117,11 +117,11 @@ public class MapperSaveConfigTestBase extends DynamoDBIntegrationTestBase {
         assertNotNull(createdTableDescription.tableStatus());
         assertEquals(hashKeyName, createdTableDescription
                 .keySchema().get(0).attributeName());
-        assertEquals(KeyType.HASH.toString(), createdTableDescription
+        assertEquals(KeyType.HASH, createdTableDescription
                 .keySchema().get(0).keyType());
         assertEquals(rangeKeyName, createdTableDescription
                 .keySchema().get(1).attributeName());
-        assertEquals(KeyType.RANGE.toString(), createdTableDescription
+        assertEquals(KeyType.RANGE, createdTableDescription
                 .keySchema().get(1).keyType());
     }
 

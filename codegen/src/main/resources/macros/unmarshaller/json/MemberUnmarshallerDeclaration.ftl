@@ -12,7 +12,7 @@
         </#if>
         new ListUnmarshaller<${memberModel.listModel.memberType}>(${memberUnmarshaller})
     <#elseif memberModel.map >
-        <#local keyUnmarshaller = "context.getUnmarshaller(${memberModel.mapModel.keyType}.class)" />
+        <#local keyUnmarshaller = "context.getUnmarshaller(${memberModel.mapModel.keyModel.variable.variableType}.class)" />
         <#if memberModel.mapModel.valueModel?has_content >
             <#local valueUnmarshaller >
                 <#-- recursion -->
@@ -20,9 +20,9 @@
             </#local>
         <#else>
             <#local valueUnmarshaller = "context.getUnmarshaller
-                 (${memberModel.mapModel.valueType}.class)" />
+                 (${memberModel.mapModel.valueModel.variable.variableType}.class)" />
         </#if>
-        new MapUnmarshaller<${memberModel.mapModel.keyType}, ${memberModel.mapModel.valueType}>(${keyUnmarshaller}, ${valueUnmarshaller})
+        new MapUnmarshaller<${memberModel.mapModel.keyModel.variable.variableType}, ${memberModel.mapModel.valueModel.variable.variableType}>(${keyUnmarshaller}, ${valueUnmarshaller})
     <#else>
         ${memberModel.variable.simpleType}Unmarshaller.getInstance()
     </#if>

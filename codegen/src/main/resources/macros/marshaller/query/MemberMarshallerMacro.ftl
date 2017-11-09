@@ -94,18 +94,18 @@
 
     if (${variable.variableName} != null) {
         int ${listIndex} = 1;
-        for (Map.Entry<${mapModel.keyType},${mapModel.valueType}> entry : ${variable.variableName}.entrySet()) {
+        for (Map.Entry<${mapModel.keyModel.variable.variableType},${mapModel.valueModel.variable.variableType}> entry : ${variable.variableName}.entrySet()) {
             if (entry.getKey() != null) {
-                request.addParameter("${parameterPath}." + ${listIndex} + ".${mapModel.keyLocationName}", StringUtils.from${mapModel.keyType}(entry.getKey()));
+                request.addParameter("${parameterPath}." + ${listIndex} + ".${mapModel.keyLocationName}", StringUtils.from${mapModel.keyModel.variable.variableType}(entry.getKey()));
             }
-            <#if mapModel.valueSimple>
+            <#if mapModel.valueModel.simple>
             if (entry.getValue() != null) {
                 request.addParameter("${parameterPath}." + ${listIndex} + ".${mapModel.valueLocationName}", StringUtils.from${mapModel.valueModel.variable.simpleType}(entry.getValue()));
             }
             <#else>
             if (entry.getValue() != null) {
                 <#local path = parameterPath + ".\" + " + listIndex + " + \"" + ".${mapModel.valueLocationName}"/>
-                <@MemberMarshallerMacro.content customConfig mapModel.valueType "entry.getValue()" shapes path/>
+                <@MemberMarshallerMacro.content customConfig mapModel.valueModel.variable.variableType "entry.getValue()" shapes path/>
             }
             </#if>
             ${listIndex} ++;

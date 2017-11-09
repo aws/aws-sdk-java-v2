@@ -20,7 +20,7 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.AfterClass;
 import org.junit.Test;
 import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
-import software.amazon.awssdk.test.AwsIntegrationTestBase;
+import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class SecurityManagerIntegrationTest extends AwsIntegrationTestBase {
 

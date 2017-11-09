@@ -1,24 +1,26 @@
 package software.amazon.awssdk.services.json;
 
 import javax.annotation.Generated;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.SdkBaseException;
-import software.amazon.awssdk.SdkClientException;
-import software.amazon.awssdk.annotation.SdkInternalApi;
-import software.amazon.awssdk.auth.presign.PresignerParams;
-import software.amazon.awssdk.client.ClientExecutionParams;
-import software.amazon.awssdk.client.ClientHandler;
-import software.amazon.awssdk.client.SdkClientHandler;
-import software.amazon.awssdk.config.AdvancedClientOption;
-import software.amazon.awssdk.config.ClientConfiguration;
-import software.amazon.awssdk.config.SyncClientConfiguration;
-import software.amazon.awssdk.http.HttpResponseHandler;
-import software.amazon.awssdk.protocol.json.JsonClientMetadata;
-import software.amazon.awssdk.protocol.json.JsonErrorResponseMetadata;
-import software.amazon.awssdk.protocol.json.JsonErrorShapeMetadata;
-import software.amazon.awssdk.protocol.json.JsonOperationMetadata;
-import software.amazon.awssdk.protocol.json.SdkJsonProtocolFactory;
-import software.amazon.awssdk.runtime.transform.StreamingRequestMarshaller;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.SdkBaseException;
+import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.auth.presign.PresignerParams;
+import software.amazon.awssdk.core.client.ClientExecutionParams;
+import software.amazon.awssdk.core.client.ClientHandler;
+import software.amazon.awssdk.core.client.SdkClientHandler;
+import software.amazon.awssdk.core.config.AdvancedClientOption;
+import software.amazon.awssdk.core.config.ClientConfiguration;
+import software.amazon.awssdk.core.config.SyncClientConfiguration;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
+import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
+import software.amazon.awssdk.core.protocol.json.JsonErrorShapeMetadata;
+import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
+import software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory;
+import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.sync.StreamingResponseHandler;
 import software.amazon.awssdk.services.acm.presign.AcmClientPresigners;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
@@ -42,8 +44,6 @@ import software.amazon.awssdk.services.json.transform.StreamingInputOperationReq
 import software.amazon.awssdk.services.json.transform.StreamingInputOperationResponseUnmarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingOutputOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingOutputOperationResponseUnmarshaller;
-import software.amazon.awssdk.sync.RequestBody;
-import software.amazon.awssdk.sync.StreamingResponseHandler;
 
 /**
  * Internal implementation of {@link JsonClient}.
@@ -230,7 +230,7 @@ final class DefaultJsonClient implements JsonClient {
      *        Functional interface for processing the streamed response content. The unmarshalled
      *        StreamingInputOperationRequest and an InputStream to the response content are provided as parameters to
      *        the callback. The callback may return a transformed type which will be the return value of this method.
-     *        See {@link software.amazon.awssdk.runtime.transform.StreamingResponseHandler} for details on implementing
+     *        See {@link software.amazon.awssdk.core.sync.StreamingResponseHandler} for details on implementing
      *        this interface and for links to pre-canned implementations for common scenarios like downloading to a
      *        file. The service documentation for the response content is as follows 'This be a stream'.
      * @return The transformed result of the StreamingResponseHandler.
@@ -269,7 +269,7 @@ final class DefaultJsonClient implements JsonClient {
         return protocolFactory.createErrorResponseHandler(new JsonErrorResponseMetadata());
     }
 
-    private software.amazon.awssdk.protocol.json.SdkJsonProtocolFactory init() {
+    private software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory init() {
         return new SdkJsonProtocolFactory(new JsonClientMetadata()
                                                   .withProtocolVersion("1.1")
                                                   .withSupportsCbor(false)

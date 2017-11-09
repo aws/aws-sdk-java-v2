@@ -16,7 +16,7 @@
 package utils.test.resources;
 
 import java.util.List;
-import software.amazon.awssdk.AmazonServiceException;
+import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
@@ -28,8 +28,8 @@ import software.amazon.awssdk.services.dynamodb.model.LocalSecondaryIndexDescrip
 import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
 import software.amazon.awssdk.services.dynamodb.model.TableStatus;
-import software.amazon.awssdk.services.dynamodb.util.TableUtils;
-import software.amazon.awssdk.test.util.UnorderedCollectionComparator;
+import software.amazon.awssdk.services.dynamodb.TableUtils;
+import software.amazon.awssdk.testutils.UnorderedCollectionComparator;
 import software.amazon.awssdk.utils.Logger;
 import utils.resources.TestResource;
 import utils.test.util.DynamoDBTestBase;
@@ -143,9 +143,9 @@ public abstract class DynamoDBTableResource implements TestResource {
             }
         }
 
-        String tableStatus = table.tableStatus();
+        TableStatus tableStatus = table.tableStatus();
 
-        if (tableStatus.equals(TableStatus.ACTIVE.toString())) {
+        if (tableStatus == TableStatus.ACTIVE) {
             // returns AVAILABLE only if table KeySchema + LSIs + GSIs all match.
             if (UnorderedCollectionComparator.equalUnorderedCollections(createRequest.keySchema(), table.keySchema())
                 && equalUnorderedGsiLists(createRequest.globalSecondaryIndexes(), table.globalSecondaryIndexes())
@@ -154,9 +154,9 @@ public abstract class DynamoDBTableResource implements TestResource {
             } else {
                 return ResourceStatus.EXIST_INCOMPATIBLE_RESOURCE;
             }
-        } else if (tableStatus.equals(TableStatus.CREATING.toString())
-                   || tableStatus.equals(TableStatus.UPDATING.toString())
-                   || tableStatus.equals(TableStatus.DELETING.toString())) {
+        } else if (tableStatus == TableStatus.CREATING
+                   || tableStatus == TableStatus.UPDATING
+                   || tableStatus == TableStatus.DELETING) {
             return ResourceStatus.TRANSIENT;
         } else {
             return ResourceStatus.NOT_EXIST;

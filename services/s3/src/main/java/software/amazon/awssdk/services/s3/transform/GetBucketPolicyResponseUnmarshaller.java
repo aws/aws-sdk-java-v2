@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.services.s3.transform;
 
-import software.amazon.awssdk.http.HttpResponse;
-import software.amazon.awssdk.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.services.s3.model.GetBucketPolicyResponse;
 import software.amazon.awssdk.utils.IoUtils;
 

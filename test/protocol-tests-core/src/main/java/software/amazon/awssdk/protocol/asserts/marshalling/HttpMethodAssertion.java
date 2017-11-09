@@ -18,8 +18,8 @@ package software.amazon.awssdk.protocol.asserts.marshalling;
 import static org.junit.Assert.assertEquals;
 
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
-import software.amazon.awssdk.http.HttpMethodName;
-import software.amazon.awssdk.util.ValidationUtils;
+import software.amazon.awssdk.core.http.HttpMethodName;
+import software.amazon.awssdk.core.util.ValidationUtils;
 
 public class HttpMethodAssertion extends MarshallingAssertion {
 

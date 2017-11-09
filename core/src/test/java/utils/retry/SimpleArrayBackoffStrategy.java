@@ -15,9 +15,9 @@
 
 package utils.retry;
 
-import software.amazon.awssdk.AmazonClientException;
-import software.amazon.awssdk.AmazonWebServiceRequest;
-import software.amazon.awssdk.retry.RetryPolicy.BackoffStrategy;
+import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.retry.RetryPolicy.BackoffStrategy;
 
 /**
  * Backoff strategy used in tests to pull backoff value from a backing array. Number of retries is

@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.elasticbeanstalk;
 
 import java.io.IOException;
 import org.junit.BeforeClass;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
  * Base class for ElasticBeanstalk integration tests; responsible for loading AWS account info for

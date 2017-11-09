@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Generator interface for auto-generating attribute values.

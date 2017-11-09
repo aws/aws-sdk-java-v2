@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.AfterClass;
 import org.junit.Test;
-import software.amazon.awssdk.AmazonServiceException;
-import software.amazon.awssdk.SdkGlobalTime;
-import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.SdkGlobalTime;
+import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.route53.model.Change;
 import software.amazon.awssdk.services.route53.model.ChangeAction;
 import software.amazon.awssdk.services.route53.model.ChangeBatch;
@@ -279,7 +279,7 @@ public class Route53IntegrationTest extends IntegrationTestBase {
         assertNotNull(CALLER_REFERENCE, healthCheck.callerReference());
         assertNotNull(healthCheck.id());
         assertEquals(PORT_NUM, healthCheck.healthCheckConfig().port().intValue());
-        assertEquals(TYPE, healthCheck.healthCheckConfig().type());
+        assertEquals(TYPE, healthCheck.healthCheckConfig().typeString());
         assertEquals(IP_ADDRESS, healthCheck.healthCheckConfig().ipAddress());
     }
 

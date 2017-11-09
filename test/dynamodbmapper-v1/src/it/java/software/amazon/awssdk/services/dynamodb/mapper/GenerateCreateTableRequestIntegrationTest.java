@@ -27,6 +27,7 @@ import java.util.Set;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.core.util.ImmutableObjectUtils;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
@@ -40,9 +41,8 @@ import software.amazon.awssdk.services.dynamodb.model.LocalSecondaryIndexDescrip
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
-import software.amazon.awssdk.services.dynamodb.util.TableUtils;
-import software.amazon.awssdk.test.util.UnorderedCollectionComparator;
-import software.amazon.awssdk.util.ImmutableObjectUtils;
+import software.amazon.awssdk.services.dynamodb.TableUtils;
+import software.amazon.awssdk.testutils.UnorderedCollectionComparator;
 import utils.test.util.DynamoDBTestBase;
 
 /**

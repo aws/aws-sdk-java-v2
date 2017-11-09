@@ -23,10 +23,10 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.core.util.IdempotentUtils;
 import software.amazon.awssdk.protocol.model.TestCase;
 import software.amazon.awssdk.protocol.reflect.ClientReflector;
 import software.amazon.awssdk.protocol.wiremock.WireMockUtils;
-import software.amazon.awssdk.util.IdempotentUtils;
 
 /**
  * Runs a list of test cases (either marshalling or unmarshalling).

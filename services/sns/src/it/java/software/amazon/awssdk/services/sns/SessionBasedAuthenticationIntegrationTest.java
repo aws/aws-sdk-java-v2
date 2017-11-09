@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.sns;
 
 import org.junit.Test;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
  * Simple smoke test for session management.

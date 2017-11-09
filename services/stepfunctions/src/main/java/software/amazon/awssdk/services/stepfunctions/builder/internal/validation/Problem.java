@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.stepfunctions.builder.internal.validation;
 
-import software.amazon.awssdk.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Validation problem.

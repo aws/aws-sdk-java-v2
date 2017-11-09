@@ -25,7 +25,7 @@ import org.junit.BeforeClass;
 import software.amazon.awssdk.services.ses.model.ListVerifiedEmailAddressesRequest;
 import software.amazon.awssdk.services.ses.model.ListVerifiedEmailAddressesResponse;
 import software.amazon.awssdk.services.ses.model.VerifyEmailAddressRequest;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
  * Base class for AWS Email integration tests; responsible for loading AWS account credentials for

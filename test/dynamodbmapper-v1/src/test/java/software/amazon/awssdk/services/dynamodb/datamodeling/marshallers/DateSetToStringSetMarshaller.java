@@ -19,9 +19,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import software.amazon.awssdk.core.util.DateUtils;
 import software.amazon.awssdk.services.dynamodb.datamodeling.ArgumentMarshaller.StringSetAttributeMarshaller;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.util.DateUtils;
 
 /**
  * A marshaller that marshals sets of Java {@code Date} objects into DynamoDB

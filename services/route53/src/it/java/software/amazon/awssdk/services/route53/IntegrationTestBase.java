@@ -17,8 +17,8 @@ package software.amazon.awssdk.services.route53;
 
 import java.io.IOException;
 import org.junit.Before;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.test.AwsTestBase;
+import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
  * Base class for Route53 integration tests.

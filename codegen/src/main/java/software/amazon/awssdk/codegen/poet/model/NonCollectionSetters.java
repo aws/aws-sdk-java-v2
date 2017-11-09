@@ -26,17 +26,13 @@ import java.util.List;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
 
 class NonCollectionSetters extends AbstractMemberSetters {
-    private final PoetExtensions poetExtensions;
-
     NonCollectionSetters(IntermediateModel intermediateModel,
                          ShapeModel shapeModel,
                          MemberModel memberModel,
                          TypeProvider typeProvider) {
         super(intermediateModel, shapeModel, memberModel, typeProvider);
-        this.poetExtensions = new PoetExtensions(intermediateModel);
     }
 
     public List<MethodSpec> fluentDeclarations(TypeName returnType) {
@@ -68,32 +64,23 @@ class NonCollectionSetters extends AbstractMemberSetters {
     }
 
     @Override
-    public List<MethodSpec> beanStyle() {
-        List<MethodSpec> beanStyle = new ArrayList<>();
+    public MethodSpec beanStyle() {
+        MethodSpec.Builder builder = beanStyleSetterBuilder()
+            .addCode(copySetterBuilderBody());
 
-        beanStyle.add(beanStyleAssignmentSetter());
+        if (annotateJsonProperty()) {
+            builder.addAnnotation(
+                AnnotationSpec.builder(JsonProperty.class)
+                              .addMember("value", "$S", memberModel().getHttp().getMarshallLocationName()).build());
+        }
 
-        return beanStyle;
+        return builder.build();
     }
 
     private MethodSpec fluentAssignmentSetter(TypeName returnType) {
         return fluentSetterBuilder(returnType)
                 .addCode(copySetterBody().toBuilder().addStatement("return this").build())
                 .build();
-    }
-
-
-    private MethodSpec beanStyleAssignmentSetter() {
-        MethodSpec.Builder builder = beanStyleSetterBuilder()
-                .addCode(copySetterBody());
-
-        if (annotateJsonProperty()) {
-            builder.addAnnotation(
-                    AnnotationSpec.builder(JsonProperty.class)
-                    .addMember("value", "$S", memberModel().getHttp().getMarshallLocationName()).build());
-        }
-
-        return builder.build();
     }
 
     private MethodSpec fluentEnumToStringSetter(TypeName returnType) {

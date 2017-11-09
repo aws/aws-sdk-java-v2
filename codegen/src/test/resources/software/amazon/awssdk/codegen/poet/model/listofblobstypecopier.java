@@ -1,12 +1,13 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import static java.util.stream.Collectors.toList;
+
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.Generated;
-import software.amazon.awssdk.runtime.StandardMemberCopier;
+import software.amazon.awssdk.core.runtime.StandardMemberCopier;
 
 @Generated("software.amazon.awssdk:codegen")
 final class ListOfBlobsTypeCopier {
@@ -14,11 +15,8 @@ final class ListOfBlobsTypeCopier {
         if (listOfBlobsTypeParam == null) {
             return null;
         }
-        List<ByteBuffer> listOfBlobsTypeParamCopy = new ArrayList<>(listOfBlobsTypeParam.size());
-        for (ByteBuffer e : listOfBlobsTypeParam) {
-            listOfBlobsTypeParamCopy.add(StandardMemberCopier.copy(e));
-        }
+        List<ByteBuffer> listOfBlobsTypeParamCopy = listOfBlobsTypeParam.stream().map(StandardMemberCopier::copy)
+                                                                        .collect(toList());
         return Collections.unmodifiableList(listOfBlobsTypeParamCopy);
     }
 }
-
