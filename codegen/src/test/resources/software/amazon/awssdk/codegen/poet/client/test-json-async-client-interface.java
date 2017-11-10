@@ -2,6 +2,7 @@ package software.amazon.awssdk.services.json;
 
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import javax.annotation.Generated;
 import software.amazon.awssdk.core.async.AsyncRequestProvider;
 import software.amazon.awssdk.core.async.AsyncResponseHandler;
@@ -27,8 +28,8 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 public interface JsonAsyncClient extends SdkAutoCloseable {
     /**
      * Create a {@link JsonAsyncClient} with the region loaded from the
-     * {@link software.amazon.awssdk.core.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from the
-     * {@link software.amazon.awssdk.core.auth.DefaultCredentialsProvider}.
+     * {@link software.amazon.awssdk.core.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from
+     * the {@link software.amazon.awssdk.core.auth.DefaultCredentialsProvider}.
      */
     static JsonAsyncClient create() {
         return builder().build();
@@ -70,6 +71,37 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
 
     /**
      * <p>
+     * Performs a post operation to the query service and has no output
+     * </p>
+     * <br/>
+     * This is a convenience which creates an instance of the {@link APostOperationRequest.Builder} avoiding the need to
+     * create one manually via {@link APostOperationRequest#builder()}
+     *
+     * @param aPostOperationRequest
+     *        a {@link Consumer} that will call methods on {@link APostOperationRequest.Builder}.
+     * @return A Java Future containing the result of the APostOperation operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>InvalidInputException The request was rejected because an invalid or out-of-range value was supplied
+     *         for an input parameter.</li>
+     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
+     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.APostOperation
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
+     *      API Documentation</a>
+     */
+    default CompletableFuture<APostOperationResponse> aPostOperation(Consumer<APostOperationRequest.Builder> aPostOperationRequest) {
+        return aPostOperation(APostOperationRequest.builder().apply(aPostOperationRequest).build());
+    }
+
+    /**
+     * <p>
      * Performs a post operation to the query service and has modelled output
      * </p>
      *
@@ -92,8 +124,40 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
-            APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
+        APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * <p>
+     * Performs a post operation to the query service and has modelled output
+     * </p>
+     * <br/>
+     * This is a convenience which creates an instance of the {@link APostOperationWithOutputRequest.Builder} avoiding
+     * the need to create one manually via {@link APostOperationWithOutputRequest#builder()}
+     *
+     * @param aPostOperationWithOutputRequest
+     *        a {@link Consumer} that will call methods on {@link APostOperationWithOutputRequest.Builder}.
+     * @return A Java Future containing the result of the APostOperationWithOutput operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>InvalidInputException The request was rejected because an invalid or out-of-range value was supplied
+     *         for an input parameter.</li>
+     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
+     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.APostOperationWithOutput
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperationWithOutput"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
+        Consumer<APostOperationWithOutputRequest.Builder> aPostOperationWithOutputRequest) {
+        return aPostOperationWithOutput(APostOperationWithOutputRequest.builder().apply(aPostOperationWithOutputRequest).build());
     }
 
     /**
@@ -120,67 +184,7 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
-            GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Some operation with a streaming input
-     *
-     * @param streamingInputOperationRequest
-     * @param requestProvider
-     *        Functional interface that can be implemented to produce the request content in a non-blocking manner. The
-     *        size of the content is expected to be known up front. See {@link AsyncRequestProvider} for specific
-     *        details on implementing this interface as well as links to precanned implementations for common scenarios
-     *        like uploading from a file. The service documentation for the request content is as follows 'This be a
-     *        stream'
-     * @return A Java Future containing the result of the StreamingInputOperation operation returned by the service.<br/>
-     *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
-     *         <ul>
-     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
-     *         client). Can be used for catch all scenarios.</li>
-     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
-     *         credentials, etc.</li>
-     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
-     *         of this type.</li>
-     *         </ul>
-     * @sample JsonAsyncClient.StreamingInputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
-     *      target="_top">AWS API Documentation</a>
-     */
-    default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
-            StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestProvider requestProvider) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Some operation with a streaming output
-     *
-     * @param streamingOutputOperationRequest
-     * @param asyncResponseHandler
-     *        The response handler for processing the streaming response in a non-blocking manner. See
-     *        {@link AsyncResponseHandler} for details on how this callback should be implemented and for links to
-     *        precanned implementations for common scenarios like downloading to a file. The service documentation for
-     *        the response content is as follows 'This be a stream'.
-     * @return A future to the transformed result of the AsyncResponseHandler.<br/>
-     *         The CompletableFuture returned by this method can be completed exceptionally with the following
-     *         exceptions.
-     *         <ul>
-     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
-     *         client). Can be used for catch all scenarios.</li>
-     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
-     *         credentials, etc.</li>
-     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
-     *         of this type.</li>
-     *         </ul>
-     * @sample JsonAsyncClient.StreamingOutputOperation
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
-     *      target="_top">AWS API Documentation</a>
-     */
-    default <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
-            StreamingOutputOperationRequest streamingOutputOperationRequest,
-            AsyncResponseHandler<StreamingOutputOperationResponse, ReturnT> asyncResponseHandler) {
+        GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) {
         throw new UnsupportedOperationException();
     }
 
@@ -211,6 +215,69 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
     }
 
     /**
+     * <p>
+     * Performs a post operation to the query service and has no output
+     * </p>
+     * <br/>
+     * This is a convenience which creates an instance of the {@link GetWithoutRequiredMembersRequest.Builder} avoiding
+     * the need to create one manually via {@link GetWithoutRequiredMembersRequest#builder()}
+     *
+     * @param getWithoutRequiredMembersRequest
+     *        a {@link Consumer} that will call methods on {@link GetWithoutRequiredMembersRequest.Builder}.
+     * @return A Java Future containing the result of the GetWithoutRequiredMembers operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>InvalidInputException The request was rejected because an invalid or out-of-range value was supplied
+     *         for an input parameter.</li>
+     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
+     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.GetWithoutRequiredMembers
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetWithoutRequiredMembers"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
+        Consumer<GetWithoutRequiredMembersRequest.Builder> getWithoutRequiredMembersRequest) {
+        return getWithoutRequiredMembers(GetWithoutRequiredMembersRequest.builder().apply(getWithoutRequiredMembersRequest)
+                                                                         .build());
+    }
+
+    /**
+     * Some operation with a streaming input
+     *
+     * @param streamingInputOperationRequest
+     * @param requestProvider
+     *        Functional interface that can be implemented to produce the request content in a non-blocking manner. The
+     *        size of the content is expected to be known up front. See {@link AsyncRequestProvider} for specific
+     *        details on implementing this interface as well as links to precanned implementations for common scenarios
+     *        like uploading from a file. The service documentation for the request content is as follows 'This be a
+     *        stream'
+     * @return A Java Future containing the result of the StreamingInputOperation operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
+     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.StreamingInputOperation
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
+        StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestProvider requestProvider) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Some operation with a streaming input
      *
      * @param streamingInputOperationRequest
@@ -235,8 +302,38 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
-            StreamingInputOperationRequest streamingInputOperationRequest, Path path) {
+        StreamingInputOperationRequest streamingInputOperationRequest, Path path) {
         return streamingInputOperation(streamingInputOperationRequest, AsyncRequestProvider.fromFile(path));
+    }
+
+    /**
+     * Some operation with a streaming output
+     *
+     * @param streamingOutputOperationRequest
+     * @param asyncResponseHandler
+     *        The response handler for processing the streaming response in a non-blocking manner. See
+     *        {@link AsyncResponseHandler} for details on how this callback should be implemented and for links to
+     *        precanned implementations for common scenarios like downloading to a file. The service documentation for
+     *        the response content is as follows 'This be a stream'.
+     * @return A future to the transformed result of the AsyncResponseHandler.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
+     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.StreamingOutputOperation
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
+        StreamingOutputOperationRequest streamingOutputOperationRequest,
+        AsyncResponseHandler<StreamingOutputOperationResponse, ReturnT> asyncResponseHandler) {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -263,7 +360,7 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingOutputOperationResponse> streamingOutputOperation(
-            StreamingOutputOperationRequest streamingOutputOperationRequest, Path path) {
+        StreamingOutputOperationRequest streamingOutputOperationRequest, Path path) {
         return streamingOutputOperation(streamingOutputOperationRequest, AsyncResponseHandler.toFile(path));
     }
 }
