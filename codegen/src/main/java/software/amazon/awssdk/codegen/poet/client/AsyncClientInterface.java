@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.poet.client;
 
+import static java.util.stream.Collectors.toList;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -23,9 +25,10 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
@@ -108,7 +111,7 @@ public class AsyncClientInterface implements ClassSpec {
         return model.getOperations().values().stream()
                     .map(this::traditionalMethod)
                     .map(MethodSpec.Builder::build)
-                    .collect(Collectors.toList());
+                    .collect(toList());
     }
 
     /**
@@ -118,18 +121,18 @@ public class AsyncClientInterface implements ClassSpec {
     private Iterable<MethodSpec> operationsAndSimpleMethods() {
         List<MethodSpec> methods = operations();
         methods.addAll(model.getOperations().values().stream()
-                            .map(this::simpleMethods)
+                            .map(this::addMethodOverloads)
                             .flatMap(List::stream)
                             .map(MethodSpec.Builder::build)
-                            .collect(Collectors.toList()));
-        return methods;
+                            .collect(toList()));
+        return methods.stream().sorted(Comparator.comparing(m -> m.name)).collect(toList());
     }
 
     /**
      * @param opModel Operation to generate simple methods for.
      * @return All simple method overloads for a given operation.
      */
-    private List<MethodSpec.Builder> simpleMethods(OperationModel opModel) {
+    private List<MethodSpec.Builder> addMethodOverloads(OperationModel opModel) {
         List<MethodSpec.Builder> methodOverloads = new ArrayList<>();
         if (opModel.getInputShape().isSimpleMethod()) {
             methodOverloads.add(noArgSimpleMethod(opModel));
@@ -139,6 +142,9 @@ public class AsyncClientInterface implements ClassSpec {
         }
         if (opModel.hasStreamingOutput()) {
             methodOverloads.add(streamingOutputFileSimpleMethod(opModel));
+        }
+        if (!opModel.isStreaming()) {
+            methodOverloads.add(builderConsumerMethod(opModel));
         }
         return methodOverloads;
     }
@@ -190,6 +196,25 @@ public class AsyncClientInterface implements ClassSpec {
                 .addStatement("return $N($N.builder().build())",
                               opModel.getMethodName(),
                               opModel.getInput().getVariableType());
+    }
+
+
+    /**
+     * Creates a method that thats a Consumer of Request.Builder
+     */
+    private MethodSpec.Builder builderConsumerMethod(OperationModel opModel) {
+        ClassName requestType = ClassName.get(model.getMetadata().getFullModelPackageName(),
+                                              opModel.getInput().getVariableType());
+        ClassName builder = requestType.nestedClass("Builder");
+        TypeName consumer = ParameterizedTypeName.get(ClassName.get(Consumer.class), builder);
+
+        return interfaceMethodSignature(opModel)
+            .addParameter(consumer, opModel.getInput().getVariableName())
+            .addJavadoc(opModel.getDocs(model, ClientType.ASYNC, SimpleMethodOverload.CONSUMER_BUILDER))
+            .addStatement("return $N($T.builder().apply($N).build())",
+                          opModel.getMethodName(),
+                          requestType,
+                          opModel.getInput().getVariableName());
     }
 
     /**
