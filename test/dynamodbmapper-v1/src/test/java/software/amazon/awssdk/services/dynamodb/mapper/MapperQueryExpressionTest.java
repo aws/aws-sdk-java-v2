@@ -72,7 +72,7 @@ public class MapperQueryExpressionTest {
             Class<T> clazz, DynamoDbQueryExpression<T> queryExpression,
             String expectedErrorMessage) {
         try {
-            Mockito.when(mockClient.query(any())).thenReturn(QueryResponse.builder().items(new ArrayList<>()).build());
+            Mockito.when(mockClient.query(any(QueryRequest.class))).thenReturn(QueryResponse.builder().items(new ArrayList<>()).build());
 
             mapper.queryPage(clazz, queryExpression, DynamoDbMapperConfig.DEFAULT);
             if (expectedErrorMessage != null) {
