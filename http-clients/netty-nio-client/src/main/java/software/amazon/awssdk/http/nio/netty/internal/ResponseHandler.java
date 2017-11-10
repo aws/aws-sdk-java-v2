@@ -141,7 +141,7 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     private static void closeAndRelease(ChannelHandlerContext ctx) {
         RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
         ctx.channel().close()
-                .addListener(channelFuture -> requestContext.channelPool().release(ctx.channel()));
+           .addListener(channelFuture -> requestContext.channelPool().release(ctx.channel()));
     }
 
     /**

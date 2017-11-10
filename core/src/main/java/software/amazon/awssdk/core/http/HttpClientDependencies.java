@@ -82,6 +82,7 @@ public abstract class HttpClientDependencies implements SdkAutoCloseable {
     @Override
     public final void close() {
         this.clientExecutionTimer.close();
+        doClose();
     }
 
     /**

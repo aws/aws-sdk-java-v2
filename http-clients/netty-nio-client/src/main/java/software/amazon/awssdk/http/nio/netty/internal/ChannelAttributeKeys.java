@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.util.AttributeKey;
 import java.nio.ByteBuffer;
 import org.reactivestreams.Subscriber;
@@ -22,16 +23,20 @@ import org.reactivestreams.Subscriber;
 /**
  * Keys for attributes attached via {@link io.netty.channel.Channel#attr(AttributeKey)}.
  */
-class ChannelAttributeKeys {
+public class ChannelAttributeKeys {
 
     /**
      * Attribute key for {@link RequestContext}.
      */
-    static final AttributeKey<RequestContext> REQUEST_CONTEXT_KEY = AttributeKey.newInstance("requestContext");
+    // TODO public
+    public static final AttributeKey<RequestContext> REQUEST_CONTEXT_KEY = AttributeKey.newInstance("requestContext");
 
     static final AttributeKey<Subscriber<? super ByteBuffer>> SUBSCRIBER_KEY = AttributeKey.newInstance("subscriber");
 
-    static final AttributeKey<Boolean> RESPONSE_COMPLETE_KEY = AttributeKey.newInstance("responseComplete");
+    // TODO public
+    public static final AttributeKey<Boolean> RESPONSE_COMPLETE_KEY = AttributeKey.newInstance("responseComplete");
+
+    public static final AttributeKey<ByteBuf> CUMULATED_KEY = AttributeKey.newInstance("cumulated");
 
     private ChannelAttributeKeys() {
     }

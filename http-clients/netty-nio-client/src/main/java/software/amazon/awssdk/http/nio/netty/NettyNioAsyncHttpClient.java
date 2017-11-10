@@ -101,10 +101,10 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
     @Override
     public AbortableRunnable prepareRequest(SdkHttpRequest sdkRequest,
-                                            SdkRequestContext requestContext,
+                                            SdkRequestContext sdkRequestContext,
                                             SdkHttpRequestProvider requestProvider,
                                             SdkHttpResponseHandler handler) {
-        final RequestContext context = new RequestContext(pools.get(poolKey(sdkRequest)),
+        RequestContext context = new RequestContext(pools.get(poolKey(sdkRequest)),
                                                           sdkRequest, requestProvider,
                                                           requestAdapter.adapt(sdkRequest),
                                                           handler);
