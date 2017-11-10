@@ -60,9 +60,12 @@
                             <include>com.fasterxml.jackson.core:*</include>
                             <include>com.fasterxml.jackson.dataformat:jackson-dataformat-cbor</include>
                             <include>org.apache.httpcomponents:*</include>
+                            <include>org.reactivestreams:*</include>
+                            <include>org.slf4j:*</include>
                             <include>commons-codec:commons-codec</include>
                             <include>software.amazon.awssdk.ion:ion-java</include>
                             <include>software.amazon.awssdk:*</include>
+                            <include>commons-logging:*</include>
                         </includes>
                     </artifactSet>
                     <relocations>
