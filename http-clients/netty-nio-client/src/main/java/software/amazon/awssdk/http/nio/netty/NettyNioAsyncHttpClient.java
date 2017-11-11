@@ -16,12 +16,7 @@
 package software.amazon.awssdk.http.nio.netty;
 
 import static io.netty.handler.ssl.SslContext.defaultClientProvider;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIMEOUT;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.SOCKET_TIMEOUT;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.USE_STRICT_HOSTNAME_VERIFICATION;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
-import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -50,6 +45,7 @@ import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelPipelineInitializer;
 import software.amazon.awssdk.http.nio.netty.internal.DelegatingEventLoopGroup;
+import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
 import software.amazon.awssdk.http.nio.netty.internal.NonManagedEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.RequestAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
@@ -64,22 +60,18 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private final EventLoopGroup group;
     private final RequestAdapter requestAdapter = new RequestAdapter();
     private final ChannelPoolMap<URI, ChannelPool> pools;
-    private final ServiceDefaults serviceDefaults;
-    private final boolean trustAllCertificates;
+    private final NettyConfiguration configuration;
 
     NettyNioAsyncHttpClient(NettySdkHttpClientFactory factory, AttributeMap serviceDefaultsMap) {
-        this.serviceDefaults = new ServiceDefaults(serviceDefaultsMap);
-        this.trustAllCertificates = factory.trustAllCertificates().orElse(Boolean.FALSE);
+        this.configuration = new NettyConfiguration(serviceDefaultsMap, factory);
         this.group = factory.eventLoopGroupConfiguration().toEither()
                             .map(e -> e.map(NonManagedEventLoopGroup::new,
                                             EventLoopGroupFactory::create))
                             .orElseGet(SharedEventLoopGroup::get);
-        this.pools = createChannelPoolMap(serviceDefaults,
-                                          factory.maxConnectionsPerEndpoint().orElse(serviceDefaults.getMaxConnections()));
+        this.pools = createChannelPoolMap();
     }
 
-    private ChannelPoolMap<URI, ChannelPool> createChannelPoolMap(ServiceDefaults serviceDefaults,
-                                                                  int maxConnectionsPerEndpoint) {
+    private ChannelPoolMap<URI, ChannelPool> createChannelPoolMap() {
         return new SdkChannelPoolMap<URI, ChannelPool>() {
             @Override
             protected ChannelPool newPool(URI key) {
@@ -87,14 +79,18 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                         new Bootstrap()
                                 .group(group)
                                 .channel(resolveSocketChannelClass())
-                                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, serviceDefaults.getConnectionTimeout())
+                                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, configuration.connectionTimeout())
                                 .option(ChannelOption.TCP_NODELAY, true)
                                 .remoteAddress(key.getHost(), key.getPort());
                 SslContext sslContext = sslContext(key.getScheme());
                 return new FixedChannelPool(bootstrap,
                                             // TODO expose better options for this
-                                            new ChannelPipelineInitializer(sslContext), ChannelHealthChecker.ACTIVE,
-                                            FixedChannelPool.AcquireTimeoutAction.FAIL, 1000, maxConnectionsPerEndpoint, 10_000);
+                                            new ChannelPipelineInitializer(sslContext),
+                                            ChannelHealthChecker.ACTIVE,
+                                            FixedChannelPool.AcquireTimeoutAction.FAIL,
+                                            configuration.connectionAcquisitionTimeout(),
+                                            configuration.maxConnectionsPerEndpoint(),
+                                            10_000);
             }
         };
     }
@@ -107,13 +103,13 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         final RequestContext context = new RequestContext(pools.get(poolKey(sdkRequest)),
                                                           sdkRequest, requestProvider,
                                                           requestAdapter.adapt(sdkRequest),
-                                                          handler);
+                                                          handler, configuration);
         return new RunnableRequest(context);
     }
 
     @Override
     public <T> Optional<T> getConfigurationValue(SdkHttpConfigurationOption<T> key) {
-        return serviceDefaults.getConfigurationValue(key);
+        return configuration.getConfigurationValue(key);
     }
 
     @Override
@@ -143,44 +139,11 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private SslContext sslContext(String scheme) {
         if (scheme.equalsIgnoreCase("https")) {
             SslContextBuilder builder = SslContextBuilder.forClient().sslProvider(defaultClientProvider());
-            if (trustAllCertificates) {
+            if (configuration.trustAllCertificates()) {
                 builder.trustManager(InsecureTrustManagerFactory.INSTANCE);
             }
             return invokeSafely(builder::build);
         }
         return null;
-    }
-
-    /**
-     * Helper class to unwrap and convert service defaults.
-     */
-    private static class ServiceDefaults {
-        private final AttributeMap serviceDefaults;
-
-        private ServiceDefaults(AttributeMap serviceDefaults) {
-            this.serviceDefaults = serviceDefaults;
-        }
-
-        @ReviewBeforeRelease("Not sure if Netty supports setting socket timeout. There's a ReadTimeoutHandler but that" +
-                             "fires if the connection is just idle which is not what we want.")
-        public int getSocketTimeout() {
-            return saturatedCast(serviceDefaults.get(SOCKET_TIMEOUT).toMillis());
-        }
-
-        public int getConnectionTimeout() {
-            return saturatedCast(serviceDefaults.get(CONNECTION_TIMEOUT).toMillis());
-        }
-
-        @ReviewBeforeRelease("Does it make sense to use this value? Netty's implementation is max connections" +
-                             " per endpoint so if it's a shared client it doesn't mean quite the same thing.")
-        public int getMaxConnections() {
-            return serviceDefaults.get(MAX_CONNECTIONS);
-        }
-
-        @ReviewBeforeRelease("Support disabling strict hostname verification")
-        public <T> Optional<T> getConfigurationValue(AttributeMap.Key<T> key) {
-            return key == USE_STRICT_HOSTNAME_VERIFICATION ? Optional.empty() :
-                    Optional.ofNullable(serviceDefaults.get(key));
-        }
     }
 }
