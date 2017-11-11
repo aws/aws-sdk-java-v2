@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * Replacement for {@link io.netty.channel.pool.AbstractChannelPoolMap}. This implementation guarentees
+ * Replacement for {@link io.netty.channel.pool.AbstractChannelPoolMap}. This implementation guarantees
  * only one instance of a {@link ChannelPool} is created for each key.
  */
 public abstract class SdkChannelPoolMap<K, P extends ChannelPool>
