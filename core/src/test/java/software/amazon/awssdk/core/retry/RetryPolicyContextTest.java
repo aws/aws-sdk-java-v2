@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.retry.v2;
+package software.amazon.awssdk.core.retry;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;

@@ -28,7 +28,7 @@ import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.http.server.MockServer;
 import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
 import software.amazon.awssdk.core.internal.http.response.EmptyAWSResponseHandler;
-import software.amazon.awssdk.core.retry.PredefinedRetryPolicies;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
 import utils.HttpTestUtils;
 
@@ -56,7 +56,7 @@ public class ConnectionPoolMaxConnectionsIntegrationTest {
 
         AmazonHttpClient httpClient = HttpTestUtils.testClientBuilder()
                                                    .clientExecutionTimeout(null)
-                                                   .retryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
+                                                   .retryPolicy(RetryPolicy.NONE)
                                                    .httpClient(ApacheSdkHttpClientFactory.builder()
                                                                                          .connectionTimeout(
                                                                                                  Duration.ofMillis(100))

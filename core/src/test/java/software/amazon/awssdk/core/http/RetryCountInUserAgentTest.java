@@ -32,11 +32,9 @@ import software.amazon.awssdk.core.config.MutableClientConfiguration;
 import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.core.retry.RetryPolicyAdapter;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import utils.HttpTestUtils;
 import utils.http.WireMockTestBase;
-import utils.retry.AlwaysRetryCondition;
 import utils.retry.SimpleArrayBackoffStrategy;
 
 public class RetryCountInUserAgentTest extends WireMockTestBase {
@@ -70,11 +68,13 @@ public class RetryCountInUserAgentTest extends WireMockTestBase {
     }
 
     private void executeRequest() throws Exception {
+        RetryPolicy policy = RetryPolicy.builder().backoffStrategy(new SimpleArrayBackoffStrategy(BACKOFF_VALUES)).build();
+
         ClientOverrideConfiguration overrideConfig =
-                ClientOverrideConfiguration.builder().retryPolicy(buildRetryPolicy()).build();
+            ClientOverrideConfiguration.builder().retryPolicy(policy).build();
         MutableClientConfiguration clientConfiguration = new MutableClientConfiguration()
-                .overrideConfiguration(overrideConfig)
-                .httpClient(HttpTestUtils.testSdkHttpClient());
+            .overrideConfiguration(overrideConfig)
+            .httpClient(HttpTestUtils.testSdkHttpClient());
 
         new GlobalClientConfigurationDefaults().applySyncDefaults(clientConfiguration);
 
@@ -91,10 +91,4 @@ public class RetryCountInUserAgentTest extends WireMockTestBase {
             // Ignored or expected.
         }
     }
-
-    private RetryPolicyAdapter buildRetryPolicy() {
-        return new RetryPolicyAdapter(
-                new RetryPolicy(new AlwaysRetryCondition(), new SimpleArrayBackoffStrategy(BACKOFF_VALUES), 3, false));
-    }
-
 }

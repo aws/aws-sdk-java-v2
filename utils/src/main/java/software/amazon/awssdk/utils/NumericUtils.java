@@ -40,4 +40,5 @@ public final class NumericUtils {
         }
         return (int) value;
     }
+
 }

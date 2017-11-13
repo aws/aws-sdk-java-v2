@@ -13,27 +13,28 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.retry.v2;
+package software.amazon.awssdk.core.retry;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.common.collect.Sets;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
-import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Test;
-
 import software.amazon.awssdk.core.SdkBaseException;
 import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.retry.conditions.RetryCondition;
+import software.amazon.awssdk.core.retry.conditions.RetryOnExceptionsCondition;
 
 public class RetryOnExceptionsConditionTest {
 
-    private RetryCondition condition = new RetryOnExceptionsCondition(Arrays.asList(
-            RetryableServiceException.class,
-            RetryableClientException.class,
-            SocketTimeoutException.class
-                                                                                   ));
+    private RetryCondition condition = new RetryOnExceptionsCondition(Sets.newHashSet(
+        RetryableServiceException.class,
+        RetryableClientException.class,
+        SocketTimeoutException.class
+    ));
 
     @Test
     public void noExceptionInContext_ReturnsFalse() {
@@ -83,13 +84,8 @@ public class RetryOnExceptionsConditionTest {
     @Test
     public void noRetryableExceptions_ReturnsFalse() {
         final RetryCondition noExceptionsCondition = new RetryOnExceptionsCondition(
-                Collections.<Class<? extends Exception>>emptyList());
+                Collections.emptySet());
         assertFalse(noExceptionsCondition.shouldRetry(RetryPolicyContexts.withException(new RetryableServiceException())));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void nullList_ThrowsException() {
-        new RetryOnExceptionsCondition(null);
     }
 
     private static class RetryableServiceException extends SdkBaseException {

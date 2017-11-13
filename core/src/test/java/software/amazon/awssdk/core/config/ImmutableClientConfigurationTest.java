@@ -27,8 +27,8 @@ import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.auth.DefaultCredentialsProvider;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.auth.NoOpSignerProvider;
-import software.amazon.awssdk.core.retry.v2.RetryPolicy;
-import software.amazon.awssdk.core.retry.v2.RetryPolicyContext;
+import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 
@@ -45,17 +45,11 @@ public class ImmutableClientConfigurationTest {
     private static final SdkAsyncHttpClient ASYNC_HTTP_CLIENT = mock(SdkAsyncHttpClient.class);
     private static final ExecutionInterceptor EXECUTION_INTERCEPTOR = new ExecutionInterceptor() {
     };
-    private static final RetryPolicy RETRY_POLICY = new RetryPolicy() {
-        @Override
-        public long computeDelayBeforeNextRetry(RetryPolicyContext context) {
-            return 0;
-        }
 
-        @Override
-        public boolean shouldRetry(RetryPolicyContext context) {
-            return false;
-        }
-    };
+    private static final RetryPolicy RETRY_POLICY = RetryPolicy.builder()
+                                                               .retryCondition(condition ->false)
+                                                               .backoffStrategy(strategy -> Duration.ZERO)
+                                                               .build();
 
     @Test
     public void immutableSyncConfigurationMatchesMutableConfiguration() {

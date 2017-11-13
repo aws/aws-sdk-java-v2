@@ -34,6 +34,7 @@
 
 package software.amazon.awssdk.utils;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -606,5 +607,65 @@ public final class Validate {
         if (!superType.isAssignableFrom(type)) {
             throw new IllegalArgumentException(String.format(message, values));
         }
+    }
+
+    /**
+     * Asserts that the given number is positive (non-negative and non-zero).
+     *
+     * @param num Number to validate
+     * @param fieldName Field name to display in exception message if not positive.
+     * @return Number if positive.
+     */
+    public static int isPositive(int num, String fieldName) {
+        if (num <= 0) {
+            throw new IllegalArgumentException(String.format("%s must be positive", fieldName));
+        }
+        return num;
+    }
+
+    public static int isNotNegative(int num, String fieldName) {
+
+        if (num < 0) {
+            throw new IllegalArgumentException(String.format("%s must not be negative", fieldName));
+        }
+
+        return num;
+    }
+
+    /**
+     * Asserts that the given duration is positive (non-negative and non-zero).
+     *
+     * @param duration Number to validate
+     * @param fieldName Field name to display in exception message if not positive.
+     * @return Duration if positive.
+     */
+    public static Duration isPositive(Duration duration, String fieldName) {
+        if (duration == null) {
+            throw new IllegalArgumentException(String.format("%s cannot be null", fieldName));
+        }
+
+        if (duration.isNegative() || duration.isZero()) {
+            throw new IllegalArgumentException(String.format("%s must be positive", fieldName));
+        }
+        return duration;
+    }
+
+    /**
+     * Asserts that the given duration is positive (non-negative and non-zero).
+     *
+     * @param duration Number to validate
+     * @param fieldName Field name to display in exception message if not positive.
+     * @return Duration if positive.
+     */
+    public static Duration isNotNegative(Duration duration, String fieldName) {
+        if (duration == null) {
+            throw new IllegalArgumentException(String.format("%s cannot be null", fieldName));
+        }
+
+        if (duration.isNegative()) {
+            throw new IllegalArgumentException(String.format("%s must not be negative", fieldName));
+        }
+
+        return duration;
     }
 }

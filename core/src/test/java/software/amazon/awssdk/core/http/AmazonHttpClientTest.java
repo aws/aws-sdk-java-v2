@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.net.URI;
+import org.apache.log4j.BasicConfigurator;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,6 +59,7 @@ public class AmazonHttpClientTest {
 
     @Before
     public void setUp() throws Exception {
+        BasicConfigurator.configure();
         client = HttpTestUtils.testClientBuilder().httpClient(sdkHttpClient).build();
         when(sdkHttpClient.prepareRequest(any(), any())).thenReturn(abortableCallable);
         stubSuccessfulResponse();

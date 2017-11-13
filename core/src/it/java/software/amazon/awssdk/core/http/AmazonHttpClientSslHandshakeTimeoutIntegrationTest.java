@@ -25,7 +25,7 @@ import org.junit.Test;
 import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
 import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
-import software.amazon.awssdk.core.retry.PredefinedRetryPolicies;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
 import utils.HttpTestUtils;
 
@@ -44,7 +44,7 @@ public class AmazonHttpClientSslHandshakeTimeoutIntegrationTest extends Unrespon
     public void testSslHandshakeTimeout() {
         AmazonHttpClient httpClient = HttpTestUtils.testClientBuilder()
                                                    .clientExecutionTimeout(null)
-                                                   .retryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
+                                                   .retryPolicy(RetryPolicy.NONE)
                                                    .httpClient(ApacheSdkHttpClientFactory.builder()
                                                                                          .socketTimeout(CLIENT_SOCKET_TO)
                                                                                          .build()

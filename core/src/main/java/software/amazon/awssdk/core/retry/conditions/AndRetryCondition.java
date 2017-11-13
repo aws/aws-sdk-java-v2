@@ -13,17 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.retry.v2;
+package software.amazon.awssdk.core.retry.conditions;
 
 import static software.amazon.awssdk.core.util.ValidationUtils.assertNotEmpty;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.retry.RetryPolicyContext;
 
 /**
  * Composite {@link RetryCondition} that evaluates to true when all contained retry conditions evaluate to true.
  */
+@SdkPublicApi
 public class AndRetryCondition implements RetryCondition {
 
     private List<RetryCondition> conditions = new ArrayList<RetryCondition>();

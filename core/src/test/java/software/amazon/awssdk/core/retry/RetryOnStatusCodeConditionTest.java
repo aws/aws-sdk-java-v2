@@ -13,20 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.retry.v2;
+package software.amazon.awssdk.core.retry;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
+import com.google.common.collect.Sets;
 import java.util.Collections;
 import org.junit.Test;
+import software.amazon.awssdk.core.retry.conditions.RetryCondition;
+import software.amazon.awssdk.core.retry.conditions.RetryOnStatusCodeCondition;
 
 public class RetryOnStatusCodeConditionTest {
 
-    private final RetryCondition condition = new RetryOnStatusCodeCondition(Arrays.asList(
-            404, 500, 513
-                                                                                         ));
+    private final RetryCondition condition = new RetryOnStatusCodeCondition(Sets.newHashSet(404, 500, 513));
 
     @Test
     public void retryableStatusCode_ReturnsTrue() {
@@ -45,7 +45,7 @@ public class RetryOnStatusCodeConditionTest {
 
     @Test
     public void noStatusCodesInList_ReturnsFalse() {
-        final RetryCondition noStatusCodes = new RetryOnStatusCodeCondition(Collections.<Integer>emptyList());
+        final RetryCondition noStatusCodes = new RetryOnStatusCodeCondition(Collections.emptySet());
         assertFalse(noStatusCodes.shouldRetry(RetryPolicyContexts.withStatusCode(404)));
     }
 

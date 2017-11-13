@@ -13,23 +13,21 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.retry.v2;
+package software.amazon.awssdk.core.retry;
 
-import static software.amazon.awssdk.core.util.ValidationUtils.assertIsPositive;
+import static org.junit.Assert.assertEquals;
 
-/**
- * Simple backoff strategy that always uses a fixed delay.
- */
-public class FixedDelayBackoffStrategy implements BackoffStrategy {
+import java.time.Duration;
+import org.junit.Test;
+import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 
-    private final int fixedBackoff;
+public class FixedDelayBackoffStrategyTest {
 
-    public FixedDelayBackoffStrategy(int fixedBackoff) {
-        this.fixedBackoff = assertIsPositive(fixedBackoff, "fixedBackoff");
+    @Test
+    public void positiveBackoff_ReturnsFixedBackoffOnDelay() {
+        long delay = new FixedDelayBackoffStrategy(Duration.ofMillis(100)).computeDelayBeforeNextRetry(RetryPolicyContexts.EMPTY)
+                                                                          .toMillis();
+        assertEquals(100, delay);
     }
 
-    @Override
-    public long computeDelayBeforeNextRetry(RetryPolicyContext context) {
-        return fixedBackoff;
-    }
 }
