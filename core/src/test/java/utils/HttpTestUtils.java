@@ -24,7 +24,6 @@ import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefa
 import software.amazon.awssdk.core.http.AmazonHttpClient;
 import software.amazon.awssdk.core.http.loader.DefaultSdkHttpClientFactory;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants;
-import software.amazon.awssdk.core.retry.RetryPolicyAdapter;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
@@ -95,7 +94,7 @@ public class HttpTestUtils {
 
         private ClientOverrideConfiguration.Builder configureRetryPolicy(ClientOverrideConfiguration.Builder builder) {
             if (retryPolicy != null) {
-                builder.retryPolicy(new RetryPolicyAdapter(retryPolicy));
+                builder.retryPolicy(retryPolicy);
             }
             return builder;
         }

@@ -13,11 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.retry.v2;
+package software.amazon.awssdk.core.retry;
 
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBaseException;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
@@ -25,22 +27,25 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  * RetryPolicy}.
  */
 @Immutable
-public class RetryPolicyContext {
+public final class RetryPolicyContext {
 
-    private final Object originalRequest;
+    private final SdkRequest originalRequest;
     private final SdkHttpFullRequest request;
     private final SdkBaseException exception;
+    private final ExecutionAttributes executionAttributes;
     private final int retriesAttempted;
     private final Integer httpStatusCode;
 
-    private RetryPolicyContext(Object originalRequest,
+    private RetryPolicyContext(SdkRequest originalRequest,
                                SdkHttpFullRequest request,
                                SdkBaseException exception,
+                               ExecutionAttributes executionAttributes,
                                int retriesAttempted,
                                Integer httpStatusCode) {
         this.originalRequest = originalRequest;
         this.request = request;
         this.exception = exception;
+        this.executionAttributes = executionAttributes;
         this.retriesAttempted = retriesAttempted;
         this.httpStatusCode = httpStatusCode;
     }
@@ -58,18 +63,24 @@ public class RetryPolicyContext {
     }
 
     /**
-     * @return The marshalled request. See {@link Request#addHandlerContext(HandlerContextKey, Object)} for a mechanism to store
-     *     request level state across invocations of the retry policy.
+     * @return The marshalled request.
      */
     public SdkHttpFullRequest request() {
         return this.request;
     }
 
     /**
-     * @return The previous exception (may be a client or a service exception).
+     * @return The last seen exception for the request.
      */
     public SdkBaseException exception() {
         return this.exception;
+    }
+
+    /**
+     * @return Mutable execution context.
+     */
+    public ExecutionAttributes executionAttributes() {
+        return this.executionAttributes;
     }
 
     /**
@@ -96,16 +107,17 @@ public class RetryPolicyContext {
     @SdkInternalApi
     public static class Builder {
 
-        private Object originalRequest;
+        private SdkRequest originalRequest;
         private SdkHttpFullRequest request;
         private SdkBaseException exception;
+        private ExecutionAttributes executionAttributes;
         private int retriesAttempted;
         private Integer httpStatusCode;
 
         private Builder() {
         }
 
-        public Builder originalRequest(Object originalRequest) {
+        public Builder originalRequest(SdkRequest originalRequest) {
             this.originalRequest = originalRequest;
             return this;
         }
@@ -120,6 +132,11 @@ public class RetryPolicyContext {
             return this;
         }
 
+        public Builder executionAttributes(ExecutionAttributes executionAttributes) {
+            this.executionAttributes = executionAttributes;
+            return this;
+        }
+
         public Builder retriesAttempted(int retriesAttempted) {
             this.retriesAttempted = retriesAttempted;
             return this;
@@ -131,7 +148,12 @@ public class RetryPolicyContext {
         }
 
         public RetryPolicyContext build() {
-            return new RetryPolicyContext(originalRequest, request, exception, retriesAttempted, httpStatusCode);
+            return new RetryPolicyContext(originalRequest,
+                                          request,
+                                          exception,
+                                          executionAttributes,
+                                          retriesAttempted,
+                                          httpStatusCode);
         }
 
     }

@@ -17,15 +17,16 @@ package software.amazon.awssdk.core.retry;
 
 import static java.util.Collections.singletonList;
 
+import java.time.Duration;
 import java.util.Optional;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.SdkBaseException;
 import software.amazon.awssdk.core.http.HttpResponse;
-import software.amazon.awssdk.core.retry.v2.RetryPolicy;
-import software.amazon.awssdk.core.retry.v2.RetryPolicyContext;
 import software.amazon.awssdk.core.util.CapacityManager;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
+@SdkInternalApi
 public class RetryHandler {
 
     public static final String HEADER_SDK_RETRY_INFO = "amz-sdk-retry";
@@ -33,7 +34,7 @@ public class RetryHandler {
     private final RetryPolicy retryPolicy;
     private final CapacityManager retryCapacity;
 
-    private long lastBackoffDelay;
+    private Duration lastBackoffDelay = Duration.ZERO;
     private boolean retryCapacityConsumed;
     private RetryPolicyContext retryPolicyContext;
     private Optional<SdkBaseException> lastRetriedException = Optional.empty();
@@ -55,7 +56,7 @@ public class RetryHandler {
         // Do not use retry capacity for throttling exceptions
         if (!RetryUtils.isThrottlingException(exception)) {
             // See if we have enough available retry capacity to be able to execute this retry attempt.
-            if (!retryCapacity.acquire(RetryPolicy.THROTTLED_RETRY_COST)) {
+            if (!retryCapacity.acquire(SdkDefaultRetrySettings.RETRY_THROTTLING_COST)) {
                 return false;
             }
             this.retryCapacityConsumed = true;
@@ -66,13 +67,14 @@ public class RetryHandler {
                                                     .originalRequest(context.requestConfig().getOriginalRequest())
                                                     .exception(exception)
                                                     .retriesAttempted(retriesAttempted)
+                                                    .executionAttributes(context.executionAttributes())
                                                     .httpStatusCode(httpResponse == null ? null : httpResponse.getStatusCode())
                                                     .build();
         // Finally, pass all the context information to the RetryCondition and let it decide whether it should be retried.
-        if (!retryPolicy.shouldRetry(retryPolicyContext)) {
+        if (!retryPolicy.retryCondition().shouldRetry(retryPolicyContext)) {
             // If the retry policy fails we immediately return consumed capacity to the pool.
             if (retryCapacityConsumed) {
-                retryCapacity.release(RetryPolicy.THROTTLED_RETRY_COST);
+                retryCapacity.release(SdkDefaultRetrySettings.RETRY_THROTTLING_COST);
             }
             return false;
         }
@@ -86,7 +88,7 @@ public class RetryHandler {
      */
     public void releaseRetryCapacity() {
         if (isRetry() && retryCapacityConsumed) {
-            retryCapacity.release(RetryPolicy.THROTTLED_RETRY_COST);
+            retryCapacity.release(SdkDefaultRetrySettings.RETRY_THROTTLING_COST);
         } else {
             retryCapacity.release();
         }
@@ -96,8 +98,8 @@ public class RetryHandler {
      * Computes the delay before the next retry should be attempted based on the retry policy context.
      * @return long value of how long to wait
      */
-    public long computeDelayBeforeNextRetry() {
-        lastBackoffDelay = retryPolicy.computeDelayBeforeNextRetry(retryPolicyContext);
+    public Duration computeDelayBeforeNextRetry() {
+        lastBackoffDelay = retryPolicy.backoffStrategy().computeDelayBeforeNextRetry(retryPolicyContext);
         return lastBackoffDelay;
     }
 
@@ -120,7 +122,7 @@ public class RetryHandler {
                       .header(HEADER_SDK_RETRY_INFO,
                               singletonList(String.format("%s/%s/%s",
                                                           requestCount - 1,
-                                                          lastBackoffDelay,
+                                                          lastBackoffDelay.toMillis(),
                                                           availableRetryCapacity >= 0 ? availableRetryCapacity : "")))
                       .build();
     }

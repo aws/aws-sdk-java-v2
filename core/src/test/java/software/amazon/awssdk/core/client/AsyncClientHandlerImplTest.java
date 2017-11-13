@@ -47,6 +47,7 @@ import software.amazon.awssdk.core.config.MutableClientConfiguration;
 import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.internal.auth.NoOpSignerProvider;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.async.AbortableRunnable;
@@ -159,6 +160,7 @@ public class AsyncClientHandlerImplTest {
         mutableClientConfiguration.overrideConfiguration(
             ClientOverrideConfiguration.builder()
                                        .advancedOption(AdvancedClientOption.SIGNER_PROVIDER, new NoOpSignerProvider())
+                                       .retryPolicy(RetryPolicy.builder().numRetries(0).build())
                                        .build());
 
         new GlobalClientConfigurationDefaults().applyAsyncDefaults(mutableClientConfiguration);

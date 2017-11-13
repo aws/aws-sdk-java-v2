@@ -13,26 +13,26 @@
  * permissions and limitations under the License.
  */
 
-package utils.retry;
+package software.amazon.awssdk.core.retry.backoff;
+
+import static software.amazon.awssdk.utils.Validate.isNotNegative;
 
 import java.time.Duration;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
-import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 
 /**
- * Backoff strategy used in tests to pull backoff value from a backing array. Number of retries is
- * limited to size of array.
+ * Simple backoff strategy that always uses a fixed delay for the delay before the next retry attempt.
  */
-public final class SimpleArrayBackoffStrategy implements BackoffStrategy {
+public final class FixedDelayBackoffStrategy implements BackoffStrategy {
 
-    private final int[] backoffValues;
+    private final Duration fixedBackoff;
 
-    public SimpleArrayBackoffStrategy(int[] backoffValues) {
-        this.backoffValues = backoffValues;
+    public FixedDelayBackoffStrategy(Duration fixedBackoff) {
+        this.fixedBackoff = isNotNegative(fixedBackoff, "fixedBackoff");
     }
 
     @Override
     public Duration computeDelayBeforeNextRetry(RetryPolicyContext context) {
-        return Duration.ofMillis(backoffValues[context.retriesAttempted()]);
+        return fixedBackoff;
     }
 }

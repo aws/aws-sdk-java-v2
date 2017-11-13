@@ -13,24 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.retry.v2;
+package software.amazon.awssdk.core.retry;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+import software.amazon.awssdk.core.retry.conditions.MaxNumberOfRetriesCondition;
 
 public class MaxNumberOfRetriesConditionTest {
-
-    @Test(expected = IllegalArgumentException.class)
-    public void negativeMaxRetries_ThrowsException() {
-        new MaxNumberOfRetriesCondition(-1);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void zeroMaxRetries_ThrowsException() {
-        new MaxNumberOfRetriesCondition(0);
-    }
 
     @Test
     public void positiveMaxRetries_OneMoreAttemptToMax_ReturnsTrue() {
@@ -46,5 +37,4 @@ public class MaxNumberOfRetriesConditionTest {
     public void positiveMaxRetries_PastMaxAttempts_ReturnsFalse() {
         assertFalse(new MaxNumberOfRetriesCondition(3).shouldRetry(RetryPolicyContexts.withRetriesAttempted(4)));
     }
-
 }
