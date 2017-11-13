@@ -190,7 +190,7 @@ public class BatchLoadIntegrationTest extends DynamoDBMapperIntegrationTestBase 
         NumberSetAttributeClass obj = getUniqueNumericObject();
         objs.add(obj);
         DynamoDBClient mockClient = mock(DynamoDBClient.class);
-        when(mockClient.batchGetItem(any())).thenAnswer(new Answer<BatchGetItemResponse>() {
+        when(mockClient.batchGetItem(any(BatchGetItemRequest.class))).thenAnswer(new Answer<BatchGetItemResponse>() {
             @Override
             public BatchGetItemResponse answer(InvocationOnMock invocation) throws Throwable {
                 Thread.sleep(3000);

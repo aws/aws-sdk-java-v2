@@ -38,6 +38,11 @@ public enum SimpleMethodOverload {
     FILE,
 
     /**
+     * Simple method for allowing a Consumer of Builder to be passed to save having to create the builder manually.
+     */
+    CONSUMER_BUILDER,
+
+    /**
      * Simple method only for sync operations that have a streaming output. Takes a request object
      * and returns an unmanaged {@link software.amazon.awssdk.core.sync.ResponseInputStream} to read the response
      * contents.

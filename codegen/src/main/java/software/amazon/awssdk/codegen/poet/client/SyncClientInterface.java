@@ -30,6 +30,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
@@ -140,10 +141,27 @@ public final class SyncClientInterface implements ClassSpec {
                             .addStatement("throw new $T()", UnsupportedOperationException.class)
                             .build());
 
+        if (!opModel.isStreaming()) {
+            methods.add(operationBuilderConsumer(model, opModel));
+        }
         methods.addAll(streamingSimpleMethods(opModel));
 
-
         return methods;
+    }
+
+    private MethodSpec operationBuilderConsumer(IntermediateModel model, OperationModel opModel) {
+        ClassName requestType = ClassName.get(model.getMetadata().getFullModelPackageName(),
+                                              opModel.getInput().getVariableType());
+        ClassName builder = requestType.nestedClass("Builder");
+        TypeName consumer = ParameterizedTypeName.get(ClassName.get(Consumer.class), builder);
+
+        return operationBaseSignature(model, opModel, b -> b.addParameter(consumer, opModel.getInput().getVariableName()))
+            .addModifiers(Modifier.DEFAULT)
+            .addStatement("return $L($T.builder().apply($L).build())",
+                          opModel.getMethodName(),
+                          requestType,
+                          opModel.getInput().getVariableName())
+            .build();
     }
 
     private MethodSpec simpleMethod(OperationModel opModel) {
@@ -155,24 +173,32 @@ public final class SyncClientInterface implements ClassSpec {
                 .build();
     }
 
-    // TODO This is inconsistent with how async client reuses method signature
-    static MethodSpec.Builder operationMethodSignature(IntermediateModel model, OperationModel opModel) {
+    private static MethodSpec.Builder operationBaseSignature(IntermediateModel model,
+                                                             OperationModel opModel,
+                                                             Consumer<MethodSpec.Builder> addFirstParameter) {
         TypeName responseType = ClassName.get(model.getMetadata().getFullModelPackageName(),
                                               opModel.getReturnType().getReturnType());
         TypeName returnType = opModel.hasStreamingOutput() ? STREAMING_TYPE_VARIABLE : responseType;
-        ClassName requestType = ClassName.get(model.getMetadata().getFullModelPackageName(),
-                                              opModel.getInput().getVariableType());
 
         final MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(opModel.getMethodName())
                                                            .returns(returnType)
                                                            .addModifiers(Modifier.PUBLIC)
-                                                           .addParameter(requestType, opModel.getInput().getVariableName())
                                                            .addJavadoc(opModel.getDocs(model, ClientType.SYNC))
                                                            .addExceptions(getExceptionClasses(model, opModel));
 
+        addFirstParameter.accept(methodBuilder);
         streamingMethod(methodBuilder, opModel, responseType);
 
         return methodBuilder;
+    }
+
+
+    // TODO This is inconsistent with how async client reuses method signature
+    static MethodSpec.Builder operationMethodSignature(IntermediateModel model, OperationModel opModel) {
+        ClassName requestType = ClassName.get(model.getMetadata().getFullModelPackageName(),
+                                              opModel.getInput().getVariableType());
+
+        return operationBaseSignature(model, opModel, b -> b.addParameter(requestType, opModel.getInput().getVariableName()));
     }
 
     private MethodSpec.Builder operationSimpleMethodSignature(IntermediateModel model, OperationModel opModel) {
@@ -210,7 +236,6 @@ public final class SyncClientInterface implements ClassSpec {
         if (opModel.hasStreamingOutput()) {
             simpleMethods.add(downloadToFileSimpleMethod(opModel, responseType, requestType));
             simpleMethods.add(inputStreamSimpleMethod(opModel, responseType, requestType));
-
         }
         return simpleMethods;
     }

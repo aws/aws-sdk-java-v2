@@ -88,7 +88,8 @@ class AsyncOperationDocProvider extends OperationDocProvider {
     static Map<SimpleMethodOverload, Factory> asyncFactories() {
         return ImmutableMapParameter.of(SimpleMethodOverload.NORMAL, AsyncOperationDocProvider::new,
                                         SimpleMethodOverload.NO_ARG, AsyncNoArg::new,
-                                        SimpleMethodOverload.FILE, AsyncFile::new);
+                                        SimpleMethodOverload.FILE, AsyncFile::new,
+                                        SimpleMethodOverload.CONSUMER_BUILDER, AsyncConsumerBuilder::new);
     }
 
     /**
@@ -125,6 +126,28 @@ class AsyncOperationDocProvider extends OperationDocProvider {
 
         @Override
         protected void applyParams(DocumentationBuilder docBuilder) {
+        }
+    }
+
+    private static class AsyncConsumerBuilder extends AsyncOperationDocProvider {
+        private AsyncConsumerBuilder(IntermediateModel model, OperationModel opModel) {
+            super(model, opModel);
+        }
+
+        @Override
+        protected String appendToDescription() {
+            return "This is a convenience which creates an instance of the {@link " +
+                   opModel.getInput().getSimpleType() +
+                   ".Builder} avoiding the need to create one manually via {@link " +
+                   opModel.getInput().getSimpleType() +
+                   "#builder()}";
+        }
+
+        @Override
+        protected void applyParams(DocumentationBuilder docBuilder) {
+            docBuilder.param(opModel.getInput().getVariableName(),
+                             "a {@link Consumer} that will call methods on {@link %s.Builder}.",
+                             opModel.getInputShape().getC2jName());
         }
     }
 }

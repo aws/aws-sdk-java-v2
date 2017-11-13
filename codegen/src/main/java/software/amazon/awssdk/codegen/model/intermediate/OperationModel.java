@@ -165,4 +165,9 @@ public class OperationModel extends DocumentationModel {
     public boolean hasStreamingOutput() {
         return outputShape != null && outputShape.isHasStreamingMember();
     }
+
+    @JsonIgnore
+    public boolean isStreaming() {
+        return hasStreamingInput() || hasStreamingOutput();
+    }
 }
