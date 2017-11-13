@@ -13,26 +13,26 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.retry.v2;
+package software.amazon.awssdk.core.retry.conditions;
 
-import static software.amazon.awssdk.core.util.ValidationUtils.assertNotNull;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.retry.RetryPolicyContext;
 
 /**
  * Retry condition implementation that retries if the exception or the cause of the exception matches the classes defined.
  */
+@SdkPublicApi
 public class RetryOnExceptionsCondition implements RetryCondition {
 
-    private final List<Class<? extends Exception>> exceptionsToRetryOn;
+    private final Set<Class<? extends Exception>> exceptionsToRetryOn;
 
     /**
      * @param exceptionsToRetryOn Exception classes to retry on.
      */
-    public RetryOnExceptionsCondition(List<Class<? extends Exception>> exceptionsToRetryOn) {
-        this.exceptionsToRetryOn = new ArrayList<Class<? extends Exception>>(
-                assertNotNull(exceptionsToRetryOn, "exceptionsToRetryOn"));
+    public RetryOnExceptionsCondition(Set<Class<? extends Exception>> exceptionsToRetryOn) {
+        this.exceptionsToRetryOn = new HashSet<>(exceptionsToRetryOn);
     }
 
     /**
@@ -43,7 +43,7 @@ public class RetryOnExceptionsCondition implements RetryCondition {
     @Override
     public boolean shouldRetry(RetryPolicyContext context) {
         if (context.exception() != null) {
-            for (Class<? extends Exception> exceptionClass : exceptionsToRetryOn) {
+            for (Class exceptionClass : exceptionsToRetryOn) {
                 if (exceptionMatches(context, exceptionClass)) {
                     return true;
                 }
@@ -62,7 +62,7 @@ public class RetryOnExceptionsCondition implements RetryCondition {
      * @param exceptionClass Expected exception class.
      * @return True if the exception in the context matches the provided class.
      */
-    private boolean exceptionMatches(RetryPolicyContext context, Class<? extends Exception> exceptionClass) {
+    private boolean exceptionMatches(RetryPolicyContext context, Class exceptionClass) {
         return context.exception().getClass().equals(exceptionClass);
     }
 
@@ -71,7 +71,7 @@ public class RetryOnExceptionsCondition implements RetryCondition {
      * @param exceptionClass Expected exception class.
      * @return True if the cause of the exception in the context matches the provided class.
      */
-    private boolean wrappedCauseMatches(RetryPolicyContext context, Class<? extends Exception> exceptionClass) {
+    private boolean wrappedCauseMatches(RetryPolicyContext context, Class exceptionClass) {
         if (context.exception().getCause() == null) {
             return false;
         }

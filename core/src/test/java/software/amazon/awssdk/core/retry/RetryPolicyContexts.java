@@ -13,12 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.retry.v2;
+package software.amazon.awssdk.core.retry;
 
-import software.amazon.awssdk.core.AmazonClientException;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
 import software.amazon.awssdk.core.SdkBaseException;
-import utils.model.EmptyAmazonWebServiceRequest;
+import software.amazon.awssdk.core.retry.RetryPolicyContext;
 
 /**
  * Precanned instances of {@link RetryPolicyContext} and factory methods for creating contexts.
@@ -29,11 +27,6 @@ public class RetryPolicyContexts {
      * Empty context object.
      */
     public static final RetryPolicyContext EMPTY = RetryPolicyContext.builder().build();
-
-    public static final RetryPolicyContext LEGACY = RetryPolicyContexts.fromLegacy(
-            new AmazonClientException("boom"),
-            new EmptyAmazonWebServiceRequest(),
-            2);
 
     public static RetryPolicyContext withException(SdkBaseException e) {
         return RetryPolicyContext.builder()
@@ -49,16 +42,6 @@ public class RetryPolicyContexts {
 
     public static RetryPolicyContext withRetriesAttempted(int retriesAttempted) {
         return RetryPolicyContext.builder()
-                                 .retriesAttempted(retriesAttempted)
-                                 .build();
-    }
-
-    public static RetryPolicyContext fromLegacy(AmazonClientException exception,
-                                                AmazonWebServiceRequest origRequest,
-                                                int retriesAttempted) {
-        return RetryPolicyContext.builder()
-                                 .exception(exception)
-                                 .originalRequest(origRequest)
                                  .retriesAttempted(retriesAttempted)
                                  .build();
     }

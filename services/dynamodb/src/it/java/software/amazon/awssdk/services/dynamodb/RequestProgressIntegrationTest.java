@@ -30,9 +30,7 @@ import software.amazon.awssdk.core.event.ProgressListener.ExceptionReporter;
 import software.amazon.awssdk.core.event.ProgressTracker;
 import software.amazon.awssdk.core.event.SdkProgressPublisher;
 import software.amazon.awssdk.core.event.request.Progress;
-import software.amazon.awssdk.core.retry.PredefinedRetryPolicies;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.core.retry.RetryPolicyAdapter;
 import software.amazon.awssdk.core.util.ImmutableMapParameter;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemRequest;
@@ -118,12 +116,9 @@ public class RequestProgressIntegrationTest extends DynamoDBTestBase {
                 ProgressEventType.CLIENT_REQUEST_FAILED_EVENT));
         request.setGeneralProgressListener(listener);
 
-        RetryPolicy retryPolicy = new RetryPolicy((originalRequest, exception, retriesAttempted) -> false,
-                                                  PredefinedRetryPolicies.DEFAULT_BACKOFF_STRATEGY, 0, false);
-
         DynamoDBClient ddb_NoRetry = DynamoDBClient.builder()
                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                .overrideConfiguration(ClientOverrideConfiguration.builder().retryPolicy(new RetryPolicyAdapter(retryPolicy)).build())
+                .overrideConfiguration(ClientOverrideConfiguration.builder().retryPolicy(RetryPolicy.NONE).build())
                 .build();
 
         try {
@@ -145,12 +140,11 @@ public class RequestProgressIntegrationTest extends DynamoDBTestBase {
                 .item(ImmutableMapParameter.of("foo", AttributeValue.builder().s("bar").build()))
                 .build();
 
-        RetryPolicy retryPolicy = new RetryPolicy((originalRequest, exception, retriesAttempted) -> true,
-                                                  PredefinedRetryPolicies.DEFAULT_BACKOFF_STRATEGY, 2, false);
+        RetryPolicy retryPolicy = RetryPolicy.builder().numRetries(1).build();
 
         DynamoDBClient ddb_OneRetry = DynamoDBClient.builder()
                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                .overrideConfiguration(ClientOverrideConfiguration.builder().retryPolicy(new RetryPolicyAdapter(retryPolicy))
+                .overrideConfiguration(ClientOverrideConfiguration.builder().retryPolicy(retryPolicy)
                                                                   .build())
                 .build();
 

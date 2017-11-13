@@ -19,6 +19,7 @@ import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishProg
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -36,8 +37,8 @@ import software.amazon.awssdk.core.http.HttpAsyncClientDependencies;
 import software.amazon.awssdk.core.http.HttpClientDependencies;
 import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.retry.RetryHandler;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.RetryUtils;
-import software.amazon.awssdk.core.retry.v2.RetryPolicy;
 import software.amazon.awssdk.core.util.CapacityManager;
 import software.amazon.awssdk.core.util.ClockSkewUtil;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -138,7 +139,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
         private void executeRetry(CompletableFuture<Response<OutputT>> future) {
             publishProgress(progressListener, ProgressEventType.CLIENT_REQUEST_RETRY_EVENT);
             final int retriesAttempted = requestCount - 2;
-            long delay = retryHandler.computeDelayBeforeNextRetry();
+            Duration delay = retryHandler.computeDelayBeforeNextRetry();
 
             if (log.isDebugEnabled()) {
                 log.debug("Retryable error detected, will retry in " + delay + "ms, attempt number: " +
@@ -147,7 +148,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
             retrySubmitter.schedule(() -> {
                 execute(future);
                 return null;
-            }, delay, TimeUnit.MILLISECONDS);
+            }, delay.toMillis(), TimeUnit.MILLISECONDS);
         }
 
         private void beforeExecute() {

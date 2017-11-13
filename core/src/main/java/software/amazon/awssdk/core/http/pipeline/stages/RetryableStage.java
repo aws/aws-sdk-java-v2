@@ -19,6 +19,8 @@ import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishProg
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.AmazonServiceException;
@@ -35,8 +37,8 @@ import software.amazon.awssdk.core.http.InterruptMonitor;
 import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.http.pipeline.RequestToResponsePipeline;
 import software.amazon.awssdk.core.retry.RetryHandler;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.RetryUtils;
-import software.amazon.awssdk.core.retry.v2.RetryPolicy;
 import software.amazon.awssdk.core.util.CapacityManager;
 import software.amazon.awssdk.core.util.ClockSkewUtil;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -204,12 +206,12 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
          */
         private void doPauseBeforeRetry() throws InterruptedException {
             final int retriesAttempted = requestCount - 2;
-            long delay = retryHandler.computeDelayBeforeNextRetry();
+            Duration delay = retryHandler.computeDelayBeforeNextRetry();
 
             if (log.isDebugEnabled()) {
                 log.debug("Retriable error detected, " + "will retry in " + delay + "ms, attempt number: " + retriesAttempted);
             }
-            Thread.sleep(delay);
+            TimeUnit.MILLISECONDS.sleep(delay.toMillis());
         }
     }
 }
