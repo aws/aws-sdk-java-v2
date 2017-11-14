@@ -25,7 +25,6 @@ import software.amazon.awssdk.core.RequestClientOptions;
 import software.amazon.awssdk.core.RequestConfig;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.core.event.ProgressListener;
 
 /**
  * Adapts the configuration present in {@link AmazonWebServiceRequest} to {@link RequestConfig}.
@@ -44,11 +43,6 @@ public final class AmazonWebServiceRequestAdapter extends RequestConfig {
     public AmazonWebServiceRequestAdapter(AmazonWebServiceRequest request) {
         this.request = request;
         this.simpleName = SIMPLE_NAME_CACHE.computeIfAbsent(request.getClass(), Class::getSimpleName);
-    }
-
-    @Override
-    public ProgressListener getProgressListener() {
-        return request.getGeneralProgressListener();
     }
 
     @Override

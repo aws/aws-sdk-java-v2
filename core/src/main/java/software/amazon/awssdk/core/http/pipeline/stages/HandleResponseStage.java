@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.core.http.pipeline.stages;
 
-import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishProgress;
-
 import java.io.IOException;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -28,8 +26,6 @@ import software.amazon.awssdk.core.RetryableException;
 import software.amazon.awssdk.core.SdkBaseException;
 import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.SdkStandardLoggers;
-import software.amazon.awssdk.core.event.ProgressEventType;
-import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
@@ -88,14 +84,8 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
     @SuppressWarnings("deprecation")
     private OutputT handleSuccessResponse(HttpResponse httpResponse, RequestExecutionContext context)
             throws IOException, InterruptedException {
-        ProgressListener listener = context.requestConfig().getProgressListener();
         try {
-            OutputT awsResponse;
-            publishProgress(listener, ProgressEventType.HTTP_RESPONSE_STARTED_EVENT);
-            awsResponse = successResponseHandler.handle(httpResponse, context.executionAttributes());
-            publishProgress(listener, ProgressEventType.HTTP_RESPONSE_COMPLETED_EVENT);
-
-            return awsResponse;
+            return successResponseHandler.handle(httpResponse, context.executionAttributes());
         } catch (IOException | InterruptedException | RetryableException e) {
             throw e;
         } catch (Exception e) {
