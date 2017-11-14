@@ -9,7 +9,6 @@ import software.amazon.awssdk.core.regions.ServiceMetadata;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseInputStream;
 import software.amazon.awssdk.core.sync.StreamingResponseHandler;
-import software.amazon.awssdk.services.acm.presign.AcmClientPresigners;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -619,6 +618,4 @@ public interface JsonClient extends SdkAutoCloseable {
     static ServiceMetadata serviceMetadata() {
         return ServiceMetadata.of("json-service");
     }
-
-    AcmClientPresigners presigners();
 }

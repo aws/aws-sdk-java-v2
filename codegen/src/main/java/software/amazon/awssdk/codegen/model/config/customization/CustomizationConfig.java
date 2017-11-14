@@ -154,11 +154,6 @@ public class CustomizationConfig {
     private boolean skipSmokeTests;
 
     /**
-     * Fully qualified class name of presigner extension class if it exists.
-     */
-    private String presignersFqcn;
-
-    /**
      * A set of deprecated code that generation can be suppressed for
      */
     private Set<DeprecatedSuppression> deprecatedSuppressions;
@@ -413,14 +408,6 @@ public class CustomizationConfig {
 
     public void setSkipSmokeTests(boolean skipSmokeTests) {
         this.skipSmokeTests = skipSmokeTests;
-    }
-
-    public String getPresignersFqcn() {
-        return presignersFqcn;
-    }
-
-    public void setPresignersFqcn(String presignersFqcn) {
-        this.presignersFqcn = presignersFqcn;
     }
 
     public Set<DeprecatedSuppression> getDeprecatedSuppressions() {
