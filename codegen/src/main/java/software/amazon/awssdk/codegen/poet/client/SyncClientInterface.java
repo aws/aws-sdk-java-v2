@@ -25,7 +25,6 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import com.squareup.javapoet.TypeSpec.Builder;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -66,23 +65,18 @@ public final class SyncClientInterface implements ClassSpec {
 
     @Override
     public TypeSpec poetSpec() {
-        Builder classBuilder = PoetUtils.createInterfaceBuilder(className)
-                                        .addSuperinterface(SdkAutoCloseable.class)
-                                        .addJavadoc(getJavadoc())
-                                        .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
+        return PoetUtils.createInterfaceBuilder(className)
+                        .addSuperinterface(SdkAutoCloseable.class)
+                        .addJavadoc(getJavadoc())
+                        .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
                                                            .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
                                                            .initializer("$S", model.getMetadata().getSigningName())
                                                            .build())
-                                        .addMethod(create())
-                                        .addMethod(builder())
-                                        .addMethods(operations())
-                                        .addMethod(serviceMetadata());
-
-        if (model.getCustomizationConfig().getPresignersFqcn() != null) {
-            classBuilder.addMethod(presigners());
-        }
-
-        return classBuilder.build();
+                        .addMethod(create())
+                        .addMethod(builder())
+                        .addMethods(operations())
+                        .addMethod(serviceMetadata())
+                        .build();
     }
 
     @Override
@@ -365,13 +359,5 @@ public final class SyncClientInterface implements ClassSpec {
                            ClassName.get(model.getMetadata().getFullModelPackageName(),
                                          model.getSdkModeledExceptionBaseClassName()));
         return exceptions;
-    }
-
-    private MethodSpec presigners() {
-        ClassName presignerClassName = PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getPresignersFqcn());
-        return MethodSpec.methodBuilder("presigners")
-                         .returns(presignerClassName)
-                         .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                         .build();
     }
 }

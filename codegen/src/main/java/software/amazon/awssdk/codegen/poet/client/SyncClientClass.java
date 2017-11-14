@@ -41,9 +41,7 @@ import software.amazon.awssdk.codegen.poet.client.specs.JsonProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryXmlProtocolSpec;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
-import software.amazon.awssdk.core.auth.presign.PresignerParams;
 import software.amazon.awssdk.core.client.ClientHandler;
-import software.amazon.awssdk.core.config.AdvancedClientOption;
 import software.amazon.awssdk.core.config.ClientConfiguration;
 import software.amazon.awssdk.core.config.SyncClientConfiguration;
 
@@ -87,10 +85,6 @@ public class SyncClientClass implements ClassSpec {
         protocolSpec.createErrorResponseHandler().ifPresent(classBuilder::addMethod);
 
         classBuilder.addMethod(protocolSpec.initProtocolFactory(model));
-
-        if (model.getCustomizationConfig().getPresignersFqcn() != null) {
-            classBuilder.addMethod(presigners());
-        }
 
         classBuilder.addMethod(closeMethod());
 
@@ -173,23 +167,6 @@ public class SyncClientClass implements ClassSpec {
         }
 
         return paginatedMethodSpecs;
-    }
-
-    private MethodSpec presigners() {
-        ClassName presigners = PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getPresignersFqcn());
-        return MethodSpec.methodBuilder("presigners")
-                         .returns(presigners)
-                         .addModifiers(Modifier.PUBLIC)
-                         .addStatement("return new $T($T.builder()" +
-                                       ".endpoint(clientConfiguration.endpoint())" +
-                                       ".credentialsProvider(clientConfiguration.credentialsProvider())" +
-                                       ".signerProvider(clientConfiguration.overrideConfiguration().advancedOption(" +
-                                           "$T.SIGNER_PROVIDER))" +
-                                       ".build())",
-                                       presigners,
-                                       PresignerParams.class,
-                                       AdvancedClientOption.class)
-                         .build();
     }
 
     private MethodSpec closeMethod() {
