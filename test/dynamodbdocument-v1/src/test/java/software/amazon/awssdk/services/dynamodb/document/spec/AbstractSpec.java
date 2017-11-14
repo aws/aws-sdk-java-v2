@@ -16,7 +16,6 @@
 package software.amazon.awssdk.services.dynamodb.document.spec;
 
 import software.amazon.awssdk.core.AmazonWebServiceRequest;
-import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.services.dynamodb.document.internal.InternalUtils;
 
 /**
@@ -41,19 +40,5 @@ class AbstractSpec<T extends AmazonWebServiceRequest> {
      */
     public T getRequest() {
         return req;
-    }
-
-    public ProgressListener getProgressListener() {
-        return getRequest().getGeneralProgressListener();
-    }
-
-    public void setProgressListener(ProgressListener progressListener) {
-        getRequest().setGeneralProgressListener(progressListener);
-    }
-
-    public AbstractSpec<T> withProgressListener(
-            ProgressListener progressListener) {
-        getRequest().setGeneralProgressListener(progressListener);
-        return this;
     }
 }

@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.core.http.pipeline.stages;
 
-import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishProgress;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
@@ -30,8 +28,6 @@ import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkBaseException;
 import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.SdkStandardLoggers;
-import software.amazon.awssdk.core.event.ProgressEventType;
-import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.core.http.HttpClientDependencies;
 import software.amazon.awssdk.core.http.InterruptMonitor;
 import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
@@ -90,7 +86,6 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
 
         private final SdkHttpFullRequest request;
         private final RequestExecutionContext context;
-        private final ProgressListener progressListener;
         private final RetryHandler retryHandler;
 
         private int requestCount = 0;
@@ -98,7 +93,6 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
         private RetryExecutor(SdkHttpFullRequest request, RequestExecutionContext context) {
             this.request = request;
             this.context = context;
-            this.progressListener = context.requestConfig().getProgressListener();
             this.retryHandler = new RetryHandler(retryPolicy, retryCapacity);
         }
 
@@ -132,7 +126,7 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
         private Response<OutputT> doExecute() throws Exception {
             if (retryHandler.isRetry()) {
                 request.content().ifPresent(RetryableStage::resetRequestInputStream);
-                pauseBeforeRetry();
+                doPauseBeforeRetry();
             }
 
             request.content().ifPresent(this::markInputStream);
@@ -190,15 +184,6 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
          */
         private int readLimit() {
             return context.requestConfig().getRequestClientOptions().getReadLimit();
-        }
-
-        /**
-         * Pause before the next retry and record progress around retry behavior.
-         */
-        private void pauseBeforeRetry() throws InterruptedException {
-            // Notify the progress listener of the retry
-            publishProgress(progressListener, ProgressEventType.CLIENT_REQUEST_RETRY_EVENT);
-            doPauseBeforeRetry();
         }
 
         /**

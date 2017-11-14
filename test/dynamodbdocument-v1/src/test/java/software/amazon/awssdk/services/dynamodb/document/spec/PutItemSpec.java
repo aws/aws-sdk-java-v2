@@ -22,7 +22,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.services.dynamodb.document.Expected;
 import software.amazon.awssdk.services.dynamodb.document.Item;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalOperator;
@@ -167,12 +166,6 @@ public class PutItemSpec extends AbstractSpec<PutItemRequest> {
 
     public PutItemSpec withReturnValues(ReturnValue returnValues) {
         setRequest(getRequest().toBuilder().returnValues(returnValues).build());
-        return this;
-    }
-
-    @Override
-    public PutItemSpec withProgressListener(ProgressListener progressListener) {
-        setProgressListener(progressListener);
         return this;
     }
 }

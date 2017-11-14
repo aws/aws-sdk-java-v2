@@ -31,7 +31,6 @@ import software.amazon.awssdk.core.AmazonWebServiceRequest;
 import software.amazon.awssdk.core.RequestClientOptions;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.core.event.ProgressListener;
 import utils.model.EmptyAmazonWebServiceRequest;
 
 public class AmazonWebServiceRequestAdapterTest {
@@ -107,16 +106,6 @@ public class AmazonWebServiceRequestAdapterTest {
     public void requestType_IsAdaptedToRequestClassSimpleName() {
         AmazonWebServiceRequestAdapter adapter = adaptEmpty();
         assertEquals("EmptyAmazonWebServiceRequest", adapter.getRequestType());
-    }
-
-    @Test
-    public void customProgressListenerSetInBaseRequest_IsSetOnAdapter() {
-        EmptyAmazonWebServiceRequest request = new EmptyAmazonWebServiceRequest();
-        ProgressListener listener = mock(ProgressListener.class);
-        request.setGeneralProgressListener(listener);
-        AmazonWebServiceRequestAdapter adapter = new AmazonWebServiceRequestAdapter(request);
-
-        assertEquals(listener, adapter.getProgressListener());
     }
 
     @Test

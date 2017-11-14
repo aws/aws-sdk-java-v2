@@ -90,16 +90,6 @@ public interface ImmutableRequest<T> {
     InputStream getContent();
 
     /**
-     * Returns the optional raw stream containing the payload data to include
-     * for this request, with all progress stream wrappers. Not all requests
-     * contain payload data.
-     *
-     * @return The optional raw stream containing the payload data to include
-     *         for this request, with all progress stream wrappers removed.
-     */
-    InputStream getContentUnwrapped();
-
-    /**
      * Returns the read limit info about the original request.
      */
     ReadLimitInfo getReadLimitInfo();

@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.dynamodb.document.spec;
 
-import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
 
 /**
@@ -57,12 +56,6 @@ public class ListTablesSpec extends AbstractCollectionSpec<ListTablesRequest> {
     @Override
     public ListTablesSpec withMaxPageSize(int maxPageSize) {
         setMaxPageSize(maxPageSize);
-        return this;
-    }
-
-    @Override
-    public ListTablesSpec withProgressListener(ProgressListener progressListener) {
-        setProgressListener(progressListener);
         return this;
     }
 }
