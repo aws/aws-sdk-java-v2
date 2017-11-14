@@ -17,7 +17,6 @@ package software.amazon.awssdk.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -26,9 +25,6 @@ import java.util.Map;
 import org.junit.Test;
 import software.amazon.awssdk.core.RequestClientOptions.Marker;
 import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.event.ProgressEvent;
-import software.amazon.awssdk.core.event.ProgressListener;
-import software.amazon.awssdk.core.event.SyncProgressListener;
 import utils.model.EmptyAmazonWebServiceRequest;
 
 public class AmazonWebServiceRequestTest {
@@ -36,7 +32,6 @@ public class AmazonWebServiceRequestTest {
     public static void verifyBaseBeforeCopy(final AmazonWebServiceRequest to) {
         assertNull(to.getCustomRequestHeaders());
         assertNull(to.getCustomQueryParameters());
-        assertSame(ProgressListener.NOOP, to.getGeneralProgressListener());
 
         assertTrue(RequestClientOptions.DEFAULT_STREAM_BUFFER_SIZE == to
                 .getReadLimit());
@@ -46,8 +41,7 @@ public class AmazonWebServiceRequestTest {
                 .getReadLimit());
     }
 
-    private static void verifyBaseAfterCopy(final ProgressListener listener,
-                                            final AwsCredentials credentials,
+    private static void verifyBaseAfterCopy(final AwsCredentials credentials,
                                             final AmazonWebServiceRequest from, final AmazonWebServiceRequest to) {
         Map<String, String> headers = to.getCustomRequestHeaders();
         assertTrue(2 == headers.size());
@@ -57,7 +51,6 @@ public class AmazonWebServiceRequestTest {
         assertTrue(2 == parmas.size());
         assertEquals(Arrays.asList("v1"), parmas.get("k1"));
         assertEquals(Arrays.asList("v2a", "v2b"), parmas.get("k2"));
-        assertSame(listener, to.getGeneralProgressListener());
 
         assertTrue(1234 == to.getReadLimit());
         RequestClientOptions toOptions = to.getRequestClientOptions();
@@ -86,17 +79,11 @@ public class AmazonWebServiceRequestTest {
 
     @Test
     public void copyBaseTo() {
-        final ProgressListener listener = new SyncProgressListener() {
-            @Override
-            public void progressChanged(ProgressEvent progressEvent) {
-            }
-        };
         final AwsCredentials credentials = AwsCredentials.create("accesskey",
                                                                  "accessid");
 
         final AmazonWebServiceRequest from = new AmazonWebServiceRequest() {
         };
-        from.setGeneralProgressListener(listener);
         from.setRequestCredentials(credentials);
         from.putCustomRequestHeader("k1", "v1");
         from.putCustomRequestHeader("k2", "v2");
@@ -114,7 +101,7 @@ public class AmazonWebServiceRequestTest {
 
         // After copy
         from.copyBaseTo(to);
-        verifyBaseAfterCopy(listener, credentials, from, to);
+        verifyBaseAfterCopy(credentials, from, to);
     }
 
     @Test

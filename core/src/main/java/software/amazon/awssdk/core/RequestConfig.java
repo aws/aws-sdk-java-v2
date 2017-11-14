@@ -20,7 +20,6 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.core.internal.AmazonWebServiceRequestAdapter;
 
 /**
@@ -30,8 +29,6 @@ import software.amazon.awssdk.core.internal.AmazonWebServiceRequestAdapter;
 @SdkProtectedApi
 @ReviewBeforeRelease("Clean up or delete - doesn't follow standards.")
 public abstract class RequestConfig {
-
-    public abstract ProgressListener getProgressListener();
 
     public abstract AwsCredentialsProvider getCredentialsProvider();
 
