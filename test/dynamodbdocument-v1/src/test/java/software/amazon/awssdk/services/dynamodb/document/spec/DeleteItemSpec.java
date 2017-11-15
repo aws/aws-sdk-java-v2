@@ -22,7 +22,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.services.dynamodb.document.Expected;
 import software.amazon.awssdk.services.dynamodb.document.KeyAttribute;
 import software.amazon.awssdk.services.dynamodb.document.PrimaryKey;
@@ -181,12 +180,6 @@ public class DeleteItemSpec extends AbstractSpecWithPrimaryKey<DeleteItemRequest
 
     public DeleteItemSpec withReturnValues(ReturnValue returnValues) {
         setRequest(getRequest().toBuilder().returnValues(returnValues).build());
-        return this;
-    }
-
-    @Override
-    public DeleteItemSpec withProgressListener(ProgressListener progressListener) {
-        setProgressListener(progressListener);
         return this;
     }
 }

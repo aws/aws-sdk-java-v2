@@ -23,7 +23,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.services.dynamodb.document.KeyAttribute;
 import software.amazon.awssdk.services.dynamodb.document.PrimaryKey;
 import software.amazon.awssdk.services.dynamodb.document.ScanFilter;
@@ -343,12 +342,6 @@ public class ScanSpec extends AbstractCollectionSpec<ScanRequest> {
     @Override
     public ScanSpec withMaxPageSize(int maxPageSize) {
         setMaxPageSize(maxPageSize);
-        return this;
-    }
-
-    @Override
-    public ScanSpec withProgressListener(ProgressListener progressListener) {
-        setProgressListener(progressListener);
         return this;
     }
 }
