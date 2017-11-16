@@ -30,6 +30,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.docs.PaginationDocs;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
@@ -49,6 +51,8 @@ import software.amazon.awssdk.core.pagination.SdkIterable;
  * Java poet {@link ClassSpec} to generate the response class for sync paginated operations.
  */
 public class PaginatorResponseClassSpec implements ClassSpec {
+
+    private static final Logger log = LoggerFactory.getLogger(PaginatorResponseClassSpec.class);
 
     private static final String CLIENT_MEMBER = "client";
     private static final String REQUEST_MEMBER = "firstRequest";

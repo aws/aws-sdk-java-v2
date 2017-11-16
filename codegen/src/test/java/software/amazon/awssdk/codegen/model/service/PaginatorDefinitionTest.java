@@ -50,7 +50,7 @@ public class PaginatorDefinitionTest {
     @Test
     public void isValid_ReturnsFalse_WhenInputTokenIsPresent_AndOutputTokenIsMissing() {
         PaginatorDefinition paginatorDefinition = new PaginatorDefinition();
-        paginatorDefinition.setInputToken(Arrays.asList("input-token"));
+        paginatorDefinition.setInputToken(Arrays.asList("inputToken"));
 
         assertFalse(paginatorDefinition.isValid());
     }
@@ -58,8 +58,8 @@ public class PaginatorDefinitionTest {
     @Test
     public void isValid_ReturnsTrue_WhenBothInputTokenAndOutputToken_ArePresent() {
         PaginatorDefinition paginatorDefinition = new PaginatorDefinition();
-        paginatorDefinition.setInputToken(Arrays.asList("input-token"));
-        paginatorDefinition.setOutputToken(Arrays.asList("token1", "token2"));
+        paginatorDefinition.setInputToken(Arrays.asList("inputToken"));
+        paginatorDefinition.setOutputToken(Arrays.asList("foo", "bar"));
 
         assertTrue(paginatorDefinition.isValid());
     }
@@ -67,10 +67,37 @@ public class PaginatorDefinitionTest {
     @Test
     public void isValid_ReturnsTrue_WhenResultKey_IsNull() {
         PaginatorDefinition paginatorDefinition = new PaginatorDefinition();
-        paginatorDefinition.setInputToken(Arrays.asList("input-token"));
-        paginatorDefinition.setOutputToken(Arrays.asList("token1", "token2"));
+        paginatorDefinition.setInputToken(Arrays.asList("inputToken"));
+        paginatorDefinition.setOutputToken(Arrays.asList("foo", "bar"));
 
         assertNull(paginatorDefinition.getResultKey());
         assertTrue(paginatorDefinition.isValid());
+    }
+
+    @Test
+    public void isValid_ReturnsTrue_WhenOutputTokenList_ContainsValidString() {
+        PaginatorDefinition paginatorDefinition = new PaginatorDefinition();
+        paginatorDefinition.setOutputToken(Arrays.asList("Foo", "Foo.Bar"));
+        paginatorDefinition.setInputToken(Arrays.asList("token"));
+
+        assertTrue(paginatorDefinition.isValid());
+    }
+
+    @Test
+    public void isValid_ReturnsFalse_WhenOutputTokenList_ContainsAListMember() {
+        PaginatorDefinition paginatorDefinition = new PaginatorDefinition();
+        paginatorDefinition.setOutputToken(Arrays.asList("Contents[-1]"));
+        paginatorDefinition.setInputToken(Arrays.asList("token"));
+
+        assertFalse(paginatorDefinition.isValid());
+    }
+
+    @Test
+    public void isValid_ReturnsTrue_WhenOutputTokenList_ContainsOrCharacter() {
+        PaginatorDefinition paginatorDefinition = new PaginatorDefinition();
+        paginatorDefinition.setOutputToken(Arrays.asList("NextMarker || Contents"));
+        paginatorDefinition.setInputToken(Arrays.asList("token"));
+
+        assertFalse(paginatorDefinition.isValid());
     }
 }
