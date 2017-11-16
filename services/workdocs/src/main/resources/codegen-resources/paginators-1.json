@@ -16,7 +16,7 @@
       "input_token": "Marker",
       "output_token": "Marker",
       "limit_key": "Limit",
-      "result_key": []
+      "result_key": "DocumentVersions"
     }
   }
 }

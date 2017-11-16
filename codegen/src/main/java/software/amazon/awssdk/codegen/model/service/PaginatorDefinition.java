@@ -17,14 +17,17 @@ package software.amazon.awssdk.codegen.model.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import java.util.regex.Pattern;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 /**
- * Represents the structure for each operation in paginators.json file
+ * Represents the structure for each operation in paginators-1.json file
  *
  * This class is used to generate auto-paginated APIs.
  */
 public class PaginatorDefinition {
 
+    private static final String VALID_REGEX = "[a-zA-Z\\.]+";
     /**
      * The members in the request which needs to be set to get the next page.
      */
@@ -108,11 +111,12 @@ public class PaginatorDefinition {
      * is sufficient to generate the paginated APIs.
      *
      * @return True if all necessary information to generate paginator APIs is present. Otherwise false.
-     *
-     * TODO Either support fields with Jmespath expressions or add them to invalid list
      */
     public boolean isValid() {
-        return inputToken != null && !inputToken.isEmpty() &&
-               outputToken != null && !outputToken.isEmpty();
+        Pattern p = Pattern.compile(VALID_REGEX);
+
+        return !CollectionUtils.isNullOrEmpty(inputToken) &&
+               !CollectionUtils.isNullOrEmpty(outputToken) &&
+               outputToken.stream().allMatch(t -> p.matcher(t).matches());
     }
 }
