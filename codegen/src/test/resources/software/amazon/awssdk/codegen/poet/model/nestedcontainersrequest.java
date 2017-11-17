@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.Generated;
 import software.amazon.awssdk.core.AmazonWebServiceRequest;
@@ -79,10 +80,9 @@ public class NestedContainersRequest extends AmazonWebServiceRequest implements
     @Override
     public int hashCode() {
         int hashCode = 1;
-        hashCode = 31 * hashCode + ((listOfListOfStrings() == null) ? 0 : listOfListOfStrings().hashCode());
-        hashCode = 31 * hashCode + ((listOfListOfListOfStrings() == null) ? 0 : listOfListOfListOfStrings().hashCode());
-        hashCode = 31 * hashCode
-                + ((mapOfStringToListOfListOfStrings() == null) ? 0 : mapOfStringToListOfListOfStrings().hashCode());
+        hashCode = 31 * hashCode + Objects.hashCode(listOfListOfStrings());
+        hashCode = 31 * hashCode + Objects.hashCode(listOfListOfListOfStrings());
+        hashCode = 31 * hashCode + Objects.hashCode(mapOfStringToListOfListOfStrings());
         return hashCode;
     }
 
@@ -98,27 +98,9 @@ public class NestedContainersRequest extends AmazonWebServiceRequest implements
             return false;
         }
         NestedContainersRequest other = (NestedContainersRequest) obj;
-        if (other.listOfListOfStrings() == null ^ this.listOfListOfStrings() == null) {
-            return false;
-        }
-        if (other.listOfListOfStrings() != null && !other.listOfListOfStrings().equals(this.listOfListOfStrings())) {
-            return false;
-        }
-        if (other.listOfListOfListOfStrings() == null ^ this.listOfListOfListOfStrings() == null) {
-            return false;
-        }
-        if (other.listOfListOfListOfStrings() != null
-                && !other.listOfListOfListOfStrings().equals(this.listOfListOfListOfStrings())) {
-            return false;
-        }
-        if (other.mapOfStringToListOfListOfStrings() == null ^ this.mapOfStringToListOfListOfStrings() == null) {
-            return false;
-        }
-        if (other.mapOfStringToListOfListOfStrings() != null
-                && !other.mapOfStringToListOfListOfStrings().equals(this.mapOfStringToListOfListOfStrings())) {
-            return false;
-        }
-        return true;
+        return Objects.equals(listOfListOfStrings(), other.listOfListOfStrings())
+                && Objects.equals(listOfListOfListOfStrings(), other.listOfListOfListOfStrings())
+                && Objects.equals(mapOfStringToListOfListOfStrings(), other.mapOfStringToListOfListOfStrings());
     }
 
     @Override
@@ -283,3 +265,4 @@ public class NestedContainersRequest extends AmazonWebServiceRequest implements
         }
     }
 }
+

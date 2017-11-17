@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -44,7 +45,7 @@ public class BaseType implements StructuredPojo, ToCopyableBuilder<BaseType.Buil
     @Override
     public int hashCode() {
         int hashCode = 1;
-        hashCode = 31 * hashCode + ((baseMember() == null) ? 0 : baseMember().hashCode());
+        hashCode = 31 * hashCode + Objects.hashCode(baseMember());
         return hashCode;
     }
 
@@ -60,13 +61,7 @@ public class BaseType implements StructuredPojo, ToCopyableBuilder<BaseType.Buil
             return false;
         }
         BaseType other = (BaseType) obj;
-        if (other.baseMember() == null ^ this.baseMember() == null) {
-            return false;
-        }
-        if (other.baseMember() != null && !other.baseMember().equals(this.baseMember())) {
-            return false;
-        }
-        return true;
+        return Objects.equals(baseMember(), other.baseMember());
     }
 
     @Override
@@ -138,3 +133,4 @@ public class BaseType implements StructuredPojo, ToCopyableBuilder<BaseType.Buil
         }
     }
 }
+
