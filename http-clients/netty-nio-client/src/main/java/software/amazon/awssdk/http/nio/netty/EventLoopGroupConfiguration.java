@@ -68,13 +68,7 @@ public final class EventLoopGroupConfiguration
      */
     @SdkInternalApi
     Optional<Either<EventLoopGroup, EventLoopGroupFactory>> toEither() {
-        if (eventLoopGroup != null) {
-            return Optional.of(Either.left(eventLoopGroup));
-        } else if (eventLoopGroupFactory != null) {
-            return Optional.of(Either.right(eventLoopGroupFactory));
-        } else {
-            return Optional.empty();
-        }
+        return Either.fromNullable(eventLoopGroup, eventLoopGroupFactory);
     }
 
     /**
