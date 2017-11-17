@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -44,7 +45,7 @@ public class SimpleStruct implements StructuredPojo, ToCopyableBuilder<SimpleStr
     @Override
     public int hashCode() {
         int hashCode = 1;
-        hashCode = 31 * hashCode + ((stringMember() == null) ? 0 : stringMember().hashCode());
+        hashCode = 31 * hashCode + Objects.hashCode(stringMember());
         return hashCode;
     }
 
@@ -60,13 +61,7 @@ public class SimpleStruct implements StructuredPojo, ToCopyableBuilder<SimpleStr
             return false;
         }
         SimpleStruct other = (SimpleStruct) obj;
-        if (other.stringMember() == null ^ this.stringMember() == null) {
-            return false;
-        }
-        if (other.stringMember() != null && !other.stringMember().equals(this.stringMember())) {
-            return false;
-        }
-        return true;
+        return Objects.equals(stringMember(), other.stringMember());
     }
 
     @Override
@@ -138,3 +133,4 @@ public class SimpleStruct implements StructuredPojo, ToCopyableBuilder<SimpleStr
         }
     }
 }
+
