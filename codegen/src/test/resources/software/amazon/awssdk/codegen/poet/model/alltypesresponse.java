@@ -24,7 +24,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> implements
-                                                                               ToCopyableBuilder<AllTypesResponse.Builder, AllTypesResponse> {
+        ToCopyableBuilder<AllTypesResponse.Builder, AllTypesResponse> {
     private final String stringMember;
 
     private final Integer integerMember;
@@ -269,7 +269,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
      */
     public Map<EnumType, EnumType> mapOfEnumToEnum() {
         return TypeConverter.convert(mapOfEnumToEnum, EnumType::fromValue, EnumType::fromValue,
-                                     (k, v) -> !Objects.equals(k, EnumType.UNKNOWN_TO_SDK_VERSION));
+                (k, v) -> !Objects.equals(k, EnumType.UNKNOWN_TO_SDK_VERSION));
     }
 
     /**
@@ -294,7 +294,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
      */
     public Map<EnumType, String> mapOfEnumToString() {
         return TypeConverter.convert(mapOfEnumToString, EnumType::fromValue, Function.identity(),
-                                     (k, v) -> !Objects.equals(k, EnumType.UNKNOWN_TO_SDK_VERSION));
+                (k, v) -> !Objects.equals(k, EnumType.UNKNOWN_TO_SDK_VERSION));
     }
 
     /**
@@ -343,7 +343,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
      */
     public Map<EnumType, SimpleStruct> mapOfEnumToSimpleStruct() {
         return TypeConverter.convert(mapOfEnumToSimpleStruct, EnumType::fromValue, Function.identity(),
-                                     (k, v) -> !Objects.equals(k, EnumType.UNKNOWN_TO_SDK_VERSION));
+                (k, v) -> !Objects.equals(k, EnumType.UNKNOWN_TO_SDK_VERSION));
     }
 
     /**
@@ -494,34 +494,33 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
     @Override
     public int hashCode() {
         int hashCode = 1;
-        hashCode = 31 * hashCode + ((stringMember() == null) ? 0 : stringMember().hashCode());
-        hashCode = 31 * hashCode + ((integerMember() == null) ? 0 : integerMember().hashCode());
-        hashCode = 31 * hashCode + ((booleanMember() == null) ? 0 : booleanMember().hashCode());
-        hashCode = 31 * hashCode + ((floatMember() == null) ? 0 : floatMember().hashCode());
-        hashCode = 31 * hashCode + ((doubleMember() == null) ? 0 : doubleMember().hashCode());
-        hashCode = 31 * hashCode + ((longMember() == null) ? 0 : longMember().hashCode());
-        hashCode = 31 * hashCode + ((simpleList() == null) ? 0 : simpleList().hashCode());
-        hashCode = 31 * hashCode + ((listOfEnumsStrings() == null) ? 0 : listOfEnumsStrings().hashCode());
-        hashCode = 31 * hashCode + ((listOfMaps() == null) ? 0 : listOfMaps().hashCode());
-        hashCode = 31 * hashCode + ((listOfStructs() == null) ? 0 : listOfStructs().hashCode());
-        hashCode = 31 * hashCode + ((mapOfStringToIntegerList() == null) ? 0 : mapOfStringToIntegerList().hashCode());
-        hashCode = 31 * hashCode + ((mapOfStringToString() == null) ? 0 : mapOfStringToString().hashCode());
-        hashCode = 31 * hashCode + ((mapOfStringToSimpleStruct() == null) ? 0 : mapOfStringToSimpleStruct().hashCode());
-        hashCode = 31 * hashCode + ((mapOfEnumToEnumStrings() == null) ? 0 : mapOfEnumToEnumStrings().hashCode());
-        hashCode = 31 * hashCode + ((mapOfEnumToStringStrings() == null) ? 0 : mapOfEnumToStringStrings().hashCode());
-        hashCode = 31 * hashCode + ((mapOfStringToEnumStrings() == null) ? 0 : mapOfStringToEnumStrings().hashCode());
-        hashCode = 31 * hashCode + ((mapOfEnumToSimpleStructStrings() == null) ? 0 : mapOfEnumToSimpleStructStrings().hashCode());
-        hashCode = 31 * hashCode + ((timestampMember() == null) ? 0 : timestampMember().hashCode());
-        hashCode = 31 * hashCode
-                   + ((structWithNestedTimestampMember() == null) ? 0 : structWithNestedTimestampMember().hashCode());
-        hashCode = 31 * hashCode + ((blobArg() == null) ? 0 : blobArg().hashCode());
-        hashCode = 31 * hashCode + ((structWithNestedBlob() == null) ? 0 : structWithNestedBlob().hashCode());
-        hashCode = 31 * hashCode + ((blobMap() == null) ? 0 : blobMap().hashCode());
-        hashCode = 31 * hashCode + ((listOfBlobs() == null) ? 0 : listOfBlobs().hashCode());
-        hashCode = 31 * hashCode + ((recursiveStruct() == null) ? 0 : recursiveStruct().hashCode());
-        hashCode = 31 * hashCode + ((polymorphicTypeWithSubTypes() == null) ? 0 : polymorphicTypeWithSubTypes().hashCode());
-        hashCode = 31 * hashCode + ((polymorphicTypeWithoutSubTypes() == null) ? 0 : polymorphicTypeWithoutSubTypes().hashCode());
-        hashCode = 31 * hashCode + ((enumTypeString() == null) ? 0 : enumTypeString().hashCode());
+        hashCode = 31 * hashCode + Objects.hashCode(stringMember());
+        hashCode = 31 * hashCode + Objects.hashCode(integerMember());
+        hashCode = 31 * hashCode + Objects.hashCode(booleanMember());
+        hashCode = 31 * hashCode + Objects.hashCode(floatMember());
+        hashCode = 31 * hashCode + Objects.hashCode(doubleMember());
+        hashCode = 31 * hashCode + Objects.hashCode(longMember());
+        hashCode = 31 * hashCode + Objects.hashCode(simpleList());
+        hashCode = 31 * hashCode + Objects.hashCode(listOfEnumsStrings());
+        hashCode = 31 * hashCode + Objects.hashCode(listOfMaps());
+        hashCode = 31 * hashCode + Objects.hashCode(listOfStructs());
+        hashCode = 31 * hashCode + Objects.hashCode(mapOfStringToIntegerList());
+        hashCode = 31 * hashCode + Objects.hashCode(mapOfStringToString());
+        hashCode = 31 * hashCode + Objects.hashCode(mapOfStringToSimpleStruct());
+        hashCode = 31 * hashCode + Objects.hashCode(mapOfEnumToEnumStrings());
+        hashCode = 31 * hashCode + Objects.hashCode(mapOfEnumToStringStrings());
+        hashCode = 31 * hashCode + Objects.hashCode(mapOfStringToEnumStrings());
+        hashCode = 31 * hashCode + Objects.hashCode(mapOfEnumToSimpleStructStrings());
+        hashCode = 31 * hashCode + Objects.hashCode(timestampMember());
+        hashCode = 31 * hashCode + Objects.hashCode(structWithNestedTimestampMember());
+        hashCode = 31 * hashCode + Objects.hashCode(blobArg());
+        hashCode = 31 * hashCode + Objects.hashCode(structWithNestedBlob());
+        hashCode = 31 * hashCode + Objects.hashCode(blobMap());
+        hashCode = 31 * hashCode + Objects.hashCode(listOfBlobs());
+        hashCode = 31 * hashCode + Objects.hashCode(recursiveStruct());
+        hashCode = 31 * hashCode + Objects.hashCode(polymorphicTypeWithSubTypes());
+        hashCode = 31 * hashCode + Objects.hashCode(polymorphicTypeWithoutSubTypes());
+        hashCode = 31 * hashCode + Objects.hashCode(enumTypeString());
         return hashCode;
     }
 
@@ -537,174 +536,28 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
             return false;
         }
         AllTypesResponse other = (AllTypesResponse) obj;
-        if (other.stringMember() == null ^ this.stringMember() == null) {
-            return false;
-        }
-        if (other.stringMember() != null && !other.stringMember().equals(this.stringMember())) {
-            return false;
-        }
-        if (other.integerMember() == null ^ this.integerMember() == null) {
-            return false;
-        }
-        if (other.integerMember() != null && !other.integerMember().equals(this.integerMember())) {
-            return false;
-        }
-        if (other.booleanMember() == null ^ this.booleanMember() == null) {
-            return false;
-        }
-        if (other.booleanMember() != null && !other.booleanMember().equals(this.booleanMember())) {
-            return false;
-        }
-        if (other.floatMember() == null ^ this.floatMember() == null) {
-            return false;
-        }
-        if (other.floatMember() != null && !other.floatMember().equals(this.floatMember())) {
-            return false;
-        }
-        if (other.doubleMember() == null ^ this.doubleMember() == null) {
-            return false;
-        }
-        if (other.doubleMember() != null && !other.doubleMember().equals(this.doubleMember())) {
-            return false;
-        }
-        if (other.longMember() == null ^ this.longMember() == null) {
-            return false;
-        }
-        if (other.longMember() != null && !other.longMember().equals(this.longMember())) {
-            return false;
-        }
-        if (other.simpleList() == null ^ this.simpleList() == null) {
-            return false;
-        }
-        if (other.simpleList() != null && !other.simpleList().equals(this.simpleList())) {
-            return false;
-        }
-        if (other.listOfEnumsStrings() == null ^ this.listOfEnumsStrings() == null) {
-            return false;
-        }
-        if (other.listOfEnumsStrings() != null && !other.listOfEnumsStrings().equals(this.listOfEnumsStrings())) {
-            return false;
-        }
-        if (other.listOfMaps() == null ^ this.listOfMaps() == null) {
-            return false;
-        }
-        if (other.listOfMaps() != null && !other.listOfMaps().equals(this.listOfMaps())) {
-            return false;
-        }
-        if (other.listOfStructs() == null ^ this.listOfStructs() == null) {
-            return false;
-        }
-        if (other.listOfStructs() != null && !other.listOfStructs().equals(this.listOfStructs())) {
-            return false;
-        }
-        if (other.mapOfStringToIntegerList() == null ^ this.mapOfStringToIntegerList() == null) {
-            return false;
-        }
-        if (other.mapOfStringToIntegerList() != null && !other.mapOfStringToIntegerList().equals(this.mapOfStringToIntegerList())) {
-            return false;
-        }
-        if (other.mapOfStringToString() == null ^ this.mapOfStringToString() == null) {
-            return false;
-        }
-        if (other.mapOfStringToString() != null && !other.mapOfStringToString().equals(this.mapOfStringToString())) {
-            return false;
-        }
-        if (other.mapOfStringToSimpleStruct() == null ^ this.mapOfStringToSimpleStruct() == null) {
-            return false;
-        }
-        if (other.mapOfStringToSimpleStruct() != null
-            && !other.mapOfStringToSimpleStruct().equals(this.mapOfStringToSimpleStruct())) {
-            return false;
-        }
-        if (other.mapOfEnumToEnumStrings() == null ^ this.mapOfEnumToEnumStrings() == null) {
-            return false;
-        }
-        if (other.mapOfEnumToEnumStrings() != null && !other.mapOfEnumToEnumStrings().equals(this.mapOfEnumToEnumStrings())) {
-            return false;
-        }
-        if (other.mapOfEnumToStringStrings() == null ^ this.mapOfEnumToStringStrings() == null) {
-            return false;
-        }
-        if (other.mapOfEnumToStringStrings() != null && !other.mapOfEnumToStringStrings().equals(this.mapOfEnumToStringStrings())) {
-            return false;
-        }
-        if (other.mapOfStringToEnumStrings() == null ^ this.mapOfStringToEnumStrings() == null) {
-            return false;
-        }
-        if (other.mapOfStringToEnumStrings() != null && !other.mapOfStringToEnumStrings().equals(this.mapOfStringToEnumStrings())) {
-            return false;
-        }
-        if (other.mapOfEnumToSimpleStructStrings() == null ^ this.mapOfEnumToSimpleStructStrings() == null) {
-            return false;
-        }
-        if (other.mapOfEnumToSimpleStructStrings() != null
-            && !other.mapOfEnumToSimpleStructStrings().equals(this.mapOfEnumToSimpleStructStrings())) {
-            return false;
-        }
-        if (other.timestampMember() == null ^ this.timestampMember() == null) {
-            return false;
-        }
-        if (other.timestampMember() != null && !other.timestampMember().equals(this.timestampMember())) {
-            return false;
-        }
-        if (other.structWithNestedTimestampMember() == null ^ this.structWithNestedTimestampMember() == null) {
-            return false;
-        }
-        if (other.structWithNestedTimestampMember() != null
-            && !other.structWithNestedTimestampMember().equals(this.structWithNestedTimestampMember())) {
-            return false;
-        }
-        if (other.blobArg() == null ^ this.blobArg() == null) {
-            return false;
-        }
-        if (other.blobArg() != null && !other.blobArg().equals(this.blobArg())) {
-            return false;
-        }
-        if (other.structWithNestedBlob() == null ^ this.structWithNestedBlob() == null) {
-            return false;
-        }
-        if (other.structWithNestedBlob() != null && !other.structWithNestedBlob().equals(this.structWithNestedBlob())) {
-            return false;
-        }
-        if (other.blobMap() == null ^ this.blobMap() == null) {
-            return false;
-        }
-        if (other.blobMap() != null && !other.blobMap().equals(this.blobMap())) {
-            return false;
-        }
-        if (other.listOfBlobs() == null ^ this.listOfBlobs() == null) {
-            return false;
-        }
-        if (other.listOfBlobs() != null && !other.listOfBlobs().equals(this.listOfBlobs())) {
-            return false;
-        }
-        if (other.recursiveStruct() == null ^ this.recursiveStruct() == null) {
-            return false;
-        }
-        if (other.recursiveStruct() != null && !other.recursiveStruct().equals(this.recursiveStruct())) {
-            return false;
-        }
-        if (other.polymorphicTypeWithSubTypes() == null ^ this.polymorphicTypeWithSubTypes() == null) {
-            return false;
-        }
-        if (other.polymorphicTypeWithSubTypes() != null
-            && !other.polymorphicTypeWithSubTypes().equals(this.polymorphicTypeWithSubTypes())) {
-            return false;
-        }
-        if (other.polymorphicTypeWithoutSubTypes() == null ^ this.polymorphicTypeWithoutSubTypes() == null) {
-            return false;
-        }
-        if (other.polymorphicTypeWithoutSubTypes() != null
-            && !other.polymorphicTypeWithoutSubTypes().equals(this.polymorphicTypeWithoutSubTypes())) {
-            return false;
-        }
-        if (other.enumTypeString() == null ^ this.enumTypeString() == null) {
-            return false;
-        }
-        if (other.enumTypeString() != null && !other.enumTypeString().equals(this.enumTypeString())) {
-            return false;
-        }
-        return true;
+        return Objects.equals(stringMember(), other.stringMember()) && Objects.equals(integerMember(), other.integerMember())
+                && Objects.equals(booleanMember(), other.booleanMember()) && Objects.equals(floatMember(), other.floatMember())
+                && Objects.equals(doubleMember(), other.doubleMember()) && Objects.equals(longMember(), other.longMember())
+                && Objects.equals(simpleList(), other.simpleList())
+                && Objects.equals(listOfEnumsStrings(), other.listOfEnumsStrings())
+                && Objects.equals(listOfMaps(), other.listOfMaps()) && Objects.equals(listOfStructs(), other.listOfStructs())
+                && Objects.equals(mapOfStringToIntegerList(), other.mapOfStringToIntegerList())
+                && Objects.equals(mapOfStringToString(), other.mapOfStringToString())
+                && Objects.equals(mapOfStringToSimpleStruct(), other.mapOfStringToSimpleStruct())
+                && Objects.equals(mapOfEnumToEnumStrings(), other.mapOfEnumToEnumStrings())
+                && Objects.equals(mapOfEnumToStringStrings(), other.mapOfEnumToStringStrings())
+                && Objects.equals(mapOfStringToEnumStrings(), other.mapOfStringToEnumStrings())
+                && Objects.equals(mapOfEnumToSimpleStructStrings(), other.mapOfEnumToSimpleStructStrings())
+                && Objects.equals(timestampMember(), other.timestampMember())
+                && Objects.equals(structWithNestedTimestampMember(), other.structWithNestedTimestampMember())
+                && Objects.equals(blobArg(), other.blobArg())
+                && Objects.equals(structWithNestedBlob(), other.structWithNestedBlob())
+                && Objects.equals(blobMap(), other.blobMap()) && Objects.equals(listOfBlobs(), other.listOfBlobs())
+                && Objects.equals(recursiveStruct(), other.recursiveStruct())
+                && Objects.equals(polymorphicTypeWithSubTypes(), other.polymorphicTypeWithSubTypes())
+                && Objects.equals(polymorphicTypeWithoutSubTypes(), other.polymorphicTypeWithoutSubTypes())
+                && Objects.equals(enumTypeString(), other.enumTypeString());
     }
 
     @Override
@@ -800,62 +653,62 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "StringMember":
-                return Optional.of(clazz.cast(stringMember()));
-            case "IntegerMember":
-                return Optional.of(clazz.cast(integerMember()));
-            case "BooleanMember":
-                return Optional.of(clazz.cast(booleanMember()));
-            case "FloatMember":
-                return Optional.of(clazz.cast(floatMember()));
-            case "DoubleMember":
-                return Optional.of(clazz.cast(doubleMember()));
-            case "LongMember":
-                return Optional.of(clazz.cast(longMember()));
-            case "SimpleList":
-                return Optional.of(clazz.cast(simpleList()));
-            case "ListOfEnums":
-                return Optional.of(clazz.cast(listOfEnumsStrings()));
-            case "ListOfMaps":
-                return Optional.of(clazz.cast(listOfMaps()));
-            case "ListOfStructs":
-                return Optional.of(clazz.cast(listOfStructs()));
-            case "MapOfStringToIntegerList":
-                return Optional.of(clazz.cast(mapOfStringToIntegerList()));
-            case "MapOfStringToString":
-                return Optional.of(clazz.cast(mapOfStringToString()));
-            case "MapOfStringToSimpleStruct":
-                return Optional.of(clazz.cast(mapOfStringToSimpleStruct()));
-            case "MapOfEnumToEnum":
-                return Optional.of(clazz.cast(mapOfEnumToEnumStrings()));
-            case "MapOfEnumToString":
-                return Optional.of(clazz.cast(mapOfEnumToStringStrings()));
-            case "MapOfStringToEnum":
-                return Optional.of(clazz.cast(mapOfStringToEnumStrings()));
-            case "MapOfEnumToSimpleStruct":
-                return Optional.of(clazz.cast(mapOfEnumToSimpleStructStrings()));
-            case "TimestampMember":
-                return Optional.of(clazz.cast(timestampMember()));
-            case "StructWithNestedTimestampMember":
-                return Optional.of(clazz.cast(structWithNestedTimestampMember()));
-            case "BlobArg":
-                return Optional.of(clazz.cast(blobArg()));
-            case "StructWithNestedBlob":
-                return Optional.of(clazz.cast(structWithNestedBlob()));
-            case "BlobMap":
-                return Optional.of(clazz.cast(blobMap()));
-            case "ListOfBlobs":
-                return Optional.of(clazz.cast(listOfBlobs()));
-            case "RecursiveStruct":
-                return Optional.of(clazz.cast(recursiveStruct()));
-            case "PolymorphicTypeWithSubTypes":
-                return Optional.of(clazz.cast(polymorphicTypeWithSubTypes()));
-            case "PolymorphicTypeWithoutSubTypes":
-                return Optional.of(clazz.cast(polymorphicTypeWithoutSubTypes()));
-            case "EnumType":
-                return Optional.of(clazz.cast(enumTypeString()));
-            default:
-                return Optional.empty();
+        case "StringMember":
+            return Optional.of(clazz.cast(stringMember()));
+        case "IntegerMember":
+            return Optional.of(clazz.cast(integerMember()));
+        case "BooleanMember":
+            return Optional.of(clazz.cast(booleanMember()));
+        case "FloatMember":
+            return Optional.of(clazz.cast(floatMember()));
+        case "DoubleMember":
+            return Optional.of(clazz.cast(doubleMember()));
+        case "LongMember":
+            return Optional.of(clazz.cast(longMember()));
+        case "SimpleList":
+            return Optional.of(clazz.cast(simpleList()));
+        case "ListOfEnums":
+            return Optional.of(clazz.cast(listOfEnumsStrings()));
+        case "ListOfMaps":
+            return Optional.of(clazz.cast(listOfMaps()));
+        case "ListOfStructs":
+            return Optional.of(clazz.cast(listOfStructs()));
+        case "MapOfStringToIntegerList":
+            return Optional.of(clazz.cast(mapOfStringToIntegerList()));
+        case "MapOfStringToString":
+            return Optional.of(clazz.cast(mapOfStringToString()));
+        case "MapOfStringToSimpleStruct":
+            return Optional.of(clazz.cast(mapOfStringToSimpleStruct()));
+        case "MapOfEnumToEnum":
+            return Optional.of(clazz.cast(mapOfEnumToEnumStrings()));
+        case "MapOfEnumToString":
+            return Optional.of(clazz.cast(mapOfEnumToStringStrings()));
+        case "MapOfStringToEnum":
+            return Optional.of(clazz.cast(mapOfStringToEnumStrings()));
+        case "MapOfEnumToSimpleStruct":
+            return Optional.of(clazz.cast(mapOfEnumToSimpleStructStrings()));
+        case "TimestampMember":
+            return Optional.of(clazz.cast(timestampMember()));
+        case "StructWithNestedTimestampMember":
+            return Optional.of(clazz.cast(structWithNestedTimestampMember()));
+        case "BlobArg":
+            return Optional.of(clazz.cast(blobArg()));
+        case "StructWithNestedBlob":
+            return Optional.of(clazz.cast(structWithNestedBlob()));
+        case "BlobMap":
+            return Optional.of(clazz.cast(blobMap()));
+        case "ListOfBlobs":
+            return Optional.of(clazz.cast(listOfBlobs()));
+        case "RecursiveStruct":
+            return Optional.of(clazz.cast(recursiveStruct()));
+        case "PolymorphicTypeWithSubTypes":
+            return Optional.of(clazz.cast(polymorphicTypeWithSubTypes()));
+        case "PolymorphicTypeWithoutSubTypes":
+            return Optional.of(clazz.cast(polymorphicTypeWithoutSubTypes()));
+        case "EnumType":
+            return Optional.of(clazz.cast(enumTypeString()));
+        default:
+            return Optional.empty();
         }
     }
 
@@ -1493,7 +1346,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
         public final Collection<SimpleStruct.Builder> getListOfStructs() {
             return listOfStructs != null ? listOfStructs.stream().map(SimpleStruct::toBuilder).collect(Collectors.toList())
-                                         : null;
+                    : null;
         }
 
         @Override
@@ -1543,7 +1396,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
         public final Map<String, SimpleStruct.Builder> getMapOfStringToSimpleStruct() {
             return mapOfStringToSimpleStruct != null ? CollectionUtils.mapValues(mapOfStringToSimpleStruct,
-                                                                                 SimpleStruct::toBuilder) : null;
+                    SimpleStruct::toBuilder) : null;
         }
 
         @Override
@@ -1600,7 +1453,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
         public final Map<String, SimpleStruct.Builder> getMapOfEnumToSimpleStruct() {
             return mapOfEnumToSimpleStruct != null ? CollectionUtils.mapValues(mapOfEnumToSimpleStruct, SimpleStruct::toBuilder)
-                                                   : null;
+                    : null;
         }
 
         @Override
@@ -1639,7 +1492,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
         public final void setStructWithNestedTimestampMember(StructWithTimestamp.BuilderImpl structWithNestedTimestampMember) {
             this.structWithNestedTimestampMember = structWithNestedTimestampMember != null ? structWithNestedTimestampMember
-                .build() : null;
+                    .build() : null;
         }
 
         public final ByteBuffer getBlobArg() {
@@ -1745,7 +1598,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
 
         public final void setPolymorphicTypeWithoutSubTypes(SubTypeOne.BuilderImpl polymorphicTypeWithoutSubTypes) {
             this.polymorphicTypeWithoutSubTypes = polymorphicTypeWithoutSubTypes != null ? polymorphicTypeWithoutSubTypes.build()
-                                                                                         : null;
+                    : null;
         }
 
         public final String getEnumType() {
@@ -1774,3 +1627,4 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
         }
     }
 }
+
