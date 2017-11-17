@@ -16,25 +16,21 @@
 package software.amazon.awssdk.http.nio.netty;
 
 import static io.netty.handler.ssl.SslContext.defaultClientProvider;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.SocketChannelResolver.resolveSocketChannelClass;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.pool.ChannelHealthChecker;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolMap;
 import io.netty.channel.pool.FixedChannelPool;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.net.URI;
 import java.util.Optional;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -44,7 +40,6 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelPipelineInitializer;
-import software.amazon.awssdk.http.nio.netty.internal.DelegatingEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
 import software.amazon.awssdk.http.nio.netty.internal.NonManagedEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.RequestAdapter;
@@ -78,7 +73,7 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                 Bootstrap bootstrap =
                         new Bootstrap()
                                 .group(group)
-                                .channel(resolveSocketChannelClass())
+                                .channel(resolveSocketChannelClass(group))
                                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, configuration.connectionTimeout())
                                 .option(ChannelOption.TCP_NODELAY, true)
                                 .remoteAddress(key.getHost(), key.getPort());
@@ -115,20 +110,6 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     @Override
     public void close() {
         group.shutdownGracefully();
-    }
-
-    /**
-     * Depending on the EventLoopGroup used we may need to use a different socket channel.
-     */
-    @ReviewBeforeRelease("Perhaps we should make the customer provide both event loop group" +
-                         "and channel in some kind of wrapper class to avoid having to do this.")
-    private Class<? extends Channel> resolveSocketChannelClass() {
-        EventLoopGroup unwrapped = group;
-        // Keep unwrapping until it's not a DelegatingEventLoopGroup
-        while (unwrapped instanceof DelegatingEventLoopGroup) {
-            unwrapped = ((DelegatingEventLoopGroup) unwrapped).getDelegate();
-        }
-        return unwrapped instanceof EpollEventLoopGroup ? EpollSocketChannel.class : NioSocketChannel.class;
     }
 
     private static URI poolKey(SdkHttpRequest sdkRequest) {
