@@ -195,7 +195,7 @@ public class DefaultClientBuilderTest {
         BeanInfo beanInfo = Introspector.getBeanInfo(builder.getClass());
         Method[] clientBuilderMethods = ClientBuilder.class.getDeclaredMethods();
 
-        Arrays.stream(clientBuilderMethods).forEach(builderMethod -> {
+        Arrays.stream(clientBuilderMethods).filter(m -> !m.isSynthetic()).forEach(builderMethod -> {
             String propertyName = builderMethod.getName();
 
             Optional<PropertyDescriptor> propertyForMethod =

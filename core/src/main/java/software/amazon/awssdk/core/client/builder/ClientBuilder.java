@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.client.builder;
 
 import java.net.URI;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
@@ -37,6 +38,10 @@ public interface ClientBuilder<B extends ClientBuilder<B, C>, C> extends SdkBuil
      * Specify overrides to the default SDK configuration that should be used for clients created by this builder.
      */
     B overrideConfiguration(ClientOverrideConfiguration overrideConfiguration);
+
+    default B overrideConfiguration(Consumer<ClientOverrideConfiguration.Builder> overrideConfiguration) {
+        return overrideConfiguration(ClientOverrideConfiguration.builder().apply(overrideConfiguration).build());
+    }
 
     /**
      * Configure the credentials that should be used to authenticate with AWS.
