@@ -108,7 +108,8 @@
       "errors":[
         {"shape":"LimitExceededFault"},
         {"shape":"AlreadyExistsFault"},
-        {"shape":"ResourceContentionFault"}
+        {"shape":"ResourceContentionFault"},
+        {"shape":"ResourceInUseFault"}
       ],
       "documentation":"<p>Creates or updates tags for the specified Auto Scaling group.</p> <p>When you specify a tag with a key that already exists, the operation overwrites the previous tag definition, and you do not get an error message.</p> <p>For more information, see <a href=\"http://docs.aws.amazon.com/autoscaling/latest/userguide/autoscaling-tagging.html\">Tagging Auto Scaling Groups and Instances</a> in the <i>Auto Scaling User Guide</i>.</p>"
     },
@@ -199,7 +200,8 @@
       },
       "input":{"shape":"DeleteTagsType"},
       "errors":[
-        {"shape":"ResourceContentionFault"}
+        {"shape":"ResourceContentionFault"},
+        {"shape":"ResourceInUseFault"}
       ],
       "documentation":"<p>Deletes the specified tags.</p>"
     },
@@ -1354,6 +1356,10 @@
           "shape":"InstanceProtected",
           "documentation":"<p>Indicates whether newly launched instances are protected from termination by Auto Scaling when scaling in.</p>"
         },
+        "LifecycleHookSpecificationList":{
+          "shape":"LifecycleHookSpecifications",
+          "documentation":"<p>One or more lifecycle hooks.</p>"
+        },
         "Tags":{
           "shape":"Tags",
           "documentation":"<p>One or more tags.</p> <p>For more information, see <a href=\"http://docs.aws.amazon.com/autoscaling/latest/userguide/autoscaling-tagging.html\">Tagging Auto Scaling Groups and Instances</a> in the <i>Auto Scaling User Guide</i>.</p>"
@@ -1447,6 +1453,37 @@
           "documentation":"<p>One or more tags.</p>"
         }
       }
+    },
+    "CustomizedMetricSpecification":{
+      "type":"structure",
+      "required":[
+        "MetricName",
+        "Namespace",
+        "Statistic"
+      ],
+      "members":{
+        "MetricName":{
+          "shape":"MetricName",
+          "documentation":"<p>The name of the metric.</p>"
+        },
+        "Namespace":{
+          "shape":"MetricNamespace",
+          "documentation":"<p>The namespace of the metric.</p>"
+        },
+        "Dimensions":{
+          "shape":"MetricDimensions",
+          "documentation":"<p>The dimensions of the metric.</p>"
+        },
+        "Statistic":{
+          "shape":"MetricStatistic",
+          "documentation":"<p>The statistic of the metric.</p>"
+        },
+        "Unit":{
+          "shape":"MetricUnit",
+          "documentation":"<p>The unit of the metric.</p>"
+        }
+      },
+      "documentation":"<p>Configures a customized metric for a target tracking policy.</p>"
     },
     "DeleteAutoScalingGroupType":{
       "type":"structure",
@@ -1925,6 +1962,7 @@
         }
       }
     },
+    "DisableScaleIn":{"type":"boolean"},
     "Ebs":{
       "type":"structure",
       "members":{
@@ -2331,7 +2369,7 @@
         },
         "NotificationTargetARN":{
           "shape":"ResourceName",
-          "documentation":"<p>The ARN of the notification target that Auto Scaling uses to notify you when an instance is in the transition state for the lifecycle hook. This ARN target can be either an SQS queue or an SNS topic. The notification message sent to the target includes the following:</p> <ul> <li> <p>Lifecycle action token</p> </li> <li> <p>User account ID</p> </li> <li> <p>Name of the Auto Scaling group</p> </li> <li> <p>Lifecycle hook name</p> </li> <li> <p>EC2 instance ID</p> </li> <li> <p>Lifecycle transition</p> </li> <li> <p>Notification metadata</p> </li> </ul>"
+          "documentation":"<p>The ARN of the target that Auto Scaling sends notifications to when an instance is in the transition state for the lifecycle hook. The notification target can be either an SQS queue or an SNS topic.</p>"
         },
         "RoleARN":{
           "shape":"ResourceName",
@@ -2343,7 +2381,7 @@
         },
         "HeartbeatTimeout":{
           "shape":"HeartbeatTimeout",
-          "documentation":"<p>The maximum time, in seconds, that can elapse before the lifecycle hook times out. The default is 3600 seconds (1 hour). When the lifecycle hook times out, Auto Scaling performs the default action. You can prevent the lifecycle hook from timing out by calling <a>RecordLifecycleActionHeartbeat</a>.</p>"
+          "documentation":"<p>The maximum time, in seconds, that can elapse before the lifecycle hook times out. If the lifecycle hook times out, Auto Scaling performs the default action. You can prevent the lifecycle hook from timing out by calling <a>RecordLifecycleActionHeartbeat</a>.</p>"
         },
         "GlobalTimeout":{
           "shape":"GlobalTimeout",
@@ -2354,11 +2392,51 @@
           "documentation":"<p>Defines the action the Auto Scaling group should take when the lifecycle hook timeout elapses or if an unexpected failure occurs. The valid values are <code>CONTINUE</code> and <code>ABANDON</code>. The default value is <code>CONTINUE</code>.</p>"
         }
       },
-      "documentation":"<p>Describes a lifecycle hook, which tells Auto Scaling that you want to perform an action when an instance launches or terminates. When you have a lifecycle hook in place, the Auto Scaling group will either:</p> <ul> <li> <p>Pause the instance after it launches, but before it is put into service</p> </li> <li> <p>Pause the instance as it terminates, but before it is fully terminated</p> </li> </ul> <p>For more information, see <a href=\"http://docs.aws.amazon.com/autoscaling/latest/userguide/AutoScalingGroupLifecycle.html\">Auto Scaling Lifecycle</a> in the <i>Auto Scaling User Guide</i>.</p>"
+      "documentation":"<p>Describes a lifecycle hook, which tells Auto Scaling that you want to perform an action whenever it launches instances or whenever it terminates instances.</p> <p>For more information, see <a href=\"http://docs.aws.amazon.com/autoscaling/latest/userguide/lifecycle-hooks.html\">Auto Scaling Lifecycle Hooks</a> in the <i>Auto Scaling User Guide</i>.</p>"
     },
     "LifecycleHookNames":{
       "type":"list",
-      "member":{"shape":"AsciiStringMaxLen255"}
+      "member":{"shape":"AsciiStringMaxLen255"},
+      "max":50
+    },
+    "LifecycleHookSpecification":{
+      "type":"structure",
+      "required":["LifecycleHookName"],
+      "members":{
+        "LifecycleHookName":{
+          "shape":"AsciiStringMaxLen255",
+          "documentation":"<p>The name of the lifecycle hook.</p>"
+        },
+        "LifecycleTransition":{
+          "shape":"LifecycleTransition",
+          "documentation":"<p>The state of the EC2 instance to which you want to attach the lifecycle hook. For a list of lifecycle hook types, see <a>DescribeLifecycleHookTypes</a>.</p>"
+        },
+        "NotificationMetadata":{
+          "shape":"XmlStringMaxLen1023",
+          "documentation":"<p>Additional information that you want to include any time Auto Scaling sends a message to the notification target.</p>"
+        },
+        "HeartbeatTimeout":{
+          "shape":"HeartbeatTimeout",
+          "documentation":"<p>The maximum time, in seconds, that can elapse before the lifecycle hook times out. If the lifecycle hook times out, Auto Scaling performs the default action. You can prevent the lifecycle hook from timing out by calling <a>RecordLifecycleActionHeartbeat</a>.</p>"
+        },
+        "DefaultResult":{
+          "shape":"LifecycleActionResult",
+          "documentation":"<p>Defines the action the Auto Scaling group should take when the lifecycle hook timeout elapses or if an unexpected failure occurs. The valid values are <code>CONTINUE</code> and <code>ABANDON</code>. The default value is <code>CONTINUE</code>.</p>"
+        },
+        "NotificationTargetARN":{
+          "shape":"NotificationTargetResourceName",
+          "documentation":"<p>The ARN of the target that Auto Scaling sends notifications to when an instance is in the transition state for the lifecycle hook. The notification target can be either an SQS queue or an SNS topic.</p>"
+        },
+        "RoleARN":{
+          "shape":"ResourceName",
+          "documentation":"<p>The ARN of the IAM role that allows the Auto Scaling group to publish to the specified notification target.</p>"
+        }
+      },
+      "documentation":"<p>Describes a lifecycle hook, which tells Auto Scaling that you want to perform an action whenever it launches instances or whenever it terminates instances.</p> <p>For more information, see <a href=\"http://docs.aws.amazon.com/autoscaling/latest/userguide/lifecycle-hooks.html\">Auto Scaling Lifecycle Hooks</a> in the <i>Auto Scaling User Guide</i>.</p>"
+    },
+    "LifecycleHookSpecifications":{
+      "type":"list",
+      "member":{"shape":"LifecycleHookSpecification"}
     },
     "LifecycleHooks":{
       "type":"list",
@@ -2456,6 +2534,30 @@
       "type":"list",
       "member":{"shape":"MetricCollectionType"}
     },
+    "MetricDimension":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Value"
+      ],
+      "members":{
+        "Name":{
+          "shape":"MetricDimensionName",
+          "documentation":"<p>The name of the dimension.</p>"
+        },
+        "Value":{
+          "shape":"MetricDimensionValue",
+          "documentation":"<p>The value of the dimension.</p>"
+        }
+      },
+      "documentation":"<p>Describes the dimension of a metric.</p>"
+    },
+    "MetricDimensionName":{"type":"string"},
+    "MetricDimensionValue":{"type":"string"},
+    "MetricDimensions":{
+      "type":"list",
+      "member":{"shape":"MetricDimension"}
+    },
     "MetricGranularityType":{
       "type":"structure",
       "members":{
@@ -2470,7 +2572,29 @@
       "type":"list",
       "member":{"shape":"MetricGranularityType"}
     },
+    "MetricName":{"type":"string"},
+    "MetricNamespace":{"type":"string"},
     "MetricScale":{"type":"double"},
+    "MetricStatistic":{
+      "type":"string",
+      "enum":[
+        "Average",
+        "Minimum",
+        "Maximum",
+        "SampleCount",
+        "Sum"
+      ]
+    },
+    "MetricType":{
+      "type":"string",
+      "enum":[
+        "ASGAverageCPUUtilization",
+        "ASGAverageNetworkIn",
+        "ASGAverageNetworkOut",
+        "ALBRequestCountPerTarget"
+      ]
+    },
+    "MetricUnit":{"type":"string"},
     "Metrics":{
       "type":"list",
       "member":{"shape":"XmlStringMaxLen255"}
@@ -2531,8 +2655,13 @@
         "PolicyARN":{
           "shape":"ResourceName",
           "documentation":"<p>The Amazon Resource Name (ARN) of the policy.</p>"
+        },
+        "Alarms":{
+          "shape":"Alarms",
+          "documentation":"<p>The CloudWatch alarms created for the target tracking policy.</p>"
         }
-      }
+      },
+      "documentation":"<p>Contains the output of PutScalingPolicy.</p>"
     },
     "PolicyIncrement":{"type":"integer"},
     "PolicyNames":{
@@ -2542,6 +2671,21 @@
     "PolicyTypes":{
       "type":"list",
       "member":{"shape":"XmlStringMaxLen64"}
+    },
+    "PredefinedMetricSpecification":{
+      "type":"structure",
+      "required":["PredefinedMetricType"],
+      "members":{
+        "PredefinedMetricType":{
+          "shape":"MetricType",
+          "documentation":"<p>The metric type.</p>"
+        },
+        "ResourceLabel":{
+          "shape":"XmlStringMaxLen1023",
+          "documentation":"<p>Identifies the resource associated with the metric type. The following predefined metrics are available:</p> <ul> <li> <p> <code>ASGAverageCPUUtilization</code> - average CPU utilization of the Auto Scaling group</p> </li> <li> <p> <code>ASGAverageNetworkIn</code> - average number of bytes received on all network interfaces by the Auto Scaling group</p> </li> <li> <p> <code>ASGAverageNetworkOut</code> - average number of bytes sent out on all network interfaces by the Auto Scaling group</p> </li> <li> <p> <code>ALBRequestCountPerTarget</code> - number of requests completed per target in an Application Load Balancer target group</p> </li> </ul> <p>For predefined metric types <code>ASGAverageCPUUtilization</code>, <code>ASGAverageNetworkIn</code> and <code>ASGAverageNetworkOut</code>, the parameter must not be specified as the resource associated with the metric type is the Auto Scaling group. For predefined metric type <code>ALBRequestCountPerTarget</code>, the parameter must be specified in the format: <code>app/<i>load-balancer-name</i>/<i>load-balancer-id</i>/targetgroup/<i>target-group-name</i>/<i>target-group-id</i> </code>, where <code>app/<i>load-balancer-name</i>/<i>load-balancer-id</i> </code> is the final portion of the load balancer ARN, and <code>targetgroup/<i>target-group-name</i>/<i>target-group-id</i> </code> is the final portion of the target group ARN. The target group must be attached to the Auto Scaling group.</p>"
+        }
+      },
+      "documentation":"<p>Configures a predefined metric for a target tracking policy.</p>"
     },
     "ProcessNames":{
       "type":"list",
@@ -2612,7 +2756,7 @@
         },
         "HeartbeatTimeout":{
           "shape":"HeartbeatTimeout",
-          "documentation":"<p>The amount of time, in seconds, that can elapse before the lifecycle hook times out. When the lifecycle hook times out, Auto Scaling performs the default action. You can prevent the lifecycle hook from timing out by calling <a>RecordLifecycleActionHeartbeat</a>. The default is 3600 seconds (1 hour).</p>"
+          "documentation":"<p>The maximum time, in seconds, that can elapse before the lifecycle hook times out. The range is from 30 to 7200 seconds. The default is 3600 seconds (1 hour).</p> <p>If the lifecycle hook times out, Auto Scaling performs the default action. You can prevent the lifecycle hook from timing out by calling <a>RecordLifecycleActionHeartbeat</a>.</p>"
         },
         "DefaultResult":{
           "shape":"LifecycleActionResult",
@@ -2646,8 +2790,7 @@
       "type":"structure",
       "required":[
         "AutoScalingGroupName",
-        "PolicyName",
-        "AdjustmentType"
+        "PolicyName"
       ],
       "members":{
         "AutoScalingGroupName":{
@@ -2660,11 +2803,11 @@
         },
         "PolicyType":{
           "shape":"XmlStringMaxLen64",
-          "documentation":"<p>The policy type. Valid values are <code>SimpleScaling</code> and <code>StepScaling</code>. If the policy type is null, the value is treated as <code>SimpleScaling</code>.</p>"
+          "documentation":"<p>The policy type. The valid values are <code>SimpleScaling</code>, <code>StepScaling</code>, and <code>TargetTrackingScaling</code>. If the policy type is null, the value is treated as <code>SimpleScaling</code>.</p>"
         },
         "AdjustmentType":{
           "shape":"XmlStringMaxLen255",
-          "documentation":"<p>The adjustment type. Valid values are <code>ChangeInCapacity</code>, <code>ExactCapacity</code>, and <code>PercentChangeInCapacity</code>.</p> <p>For more information, see <a href=\"http://docs.aws.amazon.com/autoscaling/latest/userguide/as-scale-based-on-demand.html\">Dynamic Scaling</a> in the <i>Auto Scaling User Guide</i>.</p>"
+          "documentation":"<p>The adjustment type. The valid values are <code>ChangeInCapacity</code>, <code>ExactCapacity</code>, and <code>PercentChangeInCapacity</code>.</p> <p>This parameter is supported if the policy type is <code>SimpleScaling</code> or <code>StepScaling</code>.</p> <p>For more information, see <a href=\"http://docs.aws.amazon.com/autoscaling/latest/userguide/as-scale-based-on-demand.html\">Dynamic Scaling</a> in the <i>Auto Scaling User Guide</i>.</p>"
         },
         "MinAdjustmentStep":{
           "shape":"MinAdjustmentStep",
@@ -2672,7 +2815,7 @@
         },
         "MinAdjustmentMagnitude":{
           "shape":"MinAdjustmentMagnitude",
-          "documentation":"<p>The minimum number of instances to scale. If the value of <code>AdjustmentType</code> is <code>PercentChangeInCapacity</code>, the scaling policy changes the <code>DesiredCapacity</code> of the Auto Scaling group by at least this many instances. Otherwise, the error is <code>ValidationError</code>.</p>"
+          "documentation":"<p>The minimum number of instances to scale. If the value of <code>AdjustmentType</code> is <code>PercentChangeInCapacity</code>, the scaling policy changes the <code>DesiredCapacity</code> of the Auto Scaling group by at least this many instances. Otherwise, the error is <code>ValidationError</code>.</p> <p>This parameter is supported if the policy type is <code>SimpleScaling</code> or <code>StepScaling</code>.</p>"
         },
         "ScalingAdjustment":{
           "shape":"PolicyIncrement",
@@ -2680,11 +2823,11 @@
         },
         "Cooldown":{
           "shape":"Cooldown",
-          "documentation":"<p>The amount of time, in seconds, after a scaling activity completes and before the next scaling activity can start. If this parameter is not specified, the default cooldown period for the group applies.</p> <p>This parameter is not supported unless the policy type is <code>SimpleScaling</code>.</p> <p>For more information, see <a href=\"http://docs.aws.amazon.com/autoscaling/latest/userguide/Cooldown.html\">Auto Scaling Cooldowns</a> in the <i>Auto Scaling User Guide</i>.</p>"
+          "documentation":"<p>The amount of time, in seconds, after a scaling activity completes and before the next scaling activity can start. If this parameter is not specified, the default cooldown period for the group applies.</p> <p>This parameter is supported if the policy type is <code>SimpleScaling</code>.</p> <p>For more information, see <a href=\"http://docs.aws.amazon.com/autoscaling/latest/userguide/Cooldown.html\">Auto Scaling Cooldowns</a> in the <i>Auto Scaling User Guide</i>.</p>"
         },
         "MetricAggregationType":{
           "shape":"XmlStringMaxLen32",
-          "documentation":"<p>The aggregation type for the CloudWatch metrics. Valid values are <code>Minimum</code>, <code>Maximum</code>, and <code>Average</code>. If the aggregation type is null, the value is treated as <code>Average</code>.</p> <p>This parameter is not supported if the policy type is <code>SimpleScaling</code>.</p>"
+          "documentation":"<p>The aggregation type for the CloudWatch metrics. The valid values are <code>Minimum</code>, <code>Maximum</code>, and <code>Average</code>. If the aggregation type is null, the value is treated as <code>Average</code>.</p> <p>This parameter is supported if the policy type is <code>StepScaling</code>.</p>"
         },
         "StepAdjustments":{
           "shape":"StepAdjustments",
@@ -2692,7 +2835,11 @@
         },
         "EstimatedInstanceWarmup":{
           "shape":"EstimatedInstanceWarmup",
-          "documentation":"<p>The estimated time, in seconds, until a newly launched instance can contribute to the CloudWatch metrics. The default is to use the value specified for the default cooldown period for the group.</p> <p>This parameter is not supported if the policy type is <code>SimpleScaling</code>.</p>"
+          "documentation":"<p>The estimated time, in seconds, until a newly launched instance can contribute to the CloudWatch metrics. The default is to use the value specified for the default cooldown period for the group.</p> <p>This parameter is supported if the policy type is <code>StepScaling</code> or <code>TargetTrackingScaling</code>.</p>"
+        },
+        "TargetTrackingConfiguration":{
+          "shape":"TargetTrackingConfiguration",
+          "documentation":"<p>A target tracking policy.</p> <p>This parameter is required if the policy type is <code>TargetTrackingScaling</code> and not supported otherwise.</p>"
         }
       }
     },
@@ -2900,6 +3047,10 @@
         "Alarms":{
           "shape":"Alarms",
           "documentation":"<p>The CloudWatch alarms related to the policy.</p>"
+        },
+        "TargetTrackingConfiguration":{
+          "shape":"TargetTrackingConfiguration",
+          "documentation":"<p>A target tracking policy.</p>"
         }
       },
       "documentation":"<p>Describes a scaling policy.</p>"
@@ -3195,6 +3346,29 @@
     "TargetGroupARNs":{
       "type":"list",
       "member":{"shape":"XmlStringMaxLen511"}
+    },
+    "TargetTrackingConfiguration":{
+      "type":"structure",
+      "required":["TargetValue"],
+      "members":{
+        "PredefinedMetricSpecification":{
+          "shape":"PredefinedMetricSpecification",
+          "documentation":"<p>A predefined metric. You can specify either a predefined metric or a customized metric.</p>"
+        },
+        "CustomizedMetricSpecification":{
+          "shape":"CustomizedMetricSpecification",
+          "documentation":"<p>A customized metric.</p>"
+        },
+        "TargetValue":{
+          "shape":"MetricScale",
+          "documentation":"<p>The target value for the metric.</p>"
+        },
+        "DisableScaleIn":{
+          "shape":"DisableScaleIn",
+          "documentation":"<p>Indicates whether scale in by the target tracking policy is disabled. If the value is <code>true</code>, scale in is disabled and the target tracking policy won't remove instances from the Auto Scaling group. Otherwise, scale in is enabled and the target tracking policy can remove instances from the Auto Scaling group. The default value is <code>false</code>.</p>"
+        }
+      },
+      "documentation":"<p>Represents a target tracking policy configuration.</p>"
     },
     "TerminateInstanceInAutoScalingGroupType":{
       "type":"structure",
