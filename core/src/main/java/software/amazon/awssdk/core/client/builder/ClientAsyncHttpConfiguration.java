@@ -69,13 +69,7 @@ public final class ClientAsyncHttpConfiguration
      */
     @SdkInternalApi
     Optional<Either<SdkAsyncHttpClient, SdkAsyncHttpClientFactory>> toEither() {
-        if (httpClient != null) {
-            return Optional.of(Either.left(httpClient));
-        } else if (httpClientFactory != null) {
-            return Optional.of(Either.right(httpClientFactory));
-        } else {
-            return Optional.empty();
-        }
+        return Either.fromNullable(httpClient, httpClientFactory);
     }
 
     /**
