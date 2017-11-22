@@ -549,6 +549,11 @@
                     <name>doRelease</name>
                 </property>
             </activation>
+            <properties>
+                <checkstyle.skip>true</checkstyle.skip>
+                <findbugs.skip>true</findbugs.skip>
+                <skip.unit.tests>true</skip.unit.tests>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
