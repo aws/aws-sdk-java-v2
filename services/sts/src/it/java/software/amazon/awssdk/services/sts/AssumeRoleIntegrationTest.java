@@ -110,7 +110,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
                                                                .policy(new Policy().withStatements(statement).toJson()).build();
 
         STSClient sts = stsClient();
-        Thread.sleep(1000 * 60);
+
         AssumeRoleResponse assumeRoleResult = sts.assumeRole(assumeRoleRequest);
         assertNotNull(assumeRoleResult.assumedRoleUser());
         assertNotNull(assumeRoleResult.assumedRoleUser().arn());

@@ -34,6 +34,7 @@ import org.junit.Test;
 import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.model.Datapoint;
 import software.amazon.awssdk.services.cloudwatch.model.DeleteAlarmsRequest;
 import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmHistoryRequest;
@@ -56,6 +57,7 @@ import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricAlarmRequest;
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataRequest;
 import software.amazon.awssdk.services.cloudwatch.model.SetAlarmStateRequest;
+import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 import software.amazon.awssdk.testutils.SdkAsserts;
 
@@ -75,7 +77,10 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
      */
     @BeforeClass
     public static void setUp() throws IOException {
-        cloudwatch = CloudWatchClient.builder().credentialsProvider(StaticCredentialsProvider.create(getCredentials())).build();
+        cloudwatch = CloudWatchClient.builder()
+                                     .credentialsProvider(getCredentialsProvider())
+                                     .region(Region.US_WEST_2)
+                                     .build();
     }
 
     /**
@@ -116,20 +121,17 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
         cloudwatch.putMetricData(PutMetricDataRequest.builder()
                                          .namespace("AWS.EC2").metricData(datum).build());
 
-        // TODO: get an ETA on the arrival of this data
-        Thread.sleep(60 * 1000);
-
-        GetMetricStatisticsRequest getRequest = GetMetricStatisticsRequest.builder()
-                .startTime(Instant.now().minus(Duration.ofDays(7)))
-                .namespace("AWS.EC2")
-                .period(60 * 60)
-                .dimensions(Dimension.builder().name("InstanceType").value("m1.small").build())
-                .metricName(measureName)
-                .statistics("Average", "Maximum", "Minimum", "Sum")
-                .endTime(Instant.now())
-                .build();
-        GetMetricStatisticsResponse result = cloudwatch
-                .getMetricStatistics(getRequest);
+        GetMetricStatisticsResponse result =
+                Waiter.run(() -> cloudwatch.getMetricStatistics(r -> r.startTime(Instant.now().minus(Duration.ofDays(7)))
+                                                                      .namespace("AWS.EC2")
+                                                                      .period(60 * 60)
+                                                                      .dimensions(Dimension.builder().name("InstanceType")
+                                                                                           .value("m1.small").build())
+                                                                      .metricName(measureName)
+                                                                      .statistics("Average", "Maximum", "Minimum", "Sum")
+                                                                      .endTime(Instant.now())))
+                      .until(r -> r.datapoints().size() == 1)
+                      .orFailAfter(Duration.ofMinutes(1));
 
         assertNotNull(result.label());
         assertEquals(measureName, result.label());

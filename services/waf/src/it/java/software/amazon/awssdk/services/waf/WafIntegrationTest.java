@@ -68,7 +68,7 @@ public class WafIntegrationTest extends AwsTestBase {
     private static void deleteIpSet() {
         if (ipSetId != null) {
             Waiter.run(() -> client.deleteIPSet(r -> r.ipSetId(ipSetId).changeToken(newChangeToken())))
-                  .ignoring(WAFNonEmptyEntityException.class)
+                  .ignoringException(WAFNonEmptyEntityException.class)
                   .orFail();
         }
     }
