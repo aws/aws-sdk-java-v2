@@ -19,6 +19,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.junit.Before;
 import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
@@ -42,6 +43,7 @@ public class IntegrationTestBase extends AwsTestBase {
         setUpCredentials();
         iam = IAMClient.builder()
                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                       .overrideConfiguration(c -> c.retryPolicy(RetryPolicy.builder().numRetries(50).build()))
                        .region(Region.AWS_GLOBAL)
                        .build();
         System.out.println(iam);
