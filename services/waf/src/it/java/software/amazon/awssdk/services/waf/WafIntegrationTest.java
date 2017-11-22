@@ -25,7 +25,6 @@ import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.waf.model.ChangeAction;
 import software.amazon.awssdk.services.waf.model.CreateIPSetRequest;
 import software.amazon.awssdk.services.waf.model.CreateIPSetResponse;
-import software.amazon.awssdk.services.waf.model.DeleteIPSetRequest;
 import software.amazon.awssdk.services.waf.model.GetChangeTokenRequest;
 import software.amazon.awssdk.services.waf.model.GetChangeTokenResponse;
 import software.amazon.awssdk.services.waf.model.GetIPSetRequest;
@@ -37,12 +36,13 @@ import software.amazon.awssdk.services.waf.model.IPSetUpdate;
 import software.amazon.awssdk.services.waf.model.ListIPSetsRequest;
 import software.amazon.awssdk.services.waf.model.ListIPSetsResponse;
 import software.amazon.awssdk.services.waf.model.UpdateIPSetRequest;
+import software.amazon.awssdk.services.waf.model.WAFNonEmptyEntityException;
+import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class WafIntegrationTest extends AwsTestBase {
 
     private static final String IP_SET_NAME = "java-sdk-ipset-" + System.currentTimeMillis();
-    private static final long SLEEP_TIME_MILLIS = 5000;
     private static final String IP_ADDRESS_RANGE = "192.0.2.0/24";
     private static WAFClient client = null;
     private static String ipSetId = null;
@@ -67,11 +67,9 @@ public class WafIntegrationTest extends AwsTestBase {
 
     private static void deleteIpSet() {
         if (ipSetId != null) {
-            final String changeToken = newChangeToken();
-            client.deleteIPSet(DeleteIPSetRequest.builder()
-                    .ipSetId(ipSetId)
-                    .changeToken(changeToken)
-                    .build());
+            Waiter.run(() -> client.deleteIPSet(r -> r.ipSetId(ipSetId).changeToken(newChangeToken())))
+                  .ignoring(WAFNonEmptyEntityException.class)
+                  .orFail();
         }
     }
 

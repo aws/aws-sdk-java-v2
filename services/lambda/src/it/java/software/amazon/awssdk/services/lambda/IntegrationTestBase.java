@@ -69,7 +69,7 @@ public class IntegrationTestBase extends AwsTestBase {
     @BeforeClass
     public static void setup() throws IOException {
         setUpCredentials();
-        lambda = LambdaAsyncClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        lambda = LambdaAsyncClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.US_WEST_2).build();
 
         cloudFuncZip = setupFunctionZip(HELLOWORLD_JS);
 
@@ -132,7 +132,7 @@ public class IntegrationTestBase extends AwsTestBase {
     }
 
     protected static void createKinesisStream() {
-        kinesis = KinesisClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        kinesis = KinesisClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.US_WEST_2).build();
 
         kinesis.createStream(CreateStreamRequest.builder().streamName(KINESIS_STREAM_NAME).shardCount(1).build());
 
