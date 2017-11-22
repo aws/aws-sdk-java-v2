@@ -102,9 +102,8 @@ public class BatchLoadIntegrationTest extends DynamoDBMapperIntegrationTestBase 
         assertEquals(numItems, items.size());
 
         for (Object item : items) {
-            objs.contains(item);
+            assertTrue(objs.contains(item));
         }
-        Thread.sleep(1000 * 10);
     }
 
     @Test

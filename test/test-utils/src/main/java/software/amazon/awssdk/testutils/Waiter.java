@@ -36,7 +36,8 @@ public final class Waiter<T> {
 
     private final Supplier<T> thingToTry;
     private Predicate<T> whenToStop = t -> true;
-    private Set<Class<? extends Throwable>> whatToIgnore = Collections.emptySet();
+    private Set<Class<? extends Throwable>> whatExceptionsToStopOn = Collections.emptySet();
+    private Set<Class<? extends Throwable>> whatExceptionsToIgnore = Collections.emptySet();
 
     /**
      * @see #run(Supplier)
@@ -48,14 +49,14 @@ public final class Waiter<T> {
 
     /**
      * Create a waiter that attempts executing the provided function until the condition set with {@link #until(Predicate)} is
-     * met or until it throws an exception. Expected exception types can be ignored with {@link #ignoring(Class[])}.
+     * met or until it throws an exception. Expected exception types can be ignored with {@link #ignoringException(Class[])}.
      */
     public static <T> Waiter<T> run(Supplier<T> thingToTry) {
         return new Waiter<>(thingToTry);
     }
 
     /**
-     * Define the condition under which the thing we are trying is complete.
+     * Define the condition on the response under which the thing we are trying is complete.
      *
      * If this isn't set, it will always be true. ie. if the function call succeeds, we stop waiting.
      */
@@ -65,11 +66,22 @@ public final class Waiter<T> {
     }
 
     /**
+     * Define the condition on an exception thrown under which the thing we are trying is complete.
+     *
+     * If this isn't set, it will always be false. ie. never stop on any particular exception.
+     */
+    @SafeVarargs
+    public final Waiter<T> untilException(Class<? extends Throwable>... whenToStopOnException) {
+        this.whatExceptionsToStopOn = new HashSet<>(Arrays.asList(whenToStopOnException));
+        return this;
+    }
+
+    /**
      * Define the exception types that should be ignored if the thing we are trying throws them.
      */
     @SafeVarargs
-    public final Waiter<T> ignoring(Class<? extends Throwable>... whatToIgnore) {
-        this.whatToIgnore = new HashSet<>(Arrays.asList(whatToIgnore));
+    public final Waiter<T> ignoringException(Class<? extends Throwable>... whatToIgnore) {
+        this.whatExceptionsToIgnore = new HashSet<>(Arrays.asList(whatToIgnore));
         return this;
     }
 
@@ -98,6 +110,7 @@ public final class Waiter<T> {
 
                 T result = thingToTry.get();
                 if (whenToStop.test(result)) {
+                    log.info(() -> "Got expected response: " + result);
                     return result;
                 }
                 int unsuccessfulAttempt = attempt;
@@ -105,7 +118,12 @@ public final class Waiter<T> {
             } catch (RuntimeException e) {
                 Throwable t = e instanceof CompletionException ? e.getCause() : e;
 
-                if (whatToIgnore.contains(t.getClass())) {
+                if (whatExceptionsToStopOn.contains(t.getClass())) {
+                    log.info(() -> "Got expected exception: " + t.getClass().getSimpleName());
+                    return null;
+                }
+
+                if (whatExceptionsToIgnore.contains(t.getClass())) {
                     int unsuccessfulAttempt = attempt;
                     log.info(() -> "Attempt " + unsuccessfulAttempt +
                                    " failed with an expected exception (" + t.getClass() + ")");
