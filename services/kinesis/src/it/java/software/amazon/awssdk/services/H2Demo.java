@@ -12,8 +12,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.log4j.BasicConfigurator;
 import software.amazon.awssdk.core.AwsSystemSetting;
 import software.amazon.awssdk.core.client.builder.ClientAsyncHttpConfiguration;
+import software.amazon.awssdk.http.nio.netty.NettySdkHttpClientFactory;
 import software.amazon.awssdk.http.nio.netty.h2.NettyH2AsyncHttpClient;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
@@ -24,6 +26,7 @@ public class H2Demo {
     public static final int COUNT = 500_000;
 
     public static void main(String[] args) throws InterruptedException {
+        BasicConfigurator.configure();
         System.setProperty(AwsSystemSetting.AWS_CBOR_ENABLED.property(), "false");
         NettyH2AsyncHttpClient sdkHttpClient = new NettyH2AsyncHttpClient();
         KinesisAsyncClient client = KinesisAsyncClient
@@ -31,6 +34,7 @@ public class H2Demo {
             .asyncHttpConfiguration(ClientAsyncHttpConfiguration
                                         .builder()
                                         .httpClient(sdkHttpClient)
+                                        // httpClientFactory(NettySdkHttpClientFactory.builder().trustAllCertificates(true).build())
                                         .build())
             .endpointOverride(URI.create("https://bmercier-2.aka.corp.amazon.com:8001/"))
             .build();
@@ -39,7 +43,7 @@ public class H2Demo {
         CountDownLatch latch = new CountDownLatch(COUNT);
         AtomicInteger submitCount = new AtomicInteger(0);
 
-        int workerThreadCount = 5;
+        int workerThreadCount = 1;
         int councurrentConnections = 50;
         ExecutorService executorService = Executors.newFixedThreadPool(workerThreadCount);
         for (int i = 0; i < workerThreadCount; i++) {

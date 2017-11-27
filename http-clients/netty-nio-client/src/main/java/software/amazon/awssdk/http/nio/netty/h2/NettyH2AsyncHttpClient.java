@@ -103,7 +103,7 @@ public class NettyH2AsyncHttpClient implements SdkAsyncHttpClient {
                         // TODO resolve like in H1 impl?
                         .channel(NioSocketChannel.class)
                         // TODO connection timeout from service defaults
-                        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10)
+                        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000)
                         .option(ChannelOption.TCP_NODELAY, true)
                         .remoteAddress(key.getHost(), key.getPort());
                 return new FixedChannelPool(bootstrap,

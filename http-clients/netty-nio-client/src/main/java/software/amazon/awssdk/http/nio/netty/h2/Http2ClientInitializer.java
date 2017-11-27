@@ -48,6 +48,7 @@ public class Http2ClientInitializer extends AbstractChannelPoolHandler {
                 .frameLogger(new SdkHttp2FrameLogger(LogLevel.DEBUG))
                 .connection(connection)
                 .build());
+
     }
 
 }
