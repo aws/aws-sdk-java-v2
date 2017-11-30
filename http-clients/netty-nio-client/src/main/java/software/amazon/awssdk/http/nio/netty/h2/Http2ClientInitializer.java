@@ -14,14 +14,25 @@
  */
 package software.amazon.awssdk.http.nio.netty.h2;
 
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.HANDSHAKE_FUTURE;
+
+import com.typesafe.netty.http.HttpStreamsClientHandler;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
+import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http2.DefaultHttp2Connection;
 import io.netty.handler.codec.http2.DelegatingDecompressorFrameListener;
 import io.netty.handler.codec.http2.Http2Connection;
+import io.netty.handler.codec.http2.HttpToHttp2ConnectionHandler;
 import io.netty.handler.codec.http2.HttpToHttp2ConnectionHandlerBuilder;
 import io.netty.handler.logging.LogLevel;
+import io.netty.handler.ssl.ApplicationProtocolNames;
+import io.netty.handler.ssl.ApplicationProtocolNegotiationHandler;
 import io.netty.handler.ssl.SslContext;
+import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.http.nio.netty.internal.ResponseHandler;
 
 /**
  * Configures the client pipeline to support HTTP/2 frames.
@@ -36,19 +47,50 @@ public class Http2ClientInitializer extends AbstractChannelPoolHandler {
 
     @Override
     public void channelCreated(Channel ch) throws Exception {
-        Http2Connection connection = new DefaultHttp2Connection(false);
+        ch.attr(HANDSHAKE_FUTURE).set(new CompletableFuture<>());
         if (sslCtx != null) {
-            ch.pipeline().addLast(sslCtx.newHandler(ch.alloc()));
+            configureSsl(ch);
+        } else {
+            // TODO http
         }
-        ch.pipeline().addLast(
-            new HttpToHttp2ConnectionHandlerBuilder()
-                .frameListener(new DelegatingDecompressorFrameListener(
-                    connection,
-                    new SdkHttp2FrameListener()))
-                .frameLogger(new SdkHttp2FrameLogger(LogLevel.DEBUG))
-                .connection(connection)
-                .build());
+    }
 
+    private HttpToHttp2ConnectionHandler createH2ConnectionHandler() {
+        Http2Connection connection = new DefaultHttp2Connection(false);
+        return new HttpToHttp2ConnectionHandlerBuilder()
+            .frameListener(new DelegatingDecompressorFrameListener(
+                connection,
+                new SdkHttp2FrameListener()))
+            .frameLogger(new SdkHttp2FrameLogger(LogLevel.DEBUG))
+            .connection(connection)
+            .build();
+    }
+
+    private void configureSsl(Channel ch) {
+        ChannelPipeline pipeline = ch.pipeline();
+        // We must wait for the handshake to finish and the protocol to be negotiated before configuring
+        // the HTTP/2 components of the pipeline.
+        pipeline.addLast(sslCtx.newHandler(ch.alloc()));
+        pipeline.addLast(new ApplicationProtocolNegotiationHandler("h1") {
+            @Override
+            protected void configurePipeline(ChannelHandlerContext ctx, String protocol) {
+                try {
+//                    if (ApplicationProtocolNames.HTTP_2.equals(protocol)) {
+                    if(true) {
+                        ctx.pipeline().addLast(createH2ConnectionHandler());
+                        return;
+                    } else {
+                        // TODO H1
+                        ctx.pipeline().addLast(new HttpClientCodec());
+                        ctx.pipeline().addLast(new HttpStreamsClientHandler());
+                        ctx.pipeline().addLast(new ResponseHandler());
+                        return;
+                    }
+                } finally {
+                    ch.attr(HANDSHAKE_FUTURE).get().complete(null);
+                }
+            }
+        });
     }
 
 }

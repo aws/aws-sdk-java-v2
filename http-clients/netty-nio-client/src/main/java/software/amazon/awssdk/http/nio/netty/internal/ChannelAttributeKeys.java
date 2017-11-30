@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import io.netty.buffer.ByteBuf;
 import io.netty.util.AttributeKey;
 import java.nio.ByteBuffer;
+import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Subscriber;
 
 /**
@@ -37,6 +38,11 @@ public class ChannelAttributeKeys {
     public static final AttributeKey<Boolean> RESPONSE_COMPLETE_KEY = AttributeKey.newInstance("responseComplete");
 
     public static final AttributeKey<ByteBuf> CUMULATED_KEY = AttributeKey.newInstance("cumulated");
+
+    /**
+     * Future that is notified when SSL handshake has been completed.
+     */
+    public static final AttributeKey<CompletableFuture<Void>> HANDSHAKE_FUTURE = AttributeKey.newInstance("handshakeFuture");
 
     private ChannelAttributeKeys() {
     }

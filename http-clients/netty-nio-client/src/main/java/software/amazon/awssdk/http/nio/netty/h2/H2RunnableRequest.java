@@ -22,11 +22,14 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.ssl.SslHandler;
 import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -38,6 +41,7 @@ import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.async.AbortableRunnable;
+import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys;
 import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
@@ -81,12 +85,18 @@ public final class H2RunnableRequest implements AbortableRunnable {
         log.debug("Writing request: {}", request);
         DefaultFullHttpRequest fullHttpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, request.method(), request.uri(),
                                                                             dumpToBytes(context.sdkRequestProvider()), request.headers(), new DefaultHttpHeaders());
-        channel.writeAndFlush(fullHttpRequest)
-               .addListener(wireCall -> {
-                   if (!wireCall.isSuccess()) {
-                       handleFailure(() -> "Failed to make request to " + endpoint(), wireCall.cause());
-                   }
-               });
+
+        // TODO SSL
+        channel.attr(ChannelAttributeKeys.HANDSHAKE_FUTURE).get().thenRun(() -> writeRequest(fullHttpRequest));
+    }
+
+    private ChannelFuture writeRequest(DefaultFullHttpRequest fullHttpRequest) {
+        return channel.writeAndFlush(fullHttpRequest)
+                      .addListener(wireCall -> {
+                          if (!wireCall.isSuccess()) {
+                              handleFailure(() -> "Failed to make request to " + endpoint(), wireCall.cause());
+                          }
+                      });
     }
 
     private URI endpoint() {
