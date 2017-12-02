@@ -106,7 +106,7 @@
         <!-- These properties are used by SES for its optional dependencies -->
         <javax.mail.version>1.4.6</javax.mail.version>
         <jre.version>1.8</jre.version>
-        <httpcomponents.httpclient.version>4.5.2</httpcomponents.httpclient.version>
+        <httpcomponents.httpclient.version>4.5.4</httpcomponents.httpclient.version>
 
         <!-- These properties are used by cucumber tests related code -->
         <cucumber.info.cukes.version>1.2.4</cucumber.info.cukes.version>
