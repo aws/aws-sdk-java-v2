@@ -36,6 +36,7 @@ public final class Waiter<T> {
 
     private final Supplier<T> thingToTry;
     private Predicate<T> whenToStop = t -> true;
+    private Predicate<T> whenToFail = t -> false;
     private Set<Class<? extends Throwable>> whatExceptionsToStopOn = Collections.emptySet();
     private Set<Class<? extends Throwable>> whatExceptionsToIgnore = Collections.emptySet();
 
@@ -62,6 +63,17 @@ public final class Waiter<T> {
      */
     public Waiter<T> until(Predicate<T> whenToStop) {
         this.whenToStop = whenToStop;
+        return this;
+    }
+
+    /**
+     * Define the condition on the response under which the thing we are trying has already failed and further
+     * attempts are pointless.
+     *
+     * If this isn't set, it will always be false.
+     */
+    public Waiter<T> failOn(Predicate<T> whenToFail) {
+        this.whenToFail = whenToFail;
         return this;
     }
 
@@ -112,6 +124,8 @@ public final class Waiter<T> {
                 if (whenToStop.test(result)) {
                     log.info(() -> "Got expected response: " + result);
                     return result;
+                } else if (whenToFail.test(result)) {
+                    throw new AssertionError("Received a response that matched the failOn predicate: " + result);
                 }
                 int unsuccessfulAttempt = attempt;
                 log.info(() -> "Attempt " + unsuccessfulAttempt + " failed predicate.");
