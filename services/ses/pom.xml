@@ -33,12 +33,6 @@
 
     <dependencies>
         <dependency>
-            <artifactId>javax.mail-api</artifactId>
-            <groupId>javax.mail</groupId>
-            <optional>true</optional>
-            <version>${javax.mail.version}</version>
-        </dependency>
-        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <scope>test</scope>
