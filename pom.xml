@@ -256,11 +256,6 @@
                 <version>${mockito.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.takari.junit</groupId>
-                <artifactId>takari-cpsuite</artifactId>
-                <version>${takari.cpsuite.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcprov-jdk15on</artifactId>
                 <version>${bouncycastle.version}</version>
@@ -590,7 +585,7 @@
                         <configuration>
                             <minmemory>128m</minmemory>
                             <maxmemory>4g</maxmemory>
-                            <includeDependencySources>true</includeDependencySources>
+                            <includeDependencySources>false</includeDependencySources>
                             <show>public</show>
                             <author>false</author>
                             <version>true</version>
