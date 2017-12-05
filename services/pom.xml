@@ -125,6 +125,7 @@
         <module>workdocs</module>
         <module>workspaces</module>
         <module>xray</module>
+        <module>appsync</module>
     </modules>
 
     <description>The AWS Java SDK services</description>
