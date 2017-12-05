@@ -25,6 +25,7 @@ import static software.amazon.awssdk.codegen.internal.Utils.capitialize;
 import static software.amazon.awssdk.codegen.internal.Utils.unCapitialize;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -44,36 +45,19 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
     private static Logger log = Logger.loggerFor(DefaultNamingStrategy.class);
 
-    private static final Set<String> RESERVED_KEYWORDS = new HashSet<String>() {
-        {
-            add("return");
-            add("public");
-            add("private");
-            add("class");
-            add("static");
-            add("protected");
-            add("string");
-            add("boolean");
-            add("integer");
-            add("int");
-            add("char");
-            add("null");
-            add("double");
-            add("object");
-            add("short");
-            add("long");
-            add("float");
-            add("byte");
-            add("bigDecimal");
-            add("bigInteger");
-            add("protected");
-            add("inputStream");
-            add("bytebuffer");
-            add("date");
-            add("list");
-            add("map");
-        }
-    };
+    private static final Set<String> RESERVED_KEYWORDS;
+
+    static {
+        Set<String> keywords = new HashSet<>();
+        Collections.addAll(keywords,
+                "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class",
+                "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for",
+                "if", "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "package",
+                "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch",
+                "synchronized", "this", "throw", "throws", "transient", "try", "void", "volatile", "while", "true",
+                "null", "false", "const", "goto");
+        RESERVED_KEYWORDS = Collections.unmodifiableSet(keywords);
+    }
 
     private final ServiceModel serviceModel;
     private final CustomizationConfig customizationConfig;
