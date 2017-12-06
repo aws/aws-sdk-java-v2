@@ -7,6 +7,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.regions.ServiceMetadata;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.sync.ResponseBytes;
 import software.amazon.awssdk.core.sync.ResponseInputStream;
 import software.amazon.awssdk.core.sync.StreamingResponseHandler;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
@@ -75,7 +76,7 @@ public interface JsonClient extends SdkAutoCloseable {
      *      API Documentation</a>
      */
     default APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
-            SdkServiceException, SdkClientException, JsonException {
+                                                                                                      SdkServiceException, SdkClientException, JsonException {
         throw new UnsupportedOperationException();
     }
 
@@ -126,7 +127,7 @@ public interface JsonClient extends SdkAutoCloseable {
      */
     default APostOperationWithOutputResponse aPostOperationWithOutput(
             APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, SdkServiceException,
-            SdkClientException, JsonException {
+                                                                                    SdkClientException, JsonException {
         throw new UnsupportedOperationException();
     }
 
@@ -152,7 +153,7 @@ public interface JsonClient extends SdkAutoCloseable {
      */
     default APostOperationWithOutputResponse aPostOperationWithOutput(
             Consumer<APostOperationWithOutputRequest.Builder> aPostOperationWithOutputRequest) throws InvalidInputException,
-            SdkServiceException, SdkClientException, JsonException {
+                                                                                                      SdkServiceException, SdkClientException, JsonException {
         return aPostOperationWithOutput(APostOperationWithOutputRequest.builder().apply(aPostOperationWithOutputRequest).build());
     }
 
@@ -177,7 +178,7 @@ public interface JsonClient extends SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default GetWithoutRequiredMembersResponse getWithoutRequiredMembers() throws InvalidInputException, SdkServiceException,
-            SdkClientException, JsonException {
+                                                                                 SdkClientException, JsonException {
         return getWithoutRequiredMembers(GetWithoutRequiredMembersRequest.builder().build());
     }
 
@@ -203,7 +204,7 @@ public interface JsonClient extends SdkAutoCloseable {
      */
     default GetWithoutRequiredMembersResponse getWithoutRequiredMembers(
             GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) throws InvalidInputException, SdkServiceException,
-            SdkClientException, JsonException {
+                                                                                      SdkClientException, JsonException {
         throw new UnsupportedOperationException();
     }
 
@@ -229,9 +230,9 @@ public interface JsonClient extends SdkAutoCloseable {
      */
     default GetWithoutRequiredMembersResponse getWithoutRequiredMembers(
             Consumer<GetWithoutRequiredMembersRequest.Builder> getWithoutRequiredMembersRequest) throws InvalidInputException,
-            SdkServiceException, SdkClientException, JsonException {
+                                                                                                        SdkServiceException, SdkClientException, JsonException {
         return getWithoutRequiredMembers(GetWithoutRequiredMembersRequest.builder().apply(getWithoutRequiredMembersRequest)
-                .build());
+                                                                         .build());
     }
 
     /**
@@ -252,7 +253,7 @@ public interface JsonClient extends SdkAutoCloseable {
      */
     default PaginatedOperationWithResultKeyResponse paginatedOperationWithResultKey(
             PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) throws SdkServiceException,
-            SdkClientException, JsonException {
+                                                                                                  SdkClientException, JsonException {
         throw new UnsupportedOperationException();
     }
 
@@ -276,7 +277,7 @@ public interface JsonClient extends SdkAutoCloseable {
             Consumer<PaginatedOperationWithResultKeyRequest.Builder> paginatedOperationWithResultKeyRequest)
             throws SdkServiceException, SdkClientException, JsonException {
         return paginatedOperationWithResultKey(PaginatedOperationWithResultKeyRequest.builder()
-                .apply(paginatedOperationWithResultKeyRequest).build());
+                                                                                     .apply(paginatedOperationWithResultKeyRequest).build());
     }
 
     /**
@@ -348,7 +349,7 @@ public interface JsonClient extends SdkAutoCloseable {
      */
     default PaginatedOperationWithResultKeyPaginator paginatedOperationWithResultKeyIterable(
             PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) throws SdkServiceException,
-            SdkClientException, JsonException {
+                                                                                                  SdkClientException, JsonException {
         throw new UnsupportedOperationException();
     }
 
@@ -370,7 +371,7 @@ public interface JsonClient extends SdkAutoCloseable {
      */
     default PaginatedOperationWithoutResultKeyResponse paginatedOperationWithoutResultKey(
             PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) throws SdkServiceException,
-            SdkClientException, JsonException {
+                                                                                                        SdkClientException, JsonException {
         throw new UnsupportedOperationException();
     }
 
@@ -394,7 +395,7 @@ public interface JsonClient extends SdkAutoCloseable {
             Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest)
             throws SdkServiceException, SdkClientException, JsonException {
         return paginatedOperationWithoutResultKey(PaginatedOperationWithoutResultKeyRequest.builder()
-                .apply(paginatedOperationWithoutResultKeyRequest).build());
+                                                                                           .apply(paginatedOperationWithoutResultKeyRequest).build());
     }
 
     /**
@@ -466,7 +467,7 @@ public interface JsonClient extends SdkAutoCloseable {
      */
     default PaginatedOperationWithoutResultKeyPaginator paginatedOperationWithoutResultKeyIterable(
             PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) throws SdkServiceException,
-            SdkClientException, JsonException {
+                                                                                                        SdkClientException, JsonException {
         throw new UnsupportedOperationException();
     }
 
@@ -499,7 +500,7 @@ public interface JsonClient extends SdkAutoCloseable {
      */
     default StreamingInputOperationResponse streamingInputOperation(
             StreamingInputOperationRequest streamingInputOperationRequest, RequestBody requestBody) throws SdkServiceException,
-            SdkClientException, JsonException {
+                                                                                                           SdkClientException, JsonException {
         throw new UnsupportedOperationException();
     }
 
@@ -527,7 +528,7 @@ public interface JsonClient extends SdkAutoCloseable {
      */
     default StreamingInputOperationResponse streamingInputOperation(
             StreamingInputOperationRequest streamingInputOperationRequest, Path filePath) throws SdkServiceException,
-            SdkClientException, JsonException {
+                                                                                                 SdkClientException, JsonException {
         return streamingInputOperation(streamingInputOperationRequest, RequestBody.of(filePath));
     }
 
@@ -555,7 +556,7 @@ public interface JsonClient extends SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default <ReturnT> ReturnT streamingOutputOperation(StreamingOutputOperationRequest streamingOutputOperationRequest,
-            StreamingResponseHandler<StreamingOutputOperationResponse, ReturnT> streamingResponseHandler)
+                                                       StreamingResponseHandler<StreamingOutputOperationResponse, ReturnT> streamingResponseHandler)
             throws SdkServiceException, SdkClientException, JsonException {
         throw new UnsupportedOperationException();
     }
@@ -583,7 +584,7 @@ public interface JsonClient extends SdkAutoCloseable {
      */
     default StreamingOutputOperationResponse streamingOutputOperation(
             StreamingOutputOperationRequest streamingOutputOperationRequest, Path filePath) throws SdkServiceException,
-            SdkClientException, JsonException {
+                                                                                                   SdkClientException, JsonException {
         return streamingOutputOperation(streamingOutputOperationRequest, StreamingResponseHandler.toFile(filePath));
     }
 
@@ -611,8 +612,34 @@ public interface JsonClient extends SdkAutoCloseable {
      */
     default ResponseInputStream<StreamingOutputOperationResponse> streamingOutputOperation(
             StreamingOutputOperationRequest streamingOutputOperationRequest) throws SdkServiceException, SdkClientException,
-            JsonException {
+                                                                                    JsonException {
         return streamingOutputOperation(streamingOutputOperationRequest, StreamingResponseHandler.toInputStream());
+    }
+
+    /**
+     * Some operation with a streaming output
+     *
+     * @param streamingOutputOperationRequest
+     * @return A {@link ResponseBytes} that loads the data streamed from the service into memory and exposes it in
+     *         convenient in-memory representations like a byte buffer or string. The unmarshalled response object can
+     *         be obtained via {@link ResponseBytes#response()}. The service documentation for the response content is
+     *         as follows 'This be a stream'.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.StreamingOutputOperation
+     * @see #getObject(streamingOutputOperation, StreamingResponseHandler)
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default ResponseBytes<StreamingOutputOperationResponse> streamingOutputOperationBytes(
+            StreamingOutputOperationRequest streamingOutputOperationRequest) throws SdkServiceException, SdkClientException,
+                                                                                    JsonException {
+        return streamingOutputOperation(streamingOutputOperationRequest, StreamingResponseHandler.toBytes());
     }
 
     static ServiceMetadata serviceMetadata() {
