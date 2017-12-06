@@ -52,7 +52,7 @@ public class ServiceIntegrationTest extends AwsTestBase {
 
     @Test(expected = InvalidGatewayRequestException.class)
     public void deleteGateway_InvalidArn_ThrowsException() {
-        sg.deleteGateway(DeleteGatewayRequest.builder().gatewayARN("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").build());
+        sg.deleteGateway(DeleteGatewayRequest.builder().gatewayARN("arn:aws:storagegateway:us-west-2:111122223333:gateway/sgw-12A3456B/volume/vol-1122AABBCCDDEEFFG").build());
     }
 
     @Test(expected = AmazonServiceException.class)
