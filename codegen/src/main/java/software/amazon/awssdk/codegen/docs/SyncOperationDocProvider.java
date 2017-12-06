@@ -20,6 +20,7 @@ import software.amazon.awssdk.codegen.internal.ImmutableMapParameter;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
+import software.amazon.awssdk.core.sync.ResponseBytes;
 import software.amazon.awssdk.core.sync.StreamingResponseHandler;
 
 /**
@@ -96,6 +97,7 @@ class SyncOperationDocProvider extends OperationDocProvider {
                                     .put(SimpleMethodOverload.NO_ARG, SyncNoArg::new)
                                     .put(SimpleMethodOverload.FILE, SyncFile::new)
                                     .put(SimpleMethodOverload.INPUT_STREAM, SyncInputStream::new)
+                                    .put(SimpleMethodOverload.BYTES, SyncBytes::new)
                                     .put(SimpleMethodOverload.PAGINATED, SyncPaginated::new)
                                     .put(SimpleMethodOverload.NO_ARG_PAGINATED, SyncPaginatedNoArg::new)
                                     .build();
@@ -147,6 +149,33 @@ class SyncOperationDocProvider extends OperationDocProvider {
                     "from the input stream and that it is properly closed. Failure to do so may result in sub-optimal behavior " +
                     "and exhausting connections in the connection pool. The unmarshalled response object can be obtained via " +
                     "{@link ResponseInputStream#response()}. " + getStreamingOutputDocs());
+            // Link to non-simple method for discoverability
+            docBuilder.see("#getObject(%s, StreamingResponseHandler)", opModel.getMethodName(),
+                           opModel.getInput().getVariableType());
+        }
+
+        @Override
+        protected void applyParams(DocumentationBuilder docBuilder) {
+            emitRequestParm(docBuilder);
+        }
+    }
+
+    /**
+     * Provider for streaming output simple methods that return an {@link ResponseBytes} containing the in-memory response content
+     * and the unmarshalled POJO. Only applicable to operations that have a streaming member in the output shape.
+     */
+    private static class SyncBytes extends SyncOperationDocProvider {
+
+        private SyncBytes(IntermediateModel model, OperationModel opModel) {
+            super(model, opModel);
+        }
+
+        @Override
+        protected void applyReturns(DocumentationBuilder docBuilder) {
+            docBuilder.returns(
+                    "A {@link ResponseBytes} that loads the data streamed from the service into memory and exposes it in " +
+                    "convenient in-memory representations like a byte buffer or string. The unmarshalled response object can " +
+                    "be obtained via {@link ResponseBytes#response()}. " + getStreamingOutputDocs());
             // Link to non-simple method for discoverability
             docBuilder.see("#getObject(%s, StreamingResponseHandler)", opModel.getMethodName(),
                            opModel.getInput().getVariableType());
