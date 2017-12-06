@@ -54,23 +54,23 @@ public final class IntermediateModel {
 
     @JsonCreator
     public IntermediateModel(
-            @JsonProperty("metadata") Metadata metadata,
-            @JsonProperty("operations") Map<String, OperationModel> operations,
-            @JsonProperty("shapes") Map<String, ShapeModel> shapes,
-            @JsonProperty("customizationConfig") CustomizationConfig customizationConfig,
-            @JsonProperty("serviceExamples") ServiceExamples examples) {
+        @JsonProperty("metadata") Metadata metadata,
+        @JsonProperty("operations") Map<String, OperationModel> operations,
+        @JsonProperty("shapes") Map<String, ShapeModel> shapes,
+        @JsonProperty("customizationConfig") CustomizationConfig customizationConfig,
+        @JsonProperty("serviceExamples") ServiceExamples examples) {
 
         this(metadata, operations, shapes, customizationConfig, examples, Collections.emptyMap(), Collections.emptyMap());
     }
 
     public IntermediateModel(
-            Metadata metadata,
-            Map<String, OperationModel> operations,
-            Map<String, ShapeModel> shapes,
-            CustomizationConfig customizationConfig,
-            ServiceExamples examples,
-            Map<String, AuthorizerModel> customAuthorizers,
-            Map<String, PaginatorDefinition> paginators) {
+        Metadata metadata,
+        Map<String, OperationModel> operations,
+        Map<String, ShapeModel> shapes,
+        CustomizationConfig customizationConfig,
+        ServiceExamples examples,
+        Map<String, AuthorizerModel> customAuthorizers,
+        Map<String, PaginatorDefinition> paginators) {
         this.metadata = metadata;
         this.operations = operations;
         this.shapes = shapes;
@@ -114,14 +114,10 @@ public final class IntermediateModel {
 
     /**
      * @return Exception unmarshaller implementation to use. Currently only needed by XML based
-     *     protocols.
+     * protocols.
      */
     public String getExceptionUnmarshallerImpl() {
-        if (customizationConfig.getCustomExceptionUnmarshallerImpl() != null) {
-            return customizationConfig.getCustomExceptionUnmarshallerImpl();
-        } else {
-            return metadata.getProtocolDefaultExceptionUmarshallerImpl();
-        }
+        return metadata.getProtocolDefaultExceptionUmarshallerImpl();
     }
 
     public String getServiceBaseExceptionFqcn() {
@@ -144,16 +140,12 @@ public final class IntermediateModel {
     }
 
     public String getFileHeader() throws IOException {
-        if (customizationConfig.getCustomFileHeader() != null) {
-            return String.format("/**%n%s%n*/", customizationConfig.getCustomFileHeader());
-        } else {
-            return loadDeafultFileHeader();
-        }
+        return loadDefaultFileHeader();
     }
 
-    private String loadDeafultFileHeader() throws IOException {
+    private String loadDefaultFileHeader() throws IOException {
         try (InputStream inputStream = getClass()
-                .getResourceAsStream("/software/amazon/awssdk/codegen/DefaultFileHeader.txt")) {
+            .getResourceAsStream("/software/amazon/awssdk/codegen/DefaultFileHeader.txt")) {
             return IoUtils.toString(inputStream)
                           .replaceFirst("%COPYRIGHT_DATE_RANGE%", getCopyrightDateRange());
         }
@@ -176,9 +168,7 @@ public final class IntermediateModel {
     }
 
     private String getResponseMetadataClassName() {
-        return customizationConfig.getCustomResponseMetadataClassName() == null ?
-               ResponseMetadata.class.getName() :
-               customizationConfig.getCustomResponseMetadataClassName();
+        return ResponseMetadata.class.getName();
     }
 
     public Map<String, AuthorizerModel> getCustomAuthorizers() {

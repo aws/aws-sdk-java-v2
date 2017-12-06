@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
-import software.amazon.awssdk.codegen.model.service.Output;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.utils.Logger;
@@ -93,12 +92,6 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
     @Override
     public String getResponseClassName(String operationName) {
-        if (customizationConfig.useModeledOutputShapeNames()) {
-            final Output operationOutput = serviceModel.getOperation(operationName).getOutput();
-            if (operationOutput != null) {
-                return operationOutput.getShape();
-            }
-        }
         return capitialize(operationName + RESPONSE_CLASS_SUFFIX);
     }
 
