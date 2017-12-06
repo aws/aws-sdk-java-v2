@@ -16,9 +16,9 @@
 package software.amazon.awssdk.codegen.docs;
 
 import java.util.Map;
+import software.amazon.awssdk.codegen.internal.ImmutableMapParameter;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
 
 /**
  * Implementations of {@link OperationDocProvider} for async client methods. This implementation is for the typical
@@ -86,10 +86,14 @@ class AsyncOperationDocProvider extends OperationDocProvider {
      * @return Factories to use for the {@link ClientType#ASYNC} method type.
      */
     static Map<SimpleMethodOverload, Factory> asyncFactories() {
-        return ImmutableMapParameter.of(SimpleMethodOverload.NORMAL, AsyncOperationDocProvider::new,
-                                        SimpleMethodOverload.NO_ARG, AsyncNoArg::new,
-                                        SimpleMethodOverload.FILE, AsyncFile::new,
-                                        SimpleMethodOverload.CONSUMER_BUILDER, AsyncConsumerBuilder::new);
+        return new ImmutableMapParameter.Builder<SimpleMethodOverload, Factory>()
+            .put(SimpleMethodOverload.NORMAL, AsyncOperationDocProvider::new)
+            .put(SimpleMethodOverload.NO_ARG, AsyncNoArg::new)
+            .put(SimpleMethodOverload.FILE, AsyncFile::new)
+            .put(SimpleMethodOverload.CONSUMER_BUILDER, AsyncConsumerBuilder::new)
+            .put(SimpleMethodOverload.PAGINATED, AsyncPaginated::new)
+            .put(SimpleMethodOverload.NO_ARG_PAGINATED, AsyncPaginatedNoArg::new)
+            .build();
     }
 
     /**
@@ -148,6 +152,40 @@ class AsyncOperationDocProvider extends OperationDocProvider {
             docBuilder.param(opModel.getInput().getVariableName(),
                              "a {@link Consumer} that will call methods on {@link %s.Builder}.",
                              opModel.getInputShape().getC2jName());
+        }
+    }
+
+    /**
+     * Provider for traditional paginated method that takes in a request object and returns a response object.
+     */
+    private static class AsyncPaginated extends AsyncOperationDocProvider {
+
+        private AsyncPaginated(IntermediateModel model, OperationModel opModel) {
+            super(model, opModel);
+        }
+
+        @Override
+        protected String appendToDescription() {
+            return paginationDocs.getDocsForAsyncOperation();
+        }
+
+        @Override
+        protected void applyReturns(DocumentationBuilder docBuilder) {
+            docBuilder.returns("A custom publisher that can be subscribed to request a stream of response pages.");
+        }
+    }
+
+    /**
+     * Provider for paginated simple method that takes no arguments and creates an empty request object.
+     */
+    private static class AsyncPaginatedNoArg extends AsyncPaginated {
+
+        private AsyncPaginatedNoArg(IntermediateModel model, OperationModel opModel) {
+            super(model, opModel);
+        }
+
+        @Override
+        protected void applyParams(DocumentationBuilder docBuilder) {
         }
     }
 }

@@ -294,9 +294,6 @@
     "Timestamp":{"type":"timestamp"},
     "PaginatedOperationWithResultKeyRequest": {
       "type": "structure",
-      "required": [
-        "NextToken"
-      ],
       "members": {
         "NextToken": {
           "shape": "String",

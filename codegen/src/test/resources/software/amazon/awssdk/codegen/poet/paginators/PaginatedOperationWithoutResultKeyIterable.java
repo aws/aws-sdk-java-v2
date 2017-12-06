@@ -1,10 +1,11 @@
 package software.amazon.awssdk.services.jsonprotocoltests.paginators;
 
+import java.util.Collections;
 import java.util.Iterator;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.pagination.NextPageFetcher;
 import software.amazon.awssdk.core.pagination.PaginatedResponsesIterator;
 import software.amazon.awssdk.core.pagination.SdkIterable;
+import software.amazon.awssdk.core.pagination.SyncPageFetcher;
 import software.amazon.awssdk.services.jsonprotocoltests.JsonProtocolTestsClient;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithoutResultKeyRequest;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithoutResultKeyResponse;
@@ -12,7 +13,7 @@ import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperatio
 /**
  * <p>
  * Represents the output for the
- * {@link software.amazon.awssdk.services.jsonprotocoltests.JsonProtocolTestsClient#paginatedOperationWithoutResultKeyIterable(software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithoutResultKeyRequest)}
+ * {@link software.amazon.awssdk.services.jsonprotocoltests.JsonProtocolTestsClient#paginatedOperationWithoutResultKeyPaginator(software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithoutResultKeyRequest)}
  * operation which is a paginated operation. This class is an iterable of
  * {@link software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithoutResultKeyResponse} that can
  * be used to iterate through all the response pages of the operation.
@@ -31,7 +32,7 @@ import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperatio
  *
  * <pre>
  * {@code
- * software.amazon.awssdk.services.jsonprotocoltests.paginators.PaginatedOperationWithoutResultKeyPaginator responses = client.paginatedOperationWithoutResultKeyIterable(request);
+ * software.amazon.awssdk.services.jsonprotocoltests.paginators.PaginatedOperationWithoutResultKeyIterable responses = client.paginatedOperationWithoutResultKeyPaginator(request);
  * responses.stream().forEach(....);
  * }
  * </pre>
@@ -41,8 +42,8 @@ import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperatio
  * <pre>
  * {
  *     &#064;code
- *     software.amazon.awssdk.services.jsonprotocoltests.paginators.PaginatedOperationWithoutResultKeyPaginator responses = client
- *             .paginatedOperationWithoutResultKeyIterable(request);
+ *     software.amazon.awssdk.services.jsonprotocoltests.paginators.PaginatedOperationWithoutResultKeyIterable responses = client
+ *             .paginatedOperationWithoutResultKeyPaginator(request);
  *     for (software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithoutResultKeyResponse response : responses) {
  *         // do something;
  *     }
@@ -53,7 +54,7 @@ import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperatio
  *
  * <pre>
  * {@code
- * software.amazon.awssdk.services.jsonprotocoltests.paginators.PaginatedOperationWithoutResultKeyPaginator responses = client.paginatedOperationWithoutResultKeyIterable(request);
+ * software.amazon.awssdk.services.jsonprotocoltests.paginators.PaginatedOperationWithoutResultKeyIterable responses = client.paginatedOperationWithoutResultKeyPaginator(request);
  * responses.iterator().forEachRemaining(....);
  * }
  * </pre>
@@ -64,15 +65,15 @@ import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperatio
  * </p>
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class PaginatedOperationWithoutResultKeyPaginator implements SdkIterable<PaginatedOperationWithoutResultKeyResponse> {
+public class PaginatedOperationWithoutResultKeyIterable implements SdkIterable<PaginatedOperationWithoutResultKeyResponse> {
     private final JsonProtocolTestsClient client;
 
     private final PaginatedOperationWithoutResultKeyRequest firstRequest;
 
-    private final NextPageFetcher nextPageFetcher;
+    private final SyncPageFetcher nextPageFetcher;
 
-    public PaginatedOperationWithoutResultKeyPaginator(final JsonProtocolTestsClient client,
-                                                       final PaginatedOperationWithoutResultKeyRequest firstRequest) {
+    public PaginatedOperationWithoutResultKeyIterable(final JsonProtocolTestsClient client,
+                                                      final PaginatedOperationWithoutResultKeyRequest firstRequest) {
         this.client = client;
         this.firstRequest = firstRequest;
         this.nextPageFetcher = new PaginatedOperationWithoutResultKeyResponseFetcher();
@@ -83,8 +84,29 @@ public final class PaginatedOperationWithoutResultKeyPaginator implements SdkIte
         return new PaginatedResponsesIterator(nextPageFetcher);
     }
 
+    /**
+     * <p>
+     * A helper method to resume the pages in case of unexpected failures. The method takes the last successful response
+     * page as input and returns an instance of {@link PaginatedOperationWithoutResultKeyIterable} that can be used to
+     * retrieve the consecutive pages that follows the input page.
+     * </p>
+     */
+    public final PaginatedOperationWithoutResultKeyIterable resume(
+        final PaginatedOperationWithoutResultKeyResponse lastSuccessfulPage) {
+        if (nextPageFetcher.hasNextPage(lastSuccessfulPage)) {
+            return new PaginatedOperationWithoutResultKeyIterable(client, firstRequest.toBuilder()
+                                                                                      .nextToken(lastSuccessfulPage.nextToken()).build());
+        }
+        return new PaginatedOperationWithoutResultKeyIterable(client, firstRequest) {
+            @Override
+            public Iterator<PaginatedOperationWithoutResultKeyResponse> iterator() {
+                return Collections.emptyIterator();
+            }
+        };
+    }
+
     private class PaginatedOperationWithoutResultKeyResponseFetcher implements
-                                                                    NextPageFetcher<PaginatedOperationWithoutResultKeyResponse> {
+                                                                    SyncPageFetcher<PaginatedOperationWithoutResultKeyResponse> {
         @Override
         public boolean hasNextPage(PaginatedOperationWithoutResultKeyResponse previousPage) {
             return previousPage.nextToken() != null;
