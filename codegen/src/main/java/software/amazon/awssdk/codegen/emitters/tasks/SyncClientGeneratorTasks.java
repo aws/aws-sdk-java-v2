@@ -16,7 +16,7 @@
 package software.amazon.awssdk.codegen.emitters.tasks;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
@@ -37,11 +37,15 @@ public class SyncClientGeneratorTasks extends BaseGeneratorTasks {
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
         info("Emitting Sync client classes");
-        return Arrays.asList(createClientClassTask(),
-                             createClientBuilderTask(),
-                             createClientInterfaceTask(),
-                             createClientBuilderInterfaceTask(),
-                             createClientSimpleMethodsTest());
+        List<GeneratorTask> tasks = new ArrayList<>();
+        tasks.add(createClientClassTask());
+        tasks.add(createClientBuilderTask());
+        tasks.add(createClientInterfaceTask());
+        tasks.add(createClientBuilderInterfaceTask());
+        if (!model.simpleMethodsRequiringTesting().isEmpty()) {
+            tasks.add(createClientSimpleMethodsTest());
+        }
+        return tasks;
     }
 
     private GeneratorTask createClientClassTask() throws IOException {
