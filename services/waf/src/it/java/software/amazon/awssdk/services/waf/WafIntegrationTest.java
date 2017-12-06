@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.waf;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -69,7 +70,7 @@ public class WafIntegrationTest extends AwsTestBase {
         if (ipSetId != null) {
             Waiter.run(() -> client.deleteIPSet(r -> r.ipSetId(ipSetId).changeToken(newChangeToken())))
                   .ignoringException(WAFNonEmptyEntityException.class)
-                  .orFail();
+                  .orFailAfter(Duration.ofMinutes(1));
         }
     }
 
