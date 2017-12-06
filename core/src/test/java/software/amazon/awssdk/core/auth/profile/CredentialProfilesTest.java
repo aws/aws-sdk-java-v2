@@ -43,7 +43,7 @@ public class CredentialProfilesTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void loadProfileFromNonExistentFile() {
-        new ProfilesConfigFile(new File("/some/invalid/file/location.txt"));
+        ProfilesConfigFile.create(new File("/some/invalid/file/location.txt"));
     }
 
     /**
@@ -53,7 +53,7 @@ public class CredentialProfilesTest {
      */
     @Test
     public void testTwoProfileWithSameName() throws URISyntaxException {
-        ProfilesConfigFile profile = new ProfilesConfigFile(
+        ProfilesConfigFile profile = ProfilesConfigFile.create(
                 ProfileResourceLoader.profilesWithSameProfileName().asFile());
 
         AwsCredentials defaultCred = profile.getCredentials(DEFAULT_PROFILE_NAME);
@@ -164,7 +164,7 @@ public class CredentialProfilesTest {
      */
     @Test
     public void testProfileWithOtherConfigurations() throws URISyntaxException {
-        ProfilesConfigFile profile = new ProfilesConfigFile(
+        ProfilesConfigFile profile = ProfilesConfigFile.create(
                 ProfileResourceLoader.profilesContainingOtherConfiguration().asFile());
 
         assertNotNull(profile.getCredentials(DEFAULT_PROFILE_NAME));
@@ -181,13 +181,13 @@ public class CredentialProfilesTest {
      */
     @Test
     public void testReadUpdatedProfile() throws URISyntaxException, IOException {
-        ProfilesConfigFile fixture = new ProfilesConfigFile(
+        ProfilesConfigFile fixture = ProfilesConfigFile.create(
                 ProfileResourceLoader.basicProfile().asFile());
         File modifiable = File.createTempFile("UpdatableProfile", ".tst");
         ProfilesConfigFileWriter.dumpToFile(modifiable, true, fixture.getAllProfiles().values()
                                                                      .toArray(new Profile[1]));
 
-        ProfilesConfigFile test = new ProfilesConfigFile(modifiable);
+        ProfilesConfigFile test = ProfilesConfigFile.create(modifiable);
         AwsCredentials orig = test.getCredentials(DEFAULT_PROFILE_NAME);
         assertEquals("defaultAccessKey", orig.accessKeyId());
         assertEquals("defaultSecretAccessKey", orig.secretAccessKey());
@@ -200,7 +200,7 @@ public class CredentialProfilesTest {
         }
 
         Profile newProfile = new Profile(DEFAULT_PROFILE_NAME,
-                                         new AwsCredentials("newAccessKey", "newSecretKey"));
+                                         AwsCredentials.create("newAccessKey", "newSecretKey"));
         ProfilesConfigFileWriter.modifyOneProfile(modifiable, DEFAULT_PROFILE_NAME, newProfile);
 
         test.refresh();
@@ -260,7 +260,7 @@ public class CredentialProfilesTest {
                                         Class<? extends Exception> expectedExceptionClass,
                                         String failureMessage) {
         try {
-            new ProfilesConfigFile(resource.asFile());
+            ProfilesConfigFile.create(resource.asFile());
             fail(failureMessage);
         } catch (Exception e) {
             if (!expectedExceptionClass.isInstance(e)) {
@@ -273,7 +273,7 @@ public class CredentialProfilesTest {
                                         Class<? extends Exception> expectedExceptionClass,
                                         String profileName, String failureMessage) throws
                                                                                    URISyntaxException {
-        ProfilesConfigFile configFile = new ProfilesConfigFile(resource.asFile());
+        ProfilesConfigFile configFile = ProfilesConfigFile.create(resource.asFile());
         try {
             configFile.getCredentials(profileName);
             fail(failureMessage);

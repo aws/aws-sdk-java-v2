@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.retry.v2.RetryPolicy;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;

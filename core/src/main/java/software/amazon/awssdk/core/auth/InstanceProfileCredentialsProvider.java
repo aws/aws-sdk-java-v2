@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.auth;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.internal.CredentialsEndpointProvider;
 import software.amazon.awssdk.core.internal.EC2CredentialsUtils;
@@ -35,21 +34,20 @@ public class InstanceProfileCredentialsProvider implements AwsCredentialsProvide
     private final EC2CredentialsProvider credentialsFetcher;
 
     /**
-     * Create an {@link InstanceProfileCredentialsProvider} using the default configuration. See {@link #builder()} for
-     * customizing the configuration.
-     */
-    @ReviewBeforeRelease("This is inconsistent with client builders. Should this be a static create method?")
-    public InstanceProfileCredentialsProvider() {
-        this(builder());
-    }
-
-    /**
      * @see #builder()
      */
     private InstanceProfileCredentialsProvider(Builder builder) {
         this.credentialsFetcher = new EC2CredentialsProvider(new InstanceMetadataCredentialsEndpointProvider(),
                                                              builder.asyncCredentialUpdateEnabled,
                                                              "instance-profile-credentials-provider");
+    }
+
+    /**
+     * Create an {@link InstanceProfileCredentialsProvider} using the default configuration. See {@link #builder()} for
+     * customizing the configuration.
+     */
+    public static InstanceProfileCredentialsProvider create() {
+        return new InstanceProfileCredentialsProvider(builder());
     }
 
     /**

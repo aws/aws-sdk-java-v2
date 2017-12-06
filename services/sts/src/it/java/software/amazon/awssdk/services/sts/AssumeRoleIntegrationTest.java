@@ -110,7 +110,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
                                                                .policy(new Policy().withStatements(statement).toJson()).build();
 
         STSClient sts = stsClient();
-        Thread.sleep(1000 * 60);
+
         AssumeRoleResponse assumeRoleResult = sts.assumeRole(assumeRoleRequest);
         assertNotNull(assumeRoleResult.assumedRoleUser());
         assertNotNull(assumeRoleResult.assumedRoleUser().arn());
@@ -132,8 +132,8 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
                                               .userName(USER_NAME).policyName("assume-role").build());
         CreateAccessKeyResponse createAccessKeyResult =
                 iam.createAccessKey(CreateAccessKeyRequest.builder().userName(USER_NAME).build());
-        AwsCredentials credentials = new AwsCredentials(createAccessKeyResult.accessKey().accessKeyId(),
+        AwsCredentials credentials = AwsCredentials.create(createAccessKeyResult.accessKey().accessKeyId(),
                                                         createAccessKeyResult.accessKey().secretAccessKey());
-        return STSClient.builder().credentialsProvider(new StaticCredentialsProvider(credentials)).build();
+        return STSClient.builder().credentialsProvider(StaticCredentialsProvider.create(credentials)).build();
     }
 }

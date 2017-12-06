@@ -67,7 +67,7 @@ public class DefaultClientBuilderTest {
             .build();
 
     private static final String ENDPOINT_PREFIX = "prefix";
-    private static final StaticSignerProvider TEST_SIGNER_PROVIDER = new StaticSignerProvider(new Aws4Signer());
+    private static final StaticSignerProvider TEST_SIGNER_PROVIDER = StaticSignerProvider.create(new Aws4Signer());
     private static final URI ENDPOINT = URI.create("https://example.com");
 
     @Mock
@@ -195,7 +195,7 @@ public class DefaultClientBuilderTest {
         BeanInfo beanInfo = Introspector.getBeanInfo(builder.getClass());
         Method[] clientBuilderMethods = ClientBuilder.class.getDeclaredMethods();
 
-        Arrays.stream(clientBuilderMethods).forEach(builderMethod -> {
+        Arrays.stream(clientBuilderMethods).filter(m -> !m.isSynthetic()).forEach(builderMethod -> {
             String propertyName = builderMethod.getName();
 
             Optional<PropertyDescriptor> propertyForMethod =
@@ -218,7 +218,7 @@ public class DefaultClientBuilderTest {
                                            .advancedOption(ENABLE_DEFAULT_REGION_DETECTION, false)
                                            .build();
 
-        return new TestClientBuilder().credentialsProvider(new AnonymousCredentialsProvider())
+        return new TestClientBuilder().credentialsProvider(AnonymousCredentialsProvider.create())
                                       .overrideConfiguration(overrideConfig);
     }
 
@@ -229,7 +229,7 @@ public class DefaultClientBuilderTest {
                                            .advancedOption(ENABLE_DEFAULT_REGION_DETECTION, false)
                                            .build();
 
-        return new TestAsyncClientBuilder().credentialsProvider(new AnonymousCredentialsProvider())
+        return new TestAsyncClientBuilder().credentialsProvider(AnonymousCredentialsProvider.create())
                                            .overrideConfiguration(overrideConfig);
     }
 

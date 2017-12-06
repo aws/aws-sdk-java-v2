@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -44,7 +45,7 @@ public class SubTypeOne implements StructuredPojo, ToCopyableBuilder<SubTypeOne.
     @Override
     public int hashCode() {
         int hashCode = 1;
-        hashCode = 31 * hashCode + ((subTypeOneMember() == null) ? 0 : subTypeOneMember().hashCode());
+        hashCode = 31 * hashCode + Objects.hashCode(subTypeOneMember());
         return hashCode;
     }
 
@@ -60,13 +61,7 @@ public class SubTypeOne implements StructuredPojo, ToCopyableBuilder<SubTypeOne.
             return false;
         }
         SubTypeOne other = (SubTypeOne) obj;
-        if (other.subTypeOneMember() == null ^ this.subTypeOneMember() == null) {
-            return false;
-        }
-        if (other.subTypeOneMember() != null && !other.subTypeOneMember().equals(this.subTypeOneMember())) {
-            return false;
-        }
-        return true;
+        return Objects.equals(subTypeOneMember(), other.subTypeOneMember());
     }
 
     @Override
@@ -138,3 +133,4 @@ public class SubTypeOne implements StructuredPojo, ToCopyableBuilder<SubTypeOne.
         }
     }
 }
+

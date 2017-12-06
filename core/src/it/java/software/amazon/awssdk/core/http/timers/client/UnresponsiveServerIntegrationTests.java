@@ -40,9 +40,7 @@ import software.amazon.awssdk.core.http.UnresponsiveMockServerTestBase;
 import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants;
 import software.amazon.awssdk.core.retry.FixedTimeBackoffStrategy;
-import software.amazon.awssdk.core.retry.PredefinedRetryPolicies;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.core.retry.RetryPolicyAdapter;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
 import utils.HttpTestUtils;
@@ -85,10 +83,10 @@ public class UnresponsiveServerIntegrationTests extends UnresponsiveMockServerTe
     public void interruptCausedBySomethingOtherThanTimer_PropagatesInterruptToCaller() {
         Duration socketTimeout = Duration.ofMillis(100);
 
-        RetryPolicyAdapter retryPolicy = new RetryPolicyAdapter(
-                new RetryPolicy(PredefinedRetryPolicies.DEFAULT_RETRY_CONDITION,
-                                new FixedTimeBackoffStrategy(CLIENT_EXECUTION_TIMEOUT.toMillis()),
-                                1, false));
+        RetryPolicy retryPolicy = RetryPolicy.builder()
+                                             .backoffStrategy(new FixedTimeBackoffStrategy(CLIENT_EXECUTION_TIMEOUT))
+                                             .numRetries(1)
+                                             .build();
 
         ClientOverrideConfiguration overrideConfiguration =
                 ClientOverrideConfiguration.builder()

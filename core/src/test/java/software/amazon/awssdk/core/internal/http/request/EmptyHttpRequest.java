@@ -149,11 +149,6 @@ public class EmptyHttpRequest implements Request<Object> {
     }
 
     @Override
-    public InputStream getContentUnwrapped() {
-        return null;
-    }
-
-    @Override
     public Object getOriginalRequestObject() {
         return new AmazonWebServiceRequest() {
         };

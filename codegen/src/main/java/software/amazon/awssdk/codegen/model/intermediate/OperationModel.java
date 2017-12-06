@@ -41,6 +41,8 @@ public class OperationModel extends DocumentationModel {
 
     private boolean isAuthenticated = true;
 
+    private boolean isPaginated;
+
     @JsonIgnore
     private ShapeModel inputShape;
 
@@ -164,5 +166,18 @@ public class OperationModel extends DocumentationModel {
 
     public boolean hasStreamingOutput() {
         return outputShape != null && outputShape.isHasStreamingMember();
+    }
+
+    @JsonIgnore
+    public boolean isStreaming() {
+        return hasStreamingInput() || hasStreamingOutput();
+    }
+
+    public boolean isPaginated() {
+        return isPaginated;
+    }
+
+    public void setPaginated(boolean paginated) {
+        isPaginated = paginated;
     }
 }

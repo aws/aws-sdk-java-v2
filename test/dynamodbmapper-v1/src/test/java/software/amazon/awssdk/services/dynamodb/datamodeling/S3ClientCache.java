@@ -37,7 +37,7 @@ public class S3ClientCache {
 
     @Deprecated
     S3ClientCache(AwsCredentials credentials) {
-        this(new StaticCredentialsProvider(credentials));
+        this(StaticCredentialsProvider.create(credentials));
     }
 
     /**

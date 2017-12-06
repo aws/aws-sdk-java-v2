@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.core.http.pipeline.stages;
 
-import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishProgress;
-
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.AmazonServiceException;
@@ -28,15 +28,13 @@ import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkBaseException;
 import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.SdkStandardLoggers;
-import software.amazon.awssdk.core.event.ProgressEventType;
-import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.core.http.HttpClientDependencies;
 import software.amazon.awssdk.core.http.InterruptMonitor;
 import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.http.pipeline.RequestToResponsePipeline;
 import software.amazon.awssdk.core.retry.RetryHandler;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.RetryUtils;
-import software.amazon.awssdk.core.retry.v2.RetryPolicy;
 import software.amazon.awssdk.core.util.CapacityManager;
 import software.amazon.awssdk.core.util.ClockSkewUtil;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -88,7 +86,6 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
 
         private final SdkHttpFullRequest request;
         private final RequestExecutionContext context;
-        private final ProgressListener progressListener;
         private final RetryHandler retryHandler;
 
         private int requestCount = 0;
@@ -96,7 +93,6 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
         private RetryExecutor(SdkHttpFullRequest request, RequestExecutionContext context) {
             this.request = request;
             this.context = context;
-            this.progressListener = context.requestConfig().getProgressListener();
             this.retryHandler = new RetryHandler(retryPolicy, retryCapacity);
         }
 
@@ -130,7 +126,7 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
         private Response<OutputT> doExecute() throws Exception {
             if (retryHandler.isRetry()) {
                 request.content().ifPresent(RetryableStage::resetRequestInputStream);
-                pauseBeforeRetry();
+                doPauseBeforeRetry();
             }
 
             request.content().ifPresent(this::markInputStream);
@@ -191,25 +187,16 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
         }
 
         /**
-         * Pause before the next retry and record progress around retry behavior.
-         */
-        private void pauseBeforeRetry() throws InterruptedException {
-            // Notify the progress listener of the retry
-            publishProgress(progressListener, ProgressEventType.CLIENT_REQUEST_RETRY_EVENT);
-            doPauseBeforeRetry();
-        }
-
-        /**
          * Sleep for a period of time on failed request to avoid flooding a service with retries.
          */
         private void doPauseBeforeRetry() throws InterruptedException {
             final int retriesAttempted = requestCount - 2;
-            long delay = retryHandler.computeDelayBeforeNextRetry();
+            Duration delay = retryHandler.computeDelayBeforeNextRetry();
 
             if (log.isDebugEnabled()) {
                 log.debug("Retriable error detected, " + "will retry in " + delay + "ms, attempt number: " + retriesAttempted);
             }
-            Thread.sleep(delay);
+            TimeUnit.MILLISECONDS.sleep(delay.toMillis());
         }
     }
 }

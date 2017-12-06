@@ -36,17 +36,14 @@ import software.amazon.awssdk.core.http.pipeline.stages.BeforeTransmissionExecut
 import software.amazon.awssdk.core.http.pipeline.stages.BeforeUnmarshallingExecutionInterceptorsStage;
 import software.amazon.awssdk.core.http.pipeline.stages.ClientExecutionTimedStage;
 import software.amazon.awssdk.core.http.pipeline.stages.ExecutionFailureExceptionReportingStage;
-import software.amazon.awssdk.core.http.pipeline.stages.FailureProgressPublishingStage;
 import software.amazon.awssdk.core.http.pipeline.stages.HandleResponseStage;
 import software.amazon.awssdk.core.http.pipeline.stages.HttpResponseAdaptingStage;
-import software.amazon.awssdk.core.http.pipeline.stages.InstrumentHttpResponseContentStage;
 import software.amazon.awssdk.core.http.pipeline.stages.MakeHttpRequestStage;
 import software.amazon.awssdk.core.http.pipeline.stages.MakeRequestImmutable;
 import software.amazon.awssdk.core.http.pipeline.stages.MakeRequestMutable;
 import software.amazon.awssdk.core.http.pipeline.stages.MergeCustomHeadersStage;
 import software.amazon.awssdk.core.http.pipeline.stages.MergeCustomQueryParamsStage;
 import software.amazon.awssdk.core.http.pipeline.stages.MoveParametersToBodyStage;
-import software.amazon.awssdk.core.http.pipeline.stages.ReportRequestContentLengthStage;
 import software.amazon.awssdk.core.http.pipeline.stages.RetryableStage;
 import software.amazon.awssdk.core.http.pipeline.stages.SigningStage;
 import software.amazon.awssdk.core.http.pipeline.stages.TimerExceptionHandlingStage;
@@ -56,7 +53,7 @@ import software.amazon.awssdk.core.internal.AmazonWebServiceRequestAdapter;
 import software.amazon.awssdk.core.internal.http.response.AwsErrorResponseHandler;
 import software.amazon.awssdk.core.internal.http.response.AwsResponseHandlerAdapter;
 import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
-import software.amazon.awssdk.core.retry.v2.RetryPolicy;
+import software.amazon.awssdk.core.retry.SdkDefaultRetrySettings;
 import software.amazon.awssdk.core.util.CapacityManager;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -82,7 +79,7 @@ public class AmazonHttpClient implements SdkAutoCloseable {
     private CapacityManager createCapacityManager() {
         // When enabled, total retry capacity is computed based on retry cost and desired number of retries.
         // TODO: Allow customers to configure throttled retries (https://github.com/aws/aws-sdk-java-v2/issues/17)
-        return new CapacityManager(RetryPolicy.THROTTLED_RETRY_COST * RetryPolicy.THROTTLED_RETRIES);
+        return new CapacityManager(SdkDefaultRetrySettings.RETRY_THROTTLING_COST * SdkDefaultRetrySettings.THROTTLED_RETRIES);
     }
 
     /**
@@ -302,21 +299,18 @@ public class AmazonHttpClient implements SdkAutoCloseable {
                                 .then(MoveParametersToBodyStage::new)
                                 .then(MakeRequestImmutable::new)
                                 // End of mutating request
-                                .then(ReportRequestContentLengthStage::new)
                                 .then(RequestPipelineBuilder
                                           .firstSync(SigningStage::new)
                                           .then(BeforeTransmissionExecutionInterceptorsStage::new)
                                           .then(MakeHttpRequestStage::new)
                                           .then(AfterTransmissionExecutionInterceptorsStage::new)
                                           .then(HttpResponseAdaptingStage::new)
-                                          .then(InstrumentHttpResponseContentStage::new)
                                           .then(BeforeUnmarshallingExecutionInterceptorsStage::new)
                                           .then(() -> new HandleResponseStage<>(getNonNullResponseHandler(responseHandler),
                                                                                 getNonNullResponseHandler(errorResponseHandler)))
                                           .wrap(TimerExceptionHandlingStage::new)
                                           .wrap(RetryableStage::new)::build)
                                 .wrap(StreamManagingStage::new)
-                                .wrap(FailureProgressPublishingStage::new)
                                 .wrap(ClientExecutionTimedStage::new)::build)
                         .then(() -> new UnwrapResponseContainer<>())
                         .then(() -> new AfterExecutionInterceptorsStage<>())

@@ -31,7 +31,6 @@ import software.amazon.awssdk.core.AmazonWebServiceRequest;
 import software.amazon.awssdk.core.RequestClientOptions;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.core.event.ProgressListener;
 import utils.model.EmptyAmazonWebServiceRequest;
 
 public class AmazonWebServiceRequestAdapterTest {
@@ -110,16 +109,6 @@ public class AmazonWebServiceRequestAdapterTest {
     }
 
     @Test
-    public void customProgressListenerSetInBaseRequest_IsSetOnAdapter() {
-        EmptyAmazonWebServiceRequest request = new EmptyAmazonWebServiceRequest();
-        ProgressListener listener = mock(ProgressListener.class);
-        request.setGeneralProgressListener(listener);
-        AmazonWebServiceRequestAdapter adapter = new AmazonWebServiceRequestAdapter(request);
-
-        assertEquals(listener, adapter.getProgressListener());
-    }
-
-    @Test
     public void customCredentialsProviderSetInBaseRequest_IsSetOnAdapter() {
         EmptyAmazonWebServiceRequest request = new EmptyAmazonWebServiceRequest();
         AwsCredentialsProvider credentialsProvider = mock(AwsCredentialsProvider.class);
@@ -132,7 +121,7 @@ public class AmazonWebServiceRequestAdapterTest {
     @Test
     public void customCredentialsSetInBaseRequest_IsSetOnAdapter() {
         EmptyAmazonWebServiceRequest request = new EmptyAmazonWebServiceRequest();
-        AwsCredentials credentials = new AwsCredentials("akid", "skid");
+        AwsCredentials credentials = AwsCredentials.create("akid", "skid");
         request.setRequestCredentials(credentials);
         AmazonWebServiceRequestAdapter adapter = new AmazonWebServiceRequestAdapter(request);
 

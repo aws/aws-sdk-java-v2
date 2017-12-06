@@ -1,6 +1,7 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.nio.ByteBuffer;
+import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -50,7 +51,7 @@ public class StructWithNestedBlobType implements StructuredPojo,
     @Override
     public int hashCode() {
         int hashCode = 1;
-        hashCode = 31 * hashCode + ((nestedBlob() == null) ? 0 : nestedBlob().hashCode());
+        hashCode = 31 * hashCode + Objects.hashCode(nestedBlob());
         return hashCode;
     }
 
@@ -66,13 +67,7 @@ public class StructWithNestedBlobType implements StructuredPojo,
             return false;
         }
         StructWithNestedBlobType other = (StructWithNestedBlobType) obj;
-        if (other.nestedBlob() == null ^ this.nestedBlob() == null) {
-            return false;
-        }
-        if (other.nestedBlob() != null && !other.nestedBlob().equals(this.nestedBlob())) {
-            return false;
-        }
-        return true;
+        return Objects.equals(nestedBlob(), other.nestedBlob());
     }
 
     @Override
@@ -148,3 +143,4 @@ public class StructWithNestedBlobType implements StructuredPojo,
         }
     }
 }
+

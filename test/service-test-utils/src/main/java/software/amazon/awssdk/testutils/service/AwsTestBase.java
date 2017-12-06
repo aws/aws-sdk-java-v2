@@ -39,8 +39,8 @@ public abstract class AwsTestBase {
                                    .credentialsProviders(ProfileCredentialsProvider.builder()
                                                                                    .profileName(TEST_CREDENTIALS_PROFILE_NAME)
                                                                                    .build(),
-                                                         new SystemPropertyCredentialsProvider(),
-                                                         new EnvironmentVariableCredentialsProvider())
+                                                         SystemPropertyCredentialsProvider.create(),
+                                                         EnvironmentVariableCredentialsProvider.create())
                                    .build();
 
     /**

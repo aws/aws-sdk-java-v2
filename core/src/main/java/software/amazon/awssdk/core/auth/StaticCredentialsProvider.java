@@ -25,11 +25,15 @@ import software.amazon.awssdk.utils.Validate;
 public class StaticCredentialsProvider implements AwsCredentialsProvider {
     private final AwsCredentials credentials;
 
+    private StaticCredentialsProvider(AwsCredentials credentials) {
+        this.credentials = Validate.notNull(credentials, "Credentials must not be null.");
+    }
+
     /**
      * Create a credentials provider that always returns the provided set of credentials.
      */
-    public StaticCredentialsProvider(AwsCredentials credentials) {
-        this.credentials = Validate.notNull(credentials, "Credentials must not be null.");
+    public static StaticCredentialsProvider create(AwsCredentials credentials) {
+        return new StaticCredentialsProvider(credentials);
     }
 
     @Override

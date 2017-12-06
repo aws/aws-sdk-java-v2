@@ -25,7 +25,6 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.core.event.ProgressListener;
 
 /**
  * Base class for all user facing web service requests.
@@ -40,10 +39,6 @@ public abstract class AmazonWebServiceRequest extends SdkRequest implements Clon
      * intended to be used by clients.
      */
     private final RequestClientOptions requestClientOptions = new RequestClientOptions();
-    /**
-     * The optional progress listener for receiving updates about the progress of the request.
-     */
-    private ProgressListener progressListener = ProgressListener.NOOP;
 
     /**
      * The optional credentials to use for this request - overrides the default credentials set at
@@ -78,7 +73,7 @@ public abstract class AmazonWebServiceRequest extends SdkRequest implements Clon
      */
     @Deprecated
     public void setRequestCredentials(AwsCredentials credentials) {
-        this.credentialsProvider = credentials == null ? null : new StaticCredentialsProvider(credentials);
+        this.credentialsProvider = credentials == null ? null : StaticCredentialsProvider.create(credentials);
     }
 
     /**
@@ -111,42 +106,6 @@ public abstract class AmazonWebServiceRequest extends SdkRequest implements Clon
      */
     public RequestClientOptions getRequestClientOptions() {
         return requestClientOptions;
-    }
-
-    /**
-     * Returns the optional progress listener for receiving updates about the progress of the
-     * request.
-     *
-     * @return the optional progress listener for receiving updates about the progress of the
-     *         request.
-     */
-    public ProgressListener getGeneralProgressListener() {
-        return progressListener;
-    }
-
-    /**
-     * Sets the optional progress listener for receiving updates about the progress of the request.
-     *
-     * @param progressListener
-     *            The new progress listener.
-     */
-    public void setGeneralProgressListener(ProgressListener progressListener) {
-        this.progressListener = progressListener == null ? ProgressListener.NOOP : progressListener;
-    }
-
-    /**
-     * Sets the optional progress listener for receiving updates about the progress of the request,
-     * and returns a reference to this object so that method calls can be chained together.
-     *
-     * @param progressListener
-     *            The new progress listener.
-     * @return A reference to this updated object so that method calls can be chained together.
-     */
-    public <T extends AmazonWebServiceRequest> T withGeneralProgressListener(ProgressListener progressListener) {
-        setGeneralProgressListener(progressListener);
-        @SuppressWarnings("unchecked")
-        T t = (T) this;
-        return t;
     }
 
     /**
@@ -249,7 +208,6 @@ public abstract class AmazonWebServiceRequest extends SdkRequest implements Clon
         }
 
         target.setRequestCredentialsProvider(credentialsProvider);
-        target.setGeneralProgressListener(progressListener);
         requestClientOptions.copyTo(target.getRequestClientOptions());
         return target;
     }

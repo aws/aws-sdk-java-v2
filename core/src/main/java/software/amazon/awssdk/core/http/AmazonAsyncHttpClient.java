@@ -20,6 +20,7 @@ import static software.amazon.awssdk.core.http.pipeline.RequestPipelineBuilder.a
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.RequestConfig;
 import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.SdkBaseException;
@@ -38,11 +39,10 @@ import software.amazon.awssdk.core.http.pipeline.stages.MakeRequestMutable;
 import software.amazon.awssdk.core.http.pipeline.stages.MergeCustomHeadersStage;
 import software.amazon.awssdk.core.http.pipeline.stages.MergeCustomQueryParamsStage;
 import software.amazon.awssdk.core.http.pipeline.stages.MoveParametersToBodyStage;
-import software.amazon.awssdk.core.http.pipeline.stages.ReportRequestContentLengthStage;
 import software.amazon.awssdk.core.http.pipeline.stages.SigningStage;
 import software.amazon.awssdk.core.http.pipeline.stages.UnwrapResponseContainer;
 import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
-import software.amazon.awssdk.core.retry.v2.RetryPolicy;
+import software.amazon.awssdk.core.retry.SdkDefaultRetrySettings;
 import software.amazon.awssdk.core.util.CapacityManager;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
@@ -65,7 +65,7 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
     private CapacityManager createCapacityManager() {
         // When enabled, total retry capacity is computed based on retry cost and desired number of retries.
         // TODO: Allow customers to configure throttled retries (https://github.com/aws/aws-sdk-java-v2/issues/17)
-        return new CapacityManager(RetryPolicy.THROTTLED_RETRY_COST * RetryPolicy.THROTTLED_RETRIES);
+        return new CapacityManager(SdkDefaultRetrySettings.RETRY_THROTTLING_COST * SdkDefaultRetrySettings.THROTTLED_RETRIES);
     }
 
     /**
@@ -195,7 +195,6 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                 .then(MergeCustomQueryParamsStage::new)
                                 .then(MoveParametersToBodyStage::new)
                                 .then(MakeRequestImmutable::new)
-                                .then(ReportRequestContentLengthStage::new)
                                 .then(RequestPipelineBuilder
                                       .firstAsync(SigningStage::new)
                                       .then(BeforeTransmissionExecutionInterceptorsStage::new)

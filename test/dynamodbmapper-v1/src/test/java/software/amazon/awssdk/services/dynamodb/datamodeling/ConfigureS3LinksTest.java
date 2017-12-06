@@ -31,7 +31,7 @@ public class ConfigureS3LinksTest {
 
     @Before
     public void setUp() throws Exception {
-        s3cc = new S3ClientCache(new AwsCredentials("mock", "mock"));
+        s3cc = new S3ClientCache(AwsCredentials.create("mock", "mock"));
     }
 
     @Test

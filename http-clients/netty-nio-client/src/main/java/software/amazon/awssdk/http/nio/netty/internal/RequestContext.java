@@ -28,17 +28,20 @@ public final class RequestContext {
     private final SdkHttpRequestProvider requestProvider;
     private final HttpRequest nettyRequest;
     private final SdkHttpResponseHandler handler;
+    private final NettyConfiguration configuration;
 
     public RequestContext(ChannelPool channelPool,
                           SdkHttpRequest sdkRequest,
                           SdkHttpRequestProvider requestProvider,
                           HttpRequest nettyRequest,
-                          SdkHttpResponseHandler handler) {
+                          SdkHttpResponseHandler handler,
+                          NettyConfiguration configuration) {
         this.channelPool = channelPool;
         this.sdkRequest = sdkRequest;
         this.requestProvider = requestProvider;
         this.nettyRequest = nettyRequest;
         this.handler = handler;
+        this.configuration = configuration;
     }
 
     SdkHttpResponseHandler handler() {
@@ -59,5 +62,9 @@ public final class RequestContext {
 
     HttpRequest nettyRequest() {
         return nettyRequest;
+    }
+
+    NettyConfiguration configuration() {
+        return configuration;
     }
 }

@@ -51,10 +51,12 @@ abstract class OperationDocProvider {
 
     protected final IntermediateModel model;
     protected final OperationModel opModel;
+    protected final PaginationDocs paginationDocs;
 
     OperationDocProvider(IntermediateModel model, OperationModel opModel) {
         this.model = model;
         this.opModel = opModel;
+        this.paginationDocs = new PaginationDocs(model, opModel);
     }
 
     /**
@@ -62,11 +64,17 @@ abstract class OperationDocProvider {
      */
     String getDocs() {
         DocumentationBuilder docBuilder = new DocumentationBuilder();
-        if (StringUtils.isNotBlank(opModel.getDocumentation())) {
-            docBuilder.description(opModel.getDocumentation());
-        } else {
-            docBuilder.description(getDefaultServiceDocs());
-        }
+
+        String description = StringUtils.isNotBlank(opModel.getDocumentation()) ?
+                             opModel.getDocumentation() :
+                             getDefaultServiceDocs();
+
+        String appendedDescription = appendToDescription();
+
+        docBuilder.description(StringUtils.isNotBlank(appendedDescription) ?
+                               description + "<br/>" + appendedDescription :
+                               description);
+
         applyParams(docBuilder);
         applyReturns(docBuilder);
         applyThrows(docBuilder);
@@ -77,6 +85,13 @@ abstract class OperationDocProvider {
             docBuilder.see(crosslink);
         }
         return docBuilder.build().replace("$", "&#36");
+    }
+
+    /**
+     * @return A string that will be appended to the standard description.
+     */
+    protected String appendToDescription() {
+        return "";
     }
 
     /**

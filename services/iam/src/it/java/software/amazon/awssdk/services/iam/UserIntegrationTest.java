@@ -36,7 +36,6 @@ import software.amazon.awssdk.services.iam.model.User;
  * Integration tests of the user APIs of IAM.
  */
 public class UserIntegrationTest extends IntegrationTestBase {
-
     @Before
     public void PreTestRun() {
         IAMUtil.deleteUsersAndGroupsInTestNameSpace();

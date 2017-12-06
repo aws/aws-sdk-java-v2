@@ -43,6 +43,7 @@ import software.amazon.awssdk.core.config.SyncClientConfiguration;
 import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.internal.auth.NoOpSignerProvider;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -55,7 +56,7 @@ public class SyncClientHandlerImplTest {
     @Mock
     private AwsCredentialsProvider credentialsProvider;
 
-    private AwsCredentials awsCredentials = new AwsCredentials("public", "private");
+    private AwsCredentials awsCredentials = AwsCredentials.create("public", "private");
 
     @Mock
     private AmazonWebServiceRequest request;
@@ -150,6 +151,7 @@ public class SyncClientHandlerImplTest {
         mutableClientConfiguration.overrideConfiguration(
             ClientOverrideConfiguration.builder()
                                        .advancedOption(AdvancedClientOption.SIGNER_PROVIDER, new NoOpSignerProvider())
+                                       .retryPolicy(RetryPolicy.NONE)
                                        .build());
 
         new GlobalClientConfigurationDefaults().applySyncDefaults(mutableClientConfiguration);

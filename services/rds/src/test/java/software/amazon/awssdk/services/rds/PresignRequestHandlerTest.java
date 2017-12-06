@@ -45,7 +45,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  * Unit Tests for {@link RdsPresignInterceptor}
  */
 public class PresignRequestHandlerTest {
-    private static final AwsCredentials CREDENTIALS = new AwsCredentials("foo", "bar");
+    private static final AwsCredentials CREDENTIALS = AwsCredentials.create("foo", "bar");
     private static final Region DESTINATION_REGION = Region.of("us-west-2");
 
     private static RdsPresignInterceptor<CopyDBSnapshotRequest> presignInterceptor = new CopyDbSnapshotPresignInterceptor();

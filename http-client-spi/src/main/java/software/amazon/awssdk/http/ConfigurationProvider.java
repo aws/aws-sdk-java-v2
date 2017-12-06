@@ -16,10 +16,12 @@
 package software.amazon.awssdk.http;
 
 import java.util.Optional;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 /**
  * Interface to provide read only access to the configuration of the {@link SdkHttpClient}.
  */
+@ReviewBeforeRelease("Do we really need this?")
 public interface ConfigurationProvider {
 
     /**

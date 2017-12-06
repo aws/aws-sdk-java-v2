@@ -35,22 +35,10 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * @see InstanceProfileCredentialsProvider
  */
 public class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
-    /**
-     * As a minor optimization, we reuse the same underlying provider chain for all calls to
-     * {@link #DefaultCredentialsProvider()}. This is done because we reuse this chain in every client by default, and reusing
-     * the caches for all of the underlying providers feels worth the small complication of this reuse.
-     */
-    private static final AwsCredentialsProviderChain DEFAULT_PROVIDER_CHAIN = createChain(new Builder());
+
+    private static final DefaultCredentialsProvider DEFAULT_CREDENTIALS_PROVIDER = new DefaultCredentialsProvider(builder());
 
     private final AwsCredentialsProviderChain providerChain;
-
-    /**
-     * Create an instance of the {@link DefaultCredentialsProvider} using the default configuration. Configuration can be
-     * specified by creating an instance using the {@link #builder()}.
-     */
-    public DefaultCredentialsProvider() {
-        this.providerChain = DEFAULT_PROVIDER_CHAIN;
-    }
 
     /**
      * @see #builder()
@@ -60,13 +48,21 @@ public class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAu
     }
 
     /**
+     * Create an create of the {@link DefaultCredentialsProvider} using the default configuration. Configuration can be
+     * specified by creating an create using the {@link #builder()}.
+     */
+    public static DefaultCredentialsProvider create() {
+        return DEFAULT_CREDENTIALS_PROVIDER;
+    }
+
+    /**
      * Create the default credential chain using the configuration in the provided builder.
      */
     private static AwsCredentialsProviderChain createChain(Builder builder) {
         AwsCredentialsProvider[] credentialsProviders = new AwsCredentialsProvider[] {
-                new SystemPropertyCredentialsProvider(),
-                new EnvironmentVariableCredentialsProvider(),
-                new ProfileCredentialsProvider(),
+                SystemPropertyCredentialsProvider.create(),
+                EnvironmentVariableCredentialsProvider.create(),
+                ProfileCredentialsProvider.create(),
                 ElasticContainerCredentialsProvider.builder()
                                                    .asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled)
                                                    .build(),

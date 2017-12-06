@@ -72,8 +72,8 @@ class EC2CredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable
             Validate.notNull(secretKey, "Failed to load secret key.");
 
             AwsCredentials credentials =
-                    token == null ? new AwsCredentials(accessKey.asText(), secretKey.asText())
-                                  : new AwsSessionCredentials(accessKey.asText(), secretKey.asText(), token.asText());
+                    token == null ? AwsCredentials.create(accessKey.asText(), secretKey.asText())
+                                  : AwsSessionCredentials.create(accessKey.asText(), secretKey.asText(), token.asText());
 
             Instant expiration = getExpiration(expirationNode).orElse(null);
             if (expiration != null && Instant.now().isAfter(expiration)) {

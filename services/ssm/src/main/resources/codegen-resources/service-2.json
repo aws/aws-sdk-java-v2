@@ -26,7 +26,7 @@
         {"shape":"InternalServerError"},
         {"shape":"TooManyTagsError"}
       ],
-      "documentation":"<p>Adds or overwrites one or more tags for the specified resource. Tags are metadata that you assign to your managed instances, Maintenance Windows, or Parameter Store parameters. Tags enable you to categorize your resources in different ways, for example, by purpose, owner, or environment. Each tag consists of a key and an optional value, both of which you define. For example, you could define a set of tags for your account's managed instances that helps you track each instance's owner and stack level. For example: Key=Owner and Value=DbAdmin, SysAdmin, or Dev. Or Key=Stack and Value=Production, Pre-Production, or Test.</p> <p>Each resource can have a maximum of 10 tags. </p> <p>We recommend that you devise a set of tag keys that meets your needs for each resource type. Using a consistent set of tag keys makes it easier for you to manage your resources. You can search and filter the resources based on the tags you add. Tags don't have any semantic meaning to Amazon EC2 and are interpreted strictly as a string of characters. </p> <p>For more information about tags, see <a href=\"http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html\">Tagging Your Amazon EC2 Resources</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+      "documentation":"<p>Adds or overwrites one or more tags for the specified resource. Tags are metadata that you can assign to your documents, managed instances, Maintenance Windows, Parameter Store parameters, and patch baselines. Tags enable you to categorize your resources in different ways, for example, by purpose, owner, or environment. Each tag consists of a key and an optional value, both of which you define. For example, you could define a set of tags for your account's managed instances that helps you track each instance's owner and stack level. For example: Key=Owner and Value=DbAdmin, SysAdmin, or Dev. Or Key=Stack and Value=Production, Pre-Production, or Test.</p> <p>Each resource can have a maximum of 10 tags. </p> <p>We recommend that you devise a set of tag keys that meets your needs for each resource type. Using a consistent set of tag keys makes it easier for you to manage your resources. You can search and filter the resources based on the tags you add. Tags don't have any semantic meaning to Amazon EC2 and are interpreted strictly as a string of characters. </p> <p>For more information about tags, see <a href=\"http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html\">Tagging Your Amazon EC2 Resources</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "CancelCommand":{
       "name":"CancelCommand",
@@ -151,6 +151,22 @@
       ],
       "documentation":"<p>Creates a patch baseline.</p>"
     },
+    "CreateResourceDataSync":{
+      "name":"CreateResourceDataSync",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateResourceDataSyncRequest"},
+      "output":{"shape":"CreateResourceDataSyncResult"},
+      "errors":[
+        {"shape":"InternalServerError"},
+        {"shape":"ResourceDataSyncCountExceededException"},
+        {"shape":"ResourceDataSyncAlreadyExistsException"},
+        {"shape":"ResourceDataSyncInvalidConfigurationException"}
+      ],
+      "documentation":"<p>Creates a resource data sync configuration to a single bucket in Amazon S3. This is an asynchronous operation that returns immediately. After a successful initial sync is completed, the system continuously syncs data to the Amazon S3 bucket. To check the status of the sync, use the <a>ListResourceDataSync</a>.</p> <p>By default, data is not encrypted in Amazon S3. We strongly recommend that you enable encryption in Amazon S3 to ensure secure data storage. We also recommend that you secure access to the Amazon S3 bucket by creating a restrictive bucket policy. To view an example of a restrictive Amazon S3 bucket policy for Resource Data Sync, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-inventory-configuring.html#sysman-inventory-datasync\">Configuring Resource Data Sync for Inventory</a>.</p>"
+    },
     "DeleteActivation":{
       "name":"DeleteActivation",
       "http":{
@@ -162,7 +178,8 @@
       "errors":[
         {"shape":"InvalidActivationId"},
         {"shape":"InvalidActivation"},
-        {"shape":"InternalServerError"}
+        {"shape":"InternalServerError"},
+        {"shape":"TooManyUpdates"}
       ],
       "documentation":"<p>Deletes an activation. You are not required to delete an activation. If you delete an activation, you can no longer use it to register additional managed instances. Deleting an activation does not de-register managed instances. You must manually de-register managed instances.</p>"
     },
@@ -237,7 +254,7 @@
       "errors":[
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Delete a list of parameters.</p>"
+      "documentation":"<p>Delete a list of parameters. This API is used to delete parameters by using the Amazon EC2 console.</p>"
     },
     "DeletePatchBaseline":{
       "name":"DeletePatchBaseline",
@@ -252,6 +269,20 @@
         {"shape":"InternalServerError"}
       ],
       "documentation":"<p>Deletes a patch baseline.</p>"
+    },
+    "DeleteResourceDataSync":{
+      "name":"DeleteResourceDataSync",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteResourceDataSyncRequest"},
+      "output":{"shape":"DeleteResourceDataSyncResult"},
+      "errors":[
+        {"shape":"InternalServerError"},
+        {"shape":"ResourceDataSyncNotFoundException"}
+      ],
+      "documentation":"<p>Deletes a Resource Data Sync configuration. After the configuration is deleted, changes to inventory data on managed instances are no longer synced with the target Amazon S3 bucket. Deleting a sync configuration does not delete data in the target Amazon S3 bucket.</p>"
     },
     "DeregisterManagedInstance":{
       "name":"DeregisterManagedInstance",
@@ -291,7 +322,8 @@
       "output":{"shape":"DeregisterTargetFromMaintenanceWindowResult"},
       "errors":[
         {"shape":"DoesNotExistException"},
-        {"shape":"InternalServerError"}
+        {"shape":"InternalServerError"},
+        {"shape":"TargetInUseException"}
       ],
       "documentation":"<p>Removes a target from a Maintenance Window.</p>"
     },
@@ -334,11 +366,12 @@
       "output":{"shape":"DescribeAssociationResult"},
       "errors":[
         {"shape":"AssociationDoesNotExist"},
+        {"shape":"InvalidAssociationVersion"},
         {"shape":"InternalServerError"},
         {"shape":"InvalidDocument"},
         {"shape":"InvalidInstanceId"}
       ],
-      "documentation":"<p>Describes the associations for the specified Systems Manager document or instance.</p>"
+      "documentation":"<p>Describes the association for the specified target or instance. If you created the association by using the <code>Targets</code> parameter, then you must retrieve the association by using the association ID. If you created the association by specifying an instance ID and a Systems Manager document, then you retrieve the association by specifying the document name and the instance ID. </p>"
     },
     "DescribeAutomationExecutions":{
       "name":"DescribeAutomationExecutions",
@@ -380,7 +413,7 @@
         {"shape":"InvalidDocument"},
         {"shape":"InvalidDocumentVersion"}
       ],
-      "documentation":"<p>Describes the specified SSM document.</p>"
+      "documentation":"<p>Describes the specified Systems Manager document.</p>"
     },
     "DescribeDocumentPermission":{
       "name":"DescribeDocumentPermission",
@@ -423,9 +456,10 @@
       "errors":[
         {"shape":"InvalidResourceId"},
         {"shape":"DoesNotExistException"},
+        {"shape":"UnsupportedOperatingSystem"},
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Retrieves the current effective patches (the patch and the approval state) for the specified patch baseline.</p>"
+      "documentation":"<p>Retrieves the current effective patches (the patch and the approval state) for the specified patch baseline. Note that this API applies only to Windows patch baselines.</p>"
     },
     "DescribeInstanceAssociationsStatus":{
       "name":"DescribeInstanceAssociationsStatus",
@@ -543,7 +577,7 @@
       "errors":[
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Lists the executions of a Maintenance Window (meaning, information about when the Maintenance Window was scheduled to be active and information about tasks registered and run with the Maintenance Window).</p>"
+      "documentation":"<p>Lists the executions of a Maintenance Window. This includes information about when the Maintenance Window was scheduled to be active, and information about tasks registered and run with the Maintenance Window.</p>"
     },
     "DescribeMaintenanceWindowTargets":{
       "name":"DescribeMaintenanceWindowTargets",
@@ -601,7 +635,7 @@
         {"shape":"InvalidFilterValue"},
         {"shape":"InvalidNextToken"}
       ],
-      "documentation":"<p>Get information about a parameter.</p>"
+      "documentation":"<p>Get information about a parameter.</p> <p>Request results are returned on a best-effort basis. If you specify <code>MaxResults</code> in the request, the response includes information up to the limit specified. The number of items returned, however, can be between zero and the value of <code>MaxResults</code>. If the service reaches an internal limit while processing the results, it stops the operation and returns the matching values up to that point and a <code>NextToken</code>. You can specify the <code>NextToken</code> in a subsequent call to get the next set of results.</p>"
     },
     "DescribePatchBaselines":{
       "name":"DescribePatchBaselines",
@@ -685,7 +719,7 @@
       "errors":[
         {"shape":"InternalServerError"}
       ],
-      "documentation":"<p>Retrieves the default patch baseline.</p>"
+      "documentation":"<p>Retrieves the default patch baseline. Note that Systems Manager supports creating multiple default patch baselines. For example, you can create a default patch baseline for each operating system.</p>"
     },
     "GetDeployablePatchSnapshotForInstance":{
       "name":"GetDeployablePatchSnapshotForInstance",
@@ -696,9 +730,10 @@
       "input":{"shape":"GetDeployablePatchSnapshotForInstanceRequest"},
       "output":{"shape":"GetDeployablePatchSnapshotForInstanceResult"},
       "errors":[
-        {"shape":"InternalServerError"}
+        {"shape":"InternalServerError"},
+        {"shape":"UnsupportedOperatingSystem"}
       ],
-      "documentation":"<p>Retrieves the current snapshot for the patch baseline the instance uses. This API is primarily used by the AWS-ApplyPatchBaseline Systems Manager document. </p>"
+      "documentation":"<p>Retrieves the current snapshot for the patch baseline the instance uses. This API is primarily used by the AWS-RunPatchBaseline Systems Manager document. </p>"
     },
     "GetDocument":{
       "name":"GetDocument",
@@ -713,7 +748,7 @@
         {"shape":"InvalidDocument"},
         {"shape":"InvalidDocumentVersion"}
       ],
-      "documentation":"<p>Gets the contents of the specified SSM document.</p>"
+      "documentation":"<p>Gets the contents of the specified Systems Manager document.</p>"
     },
     "GetInventory":{
       "name":"GetInventory",
@@ -789,6 +824,34 @@
       ],
       "documentation":"<p>Retrieves the details about a specific task executed as part of a Maintenance Window execution.</p>"
     },
+    "GetMaintenanceWindowExecutionTaskInvocation":{
+      "name":"GetMaintenanceWindowExecutionTaskInvocation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetMaintenanceWindowExecutionTaskInvocationRequest"},
+      "output":{"shape":"GetMaintenanceWindowExecutionTaskInvocationResult"},
+      "errors":[
+        {"shape":"DoesNotExistException"},
+        {"shape":"InternalServerError"}
+      ],
+      "documentation":"<p>Retrieves a task invocation. A task invocation is a specific task executing on a specific target. Maintenance Windows report status for all invocations. </p>"
+    },
+    "GetMaintenanceWindowTask":{
+      "name":"GetMaintenanceWindowTask",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetMaintenanceWindowTaskRequest"},
+      "output":{"shape":"GetMaintenanceWindowTaskResult"},
+      "errors":[
+        {"shape":"DoesNotExistException"},
+        {"shape":"InternalServerError"}
+      ],
+      "documentation":"<p>Lists the tasks in a Maintenance Window.</p>"
+    },
     "GetParameter":{
       "name":"GetParameter",
       "http":{
@@ -800,7 +863,8 @@
       "errors":[
         {"shape":"InternalServerError"},
         {"shape":"InvalidKeyId"},
-        {"shape":"ParameterNotFound"}
+        {"shape":"ParameterNotFound"},
+        {"shape":"ParameterVersionNotFound"}
       ],
       "documentation":"<p>Get information about a parameter by using the parameter name. </p>"
     },
@@ -850,7 +914,7 @@
         {"shape":"InvalidKeyId"},
         {"shape":"InvalidNextToken"}
       ],
-      "documentation":"<p>Retrieve parameters in a specific hierarchy. For more information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-working-path.html\">Using Parameter Hierarchies</a>. </p>"
+      "documentation":"<p>Retrieve parameters in a specific hierarchy. For more information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-working.html\">Working with Systems Manager Parameters</a>. </p> <p>Request results are returned on a best-effort basis. If you specify <code>MaxResults</code> in the request, the response includes information up to the limit specified. The number of items returned, however, can be between zero and the value of <code>MaxResults</code>. If the service reaches an internal limit while processing the results, it stops the operation and returns the matching values up to that point and a <code>NextToken</code>. You can specify the <code>NextToken</code> in a subsequent call to get the next set of results.</p>"
     },
     "GetPatchBaseline":{
       "name":"GetPatchBaseline",
@@ -879,6 +943,21 @@
         {"shape":"InternalServerError"}
       ],
       "documentation":"<p>Retrieves the patch baseline that should be used for the specified patch group.</p>"
+    },
+    "ListAssociationVersions":{
+      "name":"ListAssociationVersions",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListAssociationVersionsRequest"},
+      "output":{"shape":"ListAssociationVersionsResult"},
+      "errors":[
+        {"shape":"InternalServerError"},
+        {"shape":"InvalidNextToken"},
+        {"shape":"AssociationDoesNotExist"}
+      ],
+      "documentation":"<p>Retrieves all versions of an association for a specific association ID.</p>"
     },
     "ListAssociations":{
       "name":"ListAssociations",
@@ -928,6 +1007,38 @@
       ],
       "documentation":"<p>Lists the commands requested by users of the AWS account.</p>"
     },
+    "ListComplianceItems":{
+      "name":"ListComplianceItems",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListComplianceItemsRequest"},
+      "output":{"shape":"ListComplianceItemsResult"},
+      "errors":[
+        {"shape":"InvalidResourceType"},
+        {"shape":"InvalidResourceId"},
+        {"shape":"InternalServerError"},
+        {"shape":"InvalidFilter"},
+        {"shape":"InvalidNextToken"}
+      ],
+      "documentation":"<p>For a specified resource ID, this API action returns a list of compliance statuses for different resource types. Currently, you can only specify one resource ID per call. List results depend on the criteria specified in the filter. </p>"
+    },
+    "ListComplianceSummaries":{
+      "name":"ListComplianceSummaries",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListComplianceSummariesRequest"},
+      "output":{"shape":"ListComplianceSummariesResult"},
+      "errors":[
+        {"shape":"InvalidFilter"},
+        {"shape":"InvalidNextToken"},
+        {"shape":"InternalServerError"}
+      ],
+      "documentation":"<p>Returns a summary count of compliant and non-compliant resources for a compliance type. For example, this call can return State Manager associations, patches, or custom compliance types according to the filter criteria that you specify. </p>"
+    },
     "ListDocumentVersions":{
       "name":"ListDocumentVersions",
       "http":{
@@ -956,7 +1067,7 @@
         {"shape":"InvalidNextToken"},
         {"shape":"InvalidFilterKey"}
       ],
-      "documentation":"<p>Describes one or more of your SSM documents.</p>"
+      "documentation":"<p>Describes one or more of your Systems Manager documents.</p>"
     },
     "ListInventoryEntries":{
       "name":"ListInventoryEntries",
@@ -974,6 +1085,35 @@
         {"shape":"InvalidNextToken"}
       ],
       "documentation":"<p>A list of inventory items returned by the request.</p>"
+    },
+    "ListResourceComplianceSummaries":{
+      "name":"ListResourceComplianceSummaries",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListResourceComplianceSummariesRequest"},
+      "output":{"shape":"ListResourceComplianceSummariesResult"},
+      "errors":[
+        {"shape":"InvalidFilter"},
+        {"shape":"InvalidNextToken"},
+        {"shape":"InternalServerError"}
+      ],
+      "documentation":"<p>Returns a resource-level summary count. The summary includes information about compliant and non-compliant statuses and detailed compliance-item severity counts, according to the filter criteria you specify.</p>"
+    },
+    "ListResourceDataSync":{
+      "name":"ListResourceDataSync",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListResourceDataSyncRequest"},
+      "output":{"shape":"ListResourceDataSyncResult"},
+      "errors":[
+        {"shape":"InternalServerError"},
+        {"shape":"InvalidNextToken"}
+      ],
+      "documentation":"<p>Lists your resource data sync configurations. Includes information about the last time a sync attempted to start, the last sync status, and the last time a sync successfully completed.</p> <p>The number of sync configurations might be too large to return using a single call to <code>ListResourceDataSync</code>. You can limit the number of sync configurations returned by using the <code>MaxResults</code> parameter. To determine whether there are more sync configurations to list, check the value of <code>NextToken</code> in the output. If there are more sync configurations to list, you can request them by specifying the <code>NextToken</code> returned in the call to the parameter of a subsequent call. </p>"
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -1007,6 +1147,25 @@
       ],
       "documentation":"<p>Shares a Systems Manager document publicly or privately. If you share a document privately, you must specify the AWS user account IDs for those people who can use the document. If you share a document publicly, you must specify <i>All</i> as the account ID.</p>"
     },
+    "PutComplianceItems":{
+      "name":"PutComplianceItems",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"PutComplianceItemsRequest"},
+      "output":{"shape":"PutComplianceItemsResult"},
+      "errors":[
+        {"shape":"InternalServerError"},
+        {"shape":"InvalidItemContentException"},
+        {"shape":"TotalSizeLimitExceededException"},
+        {"shape":"ItemSizeLimitExceededException"},
+        {"shape":"ComplianceTypeCountLimitExceededException"},
+        {"shape":"InvalidResourceType"},
+        {"shape":"InvalidResourceId"}
+      ],
+      "documentation":"<p>Registers a compliance type and other compliance details on a designated resource. This action lets you register custom compliance details with a resource. This call overwrites existing compliance information on the resource, so you must provide a full list of compliance items each time that you send the request.</p>"
+    },
     "PutInventory":{
       "name":"PutInventory",
       "http":{
@@ -1024,7 +1183,10 @@
         {"shape":"ItemSizeLimitExceededException"},
         {"shape":"ItemContentMismatchException"},
         {"shape":"CustomSchemaCountLimitExceededException"},
-        {"shape":"UnsupportedInventorySchemaVersionException"}
+        {"shape":"UnsupportedInventorySchemaVersionException"},
+        {"shape":"UnsupportedInventoryItemContextException"},
+        {"shape":"InvalidInventoryItemContextException"},
+        {"shape":"SubTypeCountLimitExceededException"}
       ],
       "documentation":"<p>Bulk update custom inventory items on one more instance. The request adds an inventory item, if it doesn't already exist, or updates an inventory item, if it does exist.</p>"
     },
@@ -1045,6 +1207,7 @@
         {"shape":"HierarchyLevelLimitExceededException"},
         {"shape":"HierarchyTypeMismatchException"},
         {"shape":"InvalidAllowedPatternException"},
+        {"shape":"ParameterMaxVersionLimitExceeded"},
         {"shape":"ParameterPatternMismatchException"},
         {"shape":"UnsupportedParameterType"}
       ],
@@ -1110,6 +1273,7 @@
         {"shape":"IdempotentParameterMismatch"},
         {"shape":"DoesNotExistException"},
         {"shape":"ResourceLimitExceededException"},
+        {"shape":"FeatureNotAvailableException"},
         {"shape":"InternalServerError"}
       ],
       "documentation":"<p>Adds a new task to a Maintenance Window.</p>"
@@ -1128,6 +1292,21 @@
         {"shape":"InternalServerError"}
       ],
       "documentation":"<p>Removes all tags from the specified resource.</p>"
+    },
+    "SendAutomationSignal":{
+      "name":"SendAutomationSignal",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"SendAutomationSignalRequest"},
+      "output":{"shape":"SendAutomationSignalResult"},
+      "errors":[
+        {"shape":"AutomationExecutionNotFoundException"},
+        {"shape":"InvalidAutomationSignalException"},
+        {"shape":"InternalServerError"}
+      ],
+      "documentation":"<p>Sends a signal to an Automation execution to change the current behavior or status of the execution. </p>"
     },
     "SendCommand":{
       "name":"SendCommand",
@@ -1164,6 +1343,7 @@
         {"shape":"InvalidAutomationExecutionParametersException"},
         {"shape":"AutomationExecutionLimitExceededException"},
         {"shape":"AutomationDefinitionVersionNotFoundException"},
+        {"shape":"IdempotentParameterMismatch"},
         {"shape":"InternalServerError"}
       ],
       "documentation":"<p>Initiates execution of an Automation document.</p>"
@@ -1200,9 +1380,11 @@
         {"shape":"InvalidUpdate"},
         {"shape":"TooManyUpdates"},
         {"shape":"InvalidDocument"},
-        {"shape":"InvalidTarget"}
+        {"shape":"InvalidTarget"},
+        {"shape":"InvalidAssociationVersion"},
+        {"shape":"AssociationVersionLimitExceeded"}
       ],
-      "documentation":"<p>Updates an association. You can only update the document version, schedule, parameters, and Amazon S3 output of an association.</p>"
+      "documentation":"<p>Updates an association. You can update the association name and version, the document version, schedule, parameters, and Amazon S3 output.</p>"
     },
     "UpdateAssociationStatus":{
       "name":"UpdateAssociationStatus",
@@ -1272,6 +1454,34 @@
       ],
       "documentation":"<p>Updates an existing Maintenance Window. Only specified parameters are modified.</p>"
     },
+    "UpdateMaintenanceWindowTarget":{
+      "name":"UpdateMaintenanceWindowTarget",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateMaintenanceWindowTargetRequest"},
+      "output":{"shape":"UpdateMaintenanceWindowTargetResult"},
+      "errors":[
+        {"shape":"DoesNotExistException"},
+        {"shape":"InternalServerError"}
+      ],
+      "documentation":"<p>Modifies the target of an existing Maintenance Window. You can't change the target type, but you can change the following:</p> <p>The target from being an ID target to a Tag target, or a Tag target to an ID target.</p> <p>IDs for an ID target.</p> <p>Tags for a Tag target.</p> <p>Owner.</p> <p>Name.</p> <p>Description.</p> <p>If a parameter is null, then the corresponding field is not modified.</p>"
+    },
+    "UpdateMaintenanceWindowTask":{
+      "name":"UpdateMaintenanceWindowTask",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateMaintenanceWindowTaskRequest"},
+      "output":{"shape":"UpdateMaintenanceWindowTaskResult"},
+      "errors":[
+        {"shape":"DoesNotExistException"},
+        {"shape":"InternalServerError"}
+      ],
+      "documentation":"<p>Modifies a task assigned to a Maintenance Window. You can't change the task type, but you can change the following values:</p> <p>Task ARN. For example, you can change a RUN_COMMAND task from AWS-RunPowerShellScript to AWS-RunShellScript.</p> <p>Service role ARN.</p> <p>Task parameters.</p> <p>Task priority.</p> <p>Task MaxConcurrency and MaxErrors.</p> <p>Log location.</p> <p>If a parameter is null, then the corresponding field is not modified. Also, if you set Replace to true, then all fields required by the RegisterTaskWithMaintenanceWindow action are required for this request. Optional fields that aren't specified are set to null.</p>"
+    },
     "UpdateManagedInstanceRole":{
       "name":"UpdateManagedInstanceRole",
       "http":{
@@ -1308,10 +1518,7 @@
     },
     "AccountIdList":{
       "type":"list",
-      "member":{
-        "shape":"AccountId",
-        "locationName":"AccountId"
-      },
+      "member":{"shape":"AccountId"},
       "max":20
     },
     "Activation":{
@@ -1388,7 +1595,7 @@
         },
         "ResourceId":{
           "shape":"ResourceId",
-          "documentation":"<p>The resource ID you want to tag.</p>"
+          "documentation":"<p>The resource ID you want to tag.</p> <p>For the ManagedInstance, MaintenanceWindow, and PatchBaseline values, use the ID of the resource, such as mw-01234361858c9b57b for a Maintenance Window.</p> <p>For the Document and Parameter values, use the name of the resource.</p>"
         },
         "Tags":{
           "shape":"TagList",
@@ -1405,6 +1612,7 @@
       "type":"string",
       "max":10
     },
+    "AggregatorSchemaOnly":{"type":"boolean"},
     "AllowedPattern":{
       "type":"string",
       "max":1024,
@@ -1435,7 +1643,7 @@
       "members":{
         "Name":{
           "shape":"DocumentName",
-          "documentation":"<p>The name of the SSM document.</p>"
+          "documentation":"<p>The name of the Systems Manager document.</p>"
         },
         "InstanceId":{
           "shape":"InstanceId",
@@ -1444,6 +1652,10 @@
         "AssociationId":{
           "shape":"AssociationId",
           "documentation":"<p>The ID created by the system when you create an association. An association is a binding between a document and a set of targets with a schedule.</p>"
+        },
+        "AssociationVersion":{
+          "shape":"AssociationVersion",
+          "documentation":"<p>The association version.</p>"
         },
         "DocumentVersion":{
           "shape":"DocumentVersion",
@@ -1464,6 +1676,10 @@
         "ScheduleExpression":{
           "shape":"ScheduleExpression",
           "documentation":"<p>A cron expression that specifies a schedule when the association runs.</p>"
+        },
+        "AssociationName":{
+          "shape":"AssociationName",
+          "documentation":"<p>The association name.</p>"
         }
       },
       "documentation":"<p>Describes an association of a Systems Manager document and an instance.</p>"
@@ -1480,11 +1696,15 @@
       "members":{
         "Name":{
           "shape":"DocumentName",
-          "documentation":"<p>The name of the SSM document.</p>"
+          "documentation":"<p>The name of the Systems Manager document.</p>"
         },
         "InstanceId":{
           "shape":"InstanceId",
           "documentation":"<p>The ID of the instance.</p>"
+        },
+        "AssociationVersion":{
+          "shape":"AssociationVersion",
+          "documentation":"<p>The association version.</p>"
         },
         "Date":{
           "shape":"DateTime",
@@ -1533,16 +1753,17 @@
         "LastSuccessfulExecutionDate":{
           "shape":"DateTime",
           "documentation":"<p>The last date on which the association was successfully run.</p>"
+        },
+        "AssociationName":{
+          "shape":"AssociationName",
+          "documentation":"<p>The association name.</p>"
         }
       },
       "documentation":"<p>Describes the parameters for a document.</p>"
     },
     "AssociationDescriptionList":{
       "type":"list",
-      "member":{
-        "shape":"AssociationDescription",
-        "locationName":"AssociationDescription"
-      }
+      "member":{"shape":"AssociationDescription"}
     },
     "AssociationDoesNotExist":{
       "type":"structure",
@@ -1578,15 +1799,13 @@
         "AssociationId",
         "AssociationStatusName",
         "LastExecutedBefore",
-        "LastExecutedAfter"
+        "LastExecutedAfter",
+        "AssociationName"
       ]
     },
     "AssociationFilterList":{
       "type":"list",
-      "member":{
-        "shape":"AssociationFilter",
-        "locationName":"AssociationFilter"
-      },
+      "member":{"shape":"AssociationFilter"},
       "min":1
     },
     "AssociationFilterValue":{
@@ -1606,10 +1825,11 @@
     },
     "AssociationList":{
       "type":"list",
-      "member":{
-        "shape":"Association",
-        "locationName":"Association"
-      }
+      "member":{"shape":"Association"}
+    },
+    "AssociationName":{
+      "type":"string",
+      "pattern":"^[a-zA-Z0-9_\\-.]{3,128}$"
     },
     "AssociationOverview":{
       "type":"structure",
@@ -1669,6 +1889,69 @@
         "Failed"
       ]
     },
+    "AssociationVersion":{
+      "type":"string",
+      "pattern":"([$]LATEST)|([1-9][0-9]*)"
+    },
+    "AssociationVersionInfo":{
+      "type":"structure",
+      "members":{
+        "AssociationId":{
+          "shape":"AssociationId",
+          "documentation":"<p>The ID created by the system when the association was created.</p>"
+        },
+        "AssociationVersion":{
+          "shape":"AssociationVersion",
+          "documentation":"<p>The association version.</p>"
+        },
+        "CreatedDate":{
+          "shape":"DateTime",
+          "documentation":"<p>The date the association version was created.</p>"
+        },
+        "Name":{
+          "shape":"DocumentName",
+          "documentation":"<p>The name specified when the association was created.</p>"
+        },
+        "DocumentVersion":{
+          "shape":"DocumentVersion",
+          "documentation":"<p>The version of a Systems Manager document used when the association version was created.</p>"
+        },
+        "Parameters":{
+          "shape":"Parameters",
+          "documentation":"<p>Parameters specified when the association version was created.</p>"
+        },
+        "Targets":{
+          "shape":"Targets",
+          "documentation":"<p>The targets specified for the association when the association version was created. </p>"
+        },
+        "ScheduleExpression":{
+          "shape":"ScheduleExpression",
+          "documentation":"<p>The cron or rate schedule specified for the association when the association version was created.</p>"
+        },
+        "OutputLocation":{
+          "shape":"InstanceAssociationOutputLocation",
+          "documentation":"<p>The location in Amazon S3 specified for the association when the association version was created.</p>"
+        },
+        "AssociationName":{
+          "shape":"AssociationName",
+          "documentation":"<p>The name specified for the association version when the association version was created.</p>"
+        }
+      },
+      "documentation":"<p>Information about the association version.</p>"
+    },
+    "AssociationVersionLimitExceeded":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>You have reached the maximum number versions allowed for an association. Each association has a limit of 1,000 versions. </p>",
+      "exception":true
+    },
+    "AssociationVersionList":{
+      "type":"list",
+      "member":{"shape":"AssociationVersionInfo"},
+      "min":1
+    },
     "AttributeName":{
       "type":"string",
       "max":64,
@@ -1676,7 +1959,7 @@
     },
     "AttributeValue":{
       "type":"string",
-      "max":1024,
+      "max":4096,
       "min":0
     },
     "AutomationActionName":{
@@ -1861,6 +2144,7 @@
       "enum":[
         "Pending",
         "InProgress",
+        "Waiting",
         "Success",
         "TimedOut",
         "Cancelled",
@@ -2241,6 +2525,266 @@
       "max":100
     },
     "CompletedCount":{"type":"integer"},
+    "ComplianceExecutionId":{
+      "type":"string",
+      "max":100
+    },
+    "ComplianceExecutionSummary":{
+      "type":"structure",
+      "required":["ExecutionTime"],
+      "members":{
+        "ExecutionTime":{
+          "shape":"DateTime",
+          "documentation":"<p>The time the execution ran as a datetime object that is saved in the following format: yyyy-MM-dd'T'HH:mm:ss'Z'.</p>"
+        },
+        "ExecutionId":{
+          "shape":"ComplianceExecutionId",
+          "documentation":"<p>An ID created by the system when <code>PutComplianceItems</code> was called. For example, <code>CommandID</code> is a valid execution ID. You can use this ID in subsequent calls.</p>"
+        },
+        "ExecutionType":{
+          "shape":"ComplianceExecutionType",
+          "documentation":"<p>The type of execution. For example, <code>Command</code> is a valid execution type.</p>"
+        }
+      },
+      "documentation":"<p>A summary of the call execution that includes an execution ID, the type of execution (for example, <code>Command</code>), and the date/time of the execution using a datetime object that is saved in the following format: yyyy-MM-dd'T'HH:mm:ss'Z'.</p>"
+    },
+    "ComplianceExecutionType":{
+      "type":"string",
+      "max":50
+    },
+    "ComplianceFilterValue":{"type":"string"},
+    "ComplianceItem":{
+      "type":"structure",
+      "members":{
+        "ComplianceType":{
+          "shape":"ComplianceTypeName",
+          "documentation":"<p>The compliance type. For example, Association (for a State Manager association), Patch, or Custom:<code>string</code> are all valid compliance types.</p>"
+        },
+        "ResourceType":{
+          "shape":"ComplianceResourceType",
+          "documentation":"<p>The type of resource. <code>ManagedInstance</code> is currently the only supported resource type.</p>"
+        },
+        "ResourceId":{
+          "shape":"ComplianceResourceId",
+          "documentation":"<p>An ID for the resource. For a managed instance, this is the instance ID.</p>"
+        },
+        "Id":{
+          "shape":"ComplianceItemId",
+          "documentation":"<p>An ID for the compliance item. For example, if the compliance item is a Windows patch, the ID could be the number of the KB article. Here's an example: KB4010320.</p>"
+        },
+        "Title":{
+          "shape":"ComplianceItemTitle",
+          "documentation":"<p>A title for the compliance item. For example, if the compliance item is a Windows patch, the title could be the title of the KB article for the patch. Here's an example: Security Update for Active Directory Federation Services.</p>"
+        },
+        "Status":{
+          "shape":"ComplianceStatus",
+          "documentation":"<p>The status of the compliance item. An item is either COMPLIANT or NON_COMPLIANT.</p>"
+        },
+        "Severity":{
+          "shape":"ComplianceSeverity",
+          "documentation":"<p>The severity of the compliance status. Severity can be one of the following: Critical, High, Medium, Low, Informational, Unspecified.</p>"
+        },
+        "ExecutionSummary":{
+          "shape":"ComplianceExecutionSummary",
+          "documentation":"<p>A summary for the compliance item. The summary includes an execution ID, the execution type (for example, command), and the execution time.</p>"
+        },
+        "Details":{
+          "shape":"ComplianceItemDetails",
+          "documentation":"<p>A \"Key\": \"Value\" tag combination for the compliance item.</p>"
+        }
+      },
+      "documentation":"<p>Information about the compliance as defined by the resource type. For example, for a patch resource type, <code>Items</code> includes information about the PatchSeverity, Classification, etc.</p>"
+    },
+    "ComplianceItemContentHash":{
+      "type":"string",
+      "max":256
+    },
+    "ComplianceItemDetails":{
+      "type":"map",
+      "key":{"shape":"AttributeName"},
+      "value":{"shape":"AttributeValue"}
+    },
+    "ComplianceItemEntry":{
+      "type":"structure",
+      "required":[
+        "Severity",
+        "Status"
+      ],
+      "members":{
+        "Id":{
+          "shape":"ComplianceItemId",
+          "documentation":"<p>The compliance item ID. For example, if the compliance item is a Windows patch, the ID could be the number of the KB article.</p>"
+        },
+        "Title":{
+          "shape":"ComplianceItemTitle",
+          "documentation":"<p>The title of the compliance item. For example, if the compliance item is a Windows patch, the title could be the title of the KB article for the patch. Here's an example: Security Update for Active Directory Federation Services. </p>"
+        },
+        "Severity":{
+          "shape":"ComplianceSeverity",
+          "documentation":"<p>The severity of the compliance status. Severity can be one of the following: Critical, High, Medium, Low, Informational, Unspecified.</p>"
+        },
+        "Status":{
+          "shape":"ComplianceStatus",
+          "documentation":"<p>The status of the compliance item. An item is either COMPLIANT or NON_COMPLIANT.</p>"
+        },
+        "Details":{
+          "shape":"ComplianceItemDetails",
+          "documentation":"<p>A \"Key\": \"Value\" tag combination for the compliance item.</p>"
+        }
+      },
+      "documentation":"<p>Information about a compliance item.</p>"
+    },
+    "ComplianceItemEntryList":{
+      "type":"list",
+      "member":{"shape":"ComplianceItemEntry"},
+      "max":10000,
+      "min":0
+    },
+    "ComplianceItemId":{
+      "type":"string",
+      "max":100,
+      "min":1
+    },
+    "ComplianceItemList":{
+      "type":"list",
+      "member":{"shape":"ComplianceItem"}
+    },
+    "ComplianceItemTitle":{
+      "type":"string",
+      "max":500
+    },
+    "ComplianceQueryOperatorType":{
+      "type":"string",
+      "enum":[
+        "EQUAL",
+        "NOT_EQUAL",
+        "BEGIN_WITH",
+        "LESS_THAN",
+        "GREATER_THAN"
+      ]
+    },
+    "ComplianceResourceId":{
+      "type":"string",
+      "max":100,
+      "min":1
+    },
+    "ComplianceResourceIdList":{
+      "type":"list",
+      "member":{"shape":"ComplianceResourceId"},
+      "min":1
+    },
+    "ComplianceResourceType":{
+      "type":"string",
+      "max":50,
+      "min":1
+    },
+    "ComplianceResourceTypeList":{
+      "type":"list",
+      "member":{"shape":"ComplianceResourceType"},
+      "min":1
+    },
+    "ComplianceSeverity":{
+      "type":"string",
+      "enum":[
+        "CRITICAL",
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "INFORMATIONAL",
+        "UNSPECIFIED"
+      ]
+    },
+    "ComplianceStatus":{
+      "type":"string",
+      "enum":[
+        "COMPLIANT",
+        "NON_COMPLIANT"
+      ]
+    },
+    "ComplianceStringFilter":{
+      "type":"structure",
+      "members":{
+        "Key":{
+          "shape":"ComplianceStringFilterKey",
+          "documentation":"<p>The name of the filter.</p>"
+        },
+        "Values":{
+          "shape":"ComplianceStringFilterValueList",
+          "documentation":"<p>The value for which to search.</p>"
+        },
+        "Type":{
+          "shape":"ComplianceQueryOperatorType",
+          "documentation":"<p>The type of comparison that should be performed for the value: Equal, NotEqual, BeginWith, LessThan, or GreaterThan.</p>"
+        }
+      },
+      "documentation":"<p>One or more filters. Use a filter to return a more specific list of results.</p>"
+    },
+    "ComplianceStringFilterKey":{
+      "type":"string",
+      "max":200,
+      "min":1
+    },
+    "ComplianceStringFilterList":{
+      "type":"list",
+      "member":{"shape":"ComplianceStringFilter"}
+    },
+    "ComplianceStringFilterValueList":{
+      "type":"list",
+      "member":{"shape":"ComplianceFilterValue"},
+      "max":20,
+      "min":1
+    },
+    "ComplianceSummaryCount":{"type":"integer"},
+    "ComplianceSummaryItem":{
+      "type":"structure",
+      "members":{
+        "ComplianceType":{
+          "shape":"ComplianceTypeName",
+          "documentation":"<p>The type of compliance item. For example, the compliance type can be Association, Patch, or Custom:string.</p>"
+        },
+        "CompliantSummary":{
+          "shape":"CompliantSummary",
+          "documentation":"<p>A list of COMPLIANT items for the specified compliance type.</p>"
+        },
+        "NonCompliantSummary":{
+          "shape":"NonCompliantSummary",
+          "documentation":"<p>A list of NON_COMPLIANT items for the specified compliance type.</p>"
+        }
+      },
+      "documentation":"<p>A summary of compliance information by compliance type.</p>"
+    },
+    "ComplianceSummaryItemList":{
+      "type":"list",
+      "member":{"shape":"ComplianceSummaryItem"}
+    },
+    "ComplianceTypeCountLimitExceededException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>You specified too many custom compliance types. You can specify a maximum of 10 different types. </p>",
+      "exception":true
+    },
+    "ComplianceTypeName":{
+      "type":"string",
+      "max":100,
+      "min":1,
+      "pattern":"[A-Za-z0-9_\\-]\\w+|Custom:[a-zA-Z0-9_\\-]\\w+"
+    },
+    "CompliantSummary":{
+      "type":"structure",
+      "members":{
+        "CompliantCount":{
+          "shape":"ComplianceSummaryCount",
+          "documentation":"<p>The total number of resources that are compliant.</p>"
+        },
+        "SeveritySummary":{
+          "shape":"SeveritySummary",
+          "documentation":"<p>A summary of the compliance severity by compliance type.</p>"
+        }
+      },
+      "documentation":"<p>A summary of resources that are compliant. The summary is organized according to the resource count for each compliance type.</p>"
+    },
     "ComputerName":{
       "type":"string",
       "max":255,
@@ -2298,10 +2842,7 @@
     },
     "CreateAssociationBatchRequestEntries":{
       "type":"list",
-      "member":{
-        "shape":"CreateAssociationBatchRequestEntry",
-        "locationName":"entries"
-      },
+      "member":{"shape":"CreateAssociationBatchRequestEntry"},
       "min":1
     },
     "CreateAssociationBatchRequestEntry":{
@@ -2335,6 +2876,10 @@
         "OutputLocation":{
           "shape":"InstanceAssociationOutputLocation",
           "documentation":"<p>An Amazon S3 bucket where you want to store the results of this request.</p>"
+        },
+        "AssociationName":{
+          "shape":"AssociationName",
+          "documentation":"<p>Specify a descriptive name for the association.</p>"
         }
       },
       "documentation":"<p>Describes the association of a Systems Manager document and an instance.</p>"
@@ -2383,6 +2928,10 @@
         "OutputLocation":{
           "shape":"InstanceAssociationOutputLocation",
           "documentation":"<p>An Amazon S3 bucket where you want to store the output details of the request.</p>"
+        },
+        "AssociationName":{
+          "shape":"AssociationName",
+          "documentation":"<p>Specify a descriptive name for the association.</p>"
         }
       }
     },
@@ -2439,6 +2988,10 @@
           "shape":"MaintenanceWindowName",
           "documentation":"<p>The name of the Maintenance Window.</p>"
         },
+        "Description":{
+          "shape":"MaintenanceWindowDescription",
+          "documentation":"<p>An optional description for the Maintenance Window. We recommend specifying a description to help you organize your Maintenance Windows. </p>"
+        },
         "Schedule":{
           "shape":"MaintenanceWindowSchedule",
           "documentation":"<p>The schedule of the Maintenance Window in the form of a cron or rate expression.</p>"
@@ -2453,7 +3006,7 @@
         },
         "AllowUnassociatedTargets":{
           "shape":"MaintenanceWindowAllowUnassociatedTargets",
-          "documentation":"<p>Whether targets must be registered with the Maintenance Window before tasks can be defined for those targets.</p>"
+          "documentation":"<p>Enables a Maintenance Window task to execute on managed instances, even if you have not registered those instances as targets. If enabled, then you must specify the unregistered instances (by instance ID) when you register a task with the Maintenance Window </p> <p>If you don't enable this option, then you must specify previously-registered targets when you register a task with the Maintenance Window. </p>"
         },
         "ClientToken":{
           "shape":"ClientToken",
@@ -2475,6 +3028,10 @@
       "type":"structure",
       "required":["Name"],
       "members":{
+        "OperatingSystem":{
+          "shape":"OperatingSystem",
+          "documentation":"<p>Defines the operating system the patch baseline applies to. The Default value is WINDOWS.</p>"
+        },
         "Name":{
           "shape":"BaselineName",
           "documentation":"<p>The name of the patch baseline.</p>"
@@ -2490,6 +3047,10 @@
         "ApprovedPatches":{
           "shape":"PatchIdList",
           "documentation":"<p>A list of explicitly approved patches for the baseline.</p>"
+        },
+        "ApprovedPatchesComplianceLevel":{
+          "shape":"PatchComplianceLevel",
+          "documentation":"<p>Defines the compliance level for approved patches. This means that if an approved patch is reported as missing, this is the severity of the compliance violation. Valid compliance severity levels include the following: CRITICAL, HIGH, MEDIUM, LOW, INFORMATIONAL, UNSPECIFIED. The default value is UNSPECIFIED.</p>"
         },
         "RejectedPatches":{
           "shape":"PatchIdList",
@@ -2513,6 +3074,28 @@
           "shape":"BaselineId",
           "documentation":"<p>The ID of the created patch baseline.</p>"
         }
+      }
+    },
+    "CreateResourceDataSyncRequest":{
+      "type":"structure",
+      "required":[
+        "SyncName",
+        "S3Destination"
+      ],
+      "members":{
+        "SyncName":{
+          "shape":"ResourceDataSyncName",
+          "documentation":"<p>A name for the configuration.</p>"
+        },
+        "S3Destination":{
+          "shape":"ResourceDataSyncS3Destination",
+          "documentation":"<p>Amazon S3 configuration details for the sync.</p>"
+        }
+      }
+    },
+    "CreateResourceDataSyncResult":{
+      "type":"structure",
+      "members":{
       }
     },
     "CreatedDate":{"type":"timestamp"},
@@ -2660,6 +3243,21 @@
         }
       }
     },
+    "DeleteResourceDataSyncRequest":{
+      "type":"structure",
+      "required":["SyncName"],
+      "members":{
+        "SyncName":{
+          "shape":"ResourceDataSyncName",
+          "documentation":"<p>The name of the configuration to delete.</p>"
+        }
+      }
+    },
+    "DeleteResourceDataSyncResult":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "DeregisterManagedInstanceRequest":{
       "type":"structure",
       "required":["InstanceId"],
@@ -2719,6 +3317,11 @@
         "WindowTargetId":{
           "shape":"MaintenanceWindowTargetId",
           "documentation":"<p>The ID of the target definition to remove.</p>"
+        },
+        "Safe":{
+          "shape":"Boolean",
+          "documentation":"<p>The system checks if the target is being referenced by a task. If the target is being referenced, the system returns an error and does not deregister the target from the Maintenance Window.</p>",
+          "box":true
         }
       }
     },
@@ -2827,7 +3430,7 @@
       "members":{
         "Name":{
           "shape":"DocumentName",
-          "documentation":"<p>The name of the SSM document.</p>"
+          "documentation":"<p>The name of the Systems Manager document.</p>"
         },
         "InstanceId":{
           "shape":"InstanceId",
@@ -2836,6 +3439,10 @@
         "AssociationId":{
           "shape":"AssociationId",
           "documentation":"<p>The association ID for which you want information.</p>"
+        },
+        "AssociationVersion":{
+          "shape":"AssociationVersion",
+          "documentation":"<p>Specify the association version to retrieve. To view the latest version, either specify <code>$LATEST</code> for this parameter, or omit this parameter. To view a list of all associations for an instance, use ListInstanceAssociations. To get a list of versions for a specific association, use ListAssociationVersions. </p>"
         }
       }
     },
@@ -2942,7 +3549,7 @@
       "members":{
         "Name":{
           "shape":"DocumentARN",
-          "documentation":"<p>The name of the SSM document.</p>"
+          "documentation":"<p>The name of the Systems Manager document.</p>"
         },
         "DocumentVersion":{
           "shape":"DocumentVersion",
@@ -2955,7 +3562,7 @@
       "members":{
         "Document":{
           "shape":"DocumentDescription",
-          "documentation":"<p>Information about the SSM document.</p>"
+          "documentation":"<p>Information about the Systems Manager document.</p>"
         }
       }
     },
@@ -3525,6 +4132,10 @@
           "documentation":"<p>The maximum number of patch groups to return (per page).</p>",
           "box":true
         },
+        "Filters":{
+          "shape":"PatchOrchestratorFilterList",
+          "documentation":"<p>One or more filters. Use a filter to return a more specific list of results.</p>"
+        },
         "NextToken":{
           "shape":"NextToken",
           "documentation":"<p>The token for the next set of items to return. (You received this token from a previous call.)</p>"
@@ -3580,7 +4191,7 @@
       "members":{
         "Sha1":{
           "shape":"DocumentSha1",
-          "documentation":"<p>The SHA1 hash of the document, which you can use for verification purposes.</p>"
+          "documentation":"<p>The SHA1 hash of the document, which you can use for verification.</p>"
         },
         "Hash":{
           "shape":"DocumentHash",
@@ -3592,11 +4203,11 @@
         },
         "Name":{
           "shape":"DocumentARN",
-          "documentation":"<p>The name of the SSM document.</p>"
+          "documentation":"<p>The name of the Systems Manager document.</p>"
         },
         "Owner":{
           "shape":"DocumentOwner",
-          "documentation":"<p>The AWS user account of the person who created the document.</p>"
+          "documentation":"<p>The AWS user account that created the document.</p>"
         },
         "CreatedDate":{
           "shape":"DateTime",
@@ -3604,7 +4215,7 @@
         },
         "Status":{
           "shape":"DocumentStatus",
-          "documentation":"<p>The status of the SSM document.</p>"
+          "documentation":"<p>The status of the Systems Manager document.</p>"
         },
         "DocumentVersion":{
           "shape":"DocumentVersion",
@@ -3620,7 +4231,7 @@
         },
         "PlatformTypes":{
           "shape":"PlatformTypeList",
-          "documentation":"<p>The list of OS platforms compatible with this SSM document. </p>"
+          "documentation":"<p>The list of OS platforms compatible with this Systems Manager document. </p>"
         },
         "DocumentType":{
           "shape":"DocumentType",
@@ -3637,9 +4248,13 @@
         "DefaultVersion":{
           "shape":"DocumentVersion",
           "documentation":"<p>The default version.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags, or metadata, that have been applied to the document.</p>"
         }
       },
-      "documentation":"<p>Describes an SSM document. </p>"
+      "documentation":"<p>Describes a Systems Manager document. </p>"
     },
     "DocumentFilter":{
       "type":"structure",
@@ -3670,10 +4285,7 @@
     },
     "DocumentFilterList":{
       "type":"list",
-      "member":{
-        "shape":"DocumentFilter",
-        "locationName":"DocumentFilter"
-      },
+      "member":{"shape":"DocumentFilter"},
       "min":1
     },
     "DocumentFilterValue":{
@@ -3696,11 +4308,11 @@
       "members":{
         "Name":{
           "shape":"DocumentARN",
-          "documentation":"<p>The name of the SSM document.</p>"
+          "documentation":"<p>The name of the Systems Manager document.</p>"
         },
         "Owner":{
           "shape":"DocumentOwner",
-          "documentation":"<p>The AWS user account of the person who created the document.</p>"
+          "documentation":"<p>The AWS user account that created the document.</p>"
         },
         "PlatformTypes":{
           "shape":"PlatformTypeList",
@@ -3717,23 +4329,58 @@
         "SchemaVersion":{
           "shape":"DocumentSchemaVersion",
           "documentation":"<p>The schema version.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags, or metadata, that have been applied to the document.</p>"
         }
       },
-      "documentation":"<p>Describes the name of an SSM document.</p>"
+      "documentation":"<p>Describes the name of a Systems Manager document.</p>"
     },
     "DocumentIdentifierList":{
       "type":"list",
-      "member":{
-        "shape":"DocumentIdentifier",
-        "locationName":"DocumentIdentifier"
-      }
+      "member":{"shape":"DocumentIdentifier"}
+    },
+    "DocumentKeyValuesFilter":{
+      "type":"structure",
+      "members":{
+        "Key":{
+          "shape":"DocumentKeyValuesFilterKey",
+          "documentation":"<p>The name of the filter key.</p>"
+        },
+        "Values":{
+          "shape":"DocumentKeyValuesFilterValues",
+          "documentation":"<p>The value for the filter key.</p>"
+        }
+      },
+      "documentation":"<p>One or more filters. Use a filter to return a more specific list of documents.</p> <p>For keys, you can specify one or more tags that have been applied to a document. </p> <p>Other valid values include Owner, Name, PlatformTypes, and DocumentType.</p> <p>Note that only one Owner can be specified in a request. For example: <code>Key=Owner,Values=Self</code>.</p> <p>If you use Name as a key, you can use a name prefix to return a list of documents. For example, in the AWS CLI, to return a list of all documents that begin with <code>Te</code>, run the following command:</p> <p> <code>aws ssm list-documents --filters Key=Name,Values=Te</code> </p> <p>If you specify more than two keys, only documents that are identified by all the tags are returned in the results. If you specify more than two values for a key, documents that are identified by any of the values are returned in the results.</p> <p>To specify a custom key and value pair, use the format <code>Key=tag:[tagName],Values=[valueName]</code>.</p> <p>For example, if you created a Key called region and are using the AWS CLI to call the <code>list-documents</code> command: </p> <p> <code>aws ssm list-documents --filters Key=tag:region,Values=east,west Key=Owner,Values=Self</code> </p>"
+    },
+    "DocumentKeyValuesFilterKey":{
+      "type":"string",
+      "max":128,
+      "min":1
+    },
+    "DocumentKeyValuesFilterList":{
+      "type":"list",
+      "member":{"shape":"DocumentKeyValuesFilter"},
+      "max":5,
+      "min":0
+    },
+    "DocumentKeyValuesFilterValue":{
+      "type":"string",
+      "max":256,
+      "min":1
+    },
+    "DocumentKeyValuesFilterValues":{
+      "type":"list",
+      "member":{"shape":"DocumentKeyValuesFilterValue"}
     },
     "DocumentLimitExceeded":{
       "type":"structure",
       "members":{
         "Message":{"shape":"String"}
       },
-      "documentation":"<p>You can have at most 200 active SSM documents.</p>",
+      "documentation":"<p>You can have at most 200 active Systems Manager documents.</p>",
       "exception":true
     },
     "DocumentName":{
@@ -3767,10 +4414,7 @@
     "DocumentParameterDescrption":{"type":"string"},
     "DocumentParameterList":{
       "type":"list",
-      "member":{
-        "shape":"DocumentParameter",
-        "locationName":"DocumentParameter"
-      }
+      "member":{"shape":"DocumentParameter"}
     },
     "DocumentParameterName":{"type":"string"},
     "DocumentParameterType":{
@@ -3925,10 +4569,7 @@
     },
     "FailedCreateAssociationList":{
       "type":"list",
-      "member":{
-        "shape":"FailedCreateAssociation",
-        "locationName":"FailedCreateAssociationEntry"
-      }
+      "member":{"shape":"FailedCreateAssociation"}
     },
     "FailureDetails":{
       "type":"structure",
@@ -3955,6 +4596,14 @@
         "Server",
         "Unknown"
       ]
+    },
+    "FeatureNotAvailableException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>You attempted to register a LAMBDA or STEP_FUNCTION task in a region where the corresponding service is not available. </p>",
+      "exception":true
     },
     "GetAutomationExecutionRequest":{
       "type":"structure",
@@ -4064,6 +4713,10 @@
     "GetDefaultPatchBaselineRequest":{
       "type":"structure",
       "members":{
+        "OperatingSystem":{
+          "shape":"OperatingSystem",
+          "documentation":"<p>Returns the default patch baseline for the specified operating system.</p>"
+        }
       }
     },
     "GetDefaultPatchBaselineResult":{
@@ -4072,6 +4725,10 @@
         "BaselineId":{
           "shape":"BaselineId",
           "documentation":"<p>The ID of the default patch baseline.</p>"
+        },
+        "OperatingSystem":{
+          "shape":"OperatingSystem",
+          "documentation":"<p>The operating system for the returned patch baseline. </p>"
         }
       }
     },
@@ -4106,6 +4763,10 @@
         "SnapshotDownloadUrl":{
           "shape":"SnapshotDownloadUrl",
           "documentation":"<p>A pre-signed Amazon S3 URL that can be used to download the patch snapshot.</p>"
+        },
+        "Product":{
+          "shape":"Product",
+          "documentation":"<p>Returns the specific operating system (for example Windows Server 2012 or Amazon Linux 2015.09) on the instance for the specified patch snapshot.</p>"
         }
       }
     },
@@ -4115,7 +4776,7 @@
       "members":{
         "Name":{
           "shape":"DocumentARN",
-          "documentation":"<p>The name of the SSM document.</p>"
+          "documentation":"<p>The name of the Systems Manager document.</p>"
         },
         "DocumentVersion":{
           "shape":"DocumentVersion",
@@ -4128,7 +4789,7 @@
       "members":{
         "Name":{
           "shape":"DocumentARN",
-          "documentation":"<p>The name of the SSM document.</p>"
+          "documentation":"<p>The name of the Systems Manager document.</p>"
         },
         "DocumentVersion":{
           "shape":"DocumentVersion",
@@ -4136,7 +4797,7 @@
         },
         "Content":{
           "shape":"DocumentContent",
-          "documentation":"<p>The contents of the SSM document.</p>"
+          "documentation":"<p>The contents of the Systems Manager document.</p>"
         },
         "DocumentType":{
           "shape":"DocumentType",
@@ -4150,6 +4811,10 @@
         "Filters":{
           "shape":"InventoryFilterList",
           "documentation":"<p>One or more filters. Use a filter to return a more specific list of results.</p>"
+        },
+        "Aggregators":{
+          "shape":"InventoryAggregatorList",
+          "documentation":"<p>Returns counts of inventory types based on one or more expressions. For example, if you aggregate by using an expression that uses the <code>AWS:InstanceInformation.PlatformType</code> type, you can see a count of how many Windows and Linux instances exist in your inventoried fleet.</p>"
         },
         "ResultAttributes":{
           "shape":"ResultAttributeList",
@@ -4198,6 +4863,15 @@
         "MaxResults":{
           "shape":"GetInventorySchemaMaxResults",
           "documentation":"<p>The maximum number of items to return for this call. The call also returns a token that you can specify in a subsequent call to get the next set of results.</p>",
+          "box":true
+        },
+        "Aggregator":{
+          "shape":"AggregatorSchemaOnly",
+          "documentation":"<p>Returns inventory schemas that support aggregation. For example, this call returns the <code>AWS:InstanceInformation</code> type, because it supports aggregation based on the <code>PlatformName</code>, <code>PlatformType</code>, and <code>PlatformVersion</code> attributes.</p>"
+        },
+        "SubType":{
+          "shape":"IsSubTypeSchema",
+          "documentation":"<p>Returns the sub-type schema for a specified inventory type.</p>",
           "box":true
         }
       }
@@ -4251,6 +4925,81 @@
         "EndTime":{
           "shape":"DateTime",
           "documentation":"<p>The time the Maintenance Window finished executing.</p>"
+        }
+      }
+    },
+    "GetMaintenanceWindowExecutionTaskInvocationRequest":{
+      "type":"structure",
+      "required":[
+        "WindowExecutionId",
+        "TaskId",
+        "InvocationId"
+      ],
+      "members":{
+        "WindowExecutionId":{
+          "shape":"MaintenanceWindowExecutionId",
+          "documentation":"<p>The ID of the Maintenance Window execution for which the task is a part.</p>"
+        },
+        "TaskId":{
+          "shape":"MaintenanceWindowExecutionTaskId",
+          "documentation":"<p>The ID of the specific task in the Maintenance Window task that should be retrieved. </p>"
+        },
+        "InvocationId":{
+          "shape":"MaintenanceWindowExecutionTaskInvocationId",
+          "documentation":"<p>The invocation ID to retrieve.</p>"
+        }
+      }
+    },
+    "GetMaintenanceWindowExecutionTaskInvocationResult":{
+      "type":"structure",
+      "members":{
+        "WindowExecutionId":{
+          "shape":"MaintenanceWindowExecutionId",
+          "documentation":"<p>The Maintenance Window execution ID.</p>"
+        },
+        "TaskExecutionId":{
+          "shape":"MaintenanceWindowExecutionTaskId",
+          "documentation":"<p>The task execution ID.</p>"
+        },
+        "InvocationId":{
+          "shape":"MaintenanceWindowExecutionTaskInvocationId",
+          "documentation":"<p>The invocation ID.</p>"
+        },
+        "ExecutionId":{
+          "shape":"MaintenanceWindowExecutionTaskExecutionId",
+          "documentation":"<p>The execution ID.</p>"
+        },
+        "TaskType":{
+          "shape":"MaintenanceWindowTaskType",
+          "documentation":"<p>Retrieves the task type for a Maintenance Window. Task types include the following: LAMBDA, STEP_FUNCTION, AUTOMATION, RUN_COMMAND.</p>"
+        },
+        "Parameters":{
+          "shape":"MaintenanceWindowExecutionTaskInvocationParameters",
+          "documentation":"<p>The parameters used at the time that the task executed.</p>"
+        },
+        "Status":{
+          "shape":"MaintenanceWindowExecutionStatus",
+          "documentation":"<p>The task status for an invocation.</p>"
+        },
+        "StatusDetails":{
+          "shape":"MaintenanceWindowExecutionStatusDetails",
+          "documentation":"<p>The details explaining the status. Details are only available for certain status values.</p>"
+        },
+        "StartTime":{
+          "shape":"DateTime",
+          "documentation":"<p>The time that the task started executing on the target.</p>"
+        },
+        "EndTime":{
+          "shape":"DateTime",
+          "documentation":"<p>The time that the task finished executing on the target.</p>"
+        },
+        "OwnerInformation":{
+          "shape":"OwnerInformation",
+          "documentation":"<p>User-provided value to be included in any CloudWatch events raised while running tasks for these targets in this Maintenance Window. </p>"
+        },
+        "WindowTargetId":{
+          "shape":"MaintenanceWindowTaskTargetId",
+          "documentation":"<p>The Maintenance Window target ID.</p>"
         }
       }
     },
@@ -4349,6 +5098,10 @@
           "shape":"MaintenanceWindowName",
           "documentation":"<p>The name of the Maintenance Window.</p>"
         },
+        "Description":{
+          "shape":"MaintenanceWindowDescription",
+          "documentation":"<p>The description of the Maintenance Window.</p>"
+        },
         "Schedule":{
           "shape":"MaintenanceWindowSchedule",
           "documentation":"<p>The schedule of the Maintenance Window in the form of a cron or rate expression.</p>"
@@ -4376,6 +5129,84 @@
         "ModifiedDate":{
           "shape":"DateTime",
           "documentation":"<p>The date the Maintenance Window was last modified.</p>"
+        }
+      }
+    },
+    "GetMaintenanceWindowTaskRequest":{
+      "type":"structure",
+      "required":[
+        "WindowId",
+        "WindowTaskId"
+      ],
+      "members":{
+        "WindowId":{
+          "shape":"MaintenanceWindowId",
+          "documentation":"<p>The Maintenance Window ID that includes the task to retrieve.</p>"
+        },
+        "WindowTaskId":{
+          "shape":"MaintenanceWindowTaskId",
+          "documentation":"<p>The Maintenance Window task ID to retrieve.</p>"
+        }
+      }
+    },
+    "GetMaintenanceWindowTaskResult":{
+      "type":"structure",
+      "members":{
+        "WindowId":{
+          "shape":"MaintenanceWindowId",
+          "documentation":"<p>The retrieved Maintenance Window ID.</p>"
+        },
+        "WindowTaskId":{
+          "shape":"MaintenanceWindowTaskId",
+          "documentation":"<p>The retrieved Maintenance Window task ID.</p>"
+        },
+        "Targets":{
+          "shape":"Targets",
+          "documentation":"<p>The targets where the task should execute.</p>"
+        },
+        "TaskArn":{
+          "shape":"MaintenanceWindowTaskArn",
+          "documentation":"<p>The resource that the task used during execution. For RUN_COMMAND and AUTOMATION task types, the TaskArn is the Systems Manager Document name/ARN. For LAMBDA tasks, the value is the function name/ARN. For STEP_FUNCTION tasks, the value is the state machine ARN.</p>"
+        },
+        "ServiceRoleArn":{
+          "shape":"ServiceRole",
+          "documentation":"<p>The IAM service role to assume during task execution.</p>"
+        },
+        "TaskType":{
+          "shape":"MaintenanceWindowTaskType",
+          "documentation":"<p>The type of task to execute.</p>"
+        },
+        "TaskParameters":{
+          "shape":"MaintenanceWindowTaskParameters",
+          "documentation":"<p>The parameters to pass to the task when it executes.</p>"
+        },
+        "TaskInvocationParameters":{
+          "shape":"MaintenanceWindowTaskInvocationParameters",
+          "documentation":"<p>The parameters to pass to the task when it executes.</p>"
+        },
+        "Priority":{
+          "shape":"MaintenanceWindowTaskPriority",
+          "documentation":"<p>The priority of the task when it executes. The lower the number, the higher the priority. Tasks that have the same priority are scheduled in parallel.</p>"
+        },
+        "MaxConcurrency":{
+          "shape":"MaxConcurrency",
+          "documentation":"<p>The maximum number of targets allowed to run this task in parallel.</p>"
+        },
+        "MaxErrors":{
+          "shape":"MaxErrors",
+          "documentation":"<p>The maximum number of errors allowed before the task stops being scheduled.</p>"
+        },
+        "LoggingInfo":{
+          "shape":"LoggingInfo",
+          "documentation":"<p>The location in Amazon S3 where the task results are logged.</p>"
+        },
+        "Name":{
+          "shape":"MaintenanceWindowName",
+          "documentation":"<p>The retrieved task name.</p>"
+        },
+        "Description":{
+          "shape":"MaintenanceWindowDescription",
+          "documentation":"<p>The retrieved task description.</p>"
         }
       }
     },
@@ -4451,7 +5282,7 @@
       "members":{
         "Path":{
           "shape":"PSParameterName",
-          "documentation":"<p>The hierarchy for the parameter. Hierarchies start with a forward slash (/) and end with the parameter name. A hierarchy can have a maximum of five levels. Examples: /Environment/Test/DBString003</p> <p>/Finance/Prod/IAD/OS/WinServ2016/license15</p>"
+          "documentation":"<p>The hierarchy for the parameter. Hierarchies start with a forward slash (/) and end with the parameter name. A hierarchy can have a maximum of five levels. For example: <code>/Finance/Prod/IAD/WinServ2016/license15</code> </p>"
         },
         "Recursive":{
           "shape":"Boolean",
@@ -4526,6 +5357,10 @@
         "PatchGroup":{
           "shape":"PatchGroup",
           "documentation":"<p>The name of the patch group whose patch baseline should be retrieved.</p>"
+        },
+        "OperatingSystem":{
+          "shape":"OperatingSystem",
+          "documentation":"<p>Returns he operating system rule specified for patch groups using the patch baseline.</p>"
         }
       }
     },
@@ -4539,6 +5374,10 @@
         "PatchGroup":{
           "shape":"PatchGroup",
           "documentation":"<p>The name of the patch group.</p>"
+        },
+        "OperatingSystem":{
+          "shape":"OperatingSystem",
+          "documentation":"<p>The operating system rule specified for patch groups using the patch baseline.</p>"
         }
       }
     },
@@ -4563,6 +5402,10 @@
           "shape":"BaselineName",
           "documentation":"<p>The name of the patch baseline.</p>"
         },
+        "OperatingSystem":{
+          "shape":"OperatingSystem",
+          "documentation":"<p>Returns the operating system specified for the patch baseline.</p>"
+        },
         "GlobalFilters":{
           "shape":"PatchFilterGroup",
           "documentation":"<p>A set of global filters used to exclude patches from the baseline.</p>"
@@ -4574,6 +5417,10 @@
         "ApprovedPatches":{
           "shape":"PatchIdList",
           "documentation":"<p>A list of explicitly approved patches for the baseline.</p>"
+        },
+        "ApprovedPatchesComplianceLevel":{
+          "shape":"PatchComplianceLevel",
+          "documentation":"<p>Returns the specified compliance severity level for approved patches in the patch baseline.</p>"
         },
         "RejectedPatches":{
           "shape":"PatchIdList",
@@ -4602,10 +5449,10 @@
       "members":{
         "message":{
           "shape":"String",
-          "documentation":"<p>A hierarchy can have a maximum of five levels. For example:</p> <p>/Finance/Prod/IAD/OS/WinServ2016/license15</p> <p>For more information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-working-path.html\">Develop a Parameter Hierarchy</a>. </p>"
+          "documentation":"<p>A hierarchy can have a maximum of five levels. For example:</p> <p>/Finance/Prod/IAD/OS/WinServ2016/license15</p> <p>For more information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-working.html\">Working with Systems Manager Parameters</a>. </p>"
         }
       },
-      "documentation":"<p>A hierarchy can have a maximum of five levels. For example:</p> <p>/Finance/Prod/IAD/OS/WinServ2016/license15</p> <p>For more information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-working-path.html\">Develop a Parameter Hierarchy</a>. </p>",
+      "documentation":"<p>A hierarchy can have a maximum of five levels. For example:</p> <p>/Finance/Prod/IAD/OS/WinServ2016/license15</p> <p>For more information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-working.html\">Working with Systems Manager Parameters</a>. </p>",
       "exception":true
     },
     "HierarchyTypeMismatchException":{
@@ -4627,6 +5474,12 @@
     "IamRole":{
       "type":"string",
       "max":64
+    },
+    "IdempotencyToken":{
+      "type":"string",
+      "max":36,
+      "min":36,
+      "pattern":"[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
     },
     "IdempotentParameterMismatch":{
       "type":"structure",
@@ -4664,6 +5517,10 @@
         "Content":{
           "shape":"DocumentContent",
           "documentation":"<p>The content of the association document for the instance(s).</p>"
+        },
+        "AssociationVersion":{
+          "shape":"AssociationVersion",
+          "documentation":"<p>Version information for the association on the instance.</p>"
         }
       },
       "documentation":"<p>One or more association documents on the instance. </p>"
@@ -4717,6 +5574,10 @@
           "shape":"DocumentVersion",
           "documentation":"<p>The association document verions.</p>"
         },
+        "AssociationVersion":{
+          "shape":"AssociationVersion",
+          "documentation":"<p>The version of the association applied to the instance.</p>"
+        },
         "InstanceId":{
           "shape":"InstanceId",
           "documentation":"<p>The instance ID where the association was created.</p>"
@@ -4744,6 +5605,10 @@
         "OutputUrl":{
           "shape":"InstanceAssociationOutputUrl",
           "documentation":"<p>A URL for an Amazon S3 bucket where you want to store the results of this request.</p>"
+        },
+        "AssociationName":{
+          "shape":"AssociationName",
+          "documentation":"<p>The name of the association applied to the instance.</p>"
         }
       },
       "documentation":"<p>Status information about the instance association.</p>"
@@ -4881,10 +5746,7 @@
     },
     "InstanceInformationFilterList":{
       "type":"list",
-      "member":{
-        "shape":"InstanceInformationFilter",
-        "locationName":"InstanceInformationFilter"
-      },
+      "member":{"shape":"InstanceInformationFilter"},
       "min":0
     },
     "InstanceInformationFilterValue":{
@@ -4893,19 +5755,13 @@
     },
     "InstanceInformationFilterValueSet":{
       "type":"list",
-      "member":{
-        "shape":"InstanceInformationFilterValue",
-        "locationName":"InstanceInformationFilterValue"
-      },
+      "member":{"shape":"InstanceInformationFilterValue"},
       "max":100,
       "min":1
     },
     "InstanceInformationList":{
       "type":"list",
-      "member":{
-        "shape":"InstanceInformation",
-        "locationName":"InstanceInformation"
-      }
+      "member":{"shape":"InstanceInformation"}
     },
     "InstanceInformationStringFilter":{
       "type":"structure",
@@ -4931,10 +5787,7 @@
     },
     "InstanceInformationStringFilterList":{
       "type":"list",
-      "member":{
-        "shape":"InstanceInformationStringFilter",
-        "locationName":"InstanceInformationStringFilter"
-      },
+      "member":{"shape":"InstanceInformationStringFilter"},
       "min":0
     },
     "InstancePatchState":{
@@ -4989,11 +5842,11 @@
           "documentation":"<p>The number of patches from the patch baseline that aren't applicable for the instance and hence aren't installed on the instance.</p>"
         },
         "OperationStartTime":{
-          "shape":"PatchOperationStartTime",
+          "shape":"DateTime",
           "documentation":"<p>The time the most recent patching operation was started on the instance.</p>"
         },
         "OperationEndTime":{
-          "shape":"PatchOperationEndTime",
+          "shape":"DateTime",
           "documentation":"<p>The time the most recent patching operation completed on the instance.</p>"
         },
         "Operation":{
@@ -5103,12 +5956,28 @@
       "documentation":"<p>The request does not meet the regular expression requirement.</p>",
       "exception":true
     },
+    "InvalidAssociationVersion":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>The version you specified is not valid. Use ListAssociationVersions to view all versions of an association according to the association ID. Or, use the <code>$LATEST</code> parameter to view the latest version of the association.</p>",
+      "exception":true
+    },
     "InvalidAutomationExecutionParametersException":{
       "type":"structure",
       "members":{
         "Message":{"shape":"String"}
       },
       "documentation":"<p>The supplied parameters for invoking the specified Automation document are incorrect. For example, they may not match the set of parameters permitted for the specified Automation document.</p>",
+      "exception":true
+    },
+    "InvalidAutomationSignalException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>The signal is not valid for the current Automation execution.</p>",
       "exception":true
     },
     "InvalidCommandId":{
@@ -5213,6 +6082,14 @@
       "documentation":"<p>The specified filter value is not valid.</p>",
       "exception":true
     },
+    "InvalidInventoryItemContextException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>You specified invalid keys or values in the <code>Context</code> attribute for <code>InventoryItem</code>. Verify the keys and values, and try again.</p>",
+      "exception":true
+    },
     "InvalidItemContentException":{
       "type":"structure",
       "members":{
@@ -5265,7 +6142,7 @@
       "members":{
         "Message":{"shape":"String"}
       },
-      "documentation":"<p>You must specify values for all required parameters in the SSM document. You can only supply values to parameters defined in the SSM document.</p>",
+      "documentation":"<p>You must specify values for all required parameters in the Systems Manager document. You can only supply values to parameters defined in the Systems Manager document.</p>",
       "exception":true
     },
     "InvalidPermissionType":{
@@ -5294,7 +6171,7 @@
       "type":"structure",
       "members":{
       },
-      "documentation":"<p>The resource type is not valid. If you are attempting to tag an instance, the instance must be a registered, managed instance.</p>",
+      "documentation":"<p>The resource type is not valid. For example, if you are attempting to tag an instance, the instance must be a registered, managed instance.</p>",
       "exception":true
     },
     "InvalidResultAttributeException":{
@@ -5345,6 +6222,31 @@
       "documentation":"<p>The update is not valid.</p>",
       "exception":true
     },
+    "InventoryAggregator":{
+      "type":"structure",
+      "members":{
+        "Expression":{
+          "shape":"InventoryAggregatorExpression",
+          "documentation":"<p>The inventory type and attribute name for aggregation.</p>"
+        },
+        "Aggregators":{
+          "shape":"InventoryAggregatorList",
+          "documentation":"<p>Nested aggregators to further refine aggregation for an inventory type.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the inventory type and attribute for the aggregation execution.</p>"
+    },
+    "InventoryAggregatorExpression":{
+      "type":"string",
+      "max":1000,
+      "min":1
+    },
+    "InventoryAggregatorList":{
+      "type":"list",
+      "member":{"shape":"InventoryAggregator"},
+      "max":10,
+      "min":1
+    },
     "InventoryAttributeDataType":{
       "type":"string",
       "enum":[
@@ -5381,20 +6283,14 @@
     },
     "InventoryFilterList":{
       "type":"list",
-      "member":{
-        "shape":"InventoryFilter",
-        "locationName":"InventoryFilter"
-      },
+      "member":{"shape":"InventoryFilter"},
       "max":5,
       "min":1
     },
     "InventoryFilterValue":{"type":"string"},
     "InventoryFilterValueList":{
       "type":"list",
-      "member":{
-        "shape":"InventoryFilterValue",
-        "locationName":"FilterValue"
-      },
+      "member":{"shape":"InventoryFilterValue"},
       "max":20,
       "min":1
     },
@@ -5425,6 +6321,10 @@
         "Content":{
           "shape":"InventoryItemEntryList",
           "documentation":"<p>The inventory data of the inventory type.</p>"
+        },
+        "Context":{
+          "shape":"InventoryItemContentContext",
+          "documentation":"<p>A map of associated properties for a specified inventory type. For example, with this attribute, you can specify the <code>ExecutionId</code>, <code>ExecutionType</code>, <code>ComplianceType</code> properties of the <code>AWS:ComplianceItem</code> type.</p>"
         }
       },
       "documentation":"<p>Information collected from managed instances based on your inventory policy document</p>"
@@ -5449,10 +6349,7 @@
     },
     "InventoryItemAttributeList":{
       "type":"list",
-      "member":{
-        "shape":"InventoryItemAttribute",
-        "locationName":"Attribute"
-      },
+      "member":{"shape":"InventoryItemAttribute"},
       "max":50,
       "min":1
     },
@@ -5460,6 +6357,13 @@
     "InventoryItemCaptureTime":{
       "type":"string",
       "pattern":"^(20)[0-9][0-9]-(0[1-9]|1[012])-([12][0-9]|3[01]|0[1-9])(T)(2[0-3]|[0-1][0-9])(:[0-5][0-9])(:[0-5][0-9])(Z)$"
+    },
+    "InventoryItemContentContext":{
+      "type":"map",
+      "key":{"shape":"AttributeName"},
+      "value":{"shape":"AttributeValue"},
+      "max":50,
+      "min":0
     },
     "InventoryItemContentHash":{
       "type":"string",
@@ -5480,10 +6384,7 @@
     },
     "InventoryItemList":{
       "type":"list",
-      "member":{
-        "shape":"InventoryItem",
-        "locationName":"Item"
-      },
+      "member":{"shape":"InventoryItem"},
       "max":30,
       "min":1
     },
@@ -5505,6 +6406,10 @@
         "Attributes":{
           "shape":"InventoryItemAttributeList",
           "documentation":"<p>The schema attributes for inventory. This contains data type and attribute name.</p>"
+        },
+        "DisplayName":{
+          "shape":"InventoryTypeDisplayName",
+          "documentation":"<p>The alias name of the inventory type. The alias name is used for display purposes.</p>"
         }
       },
       "documentation":"<p>The inventory item schema definition. Users can use this to compose inventory query filters.</p>"
@@ -5555,10 +6460,7 @@
     "InventoryResultEntityId":{"type":"string"},
     "InventoryResultEntityList":{
       "type":"list",
-      "member":{
-        "shape":"InventoryResultEntity",
-        "locationName":"Entity"
-      }
+      "member":{"shape":"InventoryResultEntity"}
     },
     "InventoryResultItem":{
       "type":"structure",
@@ -5597,6 +6499,7 @@
       "key":{"shape":"InventoryResultItemKey"},
       "value":{"shape":"InventoryResultItem"}
     },
+    "InventoryTypeDisplayName":{"type":"string"},
     "InvocationDoesNotExist":{
       "type":"structure",
       "members":{
@@ -5608,6 +6511,7 @@
       "type":"string",
       "max":2500
     },
+    "IsSubTypeSchema":{"type":"boolean"},
     "ItemContentMismatchException":{
       "type":"structure",
       "members":{
@@ -5629,6 +6533,48 @@
     "KeyList":{
       "type":"list",
       "member":{"shape":"TagKey"}
+    },
+    "LastResourceDataSyncStatus":{
+      "type":"string",
+      "enum":[
+        "Successful",
+        "Failed",
+        "InProgress"
+      ]
+    },
+    "LastResourceDataSyncTime":{"type":"timestamp"},
+    "LastSuccessfulResourceDataSyncTime":{"type":"timestamp"},
+    "ListAssociationVersionsRequest":{
+      "type":"structure",
+      "required":["AssociationId"],
+      "members":{
+        "AssociationId":{
+          "shape":"AssociationId",
+          "documentation":"<p>The association ID for which you want to view all versions.</p>"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of items to return for this call. The call also returns a token that you can specify in a subsequent call to get the next set of results.</p>",
+          "box":true
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>A token to start the list. Use this token to get the next set of results. </p>"
+        }
+      }
+    },
+    "ListAssociationVersionsResult":{
+      "type":"structure",
+      "members":{
+        "AssociationVersions":{
+          "shape":"AssociationVersionList",
+          "documentation":"<p>Information about all versions of the association for the specified association ID.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token for the next set of items to return. Use this token to get the next set of results.</p>"
+        }
+      }
     },
     "ListAssociationsRequest":{
       "type":"structure",
@@ -5743,6 +6689,76 @@
         }
       }
     },
+    "ListComplianceItemsRequest":{
+      "type":"structure",
+      "members":{
+        "Filters":{
+          "shape":"ComplianceStringFilterList",
+          "documentation":"<p>One or more compliance filters. Use a filter to return a more specific list of results.</p>"
+        },
+        "ResourceIds":{
+          "shape":"ComplianceResourceIdList",
+          "documentation":"<p>The ID for the resources from which to get compliance information. Currently, you can only specify one resource ID.</p>"
+        },
+        "ResourceTypes":{
+          "shape":"ComplianceResourceTypeList",
+          "documentation":"<p>The type of resource from which to get compliance information. Currently, the only supported resource type is <code>ManagedInstance</code>.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>A token to start the list. Use this token to get the next set of results. </p>"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of items to return for this call. The call also returns a token that you can specify in a subsequent call to get the next set of results.</p>",
+          "box":true
+        }
+      }
+    },
+    "ListComplianceItemsResult":{
+      "type":"structure",
+      "members":{
+        "ComplianceItems":{
+          "shape":"ComplianceItemList",
+          "documentation":"<p>A list of compliance information for the specified resource ID. </p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token for the next set of items to return. Use this token to get the next set of results.</p>"
+        }
+      }
+    },
+    "ListComplianceSummariesRequest":{
+      "type":"structure",
+      "members":{
+        "Filters":{
+          "shape":"ComplianceStringFilterList",
+          "documentation":"<p>One or more compliance or inventory filters. Use a filter to return a more specific list of results.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>A token to start the list. Use this token to get the next set of results. </p>"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of items to return for this call. Currently, you can specify null or 50. The call also returns a token that you can specify in a subsequent call to get the next set of results.</p>",
+          "box":true
+        }
+      }
+    },
+    "ListComplianceSummariesResult":{
+      "type":"structure",
+      "members":{
+        "ComplianceSummaryItems":{
+          "shape":"ComplianceSummaryItemList",
+          "documentation":"<p>A list of compliant and non-compliant summary counts based on compliance types. For example, this call returns State Manager associations, patches, or custom compliance types according to the filter criteria that you specified.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token for the next set of items to return. Use this token to get the next set of results.</p>"
+        }
+      }
+    },
     "ListDocumentVersionsRequest":{
       "type":"structure",
       "required":["Name"],
@@ -5782,6 +6798,10 @@
           "shape":"DocumentFilterList",
           "documentation":"<p>One or more filters. Use a filter to return a more specific list of results.</p>"
         },
+        "Filters":{
+          "shape":"DocumentKeyValuesFilterList",
+          "documentation":"<p>One or more filters. Use a filter to return a more specific list of results.</p>"
+        },
         "MaxResults":{
           "shape":"MaxResults",
           "documentation":"<p>The maximum number of items to return for this call. The call also returns a token that you can specify in a subsequent call to get the next set of results.</p>",
@@ -5798,7 +6818,7 @@
       "members":{
         "DocumentIdentifiers":{
           "shape":"DocumentIdentifierList",
-          "documentation":"<p>The names of the SSM documents.</p>"
+          "documentation":"<p>The names of the Systems Manager documents.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
@@ -5865,6 +6885,64 @@
         }
       }
     },
+    "ListResourceComplianceSummariesRequest":{
+      "type":"structure",
+      "members":{
+        "Filters":{
+          "shape":"ComplianceStringFilterList",
+          "documentation":"<p>One or more filters. Use a filter to return a more specific list of results.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>A token to start the list. Use this token to get the next set of results. </p>"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of items to return for this call. The call also returns a token that you can specify in a subsequent call to get the next set of results.</p>",
+          "box":true
+        }
+      }
+    },
+    "ListResourceComplianceSummariesResult":{
+      "type":"structure",
+      "members":{
+        "ResourceComplianceSummaryItems":{
+          "shape":"ResourceComplianceSummaryItemList",
+          "documentation":"<p>A summary count for specified or targeted managed instances. Summary count includes information about compliant and non-compliant State Manager associations, patch status, or custom items according to the filter criteria that you specify. </p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token for the next set of items to return. Use this token to get the next set of results.</p>"
+        }
+      }
+    },
+    "ListResourceDataSyncRequest":{
+      "type":"structure",
+      "members":{
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>A token to start the list. Use this token to get the next set of results. </p>"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of items to return for this call. The call also returns a token that you can specify in a subsequent call to get the next set of results.</p>",
+          "box":true
+        }
+      }
+    },
+    "ListResourceDataSyncResult":{
+      "type":"structure",
+      "members":{
+        "ResourceDataSyncItems":{
+          "shape":"ResourceDataSyncItemList",
+          "documentation":"<p>A list of your current Resource Data Sync configurations and their statuses.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token for the next set of items to return. Use this token to get the next set of results.</p>"
+        }
+      }
+    },
     "ListTagsForResourceRequest":{
       "type":"structure",
       "required":[
@@ -5914,10 +6992,30 @@
       "documentation":"<p>Information about an Amazon S3 bucket to write instance-level logs to.</p>"
     },
     "MaintenanceWindowAllowUnassociatedTargets":{"type":"boolean"},
+    "MaintenanceWindowAutomationParameters":{
+      "type":"structure",
+      "members":{
+        "DocumentVersion":{
+          "shape":"DocumentVersion",
+          "documentation":"<p>The version of an Automation document to use during task execution.</p>"
+        },
+        "Parameters":{
+          "shape":"AutomationParameterMap",
+          "documentation":"<p>The parameters for the AUTOMATION task.</p>"
+        }
+      },
+      "documentation":"<p>The parameters for an AUTOMATION task type.</p>"
+    },
     "MaintenanceWindowCutoff":{
       "type":"integer",
       "max":23,
       "min":0
+    },
+    "MaintenanceWindowDescription":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "sensitive":true
     },
     "MaintenanceWindowDurationHours":{
       "type":"integer",
@@ -6061,6 +7159,10 @@
           "shape":"MaintenanceWindowExecutionTaskExecutionId",
           "documentation":"<p>The ID of the action performed in the service that actually handled the task invocation. If the task type is RUN_COMMAND, this value is the command ID.</p>"
         },
+        "TaskType":{
+          "shape":"MaintenanceWindowTaskType",
+          "documentation":"<p>The task type.</p>"
+        },
         "Parameters":{
           "shape":"MaintenanceWindowExecutionTaskInvocationParameters",
           "documentation":"<p>The parameters that were provided for the invocation when it was executed.</p>"
@@ -6151,6 +7253,10 @@
           "shape":"MaintenanceWindowName",
           "documentation":"<p>The name of the Maintenance Window.</p>"
         },
+        "Description":{
+          "shape":"MaintenanceWindowDescription",
+          "documentation":"<p>A description of the Maintenance Window.</p>"
+        },
         "Enabled":{
           "shape":"MaintenanceWindowEnabled",
           "documentation":"<p>Whether the Maintenance Window is enabled.</p>"
@@ -6170,6 +7276,39 @@
       "type":"list",
       "member":{"shape":"MaintenanceWindowIdentity"}
     },
+    "MaintenanceWindowLambdaClientContext":{
+      "type":"string",
+      "max":8000,
+      "min":1
+    },
+    "MaintenanceWindowLambdaParameters":{
+      "type":"structure",
+      "members":{
+        "ClientContext":{
+          "shape":"MaintenanceWindowLambdaClientContext",
+          "documentation":"<p>Pass client-specific information to the Lambda function that you are invoking. You can then process the client information in your Lambda function as you choose through the context variable.</p>"
+        },
+        "Qualifier":{
+          "shape":"MaintenanceWindowLambdaQualifier",
+          "documentation":"<p>(Optional) Specify a Lambda function version or alias name. If you specify a function version, the action uses the qualified function ARN to invoke a specific Lambda function. If you specify an alias name, the action uses the alias ARN to invoke the Lambda function version to which the alias points.</p>"
+        },
+        "Payload":{
+          "shape":"MaintenanceWindowLambdaPayload",
+          "documentation":"<p>JSON to provide to your Lambda function as input.</p>"
+        }
+      },
+      "documentation":"<p>The parameters for a LAMBDA task type.</p>"
+    },
+    "MaintenanceWindowLambdaPayload":{
+      "type":"blob",
+      "max":4096,
+      "sensitive":true
+    },
+    "MaintenanceWindowLambdaQualifier":{
+      "type":"string",
+      "max":128,
+      "min":1
+    },
     "MaintenanceWindowMaxResults":{
       "type":"integer",
       "max":100,
@@ -6185,10 +7324,77 @@
       "type":"string",
       "enum":["INSTANCE"]
     },
+    "MaintenanceWindowRunCommandParameters":{
+      "type":"structure",
+      "members":{
+        "Comment":{
+          "shape":"Comment",
+          "documentation":"<p>Information about the command(s) to execute.</p>"
+        },
+        "DocumentHash":{
+          "shape":"DocumentHash",
+          "documentation":"<p>The SHA-256 or SHA-1 hash created by the system when the document was created. SHA-1 hashes have been deprecated.</p>"
+        },
+        "DocumentHashType":{
+          "shape":"DocumentHashType",
+          "documentation":"<p>SHA-256 or SHA-1. SHA-1 hashes have been deprecated.</p>"
+        },
+        "NotificationConfig":{
+          "shape":"NotificationConfig",
+          "documentation":"<p>Configurations for sending notifications about command status changes on a per-instance basis.</p>"
+        },
+        "OutputS3BucketName":{
+          "shape":"S3BucketName",
+          "documentation":"<p>The name of the Amazon S3 bucket.</p>"
+        },
+        "OutputS3KeyPrefix":{
+          "shape":"S3KeyPrefix",
+          "documentation":"<p>The Amazon S3 bucket subfolder.</p>"
+        },
+        "Parameters":{
+          "shape":"Parameters",
+          "documentation":"<p>The parameters for the RUN_COMMAND task execution.</p>"
+        },
+        "ServiceRoleArn":{
+          "shape":"ServiceRole",
+          "documentation":"<p>The IAM service role to assume during task execution.</p>"
+        },
+        "TimeoutSeconds":{
+          "shape":"TimeoutSeconds",
+          "documentation":"<p>If this time is reached and the command has not already started executing, it doesn not execute.</p>",
+          "box":true
+        }
+      },
+      "documentation":"<p>The parameters for a RUN_COMMAND task type.</p>"
+    },
     "MaintenanceWindowSchedule":{
       "type":"string",
       "max":256,
       "min":1
+    },
+    "MaintenanceWindowStepFunctionsInput":{
+      "type":"string",
+      "max":4096,
+      "sensitive":true
+    },
+    "MaintenanceWindowStepFunctionsName":{
+      "type":"string",
+      "max":80,
+      "min":1
+    },
+    "MaintenanceWindowStepFunctionsParameters":{
+      "type":"structure",
+      "members":{
+        "Input":{
+          "shape":"MaintenanceWindowStepFunctionsInput",
+          "documentation":"<p>The inputs for the STEP_FUNCTION task.</p>"
+        },
+        "Name":{
+          "shape":"MaintenanceWindowStepFunctionsName",
+          "documentation":"<p>The name of the STEP_FUNCTION task.</p>"
+        }
+      },
+      "documentation":"<p>The parameters for the STEP_FUNCTION execution.</p>"
     },
     "MaintenanceWindowTarget":{
       "type":"structure",
@@ -6212,6 +7418,14 @@
         "OwnerInformation":{
           "shape":"OwnerInformation",
           "documentation":"<p>User-provided value that will be included in any CloudWatch events raised while running tasks for these targets in this Maintenance Window.</p>"
+        },
+        "Name":{
+          "shape":"MaintenanceWindowName",
+          "documentation":"<p>The target name.</p>"
+        },
+        "Description":{
+          "shape":"MaintenanceWindowDescription",
+          "documentation":"<p>A description of the target.</p>"
         }
       },
       "documentation":"<p>The target registered with the Maintenance Window.</p>"
@@ -6239,11 +7453,11 @@
         },
         "TaskArn":{
           "shape":"MaintenanceWindowTaskArn",
-          "documentation":"<p>The ARN of the task to execute.</p>"
+          "documentation":"<p>The resource that the task uses during execution. For RUN_COMMAND and AUTOMATION task types, <code>TaskArn</code> is the Systems Manager document name or ARN. For LAMBDA tasks, it's the function name or ARN. For STEP_FUNCTION tasks, it's the state machine ARN.</p>"
         },
         "Type":{
           "shape":"MaintenanceWindowTaskType",
-          "documentation":"<p>The type of task.</p>"
+          "documentation":"<p>The type of task. The type can be one of the following: RUN_COMMAND, AUTOMATION, LAMBDA, or STEP_FUNCTION.</p>"
         },
         "Targets":{
           "shape":"Targets",
@@ -6255,7 +7469,7 @@
         },
         "Priority":{
           "shape":"MaintenanceWindowTaskPriority",
-          "documentation":"<p>The priority of the task in the Maintenance Window, the lower the number the higher the priority. Tasks in a Maintenance Window are scheduled in priority order with tasks that have the same priority scheduled in parallel.</p>"
+          "documentation":"<p>The priority of the task in the Maintenance Window. The lower the number, the higher the priority. Tasks that have the same priority are scheduled in parallel.</p>"
         },
         "LoggingInfo":{
           "shape":"LoggingInfo",
@@ -6272,6 +7486,14 @@
         "MaxErrors":{
           "shape":"MaxErrors",
           "documentation":"<p>The maximum number of errors allowed before this task stops being scheduled.</p>"
+        },
+        "Name":{
+          "shape":"MaintenanceWindowName",
+          "documentation":"<p>The task name.</p>"
+        },
+        "Description":{
+          "shape":"MaintenanceWindowDescription",
+          "documentation":"<p>A description of the task.</p>"
         }
       },
       "documentation":"<p>Information about a task defined for a Maintenance Window.</p>"
@@ -6286,6 +7508,28 @@
       "max":36,
       "min":36,
       "pattern":"^[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}$"
+    },
+    "MaintenanceWindowTaskInvocationParameters":{
+      "type":"structure",
+      "members":{
+        "RunCommand":{
+          "shape":"MaintenanceWindowRunCommandParameters",
+          "documentation":"<p>The parameters for a RUN_COMMAND task type.</p>"
+        },
+        "Automation":{
+          "shape":"MaintenanceWindowAutomationParameters",
+          "documentation":"<p>The parameters for a AUTOMATION task type.</p>"
+        },
+        "StepFunctions":{
+          "shape":"MaintenanceWindowStepFunctionsParameters",
+          "documentation":"<p>The parameters for a STEP_FUNCTION task type.</p>"
+        },
+        "Lambda":{
+          "shape":"MaintenanceWindowLambdaParameters",
+          "documentation":"<p>The parameters for a LAMBDA task type.</p>"
+        }
+      },
+      "documentation":"<p>The parameters for task execution.</p>"
     },
     "MaintenanceWindowTaskList":{
       "type":"list",
@@ -6339,7 +7583,12 @@
     },
     "MaintenanceWindowTaskType":{
       "type":"string",
-      "enum":["RUN_COMMAND"]
+      "enum":[
+        "RUN_COMMAND",
+        "AUTOMATION",
+        "STEP_FUNCTIONS",
+        "LAMBDA"
+      ]
     },
     "ManagedInstanceId":{
       "type":"string",
@@ -6406,6 +7655,20 @@
       }
     },
     "NextToken":{"type":"string"},
+    "NonCompliantSummary":{
+      "type":"structure",
+      "members":{
+        "NonCompliantCount":{
+          "shape":"ComplianceSummaryCount",
+          "documentation":"<p>The total number of compliance items that are not compliant.</p>"
+        },
+        "SeveritySummary":{
+          "shape":"SeveritySummary",
+          "documentation":"<p>A summary of the non-compliance severity by compliance type</p>"
+        }
+      },
+      "documentation":"<p>A summary of resources that are not compliant. The summary is organized according to resource type.</p>"
+    },
     "NormalStringMap":{
       "type":"map",
       "key":{"shape":"String"},
@@ -6452,6 +7715,15 @@
         "Invocation"
       ]
     },
+    "OperatingSystem":{
+      "type":"string",
+      "enum":[
+        "WINDOWS",
+        "AMAZON_LINUX",
+        "UBUNTU",
+        "REDHAT_ENTERPRISE_LINUX"
+      ]
+    },
     "OwnerInformation":{
       "type":"string",
       "max":128,
@@ -6460,7 +7732,7 @@
     },
     "PSParameterName":{
       "type":"string",
-      "max":1024,
+      "max":2048,
       "min":1
     },
     "PSParameterValue":{
@@ -6468,6 +7740,7 @@
       "max":4096,
       "min":1
     },
+    "PSParameterVersion":{"type":"long"},
     "Parameter":{
       "type":"structure",
       "members":{
@@ -6482,6 +7755,10 @@
         "Value":{
           "shape":"PSParameterValue",
           "documentation":"<p>The parameter value.</p>"
+        },
+        "Version":{
+          "shape":"PSParameterVersion",
+          "documentation":"<p>The parameter version.</p>"
         }
       },
       "documentation":"<p>An Amazon EC2 Systems Manager parameter in Parameter Store.</p>"
@@ -6497,7 +7774,7 @@
     "ParameterDescription":{
       "type":"string",
       "max":1024,
-      "min":1
+      "min":0
     },
     "ParameterHistory":{
       "type":"structure",
@@ -6533,6 +7810,10 @@
         "AllowedPattern":{
           "shape":"AllowedPattern",
           "documentation":"<p>Parameter names can include the following letters and symbols.</p> <p>a-zA-Z0-9_.-</p>"
+        },
+        "Version":{
+          "shape":"PSParameterVersion",
+          "documentation":"<p>The parameter version.</p>"
         }
       },
       "documentation":"<p>Information about parameter usage.</p>"
@@ -6558,6 +7839,14 @@
     "ParameterList":{
       "type":"list",
       "member":{"shape":"Parameter"}
+    },
+    "ParameterMaxVersionLimitExceeded":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"String"}
+      },
+      "documentation":"<p>The parameter exceeded the maximum number of allowed versions.</p>",
+      "exception":true
     },
     "ParameterMetadata":{
       "type":"structure",
@@ -6589,6 +7878,10 @@
         "AllowedPattern":{
           "shape":"AllowedPattern",
           "documentation":"<p>A parameter name can include only the following letters and symbols.</p> <p>a-zA-Z0-9_.-</p>"
+        },
+        "Version":{
+          "shape":"PSParameterVersion",
+          "documentation":"<p>The parameter version.</p>"
         }
       },
       "documentation":"<p>Metada includes information like the ARN of the last user and the date/time the parameter was last used.</p>"
@@ -6680,6 +7973,14 @@
     "ParameterValueList":{
       "type":"list",
       "member":{"shape":"ParameterValue"}
+    },
+    "ParameterVersionNotFound":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"String"}
+      },
+      "documentation":"<p>The specified parameter version was not found. Verify the parameter name and version, and try again.</p>",
+      "exception":true
     },
     "Parameters":{
       "type":"map",
@@ -6796,13 +8097,17 @@
           "shape":"BaselineName",
           "documentation":"<p>The name of the patch baseline.</p>"
         },
+        "OperatingSystem":{
+          "shape":"OperatingSystem",
+          "documentation":"<p>Defines the operating system the patch baseline applies to. The Default value is WINDOWS. </p>"
+        },
         "BaselineDescription":{
           "shape":"BaselineDescription",
           "documentation":"<p>The description of the patch baseline.</p>"
         },
         "DefaultBaseline":{
           "shape":"DefaultBaseline",
-          "documentation":"<p>Whether this is the default baseline.</p>"
+          "documentation":"<p>Whether this is the default baseline. Note that Systems Manager supports creating multiple default patch baselines. For example, you can create a default patch baseline for each operating system.</p>"
         }
       },
       "documentation":"<p>Defines the basic information about a patch baseline.</p>"
@@ -6834,7 +8139,7 @@
         },
         "KBId":{
           "shape":"PatchKbNumber",
-          "documentation":"<p>The Microsoft Knowledge Base ID of the patch.</p>"
+          "documentation":"<p>The operating system-specific ID of the patch.</p>"
         },
         "Classification":{
           "shape":"PatchClassification",
@@ -6849,8 +8154,8 @@
           "documentation":"<p>The state of the patch on the instance (INSTALLED, INSTALLED_OTHER, MISSING, NOT_APPLICABLE or FAILED).</p>"
         },
         "InstalledTime":{
-          "shape":"PatchInstalledTime",
-          "documentation":"<p>The date/time the patch was installed on the instance.</p>"
+          "shape":"DateTime",
+          "documentation":"<p>The date/time the patch was installed on the instance. Note that not all operating systems provide this level of information.</p>"
         }
       },
       "documentation":"<p>Information about the state of a patch on a particular instance as it relates to the patch baseline used to patch the instance.</p>"
@@ -6867,6 +8172,17 @@
         "MISSING",
         "NOT_APPLICABLE",
         "FAILED"
+      ]
+    },
+    "PatchComplianceLevel":{
+      "type":"string",
+      "enum":[
+        "CRITICAL",
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "INFORMATIONAL",
+        "UNSPECIFIED"
       ]
     },
     "PatchComplianceMaxResults":{
@@ -6921,7 +8237,10 @@
         "PRODUCT",
         "CLASSIFICATION",
         "MSRC_SEVERITY",
-        "PATCH_ID"
+        "PATCH_ID",
+        "SECTION",
+        "PRIORITY",
+        "SEVERITY"
       ]
     },
     "PatchFilterList":{
@@ -6971,7 +8290,8 @@
     },
     "PatchId":{
       "type":"string",
-      "pattern":"(^KB[0-9]{1,7}$)|(^MS[0-9]{2}\\-[0-9]{3}$)"
+      "max":100,
+      "min":1
     },
     "PatchIdList":{
       "type":"list",
@@ -6981,7 +8301,6 @@
     },
     "PatchInstalledCount":{"type":"integer"},
     "PatchInstalledOtherCount":{"type":"integer"},
-    "PatchInstalledTime":{"type":"timestamp"},
     "PatchKbNumber":{"type":"string"},
     "PatchLanguage":{"type":"string"},
     "PatchList":{
@@ -6992,8 +8311,6 @@
     "PatchMsrcNumber":{"type":"string"},
     "PatchMsrcSeverity":{"type":"string"},
     "PatchNotApplicableCount":{"type":"integer"},
-    "PatchOperationEndTime":{"type":"timestamp"},
-    "PatchOperationStartTime":{"type":"timestamp"},
     "PatchOperationType":{
       "type":"string",
       "enum":[
@@ -7048,6 +8365,10 @@
           "shape":"PatchFilterGroup",
           "documentation":"<p>The patch filter group that defines the criteria for the rule.</p>"
         },
+        "ComplianceLevel":{
+          "shape":"PatchComplianceLevel",
+          "documentation":"<p>A compliance severity level for all approved patches in a patch baseline. Valid compliance severity levels include the following: Unspecified, Critical, High, Medium, Low, and Informational.</p>"
+        },
         "ApproveAfterDays":{
           "shape":"ApproveAfterDays",
           "documentation":"<p>The number of days after the release date of each patch matched by the rule the patch is marked as approved in the patch baseline.</p>",
@@ -7081,6 +8402,10 @@
           "shape":"PatchDeploymentStatus",
           "documentation":"<p>The approval status of a patch (APPROVED, PENDING_APPROVAL, EXPLICIT_APPROVED, EXPLICIT_REJECTED).</p>"
         },
+        "ComplianceLevel":{
+          "shape":"PatchComplianceLevel",
+          "documentation":"<p>The compliance severity level for a patch.</p>"
+        },
         "ApprovalDate":{
           "shape":"DateTime",
           "documentation":"<p>The date the patch was approved (or will be approved if the status is PENDING_APPROVAL).</p>"
@@ -7107,9 +8432,48 @@
     },
     "PlatformTypeList":{
       "type":"list",
-      "member":{
-        "shape":"PlatformType",
-        "locationName":"PlatformType"
+      "member":{"shape":"PlatformType"}
+    },
+    "Product":{"type":"string"},
+    "PutComplianceItemsRequest":{
+      "type":"structure",
+      "required":[
+        "ResourceId",
+        "ResourceType",
+        "ComplianceType",
+        "ExecutionSummary",
+        "Items"
+      ],
+      "members":{
+        "ResourceId":{
+          "shape":"ComplianceResourceId",
+          "documentation":"<p>Specify an ID for this resource. For a managed instance, this is the instance ID.</p>"
+        },
+        "ResourceType":{
+          "shape":"ComplianceResourceType",
+          "documentation":"<p>Specify the type of resource. <code>ManagedInstance</code> is currently the only supported resource type.</p>"
+        },
+        "ComplianceType":{
+          "shape":"ComplianceTypeName",
+          "documentation":"<p>Specify the compliance type. For example, specify Association (for a State Manager association), Patch, or Custom:<code>string</code>.</p>"
+        },
+        "ExecutionSummary":{
+          "shape":"ComplianceExecutionSummary",
+          "documentation":"<p>A summary of the call execution that includes an execution ID, the type of execution (for example, <code>Command</code>), and the date/time of the execution using a datetime object that is saved in the following format: yyyy-MM-dd'T'HH:mm:ss'Z'.</p>"
+        },
+        "Items":{
+          "shape":"ComplianceItemEntryList",
+          "documentation":"<p>Information about the compliance as defined by the resource type. For example, for a patch compliance type, <code>Items</code> includes information about the PatchSeverity, Classification, etc.</p>"
+        },
+        "ItemContentHash":{
+          "shape":"ComplianceItemContentHash",
+          "documentation":"<p>MD5 or SHA-256 content hash. The content hash is used to determine if existing information should be overwritten or ignored. If the content hashes match, the request to put compliance information is ignored.</p>"
+        }
+      }
+    },
+    "PutComplianceItemsResult":{
+      "type":"structure",
+      "members":{
       }
     },
     "PutInventoryRequest":{
@@ -7144,11 +8508,11 @@
       "members":{
         "Name":{
           "shape":"PSParameterName",
-          "documentation":"<p>The name of the parameter that you want to add to the system.</p>"
+          "documentation":"<p>The fully qualified name of the parameter that you want to add to the system. The fully qualified name includes the complete hierarchy of the parameter path and name. For example: <code>/Dev/DBServer/MySQL/db-string13</code> </p> <note> <p>The maximum length constraint listed below includes capacity for additional system attributes that are not part of the name. The maximum length for the fully qualified parameter name is 1011 characters. </p> </note>"
         },
         "Description":{
           "shape":"ParameterDescription",
-          "documentation":"<p>Information about the parameter that you want to add to the system</p>"
+          "documentation":"<p>Information about the parameter that you want to add to the system.</p>"
         },
         "Value":{
           "shape":"PSParameterValue",
@@ -7176,6 +8540,10 @@
     "PutParameterResult":{
       "type":"structure",
       "members":{
+        "Version":{
+          "shape":"PSParameterVersion",
+          "documentation":"<p>The new version number of a parameter. If you edit a parameter value, Parameter Store automatically creates a new version and assigns this new version a unique ID. You can reference a parameter version ID in API actions or in Systems Manager documents (SSM documents). By default, if you don't specify a specific version, the system returns the latest parameter value when a parameter is called.</p>"
+        }
       }
     },
     "RegisterDefaultPatchBaselineRequest":{
@@ -7251,6 +8619,14 @@
           "shape":"OwnerInformation",
           "documentation":"<p>User-provided value that will be included in any CloudWatch events raised while running tasks for these targets in this Maintenance Window.</p>"
         },
+        "Name":{
+          "shape":"MaintenanceWindowName",
+          "documentation":"<p>An optional name for the target.</p>"
+        },
+        "Description":{
+          "shape":"MaintenanceWindowDescription",
+          "documentation":"<p>An optional description for the target.</p>"
+        },
         "ClientToken":{
           "shape":"ClientToken",
           "documentation":"<p>User-provided idempotency token.</p>",
@@ -7303,6 +8679,10 @@
           "shape":"MaintenanceWindowTaskParameters",
           "documentation":"<p>The parameters that should be passed to the task when it is executed.</p>"
         },
+        "TaskInvocationParameters":{
+          "shape":"MaintenanceWindowTaskInvocationParameters",
+          "documentation":"<p>The parameters that the task should use during execution. Populate only the fields that match the task type. All other fields should be empty. </p>"
+        },
         "Priority":{
           "shape":"MaintenanceWindowTaskPriority",
           "documentation":"<p>The priority of the task in the Maintenance Window, the lower the number the higher the priority. Tasks in a Maintenance Window are scheduled in priority order with tasks that have the same priority scheduled in parallel.</p>",
@@ -7319,6 +8699,14 @@
         "LoggingInfo":{
           "shape":"LoggingInfo",
           "documentation":"<p>A structure containing information about an Amazon S3 bucket to write instance-level logs to. </p>"
+        },
+        "Name":{
+          "shape":"MaintenanceWindowName",
+          "documentation":"<p>An optional name for the task.</p>"
+        },
+        "Description":{
+          "shape":"MaintenanceWindowDescription",
+          "documentation":"<p>An optional description for the task.</p>"
         },
         "ClientToken":{
           "shape":"ClientToken",
@@ -7373,6 +8761,176 @@
       "members":{
       }
     },
+    "ResourceComplianceSummaryItem":{
+      "type":"structure",
+      "members":{
+        "ComplianceType":{
+          "shape":"ComplianceTypeName",
+          "documentation":"<p>The compliance type.</p>"
+        },
+        "ResourceType":{
+          "shape":"ComplianceResourceType",
+          "documentation":"<p>The resource type.</p>"
+        },
+        "ResourceId":{
+          "shape":"ComplianceResourceId",
+          "documentation":"<p>The resource ID.</p>"
+        },
+        "Status":{
+          "shape":"ComplianceStatus",
+          "documentation":"<p>The compliance status for the resource.</p>"
+        },
+        "OverallSeverity":{
+          "shape":"ComplianceSeverity",
+          "documentation":"<p>The highest severity item found for the resource. The resource is compliant for this item.</p>"
+        },
+        "ExecutionSummary":{
+          "shape":"ComplianceExecutionSummary",
+          "documentation":"<p>Information about the execution.</p>"
+        },
+        "CompliantSummary":{
+          "shape":"CompliantSummary",
+          "documentation":"<p>A list of items that are compliant for the resource.</p>"
+        },
+        "NonCompliantSummary":{
+          "shape":"NonCompliantSummary",
+          "documentation":"<p>A list of items that aren't compliant for the resource.</p>"
+        }
+      },
+      "documentation":"<p>Compliance summary information for a specific resource. </p>"
+    },
+    "ResourceComplianceSummaryItemList":{
+      "type":"list",
+      "member":{"shape":"ResourceComplianceSummaryItem"}
+    },
+    "ResourceDataSyncAWSKMSKeyARN":{
+      "type":"string",
+      "max":512,
+      "min":1,
+      "pattern":"arn:.*"
+    },
+    "ResourceDataSyncAlreadyExistsException":{
+      "type":"structure",
+      "members":{
+        "SyncName":{"shape":"ResourceDataSyncName"}
+      },
+      "documentation":"<p>A sync configuration with the same name already exists.</p>",
+      "exception":true
+    },
+    "ResourceDataSyncCountExceededException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>You have exceeded the allowed maximum sync configurations.</p>",
+      "exception":true
+    },
+    "ResourceDataSyncCreatedTime":{"type":"timestamp"},
+    "ResourceDataSyncInvalidConfigurationException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>The specified sync configuration is invalid.</p>",
+      "exception":true
+    },
+    "ResourceDataSyncItem":{
+      "type":"structure",
+      "members":{
+        "SyncName":{
+          "shape":"ResourceDataSyncName",
+          "documentation":"<p>The name of the Resource Data Sync.</p>"
+        },
+        "S3Destination":{
+          "shape":"ResourceDataSyncS3Destination",
+          "documentation":"<p>Configuration information for the target Amazon S3 bucket.</p>"
+        },
+        "LastSyncTime":{
+          "shape":"LastResourceDataSyncTime",
+          "documentation":"<p>The last time the configuration attempted to sync (UTC).</p>"
+        },
+        "LastSuccessfulSyncTime":{
+          "shape":"LastSuccessfulResourceDataSyncTime",
+          "documentation":"<p>The last time the sync operations returned a status of <code>SUCCESSFUL</code> (UTC).</p>"
+        },
+        "LastStatus":{
+          "shape":"LastResourceDataSyncStatus",
+          "documentation":"<p>The status reported by the last sync.</p>"
+        },
+        "SyncCreatedTime":{
+          "shape":"ResourceDataSyncCreatedTime",
+          "documentation":"<p>The date and time the configuration was created (UTC).</p>"
+        }
+      },
+      "documentation":"<p>Information about a Resource Data Sync configuration, including its current status and last successful sync.</p>"
+    },
+    "ResourceDataSyncItemList":{
+      "type":"list",
+      "member":{"shape":"ResourceDataSyncItem"}
+    },
+    "ResourceDataSyncName":{
+      "type":"string",
+      "max":64,
+      "min":1
+    },
+    "ResourceDataSyncNotFoundException":{
+      "type":"structure",
+      "members":{
+        "SyncName":{"shape":"ResourceDataSyncName"}
+      },
+      "documentation":"<p>The specified sync name was not found.</p>",
+      "exception":true
+    },
+    "ResourceDataSyncS3BucketName":{
+      "type":"string",
+      "max":2048,
+      "min":1
+    },
+    "ResourceDataSyncS3Destination":{
+      "type":"structure",
+      "required":[
+        "BucketName",
+        "SyncFormat",
+        "Region"
+      ],
+      "members":{
+        "BucketName":{
+          "shape":"ResourceDataSyncS3BucketName",
+          "documentation":"<p>The name of the Amazon S3 bucket where the aggregated data is stored.</p>"
+        },
+        "Prefix":{
+          "shape":"ResourceDataSyncS3Prefix",
+          "documentation":"<p>An Amazon S3 prefix for the bucket.</p>"
+        },
+        "SyncFormat":{
+          "shape":"ResourceDataSyncS3Format",
+          "documentation":"<p>A supported sync format. The following format is currently supported: JsonSerDe</p>"
+        },
+        "Region":{
+          "shape":"ResourceDataSyncS3Region",
+          "documentation":"<p>The AWS Region with the Amazon S3 bucket targeted by the Resource Data Sync.</p>"
+        },
+        "AWSKMSKeyARN":{
+          "shape":"ResourceDataSyncAWSKMSKeyARN",
+          "documentation":"<p>The ARN of an encryption key for a destination in Amazon S3. Must belong to the same region as the destination Amazon S3 bucket.</p>"
+        }
+      },
+      "documentation":"<p>Information about the target Amazon S3 bucket for the Resource Data Sync.</p>"
+    },
+    "ResourceDataSyncS3Format":{
+      "type":"string",
+      "enum":["JsonSerDe"]
+    },
+    "ResourceDataSyncS3Prefix":{
+      "type":"string",
+      "max":256,
+      "min":1
+    },
+    "ResourceDataSyncS3Region":{
+      "type":"string",
+      "max":64,
+      "min":1
+    },
     "ResourceId":{"type":"string"},
     "ResourceInUseException":{
       "type":"structure",
@@ -7401,9 +8959,11 @@
     "ResourceTypeForTagging":{
       "type":"string",
       "enum":[
+        "Document",
         "ManagedInstance",
         "MaintenanceWindow",
-        "Parameter"
+        "Parameter",
+        "PatchBaseline"
       ]
     },
     "ResponseCode":{"type":"integer"},
@@ -7420,10 +8980,7 @@
     },
     "ResultAttributeList":{
       "type":"list",
-      "member":{
-        "shape":"ResultAttribute",
-        "locationName":"ResultAttribute"
-      },
+      "member":{"shape":"ResultAttribute"},
       "max":1,
       "min":1
     },
@@ -7473,6 +9030,32 @@
       "type":"string",
       "max":256,
       "min":1
+    },
+    "SendAutomationSignalRequest":{
+      "type":"structure",
+      "required":[
+        "AutomationExecutionId",
+        "SignalType"
+      ],
+      "members":{
+        "AutomationExecutionId":{
+          "shape":"AutomationExecutionId",
+          "documentation":"<p>The unique identifier for an existing Automation execution that you want to send the signal to.</p>"
+        },
+        "SignalType":{
+          "shape":"SignalType",
+          "documentation":"<p>The type of signal. Valid signal types include the following: Approve and Reject </p>"
+        },
+        "Payload":{
+          "shape":"AutomationParameterMap",
+          "documentation":"<p>The data sent with the signal. The data schema depends on the type of signal used in the request. </p>"
+        }
+      }
+    },
+    "SendAutomationSignalResult":{
+      "type":"structure",
+      "members":{
+      }
     },
     "SendCommandRequest":{
       "type":"structure",
@@ -7551,6 +9134,43 @@
       }
     },
     "ServiceRole":{"type":"string"},
+    "SeveritySummary":{
+      "type":"structure",
+      "members":{
+        "CriticalCount":{
+          "shape":"ComplianceSummaryCount",
+          "documentation":"<p>The total number of resources or compliance items that have a severity level of critical. Critical severity is determined by the organization that published the compliance items.</p>"
+        },
+        "HighCount":{
+          "shape":"ComplianceSummaryCount",
+          "documentation":"<p>The total number of resources or compliance items that have a severity level of high. High severity is determined by the organization that published the compliance items.</p>"
+        },
+        "MediumCount":{
+          "shape":"ComplianceSummaryCount",
+          "documentation":"<p>The total number of resources or compliance items that have a severity level of medium. Medium severity is determined by the organization that published the compliance items.</p>"
+        },
+        "LowCount":{
+          "shape":"ComplianceSummaryCount",
+          "documentation":"<p>The total number of resources or compliance items that have a severity level of low. Low severity is determined by the organization that published the compliance items.</p>"
+        },
+        "InformationalCount":{
+          "shape":"ComplianceSummaryCount",
+          "documentation":"<p>The total number of resources or compliance items that have a severity level of informational. Informational severity is determined by the organization that published the compliance items.</p>"
+        },
+        "UnspecifiedCount":{
+          "shape":"ComplianceSummaryCount",
+          "documentation":"<p>The total number of resources or compliance items that have a severity level of unspecified. Unspecified severity is determined by the organization that published the compliance items.</p>"
+        }
+      },
+      "documentation":"<p>The number of managed instances found for each patch severity level defined in the request filter.</p>"
+    },
+    "SignalType":{
+      "type":"string",
+      "enum":[
+        "Approve",
+        "Reject"
+      ]
+    },
     "SnapshotDownloadUrl":{"type":"string"},
     "SnapshotId":{
       "type":"string",
@@ -7582,6 +9202,10 @@
         "Parameters":{
           "shape":"AutomationParameterMap",
           "documentation":"<p>A key-value map of execution parameters, which match the declared parameters in the Automation document.</p>"
+        },
+        "ClientToken":{
+          "shape":"IdempotencyToken",
+          "documentation":"<p>User-provided idempotency token. The token must be unique, is case insensitive, enforces the UUID format, and can't be reused.</p>"
         }
       }
     },
@@ -7696,6 +9320,14 @@
       "type":"list",
       "member":{"shape":"String"}
     },
+    "SubTypeCountLimitExceededException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>The sub-type count exceeded the limit for the inventory type.</p>",
+      "exception":true
+    },
     "Tag":{
       "type":"structure",
       "required":[
@@ -7712,7 +9344,7 @@
           "documentation":"<p>The value of the tag.</p>"
         }
       },
-      "documentation":"<p>Metadata that you assign to your managed instances. Tags enable you to categorize your managed instances in different ways, for example, by purpose, owner, or environment.</p>"
+      "documentation":"<p>Metadata that you assign to your AWS resources. Tags enable you to categorize your resources in different ways, for example, by purpose, owner, or environment. In Systems Manager, you can apply tags to documents, managed instances, Maintenance Windows, Parameter Store parameters, and patch baselines.</p>"
     },
     "TagKey":{
       "type":"string",
@@ -7745,6 +9377,14 @@
       "documentation":"<p>An array of search criteria that targets instances using a Key,Value combination that you specify. <code>Targets</code> is required if you don't provide one or more instance IDs in the call.</p> <p/>"
     },
     "TargetCount":{"type":"integer"},
+    "TargetInUseException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>You specified the <code>Safe</code> option for the DeregisterTargetFromMaintenanceWindow operation, but the target is still referenced in a task.</p>",
+      "exception":true
+    },
     "TargetKey":{
       "type":"string",
       "max":128,
@@ -7792,12 +9432,29 @@
       "documentation":"<p>The size of inventory data has exceeded the total size limit for the resource.</p>",
       "exception":true
     },
+    "UnsupportedInventoryItemContextException":{
+      "type":"structure",
+      "members":{
+        "TypeName":{"shape":"InventoryItemTypeName"},
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>The <code>Context</code> attribute that you specified for the <code>InventoryItem</code> is not allowed for this inventory type. You can only use the <code>Context</code> attribute with inventory types like <code>AWS:ComplianceItem</code>.</p>",
+      "exception":true
+    },
     "UnsupportedInventorySchemaVersionException":{
       "type":"structure",
       "members":{
         "Message":{"shape":"String"}
       },
       "documentation":"<p>Inventory item type schema version has to match supported versions in the service. Check output of GetInventorySchema to see the available schema version for each type.</p>",
+      "exception":true
+    },
+    "UnsupportedOperatingSystem":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>The operating systems you specified is not supported, or the operation is not supported for the operating system. Valid operating systems include: Windows, AmazonLinux, RedhatEnterpriseLinux, and Ubuntu.</p>",
       "exception":true
     },
     "UnsupportedParameterType":{
@@ -7847,6 +9504,14 @@
         "Targets":{
           "shape":"Targets",
           "documentation":"<p>The targets of the association.</p>"
+        },
+        "AssociationName":{
+          "shape":"AssociationName",
+          "documentation":"<p>The name of the association that you want to update.</p>"
+        },
+        "AssociationVersion":{
+          "shape":"AssociationVersion",
+          "documentation":"<p>This parameter is provided for concurrency control purposes. You must specify the latest association version in the service. If you want to ensure that this request succeeds, either specify <code>$LATEST</code>, or omit this parameter.</p>"
         }
       }
     },
@@ -7869,7 +9534,7 @@
       "members":{
         "Name":{
           "shape":"DocumentName",
-          "documentation":"<p>The name of the SSM document.</p>"
+          "documentation":"<p>The name of the Systems Manager document.</p>"
         },
         "InstanceId":{
           "shape":"InstanceId",
@@ -7958,6 +9623,10 @@
           "shape":"MaintenanceWindowName",
           "documentation":"<p>The name of the Maintenance Window.</p>"
         },
+        "Description":{
+          "shape":"MaintenanceWindowDescription",
+          "documentation":"<p>An optional description for the update request.</p>"
+        },
         "Schedule":{
           "shape":"MaintenanceWindowSchedule",
           "documentation":"<p>The schedule of the Maintenance Window in the form of a cron or rate expression.</p>"
@@ -7981,6 +9650,11 @@
           "shape":"MaintenanceWindowEnabled",
           "documentation":"<p>Whether the Maintenance Window is enabled.</p>",
           "box":true
+        },
+        "Replace":{
+          "shape":"Boolean",
+          "documentation":"<p>If True, then all fields that are required by the CreateMaintenanceWindow action are also required for this API request. Optional fields that are not specified are set to null. </p>",
+          "box":true
         }
       }
     },
@@ -7994,6 +9668,10 @@
         "Name":{
           "shape":"MaintenanceWindowName",
           "documentation":"<p>The name of the Maintenance Window.</p>"
+        },
+        "Description":{
+          "shape":"MaintenanceWindowDescription",
+          "documentation":"<p>An optional description of the update.</p>"
         },
         "Schedule":{
           "shape":"MaintenanceWindowSchedule",
@@ -8014,6 +9692,197 @@
         "Enabled":{
           "shape":"MaintenanceWindowEnabled",
           "documentation":"<p>Whether the Maintenance Window is enabled.</p>"
+        }
+      }
+    },
+    "UpdateMaintenanceWindowTargetRequest":{
+      "type":"structure",
+      "required":[
+        "WindowId",
+        "WindowTargetId"
+      ],
+      "members":{
+        "WindowId":{
+          "shape":"MaintenanceWindowId",
+          "documentation":"<p>The Maintenance Window ID with which to modify the target.</p>"
+        },
+        "WindowTargetId":{
+          "shape":"MaintenanceWindowTargetId",
+          "documentation":"<p>The target ID to modify.</p>"
+        },
+        "Targets":{
+          "shape":"Targets",
+          "documentation":"<p>The targets to add or replace.</p>"
+        },
+        "OwnerInformation":{
+          "shape":"OwnerInformation",
+          "documentation":"<p>User-provided value that will be included in any CloudWatch events raised while running tasks for these targets in this Maintenance Window.</p>"
+        },
+        "Name":{
+          "shape":"MaintenanceWindowName",
+          "documentation":"<p>A name for the update.</p>"
+        },
+        "Description":{
+          "shape":"MaintenanceWindowDescription",
+          "documentation":"<p>An optional description for the update.</p>"
+        },
+        "Replace":{
+          "shape":"Boolean",
+          "documentation":"<p>If True, then all fields that are required by the RegisterTargetWithMaintenanceWindow action are also required for this API request. Optional fields that are not specified are set to null.</p>",
+          "box":true
+        }
+      }
+    },
+    "UpdateMaintenanceWindowTargetResult":{
+      "type":"structure",
+      "members":{
+        "WindowId":{
+          "shape":"MaintenanceWindowId",
+          "documentation":"<p>The Maintenance Window ID specified in the update request.</p>"
+        },
+        "WindowTargetId":{
+          "shape":"MaintenanceWindowTargetId",
+          "documentation":"<p>The target ID specified in the update request.</p>"
+        },
+        "Targets":{
+          "shape":"Targets",
+          "documentation":"<p>The updated targets.</p>"
+        },
+        "OwnerInformation":{
+          "shape":"OwnerInformation",
+          "documentation":"<p>The updated owner.</p>"
+        },
+        "Name":{
+          "shape":"MaintenanceWindowName",
+          "documentation":"<p>The updated name.</p>"
+        },
+        "Description":{
+          "shape":"MaintenanceWindowDescription",
+          "documentation":"<p>The updated description.</p>"
+        }
+      }
+    },
+    "UpdateMaintenanceWindowTaskRequest":{
+      "type":"structure",
+      "required":[
+        "WindowId",
+        "WindowTaskId"
+      ],
+      "members":{
+        "WindowId":{
+          "shape":"MaintenanceWindowId",
+          "documentation":"<p>The Maintenance Window ID that contains the task to modify.</p>"
+        },
+        "WindowTaskId":{
+          "shape":"MaintenanceWindowTaskId",
+          "documentation":"<p>The task ID to modify.</p>"
+        },
+        "Targets":{
+          "shape":"Targets",
+          "documentation":"<p>The targets (either instances or tags) to modify. Instances are specified using Key=instanceids,Values=instanceID_1,instanceID_2. Tags are specified using Key=tag_name,Values=tag_value. </p>"
+        },
+        "TaskArn":{
+          "shape":"MaintenanceWindowTaskArn",
+          "documentation":"<p>The task ARN to modify.</p>"
+        },
+        "ServiceRoleArn":{
+          "shape":"ServiceRole",
+          "documentation":"<p>The IAM service role ARN to modify. The system assumes this role during task execution. </p>"
+        },
+        "TaskParameters":{
+          "shape":"MaintenanceWindowTaskParameters",
+          "documentation":"<p>The parameters to modify. The map has the following format:</p> <p>Key: string, between 1 and 255 characters</p> <p>Value: an array of strings, each string is between 1 and 255 characters</p>"
+        },
+        "TaskInvocationParameters":{
+          "shape":"MaintenanceWindowTaskInvocationParameters",
+          "documentation":"<p>The parameters that the task should use during execution. Populate only the fields that match the task type. All other fields should be empty.</p>"
+        },
+        "Priority":{
+          "shape":"MaintenanceWindowTaskPriority",
+          "documentation":"<p>The new task priority to specify. The lower the number, the higher the priority. Tasks that have the same priority are scheduled in parallel.</p>",
+          "box":true
+        },
+        "MaxConcurrency":{
+          "shape":"MaxConcurrency",
+          "documentation":"<p>The new <code>MaxConcurrency</code> value you want to specify. <code>MaxConcurrency</code> is the number of targets that are allowed to run this task in parallel.</p>"
+        },
+        "MaxErrors":{
+          "shape":"MaxErrors",
+          "documentation":"<p>The new <code>MaxErrors</code> value to specify. <code>MaxErrors</code> is the maximum number of errors that are allowed before the task stops being scheduled.</p>"
+        },
+        "LoggingInfo":{
+          "shape":"LoggingInfo",
+          "documentation":"<p>The new logging location in Amazon S3 to specify.</p>"
+        },
+        "Name":{
+          "shape":"MaintenanceWindowName",
+          "documentation":"<p>The new task name to specify.</p>"
+        },
+        "Description":{
+          "shape":"MaintenanceWindowDescription",
+          "documentation":"<p>The new task description to specify.</p>"
+        },
+        "Replace":{
+          "shape":"Boolean",
+          "documentation":"<p>If True, then all fields that are required by the RegisterTaskWithMaintenanceWndow action are also required for this API request. Optional fields that are not specified are set to null.</p>",
+          "box":true
+        }
+      }
+    },
+    "UpdateMaintenanceWindowTaskResult":{
+      "type":"structure",
+      "members":{
+        "WindowId":{
+          "shape":"MaintenanceWindowId",
+          "documentation":"<p>The ID of the Maintenance Window that was updated.</p>"
+        },
+        "WindowTaskId":{
+          "shape":"MaintenanceWindowTaskId",
+          "documentation":"<p>The task ID of the Maintenance Window that was updated.</p>"
+        },
+        "Targets":{
+          "shape":"Targets",
+          "documentation":"<p>The updated target values.</p>"
+        },
+        "TaskArn":{
+          "shape":"MaintenanceWindowTaskArn",
+          "documentation":"<p>The updated task ARN value.</p>"
+        },
+        "ServiceRoleArn":{
+          "shape":"ServiceRole",
+          "documentation":"<p>The updated service role ARN value.</p>"
+        },
+        "TaskParameters":{
+          "shape":"MaintenanceWindowTaskParameters",
+          "documentation":"<p>The updated parameter values.</p>"
+        },
+        "TaskInvocationParameters":{
+          "shape":"MaintenanceWindowTaskInvocationParameters",
+          "documentation":"<p>The updated parameter values.</p>"
+        },
+        "Priority":{
+          "shape":"MaintenanceWindowTaskPriority",
+          "documentation":"<p>The updated priority value.</p>"
+        },
+        "MaxConcurrency":{
+          "shape":"MaxConcurrency",
+          "documentation":"<p>The updated MaxConcurrency value.</p>"
+        },
+        "MaxErrors":{
+          "shape":"MaxErrors",
+          "documentation":"<p>The updated MaxErrors value.</p>"
+        },
+        "LoggingInfo":{
+          "shape":"LoggingInfo",
+          "documentation":"<p>The updated logging information in Amazon S3.</p>"
+        },
+        "Name":{
+          "shape":"MaintenanceWindowName",
+          "documentation":"<p>The updated task name.</p>"
+        },
+        "Description":{
+          "shape":"MaintenanceWindowDescription",
+          "documentation":"<p>The updated task description.</p>"
         }
       }
     },
@@ -8063,6 +9932,10 @@
           "shape":"PatchIdList",
           "documentation":"<p>A list of explicitly approved patches for the baseline.</p>"
         },
+        "ApprovedPatchesComplianceLevel":{
+          "shape":"PatchComplianceLevel",
+          "documentation":"<p>Assigns a new compliance severity level to an existing patch baseline.</p>"
+        },
         "RejectedPatches":{
           "shape":"PatchIdList",
           "documentation":"<p>A list of explicitly rejected patches for the baseline.</p>"
@@ -8084,6 +9957,10 @@
           "shape":"BaselineName",
           "documentation":"<p>The name of the patch baseline.</p>"
         },
+        "OperatingSystem":{
+          "shape":"OperatingSystem",
+          "documentation":"<p>The operating system rule used by the updated patch baseline.</p>"
+        },
         "GlobalFilters":{
           "shape":"PatchFilterGroup",
           "documentation":"<p>A set of global filters used to exclude patches from the baseline.</p>"
@@ -8095,6 +9972,10 @@
         "ApprovedPatches":{
           "shape":"PatchIdList",
           "documentation":"<p>A list of explicitly approved patches for the baseline.</p>"
+        },
+        "ApprovedPatchesComplianceLevel":{
+          "shape":"PatchComplianceLevel",
+          "documentation":"<p>The compliance severity level assigned to the patch baseline after the update completed.</p>"
         },
         "RejectedPatches":{
           "shape":"PatchIdList",
@@ -8120,5 +10001,5 @@
       "pattern":"^[0-9]{1,6}(\\.[0-9]{1,6}){2,3}$"
     }
   },
-  "documentation":"<fullname>Amazon EC2 Systems Manager</fullname> <p>Amazon EC2 Systems Manager is a collection of capabilities that helps you automate management tasks such as collecting system inventory, applying operating system (OS) patches, automating the creation of Amazon Machine Images (AMIs), and configuring operating systems (OSs) and applications at scale. Systems Manager lets you remotely and securely manage the configuration of your managed instances. A <i>managed instance</i> is any Amazon EC2 instance or on-premises machine in your hybrid environment that has been configured for Systems Manager.</p> <p>This reference is intended to be used with the <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/\">Amazon EC2 Systems Manager User Guide</a>.</p> <p>To get started, verify prerequisites and configure managed instances. For more information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-setting-up.html\">Systems Manager Prerequisites</a>.</p>"
+  "documentation":"<fullname>Amazon EC2 Systems Manager</fullname> <p>Amazon EC2 Systems Manager is a collection of capabilities that helps you automate management tasks such as collecting system inventory, applying operating system (OS) patches, automating the creation of Amazon Machine Images (AMIs), and configuring operating systems (OSs) and applications at scale. Systems Manager lets you remotely and securely manage the configuration of your managed instances. A <i>managed instance</i> is any Amazon EC2 instance or on-premises machine in your hybrid environment that has been configured for Systems Manager.</p> <p>This reference is intended to be used with the <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/\">Amazon EC2 Systems Manager User Guide</a>.</p> <p>To get started, verify prerequisites and configure managed instances. For more information, see <a href=\"http://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-setting-up.html\">Systems Manager Prerequisites</a>.</p> <p>For information about other API actions you can perform on Amazon EC2 instances, see the <a href=\"http://docs.aws.amazon.com/AWSEC2/latest/APIReference/\">Amazon EC2 API Reference</a>. For information about how to use a Query API, see <a href=\"http://docs.aws.amazon.com/AWSEC2/latest/APIReference/making-api-requests.html\">Making API Requests</a>. </p>"
 }

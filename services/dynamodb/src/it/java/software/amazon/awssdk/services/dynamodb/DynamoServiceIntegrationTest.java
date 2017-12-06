@@ -280,7 +280,7 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
         assertTrue(itemResult.item().get("BS").bs().contains(ByteBuffer.wrap(generateByteArray(contentLength + 1))));
 
         // Pause to try and deal with ProvisionedThroughputExceededExceptions
-        Thread.sleep(1000 * 20);
+        Thread.sleep(1000 * 5);
 
         // Add some data into the table with binary hash key
         ByteBuffer byteBuffer = ByteBuffer.allocate(contentLength * 2);
@@ -314,7 +314,7 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
         assertTrue(itemResult.item().get("BS").bs().contains(ByteBuffer.wrap(generateByteArray(contentLength + 1))));
 
         // Pause to try and deal with ProvisionedThroughputExceededExceptions
-        Thread.sleep(1000 * 20);
+        Thread.sleep(1000 * 5);
 
         // Load some random data
         System.out.println("Loading data...");

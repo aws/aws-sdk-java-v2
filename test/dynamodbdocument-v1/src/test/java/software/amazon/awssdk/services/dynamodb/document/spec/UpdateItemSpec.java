@@ -24,7 +24,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.services.dynamodb.document.AttributeUpdate;
 import software.amazon.awssdk.services.dynamodb.document.Expected;
 import software.amazon.awssdk.services.dynamodb.document.KeyAttribute;
@@ -234,12 +233,6 @@ public class UpdateItemSpec extends AbstractSpecWithPrimaryKey<UpdateItemRequest
 
     public UpdateItemSpec withReturnValues(String returnValues) {
         setRequest(getRequest().toBuilder().returnValues(returnValues).build());
-        return this;
-    }
-
-    @Override
-    public UpdateItemSpec withProgressListener(ProgressListener progressListener) {
-        setProgressListener(progressListener);
         return this;
     }
 }
