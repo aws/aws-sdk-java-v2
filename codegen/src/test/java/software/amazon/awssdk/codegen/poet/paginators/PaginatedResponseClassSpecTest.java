@@ -31,17 +31,17 @@ import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
 
-public class PaginatorResponseClassSpecTest {
+public class PaginatedResponseClassSpecTest {
 
     private static IntermediateModel intermediateModel;
     private static Paginators paginators;
 
     @BeforeClass
     public static void setUp() throws IOException {
-        File serviceModelFile = new File(PaginatorResponseClassSpecTest.class.getResource("service-2.json").getFile());
-        File customizationConfigFile = new File(PaginatorResponseClassSpecTest.class.getResource("customization.config")
+        File serviceModelFile = new File(PaginatedResponseClassSpecTest.class.getResource("service-2.json").getFile());
+        File customizationConfigFile = new File(PaginatedResponseClassSpecTest.class.getResource("customization.config")
                                                                                     .getFile());
-        File paginatorsModel = new File(PaginatorResponseClassSpecTest.class.getResource("paginators.json")
+        File paginatorsModel = new File(PaginatedResponseClassSpecTest.class.getResource("paginators.json")
                                                                             .getFile());
 
         paginators = getPaginatorsModel(paginatorsModel);
@@ -60,15 +60,29 @@ public class PaginatorResponseClassSpecTest {
     }
 
     @Test
-    public void testGeneratedResponseClassesForPaginatedOperations() {
+    public void testGeneratedResponseForSyncOperations() {
         paginators.getPaginators().entrySet()
                   .stream()
                   .filter(entry -> entry.getValue().isValid())
                   .forEach(entry ->
                            {
-                               ClassSpec classSpec = new PaginatorResponseClassSpec(intermediateModel,
-                                                                                    entry.getKey(),
-                                                                                    entry.getValue());
+                               ClassSpec classSpec = new SyncResponseClassSpec(intermediateModel,
+                                                                               entry.getKey(),
+                                                                               entry.getValue());
+                               assertThat(classSpec, generatesTo(classSpec.className().simpleName() + ".java"));
+                           });
+    }
+
+    @Test
+    public void testGeneratedResponseForAsyncOperations() {
+        paginators.getPaginators().entrySet()
+                  .stream()
+                  .filter(entry -> entry.getValue().isValid())
+                  .forEach(entry ->
+                           {
+                               ClassSpec classSpec = new AsyncResponseClassSpec(intermediateModel,
+                                                                               entry.getKey(),
+                                                                               entry.getValue());
                                assertThat(classSpec, generatesTo(classSpec.className().simpleName() + ".java"));
                            });
     }

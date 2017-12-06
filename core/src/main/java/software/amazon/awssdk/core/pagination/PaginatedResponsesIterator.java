@@ -28,13 +28,13 @@ import java.util.NoSuchElementException;
  */
 public class PaginatedResponsesIterator<ResponseT> implements Iterator<ResponseT> {
 
-    private final NextPageFetcher<ResponseT> nextPageFetcher;
+    private final SyncPageFetcher<ResponseT> nextPageFetcher;
 
     // This is null when the object is created. It gets initialized in next() method
     // where SDK make service calls.
     private ResponseT oldResponse;
 
-    public PaginatedResponsesIterator(NextPageFetcher<ResponseT> nextPageFetcher) {
+    public PaginatedResponsesIterator(SyncPageFetcher<ResponseT> nextPageFetcher) {
         this.nextPageFetcher = nextPageFetcher;
     }
 

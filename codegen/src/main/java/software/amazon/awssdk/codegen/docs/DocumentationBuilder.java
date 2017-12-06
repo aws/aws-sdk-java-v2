@@ -30,6 +30,8 @@ import software.amazon.awssdk.utils.StringUtils;
  */
 public final class DocumentationBuilder {
 
+    // TODO This prefix is not suitable for paginated operations. Either remove it for paginated operations
+    // or change the statement to something generic
     private static final String ASYNC_THROWS_PREFIX = "The CompletableFuture returned by this method can be completed " +
                                                       "exceptionally with the following exceptions.";
 

@@ -18,15 +18,18 @@ package software.amazon.awssdk.codegen.emitters.tasks;
 import static software.amazon.awssdk.utils.FunctionalUtils.safeFunction;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.paginators.PaginatorResponseClassSpec;
+import software.amazon.awssdk.codegen.poet.paginators.AsyncResponseClassSpec;
+import software.amazon.awssdk.codegen.poet.paginators.SyncResponseClassSpec;
 
 public class PaginatorsGeneratorTasks extends BaseGeneratorTasks {
 
@@ -44,15 +47,25 @@ public class PaginatorsGeneratorTasks extends BaseGeneratorTasks {
 
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
-        info("Emitting paginator classes");
         return model.getPaginators().entrySet().stream()
                     .filter(entry -> entry.getValue().isValid())
-                    .map(safeFunction(this::createTask))
+                    .flatMap(safeFunction(this::createSyncAndAsyncTasks))
                     .collect(Collectors.toList());
     }
 
-    private GeneratorTask createTask(Map.Entry<String, PaginatorDefinition> entry) throws IOException {
-        ClassSpec classSpec = new PaginatorResponseClassSpec(model, entry.getKey(), entry.getValue());
+    private Stream<GeneratorTask> createSyncAndAsyncTasks(Map.Entry<String, PaginatorDefinition> entry) throws IOException {
+        return Arrays.asList(createSyncTask(entry), createAsyncTask(entry))
+                     .stream();
+    }
+
+    private GeneratorTask createSyncTask(Map.Entry<String, PaginatorDefinition> entry) throws IOException {
+        ClassSpec classSpec = new SyncResponseClassSpec(model, entry.getKey(), entry.getValue());
+
+        return new PoetGeneratorTask(paginatorsClassDir, model.getFileHeader(), classSpec);
+    }
+
+    private GeneratorTask createAsyncTask(Map.Entry<String, PaginatorDefinition> entry) throws IOException {
+        ClassSpec classSpec = new AsyncResponseClassSpec(model, entry.getKey(), entry.getValue());
 
         return new PoetGeneratorTask(paginatorsClassDir, model.getFileHeader(), classSpec);
     }

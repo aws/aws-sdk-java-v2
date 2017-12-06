@@ -60,6 +60,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                                     interfaceClass)
                                         .addMethod(nameMethod())
                                         .addMethods(operations())
+                                        .addMethods(paginatedTraditionalMethods())
                                         .addMethod(closeMethod())
                                         .addMethods(protocolSpec.additionalMethods())
                                         .addMethod(protocolSpec.initProtocolFactory(model));
@@ -126,6 +127,14 @@ public final class AsyncClientClass extends AsyncClientInterface {
                       .addCode(protocolSpec.errorResponseHandler(opModel))
                       .addCode(protocolSpec.asyncExecutionHandler(opModel));
 
+    }
+
+    @Override
+    protected MethodSpec.Builder paginatedMethodBody(MethodSpec.Builder builder, OperationModel opModel) {
+        return builder.addModifiers(Modifier.PUBLIC)
+                      .addStatement("return new $T(this, $L)",
+                                    poetExtensions.getResponseClassForPaginatedAsyncOperation(opModel.getOperationName()),
+                                    opModel.getInput().getVariableName());
     }
 
     @Override
