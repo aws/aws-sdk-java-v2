@@ -122,7 +122,11 @@ checklist below:
 * [ ] Git commit message is detailed and includes context behind the change
 * [ ] If the change is related to an existing Bug Report or Feature Request,
   the issue number is referenced
-* [ ] A short description of the change added to [CHANGELOG.md](./CHANGELOG.md)
+* [ ] A short description of the change added to
+  [CHANGELOG.md](./CHANGELOG.md). Adding a new entry can be accomplished by
+  running the `scripts/new-change` script and following the instructions.
+  Commit the new file created by the script in `.changes/next-release` with
+  your changes.
 
 ### Getting Your Pull Request Merged
 All Pull Requests must be approved by at least one member of the SDK team
