@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
+import static software.amazon.awssdk.codegen.internal.Constants.APPROVED_SIMPLE_METHOD_VERBS;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -22,7 +24,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
@@ -169,6 +173,15 @@ public final class IntermediateModel {
 
     private String getResponseMetadataClassName() {
         return ResponseMetadata.class.getName();
+    }
+
+    @JsonIgnore
+    public List<OperationModel> simpleMethodsRequiringTesting() {
+        return getOperations().values().stream()
+                              .filter(v -> v.getInputShape().isSimpleMethod())
+                              .filter(v -> !getCustomizationConfig().getVerifiedSimpleMethods().contains(v.getMethodName()))
+                              .filter(v -> v.getMethodName().matches(APPROVED_SIMPLE_METHOD_VERBS))
+                              .collect(Collectors.toList());
     }
 
     public Map<String, AuthorizerModel> getCustomAuthorizers() {
