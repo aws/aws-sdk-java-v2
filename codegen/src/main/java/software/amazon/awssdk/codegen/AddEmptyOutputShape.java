@@ -19,7 +19,6 @@ import static software.amazon.awssdk.codegen.internal.Constants.RESPONSE_CLASS_S
 
 import java.util.HashMap;
 import java.util.Map;
-import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ReturnTypeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
@@ -34,28 +33,21 @@ import software.amazon.awssdk.codegen.naming.NamingStrategy;
 public class AddEmptyOutputShape implements IntermediateModelShapeProcessor {
 
     private final ServiceModel serviceModel;
-    private final CustomizationConfig customizationConfig;
     private final NamingStrategy namingStrategy;
 
     public AddEmptyOutputShape(IntermediateModelBuilder builder) {
         this.serviceModel = builder.getService();
-        this.customizationConfig = builder.getCustomConfig();
         this.namingStrategy = builder.getNamingStrategy();
     }
 
     @Override
     public Map<String, ShapeModel> process(Map<String, OperationModel> currentOperations,
                                            Map<String, ShapeModel> currentShapes) {
-        if (customizationConfig.useModeledOutputShapeNames()) {
-            return currentShapes;
-        } else {
-            return addEmptyOutputShapes(currentOperations);
-        }
-
+        return addEmptyOutputShapes(currentOperations);
     }
 
     private Map<String, ShapeModel> addEmptyOutputShapes(
-            Map<String, OperationModel> currentOperations) {
+        Map<String, OperationModel> currentOperations) {
         final Map<String, Operation> operations = serviceModel.getOperations();
 
         final Map<String, ShapeModel> emptyOutputShapes = new HashMap<>();
@@ -72,11 +64,11 @@ public class AddEmptyOutputShape implements IntermediateModelShapeProcessor {
                 operationModel.setReturnType(new ReturnTypeModel(outputShape));
 
                 ShapeModel shape = new ShapeModel(outputShape)
-                        .withType(ShapeType.Response.getValue());
+                    .withType(ShapeType.Response.getValue());
                 shape.setShapeName(outputShape);
 
                 final VariableModel outputVariable = new VariableModel(
-                        namingStrategy.getVariableName(outputShape), outputShape);
+                    namingStrategy.getVariableName(outputShape), outputShape);
                 shape.setVariable(outputVariable);
                 shape.setUnmarshaller(new ShapeUnmarshaller());
 
