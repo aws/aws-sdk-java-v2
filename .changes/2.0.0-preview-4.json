@@ -59,17 +59,17 @@
         },
         {
             "category": "AWS SDK for Java v2",
-            "type": "deprecation",
+            "type": "removal",
             "description": "Dependency on JodaTime has been dropped in favor of Java 8's APIS."
         },
         {
             "category": "AWS SDK for Java v2",
-            "type": "deprecation",
+            "type": "removal",
             "description": "Metrics subsystem has been removed."
         },
         {
             "category": "AWS SDK for Java v2",
-            "type": "deprecation",
+            "type": "removal",
             "description": "DynamoDBMapper and DynamoDB Document API have been removed."
         }
     ]

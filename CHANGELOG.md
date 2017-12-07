@@ -37,7 +37,7 @@
     - Several fixes around serialization and deserialization of immutable objects. See [Issue #122](https://github.com/aws/aws-sdk-java-v2/issues/122)
     - Type parameters are now correctly included for [StreamingResponseHandler](https://github.com/aws/aws-sdk-java-v2/blob/master/core/src/main/java/software/amazon/awssdk/sync/StreamingResponseHandler.java) on the client interface.
 
-  - ### Deprecations
+  - ### Removals
     - Dependency on JodaTime has been dropped in favor of Java 8's APIS.
     - DynamoDBMapper and DynamoDB Document API have been removed.
     - Metrics subsystem has been removed.

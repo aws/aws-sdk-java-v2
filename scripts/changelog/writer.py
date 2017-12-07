@@ -24,9 +24,10 @@ class ChangelogWriter(object):
         self.write_header()
         for s in self.get_sorted_categories():
             self.write_category_header(s)
-            self.write_features_for_category(s)
-            self.write_bugfixes_for_category(s)
-            self.write_deprecations_for_category(s)
+            self.write_items_for_category(s, self.features, "Features")
+            self.write_items_for_category(s, self.bugfixes, "Bugfixes")
+            self.write_items_for_category(s, self.deprecations, "Deprecations")
+            self.write_items_for_category(s, self.removals, "Removals")
 
     def process_changes(self, changes):
         self.current_changes = changes
@@ -37,6 +38,7 @@ class ChangelogWriter(object):
         self.features = {}
         self.bugfixes = {}
         self.deprecations = {}
+        self.removals = {}
         self.categories = set()
 
     def group_entries(self):
@@ -63,31 +65,14 @@ class ChangelogWriter(object):
     def write_category_header(self, c):
         self.output_file.write("## __%s__\n" % c)
 
-    def write_features_for_category(self, c):
-        f = sorted(self.get_category_features(c))
-        self.write_entries_with_header("Features", f)
-
-    def write_bugfixes_for_category(self, c):
-        b = sorted(self.get_category_bugfixes(c))
-        self.write_entries_with_header("Bugfixes", b)
-
-    def write_deprecations_for_category(self, c):
-        d = sorted(self.get_category_deprecations(c))
-        self.write_entries_with_header("Deprecations", d)
-
-    def get_category_features(self, c):
-        return self.features.get(c, [])
-
-    def get_category_bugfixes(self, c):
-        return self.bugfixes.get(c, [])
-
-    def get_category_deprecations(self, c):
-        return self.deprecations.get(c, [])
+    def write_items_for_category(self, category, map, header):
+        items = sorted(map.get(category, []))
+        self.write_entries_with_header(header, items)
 
     def write_entries_with_header(self, header, entries):
         if not len(entries) > 0:
             return
-        self.write("  - ### %s\n" % header);
+        self.write("  - ### %s\n" % header)
         for e in entries:
             self.write_entry(e)
         self.write('\n')
@@ -110,6 +95,8 @@ class ChangelogWriter(object):
             return self.bugfixes
         elif t == 'deprecation':
             return self.deprecations
+        elif t == 'removal':
+            return self.removals
         else:
             raise Exception("Unknown entry type %s!" % t)
 
