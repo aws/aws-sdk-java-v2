@@ -30,8 +30,7 @@ section of the developer guide.
 #### Install the SDK ####
 
 The recommended way to use the AWS SDK for Java in your project is to consume it from Maven. Import
-the [bom][] and specify the SDK Maven modules that your project needs in the
-dependencies.
+the [bom](./bom) and specify the SDK Maven modules that your project needs in the dependencies.
 
 ##### Importing the BOM #####
 
@@ -41,7 +40,7 @@ dependencies.
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bom</artifactId>
-      <version>2.0.0-preview-2</version>
+      <version>2.0.0-preview-6</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
