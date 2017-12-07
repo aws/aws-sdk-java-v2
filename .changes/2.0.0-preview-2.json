@@ -1,0 +1,37 @@
+{
+    "date": "2017-07-21",
+    "version": "2.0.0-preview-2",
+    "entries": [
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Substantial improvments to start up time and cold start latencies"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "New pluggable HTTP implementation built on top of Java's HttpUrlConnection. Good choice for simple applications with low throughput requirements. Better cold start latency than the default Apache implementation."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "The Netty NIO HTTP client now uses a shared event loop group for better resource management. More options for customizing the event loop group are now available."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Simple convenience methods have been added for operations that require no input parameters."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Using java.time instead of the legacy java.util.Date in generated model classes."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Various improvements to the immutability of model POJOs. ByteBuffers are now copied and collections are returned as unmodifiable."
+        }
+
+    ]
+}

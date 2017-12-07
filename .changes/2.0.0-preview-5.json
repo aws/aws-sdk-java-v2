@@ -1,0 +1,56 @@
+{
+    "date": "2017-10-17",
+    "version": "2.0.0-preview-5",
+    "entries": [
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Asynchronous request handler for strings `AsyncRequestProvider.fromString(\"hello world!!!\")` [PR #183](https://github.com/aws/aws-sdk-java-v2/pull/183)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Get value from request POJO using member model names `String bucketName = s3PutObjectResponse.getValueForField(\"Bucket\", String.class);` [PR #144](https://github.com/aws/aws-sdk-java-v2/pull/144)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Model enums on service POJOs [PR #195](https://github.com/aws/aws-sdk-java-v2/pull/195)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "General HTTP core clean-up [PR #178](https://github.com/aws/aws-sdk-java-v2/pull/178)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Move `core` classes to their own package `software.amazon.awssdk.core` [PR #194](https://github.com/aws/aws-sdk-java-v2/pull/194)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Serialization/deserialization of complex model objects [PR #128](https://github.com/aws/aws-sdk-java-v2/pull/128) / [Issue #121](https://github.com/aws/aws-sdk-java-v2/issues/121)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Resolve potential security issue handling DTD entities [PR #198](https://github.com/aws/aws-sdk-java-v2/pull/198)"
+        },
+        {
+            "category": "Amazon S3",
+            "type": "feature",
+            "description": "Handle 100-continue header for PUT object [PR #169](https://github.com/aws/aws-sdk-java-v2/pull/169)"
+        },
+        {
+            "category": "Netty NIO Async HTTP Client",
+            "type": "bugfix",
+            "description": "Data corruption fix in streaming responses and stability fixes [PR #173](https://github.com/aws/aws-sdk-java-v2/pull/173)"
+        },
+        {
+            "category": "Netty NIO Async HTTP Client",
+            "type": "bugfix",
+            "description": "Better handling of event-loop selection for AWS Lambda container [PR #208](https://github.com/aws/aws-sdk-java-v2/pull/208)"
+        }
+    ]
+}
