@@ -34,17 +34,17 @@ If, when your editor is open, you decide don't don't want to add a changelog
 entry, save an empty file and no entry will be generated.
 
 """
-import os
-import re
-import sys
-import json
-import string
-import random
-import tempfile
-import subprocess
 import argparse
 import hashlib
+import json
+import os
+import re
+import string
+import subprocess
+import sys
+import tempfile
 
+from changelog.git import stage_file
 
 VALID_CHARS = set(string.ascii_letters + string.digits)
 CHANGES_DIR = os.path.join(
@@ -86,8 +86,8 @@ def new_changelog_entry(args):
             return 1
 
     replace_issue_references(parsed_values, args.repo)
-    write_new_change(parsed_values)
-    return 0
+    filename = write_new_change(parsed_values)
+    return stage_file(filename)
 
 def get_missing_parts(parsed_values):
     return [p for p in CHANGE_PARTS if not parsed_values.get(p)]
@@ -147,6 +147,7 @@ def write_new_change(parsed_values):
     filename = os.path.join(dirname, filename)
     with open(filename, 'w') as f:
         f.write(contents)
+    return filename
 
 
 def parse_filled_in_contents(contents):
