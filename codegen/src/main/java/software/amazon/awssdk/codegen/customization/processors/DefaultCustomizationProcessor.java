@@ -32,8 +32,6 @@ public final class DefaultCustomizationProcessor {
                 new ShapeModifiersProcessor(config.getShapeModifiers()),
                 new ShapeSubstitutionsProcessor(config.getShapeSubstitutions()),
                 new OperationModifiersProcessor(config.getOperationModifiers()),
-                new CustomConstructorsProcessor(config),
-                new SimpleMethodsProcessor(config.getSimpleMethods()),
                 new RemoveExceptionMessagePropertyProcessor(),
                 new RenameShapesProcessor(config.getRenameShapes())
         );
