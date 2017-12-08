@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -247,6 +248,13 @@ public class ClientOverrideConfiguration
          * @see ClientOverrideConfiguration#retryPolicy()
          */
         Builder retryPolicy(RetryPolicy retryPolicy);
+
+        /**
+         * Configure the retry policy the should be used when handling failure cases.
+         */
+        default Builder retryPolicy(Consumer<RetryPolicy.Builder> retryPolicy) {
+            return retryPolicy(RetryPolicy.builder().apply(retryPolicy).build());
+        }
 
         /**
          * Configure a list of execution interceptors that will have access to read and modify the request and response objcets as
