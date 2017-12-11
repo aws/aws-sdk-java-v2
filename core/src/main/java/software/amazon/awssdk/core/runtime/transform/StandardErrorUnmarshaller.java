@@ -20,7 +20,6 @@ import static software.amazon.awssdk.core.util.XpathUtils.xpath;
 
 import javax.xml.xpath.XPath;
 import org.w3c.dom.Node;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.ErrorType;
 import software.amazon.awssdk.core.exception.SdkServiceException;
@@ -62,11 +61,7 @@ public class StandardErrorUnmarshaller extends AbstractErrorUnmarshaller<Node> {
         XPath xpath = xpath();
         String errorCode = parseErrorCode(in, xpath);
 
-        if (errorCode != null) {
-            return standardErrorPathException(errorCode, in, xpath);
-        }
-
-        return s3ErrorPathException(in, xpath);
+        return standardErrorPathException(errorCode, in, xpath);
     }
 
     /**
@@ -135,20 +130,4 @@ public class StandardErrorUnmarshaller extends AbstractErrorUnmarshaller<Node> {
             return ErrorType.fromValue(errorType);
         }
     }
-
-    @ReviewBeforeRelease("We shouldn't have S3 speific code in core. Also the way this is doesn't" +
-                         " work with modeled exceptions as they are still looking for the error code" +
-                         " in the standard location.")
-    public SdkServiceException s3ErrorPathException(Node in, XPath xpath) throws Exception {
-        String errorCode = asString("Error/Code", in, xpath);
-        String requestId = asString("Error/RequestId", in, xpath);
-        String message = asString("Error/Message", in, xpath);
-
-        SdkServiceException exception = newException(message);
-        exception.errorCode(errorCode);
-        exception.requestId(requestId);
-
-        return exception;
-    }
-
 }
