@@ -21,15 +21,22 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
+import java.net.URI;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 public final class RequestAdapter {
 
     public HttpRequest adapt(SdkHttpRequest sdkRequest) {
-        String uri = sdkRequest.getUri().toString();
         HttpMethod method = toNettyHttpMethod(sdkRequest.method());
         HttpHeaders headers = new DefaultHttpHeaders();
+        // TODO what's the right behavior here?
+        // String encodedQueryString = SdkHttpUtils.encodeAndFlattenQueryParameters(sdkRequest.rawQueryParameters())
+        //                                         .map(value -> "?" + value)
+        //                                         .orElse("");
+        // String uri = sdkRequest.encodedPath() + encodedQueryString;
+        String uri = sdkRequest.getUri().toString();
         DefaultHttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, method, uri, headers);
         sdkRequest.headers().forEach(request.headers()::add);
         return request;

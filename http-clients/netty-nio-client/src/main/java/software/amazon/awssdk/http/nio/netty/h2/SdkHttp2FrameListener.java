@@ -22,6 +22,7 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -204,19 +205,21 @@ public class SdkHttp2FrameListener implements Http2FrameListener {
     public void onGoAwayRead(ChannelHandlerContext ctx, int lastStreamId, long errorCode, ByteBuf debugData) throws
                                                                                                              Http2Exception {
         // TODO need to stop accepting new streams but allow current streams to complete. Connection should be closed
-        // after all streams complete. Goaway will send number of highest stream eligibile for processing so we
+        // after all streams complete. Goaway will send number of highest stream eligible for processing so we
         // should kill any streams that happened to be created after that.
     }
 
     @Override
     public void onWindowUpdateRead(ChannelHandlerContext ctx, int streamId, int windowSizeIncrement) throws Http2Exception {
-        // TODO adjust flow control settings.
+        /**
+         * TODO Do we need to handle this or will Netty return false for {@link Channel#isWritable()} and the reactive streams
+         * handler can just stop pushing data?
+         */
     }
 
     @Override
     public void onUnknownFrame(ChannelHandlerContext ctx, byte frameType, int streamId, Http2Flags flags, ByteBuf payload)
         throws Http2Exception {
-
     }
 
     public static class Http2ResetException extends IOException {

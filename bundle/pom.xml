@@ -50,7 +50,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>2.4.3</version>
+                <version>3.1.0</version>
                 <configuration>
                     <artifactSet>
                         <includes>
@@ -60,9 +60,13 @@
                             <include>com.fasterxml.jackson.core:*</include>
                             <include>com.fasterxml.jackson.dataformat:jackson-dataformat-cbor</include>
                             <include>org.apache.httpcomponents:*</include>
+                            <include>org.reactivestreams:*</include>
+                            <include>org.slf4j:*</include>
                             <include>commons-codec:commons-codec</include>
                             <include>software.amazon.awssdk.ion:ion-java</include>
                             <include>software.amazon.awssdk:*</include>
+                            <include>log4j:*</include>
+                            <include>commons-logging:*</include>
                         </includes>
                     </artifactSet>
                     <relocations>

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.util.AttributeKey;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
@@ -40,9 +41,9 @@ public class ChannelAttributeKeys {
     public static final AttributeKey<ByteBuf> CUMULATED_KEY = AttributeKey.newInstance("cumulated");
 
     /**
-     * Future that is notified when SSL handshake has been completed.
+     * Future that when a protocol (http/1.1 or h2) has been selected.
      */
-    public static final AttributeKey<CompletableFuture<Void>> HANDSHAKE_FUTURE = AttributeKey.newInstance("handshakeFuture");
+    public static final AttributeKey<CompletableFuture<String>> PROTOCOL_FUTURE = AttributeKey.newInstance("protocolFuture");
 
     private ChannelAttributeKeys() {
     }
