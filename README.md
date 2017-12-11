@@ -140,4 +140,4 @@ We need your help in making this SDK great. Please participate in the community 
 [features]: https://github.com/aws/aws-sdk-java-v2/issues?q=is%3Aopen+is%3Aissue+label%3A%22Feature+Request%22
 [support-center]: https://console.aws.amazon.com/support/
 [console]: https://console.aws.amazon.com
-[bom]: https://mvnrepository.com/artifact/software.amazon.awssdk/bom
+[bom]: http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22software.amazon.awssdk%22%20AND%20a%3A%22bom%22
