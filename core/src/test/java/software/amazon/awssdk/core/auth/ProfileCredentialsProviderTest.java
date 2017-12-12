@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.core.auth;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.amazon.awssdk.core.AwsSystemSetting.AWS_CONFIG_FILE;
+
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -25,6 +28,7 @@ import software.amazon.awssdk.core.AwsSystemSetting;
 import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.profile.ProfileResourceLoader;
 import software.amazon.awssdk.core.auth.profile.ProfilesConfigFile;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 public class ProfileCredentialsProviderTest {
     private static File profileLocation = null;
@@ -226,6 +230,16 @@ public class ProfileCredentialsProviderTest {
 
         Assert.assertEquals("sessionAccessKey", credentials.accessKeyId());
         Assert.assertEquals("sessionSecretKey", credentials.secretAccessKey());
+    }
+
+    @Test
+    public void testProfileNameSimpleMethod() throws Exception {
+        EnvironmentVariableHelper.run(helper -> {
+            helper.set(AWS_CONFIG_FILE, profileLocation.getAbsolutePath());
+            assertThatThrownBy(() -> ProfileCredentialsProvider.create("non-existent-profile").getCredentials())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("non-existent-profile");
+        });
     }
 
     @SuppressWarnings("unchecked")

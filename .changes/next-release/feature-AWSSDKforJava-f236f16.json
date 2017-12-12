@@ -1,0 +1,5 @@
+{
+    "category": "AWS SDK for Java", 
+    "type": "feature", 
+    "description": "Added `ProfileCredentialsProvider.create(\"profile-name\")` helper to `ProfileCredentialsProvider` to account for common use-case where only profile name is provided."
+}

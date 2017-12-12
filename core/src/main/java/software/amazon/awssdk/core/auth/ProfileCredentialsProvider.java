@@ -59,7 +59,16 @@ public class ProfileCredentialsProvider extends FileSystemCredentialsProvider {
      * defining a custom {@link ProfileCredentialsProvider}.
      */
     public static ProfileCredentialsProvider create() {
-        return new ProfileCredentialsProvider(builder());
+        return builder().build();
+    }
+
+    /**
+     * Create a {@link ProfileCredentialsProvider} using the given profileName and default configuration file. Use
+     * {@link #builder()} for defining a custom {@link ProfileCredentialsProvider}.
+     * @param profileName the name of the profile from the default configuraiton file to use
+     */
+    public static ProfileCredentialsProvider create(String profileName) {
+        return builder().profileName(profileName).build();
     }
 
     /**
