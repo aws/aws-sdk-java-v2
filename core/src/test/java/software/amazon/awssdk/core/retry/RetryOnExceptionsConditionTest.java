@@ -23,8 +23,8 @@ import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.util.Collections;
 import org.junit.Test;
-import software.amazon.awssdk.core.SdkBaseException;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.retry.conditions.RetryCondition;
 import software.amazon.awssdk.core.retry.conditions.RetryOnExceptionsCondition;
 
@@ -78,7 +78,7 @@ public class RetryOnExceptionsConditionTest {
 
     @Test
     public void genericBaseException_ReturnsFalse() {
-        assertFalse(condition.shouldRetry(RetryPolicyContexts.withException(new SdkBaseException("foo"))));
+        assertFalse(condition.shouldRetry(RetryPolicyContexts.withException(new SdkException("foo"))));
     }
 
     @Test
@@ -88,13 +88,13 @@ public class RetryOnExceptionsConditionTest {
         assertFalse(noExceptionsCondition.shouldRetry(RetryPolicyContexts.withException(new RetryableServiceException())));
     }
 
-    private static class RetryableServiceException extends SdkBaseException {
+    private static class RetryableServiceException extends SdkException {
         public RetryableServiceException() {
             super("My service exception");
         }
     }
 
-    private static class NonRetryableServiceException extends SdkBaseException {
+    private static class NonRetryableServiceException extends SdkException {
         public NonRetryableServiceException() {
             super("My service exception");
         }

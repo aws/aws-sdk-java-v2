@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 
 /**
  * Wrapper object to provide additional metadata about a client and protocol to {@link
@@ -41,9 +41,9 @@ public class JsonClientMetadata {
     private boolean supportsIon;
 
     /**
-     * Base class is initialized to {@link AmazonServiceException} for backwards compatibility.
+     * Base class is initialized to {@link SdkServiceException} for backwards compatibility.
      */
-    private Class<? extends RuntimeException> baseServiceExceptionClass = AmazonServiceException.class;
+    private Class<? extends RuntimeException> baseServiceExceptionClass = SdkServiceException.class;
 
     public JsonClientMetadata addErrorMetadata(JsonErrorShapeMetadata errorShapeMetadata) {
         this.errorsMetadata.add(errorShapeMetadata);

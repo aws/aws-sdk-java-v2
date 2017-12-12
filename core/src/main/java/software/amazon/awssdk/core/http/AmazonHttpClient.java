@@ -19,14 +19,14 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.AmazonWebServiceResponse;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.RequestConfig;
 import software.amazon.awssdk.core.RequestExecutionContext;
-import software.amazon.awssdk.core.SdkBaseException;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.config.SyncClientConfiguration;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.pipeline.RequestPipelineBuilder;
 import software.amazon.awssdk.core.http.pipeline.stages.AfterExecutionInterceptorsStage;
 import software.amazon.awssdk.core.http.pipeline.stages.AfterTransmissionExecutionInterceptorsStage;
@@ -127,7 +127,7 @@ public class AmazonHttpClient implements SdkAutoCloseable {
     @Deprecated
     public <T> T execute(Request<?> request,
                          HttpResponseHandler<AmazonWebServiceResponse<T>> responseHandler,
-                         HttpResponseHandler<AmazonServiceException> errorResponseHandler,
+                         HttpResponseHandler<SdkServiceException> errorResponseHandler,
                          ExecutionContext executionContext) {
         HttpResponseHandler<T> adaptedRespHandler = new AwsResponseHandlerAdapter<>(
                 getNonNullResponseHandler(responseHandler));
@@ -191,7 +191,7 @@ public class AmazonHttpClient implements SdkAutoCloseable {
          * @return This builder for method chaining.
          */
         RequestExecutionBuilder errorResponseHandler(
-                HttpResponseHandler<? extends SdkBaseException> errorResponseHandler);
+                HttpResponseHandler<? extends SdkException> errorResponseHandler);
 
         /**
          * Fluent setter for the execution context
@@ -242,7 +242,7 @@ public class AmazonHttpClient implements SdkAutoCloseable {
 
         private SdkHttpFullRequest request;
         private RequestConfig requestConfig;
-        private HttpResponseHandler<? extends SdkBaseException> errorResponseHandler;
+        private HttpResponseHandler<? extends SdkException> errorResponseHandler;
         private ExecutionContext executionContext;
 
         @Override
@@ -260,7 +260,7 @@ public class AmazonHttpClient implements SdkAutoCloseable {
 
         @Override
         public RequestExecutionBuilder errorResponseHandler(
-                HttpResponseHandler<? extends SdkBaseException> errorResponseHandler) {
+                HttpResponseHandler<? extends SdkException> errorResponseHandler) {
             this.errorResponseHandler = errorResponseHandler;
             return this;
         }

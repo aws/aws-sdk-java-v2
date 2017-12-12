@@ -26,10 +26,10 @@ import static org.junit.Assert.fail;
 import static software.amazon.awssdk.core.retry.RetryHandler.HEADER_SDK_RETRY_INFO;
 
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.config.MutableClientConfiguration;
 import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -87,7 +87,7 @@ public class RetryCountInUserAgentTest extends WireMockTestBase {
                       .errorResponseHandler(stubErrorHandler())
                       .execute();
             fail("Expected exception");
-        } catch (AmazonServiceException expected) {
+        } catch (SdkServiceException expected) {
             // Ignored or expected.
         }
     }

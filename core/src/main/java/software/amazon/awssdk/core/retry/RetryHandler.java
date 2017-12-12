@@ -21,7 +21,7 @@ import java.time.Duration;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestExecutionContext;
-import software.amazon.awssdk.core.SdkBaseException;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.util.CapacityManager;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -37,7 +37,7 @@ public class RetryHandler {
     private Duration lastBackoffDelay = Duration.ZERO;
     private boolean retryCapacityConsumed;
     private RetryPolicyContext retryPolicyContext;
-    private Optional<SdkBaseException> lastRetriedException = Optional.empty();
+    private Optional<SdkException> lastRetriedException = Optional.empty();
 
     public RetryHandler(RetryPolicy retryPolicy,
                         CapacityManager retryCapacity) {
@@ -48,7 +48,7 @@ public class RetryHandler {
     public boolean shouldRetry(HttpResponse httpResponse,
                                SdkHttpFullRequest request,
                                RequestExecutionContext context,
-                               SdkBaseException exception,
+                               SdkException exception,
                                int requestCount) {
 
         final int retriesAttempted = requestCount - 1;
@@ -131,7 +131,7 @@ public class RetryHandler {
      * Sets the last exception the has been seen by the retry handler.
      * @param exception - the last exception seen
      */
-    public void setLastRetriedException(SdkBaseException exception) {
+    public void setLastRetriedException(SdkException exception) {
         this.lastRetriedException = Optional.of(exception);
     }
 

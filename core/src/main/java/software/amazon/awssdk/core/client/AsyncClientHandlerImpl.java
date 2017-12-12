@@ -26,7 +26,6 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.RequestConfig;
-import software.amazon.awssdk.core.SdkBaseException;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
@@ -34,6 +33,7 @@ import software.amazon.awssdk.core.async.AsyncRequestProvider;
 import software.amazon.awssdk.core.async.AsyncResponseHandler;
 import software.amazon.awssdk.core.config.AsyncClientConfiguration;
 import software.amazon.awssdk.core.config.InternalAdvancedClientOption;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.AmazonAsyncHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponse;
@@ -136,7 +136,7 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
         SdkHttpResponseHandler<ReturnT> successResponseHandler = new InterceptorCallingHttpResponseHandler<>(
                 sdkHttpResponseHandlerFactory.apply(responseAdapter), executionContext);
 
-        SdkHttpResponseHandler<? extends SdkBaseException> errorHandler =
+        SdkHttpResponseHandler<? extends SdkException> errorHandler =
                 resolveErrorResponseHandler(executionParams, responseAdapter, executionContext);
 
         return invoke(marshalled, requestProvider, executionParams.getRequestConfig(),
@@ -165,11 +165,11 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
      * @param responseAdapter Adapter to convert an SdkHttpFullResponse to a legacy HttpResponse.
      * @return Async handler for error responses.
      */
-    private SdkHttpResponseHandler<? extends SdkBaseException> resolveErrorResponseHandler(
+    private SdkHttpResponseHandler<? extends SdkException> resolveErrorResponseHandler(
             ClientExecutionParams<?, ?> executionParams,
             Function<SdkHttpFullResponse, HttpResponse> responseAdapter,
             ExecutionContext executionContext) {
-        SyncResponseHandlerAdapter<? extends SdkBaseException> result =
+        SyncResponseHandlerAdapter<? extends SdkException> result =
                 new SyncResponseHandlerAdapter<>(executionParams.getErrorResponseHandler(),
                                                  responseAdapter,
                                                  executionContext.executionAttributes());
@@ -185,7 +185,7 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
                                                         RequestConfig requestConfig,
                                                         ExecutionContext executionContext,
                                                         SdkHttpResponseHandler<OutputT> responseHandler,
-                                                        SdkHttpResponseHandler<? extends SdkBaseException> errorResponseHandler) {
+                                                        SdkHttpResponseHandler<? extends SdkException> errorResponseHandler) {
 
         executionContext.setCredentialsProvider(CredentialUtils.getCredentialsProvider(
                 requestConfig, asyncClientConfiguration.credentialsProvider()));
@@ -204,7 +204,7 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
             RequestConfig requestConfig,
             ExecutionContext executionContext,
             SdkHttpResponseHandler<OutputT> responseHandler,
-            SdkHttpResponseHandler<? extends SdkBaseException> errorResponseHandler) {
+            SdkHttpResponseHandler<? extends SdkException> errorResponseHandler) {
         return client.requestExecutionBuilder()
                      .requestProvider(requestProvider)
                      .request(request)

@@ -13,36 +13,33 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core;
+package software.amazon.awssdk.core.exception;
+
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * SDK operation aborted exception.
+ * Extension of {@link SdkClientException} that is thrown whenever an
+ * operation has been aborted by the SDK.
+ *
+ * This exception is not meant to be retried.
  */
+@SdkPublicApi
 public class AbortedException extends SdkClientException {
-    private static final long serialVersionUID = 1L;
 
-    public AbortedException(String message, Throwable cause) {
-        super(message, cause);
-    }
 
-    public AbortedException(Throwable cause) {
-        super("", cause);
+    public AbortedException() {
+        super("Aborted.");
     }
 
     public AbortedException(String message) {
         super(message);
     }
 
-    public AbortedException() {
-        super("");
+    public AbortedException(Throwable cause) {
+        super("Aborted.", cause);
     }
 
-    /**
-     * {@inheritDoc}
-     * An aborted exception is not intended to be retried.
-     */
-    @Override
-    public boolean isRetryable() {
-        return false;
+    public AbortedException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

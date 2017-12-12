@@ -16,7 +16,6 @@
 package utils.resources;
 
 import java.time.Duration;
-import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.utils.Logger;
 import utils.resources.RequiredResources.ResourceCreationPolicy;

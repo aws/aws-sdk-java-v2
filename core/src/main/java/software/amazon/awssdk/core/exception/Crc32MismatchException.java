@@ -13,14 +13,21 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal;
+package software.amazon.awssdk.core.exception;
 
-import java.io.IOException;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * The exception will be thrown when client side CRC32 checksum does not match the one from server side.
+ * Extension of {@link SdkClientException} that is thrown whenever the
+ * client-side computed CRC32 does not match the server-side computed CRC32.
+ *
+ * This exception will not be retried by the SDK but may be retryable by the client.
+ * Retrying may succeed if the mismatch occurred during the transmission of the response
+ * over the network or during the write to disk. The SDK does not retry this exception
+ * as this may result in additional calls being made that may contain large payloads.
  */
-public class Crc32MismatchException extends IOException {
+@SdkPublicApi
+public class Crc32MismatchException extends SdkClientException {
 
     private static final long serialVersionUID = 1L;
 

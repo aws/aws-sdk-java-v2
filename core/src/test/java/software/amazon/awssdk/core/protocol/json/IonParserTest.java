@@ -35,7 +35,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.ion.IonReader;
 import software.amazon.ion.IonSystem;
@@ -362,7 +362,7 @@ public class IonParserTest {
         IonParser parser = parse("foo {{}} {abc:123}");
         assertEquals(JsonToken.VALUE_STRING, parser.nextToken());
         assertNull(parser.getNumberType());
-        thrown.expect(AmazonClientException.class);
+        thrown.expect(SdkClientException.class);
         parser.getNumberValue();
     }
 

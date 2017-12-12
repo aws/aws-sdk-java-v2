@@ -4,7 +4,7 @@ package ${transformPackage};
 import org.w3c.dom.Node;
 import javax.annotation.Generated;
 
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.util.XpathUtils;
 
 import ${metadata.fullModelPackageName}.${shape.shapeName};
@@ -17,7 +17,7 @@ public class ${shape.shapeName}Unmarshaller extends ${exceptionUnmarshallerImpl}
     }
 
     @Override
-    public AmazonServiceException unmarshall(Node node) throws Exception {
+    public SdkServiceException unmarshall(Node node) throws Exception {
         // Bail out if this isn't the right error code that this
         // marshaller understands
         String errorCode = parseErrorCode(node);

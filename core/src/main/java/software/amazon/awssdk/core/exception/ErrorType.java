@@ -13,23 +13,26 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core;
+package software.amazon.awssdk.core.exception;
 
-/**
- * Exception that is automatically retried in default retry policies. Used for streaming handlers to notify the SDK a retry
- * should be performed.
- */
-public final class RetryableException extends AmazonClientException {
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
-    public RetryableException(String message, Throwable t) {
-        super(message, t);
+@SdkPublicApi
+public enum ErrorType {
+
+    SERVICE,
+    CLIENT,
+    UNKNOWN;
+
+    public static ErrorType fromValue(String value) {
+
+        for (ErrorType e : ErrorType.values()) {
+            if (e.name().equalsIgnoreCase(value)) {
+                return e;
+            }
+        }
+
+        return UNKNOWN;
     }
 
-    public RetryableException(String message) {
-        super(message);
-    }
-
-    public RetryableException(Throwable t) {
-        super(t);
-    }
 }

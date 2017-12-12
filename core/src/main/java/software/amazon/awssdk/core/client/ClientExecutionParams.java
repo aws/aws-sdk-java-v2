@@ -20,9 +20,9 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.RequestConfig;
-import software.amazon.awssdk.core.SdkBaseException;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestProvider;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 
@@ -41,7 +41,7 @@ public class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private AsyncRequestProvider asyncRequestProvider;
     private Marshaller<Request<InputT>, InputT> marshaller;
     private HttpResponseHandler<OutputT> responseHandler;
-    private HttpResponseHandler<? extends SdkBaseException> errorResponseHandler;
+    private HttpResponseHandler<? extends SdkException> errorResponseHandler;
     private RequestConfig requestConfig;
 
     public Marshaller<Request<InputT>, InputT> getMarshaller() {
@@ -73,12 +73,12 @@ public class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
         return this;
     }
 
-    public HttpResponseHandler<? extends SdkBaseException> getErrorResponseHandler() {
+    public HttpResponseHandler<? extends SdkException> getErrorResponseHandler() {
         return errorResponseHandler;
     }
 
     public ClientExecutionParams<InputT, OutputT> withErrorResponseHandler(
-            HttpResponseHandler<? extends SdkBaseException> errorResponseHandler) {
+            HttpResponseHandler<? extends SdkException> errorResponseHandler) {
         this.errorResponseHandler = errorResponseHandler;
         return this;
     }

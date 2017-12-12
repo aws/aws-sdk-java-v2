@@ -13,22 +13,30 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core;
+package software.amazon.awssdk.core.exception;
+
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * Exception that is NOT retried in default retry policies.
+ * Extension of {@link SdkException} that can be used by clients to
+ * explicitly have an exception not retried. This exception will never be
+ * thrown by the SDK unless explicitly used by the client.
+ *
+ * See {@link RetryableException} for marking retryable exceptions.
  */
-public final class NonRetryableException extends AmazonClientException {
-
-    public NonRetryableException(String message, Throwable t) {
-        super(message, t);
-    }
+@SdkPublicApi
+public class NonRetryableException extends SdkException {
 
     public NonRetryableException(String message) {
         super(message);
     }
 
-    public NonRetryableException(Throwable t) {
-        super(t);
+    public NonRetryableException(String message, Throwable t) {
+        super(message, t);
+    }
+
+    @Override
+    public boolean retryable() {
+        return false;
     }
 }

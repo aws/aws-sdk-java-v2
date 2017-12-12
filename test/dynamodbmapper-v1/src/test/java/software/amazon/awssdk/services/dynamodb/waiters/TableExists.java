@@ -13,27 +13,24 @@
 
 package software.amazon.awssdk.services.dynamodb.waiters;
 
-import software.amazon.awssdk.core.AmazonServiceException;
-import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.waiters.WaiterAcceptor;
-import software.amazon.awssdk.core.waiters.WaiterState;
-import software.amazon.awssdk.core.waiters.AcceptorPathMatcher;
-import software.amazon.awssdk.core.waiters.ObjectMapperSingleton;
-import software.amazon.awssdk.services.dynamodb.model.*;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
-import java.io.IOException;
-import javax.annotation.Generated;
-
 import io.burt.jmespath.Expression;
 import io.burt.jmespath.jackson.JacksonRuntime;
+import java.io.IOException;
+import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.waiters.AcceptorPathMatcher;
+import software.amazon.awssdk.core.waiters.ObjectMapperSingleton;
+import software.amazon.awssdk.core.waiters.WaiterAcceptor;
+import software.amazon.awssdk.core.waiters.WaiterState;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
 
 @SdkInternalApi
 @Generated("software.amazon.awssdk:aws-java-sdk-code-generator")
 class TableExists {
 
-    static class IsACTIVEMatcher extends WaiterAcceptor<DescribeTableResponse, AmazonServiceException> {
+    static class IsACTIVEMatcher extends WaiterAcceptor<DescribeTableResponse, SdkServiceException> {
         private static final JsonNode EXPECTED_RESULT;
 
         static {
@@ -72,7 +69,7 @@ class TableExists {
         }
     }
 
-    static class IsResourceNotFoundExceptionMatcher extends WaiterAcceptor<DescribeTableResponse, AmazonServiceException> {
+    static class IsResourceNotFoundExceptionMatcher extends WaiterAcceptor<DescribeTableResponse, SdkServiceException> {
         /**
          * Takes the response exception and determines whether this exception matches the expected exception, by
          * comparing the respective error codes.
@@ -82,8 +79,8 @@ class TableExists {
          * @return True if it matches, False otherwise
          */
         @Override
-        public boolean matches(AmazonServiceException e) {
-            return "ResourceNotFoundException".equals(e.getErrorCode());
+        public boolean matches(SdkServiceException e) {
+            return "ResourceNotFoundException".equals(e.errorCode());
         }
 
         /**

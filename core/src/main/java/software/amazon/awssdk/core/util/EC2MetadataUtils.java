@@ -34,9 +34,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.AwsSystemSetting;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.EC2CredentialsUtils;
 import software.amazon.awssdk.core.util.json.JacksonUtils;
 
@@ -387,7 +386,7 @@ public final class EC2MetadataUtils {
                 items = Arrays.asList(response.split("\n"));
             }
             return items;
-        } catch (AmazonClientException ace) {
+        } catch (SdkClientException ace) {
             log.warn("Unable to retrieve the requested metadata.");
             return null;
         } catch (IOException | URISyntaxException | RuntimeException e) {

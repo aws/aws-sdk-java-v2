@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.http.exception;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 @SdkPublicApi
 public class ClientExecutionTimeoutException extends SdkClientException {

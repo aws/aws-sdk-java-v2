@@ -26,7 +26,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static software.amazon.awssdk.testutils.service.AwsTestBase.isValidAmazonServiceException;
+import static software.amazon.awssdk.testutils.service.AwsTestBase.isValidSdkServiceException;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -38,7 +38,7 @@ import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.core.regions.Region;
@@ -191,8 +191,8 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
             cloudwatch.putMetricData(PutMetricDataRequest.builder().namespace(
                     "AWS/EC2").metricData(data).build());
             fail("Expected an error");
-        } catch (AmazonServiceException e) {
-            assertTrue(413 == e.getStatusCode());
+        } catch (SdkServiceException e) {
+            assertTrue(413 == e.statusCode());
         }
     }
 
@@ -311,16 +311,16 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
 
     /**
      * Tests that an error response from CloudWatch is correctly unmarshalled
-     * into an AmazonServiceException object.
+     * into an SdkServiceException object.
      */
     @Test
     public void testExceptionHandling() throws Exception {
         try {
             cloudwatch.getMetricStatistics(GetMetricStatisticsRequest.builder()
                                                    .namespace("fake-namespace").build());
-            fail("Expected an AmazonServiceException, but wasn't thrown");
-        } catch (AmazonServiceException e) {
-            assertThat(e, isValidAmazonServiceException());
+            fail("Expected an SdkServiceException, but wasn't thrown");
+        } catch (SdkServiceException e) {
+            assertThat(e, isValidSdkServiceException());
         }
     }
 

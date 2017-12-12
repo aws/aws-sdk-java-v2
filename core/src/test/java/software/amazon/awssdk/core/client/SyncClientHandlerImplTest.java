@@ -27,7 +27,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.AmazonWebServiceRequest;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
@@ -41,6 +40,7 @@ import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.config.MutableClientConfiguration;
 import software.amazon.awssdk.core.config.SyncClientConfiguration;
 import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.internal.auth.NoOpSignerProvider;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -79,7 +79,7 @@ public class SyncClientHandlerImplTest {
     private HttpResponseHandler<SdkResponse> responseHandler;
 
     @Mock
-    private HttpResponseHandler<AmazonServiceException> errorResponseHandler;
+    private HttpResponseHandler<SdkServiceException> errorResponseHandler;
 
     @Mock
     private SdkResponse response;
@@ -106,7 +106,7 @@ public class SyncClientHandlerImplTest {
 
     @Test
     public void failedExecutionCallsErrorResponseHandler() throws Exception {
-        AmazonServiceException exception = new AmazonServiceException("Uh oh!");
+        SdkServiceException exception = new SdkServiceException("Uh oh!");
 
         // Given
         expectRetrievalFromMocks();

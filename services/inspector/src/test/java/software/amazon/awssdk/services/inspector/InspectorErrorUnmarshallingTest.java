@@ -24,6 +24,7 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.core.regions.Region;
@@ -49,7 +50,7 @@ public class InspectorErrorUnmarshallingTest {
 
     /**
      * Some error shapes in Inspector define an errorCode member which clashes with the errorCode
-     * defined in {@link software.amazon.awssdk.core.AmazonServiceException}. We've customized the name of the
+     * defined in {@link SdkServiceException}. We've customized the name of the
      * modeled error code so both can be used by customers. This test asserts that both are
      * unmarshalled correctly.
      */
@@ -62,7 +63,7 @@ public class InspectorErrorUnmarshallingTest {
         try {
             inspector.listRulesPackages(ListRulesPackagesRequest.builder().build());
         } catch (AccessDeniedException e) {
-            assertEquals("AccessDeniedException", e.getErrorCode());
+            assertEquals("AccessDeniedException", e.errorCode());
             assertEquals("ACCESS_DENIED_TO_RULES_PACKAGE", e.inspectorErrorCodeString());
         }
     }

@@ -35,8 +35,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.core.AmazonClientException;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.internal.net.ConnectionUtils;
 import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryParameters;
 import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryPolicy;
@@ -94,41 +94,41 @@ public class EC2CredentialsUtilsTest {
 
     /**
      * When server returns with 404 status code,
-     * the test should throw AmazonClientException.
+     * the test should throw SdkClientException.
      */
     @Test
     public void readResouceReturnsAceFor404ErrorResponse() throws Exception {
         try {
             ec2CredentialsUtils.readResource(new URI("http://localhost:" + mockServer.port() + "/dummyPath"));
-            fail("Expected AmazonClientException");
-        } catch (AmazonClientException ace) {
+            fail("Expected SdkClientException");
+        } catch (SdkClientException ace) {
             assertTrue(ace.getMessage().contains("The requested metadata is not found at"));
         }
     }
 
     /**
      * When server returns a status code other than 200 and 404,
-     * the test should throw AmazonServiceException. The request
+     * the test should throw SdkServiceException. The request
      * is not retried.
      */
     @Test
-    public void readResouceReturnsAseFor5xxResponse() throws IOException {
+    public void readResouceReturnsServiceExceptionFor5xxResponse() throws IOException {
         generateStub(500, "{\"code\":\"500 Internal Server Error\",\"message\":\"ERROR_MESSAGE\"}");
 
         try {
             ec2CredentialsUtils.readResource(endpoint);
-            fail("Expected AmazonServiceException");
-        } catch (AmazonServiceException ase) {
-            assertEquals(500, ase.getStatusCode());
-            assertEquals("500 Internal Server Error", ase.getErrorCode());
-            assertEquals("ERROR_MESSAGE", ase.getErrorMessage());
+            fail("Expected SdkServiceException");
+        } catch (SdkServiceException exception) {
+            assertEquals(500, exception.statusCode());
+            assertEquals("500 Internal Server Error", exception.errorCode());
+            assertEquals("ERROR_MESSAGE", exception.errorMessage());
         }
     }
 
     /**
      * When server returns a status code other than 200 and 404
      * and error body message is not in Json format,
-     * the test throws AmazonServiceException.
+     * the test throws SdkServiceException.
      */
     @Test
     public void readResouceNonJsonErrorBody() throws IOException {
@@ -136,10 +136,10 @@ public class EC2CredentialsUtilsTest {
 
         try {
             ec2CredentialsUtils.readResource(endpoint);
-            fail("Expected AmazonServiceException");
-        } catch (AmazonServiceException ase) {
-            assertEquals(500, ase.getStatusCode());
-            assertNotNull(ase.getErrorMessage());
+            fail("Expected SdkServiceException");
+        } catch (SdkServiceException exception) {
+            assertEquals(500, exception.statusCode());
+            assertNotNull(exception.errorMessage());
         }
     }
 
@@ -188,8 +188,8 @@ public class EC2CredentialsUtilsTest {
 
         try {
             new EC2CredentialsUtils(mockConnection).readResource(endpoint, customRetryPolicy);
-            fail("Expected an AmazonServiceException");
-        } catch (AmazonServiceException ase) {
+            fail("Expected an SdkServiceException");
+        } catch (SdkServiceException exception) {
             Mockito.verify(mockConnection, Mockito.times(1)).connectToEndpoint(endpoint);
         }
     }

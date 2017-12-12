@@ -18,6 +18,7 @@ package software.amazon.awssdk.core;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpMethodName;
 
 /**
@@ -100,7 +101,7 @@ public interface Request<T> extends SignableRequest<T> {
      *         as the service name set in request metrics and service
      *         exceptions.
      *
-     * @see {@link AmazonServiceException#getServiceName()}
+     * @see {@link SdkServiceException#serviceName()}
      */
     String getServiceName();
 

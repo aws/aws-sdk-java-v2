@@ -16,9 +16,9 @@
 package software.amazon.awssdk.services.ec2.transform;
 
 import java.net.URI;
-import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.auth.Aws4Signer;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -122,7 +122,7 @@ public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
         final Region region = Region.of(regionName);
 
         if (region == null) {
-            throw new AmazonClientException("{" + serviceName + ", " + regionName + "} was not "
+            throw new SdkClientException("{" + serviceName + ", " + regionName + "} was not "
                                             + "found in region metadata. Update to latest version of SDK and try again.");
         }
 

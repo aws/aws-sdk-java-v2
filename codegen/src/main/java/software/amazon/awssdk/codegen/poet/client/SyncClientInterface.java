@@ -39,9 +39,9 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
-import software.amazon.awssdk.core.SdkBaseException;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.DefaultCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.regions.ServiceMetadata;
 import software.amazon.awssdk.core.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -354,7 +354,7 @@ public final class SyncClientInterface implements ClassSpec {
                                             .map(e -> ClassName.get(model.getMetadata().getFullModelPackageName(),
                                                                     e.getExceptionName()))
                                             .collect(toCollection(ArrayList::new));
-        Collections.addAll(exceptions, ClassName.get(SdkBaseException.class),
+        Collections.addAll(exceptions, ClassName.get(SdkServiceException.class),
                            ClassName.get(SdkClientException.class),
                            ClassName.get(model.getMetadata().getFullModelPackageName(),
                                          model.getSdkModeledExceptionBaseClassName()));

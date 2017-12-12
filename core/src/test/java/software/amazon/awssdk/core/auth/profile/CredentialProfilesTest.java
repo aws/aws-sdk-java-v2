@@ -24,10 +24,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.AwsSessionCredentials;
 import software.amazon.awssdk.core.auth.profile.internal.Profile;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 public class CredentialProfilesTest {
 
@@ -77,7 +77,7 @@ public class CredentialProfilesTest {
     @Test
     public void testProfileNameWithJustSpaces() {
         checkExpectedException(ProfileResourceLoader.profileNameWithSpaces(),
-                               AmazonClientException.class,
+                               SdkClientException.class,
                                "Should throw an exception as there is a profile mentioned with no profile name.");
     }
 
@@ -88,7 +88,7 @@ public class CredentialProfilesTest {
     @Test
     public void testProfileWithNoProfileNameGiven() {
         checkExpectedException(ProfileResourceLoader.profilesWithNoProfileName(),
-                               AmazonClientException.class,
+                               SdkClientException.class,
                                "Should throw an exception as there is a profile mentioned with only spaces.");
     }
 
@@ -118,14 +118,14 @@ public class CredentialProfilesTest {
     @Test
     public void testProfileWithAccessKeyNotSpecified() throws URISyntaxException {
         checkDeferredException(ProfileResourceLoader.accessKeyNotSpecified(),
-                               AmazonClientException.class, "test2",
+                               SdkClientException.class, "test2",
                                "Should throw an exception as there is a profile with AWS Access Key ID not specified.");
     }
 
     @Test
     public void testProfileWithEmptyAccessKey() throws URISyntaxException {
         checkDeferredException(ProfileResourceLoader.profileWithEmptyAccessKey(),
-                               AmazonClientException.class, "test",
+                               SdkClientException.class, "test",
                                "Should throw an exception as there is a profile with an empty AWS Access Key ID");
     }
 
@@ -136,14 +136,14 @@ public class CredentialProfilesTest {
     @Test
     public void testProfileWithSecretAccessKeyNotSpecified() throws Exception {
         checkDeferredException(ProfileResourceLoader.profilesWithSecretAccessKeyNotSpecified(),
-                               AmazonClientException.class, "profile test2",
+                               SdkClientException.class, "profile test2",
                                "Should throw an exception as there is a profile with AWS Secret Access Key not specified.");
     }
 
     @Test
     public void testProfileWithEmptySecretAccessKey() throws URISyntaxException {
         checkDeferredException(ProfileResourceLoader.profileWithEmptySecretKey(),
-                               AmazonClientException.class, "test",
+                               SdkClientException.class, "test",
                                "Should throw an exception as there is a profile with an empty AWS Secret Access Key.");
     }
 
@@ -215,7 +215,7 @@ public class CredentialProfilesTest {
     @Test
     public void testRoleProfileWithNoSourceName() throws URISyntaxException {
         checkDeferredException(ProfileResourceLoader.roleProfileWithNoSourceName(),
-                               AmazonClientException.class, "test",
+                               SdkClientException.class, "test",
                                "Should throw an exception as there is a role profile with a missing source role");
     }
 
@@ -225,7 +225,7 @@ public class CredentialProfilesTest {
     @Test
     public void testRoleProfileWithEmptySourceName() throws URISyntaxException {
         checkDeferredException(ProfileResourceLoader.roleProfileWithEmptySourceName(),
-                               AmazonClientException.class, "test",
+                               SdkClientException.class, "test",
                                "Should throw an exception as there is a role profile with an empty source role");
     }
 
@@ -235,7 +235,7 @@ public class CredentialProfilesTest {
     @Test
     public void testRoleProfileMissingSource() throws URISyntaxException {
         checkDeferredException(ProfileResourceLoader.roleProfileMissingSource(),
-                               AmazonClientException.class, "test",
+                               SdkClientException.class, "test",
                                "Should throw an exception as there is a role profile without a source specified");
     }
 
@@ -245,7 +245,7 @@ public class CredentialProfilesTest {
     @Test
     public void testRoleProfileWithRoleSource() throws URISyntaxException {
         checkDeferredException(ProfileResourceLoader.roleProfileWithRoleSource(),
-                               AmazonClientException.class, "test",
+                               SdkClientException.class, "test",
                                "Should throw an exception as a role profile can not use a role profile as its source");
     }
 

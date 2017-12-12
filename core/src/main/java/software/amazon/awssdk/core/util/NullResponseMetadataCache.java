@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.util;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ResponseMetadata;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 /**
  * No-op response metadata cache used when a client instance is configured

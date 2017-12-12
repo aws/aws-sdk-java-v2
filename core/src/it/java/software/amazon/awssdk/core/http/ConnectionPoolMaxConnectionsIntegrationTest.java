@@ -23,8 +23,8 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.server.MockServer;
 import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
 import software.amazon.awssdk.core.internal.http.response.EmptyAWSResponseHandler;
@@ -81,7 +81,7 @@ public class ConnectionPoolMaxConnectionsIntegrationTest {
                       .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
                       .execute();
             Assert.fail("Connection pool timeout exception is expected!");
-        } catch (AmazonClientException e) {
+        } catch (SdkClientException e) {
             Assert.assertTrue(e.getCause() instanceof ConnectionPoolTimeoutException);
         }
     }

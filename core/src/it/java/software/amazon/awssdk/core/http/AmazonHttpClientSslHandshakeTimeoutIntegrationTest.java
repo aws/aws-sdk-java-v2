@@ -22,7 +22,7 @@ import java.time.Duration;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
 import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -62,7 +62,7 @@ public class AmazonHttpClientSslHandshakeTimeoutIntegrationTest extends Unrespon
                       .execute();
             fail("Client-side socket read timeout is expected!");
 
-        } catch (AmazonClientException e) {
+        } catch (SdkClientException e) {
             /**
              * Http client catches the SocketTimeoutException and throws a
              * ConnectTimeoutException.

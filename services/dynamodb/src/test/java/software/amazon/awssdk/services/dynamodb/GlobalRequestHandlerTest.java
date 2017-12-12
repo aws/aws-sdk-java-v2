@@ -21,7 +21,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import software.amazon.awssdk.core.SdkBaseException;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.core.regions.Region;
@@ -62,7 +62,7 @@ public class GlobalRequestHandlerTest {
     private void callApi(DynamoDBClient client) {
         try {
             client.listTables(ListTablesRequest.builder().build());
-        } catch (SdkBaseException expected) {
+        } catch (SdkException expected) {
             // Ignored or expected.
         }
     }
