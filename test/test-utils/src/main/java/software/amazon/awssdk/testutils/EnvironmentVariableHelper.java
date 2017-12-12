@@ -21,6 +21,7 @@ import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import org.junit.rules.ExternalResource;
 import software.amazon.awssdk.utils.SystemSetting;
 
@@ -89,5 +90,31 @@ public class EnvironmentVariableHelper extends ExternalResource {
             f.setAccessible(true);
             return null;
         };
+    }
+
+    /**
+     * Static run method that allows for "single-use" environment variable modification.
+     *
+     * Example use:
+     * <pre>
+     * <code>
+     * EnvironmentVariableHelper.run(helper -> {
+     *    helper.set("variable", "value");
+     *    //run some test that uses "variable"
+     * });
+     * </code>
+     * </pre>
+     *
+     * Will call {@link #reset} at the end of the block (even if the block exits exceptionally).
+     *
+     * @param helperConsumer a code block to run that gets an {@link EnvironmentVariableHelper} as an argument
+     */
+    public static void run(Consumer<EnvironmentVariableHelper> helperConsumer) {
+        EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
+        try {
+            helperConsumer.accept(helper);
+        } finally {
+            helper.reset();
+        }
     }
 }
