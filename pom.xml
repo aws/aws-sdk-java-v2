@@ -111,7 +111,7 @@
         <unitils.version>3.3</unitils.version>
 
         <!-- These properties are used by S3 for its test dependencies -->
-        <bouncycastle.version>1.56</bouncycastle.version>
+        <bouncycastle.version>1.58</bouncycastle.version>
 
         <!-- Sonar -->
         <root.offset>..</root.offset>
