@@ -1,0 +1,5 @@
+{
+    "category": "AWS SDK for Java v2",
+    "type": "removal", 
+    "description": "Removed the following unused dependencies [#349](https://github.com/aws/aws-sdk-java/issues/349):\n * org.eclipse:text\n * info.cukes:cucumber-java\n * info.cukes:cucumber-junit\n * info.cukes:cucumber-guice\n * com.google.inject:guice\n * org.bouncycastle:bcprov-jdk15on\n * com.google.guava:guava\n * io.burt:jmespath-jackson\n * javax.annotation:javax.annotation-api"
+}
