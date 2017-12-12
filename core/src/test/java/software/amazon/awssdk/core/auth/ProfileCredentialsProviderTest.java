@@ -25,10 +25,10 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.AwsSystemSetting;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.profile.ProfileResourceLoader;
 import software.amazon.awssdk.core.auth.profile.ProfilesConfigFile;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 public class ProfileCredentialsProviderTest {
     private static File profileLocation = null;

@@ -22,9 +22,9 @@ import static org.mockito.Mockito.when;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import org.junit.Rule;
-import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -51,15 +51,15 @@ public abstract class WireMockTestBase {
         return request;
     }
 
-    protected HttpResponseHandler<AmazonServiceException> stubErrorHandler() throws Exception {
-        HttpResponseHandler<AmazonServiceException> errorHandler = mock(JsonErrorResponseHandler.class);
+    protected HttpResponseHandler<SdkServiceException> stubErrorHandler() throws Exception {
+        HttpResponseHandler<SdkServiceException> errorHandler = mock(JsonErrorResponseHandler.class);
         when(errorHandler.handle(any(HttpResponse.class), any(ExecutionAttributes.class))).thenReturn(mockException());
         return errorHandler;
     }
 
-    private AmazonServiceException mockException() {
-        AmazonServiceException exception = new AmazonServiceException("Dummy error response");
-        exception.setStatusCode(500);
+    private SdkServiceException mockException() {
+        SdkServiceException exception = new SdkServiceException("Dummy error response");
+        exception.statusCode(500);
         return exception;
     }
 }

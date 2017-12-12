@@ -29,7 +29,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.AmazonServiceException.ErrorType;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.core.auth.policy.Action;
 import software.amazon.awssdk.core.auth.policy.Policy;
@@ -379,8 +378,7 @@ public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
                     testStackName).build());
             fail("Should have thrown an Exception");
         } catch (AlreadyExistsException aex) {
-            assertEquals("AlreadyExistsException", aex.getErrorCode());
-            assertEquals(ErrorType.Client, aex.getErrorType());
+            assertEquals("AlreadyExistsException", aex.errorCode());
         } catch (Exception e) {
             fail("Should have thrown an AlreadyExists Exception.");
         }

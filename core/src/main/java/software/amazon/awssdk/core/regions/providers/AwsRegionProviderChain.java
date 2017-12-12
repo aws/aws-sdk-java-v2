@@ -20,8 +20,8 @@ import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.AwsCredentialsProviderChain;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.regions.Region;
 
 /**

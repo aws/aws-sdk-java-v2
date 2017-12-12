@@ -19,6 +19,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -36,9 +38,9 @@ import software.amazon.awssdk.utils.IoUtils;
  * <h3>Retries</h3>
  * Exceptions thrown from the handler's {@link #apply(Object, AbortableInputStream)} method are not automatically retried by the
  * RetryPolicy of the client. Since we can't know if a handler implementation is idempotent or safe to retry, if you wish to
- * retry on the event of a failure you must throw a {@link software.amazon.awssdk.core.RetryableException} from the handler. This
+ * retry on the event of a failure you must throw a {@link SdkException} with retryable set to true from the handler. This
  * exception can wrap the original exception that was thrown. Note that throwing a {@link
- * software.amazon.awssdk.core.RetryableException} from the handler does not guarantee the request will be retried,
+ * SdkException} that is marked retryable from the handler does not guarantee the request will be retried,
  * retries are still limited by the max retry attempts and retry throttling
  * feature of the {@link software.amazon.awssdk.core.retry.v2.RetryPolicy}.
  * </p>
@@ -67,7 +69,7 @@ public interface StreamingResponseHandler<ResponseT, ReturnT> {
      * @param inputStream Input stream of streamed data.
      * @return Transformed type.
      * @throws Exception if any error occurs during processing of the response. This will be re-thrown by the SDK, possibly
-     *                   wrapped in an {@link software.amazon.awssdk.core.SdkClientException}.
+     *                   wrapped in an {@link SdkClientException}.
      */
     ReturnT apply(ResponseT response, AbortableInputStream inputStream) throws Exception;
 

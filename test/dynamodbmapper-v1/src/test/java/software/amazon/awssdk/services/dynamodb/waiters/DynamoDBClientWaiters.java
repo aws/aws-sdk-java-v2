@@ -16,7 +16,7 @@ package software.amazon.awssdk.services.dynamodb.waiters;
 import javax.annotation.Generated;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 import software.amazon.awssdk.core.waiters.*;
@@ -52,7 +52,7 @@ public class DynamoDBClientWaiters {
      */
     public Waiter<DescribeTableRequest> tableExists() {
 
-        return new WaiterBuilder<DescribeTableRequest, DescribeTableResponse, AmazonServiceException>()
+        return new WaiterBuilder<DescribeTableRequest, DescribeTableResponse, SdkServiceException>()
                 .withSdkFunction(new DescribeTableFunction(client))
                 .withAcceptors(new TableExists.IsACTIVEMatcher(), new TableExists.IsResourceNotFoundExceptionMatcher())
                 .withDefaultPollingStrategy(new PollingStrategy(new MaxAttemptsRetryStrategy(25), new FixedDelayStrategy(20)))
@@ -66,7 +66,7 @@ public class DynamoDBClientWaiters {
      */
     public Waiter<DescribeTableRequest> tableNotExists() {
 
-        return new WaiterBuilder<DescribeTableRequest, DescribeTableResponse, AmazonServiceException>()
+        return new WaiterBuilder<DescribeTableRequest, DescribeTableResponse, SdkServiceException>()
                 .withSdkFunction(new DescribeTableFunction(client))
                 .withAcceptors(new TableNotExists.IsResourceNotFoundExceptionMatcher())
                 .withDefaultPollingStrategy(new PollingStrategy(new MaxAttemptsRetryStrategy(25), new FixedDelayStrategy(20)))

@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.ion.IonReader;
 import software.amazon.ion.IonType;
 

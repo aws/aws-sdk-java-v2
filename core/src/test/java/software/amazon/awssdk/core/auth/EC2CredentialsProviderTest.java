@@ -32,7 +32,7 @@ import java.util.Date;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.CredentialsEndpointProvider;
 import software.amazon.awssdk.core.util.DateUtils;
 import software.amazon.awssdk.utils.IoUtils;
@@ -80,7 +80,7 @@ public class EC2CredentialsProviderTest {
 
         EC2CredentialsProvider credentialsProvider = testCredentialsProvider();
 
-        assertThatExceptionOfType(AmazonClientException.class).isThrownBy(credentialsProvider::getCredentials)
+        assertThatExceptionOfType(SdkClientException.class).isThrownBy(credentialsProvider::getCredentials)
                                                               .withMessage("Unable to load credentials from service endpoint.");
     }
 
@@ -95,7 +95,7 @@ public class EC2CredentialsProviderTest {
         EC2CredentialsProvider credentialsProvider = testCredentialsProvider();
 
         // When there are no credentials, the provider should throw an exception if we can't connect
-        assertThatExceptionOfType(AmazonClientException.class).isThrownBy(credentialsProvider::getCredentials);
+        assertThatExceptionOfType(SdkClientException.class).isThrownBy(credentialsProvider::getCredentials);
 
         // When there are valid credentials (but need to be refreshed) and the endpoint returns 404 status,
         // the provider should throw an exception.
@@ -103,7 +103,7 @@ public class EC2CredentialsProviderTest {
         credentialsProvider.getCredentials(); // loads the credentials that will be expired soon
 
         stubForErrorResponse();  // Behaves as if server is unavailable.
-        assertThatExceptionOfType(AmazonClientException.class).isThrownBy(credentialsProvider::getCredentials);
+        assertThatExceptionOfType(SdkClientException.class).isThrownBy(credentialsProvider::getCredentials);
     }
 
     @Test

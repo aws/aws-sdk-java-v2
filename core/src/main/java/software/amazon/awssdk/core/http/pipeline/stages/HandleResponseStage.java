@@ -22,10 +22,10 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.Response;
-import software.amazon.awssdk.core.RetryableException;
-import software.amazon.awssdk.core.SdkBaseException;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.SdkStandardLoggers;
+import software.amazon.awssdk.core.exception.RetryableException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
@@ -42,10 +42,10 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
     private static final Logger log = LoggerFactory.getLogger(HandleResponseStage.class);
 
     private final HttpResponseHandler<OutputT> successResponseHandler;
-    private final HttpResponseHandler<? extends SdkBaseException> errorResponseHandler;
+    private final HttpResponseHandler<? extends SdkException> errorResponseHandler;
 
     public HandleResponseStage(HttpResponseHandler<OutputT> successResponseHandler,
-                               HttpResponseHandler<? extends SdkBaseException> errorResponseHandler) {
+                               HttpResponseHandler<? extends SdkException> errorResponseHandler) {
         this.successResponseHandler = successResponseHandler;
         this.errorResponseHandler = errorResponseHandler;
     }
@@ -89,6 +89,10 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
         } catch (IOException | InterruptedException | RetryableException e) {
             throw e;
         } catch (Exception e) {
+            if (e instanceof SdkException && ((SdkException) e).retryable()) {
+                throw (SdkException) e;
+            }
+
             String errorMessage =
                     "Unable to unmarshall response (" + e.getMessage() + "). Response Code: "
                     + httpResponse.getStatusCode() + ", Response Text: " + httpResponse.getStatusText();
@@ -102,11 +106,11 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
      *
      * @throws IOException If any problems are encountering reading the error response.
      */
-    private SdkBaseException handleErrorResponse(HttpResponse httpResponse,
-                                                 RequestExecutionContext context)
+    private SdkException handleErrorResponse(HttpResponse httpResponse,
+                                             RequestExecutionContext context)
             throws IOException, InterruptedException {
         try {
-            SdkBaseException exception = errorResponseHandler.handle(httpResponse, context.executionAttributes());
+            SdkException exception = errorResponseHandler.handle(httpResponse, context.executionAttributes());
             exception.fillInStackTrace();
             SdkStandardLoggers.REQUEST_LOGGER.debug(() -> "Received error response: " + exception);
             return exception;

@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.auth.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.core.auth.profile.internal.AllProfiles;
 import software.amazon.awssdk.core.auth.profile.internal.BasicProfile;

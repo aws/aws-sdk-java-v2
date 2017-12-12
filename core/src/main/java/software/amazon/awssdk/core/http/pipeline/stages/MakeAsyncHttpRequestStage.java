@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.Response;
-import software.amazon.awssdk.core.SdkBaseException;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpAsyncClientDependencies;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.InterruptMonitor;
@@ -50,10 +50,10 @@ public class MakeAsyncHttpRequestStage<OutputT>
 
     private final SdkAsyncHttpClient sdkAsyncHttpClient;
     private final SdkHttpResponseHandler<OutputT> responseHandler;
-    private final SdkHttpResponseHandler<? extends SdkBaseException> errorResponseHandler;
+    private final SdkHttpResponseHandler<? extends SdkException> errorResponseHandler;
 
     public MakeAsyncHttpRequestStage(SdkHttpResponseHandler<OutputT> responseHandler,
-                                     SdkHttpResponseHandler<? extends SdkBaseException> errorResponseHandler,
+                                     SdkHttpResponseHandler<? extends SdkException> errorResponseHandler,
                                      HttpAsyncClientDependencies dependencies) {
         this.responseHandler = responseHandler;
         this.errorResponseHandler = errorResponseHandler;

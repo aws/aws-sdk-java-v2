@@ -13,20 +13,18 @@
 
 package software.amazon.awssdk.services.dynamodb.waiters;
 
-import software.amazon.awssdk.core.AmazonServiceException;
+import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.core.waiters.WaiterState;
-
-import software.amazon.awssdk.services.dynamodb.model.*;
-
-import javax.annotation.Generated;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
 
 @SdkInternalApi
 @Generated("software.amazon.awssdk:aws-java-sdk-code-generator")
 class TableNotExists {
 
-    static class IsResourceNotFoundExceptionMatcher extends WaiterAcceptor<DescribeTableResponse, AmazonServiceException> {
+    static class IsResourceNotFoundExceptionMatcher extends WaiterAcceptor<DescribeTableResponse, SdkServiceException> {
         /**
          * Takes the response exception and determines whether this exception matches the expected exception, by
          * comparing the respective error codes.
@@ -36,8 +34,8 @@ class TableNotExists {
          * @return True if it matches, False otherwise
          */
         @Override
-        public boolean matches(AmazonServiceException e) {
-            return "ResourceNotFoundException".equals(e.getErrorCode());
+        public boolean matches(SdkServiceException e) {
+            return "ResourceNotFoundException".equals(e.errorCode());
         }
 
         /**

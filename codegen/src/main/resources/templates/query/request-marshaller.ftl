@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Generated;
 
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.http.HttpMethodName;

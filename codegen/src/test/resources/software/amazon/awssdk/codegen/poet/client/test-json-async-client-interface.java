@@ -58,8 +58,8 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *         <ul>
      *         <li>InvalidInputException The request was rejected because an invalid or out-of-range value was supplied
      *         for an input parameter.</li>
-     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
-     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
      *         credentials, etc.</li>
      *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
@@ -89,8 +89,8 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *         <ul>
      *         <li>InvalidInputException The request was rejected because an invalid or out-of-range value was supplied
      *         for an input parameter.</li>
-     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
-     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
      *         credentials, etc.</li>
      *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
@@ -116,8 +116,8 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *         <ul>
      *         <li>InvalidInputException The request was rejected because an invalid or out-of-range value was supplied
      *         for an input parameter.</li>
-     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
-     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
      *         credentials, etc.</li>
      *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
@@ -128,7 +128,7 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
-        APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
+            APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
         throw new UnsupportedOperationException();
     }
 
@@ -148,8 +148,8 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *         <ul>
      *         <li>InvalidInputException The request was rejected because an invalid or out-of-range value was supplied
      *         for an input parameter.</li>
-     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
-     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
      *         credentials, etc.</li>
      *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
@@ -160,7 +160,7 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
-        Consumer<APostOperationWithOutputRequest.Builder> aPostOperationWithOutputRequest) {
+            Consumer<APostOperationWithOutputRequest.Builder> aPostOperationWithOutputRequest) {
         return aPostOperationWithOutput(APostOperationWithOutputRequest.builder().apply(aPostOperationWithOutputRequest).build());
     }
 
@@ -176,8 +176,8 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *         <ul>
      *         <li>InvalidInputException The request was rejected because an invalid or out-of-range value was supplied
      *         for an input parameter.</li>
-     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
-     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
      *         credentials, etc.</li>
      *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
@@ -188,7 +188,7 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
-        GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) {
+            GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) {
         throw new UnsupportedOperationException();
     }
 
@@ -203,8 +203,8 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *         <ul>
      *         <li>InvalidInputException The request was rejected because an invalid or out-of-range value was supplied
      *         for an input parameter.</li>
-     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
-     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
      *         credentials, etc.</li>
      *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
@@ -234,8 +234,8 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *         <ul>
      *         <li>InvalidInputException The request was rejected because an invalid or out-of-range value was supplied
      *         for an input parameter.</li>
-     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
-     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
      *         credentials, etc.</li>
      *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
@@ -246,9 +246,9 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
-        Consumer<GetWithoutRequiredMembersRequest.Builder> getWithoutRequiredMembersRequest) {
+            Consumer<GetWithoutRequiredMembersRequest.Builder> getWithoutRequiredMembersRequest) {
         return getWithoutRequiredMembers(GetWithoutRequiredMembersRequest.builder().apply(getWithoutRequiredMembersRequest)
-                                                                         .build());
+                .build());
     }
 
     /**
@@ -260,8 +260,8 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
      *         <ul>
-     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
-     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
      *         credentials, etc.</li>
      *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
@@ -272,7 +272,7 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey(
-        PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
+            PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
         throw new UnsupportedOperationException();
     }
 
@@ -288,8 +288,8 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
      *         <ul>
-     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
-     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
      *         credentials, etc.</li>
      *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
@@ -300,9 +300,9 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey(
-        Consumer<PaginatedOperationWithResultKeyRequest.Builder> paginatedOperationWithResultKeyRequest) {
+            Consumer<PaginatedOperationWithResultKeyRequest.Builder> paginatedOperationWithResultKeyRequest) {
         return paginatedOperationWithResultKey(PaginatedOperationWithResultKeyRequest.builder()
-                                                                                     .apply(paginatedOperationWithResultKeyRequest).build());
+                .apply(paginatedOperationWithResultKeyRequest).build());
     }
 
     /**
@@ -314,8 +314,8 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
      *         <ul>
-     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
-     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
      *         credentials, etc.</li>
      *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
@@ -326,7 +326,7 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<PaginatedOperationWithoutResultKeyResponse> paginatedOperationWithoutResultKey(
-        PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
+            PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
         throw new UnsupportedOperationException();
     }
 
@@ -342,8 +342,8 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
      *         <ul>
-     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
-     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
      *         credentials, etc.</li>
      *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
@@ -354,9 +354,9 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<PaginatedOperationWithoutResultKeyResponse> paginatedOperationWithoutResultKey(
-        Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest) {
+            Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest) {
         return paginatedOperationWithoutResultKey(PaginatedOperationWithoutResultKeyRequest.builder()
-                                                                                           .apply(paginatedOperationWithoutResultKeyRequest).build());
+                .apply(paginatedOperationWithoutResultKeyRequest).build());
     }
 
     /**
@@ -373,8 +373,8 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
      *         <ul>
-     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
-     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
      *         credentials, etc.</li>
      *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
@@ -385,7 +385,7 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
-        StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestProvider requestProvider) {
+            StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestProvider requestProvider) {
         throw new UnsupportedOperationException();
     }
 
@@ -402,8 +402,8 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
      *         <ul>
-     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
-     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
      *         credentials, etc.</li>
      *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
@@ -414,7 +414,7 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
-        StreamingInputOperationRequest streamingInputOperationRequest, Path path) {
+            StreamingInputOperationRequest streamingInputOperationRequest, Path path) {
         return streamingInputOperation(streamingInputOperationRequest, AsyncRequestProvider.fromFile(path));
     }
 
@@ -431,8 +431,8 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
      *         <ul>
-     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
-     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
      *         credentials, etc.</li>
      *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
@@ -443,8 +443,8 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
-        StreamingOutputOperationRequest streamingOutputOperationRequest,
-        AsyncResponseHandler<StreamingOutputOperationResponse, ReturnT> asyncResponseHandler) {
+            StreamingOutputOperationRequest streamingOutputOperationRequest,
+            AsyncResponseHandler<StreamingOutputOperationResponse, ReturnT> asyncResponseHandler) {
         throw new UnsupportedOperationException();
     }
 
@@ -460,8 +460,8 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
      *         <ul>
-     *         <li>SdkBaseException Base class for all exceptions that can be thrown by the SDK (both service and
-     *         client). Can be used for catch all scenarios.</li>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
      *         credentials, etc.</li>
      *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
@@ -472,7 +472,7 @@ public interface JsonAsyncClient extends SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingOutputOperationResponse> streamingOutputOperation(
-        StreamingOutputOperationRequest streamingOutputOperationRequest, Path path) {
+            StreamingOutputOperationRequest streamingOutputOperationRequest, Path path) {
         return streamingOutputOperation(streamingOutputOperationRequest, AsyncResponseHandler.toFile(path));
     }
 }

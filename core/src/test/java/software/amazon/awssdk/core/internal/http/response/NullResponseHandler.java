@@ -19,15 +19,15 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
-import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.AmazonWebServiceResponse;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 
 public class NullResponseHandler implements HttpResponseHandler<AmazonWebServiceResponse<Object>> {
 
-    public static void assertIsUnmarshallingException(AmazonClientException e) {
+    public static void assertIsUnmarshallingException(SdkClientException e) {
         assertThat(e.getCause(), instanceOf(RuntimeException.class));
         RuntimeException re = (RuntimeException) e.getCause();
         assertThat(re.getMessage(), containsString("Unable to unmarshall response"));

@@ -19,7 +19,7 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.devicefarm.model.CreateProjectRequest;
 import software.amazon.awssdk.services.devicefarm.model.CreateProjectResponse;
@@ -56,7 +56,7 @@ public class DeviceFarmIntegrationTest extends AwsTestBase {
         assertNotNull(project.arn());
     }
 
-    @Test(expected = AmazonServiceException.class)
+    @Test(expected = SdkServiceException.class)
     public void testExceptionHandling() {
         client.listDevicePools(ListDevicePoolsRequest.builder().nextToken("fake-token").build());
     }

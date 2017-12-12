@@ -62,8 +62,6 @@ public class WaiterImpl<InputT, OutputT, ErrorT extends RuntimeException> implem
      *
      * @param waiterParameters Custom provided parameters. Includes request and
      *                         optional custom polling strategy
-     * @throws AmazonServiceException       If the service exception thrown doesn't match any of the expected
-     *                                      exceptions, it's re-thrown.
      * @throws WaiterUnrecoverableException If the resource transitions into a failure/unexpected state.
      * @throws WaiterTimedOutException      If the resource doesn't transition into the desired state
      *                                      even after a certain number of retries.

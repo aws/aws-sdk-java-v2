@@ -33,11 +33,10 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.RequestClientOptions;
 import software.amazon.awssdk.core.RequestConfig;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.internal.Aws4SignerRequestParams;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.io.SdkDigestInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.Base64Utils;
@@ -255,7 +254,7 @@ public abstract class AbstractAwsSigner implements Signer {
                 throw new SdkClientException("Unable to read request payload to sign request.");
             }
             return stream;
-        } catch (AmazonClientException e) {
+        } catch (SdkClientException e) {
             throw e;
         } catch (Exception e) {
             throw new SdkClientException("Unable to read request payload to sign request: " + e.getMessage(), e);

@@ -13,18 +13,26 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core;
+package software.amazon.awssdk.core.exception;
+
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
+ * Base type for all client exceptions thrown by the SDK.
  *
- * Base class for all exceptions thrown by the SDK.
- * Exception may be a client side exception or an unmarshalled service exception.
+ * This exception is thrown when service could not be contacted for a response,
+ * or when client is unable to parse the response from service.
+ *
+ * All exceptions that extend {@link SdkClientException} are assumed to be
+ * not retryable.
+ *
+ * @see SdkServiceException
  */
-public class SdkBaseException extends RuntimeException {
-    private static final long serialVersionUID = 1L;
+@SdkPublicApi
+public class SdkClientException extends SdkException {
 
     /**
-     * Creates a new SdkBaseException with the specified message, and root
+     * Creates a new SdkClientException with the specified message, and root
      * cause.
      *
      * @param message
@@ -32,27 +40,27 @@ public class SdkBaseException extends RuntimeException {
      * @param t
      *            The underlying cause of this exception.
      */
-    public SdkBaseException(String message, Throwable t) {
+    public SdkClientException(String message, Throwable t) {
         super(message, t);
     }
 
     /**
-     * Creates a new SdkBaseException with the specified message.
+     * Creates a new SdkClientException with the specified message.
      *
      * @param message
      *            An error message describing why this exception was thrown.
      */
-    public SdkBaseException(String message) {
+    public SdkClientException(String message) {
         super(message);
     }
 
     /**
-     * Creates a new SdkBaseException with the root cause.
+     * Creates a new SdkClientException with the root cause.
      *
      * @param t
      *          The underlying cause of this exception.
      */
-    public SdkBaseException(Throwable t) {
+    public SdkClientException(Throwable t) {
         super(t);
     }
 }

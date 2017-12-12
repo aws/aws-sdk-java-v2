@@ -20,7 +20,7 @@ import static software.amazon.awssdk.utils.StringUtils.trim;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.AwsSystemSetting;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.SystemSetting;
 

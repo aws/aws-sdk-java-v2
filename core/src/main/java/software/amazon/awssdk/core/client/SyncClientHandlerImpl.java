@@ -21,11 +21,11 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.RequestConfig;
-import software.amazon.awssdk.core.SdkBaseException;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.core.config.SyncClientConfiguration;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.AmazonHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponse;
@@ -116,7 +116,7 @@ public class SyncClientHandlerImpl extends ClientHandler {
                                      RequestConfig requestConfig,
                                      ExecutionContext executionContext,
                                      HttpResponseHandler<OutputT> responseHandler,
-                                     HttpResponseHandler<? extends SdkBaseException> errorResponseHandler) {
+                                     HttpResponseHandler<? extends SdkException> errorResponseHandler) {
 
         executionContext.setCredentialsProvider(
             CredentialUtils.getCredentialsProvider(requestConfig, syncClientConfiguration.credentialsProvider()));
@@ -133,7 +133,7 @@ public class SyncClientHandlerImpl extends ClientHandler {
                                        RequestConfig requestConfig,
                                        ExecutionContext executionContext,
                                        HttpResponseHandler<OutputT> responseHandler,
-                                       HttpResponseHandler<? extends SdkBaseException> errorResponseHandler) {
+                                       HttpResponseHandler<? extends SdkException> errorResponseHandler) {
         return client.requestExecutionBuilder()
                      .request(request)
                      .requestConfig(requestConfig)

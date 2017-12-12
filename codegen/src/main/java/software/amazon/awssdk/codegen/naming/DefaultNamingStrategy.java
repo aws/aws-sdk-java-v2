@@ -37,8 +37,7 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
- * Default implementation of naming strategy respecting customizations supplied by {@link
- * CustomizationConfig}.
+ * Default implementation of naming strategy respecting.
  */
 public class DefaultNamingStrategy implements NamingStrategy {
 
@@ -59,12 +58,10 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     private final ServiceModel serviceModel;
-    private final CustomizationConfig customizationConfig;
 
     public DefaultNamingStrategy(ServiceModel serviceModel,
                                  CustomizationConfig customizationConfig) {
         this.serviceModel = serviceModel;
-        this.customizationConfig = customizationConfig;
     }
 
     private static boolean isJavaKeyword(String word) {

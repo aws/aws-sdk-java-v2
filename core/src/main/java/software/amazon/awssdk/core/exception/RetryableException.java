@@ -13,24 +13,30 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core;
+package software.amazon.awssdk.core.exception;
+
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * Stream reset failure.
+ * Extension of {@link SdkException} that can be used by clients to
+ * explicitly have an exception retried. This exception will never be
+ * thrown by the SDK unless explicitly used by the client.
+ *
+ * See {@link NonRetryableException} for marking non-retryable exceptions.
  */
-public class ResetException extends SdkClientException {
-    private static final long serialVersionUID = 1L;
+@SdkPublicApi
+public class RetryableException extends SdkException {
 
-    public ResetException(String message, Throwable t) {
+    public RetryableException(String message) {
+        super(message);
+    }
+
+    public RetryableException(String message, Throwable t) {
         super(message, t);
     }
 
-    /**
-     * {@inheritDoc}
-     * A stream reset exception cannot be retried.
-     */
     @Override
-    public boolean isRetryable() {
-        return false;
+    public boolean retryable() {
+        return true;
     }
 }

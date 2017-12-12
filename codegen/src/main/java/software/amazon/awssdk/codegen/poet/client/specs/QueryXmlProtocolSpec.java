@@ -31,8 +31,8 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
-import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.DefaultErrorResponseHandler;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.http.StaxResponseHandler;
@@ -45,7 +45,7 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
 
     private final PoetExtensions poetExtensions;
     private final TypeName unmarshallerType = ParameterizedTypeName.get(Unmarshaller.class,
-                                                                        AmazonServiceException.class,
+                                                                        SdkServiceException.class,
                                                                         Node.class);
     private final TypeName listOfUnmarshallersType = ParameterizedTypeName.get(ClassName.get("java.util", "List"),
                                                                                unmarshallerType);

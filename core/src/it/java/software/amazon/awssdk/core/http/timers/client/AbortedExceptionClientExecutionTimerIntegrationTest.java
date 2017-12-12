@@ -33,9 +33,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.core.AbortedException;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.AmazonHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.MockServerTestBase;
@@ -116,7 +116,7 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockSer
                     .executionContext(withInterceptors(new SlowExecutionInterceptor().afterTransmissionWaitInSeconds(10)))
                     .execute(new DummyResponseHandler().leaveConnectionOpen());
             fail("Expected exception");
-        } catch (AmazonClientException e) {
+        } catch (SdkClientException e) {
             assertThat(e.getCause(), instanceOf(InterruptedException.class));
         }
 

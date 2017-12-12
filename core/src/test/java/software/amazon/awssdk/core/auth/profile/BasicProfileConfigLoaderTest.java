@@ -21,10 +21,10 @@ import static org.junit.Assert.assertThat;
 
 import java.io.File;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.auth.profile.internal.AllProfiles;
 import software.amazon.awssdk.core.auth.profile.internal.BasicProfile;
 import software.amazon.awssdk.core.auth.profile.internal.BasicProfileConfigLoader;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 
 public class BasicProfileConfigLoaderTest {
@@ -55,13 +55,13 @@ public class BasicProfileConfigLoaderTest {
         loadProfiles(file);
     }
 
-    @Test(expected = AmazonClientException.class)
+    @Test(expected = SdkClientException.class)
     public void blankProfileName() {
         File file = ProfileResourceLoader.profileNameWithSpaces().asFile();
         loadProfiles(file);
     }
 
-    @Test(expected = AmazonClientException.class)
+    @Test(expected = SdkClientException.class)
     public void emptyProfileName() {
         File file = ProfileResourceLoader.profilesWithNoProfileName().asFile();
         loadProfiles(file);

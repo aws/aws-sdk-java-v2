@@ -26,10 +26,10 @@ import java.net.URISyntaxException;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.AwsSessionCredentials;
 import software.amazon.awssdk.core.auth.profile.internal.Profile;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.ImmutableMapParameter;
 
 public class ProfilesConfigFileWriterTest {
@@ -108,7 +108,7 @@ public class ProfilesConfigFileWriterTest {
             ProfilesConfigFileWriter.dumpToFile(tmpFile, false,
                                                 new Profile("a", basicCredA));
             fail("Should have thrown exception since the destination file already exists.");
-        } catch (AmazonClientException expected) {
+        } catch (SdkClientException expected) {
             // Ignored or expected.
         }
 
@@ -294,7 +294,7 @@ public class ProfilesConfigFileWriterTest {
         try {
             ProfilesConfigFileWriter.modifyOrInsertProfiles(tmpFile, e);
             fail("An exception is expected.");
-        } catch (AmazonClientException expected) {
+        } catch (SdkClientException expected) {
             // Ignored or expected.
         }
 
