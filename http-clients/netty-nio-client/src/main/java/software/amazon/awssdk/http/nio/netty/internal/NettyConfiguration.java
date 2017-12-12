@@ -53,10 +53,8 @@ public final class NettyConfiguration {
     /**
      * @see NettySdkHttpClientFactory.Builder#maxConnectionsPerEndpoint(Integer)
      */
-    @ReviewBeforeRelease("Does it make sense to use this value? Netty's implementation is max connections" +
-                         " per endpoint so if it's a shared client it doesn't mean quite the same thing.")
     public int maxConnectionsPerEndpoint() {
-        return factory.maxConnectionsPerEndpoint().orElseGet(() -> serviceDefaults.get(MAX_CONNECTIONS));
+        return serviceDefaults.get(MAX_CONNECTIONS);
     }
 
     @ReviewBeforeRelease("Support disabling strict hostname verification")
@@ -85,7 +83,7 @@ public final class NettyConfiguration {
      * @see NettySdkHttpClientFactory.Builder#connectionAcquisitionTimeout(Duration)
      */
     public int connectionAcquisitionTimeout() {
-        return factory.connectionAquisitionTimeout().map(d -> saturatedCast(d.getSeconds())).orElseGet(this::connectionTimeout);
+        return factory.connectionAquisitionTimeout().map(d -> saturatedCast(d.toMillis())).orElseGet(this::connectionTimeout);
     }
 
     /**
