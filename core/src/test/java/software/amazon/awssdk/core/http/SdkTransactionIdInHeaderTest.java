@@ -27,7 +27,7 @@ import static org.junit.Assert.fail;
 
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -69,7 +69,7 @@ public class SdkTransactionIdInHeaderTest extends WireMockTestBase {
                       .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(request))
                       .execute();
             fail("Expected exception");
-        } catch (AmazonServiceException expected) {
+        } catch (SdkServiceException expected) {
             // Ignored or expected.
         }
     }

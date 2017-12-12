@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.retry.conditions;
 
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 
 @SdkPublicApi
@@ -34,10 +34,10 @@ public class RetryOnErrorCodeCondition implements RetryCondition {
     public boolean shouldRetry(RetryPolicyContext context) {
 
         Exception ex = context.exception();
-        if (ex != null && ex instanceof AmazonServiceException) {
-            AmazonServiceException ase = (AmazonServiceException) ex;
+        if (ex != null && ex instanceof SdkServiceException) {
+            SdkServiceException exception = (SdkServiceException) ex;
 
-            if (retryableErrorCodes.contains(ase.getErrorCode())) {
+            if (retryableErrorCodes.contains(exception.errorCode())) {
                 return true;
             }
         }

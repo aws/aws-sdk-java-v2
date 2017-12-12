@@ -91,7 +91,7 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
         try {
             dsClient.describeDirectories(DescribeDirectoriesRequest.builder().nextToken("invalid").build());
         } catch (InvalidNextTokenException e) {
-            assertNotNull(e.getRequestId());
+            assertNotNull(e.requestId());
         }
     }
 }

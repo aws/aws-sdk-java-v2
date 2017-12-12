@@ -16,8 +16,8 @@
 package software.amazon.awssdk.core.util;
 
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.AbortedException;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.AbortedException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 /**
  * Utility for use with errors or exceptions.
@@ -65,12 +65,12 @@ public final class Throwables {
         }
         return t instanceof InterruptedException
                ? new AbortedException(t)
-               : new AmazonClientException(t);
+               : new SdkClientException(t);
     }
 
     /**
      * Same as {@link #failure(Throwable)}, but the given errmsg will be used if
-     * it was wrapped as either an {@link AmazonClientException} or
+     * it was wrapped as either an {@link SdkClientException} or
      * {@link AbortedException}.
      */
     public static RuntimeException failure(Throwable t, String errmsg) {
@@ -82,6 +82,6 @@ public final class Throwables {
         }
         return t instanceof InterruptedException
                ? new AbortedException(errmsg, t)
-               : new AmazonClientException(errmsg, t);
+               : new SdkClientException(errmsg, t);
     }
 }

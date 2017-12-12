@@ -61,8 +61,6 @@ public class WaiterExecution<InputT, OutputT, ErrorT extends RuntimeException> {
      * until the specified number of retries has been made.
      *
      * @return True if the resource transitions into desired state.
-     * @throws AmazonServiceException       If the service exception thrown doesn't match any of the expected
-     *                                      exceptions, it's re-thrown.
      * @throws WaiterUnrecoverableException If the resource transitions into a failure/unexpected state.
      * @throws WaiterTimedOutException      If the resource doesn't transition into the desired state
      *                                      even after a certain number of retries.

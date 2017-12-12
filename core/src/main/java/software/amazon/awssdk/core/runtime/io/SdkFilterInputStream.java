@@ -19,7 +19,7 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.AbortedException;
+import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.internal.io.Releasable;
 import software.amazon.awssdk.core.internal.io.SdkIoUtils;
 import software.amazon.awssdk.core.util.SdkRuntime;

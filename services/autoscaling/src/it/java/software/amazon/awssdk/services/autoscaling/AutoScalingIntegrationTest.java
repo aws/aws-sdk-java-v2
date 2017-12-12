@@ -33,7 +33,6 @@ import java.util.Map;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.After;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException.ErrorType;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.autoscaling.model.AlreadyExistsException;
@@ -182,12 +181,11 @@ public class AutoScalingIntegrationTest extends IntegrationTestBase {
             createLaunchConfiguration(launchConfigurationName);
             createLaunchConfiguration(launchConfigurationName);
         } catch (AlreadyExistsException aee) {
-            assertEquals(400, aee.getStatusCode());
-            assertEquals("AlreadyExists", aee.getErrorCode());
-            assertEquals(ErrorType.Client, aee.getErrorType());
+            assertEquals(400, aee.statusCode());
+            assertEquals("AlreadyExists", aee.errorCode());
             assertNotEmpty(aee.getMessage());
-            assertNotEmpty(aee.getRequestId());
-            assertNotEmpty(aee.getServiceName());
+            assertNotEmpty(aee.requestId());
+            assertNotEmpty(aee.serviceName());
         }
     }
 

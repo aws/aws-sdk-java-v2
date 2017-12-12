@@ -17,8 +17,8 @@ package software.amazon.awssdk.core.retry;
 
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.SdkBaseException;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
@@ -31,14 +31,14 @@ public final class RetryPolicyContext {
 
     private final SdkRequest originalRequest;
     private final SdkHttpFullRequest request;
-    private final SdkBaseException exception;
+    private final SdkException exception;
     private final ExecutionAttributes executionAttributes;
     private final int retriesAttempted;
     private final Integer httpStatusCode;
 
     private RetryPolicyContext(SdkRequest originalRequest,
                                SdkHttpFullRequest request,
-                               SdkBaseException exception,
+                               SdkException exception,
                                ExecutionAttributes executionAttributes,
                                int retriesAttempted,
                                Integer httpStatusCode) {
@@ -72,7 +72,7 @@ public final class RetryPolicyContext {
     /**
      * @return The last seen exception for the request.
      */
-    public SdkBaseException exception() {
+    public SdkException exception() {
         return this.exception;
     }
 
@@ -109,7 +109,7 @@ public final class RetryPolicyContext {
 
         private SdkRequest originalRequest;
         private SdkHttpFullRequest request;
-        private SdkBaseException exception;
+        private SdkException exception;
         private ExecutionAttributes executionAttributes;
         private int retriesAttempted;
         private Integer httpStatusCode;
@@ -127,7 +127,7 @@ public final class RetryPolicyContext {
             return this;
         }
 
-        public Builder exception(SdkBaseException exception) {
+        public Builder exception(SdkException exception) {
             this.exception = exception;
             return this;
         }

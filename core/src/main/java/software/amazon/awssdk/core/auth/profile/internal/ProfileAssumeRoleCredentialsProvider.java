@@ -18,11 +18,11 @@ package software.amazon.awssdk.core.auth.profile.internal;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.auth.profile.internal.securitytoken.ProfileCredentialsService;
 import software.amazon.awssdk.core.auth.profile.internal.securitytoken.RoleInfo;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.StringUtils;
 
 /**

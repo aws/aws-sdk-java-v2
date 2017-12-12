@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.document;
 
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 /**
  * Thrown upon incompatible type during data conversion.

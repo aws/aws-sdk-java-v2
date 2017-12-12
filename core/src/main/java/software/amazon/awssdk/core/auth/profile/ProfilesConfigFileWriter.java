@@ -31,10 +31,10 @@ import java.util.Set;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.profile.internal.AbstractProfilesConfigFileScanner;
 import software.amazon.awssdk.core.auth.profile.internal.Profile;
 import software.amazon.awssdk.core.auth.profile.internal.ProfileKeyConstants;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.StringUtils;
 
 /**

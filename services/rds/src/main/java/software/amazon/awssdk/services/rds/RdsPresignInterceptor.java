@@ -17,12 +17,12 @@ package software.amazon.awssdk.services.rds;
 
 import java.net.URI;
 import java.util.Date;
-import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.AmazonWebServiceRequest;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.auth.Aws4Signer;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -144,7 +144,7 @@ abstract class RdsPresignInterceptor<T extends AmazonWebServiceRequest> implemen
         final Region region = Region.of(regionName);
 
         if (region == null) {
-            throw new AmazonClientException("{" + serviceName + ", " + regionName + "} was not "
+            throw new SdkClientException("{" + serviceName + ", " + regionName + "} was not "
                                             + "found in region metadata. Update to latest version of SDK and try again.");
         }
 

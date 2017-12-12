@@ -33,7 +33,8 @@ import java.util.Set;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.ErrorType;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.dynamodb.model.AttributeAction;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValueUpdate;
@@ -120,8 +121,8 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
 
         try {
             dynamo.batchGetItem(request);
-        } catch (AmazonServiceException ase) {
-            assertEquals("ValidationException", ase.getErrorCode());
+        } catch (SdkServiceException exception) {
+            assertEquals("ValidationException", exception.errorCode());
         }
 
         Map<String, List<WriteRequest>> requestItems = new HashMap<String, List<WriteRequest>>();
@@ -134,14 +135,14 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
         requestItems.put(tableName, writeRequests);
         try {
             dynamo.batchWriteItem(BatchWriteItemRequest.builder().requestItems(requestItems).build());
-        } catch (AmazonServiceException ase) {
-            assertEquals("ValidationException", ase.getErrorCode());
+        } catch (SdkServiceException exception) {
+            assertEquals("ValidationException", exception.errorCode());
         }
 
     }
 
     /**
-     * Tests that we correctly parse JSON error responses into AmazonServiceExceptions.
+     * Tests that we correctly parse JSON error responses into SdkServiceException.
      */
     @Test
     public void testErrorHandling() throws Exception {
@@ -150,14 +151,14 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
         try {
             dynamo.deleteTable(request);
             fail("Expected an exception to be thrown");
-        } catch (AmazonServiceException ase) {
-            assertNotEmpty(ase.getErrorCode());
-            assertEquals(AmazonServiceException.ErrorType.Client, ase.getErrorType());
-            assertNotEmpty(ase.getMessage());
-            assertNotEmpty(ase.getRequestId());
-            assertNotEmpty(ase.getServiceName());
-            assertTrue(ase.getStatusCode() >= 400);
-            assertTrue(ase.getStatusCode() < 600);
+        } catch (SdkServiceException exception) {
+            assertNotEmpty(exception.errorCode());
+            assertEquals(ErrorType.CLIENT, exception.errorType());
+            assertNotEmpty(exception.getMessage());
+            assertNotEmpty(exception.requestId());
+            assertNotEmpty(exception.serviceName());
+            assertTrue(exception.statusCode() >= 400);
+            assertTrue(exception.statusCode() < 600);
         }
     }
 
@@ -167,7 +168,7 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
      */
     // DISABLED because DynamoDB apparently upped their max request size; we
     // should be hitting this with a unit test that simulates an appropriate
-    // AmazonServiceException.
+    // SdkServiceException.
     // @Test
     public void testRequestEntityTooLargeErrorHandling() throws Exception {
 
@@ -185,11 +186,11 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
 
         try {
             dynamo.batchGetItem(request);
-        } catch (AmazonServiceException ase) {
-            assertNotNull(ase.getMessage());
-            assertEquals("Request entity too large", ase.getErrorCode());
-            assertEquals(AmazonServiceException.ErrorType.Client, ase.getErrorType());
-            assertEquals(413, ase.getStatusCode());
+        } catch (SdkServiceException exception) {
+            assertNotNull(exception.getMessage());
+            assertEquals("Request entity too large", exception.errorCode());
+            assertEquals(ErrorType.CLIENT, exception.errorType());
+            assertEquals(413, exception.statusCode());
         }
     }
 
@@ -207,13 +208,13 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
         requestItems.put(tableName, writeRequests);
         try {
             dynamo.batchWriteItem(BatchWriteItemRequest.builder().requestItems(requestItems).build());
-        } catch (AmazonServiceException ase) {
-            assertEquals("ValidationException", ase.getErrorCode());
-            assertEquals(AmazonServiceException.ErrorType.Client, ase.getErrorType());
-            assertNotEmpty(ase.getMessage());
-            assertNotEmpty(ase.getRequestId());
-            assertNotEmpty(ase.getServiceName());
-            assertEquals(400, ase.getStatusCode());
+        } catch (SdkServiceException exception) {
+            assertEquals("ValidationException", exception.errorCode());
+            assertEquals(ErrorType.CLIENT, exception.errorType());
+            assertNotEmpty(exception.getMessage());
+            assertNotEmpty(exception.requestId());
+            assertNotEmpty(exception.serviceName());
+            assertEquals(400, exception.statusCode());
         }
     }
 

@@ -29,7 +29,7 @@ import java.util.Set;
 import java.util.UUID;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.util.ImmutableMapParameter;
 import software.amazon.awssdk.services.dynamodb.DynamoDBMapperIntegrationTestBase;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbHashKey;
@@ -214,13 +214,13 @@ public class ScanIntegrationTest extends DynamoDBMapperIntegrationTestBase {
         try {
             PaginatedParallelScanList<SimpleClass> parallelScanList = util
                     .parallelScan(SimpleClass.class, scanExpression, PARALLEL_SCAN_SEGMENTS);
-            fail("Should have seen the AmazonServiceException");
-        } catch (AmazonServiceException ase) {
-            assertNotNull(ase.getErrorCode());
-            assertNotNull(ase.getErrorType());
-            assertNotNull(ase.getMessage());
+            fail("Should have seen the SdkServiceException");
+        } catch (SdkServiceException exception) {
+            assertNotNull(exception.errorCode());
+            assertNotNull(exception.errorType());
+            assertNotNull(exception.getMessage());
         } catch (Exception e) {
-            fail("Should have seen the AmazonServiceException");
+            fail("Should have seen the SdkServiceException");
         }
 
     }

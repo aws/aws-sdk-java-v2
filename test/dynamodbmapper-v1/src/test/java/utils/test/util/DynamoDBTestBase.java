@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -46,7 +46,7 @@ public class DynamoDBTestBase extends AwsTestBase {
         try {
             setUpCredentials();
         } catch (Exception e) {
-            throw new AmazonClientException("Unable to load credential property file.", e);
+            throw new SdkClientException("Unable to load credential property file.", e);
         }
 
         dynamo = DynamoDBClient.builder().region(Region.US_EAST_1).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();

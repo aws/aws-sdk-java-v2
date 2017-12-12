@@ -178,7 +178,7 @@ public class QueryIntegrationTest extends DynamoDBMapperIntegrationTestBase {
         } catch (IllegalArgumentException expected) {
             System.out.println(expected.getMessage());
         } catch (Exception e) {
-            fail("Should trigger AmazonClientException.");
+            fail("Should trigger SdkClientException.");
         }
 
     }

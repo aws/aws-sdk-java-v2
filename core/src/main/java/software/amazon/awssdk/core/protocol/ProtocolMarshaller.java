@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.protocol;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 /**
  * Interface used by generated marshallers to marshall a Java POJO.

@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.dynamodb;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
@@ -33,7 +33,7 @@ import software.amazon.awssdk.services.dynamodb.model.TableStatus;
  * // ... create DynamoDB table ...
  * try {
  *     waitUntilActive(dynamoDB, myTableName());
- * } catch (AmazonClientException e) {
+ * } catch (SdkClientException e) {
  *     // table didn't become active
  * }
  * // ... start making calls to table ...

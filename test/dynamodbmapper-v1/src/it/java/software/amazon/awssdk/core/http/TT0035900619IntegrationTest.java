@@ -24,7 +24,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.core.retry.SdkDefaultRetrySettings;
@@ -143,7 +143,7 @@ public class TT0035900619IntegrationTest {
         try {
             System.out.println(client.describeTable(DescribeTableRequest.builder().tableName(TABLE_NAME).build()));
             Assert.fail();
-        } catch(AmazonClientException expected) {
+        } catch(SdkClientException expected) {
             expected.printStackTrace();
         }
     }

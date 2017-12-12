@@ -34,9 +34,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.AmazonWebServiceRequest;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.core.retry.RetryUtils;
@@ -1844,13 +1844,13 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
         }
 
         private boolean isRequestEntityTooLarge() {
-            return exception instanceof AmazonServiceException &&
-                   RetryUtils.isRequestEntityTooLargeException((AmazonServiceException) exception);
+            return exception instanceof SdkServiceException &&
+                   RetryUtils.isRequestEntityTooLargeException((SdkServiceException) exception);
         }
 
         private boolean isThrottling() {
-            return exception instanceof AmazonServiceException &&
-                   RetryUtils.isThrottlingException((AmazonServiceException) exception);
+            return exception instanceof SdkServiceException &&
+                   RetryUtils.isThrottlingException((SdkServiceException) exception);
         }
 
         private int size() {

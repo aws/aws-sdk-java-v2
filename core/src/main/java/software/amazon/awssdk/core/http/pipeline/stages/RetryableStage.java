@@ -21,13 +21,13 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.RequestExecutionContext;
-import software.amazon.awssdk.core.ResetException;
 import software.amazon.awssdk.core.Response;
-import software.amazon.awssdk.core.SdkBaseException;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.SdkStandardLoggers;
+import software.amazon.awssdk.core.exception.ResetException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpClientDependencies;
 import software.amazon.awssdk.core.http.InterruptMonitor;
 import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
@@ -107,11 +107,11 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
                     } else {
                         retryHandler.setLastRetriedException(handleUnmarshalledException(response));
                     }
-                } catch (AmazonServiceException e) {
+                } catch (SdkServiceException e) {
                     // TODO This can be cleaned up a bit if we have separate hierarchies for service and client exceptions
                     // as we can just catch the client exception below.
                     throw e;
-                } catch (SdkBaseException | IOException e) {
+                } catch (SdkException | IOException e) {
                     retryHandler.setLastRetriedException(handleThrownException(e));
                 }
             }
@@ -137,8 +137,8 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
             return requestPipeline.execute(retryHandler.addRetryInfoHeader(request, requestCount), context);
         }
 
-        private SdkBaseException handleUnmarshalledException(Response<OutputT> response) {
-            SdkBaseException exception = response.getException();
+        private SdkException handleUnmarshalledException(Response<OutputT> response) {
+            SdkException exception = response.getException();
             if (!retryHandler.shouldRetry(response.getHttpResponse(), request, context, exception, requestCount)) {
                 throw exception;
             }
@@ -153,7 +153,7 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
             return exception;
         }
 
-        private SdkBaseException handleThrownException(Exception e) {
+        private SdkException handleThrownException(Exception e) {
             SdkClientException sdkClientException = e instanceof SdkClientException ?
                     (SdkClientException) e : new SdkClientException("Unable to execute HTTP request: " + e.getMessage(), e);
             boolean willRetry = retryHandler.shouldRetry(null, request, context, sdkClientException, requestCount);

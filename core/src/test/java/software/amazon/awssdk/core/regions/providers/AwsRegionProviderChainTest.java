@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.regions.Region;
 
 public class AwsRegionProviderChainTest {
@@ -87,7 +87,7 @@ public class AwsRegionProviderChainTest {
 
     private static class NeverAwsRegionProvider extends AwsRegionProvider {
         @Override
-        public Region getRegion() throws AmazonClientException {
+        public Region getRegion() throws SdkClientException {
             return null;
         }
     }
@@ -107,14 +107,14 @@ public class AwsRegionProviderChainTest {
 
     private static class FaultyAwsRegionProvider extends AwsRegionProvider {
         @Override
-        public Region getRegion() throws AmazonClientException {
-            throw new AmazonClientException("Unable to fetch region info");
+        public Region getRegion() throws SdkClientException {
+            throw new SdkClientException("Unable to fetch region info");
         }
     }
 
     private static class FatalAwsRegionProvider extends AwsRegionProvider {
         @Override
-        public Region getRegion() throws AmazonClientException {
+        public Region getRegion() throws SdkClientException {
             throw new Error("Something really bad happened");
         }
     }

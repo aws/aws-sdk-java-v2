@@ -16,9 +16,9 @@
 package software.amazon.awssdk.core.auth.profile.internal.securitytoken;
 
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 @ThreadSafe
 public class StsProfileCredentialsServiceProvider implements AwsCredentialsProvider {

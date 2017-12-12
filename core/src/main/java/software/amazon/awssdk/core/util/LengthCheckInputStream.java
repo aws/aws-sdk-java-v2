@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.util;
 import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.NotThreadSafe;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.io.SdkFilterInputStream;
 
 /**

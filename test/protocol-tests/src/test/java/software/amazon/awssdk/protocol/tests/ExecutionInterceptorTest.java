@@ -47,7 +47,7 @@ import org.mockito.Mockito;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestProvider;
@@ -202,7 +202,7 @@ public class ExecutionInterceptorTest {
         MembersInHeadersRequest request = MembersInHeadersRequest.builder().build();
 
         // When
-        assertThatExceptionOfType(AmazonServiceException.class).isThrownBy(() -> client.membersInHeaders(request));
+        assertThatExceptionOfType(SdkServiceException.class).isThrownBy(() -> client.membersInHeaders(request));
 
         // Expect
         expectServiceCallErrorMethodsCalled(interceptor);
@@ -217,7 +217,7 @@ public class ExecutionInterceptorTest {
 
         // When
         assertThatExceptionOfType(ExecutionException.class).isThrownBy(() -> client.membersInHeaders(request).get())
-                                                           .withCauseInstanceOf(AmazonServiceException.class);
+                                                           .withCauseInstanceOf(SdkServiceException.class);
 
         // Expect
         expectServiceCallErrorMethodsCalled(interceptor);
@@ -393,7 +393,7 @@ public class ExecutionInterceptorTest {
         assertThat(beforeUnmarshallingArg.getValue().httpResponse().statusCode()).isEqualTo(404);
 
         // Verify failed execution parameters
-        assertThat(failedExecutionArg.getValue().exception()).isInstanceOf(AmazonServiceException.class);
+        assertThat(failedExecutionArg.getValue().exception()).isInstanceOf(SdkServiceException.class);
         verifyFailedExecutionMethodCalled(failedExecutionArg, false);
     }
 

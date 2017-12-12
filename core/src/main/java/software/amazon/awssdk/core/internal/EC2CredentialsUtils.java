@@ -23,8 +23,8 @@ import java.net.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.AmazonServiceException;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.internal.net.ConnectionUtils;
 import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryParameters;
 import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryPolicy;
@@ -159,9 +159,9 @@ public final class EC2CredentialsUtils {
             }
         }
 
-        AmazonServiceException ase = new AmazonServiceException(responseMessage);
-        ase.setStatusCode(statusCode);
-        ase.setErrorCode(errorCode);
-        throw ase;
+        SdkServiceException exception = new SdkServiceException(responseMessage);
+        exception.statusCode(statusCode);
+        exception.errorCode(errorCode);
+        throw exception;
     }
 }
