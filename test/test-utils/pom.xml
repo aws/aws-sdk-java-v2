@@ -45,26 +45,9 @@
             <artifactId>utils</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
-
         <dependency>
             <artifactId>junit</artifactId>
             <groupId>junit</groupId>
-        </dependency>
-        <dependency>
-            <artifactId>cucumber-java</artifactId>
-            <groupId>info.cukes</groupId>
-        </dependency>
-        <dependency>
-            <artifactId>cucumber-junit</artifactId>
-            <groupId>info.cukes</groupId>
-        </dependency>
-        <dependency>
-            <artifactId>cucumber-guice</artifactId>
-            <groupId>info.cukes</groupId>
-        </dependency>
-        <dependency>
-            <artifactId>guice</artifactId>
-            <groupId>com.google.inject</groupId>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
@@ -73,10 +56,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.burt</groupId>
-            <artifactId>jmespath-jackson</artifactId>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>

@@ -88,21 +88,16 @@ public class TT0035900619IntegrationTest {
         client.close();
     }
 
-    @Test
+    @Test(expected = RuntimeException.class)
     public void testFakeRuntimeException_Once() {
-        try {
-            AmazonHttpClient.configUnreliableTestConditions(
-                    new UnreliableTestConfig()
-                    .withMaxNumErrors(1)
-                    .withBytesReadBeforeException(10)
-                    .withFakeIoException(false)
-                    .withResetIntervalBeforeException(2)
-            );
-            System.out.println(client .describeTable(DescribeTableRequest.builder().tableName(TABLE_NAME).build()));
-            Assert.fail();
-        } catch (RuntimeException expected) {
-            expected.printStackTrace();
-        }
+        AmazonHttpClient.configUnreliableTestConditions(
+            new UnreliableTestConfig()
+                .withMaxNumErrors(1)
+                .withBytesReadBeforeException(10)
+                .withFakeIoException(false)
+                .withResetIntervalBeforeException(2)
+        );
+        System.out.println(client.describeTable(DescribeTableRequest.builder().tableName(TABLE_NAME).build()));
     }
 
     @Test
