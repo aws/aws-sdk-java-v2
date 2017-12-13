@@ -1,0 +1,5 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "type": "feature", 
+    "description": "Upgraded dependencies\n * Wiremock (com.github.tomakehurst:wiremock) 1.55 -> 2.12.0\n * Json Path (com.jayway.jsonpath:json-path) 2.2.0 -> 2.4.0"
+}
