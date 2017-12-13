@@ -3,7 +3,6 @@ jdk:
   - oraclejdk8
   - oraclejdk9
 sudo: true
-dist: precise
 install: /bin/true
 notifications:
   email:
@@ -12,3 +11,8 @@ script: mvn install
 branches:
   only:
     - master
+
+addons:
+  apt:
+    packages:
+      - oracle-java9-installer
