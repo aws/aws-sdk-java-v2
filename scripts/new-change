@@ -21,7 +21,7 @@ You'll see this template::
 
     # The marketing name of the service this change applies to
     # e.g: AWS CodeCommit, Amazon DynamoDB
-    # or "AWS SDK for Java" if it's an SDK change to the core, runtime etc
+    # or "AWS SDK for Java v2" if it's an SDK change to the core, runtime etc
     category: {category}
 
 
@@ -43,6 +43,7 @@ import string
 import subprocess
 import sys
 import tempfile
+
 from changelog.git import stage_file
 
 VALID_CHARS = set(string.ascii_letters + string.digits)
@@ -57,7 +58,7 @@ type: {change_type}
 
 # The marketing name of the service this change applies to
 # e.g: AWS CodeCommit, Amazon DynamoDB
-# or "AWS SDK for Java" if it's an SDK change to the core, runtime etc
+# or "AWS SDK for Java v2" if it's an SDK change to the core, runtime etc
 category: {category}
 
 The description of the change. Feel free to use Markdown here.
