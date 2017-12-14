@@ -195,7 +195,7 @@ def main():
                         default='')
     parser.add_argument('-d', '--description', dest='description',
                         default='')
-    parser.add_argument('-r', '--repo', default='aws/aws-sdk-java',
+    parser.add_argument('-r', '--repo', default='aws/aws-sdk-java-v2',
                         help='Optional repo name, e.g: aws/aws-sdk-java')
     args = parser.parse_args()
     sys.exit(new_changelog_entry(args))
