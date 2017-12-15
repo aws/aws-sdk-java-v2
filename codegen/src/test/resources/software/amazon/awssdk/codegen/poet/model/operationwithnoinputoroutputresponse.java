@@ -2,15 +2,14 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Optional;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.AmazonWebServiceResult;
-import software.amazon.awssdk.core.ResponseMetadata;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @Generated("software.amazon.awssdk:codegen")
-public class OperationWithNoInputOrOutputResponse extends AmazonWebServiceResult<ResponseMetadata> implements
+public class OperationWithNoInputOrOutputResponse extends JsonProtocolTestsResponse implements
         ToCopyableBuilder<OperationWithNoInputOrOutputResponse.Builder, OperationWithNoInputOrOutputResponse> {
     private OperationWithNoInputOrOutputResponse(BuilderImpl builder) {
+        super(builder);
     }
 
     @Override
@@ -60,10 +59,11 @@ public class OperationWithNoInputOrOutputResponse extends AmazonWebServiceResult
         return Optional.empty();
     }
 
-    public interface Builder extends CopyableBuilder<Builder, OperationWithNoInputOrOutputResponse> {
+    public interface Builder extends JsonProtocolTestsResponse.Builder,
+            CopyableBuilder<Builder, OperationWithNoInputOrOutputResponse> {
     }
 
-    static final class BuilderImpl implements Builder {
+    static final class BuilderImpl extends JsonProtocolTestsResponse.BuilderImpl implements Builder {
         private BuilderImpl() {
         }
 

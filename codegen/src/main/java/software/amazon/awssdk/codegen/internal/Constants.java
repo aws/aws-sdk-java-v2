@@ -36,6 +36,10 @@ public final class Constants {
 
     public static final String BASE_EXCEPTION_NAME_PATTERN = "%sException";
 
+    public static final String BASE_REQUEST_NAME_PATTERN = "%sRequest";
+
+    public static final String BASE_RESPONSE_NAME_PATTERN = "%sResponse";
+
     public static final String PROTOCOL_CONFIG_LOCATION = "/protocol-config/%s.json";
 
     public static final String JAVA_FILE_NAME_SUFFIX = ".java";

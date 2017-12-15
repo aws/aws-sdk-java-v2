@@ -15,8 +15,12 @@
 
 package software.amazon.awssdk.core.http.pipeline.stages;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.AwsSystemSetting;
-import software.amazon.awssdk.core.RequestClientOptions;
 import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.config.AdvancedClientOption;
 import software.amazon.awssdk.core.config.ClientConfiguration;
@@ -47,15 +51,11 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
             throws Exception {
-        RequestClientOptions opts = context.requestConfig().getRequestClientOptions();
-        String userAgent = opts != null
-                           ? getUserAgent(clientConfig, opts.getClientMarker(RequestClientOptions.Marker.USER_AGENT))
-                           : getUserAgent(clientConfig, null);
-
+        final String userAgent = getUserAgent(clientConfig, context.requestConfig().apiNames().orElse(Collections.emptyList()));
         return request.header(HEADER_USER_AGENT, userAgent);
     }
 
-    private String getUserAgent(ClientConfiguration config, String requestUserAgent) {
+    private String getUserAgent(ClientConfiguration config, List<ApiName> requestApiNames) {
         ClientOverrideConfiguration overrideConfig = config.overrideConfiguration();
         String userDefinedPrefix = overrideConfig.advancedOption(AdvancedClientOption.USER_AGENT_PREFIX);
         String userDefinedSuffix = overrideConfig.advancedOption(AdvancedClientOption.USER_AGENT_SUFFIX);
@@ -76,8 +76,12 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
             userAgent.append(SPACE).append(AWS_EXECUTION_ENV_PREFIX).append(awsExecutionEnvironment.trim());
         }
 
-        if (!StringUtils.isEmpty(requestUserAgent)) {
-            userAgent.append(SPACE).append(requestUserAgent.trim());
+        if (!requestApiNames.isEmpty()) {
+            final String requestUserAgent = requestApiNames.stream()
+                    .map(n -> n.name() + "/" + n.version())
+                    .collect(Collectors.joining(" "));
+
+            userAgent.append(SPACE).append(requestUserAgent);
         }
 
         return userAgent.toString();

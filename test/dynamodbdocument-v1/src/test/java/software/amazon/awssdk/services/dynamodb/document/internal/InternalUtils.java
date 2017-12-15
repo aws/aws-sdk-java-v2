@@ -29,7 +29,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
+
+import software.amazon.awssdk.core.AwsRequest;
+import software.amazon.awssdk.core.AwsRequestOverrideConfig;
 import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.services.dynamodb.document.AttributeUpdate;
 import software.amazon.awssdk.services.dynamodb.document.Expected;
@@ -606,11 +608,16 @@ public final class InternalUtils {
     /**
      * Append the custom user-agent string.
      */
-    public static <X extends AmazonWebServiceRequest> X applyUserAgent(X request) {
-        final String userAgent = "dynamodb-table-api/" + VersionInfo.SDK_VERSION;
+    public static <X extends AwsRequest> X applyUserAgent(X request) {
+        final AwsRequestOverrideConfig newCfg = request.requestOverrideConfig()
+                .map(AwsRequestOverrideConfig::toBuilder)
+                .orElse(AwsRequestOverrideConfig.builder())
+                .addApiName(apiName -> apiName.name("dynamodb-table-api").version(VersionInfo.SDK_VERSION))
+                .build();
 
-        request.getRequestClientOptions().appendUserAgent(userAgent);
-        return request;
+        return (X) request.toBuilder()
+                .requestOverrideConfig(newCfg)
+                .build();
     }
 
     public static void rejectNullValue(Object val) {

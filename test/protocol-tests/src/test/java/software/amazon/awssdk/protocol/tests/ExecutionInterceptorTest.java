@@ -479,7 +479,9 @@ public class ExecutionInterceptorTest {
         @Override
         public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
             MembersInHeadersRequest request = (MembersInHeadersRequest) context.request();
-            return request.copy(b -> b.stringMember("1"));
+            return request.toBuilder()
+                    .stringMember("1")
+                    .build();
         }
 
         @Override
@@ -499,7 +501,9 @@ public class ExecutionInterceptorTest {
         @Override
         public SdkResponse modifyResponse(Context.ModifyResponse context, ExecutionAttributes executionAttributes) {
             MembersInHeadersResponse response = (MembersInHeadersResponse) context.response();
-            return response.copy(b -> b.stringMember("4"));
+            return response.toBuilder()
+                    .stringMember("4")
+                    .build();
         }
     }
 

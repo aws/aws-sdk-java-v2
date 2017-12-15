@@ -24,7 +24,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AwsRequestOverrideConfig;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.auth.AwsCredentials;
@@ -33,11 +33,11 @@ import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
-import software.amazon.awssdk.core.internal.AmazonWebServiceRequestAdapter;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.core.runtime.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.services.rds.model.CopyDBSnapshotRequest;
+import software.amazon.awssdk.services.rds.model.RDSRequest;
 import software.amazon.awssdk.services.rds.transform.CopyDBSnapshotRequestMarshaller;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
@@ -160,10 +160,10 @@ public class PresignRequestHandlerTest {
                          .build();
     }
 
-    private ExecutionAttributes executionAttributes(AmazonWebServiceRequest request) {
+    private ExecutionAttributes executionAttributes(RDSRequest request) {
         return new ExecutionAttributes().putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, CREDENTIALS)
-                                        .putAttribute(AwsExecutionAttributes.REQUEST_CONFIG,
-                                                      new AmazonWebServiceRequestAdapter(request));
+                                        .putAttribute(AwsExecutionAttributes.REQUEST_CONFIG, request.requestOverrideConfig()
+                                                .orElse(AwsRequestOverrideConfig.builder().build()));
     }
 
     private CopyDBSnapshotRequest makeTestRequest() {
@@ -176,7 +176,7 @@ public class PresignRequestHandlerTest {
     }
 
     private SdkHttpFullRequest modifyHttpRequest(ExecutionInterceptor interceptor,
-                                                 AmazonWebServiceRequest request,
+                                                 RDSRequest request,
                                                  SdkHttpFullRequest httpRequest) {
         InterceptorContext context = InterceptorContext.builder().request(request).httpRequest(httpRequest).build();
         return interceptor.modifyHttpRequest(context, executionAttributes(request));

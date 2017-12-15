@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.response.JsonErrorResponseHandler;
 
@@ -46,7 +47,7 @@ public abstract class WireMockTestBase {
     }
 
     protected Request<?> newRequest(String resourcePath) {
-        Request<?> request = new DefaultRequest<String>("mock");
+        Request<?> request = new DefaultRequest<NoopTestRequest>("mock");
         request.setEndpoint(URI.create("http://localhost:" + mockServer.port() + resourcePath));
         return request;
     }
