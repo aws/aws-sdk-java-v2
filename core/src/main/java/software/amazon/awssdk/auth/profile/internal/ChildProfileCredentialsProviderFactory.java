@@ -30,16 +30,16 @@ import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 @SdkProtectedApi
 public interface ChildProfileCredentialsProviderFactory {
     /**
-     * Create a credentials provider for the provided profile, using the provided parental credentials provider to authenticate
+     * Create a credentials provider for the provided profile, using the provided source credentials provider to authenticate
      * with AWS. In the case of STS, the returned credentials provider is for a role that has been assumed, and the provided
-     * parental credentials provider is the credentials that should be used to authenticate that the user is allowed to assume
+     * source credentials provider is the credentials that should be used to authenticate that the user is allowed to assume
      * that role.
      *
-     * @param parentCredentialsProvider The credentials provider that should be used to authenticate the child credentials
+     * @param sourceCredentialsProvider The credentials provider that should be used to authenticate the child credentials
      * provider. This credentials provider should be closed when it is no longer used.
      * @param profile The profile that should be used to load the configuration necessary to create the child credentials
      * provider.
-     * @return The credentials provider with permissions derived from the parental credentials provider and profile.
+     * @return The credentials provider with permissions derived from the source credentials provider and profile.
      */
-    AwsCredentialsProvider create(AwsCredentialsProvider parentCredentialsProvider, Profile profile);
+    AwsCredentialsProvider create(AwsCredentialsProvider sourceCredentialsProvider, Profile profile);
 }
