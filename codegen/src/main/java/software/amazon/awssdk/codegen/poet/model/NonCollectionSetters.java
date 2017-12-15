@@ -27,9 +27,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.codegen.model.config.customization.ConvenienceTypeOverload;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.poet.PoetUtils;
 
 class NonCollectionSetters extends AbstractMemberSetters {
     NonCollectionSetters(IntermediateModel intermediateModel,
@@ -71,6 +73,27 @@ class NonCollectionSetters extends AbstractMemberSetters {
         return fluentSetters;
     }
 
+    public MethodSpec convenienceDeclaration(TypeName returnType, ConvenienceTypeOverload overload) {
+        return MethodSpec.methodBuilder(memberModel().getFluentSetterMethodName())
+                         .addParameter(PoetUtils.classNameFromFqcn(overload.getConvenienceType()), memberAsParameter().name)
+                         .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                         .returns(returnType)
+                         .build();
+    }
+
+    public MethodSpec fluentConvenience(TypeName returnType, ConvenienceTypeOverload overload) {
+        return MethodSpec.methodBuilder(memberModel().getFluentSetterMethodName())
+                         .addModifiers(Modifier.PUBLIC)
+                         .addParameter(PoetUtils.classNameFromFqcn(overload.getConvenienceType()), memberAsParameter().name)
+                         .addStatement("$L(new $T().adapt($L))",
+                                       memberModel().getFluentSetterMethodName(),
+                                       PoetUtils.classNameFromFqcn(overload.getTypeAdapterFqcn()),
+                                       memberAsParameter().name)
+                         .addStatement("return this")
+                         .returns(returnType)
+                         .build();
+    }
+
     @Override
     public MethodSpec beanStyle() {
         MethodSpec.Builder builder = beanStyleSetterBuilder()
@@ -83,6 +106,17 @@ class NonCollectionSetters extends AbstractMemberSetters {
         }
 
         return builder.build();
+    }
+
+    public MethodSpec beanStyleConvenience(ConvenienceTypeOverload overload) {
+        return MethodSpec.methodBuilder(memberModel().getBeanStyleSetterMethodName())
+                         .addModifiers(Modifier.PUBLIC)
+                         .addParameter(PoetUtils.classNameFromFqcn(overload.getConvenienceType()), memberAsParameter().name)
+                         .addStatement("this.$L = new $T().adapt($L)",
+                                       memberAsParameter().name,
+                                       PoetUtils.classNameFromFqcn(overload.getTypeAdapterFqcn()),
+                                       memberAsParameter().name)
+                         .build();
     }
 
     private MethodSpec fluentAssignmentSetter(TypeName returnType) {
