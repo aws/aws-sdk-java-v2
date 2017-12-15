@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.junit.Test;
 import software.amazon.awssdk.core.auth.AwsSessionCredentials;
@@ -436,22 +437,46 @@ public class ProfileFileTest {
     }
 
     @Test
-    public void roleProfileWithMissingSourceThrowsException() {
-        assertThatThrownBy(() -> configFile("[profile test]\n" +
-                                            "source_profile=source\n" +
-                                            "role_arn=arn:aws:iam::123456789012:role/testRole"))
-                .hasMessageContaining("Parent profile 'source' does not exist.");
+    public void roleProfileCanInheritFromAnotherFile() {
+        String sourceProperties =
+                "aws_access_key_id=defaultAccessKey\n" +
+                "aws_secret_access_key=defaultSecretAccessKey";
+
+        String childProperties =
+                "source_profile=source\n" +
+                "role_arn=arn:aws:iam::123456789012:role/testRole";
+
+        String configSource = "[profile source]\n" + sourceProperties;
+        String credentialsSource = "[source]\n" + sourceProperties;
+        String configChild = "[profile child]\n" + childProperties;
+        String credentialsChild = "[child]\n" + childProperties;
+
+        Consumer<Map<String, Profile>> profileValidator = p ->
+            assertThatThrownBy(() -> p.get("child").credentialsProvider())
+                    .hasMessageContaining("the 'sts' service module must be on the class path");
+
+        assertThat(aggregateFileProfiles(configSource, credentialsChild)).satisfies(profileValidator);
+        assertThat(aggregateFileProfiles(configChild, credentialsSource)).satisfies(profileValidator);
     }
 
     @Test
-    public void roleProfileWithParentThatHasNoCredentialsThrowsExceptionWhenLoadingCredentials() {
+    public void roleProfileWithMissingSourceThrowsException() {
+        assertThatThrownBy(() -> configFile("[profile test]\n" +
+                                            "source_profile=source\n" +
+                                            "role_arn=arn:aws:iam::123456789012:role/testRole").profile("test").get()
+                                                                                               .credentialsProvider())
+                .hasMessageContaining("source profile has no credentials configured.");
+    }
+
+    @Test
+    public void roleProfileWithSourceThatHasNoCredentialsThrowsExceptionWhenLoadingCredentials() {
         ProfileFile profiles = configFile("[profile source]\n" +
                                           "[profile test]\n" +
                                           "source_profile=source\n" +
                                           "role_arn=arn:aws:iam::123456789012:role/testRole");
 
         assertThat(profiles.profile("test")).hasValueSatisfying(profile -> {
-            assertThatThrownBy(profile::credentialsProvider).hasMessageContaining("parent profile has no credentials configured");
+            assertThatThrownBy(profile::credentialsProvider).hasMessageContaining("source profile has no credentials configured");
         });
     }
 
@@ -502,7 +527,7 @@ public class ProfileFileTest {
     }
 
     @Test
-    public void profileFileWithCircularDependencyThrowsExceptionWhenCreated() {
+    public void profileFileWithCircularDependencyThrowsExceptionWhenResolvingCredentials() {
         assertThatThrownBy(() -> configFile("[profile source]\n" +
                                             "aws_access_key_id=defaultAccessKey\n" +
                                             "aws_secret_access_key=defaultSecretAccessKey\n" +
@@ -517,8 +542,10 @@ public class ProfileFileTest {
                                             "\n" +
                                             "[profile test3]\n" +
                                             "source_profile=test2\n" +
-                                            "role_arn=arn:aws:iam::123456789012:role/testRole3"))
-                .isInstanceOf(IllegalStateException.class);
+                                            "role_arn=arn:aws:iam::123456789012:role/testRole3").profile("test").get()
+                                                                                                .credentialsProvider())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Invalid profile file: Circular relationship detected with profiles");
     }
 
     @Test
