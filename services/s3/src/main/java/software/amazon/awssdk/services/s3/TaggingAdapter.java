@@ -15,19 +15,15 @@
 
 package software.amazon.awssdk.services.s3;
 
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.core.runtime.adapters.types.TypeAdapter;
 import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.Tagging;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
-@ReviewBeforeRelease("This is not hooked up yet. Implement customization to have PutObject tagging member" +
-                     "be a map and have the SDK handle marshalling/encoding.")
-public final class S3TaggingUtil {
+public class TaggingAdapter implements TypeAdapter<Tagging, String> {
 
-    private S3TaggingUtil() {
-    }
-
-    public static String toQueryString(Tagging tagging) {
+    @Override
+    public String adapt(Tagging tagging) {
         StringBuilder tagBuilder = new StringBuilder();
 
         Tagging taggingClone = tagging.toBuilder().build();
