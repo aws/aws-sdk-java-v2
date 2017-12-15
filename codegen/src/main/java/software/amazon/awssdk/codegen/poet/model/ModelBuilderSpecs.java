@@ -66,7 +66,10 @@ class ModelBuilderSpecs {
                 .addModifiers(Modifier.PUBLIC);
 
         shapeModel.getNonStreamingMembers()
-                  .forEach(m -> builder.addMethods(accessorsFactory.fluentSetterDeclarations(m, builderInterfaceName())));
+                  .forEach(m -> {
+                      builder.addMethods(accessorsFactory.fluentSetterDeclarations(m, builderInterfaceName()));
+                      builder.addMethods(accessorsFactory.convenienceSetterDeclarations(m, builderInterfaceName()));
+                  });
 
         if (exception()) {
             builder.addMethod(MethodSpec.methodBuilder("message")
@@ -137,6 +140,7 @@ class ModelBuilderSpecs {
                       accessors.add(accessorsFactory.beanStyleGetter(m));
                       accessors.addAll(accessorsFactory.fluentSetters(m, builderInterfaceName()));
                       accessors.add(accessorsFactory.beanStyleSetter(m));
+                      accessors.addAll(accessorsFactory.convenienceSetters(m, builderInterfaceName()));
                   });
 
         if (exception()) {

@@ -15,6 +15,7 @@ import javax.annotation.Generated;
 import software.amazon.awssdk.core.AmazonWebServiceRequest;
 import software.amazon.awssdk.core.runtime.StandardMemberCopier;
 import software.amazon.awssdk.core.runtime.TypeConverter;
+import software.amazon.awssdk.core.runtime.adapters.types.StringToByteBufferAdapter;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -950,6 +951,8 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
          */
         Builder blobArg(ByteBuffer blobArg);
 
+        Builder blobArg(String blobArg);
+
         /**
          * Sets the value of the StructWithNestedBlob property for this object.
          *
@@ -1508,6 +1511,15 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
             this.blobArg = StandardMemberCopier.copy(blobArg);
         }
 
+        public Builder blobArg(String blobArg) {
+            blobArg(new StringToByteBufferAdapter().adapt(blobArg));
+            return this;
+        }
+
+        public void setBlobArg(String blobArg) {
+            this.blobArg = new StringToByteBufferAdapter().adapt(blobArg);
+        }
+
         public final StructWithNestedBlobType.Builder getStructWithNestedBlob() {
             return structWithNestedBlob != null ? structWithNestedBlob.toBuilder() : null;
         }
@@ -1626,4 +1638,3 @@ public class AllTypesRequest extends AmazonWebServiceRequest implements
         }
     }
 }
-
