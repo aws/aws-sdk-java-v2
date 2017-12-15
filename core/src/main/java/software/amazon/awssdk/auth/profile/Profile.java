@@ -18,10 +18,14 @@ package software.amazon.awssdk.auth.profile;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.profile.internal.ChildProfileCredentialsProviderFactory;
 import software.amazon.awssdk.core.auth.AwsCredentials;
@@ -58,13 +62,12 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
     private final Map<String, String> properties;
 
     /**
-     * The profile from which this profile should derive its credentials if it doesn't have any of its own that are directly
-     * configured. This may be null.
+     * A function to resolve the profile from which this profile should derive its credentials.
      *
      * This is used by assume-role credentials providers to find the credentials it should use for authentication when assuming
      * the role.
      */
-    private final Profile credentialsParent;
+    private final Function<String, Optional<Profile>> credentialsSourceResolver;
 
     /**
      * @see ProfileFile
@@ -73,7 +76,7 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
     private Profile(Builder builder) {
         this.name = Validate.paramNotNull(builder.name, "name");
         this.properties = Validate.paramNotNull(builder.properties, "properties");
-        this.credentialsParent = builder.credentialsParent;
+        this.credentialsSourceResolver = builder.credentialsSourceResolver;
     }
 
     /**
@@ -123,8 +126,17 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
      * providers will be created.
      */
     public Optional<AwsCredentialsProvider> credentialsProvider() {
+        return credentialsProvider(new HashSet<>());
+    }
+
+    /**
+     * Retrieve the credentials provider for which this profile has been configured, if available.
+     *
+     * @param children The child profiles that source credentials from this profile.
+     */
+    private Optional<AwsCredentialsProvider> credentialsProvider(Set<String> children) {
         if (properties.containsKey(ProfileProperties.ROLE_ARN)) {
-            return Optional.of(roleBasedProfileCredentialsProvider());
+            return Optional.of(roleBasedProfileCredentialsProvider(children));
         }
 
         if (properties.containsKey(ProfileProperties.AWS_SESSION_TOKEN)) {
@@ -165,17 +177,24 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
     /**
      * Load an assumed-role credentials provider that has been configured in this profile. This will attempt to locate the STS
      * module in order to generate the credentials provider. If it's not available, an illegal state exception will be raised.
+     *
+     * @param children The child profiles that source credentials from this profile.
      */
-    private AwsCredentialsProvider roleBasedProfileCredentialsProvider() {
+    private AwsCredentialsProvider roleBasedProfileCredentialsProvider(Set<String> children) {
         requireProperties(ProfileProperties.SOURCE_PROFILE);
 
-        Validate.validState(credentialsParent != null,
-                            "The profile '%s' must be configured with a credentials parent in order to use assumed roles.", name);
+        Validate.validState(!children.contains(name),
+                            "Invalid profile file: Circular relationship detected with profiles %s.", children);
+        Validate.validState(credentialsSourceResolver != null,
+                            "The profile '%s' must be configured with a source profile in order to use assumed roles.", name);
 
-        AwsCredentialsProvider parentCredentialsProvider = credentialsParent.credentialsProvider()
-                                                                            .orElseThrow(this::noParentCredentialsException);
+        children.add(name);
+        AwsCredentialsProvider sourceCredentialsProvider =
+                credentialsSourceResolver.apply(properties.get(ProfileProperties.SOURCE_PROFILE))
+                                         .flatMap(profile -> profile.credentialsProvider(children))
+                                         .orElseThrow(this::noSourceCredentialsException);
 
-        return stsCredentialsProviderFactory().create(parentCredentialsProvider, this);
+        return stsCredentialsProviderFactory().create(sourceCredentialsProvider, this);
     }
 
     /**
@@ -187,8 +206,8 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
                                             "Profile property '%s' was not configured for '%s'.", p, name));
     }
 
-    private IllegalStateException noParentCredentialsException() {
-        String error = String.format("The parent profile of '%s' was configured to be '%s', but that parent profile has no "
+    private IllegalStateException noSourceCredentialsException() {
+        String error = String.format("The source profile of '%s' was configured to be '%s', but that source profile has no "
                                      + "credentials configured.", name, properties.get(ProfileProperties.SOURCE_PROFILE));
         return new IllegalStateException(error);
     }
@@ -213,7 +232,7 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
     public Builder toBuilder() {
         return builder().name(name)
                         .properties(properties)
-                        .credentialsParent(credentialsParent);
+                        .credentialsSourceResolver(credentialsSourceResolver);
     }
 
     @Override
@@ -245,7 +264,7 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
     public static class Builder implements CopyableBuilder<Builder, Profile> {
         private String name;
         private Map<String, String> properties;
-        private Profile credentialsParent;
+        private Function<String, Optional<Profile>> credentialsSourceResolver;
 
         /**
          * @see #builder()
@@ -269,12 +288,16 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
         }
 
         /**
-         * Define 'credentials parent' of this profile. This parent is only required when using role-based credentials. When
-         * credentials are loaded from a profile and role-based credentials are configured, the parent's credential provider is
-         * used to authenticate the application with the Amazon service being used to assume the requested role.
+         * Define a function that can resolve the 'credentials source' of this profile. The source is only required when using
+         * role-based credentials. When credentials are loaded from a profile and role-based credentials are configured, the
+         * source's credential provider is used to authenticate the application with the Amazon service being used to assume
+         * the requested role.
+         *
+         * Currently an internal API. If this needs to be exposed as a public API, it should probably be simplified.
          */
-        public Builder credentialsParent(Profile credentialsParent) {
-            this.credentialsParent = credentialsParent;
+        @SdkInternalApi
+        Builder credentialsSourceResolver(Function<String, Optional<Profile>> credentialsSourceResolver) {
+            this.credentialsSourceResolver = credentialsSourceResolver;
             return this;
         }
 

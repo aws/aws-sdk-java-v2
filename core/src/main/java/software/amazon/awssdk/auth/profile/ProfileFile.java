@@ -23,14 +23,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.profile.internal.ProfileFileLocations;
@@ -65,7 +63,8 @@ public class ProfileFile {
     @SdkInternalApi
     ProfileFile(Map<String, Map<String, String>> rawProfiles) {
         Validate.paramNotNull(rawProfiles, "rawProfiles");
-        this.profiles = convertRawProfiles(rawProfiles);
+
+        this.profiles = Collections.unmodifiableMap(convertToProfilesMap(rawProfiles));
     }
 
     /**
@@ -153,80 +152,16 @@ public class ProfileFile {
     }
 
     /**
-     * Convert the raw profile contents into {@link Profile} objects.
-     */
-    private Map<String, Profile> convertRawProfiles(Map<String, Map<String, String>> rawProfiles) {
-        Map<String, Map<String, String>> sortedProfiles = sortProfilesWithParentsFirst(rawProfiles);
-        Map<String, Profile> result = convertToProfilesMap(sortedProfiles);
-
-        return Collections.unmodifiableMap(result);
-    }
-
-    /**
-     * Return a linked hash map that guarantees a profile is always encountered after its parent when iterating over the entry
-     * set. This is useful because a child profile needs access to its parent profile when loading credentials, so we want to
-     * initialize the parent profiles first.
-     */
-    private Map<String, Map<String, String>> sortProfilesWithParentsFirst(Map<String, Map<String, String>> unsortedProfiles) {
-        Map<String, Map<String, String>> sortedProfiles = new LinkedHashMap<>();
-
-        while (!unsortedProfiles.isEmpty()) {
-            String nextProfileToSort = unsortedProfiles.keySet().iterator().next();
-            sortProfileAndParents(unsortedProfiles, sortedProfiles, nextProfileToSort, new HashSet<>());
-        }
-
-        return sortedProfiles;
-    }
-
-    /**
-     * Remove the requested profile and its parents from the unsorted list and put them in the sorted list in an order such
-     * that the parents occur earlier than the children.
-     *
-     * @param unsorted The unsorted collection of profiles so far.
-     * @param sorted The sorted collection of profiles so far.
-     * @param profileName The name of the profile to move to the sorted collection.
-     * @param children Any known children of this profile, which will allow us to ensure there is no circular references in
-     * the configuration file.
-     */
-    private void sortProfileAndParents(Map<String, Map<String, String>> unsorted,
-                                       Map<String, Map<String, String>> sorted,
-                                       String profileName,
-                                       Set<String> children) {
-        Validate.validState(!children.contains(profileName),
-                            "Invalid profile file: Circular relationship detected with profiles %s.", children);
-
-        Map<String, String> profileProperties = unsorted.get(profileName);
-        Validate.validState(profileProperties != null, "Parent profile '%s' does not exist.", profileName);
-
-        String parentProfileName = profileProperties.get(ProfileProperties.SOURCE_PROFILE);
-
-        if (parentProfileName != null && !sorted.containsKey(parentProfileName)) {
-            // The parent hasn't been moved over yet. Move it over before we move this one over.
-            children.add(profileName);
-            sortProfileAndParents(unsorted, sorted, parentProfileName, children);
-            children.remove(profileName);
-        }
-
-        // The parents have all been moved to the sorted list, move this one over.
-        sorted.put(profileName, profileProperties);
-        unsorted.remove(profileName);
-    }
-
-    /**
      * Convert the sorted map of profile properties into a sorted list of profiles.
      */
     private Map<String, Profile> convertToProfilesMap(Map<String, Map<String, String>> sortedProfiles) {
         Map<String, Profile> result = new LinkedHashMap<>();
         for (Entry<String, Map<String, String>> rawProfile : sortedProfiles.entrySet()) {
-            String parentProfileName = rawProfile.getValue().get(ProfileProperties.SOURCE_PROFILE);
-            Profile parentProfile = result.get(parentProfileName);
-
             Profile profile = Profile.builder()
                                      .name(rawProfile.getKey())
                                      .properties(rawProfile.getValue())
-                                     .credentialsParent(parentProfile)
+                                     .credentialsSourceResolver(this::profile)
                                      .build();
-
             result.put(profile.name(), profile);
         }
 
