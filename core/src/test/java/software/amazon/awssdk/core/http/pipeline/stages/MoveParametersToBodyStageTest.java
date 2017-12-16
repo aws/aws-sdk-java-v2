@@ -24,13 +24,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 import org.junit.Test;
 import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.core.RequestConfig;
 import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpMethod;
 import utils.ValidSdkObjects;
 
 public class MoveParametersToBodyStageTest {
@@ -105,7 +103,7 @@ public class MoveParametersToBodyStageTest {
         ExecutionContext executionContext = ClientExecutionAndRequestTimerTestUtils.executionContext(mutableRequest.build());
         return RequestExecutionContext.builder()
                                       .executionContext(executionContext)
-                                      .requestConfig(RequestConfig.empty())
+                                      .originalRequest(NoopTestRequest.builder().build())
                                       .build();
     }
 }

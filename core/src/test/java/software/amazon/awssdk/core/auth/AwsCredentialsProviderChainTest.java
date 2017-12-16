@@ -18,6 +18,8 @@ package software.amazon.awssdk.core.auth;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+import software.amazon.awssdk.auth.profile.ProfileFile;
+import software.amazon.awssdk.core.util.StringInputStream;
 
 public class AwsCredentialsProviderChainTest {
 
@@ -79,8 +81,14 @@ public class AwsCredentialsProviderChainTest {
     }
 
     @Test
-    public void testNullProfileFileUsesNextProvider() {
-        ProfileCredentialsProvider provider = ProfileCredentialsProvider.builder().defaultProfilesConfigFileLocator(() -> null).build();
+    public void testMissingProfileUsesNextProvider() {
+        ProfileCredentialsProvider provider =
+                ProfileCredentialsProvider.builder()
+                                          .defaultProfileFileLoader(() -> ProfileFile.builder()
+                                                                                     .content(new StringInputStream(""))
+                                                                                     .type(ProfileFile.Type.CONFIGURATION)
+                                                                                     .build())
+                                          .build();
 
         MockCredentialsProvider provider2 = new MockCredentialsProvider();
 

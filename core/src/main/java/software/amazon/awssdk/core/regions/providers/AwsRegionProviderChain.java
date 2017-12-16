@@ -20,15 +20,15 @@ import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.AwsCredentialsProviderChain;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.regions.Region;
 
 /**
  * Composite {@link AwsRegionProvider} that sequentially delegates to a chain of providers looking
  * for region information.
  */
-public class AwsRegionProviderChain extends AwsRegionProvider {
+public class AwsRegionProviderChain implements AwsRegionProvider {
 
     private static final Logger log = LoggerFactory.getLogger(AwsCredentialsProviderChain.class);
 

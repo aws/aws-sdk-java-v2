@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.dynamodb.document;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 
 /**
  * A page contains a list of items; accessing methods on the list are
@@ -62,7 +62,7 @@ public abstract class Page<T, R> implements Iterable<T> {
      *
      * @return the next page
      * @throws NoSuchElementException if there is no next page
-     * @throws AmazonServiceException on error making the remote call
+     * @throws SdkServiceException on error making the remote call
      */
     public abstract Page<T, R> nextPage();
 

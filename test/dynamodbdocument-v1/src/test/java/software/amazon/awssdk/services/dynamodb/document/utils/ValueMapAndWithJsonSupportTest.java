@@ -22,7 +22,7 @@ import static org.junit.Assert.assertThat;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 
 public class ValueMapAndWithJsonSupportTest {
@@ -30,7 +30,7 @@ public class ValueMapAndWithJsonSupportTest {
     private static final String NO_JSON_STRING = "nojson";
     private static final String KEY = "somekey";
 
-    @Test(expected = AmazonClientException.class)
+    @Test(expected = SdkClientException.class)
     public void valueMapCreationshouldFailIfNoJsonstringIsUsedAsValue() {
         new ValueMap().withJson("a", NO_JSON_STRING);
     }

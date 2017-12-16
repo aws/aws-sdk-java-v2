@@ -39,12 +39,13 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
-import software.amazon.awssdk.core.SdkBaseException;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.DefaultCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.regions.ServiceMetadata;
 import software.amazon.awssdk.core.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.sync.ResponseBytes;
 import software.amazon.awssdk.core.sync.ResponseInputStream;
 import software.amazon.awssdk.core.sync.StreamingResponseHandler;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -291,6 +292,7 @@ public final class SyncClientInterface implements ClassSpec {
         if (opModel.hasStreamingOutput()) {
             simpleMethods.add(downloadToFileSimpleMethod(opModel, responseType, requestType));
             simpleMethods.add(inputStreamSimpleMethod(opModel, responseType, requestType));
+            simpleMethods.add(bytesSimpleMethod(opModel, responseType, requestType));
         }
         return simpleMethods;
     }
@@ -317,8 +319,7 @@ public final class SyncClientInterface implements ClassSpec {
      * @return Simple method for streaming output operations to get content as an input stream.
      */
     private MethodSpec inputStreamSimpleMethod(OperationModel opModel, TypeName responseType, ClassName requestType) {
-        ParameterizedTypeName returnType = ParameterizedTypeName.get(ClassName.get(ResponseInputStream.class),
-                                                                     responseType);
+        TypeName returnType = ParameterizedTypeName.get(ClassName.get(ResponseInputStream.class), responseType);
         return MethodSpec.methodBuilder(opModel.getMethodName())
                          .returns(returnType)
                          .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
@@ -326,6 +327,23 @@ public final class SyncClientInterface implements ClassSpec {
                          .addJavadoc(opModel.getDocs(model, ClientType.SYNC, SimpleMethodOverload.INPUT_STREAM))
                          .addExceptions(getExceptionClasses(model, opModel))
                          .addStatement("return $L($L, $T.toInputStream())", opModel.getMethodName(),
+                                       opModel.getInput().getVariableName(),
+                                       ClassName.get(StreamingResponseHandler.class))
+                         .build();
+    }
+
+    /**
+     * @return Simple method for streaming output operations to get the content as a byte buffer or other in-memory types.
+     */
+    private MethodSpec bytesSimpleMethod(OperationModel opModel, TypeName responseType, ClassName requestType) {
+        TypeName returnType = ParameterizedTypeName.get(ClassName.get(ResponseBytes.class), responseType);
+        return MethodSpec.methodBuilder(opModel.getMethodName() + "Bytes")
+                         .returns(returnType)
+                         .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                         .addParameter(requestType, opModel.getInput().getVariableName())
+                         .addJavadoc(opModel.getDocs(model, ClientType.SYNC, SimpleMethodOverload.BYTES))
+                         .addExceptions(getExceptionClasses(model, opModel))
+                         .addStatement("return $L($L, $T.toBytes())", opModel.getMethodName(),
                                        opModel.getInput().getVariableName(),
                                        ClassName.get(StreamingResponseHandler.class))
                          .build();
@@ -354,7 +372,7 @@ public final class SyncClientInterface implements ClassSpec {
                                             .map(e -> ClassName.get(model.getMetadata().getFullModelPackageName(),
                                                                     e.getExceptionName()))
                                             .collect(toCollection(ArrayList::new));
-        Collections.addAll(exceptions, ClassName.get(SdkBaseException.class),
+        Collections.addAll(exceptions, ClassName.get(SdkServiceException.class),
                            ClassName.get(SdkClientException.class),
                            ClassName.get(model.getMetadata().getFullModelPackageName(),
                                          model.getSdkModeledExceptionBaseClassName()));

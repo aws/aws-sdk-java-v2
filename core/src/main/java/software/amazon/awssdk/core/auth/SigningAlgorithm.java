@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.auth;
 
 import java.security.NoSuchAlgorithmException;
 import javax.crypto.Mac;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 public enum SigningAlgorithm {
 

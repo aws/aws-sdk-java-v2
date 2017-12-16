@@ -16,23 +16,16 @@
 package software.amazon.awssdk.core.runtime.adapters.types;
 
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.util.StringInputStream;
 
 @SdkProtectedApi
 public class StringToInputStreamAdapter implements TypeAdapter<String, InputStream> {
-
     @Override
     public InputStream adapt(String source) {
         if (source == null) {
             return null;
         }
-        try {
-            return new StringInputStream(source);
-        } catch (UnsupportedEncodingException e) {
-            throw new SdkClientException(e);
-        }
+        return new StringInputStream(source);
     }
 }

@@ -24,12 +24,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
-import software.amazon.awssdk.services.dynamodb.waiters.DynamoDBClientWaiters;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 import software.amazon.awssdk.utils.Logger;
@@ -38,7 +37,6 @@ public class DynamoDBTestBase extends AwsTestBase {
     protected static final String ENDPOINT = "http://dynamodb.us-east-1.amazonaws.com/";
 
     protected static DynamoDBClient dynamo;
-    protected static DynamoDBClientWaiters waiters;
 
     private static final Logger log = Logger.loggerFor(DynamoDBTestBase.class);
 
@@ -46,11 +44,10 @@ public class DynamoDBTestBase extends AwsTestBase {
         try {
             setUpCredentials();
         } catch (Exception e) {
-            throw new AmazonClientException("Unable to load credential property file.", e);
+            throw new SdkClientException("Unable to load credential property file.", e);
         }
 
         dynamo = DynamoDBClient.builder().region(Region.US_EAST_1).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
-        waiters = new DynamoDBClientWaiters(dynamo);
     }
 
     public static DynamoDBClient getClient() {
@@ -73,8 +70,7 @@ public class DynamoDBTestBase extends AwsTestBase {
     }
 
     protected static <T extends Object> void assertSetsEqual(Collection<T> expected, Collection<T> given) {
-        Set<T> givenCopy = new HashSet<T>();
-        givenCopy.addAll(given);
+        Set<T> givenCopy = new HashSet<T>(given);
         for (T e : expected) {
             if (!givenCopy.remove(e)) {
                 fail("Expected element not found: " + e);

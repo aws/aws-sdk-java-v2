@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.docs;
 
+import software.amazon.awssdk.core.sync.ResponseBytes;
+
 /**
  * Enum describing all the convenience overloads we generate for operation methods.
  */
@@ -57,5 +59,11 @@ public enum SimpleMethodOverload {
      * and returns an unmanaged {@link software.amazon.awssdk.core.sync.ResponseInputStream} to read the response
      * contents.
      */
-    INPUT_STREAM
+    INPUT_STREAM,
+
+    /**
+     * Simple method only for sync operations that have a streaming output. Takes a request object and return a
+     * {@link ResponseBytes} to give byte-buffer access and convenience methods for type conversion.
+     */
+    BYTES
 }

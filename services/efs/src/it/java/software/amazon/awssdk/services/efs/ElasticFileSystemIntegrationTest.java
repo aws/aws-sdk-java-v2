@@ -58,7 +58,7 @@ public class ElasticFileSystemIntegrationTest extends AwsIntegrationTestBase {
         try {
             client.describeFileSystems(DescribeFileSystemsRequest.builder().fileSystemId("fs-00000000").build());
         } catch (FileSystemNotFoundException e) {
-            assertEquals("FileSystemNotFound", e.getErrorCode());
+            assertEquals("FileSystemNotFound", e.errorCode());
         }
     }
 

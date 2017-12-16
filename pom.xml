@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.0.0-preview-6</version>
+    <version>2.0.0-preview-7-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -78,12 +78,11 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <jackson.version>2.9.2</jackson.version>
+        <jackson.version>2.9.3</jackson.version>
         <ion.java.version>1.0.2</ion.java.version>
         <junit.version>4.12</junit.version>
-        <easymock.version>3.5</easymock.version>
         <commons.lang.version>3.4</commons.lang.version>
-        <wiremock.version>1.55</wiremock.version>
+        <wiremock.version>2.12.0</wiremock.version>
         <slf4j.version>1.7.25</slf4j.version>
         <log4j.version>1.2.17</log4j.version>
         <hamcrest.version>1.3</hamcrest.version>
@@ -91,9 +90,7 @@
         <mockito.version>1.10.19</mockito.version>
         <assertj.version>3.8.0</assertj.version>
         <equalsverifier.version>2.3.3</equalsverifier.version>
-        <guava.version>19.0</guava.version>
         <netty.version>4.1.17.Final</netty.version>
-        <unitils.version>3.3</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
         <jacksonjr.version>2.9.1</jacksonjr.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -107,12 +104,7 @@
         <httpcomponents.httpclient.version>4.5.4</httpcomponents.httpclient.version>
 
         <!-- These properties are used by cucumber tests related code -->
-        <cucumber.info.cukes.version>1.2.4</cucumber.info.cukes.version>
-        <cucumber.guice.version>4.0</cucumber.guice.version>
         <unitils.version>3.3</unitils.version>
-
-        <!-- These properties are used by S3 for its test dependencies -->
-        <bouncycastle.version>1.56</bouncycastle.version>
 
         <!-- Sonar -->
         <root.offset>..</root.offset>
@@ -231,55 +223,15 @@
                 <version>${netty.version}</version>
             </dependency>
             <dependency>
-                <artifactId>cucumber-java</artifactId>
-                <groupId>info.cukes</groupId>
-                <version>${cucumber.info.cukes.version}</version>
-            </dependency>
-            <dependency>
-                <artifactId>cucumber-junit</artifactId>
-                <groupId>info.cukes</groupId>
-                <version>${cucumber.info.cukes.version}</version>
-            </dependency>
-            <dependency>
-                <artifactId>cucumber-guice</artifactId>
-                <groupId>info.cukes</groupId>
-                <version>${cucumber.info.cukes.version}</version>
-            </dependency>
-            <dependency>
-                <artifactId>guice</artifactId>
-                <groupId>com.google.inject</groupId>
-                <version>${cucumber.guice.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
                 <version>${mockito.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.takari.junit</groupId>
-                <artifactId>takari-cpsuite</artifactId>
-                <version>${takari.cpsuite.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.bouncycastle</groupId>
-                <artifactId>bcprov-jdk15on</artifactId>
-                <version>${bouncycastle.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.easymock</groupId>
-                <artifactId>easymock</artifactId>
-                <version>${easymock.version}</version>
             </dependency>
             <dependency>
                 <groupId>nl.jqno.equalsverifier</groupId>
                 <artifactId>equalsverifier</artifactId>
                 <version>${equalsverifier.version}</version>
                 <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.assertj</groupId>
@@ -296,16 +248,6 @@
                 <artifactId>netty-reactive-streams-http</artifactId>
                 <version>2.0.0</version>
             </dependency>
-            <dependency>
-                <groupId>io.burt</groupId>
-                <artifactId>jmespath-jackson</artifactId>
-                <version>0.2.0</version>
-            </dependency>
-            <dependency>
-                <groupId>javax.annotation</groupId>
-                <artifactId>javax.annotation-api</artifactId>
-                <version>1.3.1</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -316,7 +258,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.6.0</version>
+                    <version>3.7.0</version>
                     <configuration>
                         <source>${jre.version}</source>
                         <target>${jre.version}</target>
@@ -329,6 +271,12 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>2.10.4</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.0.2</version>
                 </plugin>
 
                 <plugin>
@@ -432,6 +380,26 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>analyze-only</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <failOnWarning>true</failOnWarning>
+                    <ignoredUsedUndeclaredDependencies>
+                        <!-- ultimately we'd remove the line below and resolve these too -->
+                        <ignoredUsedUndeclaredDependency>*</ignoredUsedUndeclaredDependency>
+                    </ignoredUsedUndeclaredDependencies>
+                    <ignoreNonCompile>true</ignoreNonCompile>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>2.17</version>
                 <dependencies>
@@ -519,7 +487,7 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.5.1</version>
+                        <version>1.6.8</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>sonatype-nexus-staging</serverId>
@@ -541,6 +509,16 @@
         </profile>
 
         <profile>
+            <id>quick</id>
+            <properties>
+                <checkstyle.skip>true</checkstyle.skip>
+                <findbugs.skip>true</findbugs.skip>
+                <skip.unit.tests>true</skip.unit.tests>
+                <mdep.analyze.skip>true</mdep.analyze.skip>
+            </properties>
+        </profile>
+
+        <profile>
             <id>integration-tests</id>
             <activation>
                 <property>
@@ -551,6 +529,7 @@
                 <checkstyle.skip>true</checkstyle.skip>
                 <findbugs.skip>true</findbugs.skip>
                 <skip.unit.tests>true</skip.unit.tests>
+                <mdep.analyze.skip>true</mdep.analyze.skip>
             </properties>
             <build>
                 <plugins>
@@ -590,7 +569,7 @@
                         <configuration>
                             <minmemory>128m</minmemory>
                             <maxmemory>4g</maxmemory>
-                            <includeDependencySources>true</includeDependencySources>
+                            <includeDependencySources>false</includeDependencySources>
                             <show>public</show>
                             <author>false</author>
                             <version>true</version>

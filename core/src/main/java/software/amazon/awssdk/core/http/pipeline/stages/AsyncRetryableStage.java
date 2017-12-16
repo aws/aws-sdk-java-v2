@@ -23,12 +23,14 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.core.RequestClientOptions;
 import software.amazon.awssdk.core.RequestExecutionContext;
-import software.amazon.awssdk.core.ResetException;
 import software.amazon.awssdk.core.Response;
-import software.amazon.awssdk.core.SdkBaseException;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.SdkStandardLoggers;
+import software.amazon.awssdk.core.exception.ResetException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpAsyncClientDependencies;
 import software.amazon.awssdk.core.http.HttpClientDependencies;
 import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
@@ -162,8 +164,8 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
             return requestPipeline.execute(retryHandler.addRetryInfoHeader(request, requestCount), context);
         }
 
-        private SdkBaseException handleSdkException(Response<OutputT> response) {
-            SdkBaseException exception = response.getException();
+        private SdkException handleSdkException(Response<OutputT> response) {
+            SdkException exception = response.getException();
             if (!retryHandler.shouldRetry(response.getHttpResponse(), request, context, exception, requestCount)) {
                 throw exception;
             }
@@ -192,8 +194,9 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
          * @return Allowed read limit that we can mark request input stream. If we read past this limit we cannot reset the stream
          * so we cannot retry the request.
          */
+        @ReviewBeforeRelease("Do we still want to make read limit user-configurable as in V1?")
         private int readLimit() {
-            return context.requestConfig().getRequestClientOptions().getReadLimit();
+            return RequestClientOptions.DEFAULT_STREAM_BUFFER_SIZE;
         }
     }
 }

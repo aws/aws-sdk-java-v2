@@ -16,12 +16,14 @@
 package software.amazon.awssdk.services.waf;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.services.waf.model.ChangeAction;
 import software.amazon.awssdk.services.waf.model.CreateIPSetRequest;
 import software.amazon.awssdk.services.waf.model.CreateIPSetResponse;
@@ -49,12 +51,13 @@ public class WafIntegrationTest extends AwsTestBase {
 
     @BeforeClass
     public static void setup() throws IOException {
+        FixedDelayBackoffStrategy fixedBackoffStrategy = new FixedDelayBackoffStrategy(Duration.ofSeconds(30));
         setUpCredentials();
         client = WAFClient.builder()
-                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                .region(Region.AWS_GLOBAL)
-                .build();
-
+                          .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                          .region(Region.AWS_GLOBAL)
+                          .overrideConfiguration(cfg -> cfg.retryPolicy(r -> r.backoffStrategy(fixedBackoffStrategy)))
+                          .build();
     }
 
     @AfterClass
@@ -69,7 +72,7 @@ public class WafIntegrationTest extends AwsTestBase {
         if (ipSetId != null) {
             Waiter.run(() -> client.deleteIPSet(r -> r.ipSetId(ipSetId).changeToken(newChangeToken())))
                   .ignoringException(WAFNonEmptyEntityException.class)
-                  .orFail();
+                  .orFailAfter(Duration.ofMinutes(1));
         }
     }
 

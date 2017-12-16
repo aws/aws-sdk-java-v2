@@ -24,9 +24,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
-import software.amazon.awssdk.core.util.StringInputStream;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
@@ -104,7 +104,7 @@ public class RequestBody {
      * @return RequestBody instance.
      */
     public static RequestBody of(String contents) {
-        return new RequestBody(invokeSafely(() -> new StringInputStream(contents)), contents.length());
+        return RequestBody.of(contents.getBytes(StandardCharsets.UTF_8));
     }
 
     /**

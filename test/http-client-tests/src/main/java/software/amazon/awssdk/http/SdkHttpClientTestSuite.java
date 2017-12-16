@@ -57,14 +57,33 @@ public abstract class SdkHttpClientTestSuite {
     private SdkRequestContext requestContext;
 
     @Test
-    public void supportsAllResponseCodes() throws Exception {
-        SdkHttpClient client = createSdkHttpClient();
-        testForResponseCode(client, HttpURLConnection.HTTP_OK);
-        testForResponseCode(client, HttpURLConnection.HTTP_ACCEPTED);
-        testForResponseCode(client, HttpURLConnection.HTTP_FORBIDDEN);
-        testForResponseCode(client, HttpURLConnection.HTTP_MOVED_PERM);
-        testForResponseCode(client, HttpURLConnection.HTTP_MOVED_TEMP);
-        testForResponseCode(client, HttpURLConnection.HTTP_INTERNAL_ERROR);
+    public void supportsResponseCode200() throws Exception {
+        testForResponseCode(HttpURLConnection.HTTP_OK);
+    }
+
+    @Test
+    public void supportsResponseCode202() throws Exception {
+        testForResponseCode(HttpURLConnection.HTTP_ACCEPTED);
+    }
+
+    @Test
+    public void supportsResponseCode403() throws Exception {
+        testForResponseCode(HttpURLConnection.HTTP_FORBIDDEN);
+    }
+
+    @Test
+    public void supportsResponseCode301() throws Exception {
+        testForResponseCode(HttpURLConnection.HTTP_MOVED_PERM);
+    }
+
+    @Test
+    public void supportsResponseCode302() throws Exception {
+        testForResponseCode(HttpURLConnection.HTTP_MOVED_TEMP);
+    }
+
+    @Test
+    public void supportsResponseCode500() throws Exception {
+        testForResponseCode(HttpURLConnection.HTTP_INTERNAL_ERROR);
     }
 
     @Test
@@ -73,11 +92,12 @@ public abstract class SdkHttpClientTestSuite {
 
         SdkHttpFullRequest request = mockSdkRequest("https://localhost:" + mockServer.httpsPort());
 
-        assertThatThrownBy(client.prepareRequest(request, requestContext)::call)
-                .isInstanceOf(SSLHandshakeException.class);
+        assertThatThrownBy(client.prepareRequest(request, requestContext)::call).isInstanceOf(SSLHandshakeException.class);
     }
 
-    private void testForResponseCode(SdkHttpClient client, int returnCode) throws Exception {
+    private void testForResponseCode(int returnCode) throws Exception {
+        SdkHttpClient client = createSdkHttpClient();
+
         stubForMockRequest(returnCode);
 
         SdkHttpFullRequest request = mockSdkRequest("http://localhost:" + mockServer.port());

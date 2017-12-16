@@ -22,7 +22,7 @@ import java.time.Instant;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.kinesis.model.CreateStreamRequest;
 import software.amazon.awssdk.services.kinesis.model.DeleteStreamRequest;
 import software.amazon.awssdk.services.kinesis.model.DescribeStreamRequest;
@@ -89,7 +89,7 @@ public class KinesisIntegrationTests extends AbstractTestCase {
         try {
             client.getRecords(GetRecordsRequest.builder().build());
             Assert.fail("Expected InvalidArgumentException");
-        } catch (AmazonServiceException exception) {
+        } catch (SdkServiceException exception) {
             // Ignored or expected.
         }
     }

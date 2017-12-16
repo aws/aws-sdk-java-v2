@@ -24,7 +24,7 @@ import software.amazon.awssdk.codegen.model.service.ServiceModel;
 /**
  * This processor removes the member *message* in the exception shapes from the
  * intermediate model. Every exception class generated extends
- * AmazonServiceException and the *message* member is inherited from that class.
+ * SdkException and the *message* member is inherited from that class.
  */
 public class RemoveExceptionMessagePropertyProcessor implements CodegenCustomizationProcessor {
 

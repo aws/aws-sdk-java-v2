@@ -12,10 +12,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.AmazonWebServiceResult;
-import software.amazon.awssdk.core.ResponseMetadata;
 import software.amazon.awssdk.core.runtime.StandardMemberCopier;
 import software.amazon.awssdk.core.runtime.TypeConverter;
+import software.amazon.awssdk.core.runtime.adapters.types.StringToByteBufferAdapter;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -23,7 +22,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> implements
+public class AllTypesResponse extends JsonProtocolTestsResponse implements
         ToCopyableBuilder<AllTypesResponse.Builder, AllTypesResponse> {
     private final String stringMember;
 
@@ -80,6 +79,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
     private final String enumType;
 
     private AllTypesResponse(BuilderImpl builder) {
+        super(builder);
         this.stringMember = builder.stringMember;
         this.integerMember = builder.integerMember;
         this.booleanMember = builder.booleanMember;
@@ -712,7 +712,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
         }
     }
 
-    public interface Builder extends CopyableBuilder<Builder, AllTypesResponse> {
+    public interface Builder extends JsonProtocolTestsResponse.Builder, CopyableBuilder<Builder, AllTypesResponse> {
         /**
          * Sets the value of the StringMember property for this object.
          *
@@ -951,6 +951,8 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
          */
         Builder blobArg(ByteBuffer blobArg);
 
+        Builder blobArg(String blobArg);
+
         /**
          * Sets the value of the StructWithNestedBlob property for this object.
          *
@@ -1109,7 +1111,7 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
         Builder enumType(EnumType enumType);
     }
 
-    static final class BuilderImpl implements Builder {
+    static final class BuilderImpl extends JsonProtocolTestsResponse.BuilderImpl implements Builder {
         private String stringMember;
 
         private Integer integerMember;
@@ -1509,6 +1511,15 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
             this.blobArg = StandardMemberCopier.copy(blobArg);
         }
 
+        public Builder blobArg(String blobArg) {
+            blobArg(new StringToByteBufferAdapter().adapt(blobArg));
+            return this;
+        }
+
+        public void setBlobArg(String blobArg) {
+            this.blobArg = new StringToByteBufferAdapter().adapt(blobArg);
+        }
+
         public final StructWithNestedBlobType.Builder getStructWithNestedBlob() {
             return structWithNestedBlob != null ? structWithNestedBlob.toBuilder() : null;
         }
@@ -1627,4 +1638,3 @@ public class AllTypesResponse extends AmazonWebServiceResult<ResponseMetadata> i
         }
     }
 }
-

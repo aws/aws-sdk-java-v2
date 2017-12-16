@@ -20,8 +20,9 @@ import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.AwsSystemSetting;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.OperationInfo;
 import software.amazon.awssdk.core.protocol.Protocol;
@@ -48,7 +49,8 @@ public class SdkJsonProtocolFactory {
         createErrorUnmarshallers();
     }
 
-    public <T> ProtocolRequestMarshaller<T> createProtocolMarshaller(OperationInfo operationInfo, T origRequest) {
+    public <T extends SdkRequest> ProtocolRequestMarshaller<T> createProtocolMarshaller(
+            OperationInfo operationInfo, T origRequest) {
         return JsonProtocolMarshallerBuilder.<T>standard()
                 .jsonGenerator(createGenerator(operationInfo))
                 .contentType(getContentType())
@@ -90,7 +92,7 @@ public class SdkJsonProtocolFactory {
     /**
      * Creates a response handler for handling a error response (non 2xx response).
      */
-    public HttpResponseHandler<AmazonServiceException> createErrorResponseHandler(
+    public HttpResponseHandler<SdkServiceException> createErrorResponseHandler(
             JsonErrorResponseMetadata errorResponseMetadata) {
         return getSdkFactory().createErrorResponseHandler(errorUnmarshallers, errorResponseMetadata
                 .getCustomErrorCodeFieldName());
@@ -100,12 +102,12 @@ public class SdkJsonProtocolFactory {
     private void createErrorUnmarshallers() {
         for (JsonErrorShapeMetadata errorMetadata : metadata.getErrorShapeMetadata()) {
             errorUnmarshallers.add(new JsonErrorUnmarshaller(
-                    (Class<? extends AmazonServiceException>) errorMetadata.getModeledClass(),
+                    (Class<? extends SdkServiceException>) errorMetadata.getModeledClass(),
                     errorMetadata.getErrorCode()));
 
         }
         errorUnmarshallers.add(new JsonErrorUnmarshaller(
-                (Class<? extends AmazonServiceException>) metadata.getBaseServiceExceptionClass(),
+                (Class<? extends SdkServiceException>) metadata.getBaseServiceExceptionClass(),
                 null));
     }
 

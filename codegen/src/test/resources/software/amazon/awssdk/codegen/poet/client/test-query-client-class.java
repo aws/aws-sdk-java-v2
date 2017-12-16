@@ -5,14 +5,13 @@ import java.util.List;
 import javax.annotation.Generated;
 import org.w3c.dom.Node;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.AmazonServiceException;
-import software.amazon.awssdk.core.SdkBaseException;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
 import software.amazon.awssdk.core.client.ClientHandler;
 import software.amazon.awssdk.core.client.SdkClientHandler;
 import software.amazon.awssdk.core.config.ClientConfiguration;
 import software.amazon.awssdk.core.config.SyncClientConfiguration;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.DefaultErrorResponseHandler;
 import software.amazon.awssdk.core.http.StaxResponseHandler;
 import software.amazon.awssdk.core.runtime.transform.StandardErrorUnmarshaller;
@@ -39,7 +38,7 @@ import software.amazon.awssdk.services.query.transform.InvalidInputExceptionUnma
 final class DefaultQueryClient implements QueryClient {
     private final ClientHandler clientHandler;
 
-    private final List<Unmarshaller<AmazonServiceException, Node>> exceptionUnmarshallers;
+    private final List<Unmarshaller<SdkServiceException, Node>> exceptionUnmarshallers;
 
     private final ClientConfiguration clientConfiguration;
 
@@ -58,7 +57,7 @@ final class DefaultQueryClient implements QueryClient {
      * @return Result of the APostOperation operation returned by the service.
      * @throws InvalidInputException
      *         The request was rejected because an invalid or out-of-range value was supplied for an input parameter.
-     * @throws SdkBaseException
+     * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
      * @throws SdkClientException
@@ -71,7 +70,7 @@ final class DefaultQueryClient implements QueryClient {
      */
     @Override
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
-                                                                                                     SdkBaseException, SdkClientException, QueryException {
+            SdkServiceException, SdkClientException, QueryException {
 
         StaxResponseHandler<APostOperationResponse> responseHandler = new StaxResponseHandler<APostOperationResponse>(
                 new APostOperationResponseUnmarshaller());
@@ -79,8 +78,8 @@ final class DefaultQueryClient implements QueryClient {
         DefaultErrorResponseHandler errorResponseHandler = new DefaultErrorResponseHandler(exceptionUnmarshallers);
 
         return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                             .withInput(aPostOperationRequest).withMarshaller(new APostOperationRequestMarshaller()));
+                .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                .withInput(aPostOperationRequest).withMarshaller(new APostOperationRequestMarshaller()));
     }
 
     /**
@@ -92,7 +91,7 @@ final class DefaultQueryClient implements QueryClient {
      * @return Result of the APostOperationWithOutput operation returned by the service.
      * @throws InvalidInputException
      *         The request was rejected because an invalid or out-of-range value was supplied for an input parameter.
-     * @throws SdkBaseException
+     * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
      * @throws SdkClientException
@@ -105,8 +104,8 @@ final class DefaultQueryClient implements QueryClient {
      */
     @Override
     public APostOperationWithOutputResponse aPostOperationWithOutput(
-            APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, SdkBaseException,
-                                                                                    SdkClientException, QueryException {
+            APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, SdkServiceException,
+            SdkClientException, QueryException {
 
         StaxResponseHandler<APostOperationWithOutputResponse> responseHandler = new StaxResponseHandler<APostOperationWithOutputResponse>(
                 new APostOperationWithOutputResponseUnmarshaller());
@@ -115,13 +114,13 @@ final class DefaultQueryClient implements QueryClient {
 
         return clientHandler
                 .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                                 .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                 .withInput(aPostOperationWithOutputRequest)
-                                 .withMarshaller(new APostOperationWithOutputRequestMarshaller()));
+                        .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                        .withInput(aPostOperationWithOutputRequest)
+                        .withMarshaller(new APostOperationWithOutputRequestMarshaller()));
     }
 
-    private List<Unmarshaller<AmazonServiceException, Node>> init() {
-        List<Unmarshaller<AmazonServiceException, Node>> unmarshallers = new ArrayList<>();
+    private List<Unmarshaller<SdkServiceException, Node>> init() {
+        List<Unmarshaller<SdkServiceException, Node>> unmarshallers = new ArrayList<>();
         unmarshallers.add(new InvalidInputExceptionUnmarshaller());
         unmarshallers.add(new StandardErrorUnmarshaller(QueryException.class));
         return unmarshallers;

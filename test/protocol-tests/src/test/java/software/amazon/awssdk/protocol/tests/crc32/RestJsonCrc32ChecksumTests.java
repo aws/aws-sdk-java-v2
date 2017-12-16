@@ -27,7 +27,7 @@ import java.net.URI;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
@@ -73,7 +73,7 @@ public class RestJsonCrc32ChecksumTests {
         Assert.assertEquals("foo", result.stringMember());
     }
 
-    @Test(expected = AmazonClientException.class)
+    @Test(expected = SdkClientException.class)
     public void clientCalculatesCrc32FromCompressedData_WhenCrc32IsInvalid_ThrowsException() {
         stubFor(post(urlEqualTo(RESOURCE_PATH)).willReturn(aResponse()
                 .withStatus(200)
@@ -109,7 +109,7 @@ public class RestJsonCrc32ChecksumTests {
         Assert.assertEquals("foo", result.stringMember());
     }
 
-    @Test(expected = AmazonClientException.class)
+    @Test(expected = SdkClientException.class)
     public void clientCalculatesCrc32FromDecompressedData_WhenCrc32IsInvalid_ThrowsException() {
         stubFor(post(urlEqualTo(RESOURCE_PATH)).willReturn(aResponse()
                 .withStatus(200)
@@ -144,7 +144,7 @@ public class RestJsonCrc32ChecksumTests {
         Assert.assertEquals("foo", result.stringMember());
     }
 
-    @Test(expected = AmazonClientException.class)
+    @Test(expected = SdkClientException.class)
     public void useGzipFalse_WhenCrc32IsInvalid_ThrowException() {
         stubFor(post(urlEqualTo(RESOURCE_PATH)).willReturn(aResponse()
                 .withStatus(200)

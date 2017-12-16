@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.s3.auth;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 class DecodedStreamBuffer {
     private static final Logger log = LoggerFactory.getLogger(DecodedStreamBuffer.class);

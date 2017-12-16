@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.AmazonHttpClient;
 import software.amazon.awssdk.core.internal.http.response.NullResponseHandler;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
@@ -68,7 +68,7 @@ public class MockedClientTests {
             ClientExecutionAndRequestTimerTestUtils
                     .execute(httpClient, ClientExecutionAndRequestTimerTestUtils.createMockGetRequest());
             fail("Exception expected");
-        } catch (AmazonClientException e) {
+        } catch (SdkClientException e) {
             NullResponseHandler.assertIsUnmarshallingException(e);
         }
 

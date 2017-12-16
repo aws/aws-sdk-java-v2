@@ -19,7 +19,7 @@ import java.util.UUID;
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.auth.AwsSessionCredentials;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.core.regions.Region;
@@ -50,10 +50,10 @@ public class DynamoDbJavaClientExceptionIntegrationTest extends AwsTestBase {
             ddb.describeTable(DescribeTableRequest.builder().tableName(UUID.randomUUID().toString()).build());
             Assert.fail("ResourceNotFoundException is expected.");
         } catch (ResourceNotFoundException e) {
-            Assert.assertNotNull(e.getErrorCode());
-            Assert.assertNotNull(e.getErrorType());
+            Assert.assertNotNull(e.errorCode());
+            Assert.assertNotNull(e.errorType());
             Assert.assertNotNull(e.getMessage());
-            Assert.assertNotNull(e.getRawResponseContent());
+            Assert.assertNotNull(e.rawResponse());
         }
     }
 
@@ -79,9 +79,9 @@ public class DynamoDbJavaClientExceptionIntegrationTest extends AwsTestBase {
 
         try {
             client.listTables(ListTablesRequest.builder().build());
-        } catch (AmazonServiceException e) {
-            Assert.assertEquals("AccessDeniedException", e.getErrorCode());
-            Assert.assertNotNull(e.getErrorMessage());
+        } catch (SdkServiceException e) {
+            Assert.assertEquals("AccessDeniedException", e.errorCode());
+            Assert.assertNotNull(e.errorMessage());
             Assert.assertNotNull(e.getMessage());
         }
     }

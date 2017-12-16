@@ -136,7 +136,7 @@ abstract class OperationDocProvider {
                                                        .collect(Collectors.toList());
         String baseServiceException = model.getMetadata().getBaseExceptionName();
         Collections.addAll(throwsDocs,
-                           Pair.of("SdkBaseException ", "Base class for all exceptions that can be thrown by the SDK " +
+                           Pair.of("SdkException ", "Base class for all exceptions that can be thrown by the SDK " +
                                                            "(both service and client). Can be used for catch all scenarios."),
                            Pair.of("SdkClientException ", "If any client side error occurs such as an IO related failure, " +
                                                              "failure to get credentials, etc."),

@@ -1,0 +1,205 @@
+#!/usr/bin/env python
+# This file is borrowed from the aws/aws-cli project with the following modifications:
+#  - Add a 'deprecation' category, and validation for the category value
+#  - Modify the 'linkify' method to use Markdown syntax instead of reStructuredText (rst)
+#  - Better error reporting when one or more of the fields are empty
+#  - Change filename format to use a the SHA1 digest of the content instead of a random number
+#  - Change references to aws/cli to aws/aws-sdk-java
+"""Generate a new changelog entry.
+
+Usage
+=====
+
+To generate a new changelog entry::
+
+    bin/new-change
+
+This will open up a file in your editor (via the ``EDITOR`` env  var).
+You'll see this template::
+    # Type should be one of: feature, bugfix, deprecation, removal
+    type: {change_type}
+
+    # The marketing name of the service this change applies to
+    # e.g: AWS CodeCommit, Amazon DynamoDB
+    # or "AWS SDK for Java v2" if it's an SDK change to the core, runtime etc
+    category: {category}
+
+
+    The description of the change. Feel free to use Markdown here.
+    description: {description}
+
+Fill in the appropriate values, save and exit the editor.
+
+If, when your editor is open, you decide don't don't want to add a changelog
+entry, save an empty file and no entry will be generated.
+
+"""
+import argparse
+import hashlib
+import json
+import os
+import re
+import string
+import subprocess
+import sys
+import tempfile
+
+from changelog.git import stage_file
+
+VALID_CHARS = set(string.ascii_letters + string.digits)
+CHANGES_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    '.changes'
+)
+CHANGE_PARTS = ['type', 'category', 'description']
+TEMPLATE = """\
+# Type should be one of: feature, bugfix, deprecation, removal
+type: {change_type}
+
+# The marketing name of the service this change applies to
+# e.g: AWS CodeCommit, Amazon DynamoDB
+# or "AWS SDK for Java v2" if it's an SDK change to the core, runtime etc
+category: {category}
+
+The description of the change. Feel free to use Markdown here.
+description: {description}
+"""
+
+
+def new_changelog_entry(args):
+    # Changelog values come from one of two places.
+    # Either all values are provided on the command line,
+    # or we open a text editor and let the user provide
+    # enter their values.
+    if all_values_provided(args):
+        parsed_values = {
+            'type': args.change_type,
+            'category': args.category,
+            'description': args.description,
+        }
+    else:
+        parsed_values = get_values_from_editor(args)
+        missing_parts = get_missing_parts(parsed_values)
+        if len(missing_parts) > 0:
+            sys.stderr.write(
+                "No values provided for: %s. Skipping entry creation.\n" % missing_parts)
+            return 1
+
+    replace_issue_references(parsed_values, args.repo)
+    filename = write_new_change(parsed_values)
+    return stage_file(filename)
+
+def get_missing_parts(parsed_values):
+    return [p for p in CHANGE_PARTS if not parsed_values.get(p)]
+
+
+def all_values_provided(args):
+    return args.change_type and args.category and args.description
+
+
+def get_values_from_editor(args):
+    with tempfile.NamedTemporaryFile('w') as f:
+        contents = TEMPLATE.format(
+            change_type=args.change_type,
+            category=args.category,
+            description=args.description,
+        )
+        f.write(contents)
+        f.flush()
+        env = os.environ
+        editor = env.get('VISUAL', env.get('EDITOR', 'vim'))
+        p = subprocess.Popen('%s %s' % (editor, f.name), shell=True)
+        p.communicate()
+        with open(f.name) as f:
+            filled_in_contents = f.read()
+            parsed_values = parse_filled_in_contents(filled_in_contents)
+            return parsed_values
+
+
+def replace_issue_references(parsed, repo_name):
+    description = parsed['description']
+
+    def linkify(match):
+        number = match.group()[1:]
+        return (
+            '[%s](https://github.com/%s/issues/%s)' % (
+                match.group(), repo_name, number))
+
+    new_description = re.sub('(?<!\[)#\d+', linkify, description)
+    parsed['description'] = new_description
+
+def write_new_change(parsed_values):
+    if not os.path.isdir(CHANGES_DIR):
+        os.makedirs(CHANGES_DIR)
+    # Assume that new changes go into the next release.
+    dirname = os.path.join(CHANGES_DIR, 'next-release')
+    if not os.path.isdir(dirname):
+        os.makedirs(dirname)
+    # Need to generate a unique filename for this change.
+    category = parsed_values['category']
+    short_summary = ''.join(filter(lambda x: x in VALID_CHARS, category))
+    contents = json.dumps(parsed_values, indent=4) + "\n"
+    contents_digest = hashlib.sha1(contents).hexdigest()
+    filename = '{type_name}-{summary}-{digest}.json'.format(
+        type_name=parsed_values['type'],
+        summary=short_summary,
+        digest=contents_digest[0:7])
+    filename = os.path.join(dirname, filename)
+    with open(filename, 'w') as f:
+        f.write(contents)
+    return filename
+
+
+def parse_filled_in_contents(contents):
+    """Parse filled in file contents and returns parsed dict.
+
+    Return value will be::
+        {
+          "type": "bugfix",
+          "category": "category",
+          "description": "This is a description"
+        }
+
+    """
+    if not contents.strip():
+        return {}
+    parsed = {}
+    lines = iter(contents.splitlines())
+    for line in lines:
+        line = line.strip()
+        if line.startswith('#'):
+            continue
+        if 'type' not in parsed and line.startswith('type:'):
+            t = line[len('type:'):].strip()
+            if t not in ['feature', 'bugfix', 'deprecation', 'removal']:
+                raise Exception("Unsupported category %s" % t)
+            parsed['type'] = t
+        elif 'category' not in parsed and line.startswith('category:'):
+            parsed['category'] = line[len('category:'):].strip()
+        elif 'description' not in parsed and line.startswith('description:'):
+            # Assume that everything until the end of the file is part
+            # of the description, so we can break once we pull in the
+            # remaining lines.
+            first_line = line[len('description:'):].strip()
+            full_description = '\n'.join([first_line] + list(lines))
+            parsed['description'] = full_description.strip()
+            break
+    return parsed
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-t', '--type', dest='change_type',
+                        default='', choices=('bugfix', 'feature', 'deprecation'))
+    parser.add_argument('-c', '--category', dest='category',
+                        default='')
+    parser.add_argument('-d', '--description', dest='description',
+                        default='')
+    parser.add_argument('-r', '--repo', default='aws/aws-sdk-java-v2',
+                        help='Optional repo name, e.g: aws/aws-sdk-java')
+    args = parser.parse_args()
+    sys.exit(new_changelog_entry(args))
+
+
+if __name__ == '__main__':
+    main()

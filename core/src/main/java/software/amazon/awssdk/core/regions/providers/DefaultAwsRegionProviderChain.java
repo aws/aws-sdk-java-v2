@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.regions.providers;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+
 /**
  * AWS Region provider that looks for the region in this order:
  * <ol>
@@ -24,8 +26,8 @@ package software.amazon.awssdk.core.regions.providers;
  *   <li>If running in EC2, check the EC2 metadata service for the region.</li>
  * </ol>
  */
+@SdkProtectedApi
 public class DefaultAwsRegionProviderChain extends AwsRegionProviderChain {
-
     public DefaultAwsRegionProviderChain() {
         super(new SystemSettingsRegionProvider(), new AwsProfileRegionProvider(),
               new InstanceProfileRegionProvider());

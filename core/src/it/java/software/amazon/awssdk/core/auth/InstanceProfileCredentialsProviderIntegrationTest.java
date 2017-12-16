@@ -22,7 +22,7 @@ import static org.junit.Assert.fail;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.LogCaptor;
 
 /**
@@ -35,7 +35,7 @@ public class InstanceProfileCredentialsProviderIntegrationTest extends LogCaptor
     /** Starts up the mock EC2 Instance Metadata Service. */
     @Before
     public void setUp() throws Exception {
-        mockServer = new EC2MetadataServiceMock();
+        mockServer = new EC2MetadataServiceMock(InstanceProfileCredentialsProvider.SECURITY_CREDENTIALS_RESOURCE);
         mockServer.start();
     }
 
@@ -90,8 +90,8 @@ public class InstanceProfileCredentialsProviderIntegrationTest extends LogCaptor
 
         try {
             credentialsProvider.getCredentials();
-            fail("Expected an AmazonClientException, but wasn't thrown");
-        } catch (AmazonClientException ace) {
+            fail("Expected an SdkClientException, but wasn't thrown");
+        } catch (SdkClientException ace) {
             assertNotNull(ace.getMessage());
         }
     }

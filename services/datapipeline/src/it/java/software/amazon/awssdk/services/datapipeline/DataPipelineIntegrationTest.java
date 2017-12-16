@@ -23,7 +23,7 @@ import static org.junit.Assert.fail;
 
 import org.junit.AfterClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.datapipeline.model.ActivatePipelineRequest;
 import software.amazon.awssdk.services.datapipeline.model.ActivatePipelineResponse;
 import software.amazon.awssdk.services.datapipeline.model.CreatePipelineRequest;
@@ -191,7 +191,7 @@ public class DataPipelineIntegrationTest extends IntegrationTestBase {
             if (describepipelinesResult.pipelineDescriptionList().size() > 0) {
                 fail();
             }
-        } catch (AmazonServiceException e) {
+        } catch (SdkServiceException e) {
             // Ignored or expected.
         }
     }

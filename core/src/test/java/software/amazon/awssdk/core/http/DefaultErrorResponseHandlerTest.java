@@ -19,15 +19,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER;
 import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.executionContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.spi.LoggingEvent;
@@ -56,7 +54,7 @@ public class DefaultErrorResponseHandlerTest extends WireMockTestBase {
 
         executeRequest();
 
-        assertThat(infoEvents(), hasEventWithContent("Invocation Id"));
+        assertThat(infoEvents()).anySatisfy(hasMessageContaining("Invocation Id"));
     }
 
     @Test
@@ -66,7 +64,7 @@ public class DefaultErrorResponseHandlerTest extends WireMockTestBase {
 
         executeRequest();
 
-        assertThat(infoEvents(), hasEventWithContent(content));
+        assertThat(infoEvents()).anySatisfy(hasMessageContaining(content));
     }
 
     @Test
@@ -78,7 +76,7 @@ public class DefaultErrorResponseHandlerTest extends WireMockTestBase {
 
         executeRequest();
 
-        assertThat(infoEvents(), hasEventWithContent(requestId));
+        assertThat(infoEvents()).anySatisfy(hasMessageContaining(requestId));
     }
 
     private void executeRequest() {
@@ -88,6 +86,7 @@ public class DefaultErrorResponseHandlerTest extends WireMockTestBase {
                 Request<?> request = newGetRequest(RESOURCE);
                 client.requestExecutionBuilder()
                       .errorResponseHandler(sut)
+                      .originalRequest(NoopTestAwsRequest.builder().build())
                       .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
                       .request(request)
                       .execute();
@@ -101,6 +100,7 @@ public class DefaultErrorResponseHandlerTest extends WireMockTestBase {
             r.run();
             throw new RuntimeException("Expected exception, got none");
         } catch (Exception e) {
+            System.out.println("exept");
             // Ignored or expected.
         }
     }
@@ -116,7 +116,7 @@ public class DefaultErrorResponseHandlerTest extends WireMockTestBase {
         return info;
     }
 
-    private org.hamcrest.Matcher<Iterable<? extends LoggingEvent>> hasEventWithContent(String content) {
-        return contains(hasProperty("message", containsString(content)));
+    private Consumer<LoggingEvent> hasMessageContaining(String str) {
+        return evt -> assertThat(evt.getMessage()).asString().contains(str);
     }
 }

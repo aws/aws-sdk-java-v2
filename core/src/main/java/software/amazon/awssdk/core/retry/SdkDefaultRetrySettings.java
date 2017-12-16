@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.RetryableException;
+import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.http.HttpStatusCodes;
 
 // TODO: Add some JDK9 sweetness to this class when ready

@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
@@ -94,7 +94,7 @@ public final class AwsCredentialsProviderChain implements AwsCredentialsProvider
                 return credentials;
             } catch (RuntimeException e) {
                 // Ignore any exceptions and move onto the next provider
-                log.debug("Unable to load credentials from {}:{}", provider.toString(), e.getMessage(), e);
+                log.debug("Unable to load credentials from {}: {}", provider.toString(), e.getMessage(), e);
             }
         }
 
@@ -103,10 +103,7 @@ public final class AwsCredentialsProviderChain implements AwsCredentialsProvider
 
     @Override
     public void close() {
-        credentialsProviders.stream()
-                            .filter(AutoCloseable.class::isInstance)
-                            .map(AutoCloseable.class::cast)
-                            .forEach(c -> IoUtils.closeQuietly(c, null));
+        credentialsProviders.forEach(c -> IoUtils.closeIfCloseable(c, null));
     }
 
     @Override

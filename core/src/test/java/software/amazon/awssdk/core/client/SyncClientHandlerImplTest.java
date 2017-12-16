@@ -27,11 +27,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.core.AmazonServiceException;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AwsRequest;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.RequestConfig;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.auth.AwsCredentials;
@@ -41,6 +39,7 @@ import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.config.MutableClientConfiguration;
 import software.amazon.awssdk.core.config.SyncClientConfiguration;
 import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.internal.auth.NoOpSignerProvider;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -59,10 +58,7 @@ public class SyncClientHandlerImplTest {
     private AwsCredentials awsCredentials = AwsCredentials.create("public", "private");
 
     @Mock
-    private AmazonWebServiceRequest request;
-
-    @Mock
-    private RequestConfig requestConfig;
+    private AwsRequest request;
 
     @Mock
     private Marshaller<Request<SdkRequest>, SdkRequest> marshaller;
@@ -79,7 +75,7 @@ public class SyncClientHandlerImplTest {
     private HttpResponseHandler<SdkResponse> responseHandler;
 
     @Mock
-    private HttpResponseHandler<AmazonServiceException> errorResponseHandler;
+    private HttpResponseHandler<SdkServiceException> errorResponseHandler;
 
     @Mock
     private SdkResponse response;
@@ -106,7 +102,7 @@ public class SyncClientHandlerImplTest {
 
     @Test
     public void failedExecutionCallsErrorResponseHandler() throws Exception {
-        AmazonServiceException exception = new AmazonServiceException("Uh oh!");
+        SdkServiceException exception = new SdkServiceException("Uh oh!");
 
         // Given
         expectRetrievalFromMocks();
@@ -128,7 +124,6 @@ public class SyncClientHandlerImplTest {
 
     private void expectRetrievalFromMocks() {
         when(credentialsProvider.getCredentials()).thenReturn(awsCredentials);
-        when(requestConfig.getOriginalRequest()).thenReturn(request);
         when(marshaller.marshall(request)).thenReturn(marshalledRequest);
         when(httpClient.prepareRequest(any(), any())).thenReturn(httpClientCall);
     }
@@ -137,7 +132,6 @@ public class SyncClientHandlerImplTest {
         return new ClientExecutionParams<SdkRequest, SdkResponse>()
                 .withInput(request)
                 .withMarshaller(marshaller)
-                .withRequestConfig(requestConfig)
                 .withResponseHandler(responseHandler)
                 .withErrorResponseHandler(errorResponseHandler);
     }

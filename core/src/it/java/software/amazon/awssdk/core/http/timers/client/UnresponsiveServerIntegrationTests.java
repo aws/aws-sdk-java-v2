@@ -31,10 +31,10 @@ import java.net.SocketTimeoutException;
 import java.time.Duration;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.TestPreConditions;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.config.MutableClientConfiguration;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.AmazonHttpClient;
 import software.amazon.awssdk.core.http.UnresponsiveMockServerTestBase;
 import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
@@ -66,7 +66,7 @@ public class UnresponsiveServerIntegrationTests extends UnresponsiveMockServerTe
         try {
             httpClient.requestExecutionBuilder().request(newGetRequest()).execute();
             fail("Exception expected");
-        } catch (AmazonClientException e) {
+        } catch (SdkClientException e) {
             assertThat(e.getCause(), instanceOf(SocketTimeoutException.class));
             assertClientExecutionTimerExecutorNotCreated(httpClient.getClientExecutionTimer());
         }
@@ -108,7 +108,7 @@ public class UnresponsiveServerIntegrationTests extends UnresponsiveMockServerTe
         try {
             httpClient.requestExecutionBuilder().request(newGetRequest()).execute();
             fail("Exception expected");
-        } catch (AmazonClientException e) {
+        } catch (SdkClientException e) {
             assertTrue(Thread.currentThread().isInterrupted());
             assertThat(e.getCause(), instanceOf(InterruptedException.class));
         }
@@ -122,7 +122,7 @@ public class UnresponsiveServerIntegrationTests extends UnresponsiveMockServerTe
         try {
             httpClient.requestExecutionBuilder().request(newGetRequest()).execute();
             fail("Exception expected");
-        } catch (AmazonClientException e) {
+        } catch (SdkClientException e) {
             assertThat(e, instanceOf(ClientExecutionTimeoutException.class));
             assertNumberOfTasksTriggered(httpClient.getClientExecutionTimer(), 1);
         }
@@ -143,7 +143,7 @@ public class UnresponsiveServerIntegrationTests extends UnresponsiveMockServerTe
         try {
             httpClient.requestExecutionBuilder().request(newGetRequest()).execute();
             fail("Exception expected");
-        } catch (AmazonClientException e) {
+        } catch (SdkClientException e) {
             assertThat(e.getCause(), instanceOf(SocketTimeoutException.class));
             assertNumberOfTasksTriggered(httpClient.getClientExecutionTimer(), 0);
         }
