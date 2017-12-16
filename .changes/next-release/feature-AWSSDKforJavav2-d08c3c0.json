@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "feature", 
-    "description": "Automatically retry streaming downloads to a file if they fail or are interrupted. [#324](https://github.com/aws/aws-sdk-java-v2/pull/324)"
-}

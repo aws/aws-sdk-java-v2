@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "feature", 
-    "description": "Adds convenience type overloads to allow easier to use types on modeled objects. [#336](https://github.com/aws/aws-sdk-java-v2/pull/336)"
-}
