@@ -40,8 +40,8 @@ public class StsProfileCredentialsProviderFactory implements ChildProfileCredent
                                                                 + "'%s' profile.";
 
     @Override
-    public AwsCredentialsProvider create(AwsCredentialsProvider parentCredentialsProvider, Profile profile) {
-        return new StsProfileCredentialsProvider(parentCredentialsProvider, profile);
+    public AwsCredentialsProvider create(AwsCredentialsProvider sourceCredentialsProvider, Profile profile) {
+        return new StsProfileCredentialsProvider(sourceCredentialsProvider, profile);
     }
 
     /**
