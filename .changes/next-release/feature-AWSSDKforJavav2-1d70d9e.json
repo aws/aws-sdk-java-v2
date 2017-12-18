@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "feature", 
-    "description": "Updated profile-based region and credential loading to more closely mirror the behavior in the AWS CLI. Notably, profile names in `~/.aws/config` must be prefixed with \"profile \" (except for the default profile) and profile names in `~/.aws/credentials` must not be prefixed with \"profile \". [#296](https://github.com/aws/aws-sdk-java-v2/pull/296)"
-}

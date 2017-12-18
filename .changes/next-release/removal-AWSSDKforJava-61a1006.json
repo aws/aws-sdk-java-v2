@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2",
-    "type": "removal", 
-    "description": "Remove easymock as a dependency, mockito should be used for all mocking going forward. [#348](https://github.com/aws/aws-sdk-java-v2/pull/348)"
-}

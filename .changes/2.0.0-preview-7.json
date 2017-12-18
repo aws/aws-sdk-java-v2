@@ -1,0 +1,81 @@
+{
+    "date": "2017-12-15",
+    "version": "2.0.0-preview-7",
+    "entries": [
+        {
+            "category": "Amazon S3",
+            "type": "bugfix",
+            "description": "Fixing exception unmarshalling for S3. [#297](https://github.com/aws/aws-sdk-java-v2/issues/297)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "upgrade to Jackson 2.9.3"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "removal",
+            "description": "Removed the following unused dependencies [#349](https://github.com/aws/aws-sdk-java-v2/issues/349):\n * org.eclipse:text\n * info.cukes:cucumber-java\n * info.cukes:cucumber-junit\n * info.cukes:cucumber-guice\n * com.google.inject:guice\n * org.bouncycastle:bcprov-jdk15on\n * com.google.guava:guava\n * io.burt:jmespath-jackson\n * javax.annotation:javax.annotation-api"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Added `ProfileCredentialsProvider.create(\"profile-name\")` helper to `ProfileCredentialsProvider` to account for common use-case where only profile name is provided. [#347](https://github.com/aws/aws-sdk-java-v2/pull/347)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Upgraded dependencies\n * Wiremock (com.github.tomakehurst:wiremock) 1.55 -> 2.12.0\n * Json Path (com.jayway.jsonpath:json-path) 2.2.0 -> 2.4.0"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Automatically retry streaming downloads to a file if they fail or are interrupted. [#324](https://github.com/aws/aws-sdk-java-v2/pull/324)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Refactors the exceptions used by the SDK. [#301](https://github.com/aws/aws-sdk-java-v2/pull/301)"
+        },
+        {
+            "category": "Netty NIO Async HTTP Client",
+            "type": "bugfix",
+            "description": "Fixes Issue [#340](https://github.com/aws/aws-sdk-java-v2/issues/340) where connection acquisition time was calculated incorrectly in the Netty client."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Adds convenience type overloads to allow easier to use types on modeled objects. [#336](https://github.com/aws/aws-sdk-java-v2/pull/336)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Implementation of a generic HTTP credential provider used to get credentials from an container metadata service. Replica of v1 [implementation](https://github.com/aws/aws-sdk-java/blob/master/aws-java-sdk-core/src/main/java/com/amazonaws/auth/ContainerCredentialsProvider.java#L108) [#328](https://github.com/aws/aws-sdk-java-v2/pull/328)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "removal",
+            "description": "Remove easymock as a dependency, mockito should be used for all mocking going forward. [#348](https://github.com/aws/aws-sdk-java-v2/pull/348)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Remove the legacy `AmazonWebServiceRequest`, `AmazonWebServiceResult`, and `AmazonWebServiceResponse` classes. They are replaced with `AwsRequest` and `AwsResponse`. [#289](https://github.com/aws/aws-sdk-java-v2/issues/289)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Added `Bytes` methods to all streaming operations. These methods will load the service response into memory and return a `ResponseBytes` object that eases conversion into other types, like strings. eg. `String object = s3.getObjectBytes(request).asUtf8String()`. [#324](https://github.com/aws/aws-sdk-java-v2/pull/324)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Upgrade maven-compiler-plugin from 3.6.0 to 3.7.0"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Updated profile-based region and credential loading to more closely mirror the behavior in the AWS CLI. Notably, profile names in `~/.aws/config` must be prefixed with \"profile \" (except for the default profile) and profile names in `~/.aws/credentials` must not be prefixed with \"profile \". [#296](https://github.com/aws/aws-sdk-java-v2/pull/296)"
+        }
+    ]
+}
