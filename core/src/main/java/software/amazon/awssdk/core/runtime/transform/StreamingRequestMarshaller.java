@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.runtime.transform;
 
 import static software.amazon.awssdk.http.Headers.CONTENT_LENGTH;
+import static software.amazon.awssdk.http.Headers.CONTENT_TYPE;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -46,7 +47,11 @@ public class StreamingRequestMarshaller<T> implements Marshaller<Request<T>, T> 
     public Request<T> marshall(T in) {
         Request<T> marshalled = delegate.marshall(in);
         marshalled.setContent(requestBody.asStream());
-        marshalled.addHeader(CONTENT_LENGTH, String.valueOf(requestBody.getContentLength()));
+        if (!marshalled.getHeaders().containsKey(CONTENT_TYPE)) {
+            marshalled.addHeader(CONTENT_TYPE, requestBody.contentType());
+        }
+
+        marshalled.addHeader(CONTENT_LENGTH, String.valueOf(requestBody.contentLength()));
         return marshalled;
     }
 }
