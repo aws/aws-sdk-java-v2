@@ -39,6 +39,11 @@ public interface ClientBuilder<B extends ClientBuilder<B, C>, C> extends SdkBuil
      */
     B overrideConfiguration(ClientOverrideConfiguration overrideConfiguration);
 
+    /**
+     * Similar to {@link #overrideConfiguration(ClientOverrideConfiguration)}, but takes a lambda to configure a new
+     * {@link ClientOverrideConfiguration.Builder}. This removes the need to called {@link ClientOverrideConfiguration#builder()}
+     * and {@link ClientOverrideConfiguration.Builder#build()}.
+     */
     default B overrideConfiguration(Consumer<ClientOverrideConfiguration.Builder> overrideConfiguration) {
         return overrideConfiguration(ClientOverrideConfiguration.builder().apply(overrideConfiguration).build());
     }
