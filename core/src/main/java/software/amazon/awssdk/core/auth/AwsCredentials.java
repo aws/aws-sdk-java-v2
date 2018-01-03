@@ -91,7 +91,7 @@ public class AwsCredentials {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + accessKeyId + ")";
+        return "AwsCredentials(" + accessKeyId + ")";
     }
 
     @Override

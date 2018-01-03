@@ -109,7 +109,7 @@ public final class AwsCredentialsProviderChain implements AwsCredentialsProvider
     @Override
     public String toString() {
         String credentialProviders = credentialsProviders.stream().map(Object::toString).collect(Collectors.joining(", "));
-        return getClass().getSimpleName() + "(" + credentialProviders + ")";
+        return "AwsCredentialsProviderChain(" + credentialProviders + ")";
     }
 
     /**

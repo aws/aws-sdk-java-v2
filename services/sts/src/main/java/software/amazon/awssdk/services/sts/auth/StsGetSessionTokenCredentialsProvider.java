@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.sts.auth;
 
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.services.sts.STSClient;
 import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.services.sts.model.GetSessionTokenRequest;
@@ -57,6 +58,11 @@ public class StsGetSessionTokenCredentialsProvider extends StsCredentialsProvide
     @Override
     protected Credentials getUpdatedCredentials(STSClient stsClient) {
         return stsClient.getSessionToken(getSessionTokenRequest).credentials();
+    }
+
+    @Override
+    public String toString() {
+        return "StsGetSessionTokenCredentialsProvider(" + getSessionTokenRequest + ")";
     }
 
     /**

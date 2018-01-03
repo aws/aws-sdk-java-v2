@@ -58,6 +58,11 @@ public class InstanceProfileCredentialsProvider extends HttpCredentialsProvider 
         return credentialsEndpointProvider;
     }
 
+    @Override
+    public String toString() {
+        return "InstanceProfileCredentialsProvider()";
+    }
+
     private static class InstanceProviderCredentialsEndpointProvider implements CredentialsEndpointProvider {
         @Override
         public URI endpoint() throws IOException {
@@ -73,12 +78,6 @@ public class InstanceProfileCredentialsProvider extends HttpCredentialsProvider 
 
             return URI.create(host + SECURITY_CREDENTIALS_RESOURCE + securityCredentials[0]);
         }
-    }
-
-
-    @Override
-    public String toString() {
-        return "InstanceProviderCredentialsEndpointProvider";
     }
 
     /**

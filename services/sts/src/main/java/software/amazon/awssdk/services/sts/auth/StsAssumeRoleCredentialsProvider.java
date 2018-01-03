@@ -60,6 +60,11 @@ public class StsAssumeRoleCredentialsProvider extends StsCredentialsProvider {
         return stsClient.assumeRole(assumeRoleRequest).credentials();
     }
 
+    @Override
+    public String toString() {
+        return "StsAssumeRoleCredentialsProvider(" + assumeRoleRequest + ")";
+    }
+
     /**
      * A builder (created by {@link StsAssumeRoleCredentialsProvider#builder()}) for creating a
      * {@link StsAssumeRoleCredentialsProvider}.

@@ -105,7 +105,7 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
 
     @Override
     public String toString() {
-        return "ProfileCredentialsProvider(" + profileFile + ", " + profileName + ")";
+        return "ProfileCredentialsProvider(" + profileName + ", " + profileFile + ")";
     }
 
     @Override

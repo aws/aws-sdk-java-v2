@@ -63,11 +63,6 @@ abstract class SystemSettingsCredentialsProvider implements AwsCredentialsProvid
                                     : AwsSessionCredentials.create(accessKey, secretKey, sessionToken);
     }
 
-    @Override
-    public String toString() {
-        return getClass().getSimpleName();
-    }
-
     /**
      * Implemented by child classes to load the requested setting.
      */

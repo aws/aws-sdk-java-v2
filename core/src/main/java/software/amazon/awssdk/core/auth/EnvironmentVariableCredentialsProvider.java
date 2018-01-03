@@ -38,4 +38,9 @@ public class EnvironmentVariableCredentialsProvider extends SystemSettingsCreden
         return Optional.ofNullable(System.getenv(setting.environmentVariable()));
         // CHECKSTYLE:ON
     }
+
+    @Override
+    public String toString() {
+        return "EnvironmentVariableCredentialsProvider()";
+    }
 }

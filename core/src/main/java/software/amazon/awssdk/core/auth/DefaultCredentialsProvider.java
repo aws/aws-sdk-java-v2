@@ -94,6 +94,11 @@ public class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAu
         providerChain.close();
     }
 
+    @Override
+    public String toString() {
+        return "DefaultCredentialsProvider(" + providerChain + ")";
+    }
+
     /**
      * Configuration that defines the {@link DefaultCredentialsProvider}'s behavior.
      */

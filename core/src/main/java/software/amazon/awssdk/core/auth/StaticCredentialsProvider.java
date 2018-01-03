@@ -43,6 +43,6 @@ public class StaticCredentialsProvider implements AwsCredentialsProvider {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + credentials + ")";
+        return "StaticCredentialsProvider(" + credentials + ")";
     }
 }

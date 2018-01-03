@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.sts.auth;
 
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.services.sts.STSClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
 import software.amazon.awssdk.services.sts.model.Credentials;
@@ -58,6 +59,11 @@ public class StsAssumeRoleWithWebIdentityCredentialsProvider extends StsCredenti
     @Override
     protected Credentials getUpdatedCredentials(STSClient stsClient) {
         return stsClient.assumeRoleWithWebIdentity(assumeRoleWithWebIdentityRequest).credentials();
+    }
+
+    @Override
+    public String toString() {
+        return "StsAssumeRoleWithWebIdentityCredentialsProvider(" + assumeRoleWithWebIdentityRequest + ")";
     }
 
     /**
