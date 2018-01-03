@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
@@ -82,6 +83,15 @@ public class StsAssumeRoleCredentialsProvider extends StsCredentialsProvider {
         public Builder refreshRequest(AssumeRoleRequest assumeRoleRequest) {
             this.assumeRoleRequest = assumeRoleRequest;
             return this;
+        }
+
+        /**
+         * Similar to {@link #refreshRequest(AssumeRoleRequest)}, but takes a lambda to configure a new
+         * {@link AssumeRoleRequest.Builder}. This removes the need to called {@link AssumeRoleRequest#builder()} and
+         * {@link AssumeRoleRequest.Builder#build()}.
+         */
+        public Builder refreshRequest(Consumer<AssumeRoleRequest.Builder> assumeRoleRequest) {
+            return refreshRequest(AssumeRoleRequest.builder().apply(assumeRoleRequest).build());
         }
     }
 }

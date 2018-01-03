@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.auth;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.profile.Profile;
@@ -133,6 +134,14 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
         public Builder profileFile(ProfileFile profileFile) {
             this.profileFile = profileFile;
             return this;
+        }
+
+        /**
+         * Similar to {@link #profileFile(ProfileFile)}, but takes a lambda to configure a new {@link ProfileFile.Builder}. This
+         * removes the need to called {@link ProfileFile#builder()} and {@link ProfileFile.Builder#build()}.
+         */
+        public Builder profileFile(Consumer<ProfileFile.Builder> profileFile) {
+            return profileFile(ProfileFile.builder().apply(profileFile).build());
         }
 
         /**
