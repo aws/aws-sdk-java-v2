@@ -222,7 +222,7 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
             return (ChildProfileCredentialsProviderFactory) stsCredentialsProviderFactory.getConstructor().newInstance();
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("To use assumed roles in the '" + name + "' profile, the 'sts' service module must "
-                                            + "be on the class path.");
+                                            + "be on the class path.", e);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new IllegalStateException("Failed to create the '" + name + "' profile credentials provider.", e);
         }
