@@ -35,6 +35,6 @@ public class AnonymousCredentialsProvider implements AwsCredentialsProvider {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName();
+        return "AnonymousCredentialsProvider()";
     }
 }

@@ -38,4 +38,9 @@ public class SystemPropertyCredentialsProvider extends SystemSettingsCredentials
         return Optional.ofNullable(System.getProperty(setting.property()));
         // CHECKSTYLE:ON
     }
+
+    @Override
+    public String toString() {
+        return "SystemPropertyCredentialsProvider()";
+    }
 }

@@ -26,8 +26,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.AwsSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -52,7 +50,6 @@ import software.amazon.awssdk.utils.StringUtils;
  * Service (ECS)</a>
  */
 public final class ContainerCredentialsProvider extends HttpCredentialsProvider {
-    private static final Logger log = LoggerFactory.getLogger(ContainerCredentialsProvider.class);
     private final CredentialsEndpointProvider credentialsEndpointProvider;
 
     /**
@@ -77,7 +74,7 @@ public final class ContainerCredentialsProvider extends HttpCredentialsProvider 
 
     @Override
     public String toString() {
-        return "ContainerCredentialsProvider(" + credentialsEndpointProvider.toString() + ")";
+        return "ContainerCredentialsProvider()";
     }
 
     static final class ContainerCredentialsEndpointProvider implements CredentialsEndpointProvider {
@@ -116,11 +113,6 @@ public final class ContainerCredentialsProvider extends HttpCredentialsProvider 
                                                                      .filter(StringUtils::isNotBlank)
                                                                      .map(t -> singletonMap("Authorization", t))
                                                                      .orElseGet(Collections::emptyMap);
-        }
-
-        @Override
-        public String toString() {
-            return "ContainerCredentialsEndpointProvider";
         }
 
         private URI createUri(String relativeUri) {

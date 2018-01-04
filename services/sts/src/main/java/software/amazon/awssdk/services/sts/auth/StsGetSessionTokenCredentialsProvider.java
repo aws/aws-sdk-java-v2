@@ -61,6 +61,11 @@ public class StsGetSessionTokenCredentialsProvider extends StsCredentialsProvide
         return stsClient.getSessionToken(getSessionTokenRequest).credentials();
     }
 
+    @Override
+    public String toString() {
+        return "StsGetSessionTokenCredentialsProvider(" + getSessionTokenRequest + ")";
+    }
+
     /**
      * A builder (created by {@link StsGetSessionTokenCredentialsProvider#builder()}) for creating a
      * {@link StsGetSessionTokenCredentialsProvider}.

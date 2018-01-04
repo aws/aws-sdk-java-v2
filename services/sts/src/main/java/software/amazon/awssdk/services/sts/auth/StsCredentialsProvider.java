@@ -83,11 +83,6 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
         sessionCache.close();
     }
 
-    @Override
-    public String toString() {
-        return getClass().getSimpleName();
-    }
-
     /**
      * Implemented by a child class to call STS and get a new set of credentials to be used by this provider.
      */

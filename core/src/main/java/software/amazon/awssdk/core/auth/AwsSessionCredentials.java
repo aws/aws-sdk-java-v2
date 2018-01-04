@@ -53,7 +53,7 @@ public class AwsSessionCredentials extends AwsCredentials {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + accessKeyId() + ")";
+        return "AwsSessionCredentials(" + accessKeyId() + ")";
     }
 
     @Override

@@ -62,6 +62,11 @@ public class StsAssumeRoleWithWebIdentityCredentialsProvider extends StsCredenti
         return stsClient.assumeRoleWithWebIdentity(assumeRoleWithWebIdentityRequest).credentials();
     }
 
+    @Override
+    public String toString() {
+        return "StsAssumeRoleWithWebIdentityCredentialsProvider(" + assumeRoleWithWebIdentityRequest + ")";
+    }
+
     /**
      * A builder (created by {@link StsAssumeRoleWithWebIdentityCredentialsProvider#builder()}) for creating a
      * {@link StsAssumeRoleWithWebIdentityCredentialsProvider}.

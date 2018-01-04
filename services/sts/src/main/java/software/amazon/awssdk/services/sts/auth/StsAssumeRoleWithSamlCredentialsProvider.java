@@ -62,6 +62,11 @@ public class StsAssumeRoleWithSamlCredentialsProvider extends StsCredentialsProv
         return stsClient.assumeRoleWithSAML(assumeRoleWithSamlRequest).credentials();
     }
 
+    @Override
+    public String toString() {
+        return "StsAssumeRoleWithSamlCredentialsProvider(" + assumeRoleWithSamlRequest + ")";
+    }
+
     /**
      * A builder (created by {@link StsAssumeRoleWithSamlCredentialsProvider#builder()}) for creating a
      * {@link StsAssumeRoleWithSamlCredentialsProvider}.

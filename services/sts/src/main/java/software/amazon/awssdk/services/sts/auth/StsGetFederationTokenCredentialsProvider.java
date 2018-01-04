@@ -62,6 +62,11 @@ public class StsGetFederationTokenCredentialsProvider extends StsCredentialsProv
         return stsClient.getFederationToken(getFederationTokenRequest).credentials();
     }
 
+    @Override
+    public String toString() {
+        return "StsGetFederationTokenCredentialsProvider(" + getFederationTokenRequest + ")";
+    }
+
     /**
      * A builder (created by {@link StsGetFederationTokenCredentialsProvider#builder()}) for creating a
      * {@link StsGetFederationTokenCredentialsProvider}.
