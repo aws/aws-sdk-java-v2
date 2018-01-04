@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
@@ -88,6 +89,15 @@ public class StsGetFederationTokenCredentialsProvider extends StsCredentialsProv
         public Builder refreshRequest(GetFederationTokenRequest getFederationTokenRequest) {
             this.getFederationTokenRequest = getFederationTokenRequest;
             return this;
+        }
+
+        /**
+         * Similar to {@link #refreshRequest(GetFederationTokenRequest)}, but takes a lambda to configure a new
+         * {@link GetFederationTokenRequest.Builder}. This removes the need to called
+         * {@link GetFederationTokenRequest#builder()} and {@link GetFederationTokenRequest.Builder#build()}.
+         */
+        public Builder refreshRequest(Consumer<GetFederationTokenRequest.Builder> getFederationTokenRequest) {
+            return refreshRequest(GetFederationTokenRequest.builder().apply(getFederationTokenRequest).build());
         }
     }
 }
