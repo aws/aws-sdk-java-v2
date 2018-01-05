@@ -30,6 +30,7 @@ import software.amazon.awssdk.http.SdkHttpClientFactory;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
 import software.amazon.awssdk.http.apache.internal.Defaults;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -122,6 +123,18 @@ public final class ApacheSdkHttpClientFactory
                 .expectContinueEnabled(expectContinueEnabled.orElse(null))
                 .connectionTimeToLive(connectionPoolTtl.orElse(null))
                 .connectionMaxIdleTime(maxIdleConnectionTimeout.orElse(null));
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("ApacheSdkHttpClientFactory")
+                       .add("standardOptions", standardOptions)
+                       .add("proxyConfiguration", proxyConfiguration)
+                       .add("localAddress", localAddress)
+                       .add("expectContinueEnabled", expectContinueEnabled)
+                       .add("connectionPoolTtl", connectionPoolTtl)
+                       .add("maxIdleConnectionTimeout", maxIdleConnectionTimeout)
+                       .build();
     }
 
     /**

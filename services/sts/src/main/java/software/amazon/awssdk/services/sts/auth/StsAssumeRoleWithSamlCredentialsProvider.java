@@ -22,6 +22,7 @@ import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.services.sts.STSClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithSAMLRequest;
 import software.amazon.awssdk.services.sts.model.Credentials;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -60,6 +61,13 @@ public class StsAssumeRoleWithSamlCredentialsProvider extends StsCredentialsProv
     @Override
     protected Credentials getUpdatedCredentials(STSClient stsClient) {
         return stsClient.assumeRoleWithSAML(assumeRoleWithSamlRequest).credentials();
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("StsAssumeRoleWithSamlCredentialsProvider")
+                       .add("refreshRequest", assumeRoleWithSamlRequest)
+                       .build();
     }
 
     /**

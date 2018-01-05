@@ -2,6 +2,7 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Optional;
 import javax.annotation.Generated;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -9,7 +10,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public class StreamingOutputOperationResponse extends JsonProtocolTestsResponse implements
-        ToCopyableBuilder<StreamingOutputOperationResponse.Builder, StreamingOutputOperationResponse> {
+                                                                                ToCopyableBuilder<StreamingOutputOperationResponse.Builder, StreamingOutputOperationResponse> {
     private StreamingOutputOperationResponse(BuilderImpl builder) {
         super(builder);
     }
@@ -49,12 +50,7 @@ public class StreamingOutputOperationResponse extends JsonProtocolTestsResponse 
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("{");
-        if (sb.length() > 1) {
-            sb.setLength(sb.length() - 1);
-        }
-        sb.append("}");
-        return sb.toString();
+        return ToString.builder("StreamingOutputOperationResponse").build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
@@ -62,7 +58,7 @@ public class StreamingOutputOperationResponse extends JsonProtocolTestsResponse 
     }
 
     public interface Builder extends JsonProtocolTestsResponse.Builder,
-            CopyableBuilder<Builder, StreamingOutputOperationResponse> {
+                                     CopyableBuilder<Builder, StreamingOutputOperationResponse> {
     }
 
     static final class BuilderImpl extends JsonProtocolTestsResponse.BuilderImpl implements Builder {

@@ -83,7 +83,7 @@ public final class NettyConfiguration {
      * @see NettySdkHttpClientFactory.Builder#connectionAcquisitionTimeout(Duration)
      */
     public int connectionAcquisitionTimeout() {
-        return factory.connectionAquisitionTimeout().map(d -> saturatedCast(d.toMillis())).orElseGet(this::connectionTimeout);
+        return factory.connectionAcquisitionTimeout().map(d -> saturatedCast(d.toMillis())).orElseGet(this::connectionTimeout);
     }
 
     /**

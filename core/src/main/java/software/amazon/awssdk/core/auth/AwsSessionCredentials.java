@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.auth;
 
 import java.util.Objects;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -53,7 +54,9 @@ public class AwsSessionCredentials extends AwsCredentials {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + accessKeyId() + ")";
+        return ToString.builder("AwsSessionCredentials")
+                       .add("accessKeyId", accessKeyId())
+                       .build();
     }
 
     @Override
