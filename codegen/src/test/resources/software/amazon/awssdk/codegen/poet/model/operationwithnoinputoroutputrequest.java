@@ -4,12 +4,13 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import javax.annotation.Generated;
 import software.amazon.awssdk.core.AwsRequestOverrideConfig;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @Generated("software.amazon.awssdk:codegen")
 public class OperationWithNoInputOrOutputRequest extends JsonProtocolTestsRequest implements
-        ToCopyableBuilder<OperationWithNoInputOrOutputRequest.Builder, OperationWithNoInputOrOutputRequest> {
+                                                                                  ToCopyableBuilder<OperationWithNoInputOrOutputRequest.Builder, OperationWithNoInputOrOutputRequest> {
     private OperationWithNoInputOrOutputRequest(BuilderImpl builder) {
         super(builder);
     }
@@ -49,12 +50,7 @@ public class OperationWithNoInputOrOutputRequest extends JsonProtocolTestsReques
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("{");
-        if (sb.length() > 1) {
-            sb.setLength(sb.length() - 1);
-        }
-        sb.append("}");
-        return sb.toString();
+        return ToString.builder("OperationWithNoInputOrOutputRequest").build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
@@ -62,7 +58,7 @@ public class OperationWithNoInputOrOutputRequest extends JsonProtocolTestsReques
     }
 
     public interface Builder extends JsonProtocolTestsRequest.Builder,
-            CopyableBuilder<Builder, OperationWithNoInputOrOutputRequest> {
+                                     CopyableBuilder<Builder, OperationWithNoInputOrOutputRequest> {
         @Override
         Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig);
     }

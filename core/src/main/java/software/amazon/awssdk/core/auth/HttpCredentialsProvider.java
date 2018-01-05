@@ -124,12 +124,6 @@ abstract class HttpCredentialsProvider implements AwsCredentialsProvider, SdkAut
         credentialsCache.close();
     }
 
-    @Override
-    public String toString() {
-        return getClass().getSimpleName();
-    }
-
-
     /**
      * A builder for creating a custom a {@link InstanceProfileCredentialsProvider}.
      */

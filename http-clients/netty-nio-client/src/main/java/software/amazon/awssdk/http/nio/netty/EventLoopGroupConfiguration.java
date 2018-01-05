@@ -20,6 +20,7 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Either;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -76,6 +77,14 @@ public final class EventLoopGroupConfiguration
      */
     public static EventLoopGroupConfiguration.Builder builder() {
         return new DefaultBuilder();
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("EventLoopGroupConfiguration")
+                       .add("eventLoopGroup", eventLoopGroup)
+                       .add("eventLoopGroupFactory", eventLoopGroupFactory)
+                       .build();
     }
 
     /**
