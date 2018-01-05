@@ -22,6 +22,7 @@ import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.services.sts.STSClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.Credentials;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -59,6 +60,13 @@ public class StsAssumeRoleCredentialsProvider extends StsCredentialsProvider {
     @Override
     protected Credentials getUpdatedCredentials(STSClient stsClient) {
         return stsClient.assumeRole(assumeRoleRequest).credentials();
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("StsAssumeRoleCredentialsProvider")
+                       .add("refreshRequest", assumeRoleRequest)
+                       .build();
     }
 
     /**

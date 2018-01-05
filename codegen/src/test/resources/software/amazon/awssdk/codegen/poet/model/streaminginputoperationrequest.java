@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import javax.annotation.Generated;
 import software.amazon.awssdk.core.AwsRequestOverrideConfig;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -11,7 +12,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public class StreamingInputOperationRequest extends JsonProtocolTestsRequest implements
-        ToCopyableBuilder<StreamingInputOperationRequest.Builder, StreamingInputOperationRequest> {
+                                                                             ToCopyableBuilder<StreamingInputOperationRequest.Builder, StreamingInputOperationRequest> {
     private StreamingInputOperationRequest(BuilderImpl builder) {
         super(builder);
     }
@@ -51,12 +52,7 @@ public class StreamingInputOperationRequest extends JsonProtocolTestsRequest imp
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("{");
-        if (sb.length() > 1) {
-            sb.setLength(sb.length() - 1);
-        }
-        sb.append("}");
-        return sb.toString();
+        return ToString.builder("StreamingInputOperationRequest").build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {

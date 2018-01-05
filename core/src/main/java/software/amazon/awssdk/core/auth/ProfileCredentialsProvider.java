@@ -25,6 +25,7 @@ import software.amazon.awssdk.core.AwsSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.ToString;
 
 /**
  * Credentials provider based on AWS configuration profiles. This loads credentials from a {@link ProfileFile}, allowing you to
@@ -106,7 +107,10 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
 
     @Override
     public String toString() {
-        return "ProfileCredentialsProvider(" + profileFile + ", " + profileName + ")";
+        return ToString.builder("ProfileCredentialsProvider")
+                       .add("profileName", profileName)
+                       .add("profileFile", profileFile)
+                       .build();
     }
 
     @Override

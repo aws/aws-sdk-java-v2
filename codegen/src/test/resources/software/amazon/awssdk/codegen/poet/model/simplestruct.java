@@ -7,6 +7,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.protocol.StructuredPojo;
 import software.amazon.awssdk.services.jsonprotocoltests.transform.SimpleStructMarshaller;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -66,23 +67,15 @@ public class SimpleStruct implements StructuredPojo, ToCopyableBuilder<SimpleStr
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("{");
-        if (stringMember() != null) {
-            sb.append("StringMember: ").append(stringMember()).append(",");
-        }
-        if (sb.length() > 1) {
-            sb.setLength(sb.length() - 1);
-        }
-        sb.append("}");
-        return sb.toString();
+        return ToString.builder("SimpleStruct").add("StringMember", stringMember()).build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "StringMember":
-            return Optional.of(clazz.cast(stringMember()));
-        default:
-            return Optional.empty();
+            case "StringMember":
+                return Optional.of(clazz.cast(stringMember()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -133,4 +126,3 @@ public class SimpleStruct implements StructuredPojo, ToCopyableBuilder<SimpleStr
         }
     }
 }
-

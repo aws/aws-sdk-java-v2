@@ -7,6 +7,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.protocol.StructuredPojo;
 import software.amazon.awssdk.services.jsonprotocoltests.transform.SubTypeOneMarshaller;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -66,23 +67,15 @@ public class SubTypeOne implements StructuredPojo, ToCopyableBuilder<SubTypeOne.
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("{");
-        if (subTypeOneMember() != null) {
-            sb.append("SubTypeOneMember: ").append(subTypeOneMember()).append(",");
-        }
-        if (sb.length() > 1) {
-            sb.setLength(sb.length() - 1);
-        }
-        sb.append("}");
-        return sb.toString();
+        return ToString.builder("SubTypeOne").add("SubTypeOneMember", subTypeOneMember()).build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "SubTypeOneMember":
-            return Optional.of(clazz.cast(subTypeOneMember()));
-        default:
-            return Optional.empty();
+            case "SubTypeOneMember":
+                return Optional.of(clazz.cast(subTypeOneMember()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -133,4 +126,3 @@ public class SubTypeOne implements StructuredPojo, ToCopyableBuilder<SubTypeOne.
         }
     }
 }
-
