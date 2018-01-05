@@ -36,6 +36,7 @@ import software.amazon.awssdk.auth.profile.internal.ProfileFileReader;
 import software.amazon.awssdk.core.AwsSystemSetting;
 import software.amazon.awssdk.core.auth.ProfileCredentialsProvider;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -115,7 +116,9 @@ public class ProfileFile {
 
     @Override
     public String toString() {
-        return "ProfileFile(" + profiles.values() + ")";
+        return ToString.builder("ProfileFile")
+                       .add("profiles",  profiles.values())
+                       .build();
     }
 
     @Override

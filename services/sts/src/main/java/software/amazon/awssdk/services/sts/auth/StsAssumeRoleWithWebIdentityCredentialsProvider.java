@@ -15,11 +15,14 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.services.sts.STSClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
 import software.amazon.awssdk.services.sts.model.Credentials;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -60,6 +63,13 @@ public class StsAssumeRoleWithWebIdentityCredentialsProvider extends StsCredenti
         return stsClient.assumeRoleWithWebIdentity(assumeRoleWithWebIdentityRequest).credentials();
     }
 
+    @Override
+    public String toString() {
+        return ToString.builder("StsAssumeRoleWithWebIdentityCredentialsProvider")
+                       .add("refreshRequest", assumeRoleWithWebIdentityRequest)
+                       .build();
+    }
+
     /**
      * A builder (created by {@link StsAssumeRoleWithWebIdentityCredentialsProvider#builder()}) for creating a
      * {@link StsAssumeRoleWithWebIdentityCredentialsProvider}.
@@ -82,6 +92,15 @@ public class StsAssumeRoleWithWebIdentityCredentialsProvider extends StsCredenti
         public Builder refreshRequest(AssumeRoleWithWebIdentityRequest assumeRoleWithWebIdentityRequest) {
             this.assumeRoleWithWebIdentityRequest = assumeRoleWithWebIdentityRequest;
             return this;
+        }
+
+        /**
+         * Similar to {@link #refreshRequest(AssumeRoleWithWebIdentityRequest)}, but takes a lambda to configure a new
+         * {@link AssumeRoleWithWebIdentityRequest.Builder}. This removes the need to called
+         * {@link AssumeRoleWithWebIdentityRequest#builder()} and {@link AssumeRoleWithWebIdentityRequest.Builder#build()}.
+         */
+        public Builder refreshRequest(Consumer<AssumeRoleWithWebIdentityRequest.Builder> assumeRoleWithWebIdentityRequest) {
+            return refreshRequest(AssumeRoleWithWebIdentityRequest.builder().apply(assumeRoleWithWebIdentityRequest).build());
         }
     }
 }

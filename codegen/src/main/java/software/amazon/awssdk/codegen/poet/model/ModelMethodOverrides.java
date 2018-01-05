@@ -27,6 +27,7 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetCollectors;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.utils.ToString;
 
 /**
  * Creates the method specs for common method overrides for service models.
@@ -79,31 +80,17 @@ public class ModelMethodOverrides {
     }
 
     public MethodSpec toStringMethod(ShapeModel shapeModel) {
-        MethodSpec.Builder toStringMethodBuilder = MethodSpec.methodBuilder("toString")
-                                                             .returns(String.class)
-                                                             .addAnnotation(Override.class)
-                                                             .addModifiers(Modifier.PUBLIC)
-                                                             .addStatement("$T sb = new $T(\"{\")", StringBuilder.class,
-                                                                           StringBuilder.class);
+        MethodSpec.Builder toStringMethod = MethodSpec.methodBuilder("toString")
+                                                      .returns(String.class)
+                                                      .addAnnotation(Override.class)
+                                                      .addModifiers(Modifier.PUBLIC);
 
+        toStringMethod.addCode("return $T.builder($S)", ToString.class, shapeModel.getShapeName());
         shapeModel.getNonStreamingMembers()
-                .forEach(m -> {
-                    String getterName = m.getFluentGetterMethodName();
-                    toStringMethodBuilder.beginControlFlow("if ($N() != null)", getterName)
-                            .addStatement("sb.append(\"$N: \").append($N()).append(\",\")", m.getName(),
-                                    getterName)
-                            .endControlFlow();
-                });
+                  .forEach(m -> toStringMethod.addCode(".add($S, $N())", m.getName(), m.getFluentGetterMethodName()));
+        toStringMethod.addCode(".build();");
 
-        toStringMethodBuilder.beginControlFlow("if (sb.length() > 1)")
-                .addStatement("sb.setLength(sb.length() - 1)")
-                .endControlFlow();
-
-        toStringMethodBuilder.addStatement("sb.append(\"}\")");
-
-        toStringMethodBuilder.addStatement("return sb.toString()");
-
-        return toStringMethodBuilder.build();
+        return toStringMethod.build();
     }
 
     public MethodSpec hashCodeMethod(ShapeModel shapeModel) {

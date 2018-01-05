@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.StringUtils.trimToNull;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -91,7 +92,9 @@ public class AwsCredentials {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + accessKeyId + ")";
+        return ToString.builder("AwsCredentials")
+                       .add("accessKeyId", accessKeyId)
+                       .build();
     }
 
     @Override

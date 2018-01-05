@@ -23,10 +23,11 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-final class DefaultJsonAsyncClientBuilder extends DefaultJsonBaseClientBuilder<JsonAsyncClientBuilder, JsonAsyncClient>
-    implements JsonAsyncClientBuilder {
+final class DefaultJsonAsyncClientBuilder extends DefaultJsonBaseClientBuilder<JsonAsyncClientBuilder, JsonAsyncClient> implements
+                                                                                                                        JsonAsyncClientBuilder {
     @Override
     protected final JsonAsyncClient buildClient() {
-        return new DefaultJsonAsyncClient(super.asyncClientConfiguration());
+        return new DefaultJsonAsyncClient(super.asyncClientConfiguration(), advancedConfiguration());
     }
 }
+

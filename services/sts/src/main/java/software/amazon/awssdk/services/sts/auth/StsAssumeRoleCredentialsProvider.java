@@ -15,12 +15,14 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.services.sts.STSClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.Credentials;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -60,6 +62,13 @@ public class StsAssumeRoleCredentialsProvider extends StsCredentialsProvider {
         return stsClient.assumeRole(assumeRoleRequest).credentials();
     }
 
+    @Override
+    public String toString() {
+        return ToString.builder("StsAssumeRoleCredentialsProvider")
+                       .add("refreshRequest", assumeRoleRequest)
+                       .build();
+    }
+
     /**
      * A builder (created by {@link StsAssumeRoleCredentialsProvider#builder()}) for creating a
      * {@link StsAssumeRoleCredentialsProvider}.
@@ -82,6 +91,15 @@ public class StsAssumeRoleCredentialsProvider extends StsCredentialsProvider {
         public Builder refreshRequest(AssumeRoleRequest assumeRoleRequest) {
             this.assumeRoleRequest = assumeRoleRequest;
             return this;
+        }
+
+        /**
+         * Similar to {@link #refreshRequest(AssumeRoleRequest)}, but takes a lambda to configure a new
+         * {@link AssumeRoleRequest.Builder}. This removes the need to called {@link AssumeRoleRequest#builder()} and
+         * {@link AssumeRoleRequest.Builder#build()}.
+         */
+        public Builder refreshRequest(Consumer<AssumeRoleRequest.Builder> assumeRoleRequest) {
+            return refreshRequest(AssumeRoleRequest.builder().apply(assumeRoleRequest).build());
         }
     }
 }

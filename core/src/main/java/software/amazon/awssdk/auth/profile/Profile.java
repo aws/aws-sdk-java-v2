@@ -34,6 +34,7 @@ import software.amazon.awssdk.core.auth.AwsSessionCredentials;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -222,7 +223,7 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
             return (ChildProfileCredentialsProviderFactory) stsCredentialsProviderFactory.getConstructor().newInstance();
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("To use assumed roles in the '" + name + "' profile, the 'sts' service module must "
-                                            + "be on the class path.");
+                                            + "be on the class path.", e);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new IllegalStateException("Failed to create the '" + name + "' profile credentials provider.", e);
         }
@@ -237,7 +238,10 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
 
     @Override
     public String toString() {
-        return "Profile(" + name + ", " + properties + ")";
+        return ToString.builder("Profile")
+                       .add("name", name)
+                       .add("properties", properties)
+                       .build();
     }
 
     @Override
