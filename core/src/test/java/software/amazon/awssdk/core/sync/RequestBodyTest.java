@@ -15,9 +15,13 @@
 
 package software.amazon.awssdk.core.sync;
 
-import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import java.nio.ByteBuffer;
+import org.junit.Test;
+import software.amazon.awssdk.core.util.Mimetypes;
+import software.amazon.awssdk.core.util.StringInputStream;
+import software.amazon.awssdk.utils.IoUtils;
 
 
 public class RequestBodyTest {
@@ -27,6 +31,39 @@ public class RequestBodyTest {
         // U+03A9 U+03C9
         final String multibyteChars = "Ωω";
         RequestBody rb = RequestBody.of(multibyteChars);
-        assertThat(rb.getContentLength()).isEqualTo(4L);
+        assertThat(rb.contentLength()).isEqualTo(4L);
+    }
+
+    @Test
+    public void stringConstructorHasCorrectContentType() {
+        RequestBody requestBody = RequestBody.of("hello world");
+        assertThat(requestBody.contentType()).isEqualTo(Mimetypes.MIMETYPE_TEXT_PLAIN);
+    }
+
+    @Test
+    public void streamConstructorHasCorrectContentType() {
+        StringInputStream inputStream = new StringInputStream("hello world");
+        RequestBody requestBody = RequestBody.of(inputStream, 11);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetypes.MIMETYPE_OCTET_STREAM);
+        IoUtils.closeQuietly(inputStream, null);
+    }
+
+    @Test
+    public void bytesArrayConstructorHasCorrectContentType() {
+        RequestBody requestBody = RequestBody.of("hello world".getBytes());
+        assertThat(requestBody.contentType()).isEqualTo(Mimetypes.MIMETYPE_OCTET_STREAM);
+    }
+
+    @Test
+    public void bytesBufferConstructorHasCorrectContentType() {
+        ByteBuffer byteBuffer = ByteBuffer.wrap("hello world".getBytes());
+        RequestBody requestBody = RequestBody.of(byteBuffer);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetypes.MIMETYPE_OCTET_STREAM);
+    }
+
+    @Test
+    public void emptyBytesConstructorHasCorrectContentType() {
+        RequestBody requestBody = RequestBody.empty();
+        assertThat(requestBody.contentType()).isEqualTo(Mimetypes.MIMETYPE_OCTET_STREAM);
     }
 }
