@@ -21,8 +21,8 @@ import java.nio.ByteBuffer;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.util.DateUtils;
 import software.amazon.awssdk.utils.Base64Utils;
+import software.amazon.awssdk.utils.DateUtils;
 
 @SdkInternalApi
 public class SimpleTypeJsonUnmarshallers {

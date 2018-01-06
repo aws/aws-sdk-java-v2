@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.sqs;
 
-import static software.amazon.awssdk.core.util.StringUtils.UTF8;
+import static software.amazon.awssdk.utils.StringUtils.UTF8;
 
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;

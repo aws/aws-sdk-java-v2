@@ -13,17 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.util;
+package software.amazon.awssdk.utils;
 
 import static java.time.ZoneOffset.UTC;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static software.amazon.awssdk.core.util.DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT;
+import static software.amazon.awssdk.utils.DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
@@ -36,8 +33,6 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import org.junit.Test;
-import software.amazon.awssdk.core.protocol.json.SdkJsonGenerator;
-import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 
 public class DateUtilsTest {
     private static final boolean DEBUG = false;
@@ -199,45 +194,6 @@ public class DateUtilsTest {
         Instant parsed = DateUtils.parseServiceSpecificInstant(String.valueOf(serverSpecificDateFormat));
 
         assertEquals(instant, parsed);
-    }
-
-    // See https://forums.aws.amazon.com/thread.jspa?threadID=158756
-    @Test
-    public void testNumericNoQuote() {
-        StructuredJsonGenerator jw = new SdkJsonGenerator(new JsonFactory(), null);
-        jw.writeStartObject();
-        jw.writeFieldName("foo").writeValue(Instant.now());
-        jw.writeEndObject();
-        String s = new String(jw.getBytes(), Charset.forName("UTF-8"));
-        // Something like: {"foo":1408378076.135}.
-        // Note prior to the changes, it was {"foo":1408414571}
-        // (with no decimal point nor places.)
-        System.out.println(s);
-        final String prefix = "{\"foo\":";
-        assertTrue(s, s.startsWith(prefix));
-        final int startPos = prefix.length();
-        // verify no starting quote for the value
-        assertFalse(s, s.startsWith("{\"foo\":\""));
-        assertTrue(s, s.endsWith("}"));
-        // Not: {"foo":"1408378076.135"}.
-        // verify no ending quote for the value
-        assertFalse(s, s.endsWith("\"}"));
-        final int endPos = s.indexOf("}");
-        final int dotPos = s.length() - 5;
-        assertTrue(s, s.charAt(dotPos) == '.');
-        // verify all numeric before '.'
-        char[] a = s.toCharArray();
-        for (int i = startPos; i < dotPos; i++) {
-            assertTrue(a[i] <= '9' && a[i] >= '0');
-        }
-        int j = 0;
-        // verify all numeric after '.'
-        for (int i = dotPos + 1; i < endPos; i++) {
-            assertTrue(a[i] <= '9' && a[i] >= '0');
-            j++;
-        }
-        // verify decimal precision of exactly 3
-        assertTrue(j == 3);
     }
 
     @Test

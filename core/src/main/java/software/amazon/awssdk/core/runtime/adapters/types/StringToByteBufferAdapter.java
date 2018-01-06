@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.runtime.adapters.types;
 
 import java.nio.ByteBuffer;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 @SdkProtectedApi
 public class StringToByteBufferAdapter implements TypeAdapter<String, ByteBuffer> {

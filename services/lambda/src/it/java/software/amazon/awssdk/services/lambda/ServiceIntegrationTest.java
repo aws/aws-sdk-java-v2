@@ -26,7 +26,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.services.lambda.model.CreateEventSourceMappingRequest;
 import software.amazon.awssdk.services.lambda.model.CreateEventSourceMappingResponse;
 import software.amazon.awssdk.services.lambda.model.CreateFunctionResponse;
@@ -47,6 +46,7 @@ import software.amazon.awssdk.services.lambda.model.LogType;
 import software.amazon.awssdk.services.lambda.model.Runtime;
 import software.amazon.awssdk.testutils.retry.RetryRule;
 import software.amazon.awssdk.utils.Base64Utils;
+import software.amazon.awssdk.utils.StringUtils;
 
 public class ServiceIntegrationTest extends IntegrationTestBase {
 

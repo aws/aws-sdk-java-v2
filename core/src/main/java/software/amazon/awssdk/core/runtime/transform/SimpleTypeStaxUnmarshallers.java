@@ -22,8 +22,8 @@ import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.util.DateUtils;
 import software.amazon.awssdk.utils.Base64Utils;
+import software.amazon.awssdk.utils.DateUtils;
 
 /**
  * Collection of StAX unmarshallers for simple data types.

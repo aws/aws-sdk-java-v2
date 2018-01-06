@@ -25,8 +25,8 @@ import java.nio.ByteBuffer;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.util.DateUtils;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.DateUtils;
 
 /**
  * Thin wrapper around Jackson's JSON generator.

@@ -15,6 +15,12 @@
 
 package software.amazon.awssdk.utils;
 
+import static software.amazon.awssdk.utils.BinaryUtils.copyBytesFrom;
+
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Locale;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -136,6 +142,17 @@ public final class StringUtils {
      * Represents a failed index search.
      */
     public static final int INDEX_NOT_FOUND = -1;
+
+    public static final Charset UTF8 = StandardCharsets.UTF_8;
+
+
+    // white space character that match Pattern.compile("\\s")
+    private static final char CHAR_SPACE = ' ';
+    private static final char CHAR_TAB = '\t';
+    private static final char CHAR_NEW_LINE = '\n';
+    private static final char CHAR_VERTICAL_TAB = '\u000b';
+    private static final char CHAR_CARRIAGE_RETURN = '\r';
+    private static final char CHAR_FORM_FEED = '\f';
 
     /**
      * <p>The maximum size to which the padding constant(s) can expand.</p>
@@ -584,4 +601,107 @@ public final class StringUtils {
         }
         return new String(newCodePoints, 0, outOffset);
     }
+
+    /**
+     * Tests a char to see if is it whitespace.
+     * This method considers the same characters to be white
+     * space as the Pattern class does when matching \s
+     *
+     * @param ch the character to be tested
+     * @return true if the character is white  space, false otherwise.
+     */
+    public static boolean isWhiteSpace(final char ch) {
+        if (ch == CHAR_SPACE) {
+            return true;
+        }
+        if (ch == CHAR_TAB) {
+            return true;
+        }
+        if (ch == CHAR_NEW_LINE) {
+            return true;
+        }
+        if (ch == CHAR_VERTICAL_TAB) {
+            return true;
+        }
+        if (ch == CHAR_CARRIAGE_RETURN) {
+            return true;
+        }
+        if (ch == CHAR_FORM_FEED) {
+            return true;
+        }
+        return false;
+    }
+
+    public static String fromInteger(Integer value) {
+        return Integer.toString(value);
+    }
+
+    public static String fromLong(Long value) {
+        return Long.toString(value);
+    }
+
+    public static String fromString(String value) {
+        return value;
+    }
+
+    public static String fromBoolean(Boolean value) {
+        return Boolean.toString(value);
+    }
+
+    public static String fromFloat(Float value) {
+        return Float.toString(value);
+    }
+
+    /**
+     * Converts the specified instant to an ISO 8601 timestamp string and
+     * returns it.
+     *
+     * @param value
+     *            The instant to format as an ISO 8601 timestamp string.
+     *
+     * @return An ISO 8601 timestamp string created from the specified instant.
+     */
+    public static String fromInstant(Instant value) {
+        return DateUtils.formatIso8601Date(value);
+    }
+
+    /**
+     * Returns the string representation of the specified double.
+     *
+     * @param d
+     *            The double to represent as a string.
+     *
+     * @return The string representation of the specified double.
+     */
+    public static String fromDouble(Double d) {
+        return Double.toString(d);
+    }
+
+    /**
+     * Returns the string representation of the specified Byte.
+     *
+     * @param b
+     *            The Byte to represent as a string.
+     *
+     * @return The string representation of the specified Byte.
+     */
+    public static String fromByte(Byte b) {
+        return Byte.toString(b);
+    }
+
+    /**
+     * Base64 encodes the data in the specified byte buffer (from the current
+     * position to the buffer's limit) and returns it as a base64 encoded
+     * string.
+     *
+     * @param byteBuffer
+     *            The data to base64 encode and return as a string; must not be
+     *            null.
+     *
+     * @return The base64 encoded contents of the specified byte buffer.
+     */
+    public static String fromByteBuffer(ByteBuffer byteBuffer) {
+        return Base64Utils.encodeAsString(copyBytesFrom(byteBuffer));
+    }
+
 }

@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.auth;
 
 import static software.amazon.awssdk.core.interceptor.AwsExecutionAttributes.AWS_CREDENTIALS;
-import static software.amazon.awssdk.core.util.DateUtils.numberOfDaysSinceEpoch;
+import static software.amazon.awssdk.utils.DateUtils.numberOfDaysSinceEpoch;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.io.IOException;
@@ -40,9 +40,9 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.collections.FifoCache;
 import software.amazon.awssdk.core.util.CredentialUtils;
-import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
@@ -56,6 +56,7 @@ public class Aws4Signer extends AbstractAwsSigner
     private static final int SIGNER_CACHE_MAX_SIZE = 300;
     private static final FifoCache<SignerKey> SIGNER_CACHE = new FifoCache<>(SIGNER_CACHE_MAX_SIZE);
     private static final List<String> LIST_OF_HEADERS_TO_IGNORE_IN_LOWER_CASE = Arrays.asList("connection", "x-amzn-trace-id");
+    private static final char CHAR_SPACE = ' ';
 
     /**
      * Service name override for use when the endpoint can't be used to
@@ -421,10 +422,10 @@ public class Aws4Signer extends AbstractAwsSigner
             String key = lowerCase(header);
 
             for (String headerValue : requestHeaders.get(header)) {
-                StringUtils.appendCompactedString(buffer, key);
+                appendCompactedString(buffer, key);
                 buffer.append(":");
                 if (headerValue != null) {
-                    StringUtils.appendCompactedString(buffer, headerValue);
+                    appendCompactedString(buffer, headerValue);
                 }
                 buffer.append("\n");
             }
@@ -544,4 +545,34 @@ public class Aws4Signer extends AbstractAwsSigner
                                SigningAlgorithm.HmacSHA256);
         return sign(SignerConstants.AWS4_TERMINATOR, kService, SigningAlgorithm.HmacSHA256);
     }
+
+    /**
+     * This method appends a string to a string builder and collapses contiguous
+     * white space is a single space.
+     *
+     * This is equivalent to:
+     *      destination.append(source.replaceAll("\\s+", " "))
+     * but does not create a Pattern object that needs to compile the match
+     * string; it also prevents us from having to make a Matcher object as well.
+     *
+     */
+    private static void appendCompactedString(final StringBuilder destination, final String source) {
+        boolean previousIsWhiteSpace = false;
+        int length = source.length();
+
+        for (int i = 0; i < length; i++) {
+            char ch = source.charAt(i);
+            if (StringUtils.isWhiteSpace(ch)) {
+                if (previousIsWhiteSpace) {
+                    continue;
+                }
+                destination.append(CHAR_SPACE);
+                previousIsWhiteSpace = true;
+            } else {
+                destination.append(ch);
+                previousIsWhiteSpace = false;
+            }
+        }
+    }
+
 }

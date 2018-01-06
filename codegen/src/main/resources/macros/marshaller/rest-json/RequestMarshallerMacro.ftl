@@ -8,8 +8,8 @@
 ${dataModel.fileHeader}
 package ${metadata.fullRequestTransformPackageName};
 
-import static software.amazon.awssdk.core.util.StringUtils.UTF8;
-import static software.amazon.awssdk.core.util.StringUtils.COMMA_SEPARATOR;
+import static software.amazon.awssdk.utils.StringUtils.UTF8;
+import static software.amazon.awssdk.utils.StringUtils.COMMA_SEPARATOR;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
@@ -29,7 +29,7 @@ import software.amazon.awssdk.core.http.HttpMethodName;
 import ${metadata.fullModelPackageName}.*;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.core.util.IdempotentUtils;
 import software.amazon.awssdk.core.util.StringInputStream;
 import software.amazon.awssdk.core.util.SdkHttpUtils;

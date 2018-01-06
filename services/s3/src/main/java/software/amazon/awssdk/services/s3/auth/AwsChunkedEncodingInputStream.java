@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.s3.auth;
 
-import static software.amazon.awssdk.core.util.StringUtils.UTF8;
+import static software.amazon.awssdk.utils.StringUtils.UTF8;
 
 import java.io.IOException;
 import java.io.InputStream;

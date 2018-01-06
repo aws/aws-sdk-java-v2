@@ -20,6 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.JavaSystemSetting;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * @see http://www.oracle.com/technetwork/java/javase/versioning-naming-139433.html
@@ -52,7 +53,7 @@ public class JavaVersionParser {
 
     @SdkInternalApi
     static JavaVersion parseJavaVersion(final String fullVersionString) {
-        if (!StringUtils.isNullOrEmpty(fullVersionString)) {
+        if (!StringUtils.isEmpty(fullVersionString)) {
             final Matcher matcher = VERSION_REGEX.matcher(fullVersionString);
             if (matcher.matches()) {
                 final Integer majorVersionFamily = NumberUtils.tryParseInt(matcher.group(1));

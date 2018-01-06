@@ -30,9 +30,9 @@ import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.core.util.XpathUtils;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Implementation of HttpResponseHandler that handles only error responses from Amazon Web Services.
@@ -72,7 +72,7 @@ public class DefaultErrorResponseHandler implements HttpResponseHandler<SdkServi
             throw new SdkClientException("Unable to unmarshall error response from service");
         }
         exception.headers(errorResponse.getHeaders());
-        if (StringUtils.isNullOrEmpty(exception.errorCode())) {
+        if (StringUtils.isEmpty(exception.errorCode())) {
             exception.errorCode(errorResponse.getStatusCode() + " " + errorResponse.getStatusText());
         }
         return exception;

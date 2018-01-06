@@ -28,9 +28,9 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.runtime.transform.StaxUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.core.runtime.transform.VoidStaxUnmarshaller;
-import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeFunction;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.XmlUtils;
 
 /**

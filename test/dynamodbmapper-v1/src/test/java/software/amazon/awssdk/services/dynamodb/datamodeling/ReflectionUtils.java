@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.dynamodb.datamodeling;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * @deprecated Replaced by {@link StandardBeanProperties}

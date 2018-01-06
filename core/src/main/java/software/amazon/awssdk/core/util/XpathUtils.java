@@ -38,6 +38,8 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import software.amazon.awssdk.utils.Base64Utils;
+import software.amazon.awssdk.utils.DateUtils;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.XmlUtils;
 
 /**

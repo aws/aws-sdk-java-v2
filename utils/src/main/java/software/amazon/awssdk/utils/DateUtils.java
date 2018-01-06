@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.util;
+package software.amazon.awssdk.utils;
 
 import static java.time.ZoneOffset.UTC;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
@@ -28,7 +28,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.exception.SdkClientException;
 
 /**
  * Utilities for parsing and formatting dates.
@@ -123,7 +122,7 @@ public final class DateUtils {
             return Instant.ofEpochMilli(dateValue.scaleByPowerOfTen(
                     AWS_DATE_MILLI_SECOND_PRECISION).longValue());
         } catch (NumberFormatException nfe) {
-            throw new SdkClientException("Unable to parse date : "
+            throw new IllegalArgumentException("Unable to parse date : "
                                          + dateString, nfe);
         }
     }

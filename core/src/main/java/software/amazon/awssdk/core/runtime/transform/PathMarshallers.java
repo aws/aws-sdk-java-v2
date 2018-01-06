@@ -20,7 +20,7 @@ import static software.amazon.awssdk.core.util.ValidationUtils.assertStringNotEm
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.util.IdempotentUtils;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkProtectedApi

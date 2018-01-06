@@ -23,6 +23,7 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import software.amazon.awssdk.utils.Base16;
+import software.amazon.awssdk.utils.StringUtils;
 
 public class Md5UtilsTest {
 

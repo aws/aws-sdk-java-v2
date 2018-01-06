@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperFieldModel.Reflect;
 import software.amazon.awssdk.services.dynamodb.datamodeling.StandardAnnotationMaps.FieldMap;
 import software.amazon.awssdk.services.dynamodb.datamodeling.StandardAnnotationMaps.TableMap;

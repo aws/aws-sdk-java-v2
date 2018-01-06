@@ -38,6 +38,7 @@ import software.amazon.awssdk.core.AwsSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.HttpCredentialsUtils;
 import software.amazon.awssdk.core.util.json.JacksonUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Utility class for retrieving Amazon EC2 instance metadata.<br>

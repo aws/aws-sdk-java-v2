@@ -34,7 +34,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.ion.IonException;
 import software.amazon.ion.IonSystem;
 import software.amazon.ion.system.IonBinaryWriterBuilder;

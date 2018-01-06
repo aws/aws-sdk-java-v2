@@ -23,6 +23,7 @@ import java.util.Stack;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.Base64Utils;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.DateUtils;
 
 /**
  * Utility for creating easily creating XML documents, one element at a time.

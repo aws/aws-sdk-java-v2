@@ -18,8 +18,8 @@ package software.amazon.awssdk.core.protocol.json.internal;
 import java.time.Instant;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.util.DateUtils;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.utils.DateUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Converts various types to Strings. Used for Query Param/Header/Path marshalling.

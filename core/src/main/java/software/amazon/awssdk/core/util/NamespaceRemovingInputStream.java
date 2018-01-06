@@ -19,6 +19,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.core.runtime.io.SdkFilterInputStream;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * FilterInputStream implementation that wraps an InputStream containing an XML

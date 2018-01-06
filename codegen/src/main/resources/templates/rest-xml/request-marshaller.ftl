@@ -2,7 +2,7 @@ ${fileHeader}
 package ${transformPackage};
 
 import static software.amazon.awssdk.core.utils.FunctionalUtils.invokeSafely;
-import static software.amazon.awssdk.core.util.StringUtils.UTF8;
+import static software.amazon.awssdk.utils.StringUtils.UTF8;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -23,7 +23,7 @@ import ${metadata.fullModelPackageName}.*;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.core.util.StringInputStream;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.core.util.IdempotentUtils;
 import software.amazon.awssdk.core.util.Md5Utils;
 import software.amazon.awssdk.core.util.XmlWriter;
