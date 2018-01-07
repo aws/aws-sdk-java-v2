@@ -60,7 +60,7 @@ public final class PoetUtils {
 
     public static void addJavadoc(Consumer<String> builder, String javadoc) {
         if (isNotBlank(javadoc)) {
-            builder.accept(javadoc + (javadoc.endsWith("\n") ? "" : "\n"));
+            builder.accept(javadoc.replace("$", "$$") + (javadoc.endsWith("\n") ? "" : "\n"));
         }
     }
 
