@@ -217,6 +217,7 @@ public class IntermediateModelBuilder {
 
             if (inputShape.getRequired() == null
                 && !config.getBlacklistedSimpleMethods().contains(methodName)
+                && !(config.getBlacklistedSimpleMethods().size() == 1 && config.getBlacklistedSimpleMethods().get(0).equals("*"))
                 && !m.getValue().hasStreamingInput()
                 && !m.getValue().hasStreamingOutput()) {
                 if (!methodName.matches(Constants.APPROVED_SIMPLE_METHOD_VERBS) &&
