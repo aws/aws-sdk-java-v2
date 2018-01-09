@@ -240,7 +240,7 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
     public String toString() {
         return ToString.builder("Profile")
                        .add("name", name)
-                       .add("properties", properties)
+                       .add("properties", properties.keySet())
                        .build();
     }
 
