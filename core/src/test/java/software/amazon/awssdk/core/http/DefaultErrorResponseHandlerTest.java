@@ -41,7 +41,7 @@ public class DefaultErrorResponseHandlerTest extends WireMockTestBase {
     private static final String RESOURCE = "/some-path";
     private final AmazonHttpClient client = HttpTestUtils.testAmazonHttpClient();
     private final DefaultErrorResponseHandler sut = new DefaultErrorResponseHandler(new ArrayList<>());
-    private LogCaptor logCaptor = new LogCaptor.DefaultLogCaptor(Level.INFO);
+    private LogCaptor logCaptor = new LogCaptor.DefaultLogCaptor(Level.DEBUG);
 
     @Before
     public void setUp() {
@@ -54,7 +54,7 @@ public class DefaultErrorResponseHandlerTest extends WireMockTestBase {
 
         executeRequest();
 
-        assertThat(infoEvents()).anySatisfy(hasMessageContaining("Invocation Id"));
+        assertThat(debugEvents()).anySatisfy(hasMessageContaining("Invocation Id"));
     }
 
     @Test
@@ -64,7 +64,7 @@ public class DefaultErrorResponseHandlerTest extends WireMockTestBase {
 
         executeRequest();
 
-        assertThat(infoEvents()).anySatisfy(hasMessageContaining(content));
+        assertThat(debugEvents()).anySatisfy(hasMessageContaining(content));
     }
 
     @Test
@@ -76,7 +76,7 @@ public class DefaultErrorResponseHandlerTest extends WireMockTestBase {
 
         executeRequest();
 
-        assertThat(infoEvents()).anySatisfy(hasMessageContaining(requestId));
+        assertThat(debugEvents()).anySatisfy(hasMessageContaining(requestId));
     }
 
     private void executeRequest() {
@@ -105,11 +105,11 @@ public class DefaultErrorResponseHandlerTest extends WireMockTestBase {
         }
     }
 
-    private List<LoggingEvent> infoEvents() {
+    private List<LoggingEvent> debugEvents() {
         List<LoggingEvent> info = new ArrayList<LoggingEvent>();
         List<LoggingEvent> loggingEvents = logCaptor.loggedEvents();
         for (LoggingEvent le : loggingEvents) {
-            if (le.getLevel().equals(Level.INFO)) {
+            if (le.getLevel().equals(Level.DEBUG)) {
                 info.add(le);
             }
         }
