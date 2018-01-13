@@ -92,7 +92,6 @@
         <equalsverifier.version>2.3.3</equalsverifier.version>
         <netty.version>4.1.19.Final</netty.version>
         <xmlunit.version>1.3</xmlunit.version>
-        <jacksonjr.version>2.9.1</jacksonjr.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- These properties are used by SWF for its dependencies -->
@@ -155,7 +154,7 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.jr</groupId>
                 <artifactId>jackson-jr-objects</artifactId>
-                <version>${jacksonjr.version}</version>
+                <version>${jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
