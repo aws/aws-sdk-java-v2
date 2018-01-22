@@ -116,13 +116,14 @@ public class RetryHandler {
      */
     public SdkHttpFullRequest addRetryInfoHeader(SdkHttpFullRequest request, int requestCount) throws Exception {
         int availableRetryCapacity = retryCapacity.availableCapacity();
-        return request.toBuilder()
-                      .header(HEADER_SDK_RETRY_INFO,
-                              singletonList(String.format("%s/%s/%s",
-                                                          requestCount - 1,
-                                                          lastBackoffDelay,
-                                                          availableRetryCapacity >= 0 ? availableRetryCapacity : "")))
-                      .build();
+        return request;
+//        return request.toBuilder()
+//                      .header(HEADER_SDK_RETRY_INFO,
+//                              singletonList(String.format("%s/%s/%s",
+//                                                          requestCount - 1,
+//                                                          lastBackoffDelay,
+//                                                          availableRetryCapacity >= 0 ? availableRetryCapacity : "")))
+//                      .build();
     }
 
     /**

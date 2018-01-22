@@ -41,19 +41,19 @@ public class Http2ChannelPoolHandler extends ChannelInitializer<SocketChannel> {
 
     @Override
     public void initChannel(SocketChannel ch) throws Exception {
-        Http2Connection connection = new DefaultHttp2Connection(false);
-        ch.pipeline().addLast(
-            new HttpToHttp2ConnectionHandlerBuilder()
-                .frameListener(new DelegatingDecompressorFrameListener(
-                    connection,
-                    new SdkHttp2FrameListener()))
-                .frameLogger(logger)
-                .connection(connection)
-                .build());
-        if (sslCtx != null) {
-            ch.pipeline().addLast(sslCtx.newHandler(ch.alloc()));
-        }
-        ch.pipeline().addFirst(new LoggingHandler(s -> System.out.println(s.get())));
+//        Http2Connection connection = new DefaultHttp2Connection(false);
+//        ch.pipeline().addLast(
+//            new HttpToHttp2ConnectionHandlerBuilder()
+//                .frameListener(new DelegatingDecompressorFrameListener(
+//                    connection,
+//                    new SdkHttp2FrameListener()))
+//                .frameLogger(logger)
+//                .connection(connection)
+//                .build());
+//        if (sslCtx != null) {
+//            ch.pipeline().addLast(sslCtx.newHandler(ch.alloc()));
+//        }
+//        ch.pipeline().addFirst(new LoggingHandler(s -> System.out.println(s.get())));
     }
 
 }

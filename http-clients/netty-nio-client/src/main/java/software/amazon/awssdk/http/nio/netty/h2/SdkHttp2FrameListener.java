@@ -17,14 +17,14 @@ package software.amazon.awssdk.http.nio.netty.h2;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.CUMULATED_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.FIRST_BYTE_RECEIVED;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_CONTEXT_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_FINISH;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.RESPONSE_COMPLETE_KEY;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http2.Http2Error;
@@ -34,8 +34,10 @@ import io.netty.handler.codec.http2.Http2FrameListener;
 import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2Settings;
 import io.netty.handler.codec.http2.HttpConversionUtil;
+import io.netty.util.Attribute;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -46,63 +48,59 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
+import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys;
 import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 
 public class SdkHttp2FrameListener implements Http2FrameListener {
 
     private static final Logger log = LoggerFactory.getLogger(SdkHttp2FrameListener.class);
+    private final H2MetricsCollector metricsCollector;
 
-    private final ByteToMessageDecoder.Cumulator cumulator = ByteToMessageDecoder.MERGE_CUMULATOR;
+    public SdkHttp2FrameListener(H2MetricsCollector metricsCollector) {
+        this.metricsCollector = metricsCollector;
+    }
 
     @Override
     public int onDataRead(ChannelHandlerContext ctx, int streamId, ByteBuf data, int padding, boolean endOfStream)
         throws Http2Exception {
-        ctx.channel().attr(CUMULATED_KEY).compareAndSet(null, Unpooled.EMPTY_BUFFER);
-
+        int numBytes = data.nioBuffer().remaining();
         try {
             RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
+            if (!ctx.channel().attr(FIRST_BYTE_RECEIVED).get()) {
+                ctx.channel().attr(FIRST_BYTE_RECEIVED).set(Boolean.TRUE);
+                metricsCollector.putMetric("H2JavaSDK", "TimeToFirstByte",
+                                           System.nanoTime() - ctx.channel().attr(REQUEST_FINISH).get());
+            }
             SdkHttpResponseHandler<?> responseHandler = requestContext.handler();
-            // Cumulator will release the reference when it's released
-            data.retain();
 
-            ByteBuf cumulated = cumulator.cumulate(ctx.alloc(), ctx.channel().attr(CUMULATED_KEY).get(), data);
-            ctx.channel().attr(CUMULATED_KEY).set(cumulated);
+            Attribute<Subscriber<? super ByteBuffer>> subscriberAttr = ctx.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY);
 
+            if (subscriberAttr.get() == null) {
+                responseHandler.onStream(new H2Publisher(subscriberAttr));
+            }
             // TODO backpressure
+            subscriberAttr.get().onNext(copyToByteBuffer(data));
             if (endOfStream) {
-                responseHandler.onStream(new Publisher<ByteBuffer>() {
-                    @Override
-                    public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-                        subscriber.onSubscribe(new Subscription() {
-                            @Override
-                            public void request(long l) {
-                                try {
-                                    subscriber.onNext(copyToByteBuffer(cumulated));
-                                    subscriber.onComplete();
-                                    responseHandler.complete();
-                                } finally {
-                                    runAndLogError("Could not release channel",
-                                                   () -> requestContext.channelPool().release(ctx.channel()));
-                                    ctx.channel().attr(CUMULATED_KEY).set(null);
-                                    cumulated.release();
-                                }
-                            }
-
-                            @Override
-                            public void cancel() {
-                                // TODO handle
-                            }
-                        });
-                    }
-                });
+                try {
+                    subscriberAttr.get().onComplete();
+                    responseHandler.complete();
+                    ctx.channel().attr(RESPONSE_COMPLETE_KEY).get();
+                    metricsCollector.putMetric("H2JavaSDK", "ResponseTime",
+                                               System.nanoTime() - ctx.channel().attr(REQUEST_FINISH).get());
+                } finally {
+                    subscriberAttr.set(null);
+                    runAndLogError("Could not release channel",
+                                   () -> requestContext.channelPool().release(ctx.channel()));
+                }
             }
         } catch (Exception e) {
             log.error("Unable to read data frame", e);
         }
         // TODO we should return the number of bytes immediately processed. Any async processing of bytes should be notified
         // by the flow controller
-        return data.nioBuffer().remaining();
+        return numBytes;
     }
 
     /**
@@ -139,6 +137,8 @@ public class SdkHttp2FrameListener implements Http2FrameListener {
     }
 
     public void deliverHeaders(ChannelHandlerContext ctx, int streamId, Http2Headers headers) throws Http2Exception {
+        metricsCollector.putMetric("H2JavaSDK", "TimeToHeaders",
+                                   System.nanoTime() - ctx.channel().attr(REQUEST_FINISH).get());
         HttpResponse response = HttpConversionUtil.toHttpResponse(streamId, headers, true);
         RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
         SdkHttpResponseHandler<?> responseHandler = requestContext.handler();
@@ -165,20 +165,16 @@ public class SdkHttp2FrameListener implements Http2FrameListener {
 
     @Override
     public void onRstStreamRead(ChannelHandlerContext ctx, int streamId, long errorCode) throws Http2Exception {
+        System.out.println("onRstStreamRead");
         RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
         requestContext.handler().exceptionOccurred(new Http2ResetException(errorCode));
 
         runAndLogError("Could not release channel",
                        () -> requestContext.channelPool().release(ctx.channel()));
-        ByteBuf oldValue = ctx.channel().attr(CUMULATED_KEY).getAndSet(null);
-        if (oldValue != null) {
-            oldValue.release();
-        }
     }
 
     @Override
     public void onSettingsAckRead(ChannelHandlerContext ctx) throws Http2Exception {
-
     }
 
     @Override
@@ -204,6 +200,12 @@ public class SdkHttp2FrameListener implements Http2FrameListener {
     @Override
     public void onGoAwayRead(ChannelHandlerContext ctx, int lastStreamId, long errorCode, ByteBuf debugData) throws
                                                                                                              Http2Exception {
+        System.out.println("onGoAwayRead: errorCode = " + errorCode);
+        RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
+        SdkHttpResponseHandler<?> responseHandler = requestContext.handler();
+        if (responseHandler != null) {
+            responseHandler.exceptionOccurred(new GoawayException(errorCode, debugData));
+        }
         // TODO need to stop accepting new streams but allow current streams to complete. Connection should be closed
         // after all streams complete. Goaway will send number of highest stream eligible for processing so we
         // should kill any streams that happened to be created after that.
@@ -228,5 +230,47 @@ public class SdkHttp2FrameListener implements Http2FrameListener {
             super(String.format("Connection reset. Error - %s(%d)", Http2Error.valueOf(errorCode).name(), errorCode));
         }
 
+    }
+
+    /**
+     * Exception thrown when a GOAWAY frame is sent by the service.
+     */
+    private static class GoawayException extends Throwable {
+
+        private final long errorCode;
+        private final byte[] debugData;
+
+        public GoawayException(long errorCode, ByteBuf debugData) {
+            this.errorCode = errorCode;
+            this.debugData = BinaryUtils.copyBytesFrom(debugData.nioBuffer());
+        }
+
+        @Override
+        public String getMessage() {
+            return String.format("GOAWAY received. Error Code = %d, Debug Data = %s",
+                                 errorCode, new String(debugData, StandardCharsets.UTF_8));
+        }
+    }
+
+    private static class H2Publisher implements Publisher<ByteBuffer> {
+        private final Attribute<Subscriber<? super ByteBuffer>> subscriberAttr;
+
+        public H2Publisher(Attribute<Subscriber<? super ByteBuffer>> subscriberAttr) {
+            this.subscriberAttr = subscriberAttr;
+        }
+
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+            subscriberAttr.set(subscriber);
+            subscriber.onSubscribe(new Subscription() {
+                @Override
+                public void request(long l) {
+                }
+
+                @Override
+                public void cancel() {
+                }
+            });
+        }
     }
 }

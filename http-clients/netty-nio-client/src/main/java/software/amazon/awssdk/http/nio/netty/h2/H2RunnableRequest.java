@@ -15,14 +15,16 @@
 
 package software.amazon.awssdk.http.nio.netty.h2;
 
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.FIRST_BYTE_RECEIVED;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_CONTEXT_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_FINISH;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_START;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.RESPONSE_COMPLETE_KEY;
 
 import com.typesafe.netty.http.HttpStreamsClientHandler;
 import com.typesafe.netty.http.StreamedHttpRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.http.DefaultHttpContent;
@@ -54,9 +56,11 @@ public final class H2RunnableRequest implements AbortableRunnable {
     private static final Logger log = LoggerFactory.getLogger(H2RunnableRequest.class);
     private final RequestContext context;
     private volatile Channel channel;
+    private H2MetricsCollector metricsCollector;
 
-    public H2RunnableRequest(RequestContext context) {
+    public H2RunnableRequest(RequestContext context, H2MetricsCollector metricsCollector) {
         this.context = context;
+        this.metricsCollector = metricsCollector;
     }
 
     @Override
@@ -65,6 +69,8 @@ public final class H2RunnableRequest implements AbortableRunnable {
             if (channelFuture.isSuccess()) {
                 try {
                     channel = channelFuture.getNow();
+                    channel.attr(REQUEST_START).set(System.nanoTime());
+                    channel.attr(FIRST_BYTE_RECEIVED).set(Boolean.FALSE);
                     channel.attr(REQUEST_CONTEXT_KEY).set(context);
                     channel.attr(RESPONSE_COMPLETE_KEY).set(false);
                     // TODO don't need this anymore but need to port of Kyle's timeout handler changes
@@ -141,7 +147,7 @@ public final class H2RunnableRequest implements AbortableRunnable {
                    if (wireCall.isSuccess()) {
                        // Auto-read is turned off so trigger an explicit read to give control to HttpStreamsClientHandler
                        // TODO is this appropriate for H2?
-                       channel.read();
+                       //                       channel.read();
                    } else {
                        handleFailure(() -> "Failed to make request to " + endpoint(), wireCall.cause());
                    }
@@ -268,7 +274,7 @@ public final class H2RunnableRequest implements AbortableRunnable {
      * Decorator around {@link StreamedHttpRequest} to adapt a publisher of {@link ByteBuffer} (i.e. {@link
      * software.amazon.awssdk.http.async.SdkHttpRequestProvider}) to a publisher of {@link HttpContent}.
      */
-    private static class StreamedRequest extends DelegateHttpRequest implements StreamedHttpRequest {
+    private class StreamedRequest extends DelegateHttpRequest implements StreamedHttpRequest {
 
         private final Publisher<ByteBuffer> publisher;
         private final Channel channel;
@@ -303,6 +309,9 @@ public final class H2RunnableRequest implements AbortableRunnable {
                 @Override
                 public void onComplete() {
                     subscriber.onComplete();
+                    metricsCollector.putMetric("H2JavaSDK", "RequestTime",
+                                               System.nanoTime() - channel.attr(REQUEST_START).get());
+                    channel.attr(REQUEST_FINISH).set(System.nanoTime());
                 }
             });
         }

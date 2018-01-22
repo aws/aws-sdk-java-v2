@@ -81,8 +81,9 @@ class SdkHttp2FrameLogger extends Http2FrameLogger {
 
     @Override
     public void logHeaders(Direction direction, ChannelHandlerContext ctx, int streamId, Http2Headers headers, int padding, boolean endStream) {
-        log("{} HEADERS: streamId={} padding={} endStream={}",
-            ctx.channel(), direction.name(), streamId, padding, endStream);
+        log("{} HEADERS: streamId={} padding={} endStream={}\n{}",
+            direction.name(), streamId, padding, endStream,
+            formatHeaders(direction, headers));
     }
 
     @Override

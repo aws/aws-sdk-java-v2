@@ -28,6 +28,7 @@ import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http2.DefaultHttp2Connection;
 import io.netty.handler.codec.http2.DelegatingDecompressorFrameListener;
 import io.netty.handler.codec.http2.Http2Connection;
+import io.netty.handler.codec.http2.Http2Settings;
 import io.netty.handler.codec.http2.HttpToHttp2ConnectionHandler;
 import io.netty.handler.codec.http2.HttpToHttp2ConnectionHandlerBuilder;
 import io.netty.handler.logging.LogLevel;
@@ -37,6 +38,7 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.http.nio.netty.internal.H2ErrorHandler;
 import software.amazon.awssdk.http.nio.netty.internal.ResponseHandler;
 
 /**
@@ -44,9 +46,11 @@ import software.amazon.awssdk.http.nio.netty.internal.ResponseHandler;
  */
 public class Http2ClientInitializer extends AbstractChannelPoolHandler {
 
+    private final H2MetricsCollector metricsCollector;
     private final SslContext sslCtx;
 
-    public Http2ClientInitializer(SslContext sslCtx) {
+    public Http2ClientInitializer(H2MetricsCollector metricsCollector, SslContext sslCtx) {
+        this.metricsCollector = metricsCollector;
         this.sslCtx = sslCtx;
     }
 
@@ -87,10 +91,15 @@ public class Http2ClientInitializer extends AbstractChannelPoolHandler {
     private HttpToHttp2ConnectionHandler createH2ConnectionHandler() {
         Http2Connection connection = new DefaultHttp2Connection(false);
         return new HttpToHttp2ConnectionHandlerBuilder()
-            .frameListener(new DelegatingDecompressorFrameListener(connection, new SdkHttp2FrameListener()))
+            .frameListener(new DelegatingDecompressorFrameListener(connection, new SdkHttp2FrameListener(metricsCollector)))
             // TODO static log level
-            .frameLogger(new SdkHttp2FrameLogger(LogLevel.DEBUG))
+            //            .frameLogger(new SdkHttp2FrameLogger(LogLevel.DEBUG))
             .connection(connection)
+            .initialSettings(Http2Settings.defaultSettings().initialWindowSize(Integer.MAX_VALUE / 2))
+            .headerSensitivityDetector((name, value) -> {
+                String lowerName = name.toString().toLowerCase();
+                return lowerName.equals("authorization") || lowerName.equals("amz-sdk-invocation-id");
+            })
             .build();
     }
 
@@ -104,21 +113,13 @@ public class Http2ClientInitializer extends AbstractChannelPoolHandler {
             protected void configurePipeline(ChannelHandlerContext ctx, String protocol) {
                 System.out.println("Negotiated protocol = " + protocol);
                 if (ApplicationProtocolNames.HTTP_2.equals(protocol)) {
-                    System.out.println("Configuring pipeline for H2");
                     ctx.pipeline().addLast(createH2ConnectionHandler());
+                    ctx.pipeline().addLast(new H2ErrorHandler());
                     ch.attr(PROTOCOL_FUTURE).get().complete(ApplicationProtocolNames.HTTP_2);
                 } else {
-                    System.out.println("Configuring pipeline for H1");
                     ctx.pipeline().addLast(new HttpClientCodec());
                     ch.attr(PROTOCOL_FUTURE).get().complete(ApplicationProtocolNames.HTTP_1_1);
-                    // TODO these are request level handlers
-                    //                    ctx.pipeline().addLast(new HttpStreamsClientHandler());
-                    //                    ctx.pipeline().addLast(new ResponseHandler());
                 }
-                //                else {
-                //                    // TODO what happens here, does future get notified?
-                //                    throw new IllegalArgumentException("Unsupported protocol negotiated: " + protocol);
-                //                }
             }
         });
     }

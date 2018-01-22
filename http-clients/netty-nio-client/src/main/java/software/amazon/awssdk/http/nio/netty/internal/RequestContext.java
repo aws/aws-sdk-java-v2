@@ -17,6 +17,10 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.codec.http.HttpRequest;
+import java.nio.ByteBuffer;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
@@ -28,6 +32,8 @@ public final class RequestContext {
     private final SdkHttpRequestProvider requestProvider;
     private final HttpRequest nettyRequest;
     private final SdkHttpResponseHandler handler;
+    private final Queue<ByteBuffer> pendingPublish = new LinkedList<>();
+    private final AtomicLong pendingRequests = new AtomicLong();
 
     public RequestContext(ChannelPool channelPool,
                           SdkHttpRequest sdkRequest,
@@ -59,5 +65,13 @@ public final class RequestContext {
 
     public HttpRequest nettyRequest() {
         return nettyRequest;
+    }
+
+    public Queue<ByteBuffer> pendingPublish() {
+        return pendingPublish;
+    }
+
+    public AtomicLong pendingRequests() {
+        return pendingRequests;
     }
 }

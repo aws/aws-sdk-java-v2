@@ -15,11 +15,10 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.util.AttributeKey;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.reactivestreams.Subscriber;
 
 /**
@@ -27,23 +26,29 @@ import org.reactivestreams.Subscriber;
  */
 public class ChannelAttributeKeys {
 
+    public static final AttributeKey<Boolean> FIRST_BYTE_RECEIVED = AttributeKey.newInstance("firstByteReceived");
+
+    public static final AttributeKey<Long> REQUEST_START = AttributeKey.newInstance("requestStart");
+
+    public static final AttributeKey<Long> REQUEST_FINISH = AttributeKey.newInstance("requestFinish");
+
     /**
      * Attribute key for {@link RequestContext}.
      */
     // TODO public
     public static final AttributeKey<RequestContext> REQUEST_CONTEXT_KEY = AttributeKey.newInstance("requestContext");
 
-    static final AttributeKey<Subscriber<? super ByteBuffer>> SUBSCRIBER_KEY = AttributeKey.newInstance("subscriber");
+    public static final AttributeKey<Subscriber<? super ByteBuffer>> SUBSCRIBER_KEY = AttributeKey.newInstance("subscriber");
 
     // TODO public
     public static final AttributeKey<Boolean> RESPONSE_COMPLETE_KEY = AttributeKey.newInstance("responseComplete");
-
-    public static final AttributeKey<ByteBuf> CUMULATED_KEY = AttributeKey.newInstance("cumulated");
 
     /**
      * Future that when a protocol (http/1.1 or h2) has been selected.
      */
     public static final AttributeKey<CompletableFuture<String>> PROTOCOL_FUTURE = AttributeKey.newInstance("protocolFuture");
+
+    public static final AttributeKey<AtomicInteger> AVAILABLE_STREAMS = AttributeKey.newInstance("availableStreams");
 
     private ChannelAttributeKeys() {
     }
