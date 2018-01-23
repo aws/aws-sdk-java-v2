@@ -1,0 +1,13 @@
+## Allow Intellij to auto-generate to-string methods using the SDK's ToString class.
+## https://www.jetbrains.com/help/idea/generate-tostring-dialog.html
+public java.lang.String toString() {
+#if ( $members.size() > 0 )
+    return software.amazon.awssdk.utils.ToString.builder("$classname")
+    #foreach ($member in $members)
+        .add("$member.name", $member.accessor)
+    #end
+    .build();
+#else
+    return software.amazon.awssdk.utils.ToString.create("$classname");
+#end
+}

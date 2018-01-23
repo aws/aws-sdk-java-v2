@@ -22,6 +22,8 @@ public final class Headers {
 
     public static final String CONTENT_LENGTH = "Content-Length";
 
+    public static final String CONTENT_TYPE = "Content-Type";
+
     private Headers() {
     }
 

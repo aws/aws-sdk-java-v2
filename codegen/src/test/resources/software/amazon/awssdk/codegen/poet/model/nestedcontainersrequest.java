@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import javax.annotation.Generated;
 import software.amazon.awssdk.core.AwsRequestOverrideConfig;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -16,7 +17,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public class NestedContainersRequest extends JsonProtocolTestsRequest implements
-        ToCopyableBuilder<NestedContainersRequest.Builder, NestedContainersRequest> {
+                                                                      ToCopyableBuilder<NestedContainersRequest.Builder, NestedContainersRequest> {
     private final List<List<String>> listOfListOfStrings;
 
     private final List<List<List<String>>> listOfListOfListOfStrings;
@@ -101,39 +102,27 @@ public class NestedContainersRequest extends JsonProtocolTestsRequest implements
         }
         NestedContainersRequest other = (NestedContainersRequest) obj;
         return Objects.equals(listOfListOfStrings(), other.listOfListOfStrings())
-                && Objects.equals(listOfListOfListOfStrings(), other.listOfListOfListOfStrings())
-                && Objects.equals(mapOfStringToListOfListOfStrings(), other.mapOfStringToListOfListOfStrings());
+               && Objects.equals(listOfListOfListOfStrings(), other.listOfListOfListOfStrings())
+               && Objects.equals(mapOfStringToListOfListOfStrings(), other.mapOfStringToListOfListOfStrings());
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("{");
-        if (listOfListOfStrings() != null) {
-            sb.append("ListOfListOfStrings: ").append(listOfListOfStrings()).append(",");
-        }
-        if (listOfListOfListOfStrings() != null) {
-            sb.append("ListOfListOfListOfStrings: ").append(listOfListOfListOfStrings()).append(",");
-        }
-        if (mapOfStringToListOfListOfStrings() != null) {
-            sb.append("MapOfStringToListOfListOfStrings: ").append(mapOfStringToListOfListOfStrings()).append(",");
-        }
-        if (sb.length() > 1) {
-            sb.setLength(sb.length() - 1);
-        }
-        sb.append("}");
-        return sb.toString();
+        return ToString.builder("NestedContainersRequest").add("ListOfListOfStrings", listOfListOfStrings())
+                       .add("ListOfListOfListOfStrings", listOfListOfListOfStrings())
+                       .add("MapOfStringToListOfListOfStrings", mapOfStringToListOfListOfStrings()).build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "ListOfListOfStrings":
-            return Optional.of(clazz.cast(listOfListOfStrings()));
-        case "ListOfListOfListOfStrings":
-            return Optional.of(clazz.cast(listOfListOfListOfStrings()));
-        case "MapOfStringToListOfListOfStrings":
-            return Optional.of(clazz.cast(mapOfStringToListOfListOfStrings()));
-        default:
-            return Optional.empty();
+            case "ListOfListOfStrings":
+                return Optional.of(clazz.cast(listOfListOfStrings()));
+            case "ListOfListOfListOfStrings":
+                return Optional.of(clazz.cast(listOfListOfListOfStrings()));
+            case "MapOfStringToListOfListOfStrings":
+                return Optional.of(clazz.cast(mapOfStringToListOfListOfStrings()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -282,4 +271,3 @@ public class NestedContainersRequest extends JsonProtocolTestsRequest implements
         }
     }
 }
-

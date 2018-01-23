@@ -8,6 +8,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.protocol.StructuredPojo;
 import software.amazon.awssdk.services.jsonprotocoltests.transform.StructWithTimestampMarshaller;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -67,23 +68,15 @@ public class StructWithTimestamp implements StructuredPojo, ToCopyableBuilder<St
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("{");
-        if (nestedTimestamp() != null) {
-            sb.append("NestedTimestamp: ").append(nestedTimestamp()).append(",");
-        }
-        if (sb.length() > 1) {
-            sb.setLength(sb.length() - 1);
-        }
-        sb.append("}");
-        return sb.toString();
+        return ToString.builder("StructWithTimestamp").add("NestedTimestamp", nestedTimestamp()).build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "NestedTimestamp":
-            return Optional.of(clazz.cast(nestedTimestamp()));
-        default:
-            return Optional.empty();
+            case "NestedTimestamp":
+                return Optional.of(clazz.cast(nestedTimestamp()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -134,4 +127,3 @@ public class StructWithTimestamp implements StructuredPojo, ToCopyableBuilder<St
         }
     }
 }
-

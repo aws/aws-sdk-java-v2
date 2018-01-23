@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.auth;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -43,6 +44,8 @@ public class StaticCredentialsProvider implements AwsCredentialsProvider {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + credentials + ")";
+        return ToString.builder("StaticCredentialsProvider")
+                       .add("credentials", credentials)
+                       .build();
     }
 }

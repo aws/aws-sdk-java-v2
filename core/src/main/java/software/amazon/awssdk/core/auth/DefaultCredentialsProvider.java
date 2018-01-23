@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.auth;
 
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.ToString;
 
 /**
  * AWS credentials provider chain that looks for credentials in this order:
@@ -92,6 +93,13 @@ public class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAu
     @Override
     public void close() {
         providerChain.close();
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("DefaultCredentialsProvider")
+                       .add("providerChain", providerChain)
+                       .build();
     }
 
     /**
