@@ -17,8 +17,10 @@
 package software.amazon.awssdk.codegen.model.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.utils.StringUtils;
 
+@ReviewBeforeRelease("Can probably be removed, don't think this is used")
 public class BasicCodeGenConfig {
 
     private static final String PACKAGE_PREFIX = "software.amazon.awssdk.";
@@ -29,7 +31,7 @@ public class BasicCodeGenConfig {
     private final String defaultRegion;
 
     public BasicCodeGenConfig(
-            @JsonProperty(value = "serviceInterfaceName", required = true) String interfaceName,
+            @JsonProperty(value = "serviceInterfaceName") String interfaceName,
             @Deprecated @JsonProperty(value = "sourcePackageName") String packageName,
             @JsonProperty(value = "packageSuffix") String packageSuffix,
             @JsonProperty(value = "defaultEndpoint") String endpoint,
