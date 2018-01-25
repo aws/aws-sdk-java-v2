@@ -45,7 +45,7 @@ public abstract class S3ExceptionUnmarshaller extends AbstractErrorUnmarshaller<
         String requestId = asString("Error/RequestId", in, xpath);
         String message = asString("Error/Message", in, xpath);
 
-        if (!StringUtils.equals(error, this.errorCode)) {
+        if (errorCode != null && !StringUtils.equals(error, this.errorCode)) {
             return null;
         }
 
