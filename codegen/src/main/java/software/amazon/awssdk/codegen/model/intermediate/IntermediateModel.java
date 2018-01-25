@@ -121,7 +121,11 @@ public final class IntermediateModel {
      * protocols.
      */
     public String getExceptionUnmarshallerImpl() {
-        return metadata.getProtocolDefaultExceptionUmarshallerImpl();
+        if (customizationConfig.getDefaultExceptionUnmarshaller() != null) {
+            return customizationConfig.getDefaultExceptionUnmarshaller();
+        } else {
+            return metadata.getProtocolDefaultExceptionUmarshallerImpl();
+        }
     }
 
     public String getServiceBaseExceptionFqcn() {
