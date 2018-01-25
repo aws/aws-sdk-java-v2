@@ -107,7 +107,7 @@ public class JsonErrorResponseHandler implements HttpResponseHandler<SdkServiceE
                 try {
                     return unmarshaller.unmarshall(jsonContent.getJsonNode());
                 } catch (Exception e) {
-                    log.info("Unable to unmarshall exception content", e);
+                    log.debug("Unable to unmarshall exception content", e);
                     return null;
                 }
             }
