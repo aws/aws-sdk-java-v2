@@ -121,6 +121,8 @@ public class CustomizationConfig {
     private String sdkResponseBaseClassName;
     private String defaultExceptionUnmarshaller;
 
+    private Map<String, String> modelMarshallerDefaultValueSupplier;
+
     private CustomizationConfig() {
     }
 
@@ -311,5 +313,13 @@ public class CustomizationConfig {
 
     public void setDefaultExceptionUnmarshaller(String defaultExceptionUnmarshaller) {
         this.defaultExceptionUnmarshaller = defaultExceptionUnmarshaller;
+    }
+
+    public Map<String, String> getModelMarshallerDefaultValueSupplier() {
+        return modelMarshallerDefaultValueSupplier;
+    }
+
+    public void setModelMarshallerDefaultValueSupplier(Map<String, String> modelMarshallerDefaultValueSupplier) {
+        this.modelMarshallerDefaultValueSupplier = modelMarshallerDefaultValueSupplier;
     }
 }
