@@ -55,7 +55,7 @@ public class PaginatedParallelScanList<T> extends PaginatedList<T> {
         this.parallelScanTask = parallelScanTask;
         this.config = config;
 
-        // Marshal the first batch of results in allResults
+        // Marshall the first batch of results in all Results
         allResults.addAll(marshalParallelScanResponsesIntoObjects(parallelScanTask.nextBatchOfScanResponses()));
 
         // If the results should be eagerly loaded at once

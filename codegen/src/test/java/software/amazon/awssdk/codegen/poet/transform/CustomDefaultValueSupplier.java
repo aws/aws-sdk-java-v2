@@ -13,23 +13,24 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.glacier.transform;
+package software.amazon.awssdk.codegen.poet.transform;
 
 import java.util.function.Supplier;
 
-public final class DefaultAccountIdSupplier {
+public class CustomDefaultValueSupplier {
 
     /**
      * Value that indicates the current account.
      */
-    private static final String CURRENT_ACCOUNT_ID = "-";
+    private static final String VALUE = "BLAHBLAH";
 
-    private static final Supplier<String> INSTANCE = () -> CURRENT_ACCOUNT_ID;
+    private static final Supplier<String> INSTANCE = () -> VALUE;
 
-    private DefaultAccountIdSupplier() {
+    private CustomDefaultValueSupplier() {
     }
 
     public static Supplier<String> getInstance() {
         return INSTANCE;
     }
+
 }
