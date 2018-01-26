@@ -119,6 +119,7 @@ public class CustomizationConfig {
     private String sdkRequestBaseClassName;
 
     private String sdkResponseBaseClassName;
+    private String defaultExceptionUnmarshaller;
 
     private CustomizationConfig() {
     }
@@ -302,5 +303,13 @@ public class CustomizationConfig {
 
     public void setSdkResponseBaseClassName(String sdkResponseBaseClassName) {
         this.sdkResponseBaseClassName = sdkResponseBaseClassName;
+    }
+
+    public String getDefaultExceptionUnmarshaller() {
+        return defaultExceptionUnmarshaller;
+    }
+
+    public void setDefaultExceptionUnmarshaller(String defaultExceptionUnmarshaller) {
+        this.defaultExceptionUnmarshaller = defaultExceptionUnmarshaller;
     }
 }

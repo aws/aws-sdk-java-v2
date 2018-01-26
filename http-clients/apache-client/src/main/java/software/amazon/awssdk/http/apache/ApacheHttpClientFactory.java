@@ -79,7 +79,7 @@ class ApacheHttpClientFactory {
                                 ProxyConfiguration proxyConfiguration) {
         if (isProxyEnabled(proxyConfiguration)) {
 
-            LOG.info("Configuring Proxy. Proxy Host: " + proxyConfiguration.endpoint());
+            LOG.debug("Configuring Proxy. Proxy Host: {}", proxyConfiguration.endpoint());
 
             builder.setRoutePlanner(new SdkProxyRoutePlanner(proxyConfiguration.endpoint().getHost(),
                                                              proxyConfiguration.endpoint().getPort(),
