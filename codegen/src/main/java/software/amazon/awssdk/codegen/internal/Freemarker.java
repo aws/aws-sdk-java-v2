@@ -99,20 +99,8 @@ public class Freemarker {
         return fmConfig.getTemplate(template.getMainTemplate());
     }
 
-    public Template getSyncClientBuilderTemplate() throws IOException {
-        return getTemplate(templateConfig.getSyncClientBuilder());
-    }
-
-    public Template getAsyncClientBuilderTemplate() throws IOException {
-        return getTemplate(templateConfig.getAsyncClientBuilder());
-    }
-
     public Template getModelMarshallerTemplate() throws IOException {
         return getTemplate(templateConfig.getModelMarshaller());
-    }
-
-    public Template getRequestMarshallerTemplate() throws IOException {
-        return getTemplate(templateConfig.getRequestMarshaller());
     }
 
     public Template getModelUnmarshallerTemplate() throws IOException {
