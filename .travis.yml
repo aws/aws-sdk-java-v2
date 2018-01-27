@@ -7,7 +7,7 @@ install: /bin/true
 notifications:
   email:
     - github-awsforjava@amazon.com
-script: mvn install
+script: mvn -q install
 branches:
   only:
     - master
