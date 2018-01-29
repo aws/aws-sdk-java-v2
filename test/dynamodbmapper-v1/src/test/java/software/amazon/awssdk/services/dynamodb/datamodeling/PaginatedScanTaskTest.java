@@ -17,8 +17,7 @@ package software.amazon.awssdk.services.dynamodb.datamodeling;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,9 +30,11 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughputExceededException;
@@ -54,16 +55,6 @@ public class PaginatedScanTaskTest {
     @Mock
     private DynamoDBClient dynamoDB;
 
-    /**
-     * Custom matcher to match argument based on it's segment number
-     *
-     * @param segmentNumber Segment number to match for this stub.
-     * @return Stubbed argument matcher
-     */
-    private static ScanRequest isSegmentNumber(int segmentNumber) {
-        return argThat(new SegmentArgumentMatcher(segmentNumber));
-    }
-
     @Before
     public void setup() {
         executorService = Executors.newSingleThreadExecutor();
@@ -80,12 +71,16 @@ public class PaginatedScanTaskTest {
      */
     @Test
     public void segmentFailsToScan_ExecutorServiceIsShutdown() throws InterruptedException {
-        stubsuccessfulScan(0);
-        stubsuccessfulScan(1);
-        when(dynamoDB.scan(isSegmentNumber(2)))
-                .thenThrow(ProvisionedThroughputExceededException.builder().message("Slow Down!").build());
-        stubsuccessfulScan(3);
-        stubsuccessfulScan(4);
+        doAnswer(new Answer() {
+            public Object answer(InvocationOnMock invocation) {
+                Object[] args = invocation.getArguments();
+                ScanRequest req = (ScanRequest) args[0];
+                if (req.segment().intValue() == 2) {
+                    throw ProvisionedThroughputExceededException.builder().message("Slow Down!").build();
+                }
+                return mock(ScanResponse.class);
+            }})
+        .when(dynamoDB).scan(any(ScanRequest.class));
 
         try {
             parallelScanTask.nextBatchOfScanResponses();
@@ -96,16 +91,7 @@ public class PaginatedScanTaskTest {
 
         executorService.awaitTermination(5, TimeUnit.SECONDS);
         assertTrue(executorService.isShutdown());
-    }
-
-    /**
-     * Stub a successful scan of a segment with a precanned item to return.
-     *
-     * @param segmentNumber Segment to stub.
-     */
-    private void stubsuccessfulScan(int segmentNumber) {
-        when(dynamoDB.scan(isSegmentNumber(segmentNumber)))
-                .thenReturn(ScanResponse.builder().items(generateItems()).build());
+        verify(dynamoDB, atLeast(3)).scan(any(ScanRequest.class));
     }
 
     private Map<String, AttributeValue> generateItems() {
@@ -133,23 +119,4 @@ public class PaginatedScanTaskTest {
                 .build();
     }
 
-    /**
-     * Custom argument matcher to match a {@link ScanRequest} on the segment number.
-     */
-    private static class SegmentArgumentMatcher extends ArgumentMatcher<ScanRequest> {
-
-        private final int matchingSegmentNumber;
-
-        private SegmentArgumentMatcher(int matchingSegmentNumber) {
-            this.matchingSegmentNumber = matchingSegmentNumber;
-        }
-
-        @Override
-        public boolean matches(Object argument) {
-            if (!(argument instanceof ScanRequest)) {
-                return false;
-            }
-            return matchingSegmentNumber == ((ScanRequest) argument).segment();
-        }
-    }
 }

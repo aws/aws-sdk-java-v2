@@ -29,7 +29,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PaginatedItemsIterableTest {
@@ -59,7 +59,6 @@ public class PaginatedItemsIterableTest {
 
     @Test
     public void hasNext_ReturnsFalse_WhenItemsAndPagesIteratorHasNoNextElement() {
-        when(singlePageItemsIterator.hasNext()).thenReturn(false);
         when(pagesIterator.hasNext()).thenReturn(false);
 
         assertFalse(itemsIterable.iterator().hasNext());

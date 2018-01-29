@@ -27,7 +27,7 @@ import java.lang.reflect.Field;
 import java.util.zip.GZIPInputStream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.unitils.util.ReflectionUtils;
 import software.amazon.awssdk.core.util.Crc32ChecksumValidatingInputStream;
 import software.amazon.awssdk.core.util.StringInputStream;

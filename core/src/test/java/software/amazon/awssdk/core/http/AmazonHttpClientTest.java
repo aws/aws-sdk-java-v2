@@ -30,7 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.config.AdvancedClientOption;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
@@ -93,7 +93,6 @@ public class AmazonHttpClientTest {
         final IOException exception = new IOException("BOOM");
 
         HttpResponseHandler<?> mockHandler = mock(HttpResponseHandler.class);
-        when(mockHandler.needsConnectionLeftOpen()).thenReturn(false);
         when(mockHandler.handle(any(), any())).thenThrow(exception);
 
         ExecutionContext context = ClientExecutionAndRequestTimerTestUtils.executionContext(null);
