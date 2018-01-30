@@ -29,7 +29,7 @@ public class EC2MetadataUtilsIntegrationTest {
 
     @BeforeClass
     public static void setUp() throws IOException {
-        SERVER = new EC2MetadataUtilsServer("localhost", 0);
+        SERVER = new EC2MetadataUtilsServer( 0);
         SERVER.start();
 
         System.setProperty(AwsSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(),
