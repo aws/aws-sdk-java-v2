@@ -33,9 +33,9 @@ public class EC2MetadataUtilsServer {
 
     private ServerSocket server;
 
-    public EC2MetadataUtilsServer(String address, int port)
+    public EC2MetadataUtilsServer(int port)
             throws UnknownHostException, IOException {
-        server = new ServerSocket(port, 1, InetAddress.getByName(address));
+        server = new ServerSocket(port, 1, InetAddress.getLoopbackAddress());
     }
 
     public void start()
