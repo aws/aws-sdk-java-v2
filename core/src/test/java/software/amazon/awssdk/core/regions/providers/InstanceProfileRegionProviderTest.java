@@ -47,7 +47,7 @@ public class InstanceProfileRegionProviderTest {
 
         @BeforeClass
         public static void setupFixture() throws IOException {
-            server = new EC2MetadataUtilsServer("localhost", 0);
+            server = new EC2MetadataUtilsServer(0);
             server.start();
 
             System.setProperty(AwsSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(),
