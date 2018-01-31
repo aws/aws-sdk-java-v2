@@ -28,7 +28,7 @@ public class Example {
     private JsonNode output;
 
     public Example(
-            @JsonProperty(value = "description", required = true) String description,
+            @JsonProperty(value = "description") String description,
             @JsonProperty(value = "id", required = true) String id,
             @JsonProperty(value = "title", required = true) String title,
             @JsonProperty(value = "input") JsonNode input,
