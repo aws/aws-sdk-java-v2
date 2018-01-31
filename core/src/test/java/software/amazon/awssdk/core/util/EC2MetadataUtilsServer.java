@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -33,9 +33,9 @@ public class EC2MetadataUtilsServer {
 
     private ServerSocket server;
 
-    public EC2MetadataUtilsServer(String address, int port)
+    public EC2MetadataUtilsServer(int port)
             throws UnknownHostException, IOException {
-        server = new ServerSocket(port, 1, InetAddress.getByName(address));
+        server = new ServerSocket(port, 1, InetAddress.getLoopbackAddress());
     }
 
     public void start()
