@@ -127,9 +127,7 @@ public class EC2MetadataServiceMock {
                     return;
                 }
 
-                OutputStream outputStream = null;
-                try {
-                    outputStream = socket.getOutputStream();
+                try (OutputStream outputStream = socket.getOutputStream()) {
                     InputStream inputStream = socket.getInputStream();
 
                     BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
@@ -149,11 +147,13 @@ public class EC2MetadataServiceMock {
                         String responseFilePath = "/software/amazon/awssdk/core/auth/" + responseFileName + ".json";
                         System.out.println("Serving: " + responseFilePath);
 
-                        InputStream responseFileInputStream = this.getClass().getResourceAsStream(responseFilePath);
+                        List<String> dataFromFile;
+                        StringBuilder credentialsString;
+                        try (InputStream responseFileInputStream = this.getClass().getResourceAsStream(responseFilePath)) {
+                            dataFromFile = IOUtils.readLines(responseFileInputStream);
+                        }
 
-                        List<String> dataFromFile = IOUtils.readLines(responseFileInputStream);
-
-                        StringBuilder credentialsString = new StringBuilder();
+                        credentialsString = new StringBuilder();
 
                         for (String line : dataFromFile) {
                             credentialsString.append(line);
@@ -170,7 +170,7 @@ public class EC2MetadataServiceMock {
                     throw new RuntimeException("Unable to respond to request", e);
                 } finally {
                     try {
-                        outputStream.close();
+                        socket.close();
                     } catch (Exception e) {
                         // Ignored or expected.
                     }
