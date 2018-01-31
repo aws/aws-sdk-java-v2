@@ -15,12 +15,25 @@
 
 package software.amazon.awssdk.core.async;
 
+import org.junit.Test;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import org.reactivestreams.tck.TestEnvironment;
+import software.amazon.awssdk.http.async.SimpleSubscriber;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 public class FileAsyncRequestPublisherTckTest extends org.reactivestreams.tck.PublisherVerification<ByteBuffer> {
 
@@ -29,6 +42,15 @@ public class FileAsyncRequestPublisherTckTest extends org.reactivestreams.tck.Pu
 
     public FileAsyncRequestPublisherTckTest() throws IOException {
         super(new TestEnvironment());
+
+        BufferedWriter writer = new BufferedWriter(new FileWriter(example));
+        writer.write("Hello world\n");
+        writer.write("Hello world\n");
+        writer.write("Hello world\n");
+        writer.write("Hello world\n");
+        writer.write("Hello world\n");
+        writer.flush();
+        writer.close();
     }
 
     @Override
