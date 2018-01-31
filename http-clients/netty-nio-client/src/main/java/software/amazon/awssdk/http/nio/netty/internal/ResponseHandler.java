@@ -170,6 +170,7 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         return bb;
     }
 
+    // TODO cover using Reactive Streams TCK
     private static class PublisherAdapter implements Publisher<ByteBuffer> {
         private final StreamedHttpResponse response;
         private final ChannelHandlerContext channelContext;
@@ -220,6 +221,7 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         }
     }
 
+    // TODO cover using Reactive Streams TCK (glad you seem to already have looked into the rules! :-))
     private static class FullResponseContentPublisher implements Publisher<ByteBuffer> {
         private final ChannelHandlerContext channelContext;
         private final ByteBuffer fullContent;

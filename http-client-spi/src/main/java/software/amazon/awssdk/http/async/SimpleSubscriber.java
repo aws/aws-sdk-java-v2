@@ -23,6 +23,8 @@ import org.reactivestreams.Subscription;
 /**
  * Simple subscriber that does no backpressure and doesn't care about errors or completion.
  */
+// TODO provided example how to cover it using the TCK, you may want to put those tests to a separate project,
+// TODO if you'd prefer to do so
 public class SimpleSubscriber implements Subscriber<ByteBuffer> {
 
     private final Consumer<ByteBuffer> consumer;
