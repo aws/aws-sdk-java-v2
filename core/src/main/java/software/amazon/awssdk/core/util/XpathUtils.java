@@ -38,6 +38,7 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import software.amazon.awssdk.utils.Base64Utils;
+import software.amazon.awssdk.utils.XmlUtils;
 
 /**
  * Utility methods for extracting data from XML documents using Xpath
@@ -164,7 +165,7 @@ public final class XpathUtils {
             throws SAXException, IOException, ParserConfigurationException {
         is = new NamespaceRemovingInputStream(is);
         // DocumentBuilderFactory is not thread safe
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory factory = XmlUtils.documentBuilderFactory();
         DocumentBuilder builder = factory.newDocumentBuilder();
         // ensure that parser writes error/warning messages to the logger
         // rather than stderr
