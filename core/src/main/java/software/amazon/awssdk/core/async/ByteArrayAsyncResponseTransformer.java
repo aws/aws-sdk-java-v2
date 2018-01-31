@@ -69,6 +69,7 @@ class ByteArrayAsyncResponseTransformer<ResponseT> implements AsyncResponseTrans
     /**
      * Requests chunks sequentially and dumps them into a {@link ByteArrayOutputStream}.
      */
+    // TODO cover with Reactive Streams TCK, it's mostly ok, just a few edge cases / sanity checks should be covered AFAICS
     private class BaosSubscriber implements Subscriber<ByteBuffer> {
 
         private Subscription subscription;
