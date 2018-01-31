@@ -25,6 +25,7 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
@@ -50,8 +51,13 @@ public class HttpCredentialsProviderTest {
 
     @BeforeClass
     public static void setup() throws IOException {
-        successResponse = IoUtils.toString(HttpCredentialsProviderTest.class.getResourceAsStream("/resources/wiremock/successResponse.json"));
-        successResponseWithInvalidBody = IoUtils.toString(HttpCredentialsProviderTest.class.getResourceAsStream("/resources/wiremock/successResponseWithInvalidBody.json"));
+        try (InputStream successInputStream = HttpCredentialsProviderTest.class.getResourceAsStream
+            ("/resources/wiremock/successResponse.json");
+             InputStream responseWithInvalidBodyInputStream = HttpCredentialsProviderTest.class.getResourceAsStream
+                 ("/resources/wiremock/successResponseWithInvalidBody.json")) {
+            successResponse = IoUtils.toString(successInputStream);
+            successResponseWithInvalidBody = IoUtils.toString(responseWithInvalidBodyInputStream);
+        }
     }
 
     /**
@@ -81,7 +87,7 @@ public class HttpCredentialsProviderTest {
         HttpCredentialsProvider credentialsProvider = testCredentialsProvider();
 
         assertThatExceptionOfType(SdkClientException.class).isThrownBy(credentialsProvider::getCredentials)
-                                                              .withMessage("Unable to load credentials from service endpoint.");
+                                                           .withMessage("Unable to load credentials from service endpoint.");
     }
 
     /**
@@ -123,12 +129,12 @@ public class HttpCredentialsProviderTest {
 
     private void stubForSuccessResponseWithCustomBody(String body) {
         stubFor(
-                get(urlPathEqualTo(CREDENTIALS_PATH))
-                        .willReturn(aResponse()
-                                            .withStatus(200)
-                                            .withHeader("Content-Type", "application/json")
-                                            .withHeader("charset", "utf-8")
-                                            .withBody(body)));
+            get(urlPathEqualTo(CREDENTIALS_PATH))
+                .willReturn(aResponse()
+                                .withStatus(200)
+                                .withHeader("Content-Type", "application/json")
+                                .withHeader("charset", "utf-8")
+                                .withBody(body)));
     }
 
     private void stubForSuccessResonseWithCustomExpirationDate(Date expiration) {
@@ -139,12 +145,12 @@ public class HttpCredentialsProviderTest {
 
     private void stubForErrorResponse() {
         stubFor(
-                get(urlPathEqualTo(CREDENTIALS_PATH))
-                        .willReturn(aResponse()
-                                            .withStatus(404)
-                                            .withHeader("Content-Type", "application/json")
-                                            .withHeader("charset", "utf-8")
-                                            .withBody("{\"code\":\"404 Not Found\",\"message\":\"DetailedErrorMessage\"}")));
+            get(urlPathEqualTo(CREDENTIALS_PATH))
+                .willReturn(aResponse()
+                                .withStatus(404)
+                                .withHeader("Content-Type", "application/json")
+                                .withHeader("charset", "utf-8")
+                                .withBody("{\"code\":\"404 Not Found\",\"message\":\"DetailedErrorMessage\"}")));
     }
 
 

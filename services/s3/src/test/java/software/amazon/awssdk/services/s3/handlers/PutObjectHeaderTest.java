@@ -30,6 +30,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -83,7 +84,6 @@ public class PutObjectHeaderTest {
                                     .withBody("{}")));
         s3Client.putObject(putObjectRequest, RequestBody.of(file));
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo("text/html")));
-        file.delete();
     }
 
     @Test
@@ -95,7 +95,6 @@ public class PutObjectHeaderTest {
                                     .withBody("{}")));
         s3Client.putObject(putObjectRequest, RequestBody.of(file));
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetypes.MIMETYPE_OCTET_STREAM)));
-        file.delete();
     }
 
     @Test
