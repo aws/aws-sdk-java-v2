@@ -19,49 +19,30 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.core.AwsSystemSetting;
 import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 public class AwsProfileRegionProviderTest {
-    private String initialDefaultProfile;
-    private String initialProfileLocation;
 
-    @Before
-    public void setup() {
-        this.initialDefaultProfile = AwsSystemSetting.AWS_PROFILE.getStringValue().orElse(null);
-        this.initialProfileLocation = AwsSystemSetting.AWS_CONFIG_FILE.getStringValue().orElse(null);
-    }
-
-    @After
-    public void teardown() {
-        if (initialDefaultProfile == null) {
-            System.clearProperty(AwsSystemSetting.AWS_PROFILE.property());
-        } else {
-            System.setProperty(AwsSystemSetting.AWS_PROFILE.property(), initialDefaultProfile);
-        }
-
-        if (initialProfileLocation == null) {
-            System.clearProperty(AwsSystemSetting.AWS_CONFIG_FILE.property());
-        } else {
-            System.setProperty(AwsSystemSetting.AWS_CONFIG_FILE.property(), initialProfileLocation);
-        }
-    }
+    @Rule
+    public EnvironmentVariableHelper settingsHelper = new EnvironmentVariableHelper();
 
     @Test
     public void nonExistentDefaultConfigFile_ReturnsNull() {
-        System.setProperty(AwsSystemSetting.AWS_CONFIG_FILE.property(), "/var/tmp/this/is/invalid.txt");
+        settingsHelper.set(AwsSystemSetting.AWS_CONFIG_FILE, "/var/tmp/this/is/invalid.txt");
+        settingsHelper.set(AwsSystemSetting.AWS_SHARED_CREDENTIALS_FILE, "/var/tmp/this/is/also.invalid.txt");
         assertThat(new AwsProfileRegionProvider().getRegion()).isNull();
     }
 
     @Test
     public void profilePresentAndRegionIsSet_ProvidesCorrectRegion() throws URISyntaxException {
         String testFile = "/resources/profileconfig/test-profiles.tst";
-        System.setProperty(AwsSystemSetting.AWS_PROFILE.property(), "test");
-        System.setProperty(AwsSystemSetting.AWS_CONFIG_FILE.property(),
-                           Paths.get(getClass().getResource(testFile).toURI()).toString());
+
+        settingsHelper.set(AwsSystemSetting.AWS_PROFILE, "test");
+        settingsHelper.set(AwsSystemSetting.AWS_CONFIG_FILE, Paths.get(getClass().getResource(testFile).toURI()).toString());
         assertThat(new AwsProfileRegionProvider().getRegion()).isEqualTo(Region.of("saa"));
     }
 }
