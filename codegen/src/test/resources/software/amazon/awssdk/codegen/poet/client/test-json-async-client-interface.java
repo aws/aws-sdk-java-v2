@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import javax.annotation.Generated;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestProvider;
 import software.amazon.awssdk.core.async.AsyncResponseHandler;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
@@ -29,7 +30,9 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * A service that is implemented using the query protocol
  */
 @Generated("software.amazon.awssdk:codegen")
-public interface JsonAsyncClient extends SdkAutoCloseable {
+public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
+    String SERVICE_NAME = "json-service";
+
     /**
      * Create a {@link JsonAsyncClient} with the region loaded from the
      * {@link software.amazon.awssdk.core.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from
