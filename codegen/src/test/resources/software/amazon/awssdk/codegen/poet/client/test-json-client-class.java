@@ -71,6 +71,11 @@ final class DefaultJsonClient implements JsonClient {
         this.clientConfiguration = clientConfiguration;
     }
 
+    @Override
+    public final String serviceName() {
+        return SERVICE_NAME;
+    }
+
     /**
      * <p>
      * Performs a post operation to the query service and has no output
