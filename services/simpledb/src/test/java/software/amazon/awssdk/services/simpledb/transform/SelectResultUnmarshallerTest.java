@@ -23,6 +23,7 @@ import org.junit.Test;
 import software.amazon.awssdk.core.runtime.transform.StaxUnmarshallerContext;
 import software.amazon.awssdk.services.simpledb.model.Item;
 import software.amazon.awssdk.services.simpledb.model.SelectResponse;
+import software.amazon.awssdk.utils.XmlUtils;
 
 public class SelectResultUnmarshallerTest {
 
@@ -31,7 +32,7 @@ public class SelectResultUnmarshallerTest {
      */
     @Test
     public final void testUnmarshall() throws Exception {
-        XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        XMLInputFactory xmlInputFactory = XmlUtils.xmlInputFactory();
         XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(DomainMetadataResultUnmarshallerTest.class
                                                                                   .getResourceAsStream("SelectResponse.xml"));
         StaxUnmarshallerContext unmarshallerContext = new StaxUnmarshallerContext(eventReader);
