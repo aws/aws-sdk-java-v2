@@ -22,6 +22,7 @@ import javax.xml.stream.XMLInputFactory;
 import org.junit.Test;
 import software.amazon.awssdk.core.runtime.transform.StaxUnmarshallerContext;
 import software.amazon.awssdk.services.simpledb.model.DomainMetadataResponse;
+import software.amazon.awssdk.utils.XmlUtils;
 
 public class DomainMetadataResultUnmarshallerTest {
 
@@ -30,7 +31,7 @@ public class DomainMetadataResultUnmarshallerTest {
      */
     @Test
     public final void testXpathUnmarshaller() throws Exception {
-        XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        XMLInputFactory xmlInputFactory = XmlUtils.xmlInputFactory();
         XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(DomainMetadataResultUnmarshallerTest.class
                                                                                   .getResourceAsStream("DomainMetadataResponse.xml"));
         StaxUnmarshallerContext unmarshallerContext = new StaxUnmarshallerContext(eventReader);
