@@ -23,13 +23,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER;
 import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.executionContext;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.spi.LoggingEvent;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.util.LogCaptor;
@@ -39,12 +42,22 @@ import utils.http.WireMockTestBase;
 public class DefaultErrorResponseHandlerTest extends WireMockTestBase {
 
     private static final String RESOURCE = "/some-path";
+    private static LogCaptor logCaptor;
     private final AmazonHttpClient client = HttpTestUtils.testAmazonHttpClient();
     private final DefaultErrorResponseHandler sut = new DefaultErrorResponseHandler(new ArrayList<>());
-    private LogCaptor logCaptor = new LogCaptor.DefaultLogCaptor(Level.DEBUG);
+
+    @BeforeClass
+    public static void setup() {
+        logCaptor = new LogCaptor.DefaultLogCaptor(Level.DEBUG);
+    }
+
+    @AfterClass
+    public static void teardown() throws Exception {
+        logCaptor.close();
+    }
 
     @Before
-    public void setUp() {
+    public void methodSetup() {
         logCaptor.clear();
     }
 
