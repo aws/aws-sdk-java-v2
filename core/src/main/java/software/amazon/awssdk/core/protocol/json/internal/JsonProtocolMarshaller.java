@@ -17,12 +17,10 @@ package software.amazon.awssdk.core.protocol.json.internal;
 
 import static software.amazon.awssdk.http.Headers.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Headers.CONTENT_TYPE;
-import static software.amazon.awssdk.utils.StringUtils.isNotBlank;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
@@ -187,7 +185,7 @@ public class JsonProtocolMarshaller<OrigRequestT extends SdkRequest> implements 
                 request.addHeader(CONTENT_LENGTH, Integer.toString(content.length));
             }
         }
-        if (!request.getHeaders().containsKey(CONTENT_TYPE) && isNotBlank(contentType)) {
+        if (!request.getHeaders().containsKey(CONTENT_TYPE) && contentType != null) {
             request.addHeader(CONTENT_TYPE, contentType);
         }
         return request;
