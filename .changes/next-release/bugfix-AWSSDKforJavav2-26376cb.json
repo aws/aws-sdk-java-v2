@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "bugfix", 
-    "description": "Fixed issue where error message in S3 exceptions could be \"null\" if the exception did not have a modeled type."
-}
