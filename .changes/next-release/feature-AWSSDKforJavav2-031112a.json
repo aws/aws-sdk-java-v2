@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "feature", 
-    "description": "upgrade Netty 4.1.17.Final to 4.1.19.Final"
-}

@@ -1,5 +1,0 @@
-{
-    "category": "Amazon CloudWatch", 
-    "type": "feature", 
-    "description": "Added pagination configuration to CloudWatch"
-}
