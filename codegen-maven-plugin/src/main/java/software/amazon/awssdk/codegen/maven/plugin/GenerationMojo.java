@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ public class GenerationMojo extends AbstractMojo {
             try {
                 getLog().info("Loading from: " + p.toString());
                 generateCode(C2jModels.builder()
-                                      .codeGenConfig(loadCodeGenConfig(p))
+                                      .apply(b -> loadCodeGenConfig(p).ifPresent(b::codeGenConfig))
                                       .customizationConfig(loadCustomizationConfig(p))
                                       .serviceModel(loadServiceModel(p))
                                       .waitersModel(loadWaiterModel(p))
@@ -116,8 +116,8 @@ public class GenerationMojo extends AbstractMojo {
                      .execute();
     }
 
-    private BasicCodeGenConfig loadCodeGenConfig(Path root) throws MojoExecutionException {
-        return loadRequiredModel(BasicCodeGenConfig.class, root.resolve(CODE_GEN_CONFIG_FILE));
+    private Optional<BasicCodeGenConfig> loadCodeGenConfig(Path root) {
+        return loadOptionalModel(BasicCodeGenConfig.class, root.resolve(CODE_GEN_CONFIG_FILE));
     }
 
     private CustomizationConfig loadCustomizationConfig(Path root) {

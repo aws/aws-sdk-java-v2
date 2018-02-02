@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -121,7 +121,11 @@ public final class IntermediateModel {
      * protocols.
      */
     public String getExceptionUnmarshallerImpl() {
-        return metadata.getProtocolDefaultExceptionUmarshallerImpl();
+        if (customizationConfig.getDefaultExceptionUnmarshaller() != null) {
+            return customizationConfig.getDefaultExceptionUnmarshaller();
+        } else {
+            return metadata.getProtocolDefaultExceptionUmarshallerImpl();
+        }
     }
 
     public String getServiceBaseExceptionFqcn() {

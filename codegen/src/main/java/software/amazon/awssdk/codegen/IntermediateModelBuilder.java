@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -217,6 +217,7 @@ public class IntermediateModelBuilder {
 
             if (inputShape.getRequired() == null
                 && !config.getBlacklistedSimpleMethods().contains(methodName)
+                && !(config.getBlacklistedSimpleMethods().size() == 1 && config.getBlacklistedSimpleMethods().get(0).equals("*"))
                 && !m.getValue().hasStreamingInput()
                 && !m.getValue().hasStreamingOutput()) {
                 if (!methodName.matches(Constants.APPROVED_SIMPLE_METHOD_VERBS) &&

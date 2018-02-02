@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClientFactory;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -44,7 +45,7 @@ public final class NettySdkHttpClientFactory
     private final EventLoopGroupConfiguration eventLoopGroupConfiguration;
     private final Duration readTimeout;
     private final Duration writeTimeout;
-    private final Duration connectionAquisitionTimeout;
+    private final Duration connectionAcquisitionTimeout;
 
     private NettySdkHttpClientFactory(DefaultBuilder builder) {
         this.standardOptions = builder.standardOptions.build();
@@ -52,7 +53,7 @@ public final class NettySdkHttpClientFactory
         this.eventLoopGroupConfiguration = builder.eventLoopGroupConfiguration;
         this.readTimeout = validateIsWholeSecond(builder.readTimeout, "readTimeout");
         this.writeTimeout = validateIsWholeSecond(builder.writeTimeout, "writeTimeout");
-        this.connectionAquisitionTimeout = builder.connectionAcquisitionTimeout;
+        this.connectionAcquisitionTimeout = builder.connectionAcquisitionTimeout;
     }
 
     /**
@@ -88,11 +89,11 @@ public final class NettySdkHttpClientFactory
     }
 
     /**
-     * @return Optional of the connectionAquisitionTimeout setting.
+     * @return Optional of the connectionAcquisitionTimeout setting.
      * @see Builder#connectionTimeout(Duration)
      */
-    public Optional<Duration> connectionAquisitionTimeout() {
-        return Optional.ofNullable(connectionAquisitionTimeout);
+    public Optional<Duration> connectionAcquisitionTimeout() {
+        return Optional.ofNullable(connectionAcquisitionTimeout);
     }
 
     /**
@@ -147,6 +148,18 @@ public final class NettySdkHttpClientFactory
             throw new IllegalArgumentException(param + "must be a whole second, got: " + duration);
         }
         return duration;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("NettySdkHttpClientFactory")
+                       .add("standardOptions", standardOptions)
+                       .add("trustAllCertificates", trustAllCertificates)
+                       .add("eventLoopGroupConfiguration", eventLoopGroupConfiguration)
+                       .add("readTimeout", readTimeout)
+                       .add("writeTimeout", writeTimeout)
+                       .add("connectionAcquisitionTimeout", connectionAcquisitionTimeout)
+                       .build();
     }
 
     /**

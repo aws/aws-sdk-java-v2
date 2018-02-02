@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -26,14 +26,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.AwsSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.CredentialsEndpointProvider;
 import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryPolicy;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.ToString;
 
 /**
  * {@link AwsCredentialsProvider} implementation that loads credentials from a local metadata service.
@@ -52,7 +51,6 @@ import software.amazon.awssdk.utils.StringUtils;
  * Service (ECS)</a>
  */
 public final class ContainerCredentialsProvider extends HttpCredentialsProvider {
-    private static final Logger log = LoggerFactory.getLogger(ContainerCredentialsProvider.class);
     private final CredentialsEndpointProvider credentialsEndpointProvider;
 
     /**
@@ -77,7 +75,7 @@ public final class ContainerCredentialsProvider extends HttpCredentialsProvider 
 
     @Override
     public String toString() {
-        return "ContainerCredentialsProvider(" + credentialsEndpointProvider.toString() + ")";
+        return ToString.create("ContainerCredentialsProvider");
     }
 
     static final class ContainerCredentialsEndpointProvider implements CredentialsEndpointProvider {
@@ -116,11 +114,6 @@ public final class ContainerCredentialsProvider extends HttpCredentialsProvider 
                                                                      .filter(StringUtils::isNotBlank)
                                                                      .map(t -> singletonMap("Authorization", t))
                                                                      .orElseGet(Collections::emptyMap);
-        }
-
-        @Override
-        public String toString() {
-            return "ContainerCredentialsEndpointProvider";
         }
 
         private URI createUri(String relativeUri) {

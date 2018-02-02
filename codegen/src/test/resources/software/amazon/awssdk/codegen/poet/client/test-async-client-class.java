@@ -58,9 +58,14 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
     private final SdkJsonProtocolFactory protocolFactory;
 
-    protected DefaultJsonAsyncClient(AsyncClientConfiguration clientConfiguration) {
-        this.clientHandler = new SdkAsyncClientHandler(clientConfiguration, null);
+    protected DefaultJsonAsyncClient(AsyncClientConfiguration clientConfiguration, AdvancedConfiguration serviceConfiguration) {
+        this.clientHandler = new SdkAsyncClientHandler(clientConfiguration, serviceConfiguration);
         this.protocolFactory = init();
+    }
+
+    @Override
+    public final String serviceName() {
+        return SERVICE_NAME;
     }
 
     /**
@@ -96,8 +101,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
-                .withErrorResponseHandler(errorResponseHandler).withInput(aPostOperationRequest));
+                                             .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
+                                             .withErrorResponseHandler(errorResponseHandler).withInput(aPostOperationRequest));
     }
 
     /**
@@ -135,9 +140,9 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
         return clientHandler
                 .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                        .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
-                        .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                        .withInput(aPostOperationWithOutputRequest));
+                                 .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
+                                 .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                 .withInput(aPostOperationWithOutputRequest));
     }
 
     /**
@@ -175,9 +180,9 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
         return clientHandler
                 .execute(new ClientExecutionParams<GetWithoutRequiredMembersRequest, GetWithoutRequiredMembersResponse>()
-                        .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory))
-                        .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                        .withInput(getWithoutRequiredMembersRequest));
+                                 .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory))
+                                 .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                 .withInput(getWithoutRequiredMembersRequest));
     }
 
     /**
@@ -212,9 +217,9 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
         return clientHandler
                 .execute(new ClientExecutionParams<PaginatedOperationWithResultKeyRequest, PaginatedOperationWithResultKeyResponse>()
-                        .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory))
-                        .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                        .withInput(paginatedOperationWithResultKeyRequest));
+                                 .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory))
+                                 .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                 .withInput(paginatedOperationWithResultKeyRequest));
     }
 
     /**
@@ -249,9 +254,9 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
         return clientHandler
                 .execute(new ClientExecutionParams<PaginatedOperationWithoutResultKeyRequest, PaginatedOperationWithoutResultKeyResponse>()
-                        .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory))
-                        .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                        .withInput(paginatedOperationWithoutResultKeyRequest));
+                                 .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory))
+                                 .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                 .withInput(paginatedOperationWithoutResultKeyRequest));
     }
 
     /**
@@ -290,9 +295,9 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
-                .withMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
-                .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                .withAsyncRequestProvider(requestProvider).withInput(streamingInputOperationRequest));
+                                             .withMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .withAsyncRequestProvider(requestProvider).withInput(streamingInputOperationRequest));
     }
 
     /**
@@ -344,13 +349,13 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
     private software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory init() {
         return new SdkJsonProtocolFactory(new JsonClientMetadata()
-                .withProtocolVersion("1.1")
-                .withSupportsCbor(false)
-                .withSupportsIon(false)
-                .withBaseServiceExceptionClass(software.amazon.awssdk.services.json.model.JsonException.class)
-                .withContentTypeOverride("")
-                .addErrorMetadata(
-                        new JsonErrorShapeMetadata().withErrorCode("InvalidInput").withModeledClass(InvalidInputException.class)));
+                                                  .withProtocolVersion("1.1")
+                                                  .withSupportsCbor(false)
+                                                  .withSupportsIon(false)
+                                                  .withBaseServiceExceptionClass(software.amazon.awssdk.services.json.model.JsonException.class)
+                                                  .withContentTypeOverride("")
+                                                  .addErrorMetadata(
+                                                          new JsonErrorShapeMetadata().withErrorCode("InvalidInput").withModeledClass(InvalidInputException.class)));
     }
 
     private HttpResponseHandler<SdkServiceException> createErrorResponseHandler() {

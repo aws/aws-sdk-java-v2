@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -74,6 +74,7 @@ public class SyncClientClass implements ClassSpec {
                                         .addField(ClientHandler.class, "clientHandler", PRIVATE, FINAL)
                                         .addField(protocolSpec.protocolFactory(model))
                                         .addField(ClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
+                                        .addMethod(nameMethod())
                                         .addMethods(operations());
 
         if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
@@ -91,6 +92,15 @@ public class SyncClientClass implements ClassSpec {
         classBuilder.addMethods(protocolSpec.additionalMethods());
 
         return classBuilder.build();
+    }
+
+    private MethodSpec nameMethod() {
+        return MethodSpec.methodBuilder("serviceName")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                         .returns(String.class)
+                         .addStatement("return SERVICE_NAME")
+                         .build();
     }
 
     @Override

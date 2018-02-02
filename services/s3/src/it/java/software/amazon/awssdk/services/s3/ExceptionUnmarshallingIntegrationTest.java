@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.fail;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
@@ -23,6 +24,7 @@ import java.io.IOException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.s3.model.BucketAlreadyExistsException;
 import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -80,6 +82,16 @@ public class ExceptionUnmarshallingIntegrationTest extends S3IntegrationTestBase
     @Test(expected = NoSuchUploadException.class)
     public void abortMultipartNoSuchUpload() {
         s3.abortMultipartUpload(b -> b.bucket(BUCKET).key(KEY).uploadId("23232"));
+    }
+
+    @Test
+    public void listObjectsWrongRegion() {
+        assertThatThrownBy(() -> {
+            try (S3Client client = s3ClientBuilder().region(Region.EU_CENTRAL_1).build()) {
+                client.listObjectsV2(b -> b.bucket(BUCKET));
+            }
+        }).isExactlyInstanceOf(S3Exception.class) // Make sure it's not a modeled exception, because that's what we're testing
+          .hasMessageContaining("The bucket you are attempting to access must be addressed using the specified endpoint.");
     }
 
     @Test

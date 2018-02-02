@@ -16,6 +16,8 @@ import software.amazon.awssdk.utils.AttributeMap;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C> extends DefaultClientBuilder<B, C> {
+    private AdvancedConfiguration advancedConfiguration;
+
     @Override
     protected final String serviceEndpointPrefix() {
         return "json-service";
@@ -24,8 +26,8 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     @Override
     protected final ClientConfigurationDefaults serviceDefaults() {
         return ServiceBuilderConfigurationDefaults.builder().defaultSignerProvider(this::defaultSignerProvider)
-                .addRequestHandlerPath("software/amazon/awssdk/services/json/execution.interceptors")
-                .crc32FromCompressedDataEnabled(false).build();
+                                                  .addRequestHandlerPath("software/amazon/awssdk/services/json/execution.interceptors")
+                                                  .crc32FromCompressedDataEnabled(false).build();
     }
 
     private SignerProvider defaultSignerProvider() {
@@ -33,6 +35,19 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         signer.setServiceName("json-service");
         signer.setRegionName(signingRegion().value());
         return StaticSignerProvider.create(signer);
+    }
+
+    public B advancedConfiguration(AdvancedConfiguration advancedConfiguration) {
+        this.advancedConfiguration = advancedConfiguration;
+        return thisBuilder();
+    }
+
+    protected AdvancedConfiguration advancedConfiguration() {
+        return advancedConfiguration;
+    }
+
+    public void setAdvancedConfiguration(AdvancedConfiguration advancedConfiguration) {
+        advancedConfiguration(advancedConfiguration);
     }
 
     @Override

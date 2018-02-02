@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.DefaultErrorResponseHandler;
@@ -79,14 +80,10 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
         return methodSpec.build();
     }
 
-    private Class<?> getErrorUnmarshallerClass(IntermediateModel model) {
-        try {
-            return StringUtils.isNotBlank(model.getExceptionUnmarshallerImpl()) ?
-                    Class.forName(model.getExceptionUnmarshallerImpl()) :
-                    StandardErrorUnmarshaller.class;
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+    private ClassName getErrorUnmarshallerClass(IntermediateModel model) {
+        return StringUtils.isNotBlank(model.getExceptionUnmarshallerImpl()) ?
+               PoetUtils.classNameFromFqcn(model.getExceptionUnmarshallerImpl()) :
+               ClassName.get(StandardErrorUnmarshaller.class);
     }
 
     @Override

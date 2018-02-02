@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import software.amazon.awssdk.auth.profile.internal.ProfileFileReader;
 import software.amazon.awssdk.core.AwsSystemSetting;
 import software.amazon.awssdk.core.auth.ProfileCredentialsProvider;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -115,7 +116,9 @@ public class ProfileFile {
 
     @Override
     public String toString() {
-        return "ProfileFile(" + profiles.values() + ")";
+        return ToString.builder("ProfileFile")
+                       .add("profiles",  profiles.values())
+                       .build();
     }
 
     @Override

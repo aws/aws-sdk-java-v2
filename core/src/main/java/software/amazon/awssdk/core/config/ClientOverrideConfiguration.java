@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -166,6 +167,19 @@ public class ClientOverrideConfiguration
      */
     public List<ExecutionInterceptor> lastExecutionInterceptors() {
         return lastExecutionInterceptors;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("ClientOverrideConfiguration")
+                       .add("httpRequestTimeout", httpRequestTimeout)
+                       .add("totalExecutionTimeout", totalExecutionTimeout)
+                       .add("additionalHttpHeaders", additionalHttpHeaders)
+                       .add("gzipEnabled", gzipEnabled)
+                       .add("retryPolicy", retryPolicy)
+                       .add("lastExecutionInterceptors", lastExecutionInterceptors)
+                       .add("advancedOptions", advancedOptions)
+                       .build();
     }
 
     /**

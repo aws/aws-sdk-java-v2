@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,10 +15,12 @@
 
 package software.amazon.awssdk.core.protocol.json.internal;
 
+import static software.amazon.awssdk.http.Headers.CONTENT_LENGTH;
+import static software.amazon.awssdk.http.Headers.CONTENT_TYPE;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
@@ -180,11 +182,11 @@ public class JsonProtocolMarshaller<OrigRequestT extends SdkRequest> implements 
             byte[] content = jsonGenerator.getBytes();
             request.setContent(new ByteArrayInputStream(content));
             if (content.length > 0) {
-                request.addHeader("Content-Length", Integer.toString(content.length));
+                request.addHeader(CONTENT_LENGTH, Integer.toString(content.length));
             }
         }
-        if (!request.getHeaders().containsKey("Content-Type")) {
-            request.addHeader("Content-Type", contentType);
+        if (!request.getHeaders().containsKey(CONTENT_TYPE) && contentType != null) {
+            request.addHeader(CONTENT_TYPE, contentType);
         }
         return request;
     }

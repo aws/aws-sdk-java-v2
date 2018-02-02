@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import software.amazon.awssdk.http.apache.internal.SdkProxyRoutePlanner;
 import software.amazon.awssdk.http.apache.internal.conn.ClientConnectionManagerFactory;
 import software.amazon.awssdk.http.apache.internal.conn.SdkConnectionKeepAliveStrategy;
 import software.amazon.awssdk.http.apache.internal.impl.ApacheConnectionManagerFactory;
-import software.amazon.awssdk.http.apache.internal.impl.ApacheSdkClient;
+import software.amazon.awssdk.http.apache.internal.impl.ApacheSdkHttpClient;
 import software.amazon.awssdk.http.apache.internal.impl.ConnectionManagerAwareHttpClient;
 import software.amazon.awssdk.http.apache.internal.utils.ApacheUtils;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -72,14 +72,14 @@ class ApacheHttpClientFactory {
         //            IdleConnectionReaper.registerConnectionManager(cm, settings.getMaxIdleConnectionTime());
         //        }
 
-        return new ApacheSdkClient(builder.build(), cm);
+        return new ApacheSdkHttpClient(builder.build(), cm);
     }
 
     private void addProxyConfig(HttpClientBuilder builder,
                                 ProxyConfiguration proxyConfiguration) {
         if (isProxyEnabled(proxyConfiguration)) {
 
-            LOG.info("Configuring Proxy. Proxy Host: " + proxyConfiguration.endpoint());
+            LOG.debug("Configuring Proxy. Proxy Host: {}", proxyConfiguration.endpoint());
 
             builder.setRoutePlanner(new SdkProxyRoutePlanner(proxyConfiguration.endpoint().getHost(),
                                                              proxyConfiguration.endpoint().getPort(),

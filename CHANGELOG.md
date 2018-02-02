@@ -17,7 +17,7 @@
 
   - ### Removals
     - Remove easymock as a dependency, mockito should be used for all mocking going forward. [#348](https://github.com/aws/aws-sdk-java-v2/pull/348)
-    - Removed the following unused dependencies [#349](https://github.com/aws/aws-sdk-java/issues/349):
+    - Removed the following unused dependencies [#349](https://github.com/aws/aws-sdk-java-v2/issues/349):
        * org.eclipse:text
        * info.cukes:cucumber-java
        * info.cukes:cucumber-junit
@@ -34,7 +34,7 @@
 
 ## __Netty NIO Async HTTP Client__
   - ### Bugfixes
-    - Fixes Issue [#340](https://github.com/aws/aws-sdk-java/issues/340) where connection acquisition time was calculated incorrectly in the Netty client.
+    - Fixes Issue [#340](https://github.com/aws/aws-sdk-java-v2/issues/340) where connection acquisition time was calculated incorrectly in the Netty client.
 
 # __2.0.0-preview-6__ __2017-12-06__
 ## __AWS AppSync__

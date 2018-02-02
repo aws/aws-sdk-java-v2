@@ -2,6 +2,7 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Optional;
 import javax.annotation.Generated;
+import software.amazon.awssdk.utils.ToString;
 
 /**
  */
@@ -45,12 +46,7 @@ public class EnumType {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("{");
-        if (sb.length() > 1) {
-            sb.setLength(sb.length() - 1);
-        }
-        sb.append("}");
-        return sb.toString();
+        return ToString.builder("EnumType").build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {

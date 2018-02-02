@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ServiceExamples;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Waiters;
+import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
  * Container for service models and config files.
@@ -73,7 +74,7 @@ public class C2jModels {
         return paginatorsModel;
     }
 
-    public static class Builder {
+    public static class Builder implements SdkBuilder<Builder, C2jModels> {
 
         private ServiceModel serviceModel;
         private Waiters waitersModel;

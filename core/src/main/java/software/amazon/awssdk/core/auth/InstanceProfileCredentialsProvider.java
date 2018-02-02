@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import software.amazon.awssdk.core.AwsSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.CredentialsEndpointProvider;
 import software.amazon.awssdk.core.internal.HttpCredentialsUtils;
+import software.amazon.awssdk.utils.ToString;
 
 /**
  * Credentials provider implementation that loads credentials from the Amazon EC2 Instance Metadata Service.
@@ -58,6 +59,11 @@ public class InstanceProfileCredentialsProvider extends HttpCredentialsProvider 
         return credentialsEndpointProvider;
     }
 
+    @Override
+    public String toString() {
+        return ToString.create("InstanceProfileCredentialsProvider");
+    }
+
     private static class InstanceProviderCredentialsEndpointProvider implements CredentialsEndpointProvider {
         @Override
         public URI endpoint() throws IOException {
@@ -73,12 +79,6 @@ public class InstanceProfileCredentialsProvider extends HttpCredentialsProvider 
 
             return URI.create(host + SECURITY_CREDENTIALS_RESOURCE + securityCredentials[0]);
         }
-    }
-
-
-    @Override
-    public String toString() {
-        return "InstanceProviderCredentialsEndpointProvider";
     }
 
     /**

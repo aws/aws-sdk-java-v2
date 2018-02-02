@@ -3,6 +3,7 @@ package software.amazon.awssdk.services.json;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 import javax.annotation.Generated;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.regions.ServiceMetadata;
@@ -36,7 +37,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * A service that is implemented using the query protocol
  */
 @Generated("software.amazon.awssdk:codegen")
-public interface JsonClient extends SdkAutoCloseable {
+public interface JsonClient extends SdkClient, SdkAutoCloseable {
     String SERVICE_NAME = "json-service";
 
     /**

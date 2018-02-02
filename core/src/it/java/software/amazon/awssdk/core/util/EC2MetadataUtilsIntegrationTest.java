@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ public class EC2MetadataUtilsIntegrationTest {
 
     @BeforeClass
     public static void setUp() throws IOException {
-        SERVER = new EC2MetadataUtilsServer("localhost", 0);
+        SERVER = new EC2MetadataUtilsServer( 0);
         SERVER.start();
 
         System.setProperty(AwsSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(),

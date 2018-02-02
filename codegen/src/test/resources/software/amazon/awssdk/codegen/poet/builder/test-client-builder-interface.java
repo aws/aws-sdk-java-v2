@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.json;
 
+import java.util.function.Consumer;
 import javax.annotation.Generated;
 import software.amazon.awssdk.core.client.builder.ClientBuilder;
 
@@ -24,4 +25,9 @@ import software.amazon.awssdk.core.client.builder.ClientBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public interface JsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C> extends ClientBuilder<B, C> {
+    B advancedConfiguration(AdvancedConfiguration advancedConfiguration);
+
+    default B advancedConfiguration(Consumer<AdvancedConfiguration.Builder> advancedConfiguration) {
+        return advancedConfiguration(AdvancedConfiguration.builder().apply(advancedConfiguration).build());
+    }
 }

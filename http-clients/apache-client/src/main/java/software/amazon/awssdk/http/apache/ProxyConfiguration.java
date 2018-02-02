@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -135,6 +136,19 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
      */
     public static Builder builder() {
         return new DefaultClientProxyConfigurationBuilder();
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("ProxyConfiguration")
+                       .add("endpoint", endpoint)
+                       .add("username", username)
+                       .add("password", password)
+                       .add("ntlmDomain", ntlmDomain)
+                       .add("ntlmWorkstation", ntlmWorkstation)
+                       .add("nonProxyHosts", nonProxyHosts)
+                       .add("preemptiveBasicAuthenticationEnabled", preemptiveBasicAuthenticationEnabled)
+                       .build();
     }
 
     /**

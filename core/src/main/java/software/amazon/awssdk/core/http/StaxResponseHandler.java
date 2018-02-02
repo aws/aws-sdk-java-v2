@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,13 +15,10 @@
 
 package software.amazon.awssdk.core.http;
 
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Map;
 import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -34,6 +31,7 @@ import software.amazon.awssdk.core.runtime.transform.VoidStaxUnmarshaller;
 import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeFunction;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.XmlUtils;
 
 /**
  * Default implementation of HttpResponseHandler that handles a successful
@@ -47,10 +45,6 @@ import software.amazon.awssdk.utils.Logger;
 public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
     private static final Logger log = Logger.loggerFor(StaxResponseHandler.class);
 
-    /**
-     * Shared factory for creating XML event readers.
-     */
-    private static final XMLInputFactory XML_INPUT_FACTORY = createXmlInputFactory();
     /**
      * The StAX unmarshaller to use when handling the response.
      */
@@ -90,10 +84,7 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
             content = new ByteArrayInputStream("<eof/>".getBytes(StringUtils.UTF8));
         }
 
-        XMLEventReader eventReader;
-        synchronized (XML_INPUT_FACTORY) {
-            eventReader = XML_INPUT_FACTORY.createXMLEventReader(content);
-        }
+        XMLEventReader eventReader = XmlUtils.xmlInputFactory().createXMLEventReader(content);
 
         try {
             StaxUnmarshallerContext unmarshallerContext = new StaxUnmarshallerContext(eventReader, response.getHeaders());
@@ -128,7 +119,7 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
      * from service responses.
      *
      * @param unmarshallerContext The unmarshaller context used to configure a service's response
-     *                            data.
+     * data.
      */
     protected void registerAdditionalMetadataExpressions(StaxUnmarshallerContext unmarshallerContext) {
     }
@@ -150,10 +141,10 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
      * for example).
      *
      * @param unmarshaller Unmarshaller for response POJO.
-     * @param <ResponseT>  Response POJO type.
+     * @param <ResponseT> Response POJO type.
      */
     public static <ResponseT> HttpResponseHandler<ResponseT> createStreamingResponseHandler(
-            Unmarshaller<ResponseT, StaxUnmarshallerContext> unmarshaller) {
+        Unmarshaller<ResponseT, StaxUnmarshallerContext> unmarshaller) {
         UnsafeFunction<HttpResponse, ResponseT> unmarshallFunction = response -> unmarshallStreaming(unmarshaller, response);
         return new HttpResponseHandler<ResponseT>() {
             @Override
@@ -169,34 +160,20 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
     }
 
     /**
-     * Create an {@link XMLInputFactory} with features that may cause security problems disabled
-     * @return an instance of {@link XMLInputFactory}
-     */
-    private static XMLInputFactory createXmlInputFactory() {
-        XMLInputFactory factory = XMLInputFactory.newInstance();
-        factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
-        factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
-        return factory;
-    }
-
-    /**
      * Unmarshalls a streaming HTTP response into a POJO. Does not touch the content since that's consumed by the response
      * handler (either {@link StreamingResponseHandler} or {@link AsyncResponseHandler}).
      *
      * @param unmarshaller Unmarshaller for resposne type.
-     * @param response     HTTP response
-     * @param <ResponseT>  Response POJO Type.
+     * @param response HTTP response
+     * @param <ResponseT> Response POJO Type.
      * @return Unmarshalled response type.
      * @throws Exception if error occurs during unmarshalling.
      */
     private static <ResponseT> ResponseT unmarshallStreaming(Unmarshaller<ResponseT, StaxUnmarshallerContext> unmarshaller,
                                                              HttpResponse response) throws Exception {
         // Create a dummy event reader to make unmarshallers happy
-        XMLEventReader eventReader;
-        synchronized (XML_INPUT_FACTORY) {
-            eventReader = invokeSafely(() -> XML_INPUT_FACTORY
-                    .createXMLEventReader(new ByteArrayInputStream("<eof/>".getBytes(StringUtils.UTF8))));
-        }
+        XMLEventReader eventReader = XmlUtils.xmlInputFactory().createXMLEventReader(
+            new ByteArrayInputStream("<eof/>".getBytes(StringUtils.UTF8)));
 
         StaxUnmarshallerContext unmarshallerContext = new StaxUnmarshallerContext(eventReader, response.getHeaders());
         unmarshallerContext.registerMetadataExpression("ResponseMetadata/RequestId", 2, ResponseMetadata.AWS_REQUEST_ID);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.client.builder;
 
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import java.util.function.Consumer;
 
 /**
  * This includes required and optional override configuration required by every sync client builder. An instance can be acquired
@@ -36,6 +36,14 @@ public interface SyncClientBuilder<B extends SyncClientBuilder<B, C>, C>
      * software.amazon.awssdk.http.SdkHttpClient} is provided then it is up to the caller to close it when they are finished with
      * it, the SDK will only close HTTP clients that it creates.
      */
-    @ReviewBeforeRelease("We don't test this.")
     B httpConfiguration(ClientHttpConfiguration httpConfiguration);
+
+    /**
+     * Similar to {@link #httpConfiguration(ClientHttpConfiguration)}, but takes a lambda to configure a new
+     * {@link ClientHttpConfiguration.Builder}. This removes the need to called {@link ClientHttpConfiguration#builder()} and
+     * {@link ClientHttpConfiguration.Builder#build()}.
+     */
+    default B httpConfiguration(Consumer<ClientHttpConfiguration.Builder> httpConfiguration) {
+        return httpConfiguration(ClientHttpConfiguration.builder().apply(httpConfiguration).build());
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.auth;
 
 import java.util.Optional;
 import software.amazon.awssdk.utils.SystemSetting;
+import software.amazon.awssdk.utils.ToString;
 
 /**
  * {@link AwsCredentialsProvider} implementation that loads credentials from the aws.accessKeyId, aws.secretAccessKey and
@@ -37,5 +38,10 @@ public class SystemPropertyCredentialsProvider extends SystemSettingsCredentials
         // but not the environment variables. For that reason, we're only checking the system properties here.
         return Optional.ofNullable(System.getProperty(setting.property()));
         // CHECKSTYLE:ON
+    }
+
+    @Override
+    public String toString() {
+        return ToString.create("SystemPropertyCredentialsProvider");
     }
 }

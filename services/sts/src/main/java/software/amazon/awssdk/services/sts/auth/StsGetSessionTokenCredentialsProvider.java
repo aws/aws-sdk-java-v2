@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,11 +15,14 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.services.sts.STSClient;
 import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.services.sts.model.GetSessionTokenRequest;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -59,6 +62,13 @@ public class StsGetSessionTokenCredentialsProvider extends StsCredentialsProvide
         return stsClient.getSessionToken(getSessionTokenRequest).credentials();
     }
 
+    @Override
+    public String toString() {
+        return ToString.builder("StsGetSessionTokenCredentialsProvider")
+                       .add("refreshRequest", getSessionTokenRequest)
+                       .build();
+    }
+
     /**
      * A builder (created by {@link StsGetSessionTokenCredentialsProvider#builder()}) for creating a
      * {@link StsGetSessionTokenCredentialsProvider}.
@@ -83,6 +93,15 @@ public class StsGetSessionTokenCredentialsProvider extends StsCredentialsProvide
         public Builder refreshRequest(GetSessionTokenRequest getSessionTokenRequest) {
             this.getSessionTokenRequest = getSessionTokenRequest;
             return this;
+        }
+
+        /**
+         * Similar to {@link #refreshRequest(GetSessionTokenRequest)}, but takes a lambda to configure a new
+         * {@link GetSessionTokenRequest.Builder}. This removes the need to called
+         * {@link GetSessionTokenRequest#builder()} and {@link GetSessionTokenRequest.Builder#build()}.
+         */
+        public Builder refreshRequest(Consumer<GetSessionTokenRequest.Builder> getFederationTokenRequest) {
+            return refreshRequest(GetSessionTokenRequest.builder().apply(getFederationTokenRequest).build());
         }
     }
 }

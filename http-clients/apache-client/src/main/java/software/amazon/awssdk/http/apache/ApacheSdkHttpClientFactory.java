@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,12 +23,14 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.SOCKET_TIME
 import java.net.InetAddress;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientFactory;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
 import software.amazon.awssdk.http.apache.internal.Defaults;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -123,6 +125,18 @@ public final class ApacheSdkHttpClientFactory
                 .connectionMaxIdleTime(maxIdleConnectionTimeout.orElse(null));
     }
 
+    @Override
+    public String toString() {
+        return ToString.builder("ApacheSdkHttpClientFactory")
+                       .add("standardOptions", standardOptions)
+                       .add("proxyConfiguration", proxyConfiguration)
+                       .add("localAddress", localAddress)
+                       .add("expectContinueEnabled", expectContinueEnabled)
+                       .add("connectionPoolTtl", connectionPoolTtl)
+                       .add("maxIdleConnectionTimeout", maxIdleConnectionTimeout)
+                       .build();
+    }
+
     /**
      * Builder for {@link ApacheSdkHttpClientFactory}.
      */
@@ -149,7 +163,17 @@ public final class ApacheSdkHttpClientFactory
         /**
          * Configuration that defines how to communicate via an HTTP proxy.
          */
+        @ReviewBeforeRelease("We don't test this.")
         Builder proxyConfiguration(ProxyConfiguration proxyConfiguration);
+
+        /**
+         * Similar to {@link #proxyConfiguration(ProxyConfiguration)}, but takes a lambda to configure a new
+         * {@link ProxyConfiguration.Builder}. This removes the need to called {@link ProxyConfiguration#builder()} and
+         * {@link ProxyConfiguration.Builder#build()}.
+         */
+        default Builder proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfiguration) {
+            return proxyConfiguration(ProxyConfiguration.builder().apply(proxyConfiguration).build());
+        }
 
         /**
          * Configure the local address that the HTTP client should use for communication.
@@ -170,7 +194,6 @@ public final class ApacheSdkHttpClientFactory
          * Configure the maximum amount of time that a connection should be allowed to remain open while idle.
          */
         Builder connectionMaxIdleTime(Duration connectionMaxIdleTime);
-
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -114,7 +114,7 @@ public class DefaultErrorResponseHandler implements HttpResponseHandler<SdkServi
         try {
             return IoUtils.toString(content);
         } catch (Exception e) {
-            log.info(String.format("Unable to read input stream to string (%s)", idString), e);
+            log.debug(String.format("Unable to read input stream to string (%s)", idString), e);
             throw e;
         }
     }
@@ -123,7 +123,7 @@ public class DefaultErrorResponseHandler implements HttpResponseHandler<SdkServi
         try {
             return XpathUtils.documentFrom(xml);
         } catch (Exception e) {
-            log.info("Unable to parse HTTP response ({}) content to XML document '{}' ", idString, xml, e);
+            log.debug("Unable to parse HTTP response ({}) content to XML document '{}' ", idString, xml, e);
             throw e;
         }
     }
@@ -141,7 +141,7 @@ public class DefaultErrorResponseHandler implements HttpResponseHandler<SdkServi
                 idString.append("Request Id:").append(errorResponse.getHeaders().get(X_AMZN_REQUEST_ID_HEADER));
             }
         } catch (NullPointerException npe) {
-            log.info("Error getting Request or Invocation ID from response", npe);
+            log.debug("Error getting Request or Invocation ID from response", npe);
         }
         return idString.length() > 0 ? idString.toString() : "Unknown";
     }

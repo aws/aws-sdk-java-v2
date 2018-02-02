@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package software.amazon.awssdk.core.runtime.transform;
 
 import static software.amazon.awssdk.http.Headers.CONTENT_LENGTH;
+import static software.amazon.awssdk.http.Headers.CONTENT_TYPE;
+import static software.amazon.awssdk.utils.StringUtils.isBlank;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -46,7 +48,11 @@ public class StreamingRequestMarshaller<T> implements Marshaller<Request<T>, T> 
     public Request<T> marshall(T in) {
         Request<T> marshalled = delegate.marshall(in);
         marshalled.setContent(requestBody.asStream());
-        marshalled.addHeader(CONTENT_LENGTH, String.valueOf(requestBody.getContentLength()));
+        if (!marshalled.getHeaders().containsKey(CONTENT_TYPE) || isBlank(marshalled.getHeaders().get(CONTENT_TYPE))) {
+            marshalled.addHeader(CONTENT_TYPE, requestBody.contentType());
+        }
+
+        marshalled.addHeader(CONTENT_LENGTH, String.valueOf(requestBody.contentLength()));
         return marshalled;
     }
 }

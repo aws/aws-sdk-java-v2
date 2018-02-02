@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.poet.client;
 import static java.util.stream.Collectors.toList;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
@@ -36,6 +37,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestProvider;
 import software.amazon.awssdk.core.async.AsyncResponseHandler;
 import software.amazon.awssdk.core.auth.DefaultCredentialsProvider;
@@ -62,8 +64,13 @@ public class AsyncClientInterface implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         return PoetUtils.createInterfaceBuilder(className)
+                        .addSuperinterface(SdkClient.class)
                         .addSuperinterface(SdkAutoCloseable.class)
                         .addJavadoc(getJavadoc())
+                        .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
+                                           .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                                           .initializer("$S", model.getMetadata().getSigningName())
+                                           .build())
                         .addMethod(create())
                         .addMethod(builder())
                         .addMethods(operationsAndSimpleMethods())

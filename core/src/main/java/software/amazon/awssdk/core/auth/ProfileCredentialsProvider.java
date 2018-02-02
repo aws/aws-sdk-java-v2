@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.auth;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.profile.Profile;
@@ -24,6 +25,7 @@ import software.amazon.awssdk.core.AwsSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.ToString;
 
 /**
  * Credentials provider based on AWS configuration profiles. This loads credentials from a {@link ProfileFile}, allowing you to
@@ -105,7 +107,10 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
 
     @Override
     public String toString() {
-        return "ProfileCredentialsProvider(" + profileFile + ", " + profileName + ")";
+        return ToString.builder("ProfileCredentialsProvider")
+                       .add("profileName", profileName)
+                       .add("profileFile", profileFile)
+                       .build();
     }
 
     @Override
@@ -133,6 +138,14 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
         public Builder profileFile(ProfileFile profileFile) {
             this.profileFile = profileFile;
             return this;
+        }
+
+        /**
+         * Similar to {@link #profileFile(ProfileFile)}, but takes a lambda to configure a new {@link ProfileFile.Builder}. This
+         * removes the need to called {@link ProfileFile#builder()} and {@link ProfileFile.Builder#build()}.
+         */
+        public Builder profileFile(Consumer<ProfileFile.Builder> profileFile) {
+            return profileFile(ProfileFile.builder().apply(profileFile).build());
         }
 
         /**
