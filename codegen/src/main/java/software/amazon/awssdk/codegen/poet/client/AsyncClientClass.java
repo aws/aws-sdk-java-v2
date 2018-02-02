@@ -58,6 +58,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                         .addSuperinterface(interfaceClass)
                                         .addJavadoc("Internal implementation of {@link $1T}.\n\n@see $1T#builder()",
                                                     interfaceClass)
+                                        .addMethod(nameMethod())
                                         .addMethods(operations())
                                         .addMethod(closeMethod())
                                         .addMethods(protocolSpec.additionalMethods())
@@ -81,6 +82,15 @@ public final class AsyncClientClass extends AsyncClientInterface {
                          .addStatement("this.clientHandler = new $T(clientConfiguration, null)",
                                        SdkAsyncClientHandler.class) // TODO this will likely differ for APIG clients
                          .addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name)
+                         .build();
+    }
+
+    private MethodSpec nameMethod() {
+        return MethodSpec.methodBuilder("serviceName")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                         .returns(String.class)
+                         .addStatement("return SERVICE_NAME")
                          .build();
     }
 

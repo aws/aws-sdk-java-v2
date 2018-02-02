@@ -30,14 +30,14 @@ import org.apache.http.protocol.HttpContext;
 /**
  * An instance of {@link ConnectionManagerAwareHttpClient} that delegates all the requests to the given http client.
  */
-public class ApacheSdkClient implements ConnectionManagerAwareHttpClient {
+public class ApacheSdkHttpClient implements ConnectionManagerAwareHttpClient {
 
     private final HttpClient delegate;
 
     private final HttpClientConnectionManager cm;
 
-    public ApacheSdkClient(final HttpClient delegate,
-                           final HttpClientConnectionManager cm) {
+    public ApacheSdkHttpClient(final HttpClient delegate,
+                               final HttpClientConnectionManager cm) {
         if (delegate == null) {
             throw new IllegalArgumentException("delegate " +
                                                "cannot be null");

@@ -30,7 +30,7 @@ import software.amazon.awssdk.http.apache.internal.SdkProxyRoutePlanner;
 import software.amazon.awssdk.http.apache.internal.conn.ClientConnectionManagerFactory;
 import software.amazon.awssdk.http.apache.internal.conn.SdkConnectionKeepAliveStrategy;
 import software.amazon.awssdk.http.apache.internal.impl.ApacheConnectionManagerFactory;
-import software.amazon.awssdk.http.apache.internal.impl.ApacheSdkClient;
+import software.amazon.awssdk.http.apache.internal.impl.ApacheSdkHttpClient;
 import software.amazon.awssdk.http.apache.internal.impl.ConnectionManagerAwareHttpClient;
 import software.amazon.awssdk.http.apache.internal.utils.ApacheUtils;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -72,7 +72,7 @@ class ApacheHttpClientFactory {
         //            IdleConnectionReaper.registerConnectionManager(cm, settings.getMaxIdleConnectionTime());
         //        }
 
-        return new ApacheSdkClient(builder.build(), cm);
+        return new ApacheSdkHttpClient(builder.build(), cm);
     }
 
     private void addProxyConfig(HttpClientBuilder builder,
