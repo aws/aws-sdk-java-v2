@@ -1,0 +1,51 @@
+{
+    "date": "2018-02-02",
+    "version": "2.0.0-preview-8",
+    "entries": [
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Added `SdkClient` base interface that all service clients implement."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "upgrade Netty 4.1.17.Final to 4.1.19.Final"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Added and standardized `toString` implementations of public data classes."
+        },
+        {
+            "category": "Netty NIO Async HTTP Client",
+            "type": "bugfix",
+            "description": "Fix race condition in the async client causing instability when making multiple concurent requests. Fixes [#202](https://github.com/aws/aws-sdk-java-v2/issues/202)"
+        },
+        {
+            "category": "Amazon CloudWatch",
+            "type": "feature",
+            "description": "Added pagination configuration to CloudWatch"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Adding the following services from re:invent 2017:\n - Alexa For Business\n - AWS Migration Hub\n - AWS Cost Explorer\n - AWS Cloud9\n - AWS CloudHSM V2\n - Amazon Comprehend\n - AWS Glue\n - Amazon GuardDuty\n - Amazon Kinesis Video Streams\n - AWS Elemental MediaConvert\n - AWS Elemental MediaLive\n - AWS Elemental MediaPackage\n - AWS Elemental MediaStore\n - AWS Mobile\n - AmazonMQ\n - AWS Price List\n - AWS Resource Groups\n - Amazon SageMaker\n - AWS Serverless Application Repository\n - Amazon Route 53 Auto Naming\n - Amazon Translate\n - Amazon WorkMail"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fixed issue where error message in S3 exceptions could be \"null\" if the exception did not have a modeled type."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Added Consumer<Builder> methods to multiple locations where they were previously missing."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Setting `Content-Type` header for streaming requests. Related to [#357](https://github.com/aws/aws-sdk-java-v2/issues/357)"
+        }
+    ]
+}

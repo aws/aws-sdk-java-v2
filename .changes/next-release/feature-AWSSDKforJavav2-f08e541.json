@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "feature", 
-    "description": "Adding the following services from re:invent 2017:\n - Alexa For Business\n - AWS Migration Hub\n - AWS Cost Explorer\n - AWS Cloud9\n - AWS CloudHSM V2\n - Amazon Comprehend\n - AWS Glue\n - Amazon GuardDuty\n - Amazon Kinesis Video Streams\n - AWS Elemental MediaConvert\n - AWS Elemental MediaLive\n - AWS Elemental MediaPackage\n - AWS Elemental MediaStore\n - AWS Mobile\n - AmazonMQ\n - AWS Price List\n - AWS Resource Groups\n - Amazon SageMaker\n - AWS Serverless Application Repository\n - Amazon Route 53 Auto Naming\n - Amazon Translate\n - Amazon WorkMail"
-}
