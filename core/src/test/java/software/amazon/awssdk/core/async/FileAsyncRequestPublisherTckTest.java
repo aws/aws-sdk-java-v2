@@ -29,37 +29,51 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
 
 public class FileAsyncRequestPublisherTckTest extends org.reactivestreams.tck.PublisherVerification<ByteBuffer> {
 
-    final File example = File.createTempFile("example", ".tmp");
-    final File fileDoesNotExist = new File(example.getPath() + "-does-not-exist");
+    // same as `FileAsyncRequestProvider.DEFAULT_CHUNK_SIZE`:
+    final int DEFAULT_CHUNK_SIZE = 16 * 1024;
+    final int ELEMENTS = 1000;
+
+    // mock file system:
+    final FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
+
+    final Path testFile;
+    final Path doestNotExist;
 
     public FileAsyncRequestPublisherTckTest() throws IOException {
         super(new TestEnvironment());
+        testFile = Files.createFile(fs.getPath("/test-file.tmp"));
 
-        BufferedWriter writer = new BufferedWriter(new FileWriter(example));
-        writer.write("Hello world\n");
-        writer.write("Hello world\n");
-        writer.write("Hello world\n");
-        writer.write("Hello world\n");
-        writer.write("Hello world\n");
-        writer.flush();
-        writer.close();
+        doestNotExist = new File("does-not-exist").toPath();
+
+        final BufferedWriter writer = Files.newBufferedWriter(testFile);
+
+        final char[] chars = new char[DEFAULT_CHUNK_SIZE];
+        Arrays.fill(chars, 'A');
+
+        for (int i = 0; i < ELEMENTS; i++) {
+            writer.write(chars); // write one chunk
+        }
     }
 
     @Override
-    public Publisher<ByteBuffer> createPublisher(long l) {
-        return AsyncRequestProvider.fromFile(example.toPath());
+    public Publisher<ByteBuffer> createPublisher(long elements) {
+        if (elements < ELEMENTS) return AsyncRequestProvider.fromFile(testFile);
+        else return null; // we don't support more elements
     }
 
     @Override
     public Publisher<ByteBuffer> createFailedPublisher() {
-        return AsyncRequestProvider.fromFile(fileDoesNotExist.toPath());
+        // tests properly failing on non existing files:
+        return AsyncRequestProvider.fromFile(doestNotExist);
     }
 }
