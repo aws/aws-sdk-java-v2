@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.async;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -23,11 +24,10 @@ import org.reactivestreams.Subscription;
 /**
  * Simple subscriber that does no backpressure and doesn't care about errors or completion.
  */
-// TODO provided example how to cover it using the TCK, you may want to put those tests to a separate project,
-// TODO if you'd prefer to do so
 public class SimpleSubscriber implements Subscriber<ByteBuffer> {
 
     private final Consumer<ByteBuffer> consumer;
+    private final AtomicReference<Subscription> subscription = new AtomicReference<>();
 
     public SimpleSubscriber(Consumer<ByteBuffer> consumer) {
         this.consumer = consumer;
@@ -35,19 +35,40 @@ public class SimpleSubscriber implements Subscriber<ByteBuffer> {
 
     @Override
     public void onSubscribe(Subscription s) {
-        s.request(Long.MAX_VALUE);
+        // As per rule 2.13, we need to throw a `java.lang.NullPointerException` if the `Subscription` is `null`
+        if (s == null) throw new NullPointerException("Subscription MUST NOT be null.");
+
+        if (subscription.get() == null) {
+            if (subscription.compareAndSet(null, s)) {
+                s.request(Long.MAX_VALUE);
+            } else onSubscribe(s); // lost race, retry (will cancel in the else branch below)
+        } else {
+            try {
+                s.cancel(); // Cancel the additional subscription
+            } catch (final Throwable t) {
+                // Subscription.cancel is not allowed to throw an exception, according to rule 3.15
+                (new IllegalStateException(s + " violated the Reactive Streams rule 3.15 by throwing an exception from cancel.", t))
+                    .printStackTrace(System.err);
+            }
+        }
     }
 
     @Override
     public void onNext(ByteBuffer byteBuffer) {
+        // Rule 2.13, null arguments must be failed on eagerly
+        if (byteBuffer == null) throw new NullPointerException("Element passed to onNext MUST NOT be null.");
+
         consumer.accept(byteBuffer);
     }
 
     @Override
     public void onError(Throwable t) {
+        if (t == null) throw new NullPointerException("Throwable passed to onError MUST NOT be null.");
+        // else, ignore
     }
 
     @Override
     public void onComplete() {
+        // ignore
     }
 }
