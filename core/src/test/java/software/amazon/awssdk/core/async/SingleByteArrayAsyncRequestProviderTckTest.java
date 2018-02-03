@@ -27,7 +27,8 @@ public class SingleByteArrayAsyncRequestProviderTckTest extends org.reactivestre
 
   @Override
   public long maxElementsFromPublisher() {
-    return super.maxElementsFromPublisher();
+    int canOnlySignalSingleElement = 1;
+    return canOnlySignalSingleElement;
   }
 
   @Override

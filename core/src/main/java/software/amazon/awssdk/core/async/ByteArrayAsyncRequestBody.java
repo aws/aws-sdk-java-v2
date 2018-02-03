@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.async;
 
 import java.nio.ByteBuffer;
+
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -31,56 +32,51 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 final class ByteArrayAsyncRequestBody implements AsyncRequestBody {
 
-    private final byte[] bytes;
+  private final byte[] bytes;
 
     ByteArrayAsyncRequestBody(byte[] bytes) {
         this.bytes = bytes.clone();
     }
 
-    @Override
-    public long contentLength() {
-        return bytes.length;
-    }
+  @Override
+  public long contentLength() {
+    return bytes.length;
+  }
 
-    @Override
-    public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-        // FIXME missing protection abiding to rule 1.9, proposal:
-        // As per rule 1.09, we need to throw a `java.lang.NullPointerException`
-        // if the `Subscriber` is `null`
-        // if (subscriber == null) throw null;
+  @Override
+  public void subscribe(Subscriber<? super ByteBuffer> s) {
+    // As per rule 2.13, we need to throw a `java.lang.NullPointerException` if the `Subscription` is `null`
+    if (s == null) throw new NullPointerException("Subscription MUST NOT be null.");
 
-        // FIXME: onSubscribe is user code, and could be ill behaved, as library we should protect from this,
-        // FIXME: This is covered by spec rule 2.13; proposal:
-        // As per 2.13, this method must return normally (i.e. not throw).
-        // try {
-        subscriber.onSubscribe(
-                new Subscription() {
-                    @Override
-                    public void request(long n) {
-                        if (n > 0) {
-                            subscriber.onNext(ByteBuffer.wrap(bytes));
-                            subscriber.onComplete();
-                        }
-                    }
-                    // FIXME missing required validation code (rule 1.9):
-                    //   "Non-positive requests should be honored with IllegalArgumentException"
-                    // proposal:
-                    // else {
-                    //  subscriber.onError(new IllegalArgumentException("§3.9: non-positive requests are not allowed!"));
-                    // }
-
-                @Override
-                public void cancel() {
+    // As per 2.13, this method must return normally (i.e. not throw).
+    try {
+      s.onSubscribe(
+          new Subscription() {
+            boolean done = false;
+            @Override
+            public void request(long n) {
+              if (n > 0) {
+                if (!done) {
+                  s.onNext(ByteBuffer.wrap(bytes));
+                  done = true;
+                  s.onComplete();
                 }
+              } else {
+                s.onError(new IllegalArgumentException("§3.9: non-positive requests are not allowed!"));
+              }
             }
-        );
-        // end of implementing 2.13 spec requirement
-        //  } catch (Throwable ex) {
-        //  new IllegalStateException(subscriber + " violated the Reactive Streams rule 2.13 " +
-        //      "by throwing an exception from onSubscribe.", ex)
-        //      // When onSubscribe fails this way, we don't know what state the
-        //      // subscriber is thus calling onError may cause more crashes.
-        //      .printStackTrace();
-        //    }
+
+            @Override
+            public void cancel() {
+            }
+          }
+      );
+    } catch (Throwable ex) {
+      new IllegalStateException(s + " violated the Reactive Streams rule 2.13 " +
+          "by throwing an exception from onSubscribe.", ex)
+          // When onSubscribe fails this way, we don't know what state the
+          // s is thus calling onError may cause more crashes.
+          .printStackTrace();
     }
+  }
 }
