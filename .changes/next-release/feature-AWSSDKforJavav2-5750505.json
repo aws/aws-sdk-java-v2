@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "feature", 
-    "description": "Added `SdkClient` base interface that all service clients implement."
-}

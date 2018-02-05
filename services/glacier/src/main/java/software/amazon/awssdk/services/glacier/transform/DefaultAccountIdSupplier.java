@@ -16,9 +16,7 @@
 package software.amazon.awssdk.services.glacier.transform;
 
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
-@ReviewBeforeRelease("If we refactor our marshallers, this should also be refactored to match.")
 public final class DefaultAccountIdSupplier {
 
     /**

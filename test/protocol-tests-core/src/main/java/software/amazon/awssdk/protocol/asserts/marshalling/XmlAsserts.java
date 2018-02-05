@@ -18,6 +18,7 @@ package software.amazon.awssdk.protocol.asserts.marshalling;
 import static org.junit.Assert.fail;
 
 import java.io.StringWriter;
+import java.io.Writer;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -78,7 +79,9 @@ public final class XmlAsserts {
         StreamResult result = new StreamResult(new StringWriter());
         DOMSource source = new DOMSource(xmlDocument);
         transformer.transform(source, result);
-        return result.getWriter().toString();
+        try (Writer writer = result.getWriter()) {
+            return writer.toString();
+        }
     }
 
     private static TransformerFactory transformerFactory() throws TransformerConfigurationException {
