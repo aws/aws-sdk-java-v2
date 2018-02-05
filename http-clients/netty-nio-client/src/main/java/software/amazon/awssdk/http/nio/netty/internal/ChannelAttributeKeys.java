@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import io.netty.handler.codec.http2.Http2FrameListener;
 import io.netty.util.AttributeKey;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.reactivestreams.Subscriber;
+import software.amazon.awssdk.http.nio.netty.h2.SdkHttp2FrameVisitor;
 
 /**
  * Keys for attributes attached via {@link io.netty.channel.Channel#attr(AttributeKey)}.
@@ -49,6 +51,8 @@ public class ChannelAttributeKeys {
     public static final AttributeKey<CompletableFuture<String>> PROTOCOL_FUTURE = AttributeKey.newInstance("protocolFuture");
 
     public static final AttributeKey<AtomicInteger> AVAILABLE_STREAMS = AttributeKey.newInstance("availableStreams");
+
+    public static final AttributeKey<SdkHttp2FrameVisitor> FRAME_VISITOR = AttributeKey.newInstance("frameVisitor");
 
     private ChannelAttributeKeys() {
     }

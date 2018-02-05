@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.h2;
 
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.FIRST_BYTE_RECEIVED;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.FRAME_VISITOR;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_FINISH;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_START;
@@ -26,6 +27,8 @@ import com.typesafe.netty.http.StreamedHttpRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.HttpContent;
@@ -33,6 +36,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http2.Http2Frame;
 import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
@@ -116,7 +120,7 @@ public final class H2RunnableRequest implements AbortableRunnable {
         log.debug("Writing request: {}", request);
 
         // TODO SSL
-        channel.attr(ChannelAttributeKeys.PROTOCOL_FUTURE).get()
+        channel.parent().attr(ChannelAttributeKeys.PROTOCOL_FUTURE).get()
                .thenAccept(protocol ->
                                runOrFail(() -> {
                                              configurePipeline(protocol);
@@ -130,6 +134,16 @@ public final class H2RunnableRequest implements AbortableRunnable {
         if (ApplicationProtocolNames.HTTP_2.equals(protocol)) {
             channel.pipeline().addFirst(new WriteTimeoutHandler(50));
             channel.pipeline().addFirst(new ReadTimeoutHandler(50));
+            channel.attr(ChannelAttributeKeys.FRAME_VISITOR)
+                   .set(new SdkHttp2FrameVisitor(new SdkHttp2FrameListener(metricsCollector)));
+            channel.pipeline().addLast(new SimpleChannelInboundHandler<Http2Frame>() {
+                @Override
+                protected void channelRead0(ChannelHandlerContext ctx, Http2Frame msg) throws Exception {
+                    System.out.println("SHOREA = " + msg.getClass());
+                    ctx.channel().attr(FRAME_VISITOR).get().visit(msg, ctx);
+                }
+            });
+            channel.pipeline().addLast(new HttpToHttp2Adapter(true));
             channel.pipeline().addLast(new HttpStreamsClientHandler());
         } else if (ApplicationProtocolNames.HTTP_1_1.equals(protocol)) {
             channel.pipeline().addFirst(new WriteTimeoutHandler(50));
