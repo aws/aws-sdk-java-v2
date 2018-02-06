@@ -13,20 +13,24 @@
  * permissions and limitations under the License.
  */
 
-package utils.http;
+package software.amazon.awssdk.codegen.poet.transform;
 
-import java.io.IOException;
-import java.net.ServerSocket;
+import java.util.function.Supplier;
 
-public class SocketUtils {
+public class CustomDefaultValueSupplier {
 
     /**
-     * Returns an unused port in the localhost.
+     * Value that indicates the current account.
      */
-    public static int getUnusedPort() throws IOException {
-        try (ServerSocket socket = new ServerSocket(0)) {
-            socket.setReuseAddress(true);
-            return socket.getLocalPort();
-        }
+    private static final String VALUE = "BLAHBLAH";
+
+    private static final Supplier<String> INSTANCE = () -> VALUE;
+
+    private CustomDefaultValueSupplier() {
     }
+
+    public static Supplier<String> getInstance() {
+        return INSTANCE;
+    }
+
 }

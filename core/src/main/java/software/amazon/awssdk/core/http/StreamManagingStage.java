@@ -21,6 +21,7 @@ import static software.amazon.awssdk.utils.IoUtils.closeQuietly;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.RequestExecutionContext;
@@ -50,12 +51,13 @@ public class StreamManagingStage<OutputT> implements RequestPipeline<SdkHttpFull
 
     @Override
     public Response<OutputT> execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
-        final InputStream toBeClosed = createManagedStream(request);
+        Optional<InputStream> toBeClosed = createManagedStream(request);
         try {
-            return wrapped.execute(request.toBuilder().content(nonCloseableInputStream(toBeClosed)).build(), context);
+            return wrapped.execute(request.toBuilder().content(nonCloseableInputStream(toBeClosed).orElse(null)).build(),
+                                   context);
         } finally {
             // Always close so any progress tracking would get the final events propagated.
-            closeQuietly(toBeClosed, log);
+            toBeClosed.ifPresent(i -> closeQuietly(i, log));
         }
     }
 
@@ -65,8 +67,8 @@ public class StreamManagingStage<OutputT> implements RequestPipeline<SdkHttpFull
      * @param toBeClosed Input stream to disable close on.
      * @return An input stream with close disabled or null if toBeClosed is null.
      */
-    private InputStream nonCloseableInputStream(InputStream toBeClosed) {
-        return toBeClosed == null ? null : ReleasableInputStream.wrap(toBeClosed).disableClose();
+    private Optional<InputStream> nonCloseableInputStream(Optional<InputStream> toBeClosed) {
+        return toBeClosed.map(is -> ReleasableInputStream.wrap(is).disableClose());
     }
 
     /**
@@ -75,12 +77,11 @@ public class StreamManagingStage<OutputT> implements RequestPipeline<SdkHttpFull
      *
      * @return Modified input stream to use for the remainder of the execution.
      */
-    private InputStream createManagedStream(SdkHttpFullRequest request) {
+    private Optional<InputStream> createManagedStream(SdkHttpFullRequest request) {
         return request.content()
                       .map(this::makeResettable)
                       .map(this::bufferIfNeeded)
-                      .map(content -> unreliableTestConfig == null ? content : makeUnreliable(content))
-                      .orElse(null);
+                      .map(content -> unreliableTestConfig == null ? content : makeUnreliable(content));
     }
 
     /**
