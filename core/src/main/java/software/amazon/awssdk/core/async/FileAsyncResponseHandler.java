@@ -82,6 +82,7 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
     /**
      * {@link Subscriber} implementation that writes chunks to a file.
      */
+    // FIXME cover with Reactive Streams TCK, looks ok from a first brief look, but could be missing some edge cases
     private class FileSubscriber implements Subscriber<ByteBuffer> {
 
         private volatile boolean writeInProgress = false;

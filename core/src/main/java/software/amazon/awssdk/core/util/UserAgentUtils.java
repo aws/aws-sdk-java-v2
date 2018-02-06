@@ -72,7 +72,7 @@ public final class UserAgentUtils {
 
         ua = ua
                 .replace("{platform}", "java")
-                .replace("{version}", VersionInfo.SDK_VERSION)
+                .replace("{version}", "MOCK")//VersionInfo.SDK_VERSION)
                 .replace("{os.name}", replaceSpaces(JavaSystemSetting.OS_NAME.getStringValue().orElse(null)))
                 .replace("{os.version}", replaceSpaces(JavaSystemSetting.OS_VERSION.getStringValue().orElse(null)))
                 .replace("{java.vm.name}", replaceSpaces(JavaSystemSetting.JAVA_VM_NAME.getStringValue().orElse(null)))

@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.async;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
@@ -23,7 +22,6 @@ import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
@@ -43,7 +41,7 @@ public final class FileAsyncRequestProvider implements AsyncRequestProvider {
     /**
      * File to read.
      */
-    private final File file;
+    private final Path file;
 
     /**
      * Size (in bytes) of ByteBuffer chunks read from the file and delivered to the subscriber.
@@ -51,13 +49,13 @@ public final class FileAsyncRequestProvider implements AsyncRequestProvider {
     private final int chunkSizeInBytes;
 
     private FileAsyncRequestProvider(DefaultBuilder builder) {
-        this.file = builder.path.toFile();
+        this.file = builder.path;
         this.chunkSizeInBytes = builder.chunkSizeInBytes == null ? DEFAULT_CHUNK_SIZE : builder.chunkSizeInBytes;
     }
 
     @Override
     public long contentLength() {
-        return file.length();
+        return file.toFile().length();
     }
 
     @Override
@@ -140,10 +138,10 @@ public final class FileAsyncRequestProvider implements AsyncRequestProvider {
         private final int chunkSize;
 
         private long position = 0;
-        private AtomicLong outstandingRequests = new AtomicLong(0);
+        private AtomicLong outstandingDemand = new AtomicLong(0);
         private boolean writeInProgress = false;
 
-        private FileSubscription(File file, Subscriber<? super ByteBuffer> subscriber, int chunkSize) {
+        private FileSubscription(Path file, Subscriber<? super ByteBuffer> subscriber, int chunkSize) {
             this.inputChannel = openInputChannel(file);
             this.subscriber = subscriber;
             this.chunkSize = chunkSize;
@@ -151,18 +149,30 @@ public final class FileAsyncRequestProvider implements AsyncRequestProvider {
 
         @Override
         public void request(long n) {
-            try {
-                outstandingRequests.addAndGet(n);
-
-                synchronized (this) {
-                    if (!writeInProgress) {
-                        writeInProgress = true;
-                        readData();
+            if (n < 1) {
+                IllegalArgumentException ex =
+                    new IllegalArgumentException(subscriber + " violated the Reactive Streams rule 3.9 by requesting a non-positive number of elements.");
+                subscriber.onError(ex);
+            } else
+                try {
+                    long initialDemand = outstandingDemand.get();
+                    long newDemand = initialDemand + n;
+                    if (newDemand < 1) {
+                        // As governed by rule 3.17, when demand overflows `Long.MAX_VALUE` we treat the signalled demand as "effectively unbounded"
+                        outstandingDemand.set(Long.MAX_VALUE);
+                    } else {
+                        outstandingDemand.set(newDemand);
                     }
+
+                    synchronized (this) {
+                        if (!writeInProgress) {
+                            writeInProgress = true;
+                            readData();
+                        }
+                    }
+                } catch (Exception e) {
+                    subscriber.onError(e);
                 }
-            } catch (Exception e) {
-                subscriber.onError(e);
-            }
         }
 
         @Override
@@ -184,7 +194,7 @@ public final class FileAsyncRequestProvider implements AsyncRequestProvider {
                         position += attachment.remaining();
                         subscriber.onNext(attachment);
                         // If we have more permits, queue up another read.
-                        if (outstandingRequests.decrementAndGet() > 0) {
+                        if (outstandingDemand.decrementAndGet() > 0) {
                             readData();
                             return;
                         }
@@ -217,12 +227,9 @@ public final class FileAsyncRequestProvider implements AsyncRequestProvider {
 
     }
 
-    private static AsynchronousFileChannel openInputChannel(File file) {
+    private static AsynchronousFileChannel openInputChannel(Path path) {
         try {
-            final Path path = Paths.get(file.getAbsolutePath());
-            if (!Files.exists(path)) {
-                Files.createFile(path);
-            }
+            if (!Files.exists(path)) Files.createFile(path);
             return AsynchronousFileChannel.open(path, StandardOpenOption.READ);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
