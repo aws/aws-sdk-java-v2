@@ -29,6 +29,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 
 /**
  * {@link AsyncResponseHandler} that writes the data to the specified file.
@@ -51,7 +52,7 @@ class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Respon
     }
 
     @Override
-    public void responseReceived(ResponseT response) {
+    public void responseReceived(ResponseT response, ExecutionAttributes executionAttributes) {
         this.response = response;
     }
 

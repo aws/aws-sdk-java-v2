@@ -298,10 +298,8 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
         public void headersReceived(SdkHttpResponse response) {
             HttpResponse httpResponse = SdkHttpResponseAdapter.adapt(false, null, ((SdkHttpFullResponse) response));
             try {
-                // TODO would be better to pass in AwsExecutionAttributes to the async response handler so we can
-                // provide them to HttpResponseHandler
                 OutputT resp = interceptorCalling(responseHandler, executionContext).handle(httpResponse, null);
-                asyncResponseHandler.responseReceived(resp);
+                asyncResponseHandler.responseReceived(resp, executionContext.executionAttributes());
             } catch (Exception e) {
                 throw Throwables.failure(e);
             }
