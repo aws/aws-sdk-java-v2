@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 
 /**
  * Callback interface to handle a streaming asynchronous response.
@@ -38,8 +39,9 @@ public interface AsyncResponseHandler<ResponseT, ReturnT> {
      * also may never be invoked if the request never succeeds.</p>
      *
      * @param response Unmarshalled POJO containing metadata about the streamed data.
+     * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
      */
-    void responseReceived(ResponseT response);
+    void responseReceived(ResponseT response, ExecutionAttributes executionAttributes);
 
     /**
      * Called when the HTTP client is ready to start sending data to the response handler. Implementations

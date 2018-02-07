@@ -19,6 +19,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 
 /**
  * Implementation of {@link AsyncResponseHandler} that dumps content into a string using the specified {@link Charset}.
@@ -42,8 +43,8 @@ class StringAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<Resp
     }
 
     @Override
-    public void responseReceived(ResponseT response) {
-        byteArrayResponseHandler.responseReceived(response);
+    public void responseReceived(ResponseT response, ExecutionAttributes executionAttributes) {
+        byteArrayResponseHandler.responseReceived(response, executionAttributes);
     }
 
     @Override

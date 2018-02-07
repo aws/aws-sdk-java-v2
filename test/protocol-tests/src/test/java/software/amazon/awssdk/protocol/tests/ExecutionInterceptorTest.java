@@ -537,7 +537,7 @@ public class ExecutionInterceptorTest {
         private StreamingOutputOperationResponse response;
 
         @Override
-        public void responseReceived(StreamingOutputOperationResponse response) {
+        public void responseReceived(StreamingOutputOperationResponse response, ExecutionAttributes executionAttributes) {
             this.response = response;
         }
 

@@ -102,10 +102,11 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
                     .getObject(getObjectRequest, new AsyncResponseHandler<GetObjectResponse, String>() {
 
                         @Override
-                        public void responseReceived(GetObjectResponse response) {
+                        public void responseReceived(GetObjectResponse response, ExecutionAttributes executionAttributes) {
                             // POJO returned by modifyResponse should be delivered to the AsyncResponseHandler
                             assertThat(response.metadata()).hasEntrySatisfying("x-amz-assert",
                                                                                s -> assertThat(s).isEqualTo("injected-value"));
+                            assertThat(executionAttributes).isNotNull();
                         }
 
                         @Override
