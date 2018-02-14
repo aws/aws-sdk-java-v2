@@ -1,23 +1,17 @@
 package software.amazon.awssdk.http.nio.netty.h2;
 
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.pool.ChannelHealthChecker;
 import io.netty.channel.pool.ChannelPool;
-import io.netty.channel.pool.ChannelPoolHandler;
 import io.netty.channel.pool.ChannelPoolMap;
+import io.netty.channel.pool.FixedChannelPool;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http2.Http2SecurityUtil;
-import io.netty.handler.codec.http2.Http2StreamChannel;
-import io.netty.handler.codec.http2.Http2StreamChannelBootstrap;
 import io.netty.handler.ssl.ApplicationProtocolConfig;
 import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.OpenSsl;
@@ -26,16 +20,8 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
-import io.netty.util.concurrent.DefaultPromise;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
-import io.netty.util.concurrent.Promise;
-import io.netty.util.concurrent.SucceededFuture;
 import java.net.URI;
-import java.util.Comparator;
 import java.util.Optional;
-import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 import javax.net.ssl.SSLException;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -44,7 +30,6 @@ import software.amazon.awssdk.http.async.AbortableRunnable;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
-import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys;
 import software.amazon.awssdk.http.nio.netty.internal.RequestAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
@@ -55,6 +40,7 @@ public class NettyH2AsyncHttpClient implements SdkAsyncHttpClient {
     // TODO hard code event loop group
     private final EventLoopGroup group = new NioEventLoopGroup();
     private final ChannelPoolMap<URI, ChannelPool> pools;
+    private final long maxStreams;
     private H2MetricsCollector metricsCollector;
 
     public NettyH2AsyncHttpClient() {
@@ -68,8 +54,13 @@ public class NettyH2AsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     public NettyH2AsyncHttpClient(H2MetricsCollector metricsCollector, int maxConns) {
+        this(metricsCollector, maxConns, 200);
+    }
+
+    public NettyH2AsyncHttpClient(H2MetricsCollector metricsCollector, int maxConns, long maxStreams) {
         this.metricsCollector = metricsCollector;
         this.pools = createChannelPoolMap(maxConns);
+        this.maxStreams = maxStreams;
     }
 
     @Override
@@ -131,11 +122,9 @@ public class NettyH2AsyncHttpClient implements SdkAsyncHttpClient {
                         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10 * 1000)
                         .option(ChannelOption.TCP_NODELAY, true)
                         .remoteAddress(key.getHost(), key.getPort());
-                return new H2ChannelPool(bootstrap, new Http2MultiplexInitializer(metricsCollector, sslContext), 50);
-                // return new FixedChannelPool(bootstrap,
-                // // TODO expose better options for this
-                // new Http2MultiplexInitializer(metricsCollector, sslContext), ChannelHealthChecker.ACTIVE,
-                // FixedChannelPool.AcquireTimeoutAction.FAIL, 10 * 1000, maxConnectionsPerEndpoint, 10_000);
+                return new HttpOrHttp2ChannelPool(bootstrap,
+                                                  new Http2MultiplexInitializer(metricsCollector, sslContext, maxStreams),
+                                                  maxConnectionsPerEndpoint);
             }
         };
     }
@@ -149,115 +138,6 @@ public class NettyH2AsyncHttpClient implements SdkAsyncHttpClient {
     @Override
     public void close() {
         group.shutdownGracefully();
-    }
-
-    public class H2ChannelPool implements ChannelPool {
-
-        private final Bootstrap bootstrap;
-        private final AtomicInteger concurrency;
-        private final EventLoop eventLoop;
-        private final PriorityBlockingQueue<Channel> queue = new PriorityBlockingQueue<>(1,
-                                                                                         Comparator.comparing(c -> c.attr(ChannelAttributeKeys.AVAILABLE_STREAMS).get().get()));
-
-
-        public H2ChannelPool(Bootstrap bootstrap, ChannelPoolHandler handler, int maxConcurrency) {
-            this.bootstrap = bootstrap;
-            this.concurrency = new AtomicInteger(maxConcurrency);
-            this.eventLoop = bootstrap.config().group().next();
-            this.bootstrap.handler(new ChannelInitializer<Channel>() {
-                @Override
-                protected void initChannel(Channel ch) throws Exception {
-                    assert ch.eventLoop().inEventLoop();
-                    handler.channelCreated(ch);
-                }
-            });
-        }
-
-        @Override
-        public synchronized Future<Channel> acquire() {
-            return acquire(new DefaultPromise<>(eventLoop));
-        }
-
-        @Override
-        public synchronized Future<Channel> acquire(Promise<Channel> promise) {
-            // TODO Check current concurrency, if non left then queue a pending acquire with a timeout. For now we will simply throw an exception
-            if (concurrency.get() <= 0) {
-                throw new IllegalStateException("Reached max concurrency for connection pool");
-            }
-            concurrency.decrementAndGet();
-            Promise<Channel> channelPromise = new DefaultPromise<>(eventLoop);
-            if (queue.peek() == null) {
-                // TODO need to check if we can establish a connection
-                // No connection, establish new one
-                ChannelFuture connect = bootstrap.connect();
-                connect.addListener(f -> {
-                    Channel newChannel = connect.channel();
-                    newChannel.attr(PROTOCOL_FUTURE).get()
-                              .thenAccept(s -> {
-                                  // TODO hardcoded value
-                                  newChannel.attr(ChannelAttributeKeys.AVAILABLE_STREAMS).set(new AtomicInteger(50));
-                                  // Open stream child channel and fulfill promise with it.
-                                  new Http2StreamChannelBootstrap(newChannel)
-                                      .open()
-                                      .addListener(createPromiseNotifyingListener(channelPromise));
-                                  queue.add(newChannel);
-                              });
-                });
-            } else {
-                Channel channel = queue.poll();
-                int availableStreams = channel.attr(ChannelAttributeKeys.AVAILABLE_STREAMS).get().decrementAndGet();
-                new Http2StreamChannelBootstrap(channel)
-                    .open()
-                    .addListener(createPromiseNotifyingListener(channelPromise));
-                if (availableStreams > 0) {
-                    // Add back to the channel to allow it to be acquired again.
-                    queue.add(channel);
-                }
-
-            }
-            // Check queue and find a channel with most available streams
-            // If nothing in queue or non with available streams, establish new connection if needed
-            // If max connections reached, wait until a stream becomes available.
-            // If no stream available within the configured timeout, throw exception
-            // If new connection establish, set AVAILABLE_STREAMS to some safe default (since we haven't negotiated yet)
-            //     and decrement available streams by one, returning a new child channel
-            return channelPromise;
-        }
-
-        private GenericFutureListener<Future<Http2StreamChannel>> createPromiseNotifyingListener(Promise<Channel> channelPromise) {
-            return future -> {
-                if (future.isSuccess()) {
-                    channelPromise.setSuccess(future.getNow());
-                } else {
-                    channelPromise.setFailure(future.cause());
-                }
-            };
-        }
-
-        @Override
-        public synchronized Future<Void> release(Channel childChannel) {
-            return release(childChannel, new DefaultPromise<>(eventLoop));
-        }
-
-        @Override
-        public synchronized Future<Void> release(Channel childChannel, Promise<Void> promise) {
-            concurrency.incrementAndGet();
-            Channel parentChannel = childChannel.parent();
-            int availableStreams = parentChannel.attr(ChannelAttributeKeys.AVAILABLE_STREAMS).get().incrementAndGet();
-            // If this release brings available streams from 0 to 1 then add back to queue
-            if (availableStreams == 1) {
-                queue.add(parentChannel);
-            }
-            // TODO do we need to close child stream?
-            childChannel.close();
-            promise.setSuccess(null);
-            return new SucceededFuture<>(eventLoop, null);
-        }
-
-        @Override
-        public void close() {
-
-        }
     }
 
 }

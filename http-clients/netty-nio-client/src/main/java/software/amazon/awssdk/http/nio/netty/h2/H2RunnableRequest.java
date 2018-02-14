@@ -37,6 +37,7 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http2.Http2Frame;
+import io.netty.handler.codec.http2.Http2SettingsFrame;
 import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
@@ -139,11 +140,10 @@ public final class H2RunnableRequest implements AbortableRunnable {
             channel.pipeline().addLast(new SimpleChannelInboundHandler<Http2Frame>() {
                 @Override
                 protected void channelRead0(ChannelHandlerContext ctx, Http2Frame msg) throws Exception {
-                    System.out.println("SHOREA = " + msg.getClass());
                     ctx.channel().attr(FRAME_VISITOR).get().visit(msg, ctx);
                 }
             });
-            channel.pipeline().addLast(new HttpToHttp2Adapter(true));
+            channel.pipeline().addLast(new HttpToHttp2Adapter());
             channel.pipeline().addLast(new HttpStreamsClientHandler());
         } else if (ApplicationProtocolNames.HTTP_1_1.equals(protocol)) {
             channel.pipeline().addFirst(new WriteTimeoutHandler(50));

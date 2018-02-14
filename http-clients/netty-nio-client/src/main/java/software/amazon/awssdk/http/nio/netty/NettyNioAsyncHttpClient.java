@@ -32,7 +32,7 @@ import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.pool.ChannelHealthChecker;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolMap;
-import io.netty.channel.pool.FixedChannelPool;
+import io.netty.channel.pool.SimpleChannelPool;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -48,6 +48,7 @@ import software.amazon.awssdk.http.async.AbortableRunnable;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
+import software.amazon.awssdk.http.nio.netty.h2.BetterFixedChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelPipelineInitializer;
 import software.amazon.awssdk.http.nio.netty.internal.DelegatingEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.NonManagedEventLoopGroup;
@@ -90,11 +91,17 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, serviceDefaults.getConnectionTimeout())
                                 .option(ChannelOption.TCP_NODELAY, true)
                                 .remoteAddress(key.getHost(), key.getPort());
-                SslContext sslContext = sslContext(key.getScheme());
-                return new FixedChannelPool(bootstrap,
-                                            // TODO expose better options for this
-                                            new ChannelPipelineInitializer(sslContext), ChannelHealthChecker.ACTIVE,
-                                            FixedChannelPool.AcquireTimeoutAction.FAIL, 1000, maxConnectionsPerEndpoint, 10_000);
+                return BetterFixedChannelPool.builder()
+                                             .channelPool(new SimpleChannelPool(bootstrap,
+                                                                                new ChannelPipelineInitializer(sslContext(key.getScheme())),
+                                                                                ChannelHealthChecker.ACTIVE))
+                                             .executor(bootstrap.config().group().next())
+                                             .acquireTimeoutAction(BetterFixedChannelPool.AcquireTimeoutAction.FAIL)
+                                             // TODO expose better options for this
+                                             .acquireTimeoutMillis(1000)
+                                             .maxConnections(maxConnectionsPerEndpoint)
+                                             .maxPendingAcquires(1000)
+                                             .build();
             }
         };
     }

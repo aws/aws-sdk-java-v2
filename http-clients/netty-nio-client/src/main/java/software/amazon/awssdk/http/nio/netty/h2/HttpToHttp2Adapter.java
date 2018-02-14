@@ -41,10 +41,7 @@ import io.netty.util.concurrent.EventExecutor;
  */
 public class HttpToHttp2Adapter extends ChannelOutboundHandlerAdapter {
 
-    private final boolean validateHeaders;
-
-    protected HttpToHttp2Adapter(boolean validateHeaders) {
-        this.validateHeaders = validateHeaders;
+    HttpToHttp2Adapter() {
     }
 
     /**
@@ -67,7 +64,7 @@ public class HttpToHttp2Adapter extends ChannelOutboundHandlerAdapter {
                 HttpMessage httpMsg = (HttpMessage) msg;
 
                 // Convert and write the headers.
-                Http2Headers http2Headers = HttpConversionUtil.toHttp2Headers(httpMsg, validateHeaders);
+                Http2Headers http2Headers = HttpConversionUtil.toHttp2Headers(httpMsg, false);
                 endStream = msg instanceof FullHttpMessage && !((FullHttpMessage) msg).content().isReadable();
                 ctx.write(new DefaultHttp2HeadersFrame(http2Headers), promiseAggregator);
             }
@@ -82,7 +79,7 @@ public class HttpToHttp2Adapter extends ChannelOutboundHandlerAdapter {
                     // Convert any trailing headers.
                     final LastHttpContent lastContent = (LastHttpContent) msg;
                     trailers = lastContent.trailingHeaders();
-                    http2Trailers = HttpConversionUtil.toHttp2Headers(trailers, validateHeaders);
+                    http2Trailers = HttpConversionUtil.toHttp2Headers(trailers, false);
                 }
 
                 // Write the data

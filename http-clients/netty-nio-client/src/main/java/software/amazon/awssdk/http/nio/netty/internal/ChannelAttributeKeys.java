@@ -15,12 +15,13 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
-import io.netty.handler.codec.http2.Http2FrameListener;
 import io.netty.util.AttributeKey;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
+import software.amazon.awssdk.http.nio.netty.h2.Http2MultiplexChannelPool;
+import software.amazon.awssdk.http.nio.netty.h2.MultiplexedChannelRecord;
 import software.amazon.awssdk.http.nio.netty.h2.SdkHttp2FrameVisitor;
 
 /**
@@ -50,7 +51,15 @@ public class ChannelAttributeKeys {
      */
     public static final AttributeKey<CompletableFuture<String>> PROTOCOL_FUTURE = AttributeKey.newInstance("protocolFuture");
 
-    public static final AttributeKey<AtomicInteger> AVAILABLE_STREAMS = AttributeKey.newInstance("availableStreams");
+    /**
+     * Reference to {@link MultiplexedChannelRecord} which stores information about leased streams for a multiplexed connection.
+     */
+    public static final AttributeKey<MultiplexedChannelRecord> CHANNEL_POOL_RECORD = AttributeKey.newInstance("channelPoolRecord");
+
+    /**
+     * Value of the MAX_CONCURRENT_STREAMS from the server's SETTING frame.
+     */
+    public static final AttributeKey<Long> MAX_CONCURRENT_STREAMS = AttributeKey.newInstance("maxConcurrentStreams");
 
     public static final AttributeKey<SdkHttp2FrameVisitor> FRAME_VISITOR = AttributeKey.newInstance("frameVisitor");
 
