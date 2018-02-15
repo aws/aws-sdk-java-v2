@@ -217,7 +217,7 @@
 
                 <!-- Disable spotbugs for service clients to speed up the build. -->
                 <plugin>
-                    <groupId>com.github.hazendaz.spotbugs</groupId>
+                    <groupId>com.github.spotbugs</groupId>
                     <artifactId>spotbugs-maven-plugin</artifactId>
                     <configuration>
                         <skip>true</skip>
