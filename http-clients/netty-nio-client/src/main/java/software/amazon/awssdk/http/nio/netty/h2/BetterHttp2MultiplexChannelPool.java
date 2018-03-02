@@ -68,8 +68,7 @@ public class BetterHttp2MultiplexChannelPool implements ChannelPool {
     @Override
     public Future<Channel> acquire(Promise<Channel> promise) {
         try {
-            Runnable runnable = () -> acquire0(promise);
-            doInEventLoop(eventLoop, runnable);
+            doInEventLoop(eventLoop, () -> acquire0(promise));
         } catch (Exception e) {
             promise.setFailure(e);
         }
@@ -97,8 +96,7 @@ public class BetterHttp2MultiplexChannelPool implements ChannelPool {
     @Override
     public Future<Void> release(Channel childChannel, Promise<Void> promise) {
         try {
-            Runnable runnable = () -> release0(childChannel, promise);
-            doInEventLoop(eventLoop, runnable);
+            doInEventLoop(eventLoop, () -> release0(childChannel, promise));
         } catch (Exception e) {
             promise.setFailure(e);
         }

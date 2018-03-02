@@ -120,7 +120,13 @@ class SdkHttp2FrameLogger extends Http2FrameLogger {
     }
 
     private String dataToString(Direction direction, ByteBuf data) {
-        return indentArrow(direction) + " " +
-               new String(BinaryUtils.copyBytesFrom(data.nioBuffer()), StandardCharsets.UTF_8);
+        StringBuilder builder = new StringBuilder(indentArrow(direction));
+        for (byte b : BinaryUtils.copyBytesFrom(data.nioBuffer())) {
+            builder.append(String.format("0x%02X", b))
+                   .append(" ");
+        }
+        return builder.toString();
+        //        return indentArrow(direction) + " " +
+        //               new String(BinaryUtils.copyBytesFrom(data.nioBuffer()), StandardCharsets.UTF_8);
     }
 }

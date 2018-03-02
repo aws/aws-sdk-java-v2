@@ -67,7 +67,7 @@ public class Http2MultiplexInitializer extends AbstractChannelPoolHandler {
                 if (ApplicationProtocolNames.HTTP_2.equals(protocol)) {
                     ch.pipeline().addLast(Http2MultiplexCodecBuilder
                                               .forClient(new NoOpChannelInitializer())
-                                              //.frameLogger(new SdkHttp2FrameLogger(LogLevel.DEBUG))
+                                              .frameLogger(new SdkHttp2FrameLogger(LogLevel.DEBUG))
                                               .propagateSettings(true)
                                               .headerSensitivityDetector((name, value) -> {
                                                   String lowerName = name.toString().toLowerCase();

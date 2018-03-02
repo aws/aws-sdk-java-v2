@@ -70,7 +70,9 @@ public final class H2RunnableRequest implements AbortableRunnable {
 
     @Override
     public void run() {
+        long startAcquire = System.nanoTime();
         context.channelPool().acquire().addListener((Future<Channel> channelFuture) -> {
+            metricsCollector.putMetric("H2JavaSDK", "ConnectionAcquire", System.nanoTime() - startAcquire);
             if (channelFuture.isSuccess()) {
                 try {
                     channel = channelFuture.getNow();

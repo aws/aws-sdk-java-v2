@@ -312,12 +312,13 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.6.0</version>
+                    <version>3.7.0</version>
                     <configuration>
                         <source>${jre.version}</source>
                         <target>${jre.version}</target>
                         <encoding>UTF-8</encoding>
                         <forceJavacCompilerUse>true</forceJavacCompilerUse>
+                        <fork>false</fork>
                     </configuration>
                 </plugin>
 

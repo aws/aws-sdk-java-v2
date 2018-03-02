@@ -22,6 +22,7 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.AwsSystemSetting;
+import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.OperationInfo;
 import software.amazon.awssdk.core.protocol.Protocol;
@@ -85,6 +86,10 @@ public class SdkJsonProtocolFactory {
             JsonOperationMetadata operationMetadata,
             Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller) {
         return getSdkFactory().createResponseHandler(operationMetadata, responseUnmarshaller);
+    }
+
+    public JsonUnmarshallerContext createJsonUnmarshallerContext(HttpResponse httpResponse) {
+        return getSdkFactory().createJsonUnmarshallerContext(httpResponse);
     }
 
     /**

@@ -129,7 +129,9 @@ public class IntermediateModelBuilder {
 
         log.info("{} shapes remained after applying customizations.", fullModel.getShapes().size());
 
-        Map<String, ShapeModel> trimmedShapes = removeUnusedShapes(fullModel);
+        // TODO uncomment
+        Map<String, ShapeModel> trimmedShapes = fullModel.getShapes();
+//        Map<String, ShapeModel> trimmedShapes = removeUnusedShapes(fullModel);
 
         log.info("{} shapes remained after removing unused shapes.", trimmedShapes.size());
 
