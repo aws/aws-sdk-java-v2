@@ -164,7 +164,7 @@ public class SyncClientClass implements ClassSpec {
             paginatedMethodSpecs.add(SyncClientInterface.operationMethodSignature(model,
                                                                                   opModel,
                                                                                   SimpleMethodOverload.PAGINATED,
-                                                                                  PaginatorUtils.getSyncMethodName(
+                                                                                  PaginatorUtils.getPaginatedMethodName(
                                                                                       opModel.getMethodName()))
                                                         .addAnnotation(Override.class)
                                                         .returns(poetExtensions.getResponseClassForPaginatedSyncOperation(

@@ -67,14 +67,18 @@ public class PaginatedItemsIterableTest {
 
     @Test
     public void hasNext_ReturnsTrue_WhenItemsIteratorHasNextElement() {
+        when(pagesIterator.hasNext()).thenReturn(true);
+        when(getItemIteratorFunction.apply(any())).thenReturn(singlePageItemsIterator);
         when(singlePageItemsIterator.hasNext()).thenReturn(true);
-        when(pagesIterator.hasNext()).thenReturn(false);
 
         assertTrue(itemsIterable.iterator().hasNext());
     }
 
     @Test
     public void hasNextMethodDoesNotRetrieveNextPage_WhenItemsIteratorHasAnElement() {
+        when(pagesIterator.hasNext()).thenReturn(true);
+        when(getItemIteratorFunction.apply(any())).thenReturn(singlePageItemsIterator);
+
         when(singlePageItemsIterator.hasNext()).thenReturn(true);
 
         Iterator itemsIterator = itemsIterable.iterator();
@@ -102,12 +106,12 @@ public class PaginatedItemsIterableTest {
     }
 
     @Test
-    public void hasNextMethodGetsNextPage_WhenCurrentItemsIteratorIsNull() {
+    public void hasNextMethodGetsNextPage_WhenCurrentItemsIteratorIsEmpty() {
         when(pagesIterator.hasNext()).thenReturn(true);
 
-        when(getItemIteratorFunction.apply(any())).thenReturn(null, singlePageItemsIterator);
+        when(getItemIteratorFunction.apply(any())).thenReturn(singlePageItemsIterator);
 
-        when(singlePageItemsIterator.hasNext()).thenReturn(true);
+        when(singlePageItemsIterator.hasNext()).thenReturn(false, true);
 
         itemsIterable.iterator().hasNext();
 

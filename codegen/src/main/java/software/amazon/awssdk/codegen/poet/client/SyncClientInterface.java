@@ -247,7 +247,7 @@ public final class SyncClientInterface implements ClassSpec {
             paginatedMethodSpecs.add(operationMethodSignature(model,
                                                               opModel,
                                                               SimpleMethodOverload.PAGINATED,
-                                                              PaginatorUtils.getSyncMethodName(opModel.getMethodName()))
+                                                              PaginatorUtils.getPaginatedMethodName(opModel.getMethodName()))
                                          .returns(poetExtensions.getResponseClassForPaginatedSyncOperation(
                                              opModel.getOperationName()))
                                          .addModifiers(Modifier.DEFAULT)
@@ -259,7 +259,7 @@ public final class SyncClientInterface implements ClassSpec {
     }
 
     private MethodSpec paginatedSimpleMethod(OperationModel opModel) {
-        String paginatedMethodName = PaginatorUtils.getSyncMethodName(opModel.getMethodName());
+        String paginatedMethodName = PaginatorUtils.getPaginatedMethodName(opModel.getMethodName());
         ClassName requestType = ClassName.get(model.getMetadata().getFullModelPackageName(),
                                               opModel.getInput().getVariableType());
 

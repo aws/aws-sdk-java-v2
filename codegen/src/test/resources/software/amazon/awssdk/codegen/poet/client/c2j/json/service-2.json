@@ -237,9 +237,6 @@
     },
     "PaginatedOperationWithResultKeyRequest": {
       "type": "structure",
-      "required": [
-        "NextToken"
-      ],
       "members": {
         "NextToken": {
           "shape": "subMember",

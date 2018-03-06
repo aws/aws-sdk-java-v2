@@ -21,6 +21,8 @@ import software.amazon.awssdk.services.json.model.StreamingInputOperationRequest
 import software.amazon.awssdk.services.json.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationResponse;
+import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher;
+import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
@@ -131,7 +133,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
-            APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
+        APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
         throw new UnsupportedOperationException();
     }
 
@@ -163,7 +165,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
-            Consumer<APostOperationWithOutputRequest.Builder> aPostOperationWithOutputRequest) {
+        Consumer<APostOperationWithOutputRequest.Builder> aPostOperationWithOutputRequest) {
         return aPostOperationWithOutput(APostOperationWithOutputRequest.builder().apply(aPostOperationWithOutputRequest).build());
     }
 
@@ -191,7 +193,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
-            GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) {
+        GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) {
         throw new UnsupportedOperationException();
     }
 
@@ -249,9 +251,9 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
-            Consumer<GetWithoutRequiredMembersRequest.Builder> getWithoutRequiredMembersRequest) {
+        Consumer<GetWithoutRequiredMembersRequest.Builder> getWithoutRequiredMembersRequest) {
         return getWithoutRequiredMembers(GetWithoutRequiredMembersRequest.builder().apply(getWithoutRequiredMembersRequest)
-                .build());
+                                                                         .build());
     }
 
     /**
@@ -275,8 +277,31 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey(
-            PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
+        PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Some paginated operation with result_key in paginators.json file
+     *
+     * @return A Java Future containing the result of the PaginatedOperationWithResultKey operation returned by the
+     *         service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.PaginatedOperationWithResultKey
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey() {
+        return paginatedOperationWithResultKey(PaginatedOperationWithResultKeyRequest.builder().build());
     }
 
     /**
@@ -303,9 +328,153 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey(
-            Consumer<PaginatedOperationWithResultKeyRequest.Builder> paginatedOperationWithResultKeyRequest) {
+        Consumer<PaginatedOperationWithResultKeyRequest.Builder> paginatedOperationWithResultKeyRequest) {
         return paginatedOperationWithResultKey(PaginatedOperationWithResultKeyRequest.builder()
-                .apply(paginatedOperationWithResultKeyRequest).build());
+                                                                                     .apply(paginatedOperationWithResultKeyRequest).build());
+    }
+
+    /**
+     * Some paginated operation with result_key in paginators.json file<br/>
+     * <p>
+     * This is a variant of
+     * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
+     * operation. The return type is a custom publisher that can be subscribed to request a stream of response pages.
+     * SDK will internally handle making service calls for you.
+     * </p>
+     * <p>
+     * When the operation is called, an instance of this class is returned. At this point, no service calls are made yet
+     * and so there is no guarantee that the request is valid. If there are errors in your request, you will see the
+     * failures only after you start streaming the data. The subscribe method should be called as a request to start
+     * streaming data. For more info, see
+     * {@link org.reactivestreams.Publisher#subscribe(org.reactivestreams.Subscriber)}. Each call to the subscribe
+     * method will result in a new {@link org.reactivestreams.Subscription} i.e., a new contract to stream data from the
+     * starting request.
+     * </p>
+     *
+     * <p>
+     * The following are few ways to use the response class:
+     * </p>
+     * 1) Using the forEach helper method
+     *
+     * <pre>
+     * {@code
+     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
+     * CompletableFuture<Void> future = publisher.forEach(res -> { // Do something with the response });
+     * future.get();
+     * }
+     * </pre>
+     *
+     * 2) Using a custom subscriber
+     *
+     * <pre>
+     * {@code
+     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
+     * publisher.subscribe(new Subscriber<software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse>() {
+     *
+     * public void onSubscribe(org.reactivestreams.Subscriber subscription) { //... };
+     *
+     *
+     * public void onNext(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse response) { //... };
+     * });}
+     * </pre>
+     *
+     * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
+     * <p>
+     * <b>Note: If you prefer to have control on service calls, use the
+     * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
+     * operation.</b>
+     * </p>
+     *
+     * @param paginatedOperationWithResultKeyRequest
+     * @return A custom publisher that can be subscribed to request a stream of response pages.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.PaginatedOperationWithResultKey
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default PaginatedOperationWithResultKeyPublisher paginatedOperationWithResultKeyPaginator(
+        PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Some paginated operation with result_key in paginators.json file<br/>
+     * <p>
+     * This is a variant of
+     * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
+     * operation. The return type is a custom publisher that can be subscribed to request a stream of response pages.
+     * SDK will internally handle making service calls for you.
+     * </p>
+     * <p>
+     * When the operation is called, an instance of this class is returned. At this point, no service calls are made yet
+     * and so there is no guarantee that the request is valid. If there are errors in your request, you will see the
+     * failures only after you start streaming the data. The subscribe method should be called as a request to start
+     * streaming data. For more info, see
+     * {@link org.reactivestreams.Publisher#subscribe(org.reactivestreams.Subscriber)}. Each call to the subscribe
+     * method will result in a new {@link org.reactivestreams.Subscription} i.e., a new contract to stream data from the
+     * starting request.
+     * </p>
+     *
+     * <p>
+     * The following are few ways to use the response class:
+     * </p>
+     * 1) Using the forEach helper method
+     *
+     * <pre>
+     * {@code
+     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
+     * CompletableFuture<Void> future = publisher.forEach(res -> { // Do something with the response });
+     * future.get();
+     * }
+     * </pre>
+     *
+     * 2) Using a custom subscriber
+     *
+     * <pre>
+     * {@code
+     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher publisher = client.paginatedOperationWithResultKeyPaginator(request);
+     * publisher.subscribe(new Subscriber<software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse>() {
+     *
+     * public void onSubscribe(org.reactivestreams.Subscriber subscription) { //... };
+     *
+     *
+     * public void onNext(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse response) { //... };
+     * });}
+     * </pre>
+     *
+     * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
+     * <p>
+     * <b>Note: If you prefer to have control on service calls, use the
+     * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
+     * operation.</b>
+     * </p>
+     *
+     * @return A custom publisher that can be subscribed to request a stream of response pages.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.PaginatedOperationWithResultKey
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default PaginatedOperationWithResultKeyPublisher paginatedOperationWithResultKeyPaginator() {
+        return paginatedOperationWithResultKeyPaginator(PaginatedOperationWithResultKeyRequest.builder().build());
     }
 
     /**
@@ -329,7 +498,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<PaginatedOperationWithoutResultKeyResponse> paginatedOperationWithoutResultKey(
-            PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
+        PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
         throw new UnsupportedOperationException();
     }
 
@@ -357,9 +526,82 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<PaginatedOperationWithoutResultKeyResponse> paginatedOperationWithoutResultKey(
-            Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest) {
+        Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest) {
         return paginatedOperationWithoutResultKey(PaginatedOperationWithoutResultKeyRequest.builder()
-                .apply(paginatedOperationWithoutResultKeyRequest).build());
+                                                                                           .apply(paginatedOperationWithoutResultKeyRequest).build());
+    }
+
+    /**
+     * Some paginated operation without result_key in paginators.json file<br/>
+     * <p>
+     * This is a variant of
+     * {@link #paginatedOperationWithoutResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest)}
+     * operation. The return type is a custom publisher that can be subscribed to request a stream of response pages.
+     * SDK will internally handle making service calls for you.
+     * </p>
+     * <p>
+     * When the operation is called, an instance of this class is returned. At this point, no service calls are made yet
+     * and so there is no guarantee that the request is valid. If there are errors in your request, you will see the
+     * failures only after you start streaming the data. The subscribe method should be called as a request to start
+     * streaming data. For more info, see
+     * {@link org.reactivestreams.Publisher#subscribe(org.reactivestreams.Subscriber)}. Each call to the subscribe
+     * method will result in a new {@link org.reactivestreams.Subscription} i.e., a new contract to stream data from the
+     * starting request.
+     * </p>
+     *
+     * <p>
+     * The following are few ways to use the response class:
+     * </p>
+     * 1) Using the forEach helper method
+     *
+     * <pre>
+     * {@code
+     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher publisher = client.paginatedOperationWithoutResultKeyPaginator(request);
+     * CompletableFuture<Void> future = publisher.forEach(res -> { // Do something with the response });
+     * future.get();
+     * }
+     * </pre>
+     *
+     * 2) Using a custom subscriber
+     *
+     * <pre>
+     * {@code
+     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher publisher = client.paginatedOperationWithoutResultKeyPaginator(request);
+     * publisher.subscribe(new Subscriber<software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse>() {
+     *
+     * public void onSubscribe(org.reactivestreams.Subscriber subscription) { //... };
+     *
+     *
+     * public void onNext(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse response) { //... };
+     * });}
+     * </pre>
+     *
+     * As the response is a publisher, it can work well with third party reactive streams implementations like RxJava2.
+     * <p>
+     * <b>Note: If you prefer to have control on service calls, use the
+     * {@link #paginatedOperationWithoutResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest)}
+     * operation.</b>
+     * </p>
+     *
+     * @param paginatedOperationWithoutResultKeyRequest
+     * @return A custom publisher that can be subscribed to request a stream of response pages.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.PaginatedOperationWithoutResultKey
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default PaginatedOperationWithoutResultKeyPublisher paginatedOperationWithoutResultKeyPaginator(
+        PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -388,7 +630,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
-            StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestProvider requestProvider) {
+        StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestProvider requestProvider) {
         throw new UnsupportedOperationException();
     }
 
@@ -417,7 +659,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
-            StreamingInputOperationRequest streamingInputOperationRequest, Path path) {
+        StreamingInputOperationRequest streamingInputOperationRequest, Path path) {
         return streamingInputOperation(streamingInputOperationRequest, AsyncRequestProvider.fromFile(path));
     }
 
@@ -446,8 +688,8 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
-            StreamingOutputOperationRequest streamingOutputOperationRequest,
-            AsyncResponseHandler<StreamingOutputOperationResponse, ReturnT> asyncResponseHandler) {
+        StreamingOutputOperationRequest streamingOutputOperationRequest,
+        AsyncResponseHandler<StreamingOutputOperationResponse, ReturnT> asyncResponseHandler) {
         throw new UnsupportedOperationException();
     }
 
@@ -475,7 +717,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingOutputOperationResponse> streamingOutputOperation(
-            StreamingOutputOperationRequest streamingOutputOperationRequest, Path path) {
+        StreamingOutputOperationRequest streamingOutputOperationRequest, Path path) {
         return streamingOutputOperation(streamingOutputOperationRequest, AsyncResponseHandler.toFile(path));
     }
 }
