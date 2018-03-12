@@ -15,12 +15,14 @@
 
 package software.amazon.awssdk.services.dynamodb;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.Stream;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.pagination.SdkIterable;
@@ -35,7 +37,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
-import software.amazon.awssdk.services.dynamodb.paginators.ScanPaginator;
+import software.amazon.awssdk.services.dynamodb.paginators.ScanIterable;
 import utils.resources.tables.BasicTempTable;
 import utils.test.util.DynamoDBTestBase;
 import utils.test.util.TableUtils;
@@ -78,7 +80,7 @@ public class ScanPaginatorIntegrationTest extends DynamoDBTestBase {
     @Test
     public void test_MultipleIteration_On_Responses_Iterable() {
         ScanRequest request = ScanRequest.builder().tableName(TABLE_NAME).limit(2).build();
-        ScanPaginator scanResponses = dynamo.scanIterable(request);
+        ScanIterable scanResponses = dynamo.scanPaginator(request);
 
         int count = 0;
 
@@ -86,20 +88,20 @@ public class ScanPaginatorIntegrationTest extends DynamoDBTestBase {
         for (ScanResponse response : scanResponses) {
             count += response.count();
         }
-        Assert.assertEquals(ITEM_COUNT, count);
+        assertEquals(ITEM_COUNT, count);
 
         // Iterate second time
         count = 0;
         for (ScanResponse response : scanResponses) {
             count += response.count();
         }
-        Assert.assertEquals(ITEM_COUNT, count);
+        assertEquals(ITEM_COUNT, count);
     }
 
     @Test
     public void test_MultipleIteration_On_PaginatedMember_Iterable() {
         ScanRequest request = ScanRequest.builder().tableName(TABLE_NAME).limit(2).build();
-        SdkIterable<Map<String, AttributeValue>> items = dynamo.scanIterable(request).items();
+        SdkIterable<Map<String, AttributeValue>> items = dynamo.scanPaginator(request).items();
 
         int count = 0;
 
@@ -107,80 +109,118 @@ public class ScanPaginatorIntegrationTest extends DynamoDBTestBase {
         for (Map<String, AttributeValue> item : items) {
             count++;
         }
-        Assert.assertEquals(ITEM_COUNT, count);
+        assertEquals(ITEM_COUNT, count);
 
         // Iterate second time
         count = 0;
         for (Map<String, AttributeValue> item : items) {
             count++;
         }
-        Assert.assertEquals(ITEM_COUNT, count);
+        assertEquals(ITEM_COUNT, count);
     }
 
     @Test
     public void test_MultipleIteration_On_Responses_Stream() {
         int results_per_page = 2;
         ScanRequest request = ScanRequest.builder().tableName(TABLE_NAME).limit(results_per_page).build();
-        ScanPaginator scanResponses = dynamo.scanIterable(request);
+        ScanIterable scanResponses = dynamo.scanPaginator(request);
 
         // Iterate once
-        Assert.assertEquals(ITEM_COUNT, scanResponses.stream()
+        assertEquals(ITEM_COUNT, scanResponses.stream()
                                                      .mapToInt(response -> response.count())
                                                      .sum());
 
         // Iterate second time
-        Assert.assertEquals(ITEM_COUNT, scanResponses.stream()
+        assertEquals(ITEM_COUNT, scanResponses.stream()
                                                      .mapToInt(response -> response.count())
                                                      .sum());
 
         // Number of pages
-        Assert.assertEquals(Math.ceil((double) ITEM_COUNT/results_per_page), scanResponses.stream().count(), 0);
+        assertEquals(Math.ceil((double) ITEM_COUNT/results_per_page), scanResponses.stream().count(), 0);
     }
 
     @Test
     public void test_MultipleIteration_On_PaginatedMember_Stream() {
         int results_per_page = 2;
         ScanRequest request = ScanRequest.builder().tableName(TABLE_NAME).limit(results_per_page).build();
-        SdkIterable<Map<String, AttributeValue>> items = dynamo.scanIterable(request).items();
+        SdkIterable<Map<String, AttributeValue>> items = dynamo.scanPaginator(request).items();
 
         // Iterate once
-        Assert.assertEquals(ITEM_COUNT, items.stream().distinct().count());
+        assertEquals(ITEM_COUNT, items.stream().distinct().count());
 
         // Iterate second time
-        Assert.assertEquals(ITEM_COUNT, items.stream().distinct().count());
+        assertEquals(ITEM_COUNT, items.stream().distinct().count());
     }
 
     @Test (expected = IllegalStateException.class)
     public void iteration_On_SameStream_ThrowsError() {
         int results_per_page = 2;
         ScanRequest request = ScanRequest.builder().tableName(TABLE_NAME).limit(results_per_page).build();
-        Stream<Map<String, AttributeValue>> itemsStream = dynamo.scanIterable(request).items().stream();
+        Stream<Map<String, AttributeValue>> itemsStream = dynamo.scanPaginator(request).items().stream();
 
         // Iterate once
-        Assert.assertEquals(ITEM_COUNT, itemsStream.distinct().count());
+        assertEquals(ITEM_COUNT, itemsStream.distinct().count());
 
         // Iterate second time
-        Assert.assertEquals(ITEM_COUNT, itemsStream.distinct().count());
+        assertEquals(ITEM_COUNT, itemsStream.distinct().count());
     }
 
     @Test
     public void mix_Iterator_And_Stream_Calls() {
         ScanRequest request = ScanRequest.builder().tableName(TABLE_NAME).limit(2).build();
-        ScanPaginator scanResponses = dynamo.scanIterable(request);
+        ScanIterable scanResponses = dynamo.scanPaginator(request);
 
-        Assert.assertEquals(ITEM_COUNT, scanResponses.stream().flatMap(r -> r.items().stream())
+        assertEquals(ITEM_COUNT, scanResponses.stream().flatMap(r -> r.items().stream())
                                                      .distinct()
                                                      .count());
 
 
-        Assert.assertEquals(ITEM_COUNT, scanResponses.stream().mapToInt(response -> response.count()).sum());
+        assertEquals(ITEM_COUNT, scanResponses.stream().mapToInt(response -> response.count()).sum());
 
 
         int count = 0;
         for (ScanResponse response : scanResponses) {
             count += response.count();
         }
-        Assert.assertEquals(ITEM_COUNT, count);
+        assertEquals(ITEM_COUNT, count);
+    }
+
+    @Test
+    public void test_resume_On_IntermediatePage() {
+        ScanRequest request = ScanRequest.builder().tableName(TABLE_NAME).limit(5).build();
+        ScanIterable scanResponses = dynamo.scanPaginator(request);
+
+        Iterator<ScanResponse> scanResponsesIterator = scanResponses.iterator();
+
+        int scannedCount = 0;
+        scannedCount += scanResponsesIterator.next().count();
+
+        ScanResponse lastResponse = scanResponsesIterator.next();
+        scannedCount += lastResponse.count();
+
+        // Resume from last page
+        assertEquals(ITEM_COUNT, scannedCount + scanResponses.resume(lastResponse).stream()
+                                                                    .flatMap(r -> r.items().stream())
+                                                                    .count());
+
+
+        assertEquals(ITEM_COUNT, scannedCount + scanResponses.resume(lastResponse).items().stream().count());
+    }
+
+
+    @Test
+    public void test_resume_On_LastPage() {
+        ScanRequest request = ScanRequest.builder().tableName(TABLE_NAME).limit(5).build();
+        ScanIterable scanResponses = dynamo.scanPaginator(request);
+
+        ScanResponse lastPage = scanResponses.stream().reduce((first, second) -> second).get();
+
+        // Resume from last page
+        assertEquals(0, scanResponses.resume(lastPage).stream()
+                                     .flatMap(r -> r.items().stream())
+                                     .count());
+
+        assertEquals(0, scanResponses.resume(lastPage).items().stream().count());
     }
 
     private static void putTestData() {

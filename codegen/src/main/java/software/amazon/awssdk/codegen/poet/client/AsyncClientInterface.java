@@ -36,7 +36,9 @@ import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
+import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestProvider;
 import software.amazon.awssdk.core.async.AsyncResponseHandler;
@@ -52,6 +54,7 @@ public class AsyncClientInterface implements ClassSpec {
     protected final ClassName className;
     protected final String clientPackageName;
     private final String modelPackage;
+    private final PoetExtensions poetExtensions;
 
     public AsyncClientInterface(IntermediateModel model) {
         this.modelPackage = model.getMetadata().getFullModelPackageName();
@@ -59,6 +62,7 @@ public class AsyncClientInterface implements ClassSpec {
         this.model = model;
         this.className = ClassName.get(model.getMetadata().getFullClientPackageName(),
                                        model.getMetadata().getAsyncInterface());
+        this.poetExtensions = new PoetExtensions(model);
     }
 
     @Override
@@ -132,7 +136,62 @@ public class AsyncClientInterface implements ClassSpec {
                             .flatMap(List::stream)
                             .map(MethodSpec.Builder::build)
                             .collect(toList()));
+
+        methods.addAll(paginatedTraditionalMethods());
+        methods.addAll(paginatedSimpleMethods());
+
         return methods.stream().sorted(Comparator.comparing(m -> m.name)).collect(toList());
+    }
+
+    protected List<MethodSpec> paginatedTraditionalMethods() {
+        return model.getOperations().values().stream()
+                    .filter(operationModel -> operationModel.isPaginated())
+                    .map(this::paginatedTraditionalMethod)
+                    .collect(toList());
+    }
+
+    private MethodSpec paginatedTraditionalMethod(OperationModel opModel) {
+        final String methodName = PaginatorUtils.getPaginatedMethodName(opModel.getMethodName());
+        final ClassName requestType = ClassName.get(modelPackage, opModel.getInput().getVariableType());
+        final ClassName responsePojoType = poetExtensions.getResponseClassForPaginatedAsyncOperation(opModel.getOperationName());
+
+        MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
+                                               .returns(responsePojoType)
+                                               .addParameter(requestType, opModel.getInput().getVariableName())
+                                               .addJavadoc(opModel.getDocs(model,
+                                                                           ClientType.ASYNC,
+                                                                           SimpleMethodOverload.PAGINATED));
+
+        return paginatedMethodBody(builder, opModel).build();
+    }
+
+    protected MethodSpec.Builder paginatedMethodBody(MethodSpec.Builder builder, OperationModel operationModel) {
+        return builder.addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
+                      .addStatement("throw new $T()", UnsupportedOperationException.class);
+    }
+
+    private List<MethodSpec> paginatedSimpleMethods() {
+        return model.getOperations().values().stream()
+                    .filter(operationModel -> operationModel.isPaginated())
+                    .filter(operationModel -> operationModel.getInputShape().isSimpleMethod())
+                    .map(this::paginatedSimpleMethod)
+                    .collect(toList());
+    }
+
+    private MethodSpec paginatedSimpleMethod(OperationModel opModel) {
+        final String methodName = PaginatorUtils.getPaginatedMethodName(opModel.getMethodName());
+        final ClassName requestType = ClassName.get(modelPackage, opModel.getInput().getVariableType());
+        final ClassName responsePojoType = poetExtensions.getResponseClassForPaginatedAsyncOperation(opModel.getOperationName());
+
+        MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
+                                               .addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
+                                               .returns(responsePojoType)
+                                               .addStatement("return $L($T.builder().build())", methodName, requestType)
+                                               .addJavadoc(opModel.getDocs(model,
+                                                                           ClientType.ASYNC,
+                                                                           SimpleMethodOverload.NO_ARG_PAGINATED));
+
+        return builder.build();
     }
 
     /**

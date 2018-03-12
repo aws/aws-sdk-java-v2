@@ -60,4 +60,11 @@
         wrap it in an sdk-specific exception. -->
         <Bug pattern="URF_UNREAD_FIELD,DLS_DEAD_LOCAL_STORE,REC_CATCH_EXCEPTION" />
     </Match>
+
+    <!-- NP_NONNULL_PARAM_VIOLATION false postive - https://github.com/spotbugs/spotbugs/issues/484 -->
+    <Match>
+        <Class name="software.amazon.awssdk.core.pagination.async.SequentialSubscriber" />
+        <Method name="onComplete" />
+        <Bug pattern="NP_NONNULL_PARAM_VIOLATION" />
+    </Match>
 </FindBugsFilter>

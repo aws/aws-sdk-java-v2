@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.pagination;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
@@ -51,17 +52,17 @@ public class PaginatedItemsIterable<ResponseT, ItemT> implements SdkIterable<Ite
 
         ItemsIterator(final Iterator<ResponseT> pagesIterator) {
             this.pagesIterator = pagesIterator;
-            this.singlePageItemsIterator = getItemIterator.apply(pagesIterator.next());
+            this.singlePageItemsIterator = pagesIterator.hasNext() ? getItemIterator.apply(pagesIterator.next())
+                                                                   : Collections.emptyIterator();
         }
 
         @Override
         public boolean hasNext() {
-            while ((singlePageItemsIterator == null || !singlePageItemsIterator.hasNext())
-                   && pagesIterator.hasNext()) {
+            while (!hasMoreItems() && pagesIterator.hasNext()) {
                 singlePageItemsIterator = getItemIterator.apply(pagesIterator.next());
             }
 
-            if (singlePageItemsIterator != null && singlePageItemsIterator.hasNext()) {
+            if (hasMoreItems()) {
                 return true;
             }
 
@@ -75,6 +76,10 @@ public class PaginatedItemsIterable<ResponseT, ItemT> implements SdkIterable<Ite
             }
 
             return singlePageItemsIterator.next();
+        }
+
+        private boolean hasMoreItems() {
+            return singlePageItemsIterator.hasNext();
         }
     }
 
