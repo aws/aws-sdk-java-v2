@@ -18,9 +18,14 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>software.amazon.awssdk</groupId>
+    <parent>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>aws-sdk-java-pom</artifactId>
+        <version>2.0.0-preview-9-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <artifactId>bom</artifactId>
-    <version>2.0.0-preview-9-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Bill of Materials</name>
     <description>The AWS SDK for Java - BOM module holds the dependency managements for individual java clients.
@@ -28,7 +33,6 @@
     <url>https://aws.amazon.com/sdkforjava</url>
 
     <properties>
-        <awsjavasdk.version>${project.version}</awsjavasdk.version>
         <sonar.skip>true</sonar.skip>
     </properties>
 
