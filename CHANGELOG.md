@@ -1,3 +1,13 @@
+# __2.0.0-preview-9__ __2018-03-20__
+## __AWS Lambda__
+  - ### Features
+    - Added latest model for new service features.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix default user agent to comply with [RFC 7231](https://tools.ietf.org/html/rfc7231#section-5.5.3). Related to [#80](https://github.com/aws/aws-sdk-java-v2/issues/80)
+    - Maven artifact software.amazon.awssdk:bom no longer includes non-SDK dependencies.
+
 # __2.0.0-preview-8__ __2018-02-02__
 ## __AWS SDK for Java v2__
   - ### Features
