@@ -1,0 +1,21 @@
+{
+    "date": "2018-03-20",
+    "version": "2.0.0-preview-9",
+    "entries": [
+        {
+            "category": "AWS Lambda",
+            "type": "feature",
+            "description": "Added latest model for new service features."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Maven artifact software.amazon.awssdk:bom no longer includes non-SDK dependencies."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fix default user agent to comply with [RFC 7231](https://tools.ietf.org/html/rfc7231#section-5.5.3). Related to [#80](https://github.com/aws/aws-sdk-java-v2/issues/80)"
+        }
+    ]
+}
