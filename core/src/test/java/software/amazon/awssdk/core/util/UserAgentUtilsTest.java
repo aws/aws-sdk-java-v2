@@ -15,8 +15,10 @@
 
 package software.amazon.awssdk.core.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Arrays;
 import org.junit.Test;
 
 public class UserAgentUtilsTest {
@@ -25,5 +27,10 @@ public class UserAgentUtilsTest {
     public void userAgent() {
         String userAgent = UserAgentUtils.userAgent();
         assertNotNull(userAgent);
+        Arrays.stream(userAgent.split(" ")).forEach(str -> assertThat(isValidInput(str)).isTrue());
+    }
+
+    private boolean isValidInput(String input) {
+        return input.startsWith("(") || input.contains("/") && input.split("/").length == 2;
     }
 }

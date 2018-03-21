@@ -13,12 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.pagination;
+package software.amazon.awssdk.core.pagination.async;
 
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
+/**
+ * Interface to deal with async paginated responses.
+ * @param <ResponseT> Type of Response
+ */
 @SdkInternalApi
-public interface NextPageFetcher<ResponseT> {
+public interface AsyncPageFetcher<ResponseT> {
 
     /**
      * Returns a boolean value indicating if a next page is available.
@@ -29,11 +34,11 @@ public interface NextPageFetcher<ResponseT> {
     boolean hasNextPage(ResponseT oldPage);
 
     /**
-     * Method that uses the information in #oldPage and returns the
-     * next page if available by making a service call.
+     * Method that uses the information in #oldPage and returns a
+     * completable future for the next page. This method makes service calls.
      *
      * @param oldPage last page sent by service in a paginated operation
-     * @return the next page if available. Otherwise returns null.
+     * @return A CompletableFuture that can be used to get the next response page
      */
-    ResponseT nextPage(ResponseT oldPage);
+    CompletableFuture<ResponseT> nextPage(ResponseT oldPage);
 }

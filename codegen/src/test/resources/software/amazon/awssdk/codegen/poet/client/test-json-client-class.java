@@ -34,8 +34,8 @@ import software.amazon.awssdk.services.json.model.StreamingInputOperationRequest
 import software.amazon.awssdk.services.json.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationResponse;
-import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPaginator;
-import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPaginator;
+import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable;
+import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyIterable;
 import software.amazon.awssdk.services.json.transform.APostOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.APostOperationResponseUnmarshaller;
 import software.amazon.awssdk.services.json.transform.APostOperationWithOutputRequestMarshaller;
@@ -101,14 +101,14 @@ final class DefaultJsonClient implements JsonClient {
                                                                                                      SdkServiceException, SdkClientException, JsonException {
 
         HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
-                new APostOperationResponseUnmarshaller());
+            new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
+            new APostOperationResponseUnmarshaller());
 
         HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                             .withInput(aPostOperationRequest).withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
+                                         .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                         .withInput(aPostOperationRequest).withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
     }
 
     /**
@@ -133,20 +133,20 @@ final class DefaultJsonClient implements JsonClient {
      */
     @Override
     public APostOperationWithOutputResponse aPostOperationWithOutput(
-            APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, SdkServiceException,
-                                                                                    SdkClientException, JsonException {
+        APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, SdkServiceException,
+                                                                                SdkClientException, JsonException {
 
         HttpResponseHandler<APostOperationWithOutputResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
-                new APostOperationWithOutputResponseUnmarshaller());
+            new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
+            new APostOperationWithOutputResponseUnmarshaller());
 
         HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler
-                .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                                 .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                 .withInput(aPostOperationWithOutputRequest)
-                                 .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
+            .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
+                         .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                         .withInput(aPostOperationWithOutputRequest)
+                         .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
     }
 
     /**
@@ -171,20 +171,20 @@ final class DefaultJsonClient implements JsonClient {
      */
     @Override
     public GetWithoutRequiredMembersResponse getWithoutRequiredMembers(
-            GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) throws InvalidInputException, SdkServiceException,
-                                                                                      SdkClientException, JsonException {
+        GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) throws InvalidInputException, SdkServiceException,
+                                                                                  SdkClientException, JsonException {
 
         HttpResponseHandler<GetWithoutRequiredMembersResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
-                new GetWithoutRequiredMembersResponseUnmarshaller());
+            new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
+            new GetWithoutRequiredMembersResponseUnmarshaller());
 
         HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler
-                .execute(new ClientExecutionParams<GetWithoutRequiredMembersRequest, GetWithoutRequiredMembersResponse>()
-                                 .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                 .withInput(getWithoutRequiredMembersRequest)
-                                 .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory)));
+            .execute(new ClientExecutionParams<GetWithoutRequiredMembersRequest, GetWithoutRequiredMembersResponse>()
+                         .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                         .withInput(getWithoutRequiredMembersRequest)
+                         .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory)));
     }
 
     /**
@@ -205,20 +205,20 @@ final class DefaultJsonClient implements JsonClient {
      */
     @Override
     public PaginatedOperationWithResultKeyResponse paginatedOperationWithResultKey(
-            PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) throws SdkServiceException,
-                                                                                                  SdkClientException, JsonException {
+        PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) throws SdkServiceException,
+                                                                                              SdkClientException, JsonException {
 
         HttpResponseHandler<PaginatedOperationWithResultKeyResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
-                new PaginatedOperationWithResultKeyResponseUnmarshaller());
+            new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
+            new PaginatedOperationWithResultKeyResponseUnmarshaller());
 
         HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler
-                .execute(new ClientExecutionParams<PaginatedOperationWithResultKeyRequest, PaginatedOperationWithResultKeyResponse>()
-                                 .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                 .withInput(paginatedOperationWithResultKeyRequest)
-                                 .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory)));
+            .execute(new ClientExecutionParams<PaginatedOperationWithResultKeyRequest, PaginatedOperationWithResultKeyResponse>()
+                         .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                         .withInput(paginatedOperationWithResultKeyRequest)
+                         .withMarshaller(new PaginatedOperationWithResultKeyRequestMarshaller(protocolFactory)));
     }
 
     /**
@@ -243,7 +243,7 @@ final class DefaultJsonClient implements JsonClient {
      *
      * <pre>
      * {@code
-     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPaginator responses = client.paginatedOperationWithResultKeyIterable(request);
+     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable responses = client.paginatedOperationWithResultKeyPaginator(request);
      * responses.stream().forEach(....);
      * }
      * </pre>
@@ -253,8 +253,8 @@ final class DefaultJsonClient implements JsonClient {
      * <pre>
      * {
      *     &#064;code
-     *     software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPaginator responses = client
-     *             .paginatedOperationWithResultKeyIterable(request);
+     *     software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable responses = client
+     *             .paginatedOperationWithResultKeyPaginator(request);
      *     for (software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse response : responses) {
      *         // do something;
      *     }
@@ -265,7 +265,7 @@ final class DefaultJsonClient implements JsonClient {
      *
      * <pre>
      * {@code
-     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPaginator responses = client.paginatedOperationWithResultKeyIterable(request);
+     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable responses = client.paginatedOperationWithResultKeyPaginator(request);
      * responses.iterator().forEachRemaining(....);
      * }
      * </pre>
@@ -276,7 +276,7 @@ final class DefaultJsonClient implements JsonClient {
      * </p>
      *
      * @param paginatedOperationWithResultKeyRequest
-     * @return Result of the PaginatedOperationWithResultKey operation returned by the service.
+     * @return A custom iterable that can be used to iterate through all the response pages.
      * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
@@ -289,10 +289,10 @@ final class DefaultJsonClient implements JsonClient {
      *      target="_top">AWS API Documentation</a>
      */
     @Override
-    public PaginatedOperationWithResultKeyPaginator paginatedOperationWithResultKeyIterable(
-            PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) throws SdkServiceException,
-                                                                                                  SdkClientException, JsonException {
-        return new PaginatedOperationWithResultKeyPaginator(this, paginatedOperationWithResultKeyRequest);
+    public PaginatedOperationWithResultKeyIterable paginatedOperationWithResultKeyPaginator(
+        PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) throws SdkServiceException,
+                                                                                              SdkClientException, JsonException {
+        return new PaginatedOperationWithResultKeyIterable(this, paginatedOperationWithResultKeyRequest);
     }
 
     /**
@@ -313,20 +313,20 @@ final class DefaultJsonClient implements JsonClient {
      */
     @Override
     public PaginatedOperationWithoutResultKeyResponse paginatedOperationWithoutResultKey(
-            PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) throws SdkServiceException,
-                                                                                                        SdkClientException, JsonException {
+        PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) throws SdkServiceException,
+                                                                                                    SdkClientException, JsonException {
 
         HttpResponseHandler<PaginatedOperationWithoutResultKeyResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
-                new PaginatedOperationWithoutResultKeyResponseUnmarshaller());
+            new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
+            new PaginatedOperationWithoutResultKeyResponseUnmarshaller());
 
         HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler
-                .execute(new ClientExecutionParams<PaginatedOperationWithoutResultKeyRequest, PaginatedOperationWithoutResultKeyResponse>()
-                                 .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                 .withInput(paginatedOperationWithoutResultKeyRequest)
-                                 .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory)));
+            .execute(new ClientExecutionParams<PaginatedOperationWithoutResultKeyRequest, PaginatedOperationWithoutResultKeyResponse>()
+                         .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                         .withInput(paginatedOperationWithoutResultKeyRequest)
+                         .withMarshaller(new PaginatedOperationWithoutResultKeyRequestMarshaller(protocolFactory)));
     }
 
     /**
@@ -351,7 +351,7 @@ final class DefaultJsonClient implements JsonClient {
      *
      * <pre>
      * {@code
-     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPaginator responses = client.paginatedOperationWithoutResultKeyIterable(request);
+     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyIterable responses = client.paginatedOperationWithoutResultKeyPaginator(request);
      * responses.stream().forEach(....);
      * }
      * </pre>
@@ -361,8 +361,8 @@ final class DefaultJsonClient implements JsonClient {
      * <pre>
      * {
      *     &#064;code
-     *     software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPaginator responses = client
-     *             .paginatedOperationWithoutResultKeyIterable(request);
+     *     software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyIterable responses = client
+     *             .paginatedOperationWithoutResultKeyPaginator(request);
      *     for (software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse response : responses) {
      *         // do something;
      *     }
@@ -373,7 +373,7 @@ final class DefaultJsonClient implements JsonClient {
      *
      * <pre>
      * {@code
-     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPaginator responses = client.paginatedOperationWithoutResultKeyIterable(request);
+     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyIterable responses = client.paginatedOperationWithoutResultKeyPaginator(request);
      * responses.iterator().forEachRemaining(....);
      * }
      * </pre>
@@ -384,7 +384,7 @@ final class DefaultJsonClient implements JsonClient {
      * </p>
      *
      * @param paginatedOperationWithoutResultKeyRequest
-     * @return Result of the PaginatedOperationWithoutResultKey operation returned by the service.
+     * @return A custom iterable that can be used to iterate through all the response pages.
      * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
@@ -397,10 +397,10 @@ final class DefaultJsonClient implements JsonClient {
      *      target="_top">AWS API Documentation</a>
      */
     @Override
-    public PaginatedOperationWithoutResultKeyPaginator paginatedOperationWithoutResultKeyIterable(
-            PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) throws SdkServiceException,
-                                                                                                        SdkClientException, JsonException {
-        return new PaginatedOperationWithoutResultKeyPaginator(this, paginatedOperationWithoutResultKeyRequest);
+    public PaginatedOperationWithoutResultKeyIterable paginatedOperationWithoutResultKeyPaginator(
+        PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) throws SdkServiceException,
+                                                                                                    SdkClientException, JsonException {
+        return new PaginatedOperationWithoutResultKeyIterable(this, paginatedOperationWithoutResultKeyRequest);
     }
 
     /**
@@ -435,18 +435,18 @@ final class DefaultJsonClient implements JsonClient {
                                                                    RequestBody requestBody) throws SdkServiceException, SdkClientException, JsonException {
 
         HttpResponseHandler<StreamingInputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
-                new StreamingInputOperationResponseUnmarshaller());
+            new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
+            new StreamingInputOperationResponseUnmarshaller());
 
         HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
-                                             .withResponseHandler(responseHandler)
-                                             .withErrorResponseHandler(errorResponseHandler)
-                                             .withInput(streamingInputOperationRequest)
-                                             .withMarshaller(
-                                                     new StreamingRequestMarshaller<StreamingInputOperationRequest>(
-                                                             new StreamingInputOperationRequestMarshaller(protocolFactory), requestBody)));
+                                         .withResponseHandler(responseHandler)
+                                         .withErrorResponseHandler(errorResponseHandler)
+                                         .withInput(streamingInputOperationRequest)
+                                         .withMarshaller(
+                                             new StreamingRequestMarshaller<StreamingInputOperationRequest>(
+                                                 new StreamingInputOperationRequestMarshaller(protocolFactory), requestBody)));
     }
 
     /**
@@ -475,21 +475,21 @@ final class DefaultJsonClient implements JsonClient {
     @Override
     public <ReturnT> ReturnT streamingOutputOperation(StreamingOutputOperationRequest streamingOutputOperationRequest,
                                                       StreamingResponseHandler<StreamingOutputOperationResponse, ReturnT> streamingResponseHandler)
-            throws SdkServiceException, SdkClientException, JsonException {
+        throws SdkServiceException, SdkClientException, JsonException {
 
         HttpResponseHandler<StreamingOutputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-                new JsonOperationMetadata().withPayloadJson(false).withHasStreamingSuccessResponse(true),
-                new StreamingOutputOperationResponseUnmarshaller());
+            new JsonOperationMetadata().withPayloadJson(false).withHasStreamingSuccessResponse(true),
+            new StreamingOutputOperationResponseUnmarshaller());
 
         HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler
-                .execute(
-                        new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
-                                .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                .withInput(streamingOutputOperationRequest)
-                                .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)),
-                        streamingResponseHandler);
+            .execute(
+                new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
+                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                    .withInput(streamingOutputOperationRequest)
+                    .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)),
+                streamingResponseHandler);
     }
 
     private HttpResponseHandler<SdkServiceException> createErrorResponseHandler() {
@@ -498,13 +498,13 @@ final class DefaultJsonClient implements JsonClient {
 
     private software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory init() {
         return new SdkJsonProtocolFactory(new JsonClientMetadata()
-                                                  .withProtocolVersion("1.1")
-                                                  .withSupportsCbor(false)
-                                                  .withSupportsIon(false)
-                                                  .withBaseServiceExceptionClass(software.amazon.awssdk.services.json.model.JsonException.class)
-                                                  .withContentTypeOverride("")
-                                                  .addErrorMetadata(
-                                                          new JsonErrorShapeMetadata().withErrorCode("InvalidInput").withModeledClass(InvalidInputException.class)));
+                                              .withProtocolVersion("1.1")
+                                              .withSupportsCbor(false)
+                                              .withSupportsIon(false)
+                                              .withBaseServiceExceptionClass(software.amazon.awssdk.services.json.model.JsonException.class)
+                                              .withContentTypeOverride("")
+                                              .addErrorMetadata(
+                                                  new JsonErrorShapeMetadata().withErrorCode("InvalidInput").withModeledClass(InvalidInputException.class)));
     }
 
     @Override

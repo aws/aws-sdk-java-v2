@@ -24,10 +24,10 @@ public final class PaginatorUtils {
 
     /**
      * @param methodName Name of a method in sync client
-     * @return the name of the pagination enabled sync operation
+     * @return the name of the auto-pagination enabled operation
      */
     @ReviewBeforeRelease("Naming of paginated APIs")
-    public static String getSyncMethodName(String methodName) {
-        return methodName + "Iterable";
+    public static String getPaginatedMethodName(String methodName) {
+        return methodName + "Paginator";
     }
 }
