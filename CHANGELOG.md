@@ -1,3 +1,15 @@
+# __2.0.0-preview-9__ __2018-03-20__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added support for auto-pagination in sync and async clients. A blog post for this feature will be released soon. In the meantime, Please refer to [ScanPaginatorIntegrationTest](https://github.com/aws/aws-sdk-java-v2/blob/2.0.0-preview-9/services/dynamodb/src/it/java/software/amazon/awssdk/services/dynamodb/ScanPaginatorIntegrationTest.java) and [ListObjectsV2PaginatorsIntegrationTest](https://github.com/aws/aws-sdk-java-v2/blob/2.0.0-preview-9/services/s3/src/it/java/software/amazon/awssdk/services/s3/ListObjectsV2PaginatorsIntegrationTest.java) classes for sample code.
+  
+  - ### Bugfixes
+    - Fix default user agent to comply with [RFC 7231](https://tools.ietf.org/html/rfc7231#section-5.5.3). Related to [#80](https://github.com/aws/aws-sdk-java-v2/issues/80)
+    
+## __AWS Lambda__
+  - ### Features
+    - Added latest model for new service features.
+
 # __2.0.0-preview-8__ __2018-02-02__
 ## __AWS SDK for Java v2__
   - ### Features
