@@ -183,12 +183,12 @@ public class SdkHttp2FrameListener implements Http2FrameListener {
     }
 
     @Override
-    public void onPingRead(ChannelHandlerContext ctx, ByteBuf data) throws Http2Exception {
+    public void onPingRead(ChannelHandlerContext ctx, long data) throws Http2Exception {
         // Do we need to do anything with this? Send a ping ack or does Netty handle that?
     }
 
     @Override
-    public void onPingAckRead(ChannelHandlerContext ctx, ByteBuf data) throws Http2Exception {
+    public void onPingAckRead(ChannelHandlerContext ctx, long data) throws Http2Exception {
     }
 
     @Override

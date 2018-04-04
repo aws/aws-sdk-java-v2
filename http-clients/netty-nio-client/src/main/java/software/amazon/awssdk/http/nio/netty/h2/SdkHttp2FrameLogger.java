@@ -7,7 +7,6 @@ import io.netty.handler.codec.http2.Http2FrameLogger;
 import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2Settings;
 import io.netty.handler.logging.LogLevel;
-import java.nio.charset.StandardCharsets;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
@@ -42,14 +41,15 @@ class SdkHttp2FrameLogger extends Http2FrameLogger {
         log("{} SETTINGS: ack=false settings={}", direction.name(), settings);
     }
 
+
     @Override
-    public void logPing(Direction direction, ChannelHandlerContext ctx, ByteBuf data) {
-        log("{} PING: ack=false length={}\n{}", direction.name(), data.readableBytes(), dataToString(direction, data));
+    public void logPing(Direction direction, ChannelHandlerContext ctx, long data) {
+        log("{} PING: ack=false length={}", direction.name(), data);
     }
 
     @Override
-    public void logPingAck(Direction direction, ChannelHandlerContext ctx, ByteBuf data) {
-        log("{} PING: ack=true length={}\n{}", direction.name(), data.readableBytes(), dataToString(direction, data));
+    public void logPingAck(Direction direction, ChannelHandlerContext ctx, long data) {
+        log("{} PING: ack=true length={}\n{}", direction.name(), data);
     }
 
     @Override
@@ -126,6 +126,7 @@ class SdkHttp2FrameLogger extends Http2FrameLogger {
                    .append(" ");
         }
         return builder.toString();
+        // TODO ?
         //        return indentArrow(direction) + " " +
         //               new String(BinaryUtils.copyBytesFrom(data.nioBuffer()), StandardCharsets.UTF_8);
     }

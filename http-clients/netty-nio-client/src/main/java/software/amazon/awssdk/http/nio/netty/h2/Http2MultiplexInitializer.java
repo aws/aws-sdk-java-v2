@@ -68,7 +68,6 @@ public class Http2MultiplexInitializer extends AbstractChannelPoolHandler {
                     ch.pipeline().addLast(Http2MultiplexCodecBuilder
                                               .forClient(new NoOpChannelInitializer())
                                               .frameLogger(new SdkHttp2FrameLogger(LogLevel.DEBUG))
-                                              .propagateSettings(true)
                                               .headerSensitivityDetector((name, value) -> {
                                                   String lowerName = name.toString().toLowerCase();
                                                   return lowerName.equals("authorization") || lowerName.equals("amz-sdk-invocation-id");

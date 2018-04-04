@@ -1178,6 +1178,8 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
     }
 
     public ResponseIterator<SubscribeToShardResponse, RecordBatchEvent> subscribeToShardBlocking(SubscribeToShardRequest request) {
+        // TODO what is this for?
+        SdkPublisher.SubscriberIterator[] iterator = new SdkPublisher.SubscriberIterator[1];
         CompletableFuture<SdkPublisher<RecordBatchEvent>> publisherFuture = new CompletableFuture<>();
         CompletableFuture<SubscribeToShardResponse> responseFuture = new CompletableFuture<>();
         subscribeToShard(request, new SdkFlowResponseHandler<SubscribeToShardResponse, RecordBatchEvent, Void>() {
@@ -1198,12 +1200,18 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
 
             @Override
             public Void complete() {
+                if(iterator[0] != null) {
+                    iterator[0].onComplete();
+                }
                 return null;
             }
         });
         CompletableFuture.allOf(responseFuture, publisherFuture);
         return publisherFuture
-            .thenApply(p -> p.toBlocking())
+            .thenApply(p -> {
+                iterator[0] = (SdkPublisher.SubscriberIterator) p.toBlocking();
+                return iterator[0];
+            })
             .thenApply(i -> new ResponseIterator(i, responseFuture.join()))
             .join();
     }

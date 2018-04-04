@@ -398,7 +398,7 @@
       }
     },
     "BooleanObject":{"type":"boolean"},
-    "ConsumerName":{"type":"string"},
+    "ConsumerARN":{"type":"string"},
     "CreateStreamInput":{
       "type":"structure",
       "required":[
@@ -1157,14 +1157,14 @@
     "SubscribeToShardInput":{
       "type":"structure",
       "required":[
-        "StreamARN",
-        "ConsumerName",
+        "StreamName",
+        "ConsumerARN",
         "ShardId",
         "ShardIteratorType"
       ],
       "members":{
-        "StreamARN":{"shape":"StreamARN"},
-        "ConsumerName":{"shape":"ConsumerName"},
+        "StreamName":{"shape":"StreamName"},
+        "ConsumerARN":{"shape":"ConsumerARN"},
         "ShardId":{"shape":"ShardId"},
         "ShardIteratorType":{"shape":"ShardIteratorType"},
         "StartingSequenceNumber":{"shape":"SequenceNumber"},
