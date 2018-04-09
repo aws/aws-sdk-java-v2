@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,35 +21,35 @@ import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 
 @SdkProtectedApi
-public abstract class AbstractErrorUnmarshaller<T> implements Unmarshaller<AmazonServiceException, T> {
+public abstract class AbstractErrorUnmarshaller<T> implements Unmarshaller<SdkServiceException, T> {
 
     /**
-     * The type of AmazonServiceException that will be instantiated. Subclasses
+     * The type of SdkServiceException that will be instantiated. Subclasses
      * specialized for a specific type of exception can control this through the
      * protected constructor.
      */
-    protected final Class<? extends AmazonServiceException> exceptionClass;
+    protected final Class<? extends SdkServiceException> exceptionClass;
 
     /**
      * Constructs a new error unmarshaller that will unmarshall error responses
-     * into AmazonServiceException objects.
+     * into SdkServiceException objects.
      */
     public AbstractErrorUnmarshaller() {
-        this(AmazonServiceException.class);
+        this(SdkServiceException.class);
     }
 
     /**
      * Constructs a new error unmarshaller that will unmarshall error responses
-     * into objects of the specified class, extending AmazonServiceException.
+     * into objects of the specified class, extending SdkServiceException.
      *
      * @param exceptionClass
-     *            The subclass of AmazonServiceException which will be
+     *            The subclass of SdkServiceException which will be
      *            instantiated and populated by this class.
      */
-    public AbstractErrorUnmarshaller(Class<? extends AmazonServiceException> exceptionClass) {
+    public AbstractErrorUnmarshaller(Class<? extends SdkServiceException> exceptionClass) {
         this.exceptionClass = exceptionClass;
     }
 
@@ -67,7 +67,7 @@ public abstract class AbstractErrorUnmarshaller<T> implements Unmarshaller<Amazo
      *             If there are any problems using reflection to invoke the
      *             exception class's constructor.
      */
-    protected AmazonServiceException newException(String message) throws Exception {
+    protected SdkServiceException newException(String message) throws Exception {
         Method builderMethod = null;
 
         try {
@@ -86,9 +86,9 @@ public abstract class AbstractErrorUnmarshaller<T> implements Unmarshaller<Amazo
 
             messageSetter.invoke(exceptionBuilder, message);
 
-            return (AmazonServiceException) buildMethod.invoke(exceptionBuilder);
+            return (SdkServiceException) buildMethod.invoke(exceptionBuilder);
         } else {
-            Constructor<? extends AmazonServiceException> constructor = exceptionClass.getConstructor(String.class);
+            Constructor<? extends SdkServiceException> constructor = exceptionClass.getConstructor(String.class);
             return constructor.newInstance(message);
         }
     }

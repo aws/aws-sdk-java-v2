@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.auth.DefaultCredentialsProvider;
 import software.amazon.awssdk.core.config.AdvancedClientOption;
@@ -33,6 +32,7 @@ import software.amazon.awssdk.core.config.ImmutableSyncClientConfiguration;
 import software.amazon.awssdk.core.config.MutableClientConfiguration;
 import software.amazon.awssdk.core.config.defaults.ClientConfigurationDefaults;
 import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.loader.DefaultSdkAsyncHttpClientFactory;
 import software.amazon.awssdk.core.http.loader.DefaultSdkHttpClientFactory;
 import software.amazon.awssdk.core.regions.Region;
@@ -236,7 +236,7 @@ public abstract class DefaultClientBuilder<B extends ClientBuilder<B, C>, C>
              */
             @Override
             protected AwsCredentialsProvider getCredentialsDefault() {
-                return new DefaultCredentialsProvider();
+                return DefaultCredentialsProvider.create();
             }
 
             /**

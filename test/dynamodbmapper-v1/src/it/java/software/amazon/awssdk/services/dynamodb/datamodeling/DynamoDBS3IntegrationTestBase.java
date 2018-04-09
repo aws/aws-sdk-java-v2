@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import java.util.Iterator;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
@@ -152,14 +152,14 @@ public class DynamoDBS3IntegrationTestBase extends DynamoDBIntegrationTestBase {
                 if (System.currentTimeMillis() > timeoutTime) {
                     fail("object " + bucketName + "/" + key + " still exists");
                 }
-            } catch (AmazonServiceException ase) {
+            } catch (SdkServiceException exception) {
                 /*
                  * We expect a 404 indicating that the object version we requested
                  * doesn't exist. If we get anything other than that, then we want
                  * to let the exception keep going up the chain.
                  */
-                if (ase.getStatusCode() != 404) {
-                    throw ase;
+                if (exception.statusCode() != 404) {
+                    throw exception;
                 }
                 return; // doesn't exist!
             }
@@ -182,14 +182,14 @@ public class DynamoDBS3IntegrationTestBase extends DynamoDBIntegrationTestBase {
             try {
                 s3.headObject(HeadObjectRequest.builder().bucket(bucketName).key(key).build());
                 return; // exists!
-            } catch (AmazonServiceException ase) {
+            } catch (SdkServiceException exception) {
                 /*
                  * We expect a 404 indicating that the object version we requested
                  * doesn't exist. If we get anything other than that, then we want
                  * to let the exception keep going up the chain.
                  */
-                if (ase.getStatusCode() != 404) {
-                    throw ase;
+                if (exception.statusCode() != 404) {
+                    throw exception;
                 }
                 Thread.sleep(1000);
                 if (System.currentTimeMillis() > timeoutTime) {

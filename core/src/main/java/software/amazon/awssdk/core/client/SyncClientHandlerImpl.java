@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,13 +19,14 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.AwsRequest;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.RequestConfig;
-import software.amazon.awssdk.core.SdkBaseException;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.config.SyncClientConfiguration;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.AmazonHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponse;
@@ -34,7 +35,6 @@ import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.sync.StreamingResponseHandler;
-import software.amazon.awssdk.core.util.CredentialUtils;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
@@ -44,6 +44,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 @Immutable
 @ThreadSafe
 @SdkProtectedApi
+@ReviewBeforeRelease("AWS-specific behavior should be broken out?")
 public class SyncClientHandlerImpl extends ClientHandler {
     private final SyncClientConfiguration syncClientConfiguration;
     private final AmazonHttpClient client;
@@ -60,7 +61,7 @@ public class SyncClientHandlerImpl extends ClientHandler {
     public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> ReturnT execute(
             ClientExecutionParams<InputT, OutputT> executionParams,
             StreamingResponseHandler<OutputT, ReturnT> streamingResponseHandler) {
-        ExecutionContext executionContext = createExecutionContext(executionParams.getRequestConfig());
+        ExecutionContext executionContext = createExecutionContext(executionParams.getInput());
         HttpResponseHandler<OutputT> interceptorCallingResponseHandler =
                 interceptorCalling(executionParams.getResponseHandler(), executionContext);
         HttpResponseHandler<ReturnT> httpResponseHandler =
@@ -71,7 +72,7 @@ public class SyncClientHandlerImpl extends ClientHandler {
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse> OutputT execute(
             ClientExecutionParams<InputT, OutputT> executionParams) {
-        ExecutionContext executionContext = createExecutionContext(executionParams.getRequestConfig());
+        ExecutionContext executionContext = createExecutionContext(executionParams.getInput());
         return execute(executionParams, executionContext, interceptorCalling(executionParams.getResponseHandler(),
                                                                              executionContext));
     }
@@ -97,7 +98,7 @@ public class SyncClientHandlerImpl extends ClientHandler {
         marshalled = runModifyHttpRequestInterceptors(executionContext);
 
         return invoke(marshalled,
-                      executionParams.getRequestConfig(),
+                      inputT,
                       executionContext,
                       responseHandler,
                       executionParams.getErrorResponseHandler());
@@ -112,16 +113,22 @@ public class SyncClientHandlerImpl extends ClientHandler {
      * Normal invoke with authentication. Credentials are required and may be overriden at the
      * request level.
      **/
-    private <OutputT> OutputT invoke(SdkHttpFullRequest request,
-                                     RequestConfig requestConfig,
+    private <InputT extends SdkRequest, OutputT> OutputT invoke(SdkHttpFullRequest request,
+                                     InputT originalRequest,
                                      ExecutionContext executionContext,
                                      HttpResponseHandler<OutputT> responseHandler,
-                                     HttpResponseHandler<? extends SdkBaseException> errorResponseHandler) {
+                                     HttpResponseHandler<? extends SdkException> errorResponseHandler) {
 
-        executionContext.setCredentialsProvider(
-            CredentialUtils.getCredentialsProvider(requestConfig, syncClientConfiguration.credentialsProvider()));
+        if (originalRequest instanceof AwsRequest) {
+            AwsCredentialsProvider provider = ((AwsRequest) originalRequest).requestOverrideConfig()
+                    .flatMap(c -> c.credentialsProvider())
+                    .orElseGet(syncClientConfiguration::credentialsProvider);
+            executionContext.setCredentialsProvider(provider);
+        } else {
+            executionContext.setCredentialsProvider(syncClientConfiguration.credentialsProvider());
+        }
 
-        return doInvoke(request, requestConfig, executionContext, responseHandler,
+        return doInvoke(request, originalRequest, executionContext, responseHandler,
                         errorResponseHandler);
     }
 
@@ -130,13 +137,13 @@ public class SyncClientHandlerImpl extends ClientHandler {
      * configured in the OldExecutionContext beforehand.
      **/
     private <OutputT> OutputT doInvoke(SdkHttpFullRequest request,
-                                       RequestConfig requestConfig,
+                                       SdkRequest originalRequest,
                                        ExecutionContext executionContext,
                                        HttpResponseHandler<OutputT> responseHandler,
-                                       HttpResponseHandler<? extends SdkBaseException> errorResponseHandler) {
+                                       HttpResponseHandler<? extends SdkException> errorResponseHandler) {
         return client.requestExecutionBuilder()
                      .request(request)
-                     .requestConfig(requestConfig)
+                     .originalRequest(originalRequest)
                      .executionContext(executionContext)
                      .errorResponseHandler(errorResponseHandler)
                      .execute(responseHandler);

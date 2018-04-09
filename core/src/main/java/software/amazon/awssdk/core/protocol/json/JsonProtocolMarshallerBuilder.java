@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.protocol.json;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.protocol.OperationInfo;
 import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
 import software.amazon.awssdk.core.protocol.json.internal.JsonProtocolMarshaller;
@@ -27,7 +28,7 @@ import software.amazon.awssdk.core.protocol.json.internal.NullAsEmptyBodyProtoco
  * @param <T> Type of the original request object.
  */
 @SdkProtectedApi
-public class JsonProtocolMarshallerBuilder<T> {
+public class JsonProtocolMarshallerBuilder<T extends SdkRequest> {
 
     private StructuredJsonGenerator jsonGenerator;
     private String contentType;
@@ -35,7 +36,7 @@ public class JsonProtocolMarshallerBuilder<T> {
     private boolean sendExplicitNullForPayload;
     private T originalRequest;
 
-    public static <T> JsonProtocolMarshallerBuilder<T> standard() {
+    public static <T extends SdkRequest> JsonProtocolMarshallerBuilder<T> standard() {
         return new JsonProtocolMarshallerBuilder<T>();
     }
 

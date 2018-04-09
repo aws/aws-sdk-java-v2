@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
 import software.amazon.awssdk.services.dynamodb.model.Condition;
@@ -270,9 +270,9 @@ public class SecondaryIndexesIntegrationTest extends DynamoDBTestBase {
                                                                          .comparisonOperator(ComparisonOperator.EQ)
                                                                   .build()))
                                           .select(Select.ALL_ATTRIBUTES).build());
-            fail("AmazonServiceException is expected");
-        } catch (AmazonServiceException ase) {
-            assertTrue(ase.getMessage().contains("Select type ALL_ATTRIBUTES is not supported for global secondary"));
+            fail("SdkServiceException is expected");
+        } catch (SdkServiceException exception) {
+            assertTrue(exception.getMessage().contains("Select type ALL_ATTRIBUTES is not supported for global secondary"));
         }
 
         /**
@@ -311,7 +311,7 @@ public class SecondaryIndexesIntegrationTest extends DynamoDBTestBase {
                                           .attributesToGet(HASH_KEY_NAME, RANGE_KEY_NAME, LSI_RANGE_KEY_NAME)
                                           .select(Select.ALL_PROJECTED_ATTRIBUTES).build());
             fail("Should trigger exception when using both Select and AttributeToGet.");
-        } catch (AmazonServiceException ase) {
+        } catch (SdkServiceException exception) {
             // Ignored or expected.
         }
 
@@ -460,7 +460,7 @@ public class SecondaryIndexesIntegrationTest extends DynamoDBTestBase {
                                           .attributesToGet(HASH_KEY_NAME, RANGE_KEY_NAME, LSI_RANGE_KEY_NAME)
                                           .select(Select.ALL_PROJECTED_ATTRIBUTES).build());
             fail("Should trigger exception when using both Select and AttributeToGet.");
-        } catch (AmazonServiceException ase) {
+        } catch (SdkServiceException exception) {
             // Ignored or expected.
         }
 

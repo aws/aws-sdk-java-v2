@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -38,6 +37,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.model.intermediate.VariableModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
@@ -45,26 +45,27 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.protocol.StructuredPojo;
 import software.amazon.awssdk.core.runtime.TypeConverter;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Provides the Poet specs for AWS Service models.
  */
 public class AwsServiceModel implements ClassSpec {
 
+    private final IntermediateModel intermediateModel;
     private final ShapeModel shapeModel;
     private final PoetExtensions poetExtensions;
     private final TypeProvider typeProvider;
     private final ShapeModelSpec shapeModelSpec;
-    private final ShapeInterfaceProvider interfaceProvider;
     private final ModelMethodOverrides modelMethodOverrides;
     private final ModelBuilderSpecs modelBuilderSpecs;
 
     public AwsServiceModel(IntermediateModel intermediateModel, ShapeModel shapeModel) {
+        this.intermediateModel = intermediateModel;
         this.shapeModel = shapeModel;
         this.poetExtensions = new PoetExtensions(intermediateModel);
         this.typeProvider = new TypeProvider(intermediateModel);
         this.shapeModelSpec = new ShapeModelSpec(this.shapeModel, typeProvider, poetExtensions);
-        this.interfaceProvider = new AwsShapePublicInterfaceProvider(intermediateModel, this.shapeModel);
         this.modelMethodOverrides = new ModelMethodOverrides(this.poetExtensions);
         this.modelBuilderSpecs = new ModelBuilderSpecs(intermediateModel, this.shapeModel, this.shapeModelSpec,
                                                        this.typeProvider);
@@ -94,13 +95,60 @@ public class AwsServiceModel implements ClassSpec {
     }
 
     private List<TypeName> modelSuperInterfaces() {
-        return interfaceProvider.interfacesToImplement().stream()
-                                .sorted(Comparator.comparing(TypeName::toString))
-                                .collect(Collectors.toList());
+        List<TypeName> interfaces = new ArrayList<>();
+
+        if (implementStructuredPojoInterface()) {
+            interfaces.add(ClassName.get(StructuredPojo.class));
+        }
+
+        switch (shapeModel.getShapeType()) {
+            case Exception:
+            case Model:
+            case Request:
+            case Response:
+                interfaces.add(toCopyableBuilderInterface());
+                break;
+            default:
+                break;
+        }
+
+        return interfaces;
     }
 
     private TypeName modelSuperClass() {
-        return interfaceProvider.baseClassToExtend();
+        switch (shapeModel.getShapeType()) {
+            case Request:
+                return requestBaseClass();
+            case Response:
+                return responseBaseClass();
+            case Exception:
+                return exceptionBaseClass();
+            default:
+                return ClassName.OBJECT;
+        }
+    }
+
+    private TypeName requestBaseClass() {
+        return new AwsServiceBaseRequestSpec(intermediateModel).className();
+    }
+
+    private TypeName responseBaseClass() {
+        return new AwsServiceBaseResponseSpec(intermediateModel).className();
+    }
+
+    private ClassName exceptionBaseClass() {
+        final String customExceptionBase = intermediateModel.getCustomizationConfig()
+                .getSdkModeledExceptionBaseClassName();
+        if (customExceptionBase != null) {
+            return poetExtensions.getModelClass(customExceptionBase);
+        }
+        return poetExtensions.getModelClass(intermediateModel.getSdkModeledExceptionBaseClassName());
+    }
+
+    private TypeName toCopyableBuilderInterface() {
+        return ParameterizedTypeName.get(ClassName.get(ToCopyableBuilder.class),
+                className().nestedClass("Builder"),
+                className());
     }
 
     private List<MethodSpec> modelClassMethods() {
@@ -279,7 +327,7 @@ public class AwsServiceModel implements ClassSpec {
     }
 
     private boolean implementStructuredPojoInterface() {
-        return interfaceProvider.shouldImplementInterface(StructuredPojo.class);
+        return intermediateModel.getMetadata().isJsonProtocol() && shapeModel.getShapeType() == ShapeType.Model;
     }
 
     private MethodSpec structuredPojoMarshallMethod(ShapeModel shapeModel) {
@@ -298,6 +346,10 @@ public class AwsServiceModel implements ClassSpec {
         MethodSpec.Builder ctorBuilder = MethodSpec.constructorBuilder()
                                                    .addModifiers(Modifier.PRIVATE)
                                                    .addParameter(modelBuilderSpecs.builderImplName(), "builder");
+
+        if (isRequest() || isResponse()) {
+            ctorBuilder.addStatement("super(builder)");
+        }
 
         shapeModelSpec.fields().forEach(f -> ctorBuilder.addStatement("this.$N = builder.$N", f, f));
 
@@ -340,5 +392,13 @@ public class AwsServiceModel implements ClassSpec {
                                                             WildcardTypeName.subtypeOf(modelBuilderSpecs.builderInterfaceName())))
                          .addStatement("return $T.class", modelBuilderSpecs.builderImplName())
                          .build();
+    }
+
+    private boolean isResponse() {
+        return shapeModel.getShapeType() == ShapeType.Response;
+    }
+
+    private boolean isRequest() {
+        return shapeModel.getShapeType() == ShapeType.Request;
     }
 }

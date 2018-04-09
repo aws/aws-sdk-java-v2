@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,11 +15,10 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,9 +26,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import junit.framework.Assert;
-import org.easymock.IExpectationSetters;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper.FailedBatch;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.BatchWriteRetryStrategy;
@@ -39,6 +40,7 @@ import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.PutRequest;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 
+@RunWith(MockitoJUnitRunner.class)
 public class BatchWriteRetryStrategyTest {
 
     private static final int MAX_RETRY = 10;
@@ -60,12 +62,13 @@ public class BatchWriteRetryStrategyTest {
                                                     Arrays.asList(writeReq));
     }
 
+    @Mock
     private DynamoDBClient ddbMock;
+
     private DynamoDbMapper mapper;
 
     @Before
     public void setup() {
-        ddbMock = createMock(DynamoDBClient.class);
         mapper = new DynamoDbMapper(
                 ddbMock,
                 getConfigWithCustomBatchWriteRetryStrategy(
@@ -74,26 +77,22 @@ public class BatchWriteRetryStrategyTest {
 
     @Test
     public void testBatchWriteItemCallSuccess_NoRetry() {
+        when(ddbMock.batchWriteItem(any(BatchWriteItemRequest.class)))
+            .thenReturn(BatchWriteItemResponse.builder().unprocessedItems(Collections.<String, List<WriteRequest>>emptyMap()).build());
 
-        // BatchWriteItem is expected to be called only once
-        expectBatchWriteItemSuccess().once();
-
-        replay(ddbMock);
         List<FailedBatch> failedBatches = mapper.batchSave(new Item("foo"));
-        verify(ddbMock);
 
+        verify(ddbMock, times(1)).batchWriteItem(any(BatchWriteItemRequest.class));
         Assert.assertEquals(0, failedBatches.size());
     }
 
     @Test
     public void testUnprocessedItemReturned_BatchWriteItemCallNotExceedMaxRetry() {
+        when(ddbMock.batchWriteItem(any(BatchWriteItemRequest.class)))
+            .thenReturn(BatchWriteItemResponse.builder().unprocessedItems(unprocessedItems).build());
 
-        // BatchWriteItem is expected to be called exactly (MAX_RETRY + 1) times
-        expectBatchWriteItemReturnUnprocessedItems().times(MAX_RETRY + 1);
-
-        replay(ddbMock);
         List<FailedBatch> failedBatches = mapper.batchSave(new Item("foo"));
-        verify(ddbMock);
+        verify(ddbMock, times(MAX_RETRY + 1)).batchWriteItem(any(BatchWriteItemRequest.class));
 
         Assert.assertEquals(1, failedBatches.size());
         FailedBatch failedBatch = failedBatches.get(0);
@@ -111,13 +110,12 @@ public class BatchWriteRetryStrategyTest {
     public void testExceptionThrown_NoRetry() {
 
         RuntimeException exception = new RuntimeException("BOOM");
-        expectedBatchWriteItemThrowException(exception);
 
-        replay(ddbMock);
+        when(ddbMock.batchWriteItem(any(BatchWriteItemRequest.class))).thenThrow(exception);
+
         // put a random item
         Item item = new Item(UUID.randomUUID().toString());
         List<FailedBatch> failedBatches = mapper.batchSave(item);
-        verify(ddbMock);
 
         Assert.assertEquals(1, failedBatches.size());
         FailedBatch failedBatch = failedBatches.get(0);
@@ -130,23 +128,6 @@ public class BatchWriteRetryStrategyTest {
                 "The exception should be the same as one thrown by BatchWriteItem",
                 exception,
                 failedBatch.getException());
-    }
-
-    private IExpectationSetters<BatchWriteItemResponse> expectBatchWriteItemSuccess() {
-        return expect(ddbMock.batchWriteItem(isA(BatchWriteItemRequest.class)))
-                .andReturn(BatchWriteItemResponse.builder()
-                        .unprocessedItems(Collections.<String, List<WriteRequest>>emptyMap()).build());
-    }
-
-    private IExpectationSetters<BatchWriteItemResponse> expectBatchWriteItemReturnUnprocessedItems() {
-        return expect(ddbMock.batchWriteItem(isA(BatchWriteItemRequest.class)))
-                .andReturn(BatchWriteItemResponse.builder()
-                                .unprocessedItems(unprocessedItems).build());
-    }
-
-    private void expectedBatchWriteItemThrowException(Exception e) {
-        expect(ddbMock.batchWriteItem(isA(BatchWriteItemRequest.class)))
-                .andThrow(e);
     }
 
     private DynamoDbMapperConfig getConfigWithCustomBatchWriteRetryStrategy(

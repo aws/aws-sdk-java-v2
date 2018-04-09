@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.NonRetryableException;
-import software.amazon.awssdk.core.RetryableException;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.NonRetryableException;
+import software.amazon.awssdk.core.exception.RetryableException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
 import software.amazon.awssdk.core.sync.RequestBody;

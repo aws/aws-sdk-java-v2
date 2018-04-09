@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,16 +16,17 @@
 package software.amazon.awssdk.services.waf;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.services.waf.model.ChangeAction;
 import software.amazon.awssdk.services.waf.model.CreateIPSetRequest;
 import software.amazon.awssdk.services.waf.model.CreateIPSetResponse;
-import software.amazon.awssdk.services.waf.model.DeleteIPSetRequest;
 import software.amazon.awssdk.services.waf.model.GetChangeTokenRequest;
 import software.amazon.awssdk.services.waf.model.GetChangeTokenResponse;
 import software.amazon.awssdk.services.waf.model.GetIPSetRequest;
@@ -37,24 +38,26 @@ import software.amazon.awssdk.services.waf.model.IPSetUpdate;
 import software.amazon.awssdk.services.waf.model.ListIPSetsRequest;
 import software.amazon.awssdk.services.waf.model.ListIPSetsResponse;
 import software.amazon.awssdk.services.waf.model.UpdateIPSetRequest;
+import software.amazon.awssdk.services.waf.model.WAFNonEmptyEntityException;
+import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class WafIntegrationTest extends AwsTestBase {
 
     private static final String IP_SET_NAME = "java-sdk-ipset-" + System.currentTimeMillis();
-    private static final long SLEEP_TIME_MILLIS = 5000;
     private static final String IP_ADDRESS_RANGE = "192.0.2.0/24";
     private static WAFClient client = null;
     private static String ipSetId = null;
 
     @BeforeClass
     public static void setup() throws IOException {
+        FixedDelayBackoffStrategy fixedBackoffStrategy = new FixedDelayBackoffStrategy(Duration.ofSeconds(30));
         setUpCredentials();
         client = WAFClient.builder()
-                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                .region(Region.AWS_GLOBAL)
-                .build();
-
+                          .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                          .region(Region.AWS_GLOBAL)
+                          .overrideConfiguration(cfg -> cfg.retryPolicy(r -> r.backoffStrategy(fixedBackoffStrategy)))
+                          .build();
     }
 
     @AfterClass
@@ -67,11 +70,9 @@ public class WafIntegrationTest extends AwsTestBase {
 
     private static void deleteIpSet() {
         if (ipSetId != null) {
-            final String changeToken = newChangeToken();
-            client.deleteIPSet(DeleteIPSetRequest.builder()
-                    .ipSetId(ipSetId)
-                    .changeToken(changeToken)
-                    .build());
+            Waiter.run(() -> client.deleteIPSet(r -> r.ipSetId(ipSetId).changeToken(newChangeToken())))
+                  .ignoringException(WAFNonEmptyEntityException.class)
+                  .orFailAfter(Duration.ofMinutes(1));
         }
     }
 

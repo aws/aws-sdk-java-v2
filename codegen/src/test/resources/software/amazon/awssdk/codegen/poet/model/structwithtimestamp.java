@@ -1,12 +1,14 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.protocol.StructuredPojo;
 import software.amazon.awssdk.services.jsonprotocoltests.transform.StructWithTimestampMarshaller;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -45,7 +47,7 @@ public class StructWithTimestamp implements StructuredPojo, ToCopyableBuilder<St
     @Override
     public int hashCode() {
         int hashCode = 1;
-        hashCode = 31 * hashCode + ((nestedTimestamp() == null) ? 0 : nestedTimestamp().hashCode());
+        hashCode = 31 * hashCode + Objects.hashCode(nestedTimestamp());
         return hashCode;
     }
 
@@ -61,34 +63,20 @@ public class StructWithTimestamp implements StructuredPojo, ToCopyableBuilder<St
             return false;
         }
         StructWithTimestamp other = (StructWithTimestamp) obj;
-        if (other.nestedTimestamp() == null ^ this.nestedTimestamp() == null) {
-            return false;
-        }
-        if (other.nestedTimestamp() != null && !other.nestedTimestamp().equals(this.nestedTimestamp())) {
-            return false;
-        }
-        return true;
+        return Objects.equals(nestedTimestamp(), other.nestedTimestamp());
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("{");
-        if (nestedTimestamp() != null) {
-            sb.append("NestedTimestamp: ").append(nestedTimestamp()).append(",");
-        }
-        if (sb.length() > 1) {
-            sb.setLength(sb.length() - 1);
-        }
-        sb.append("}");
-        return sb.toString();
+        return ToString.builder("StructWithTimestamp").add("NestedTimestamp", nestedTimestamp()).build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "NestedTimestamp":
-            return Optional.of(clazz.cast(nestedTimestamp()));
-        default:
-            return Optional.empty();
+            case "NestedTimestamp":
+                return Optional.of(clazz.cast(nestedTimestamp()));
+            default:
+                return Optional.empty();
         }
     }
 

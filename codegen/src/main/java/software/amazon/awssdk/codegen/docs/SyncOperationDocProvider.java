@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import java.util.Map;
 import software.amazon.awssdk.codegen.internal.ImmutableMapParameter;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.codegen.utils.PaginatorUtils;
+import software.amazon.awssdk.core.sync.ResponseBytes;
 import software.amazon.awssdk.core.sync.StreamingResponseHandler;
 
 /**
@@ -90,10 +92,15 @@ class SyncOperationDocProvider extends OperationDocProvider {
      * @return Factories to use for the {@link ClientType#SYNC} method type.
      */
     static Map<SimpleMethodOverload, Factory> syncFactories() {
-        return ImmutableMapParameter.of(SimpleMethodOverload.NORMAL, SyncOperationDocProvider::new,
-                                        SimpleMethodOverload.NO_ARG, SyncNoArg::new,
-                                        SimpleMethodOverload.FILE, SyncFile::new,
-                                        SimpleMethodOverload.INPUT_STREAM, SyncInputStream::new);
+        return new ImmutableMapParameter.Builder<SimpleMethodOverload, Factory>()
+                                    .put(SimpleMethodOverload.NORMAL, SyncOperationDocProvider::new)
+                                    .put(SimpleMethodOverload.NO_ARG, SyncNoArg::new)
+                                    .put(SimpleMethodOverload.FILE, SyncFile::new)
+                                    .put(SimpleMethodOverload.INPUT_STREAM, SyncInputStream::new)
+                                    .put(SimpleMethodOverload.BYTES, SyncBytes::new)
+                                    .put(SimpleMethodOverload.PAGINATED, SyncPaginated::new)
+                                    .put(SimpleMethodOverload.NO_ARG_PAGINATED, SyncPaginatedNoArg::new)
+                                    .build();
     }
 
     /**
@@ -154,6 +161,33 @@ class SyncOperationDocProvider extends OperationDocProvider {
     }
 
     /**
+     * Provider for streaming output simple methods that return an {@link ResponseBytes} containing the in-memory response content
+     * and the unmarshalled POJO. Only applicable to operations that have a streaming member in the output shape.
+     */
+    private static class SyncBytes extends SyncOperationDocProvider {
+
+        private SyncBytes(IntermediateModel model, OperationModel opModel) {
+            super(model, opModel);
+        }
+
+        @Override
+        protected void applyReturns(DocumentationBuilder docBuilder) {
+            docBuilder.returns(
+                    "A {@link ResponseBytes} that loads the data streamed from the service into memory and exposes it in " +
+                    "convenient in-memory representations like a byte buffer or string. The unmarshalled response object can " +
+                    "be obtained via {@link ResponseBytes#response()}. " + getStreamingOutputDocs());
+            // Link to non-simple method for discoverability
+            docBuilder.see("#getObject(%s, StreamingResponseHandler)", opModel.getMethodName(),
+                           opModel.getInput().getVariableType());
+        }
+
+        @Override
+        protected void applyParams(DocumentationBuilder docBuilder) {
+            emitRequestParm(docBuilder);
+        }
+    }
+
+    /**
      * Provider for simple method that takes no arguments and creates an empty request object.
      */
     private static class SyncNoArg extends SyncOperationDocProvider {
@@ -166,6 +200,43 @@ class SyncOperationDocProvider extends OperationDocProvider {
         protected void applyParams(DocumentationBuilder docBuilder) {
             // Link to non-simple method for discoverability
             docBuilder.see("#%s(%s)", opModel.getMethodName(), opModel.getInput().getVariableType());
+        }
+    }
+
+    /**
+     * Provider for standard paginated method that takes in a request object and returns a response object.
+     */
+    private static class SyncPaginated extends SyncOperationDocProvider {
+
+        private SyncPaginated(IntermediateModel model, OperationModel opModel) {
+            super(model, opModel);
+        }
+
+        @Override
+        protected String appendToDescription() {
+            return paginationDocs.getDocsForSyncOperation();
+        }
+
+        @Override
+        protected void applyReturns(DocumentationBuilder docBuilder) {
+            docBuilder.returns("A custom iterable that can be used to iterate through all the response pages.");
+        }
+    }
+
+    /**
+     * Provider for paginated simple method that takes no arguments and creates an empty request object.
+     */
+    private static class SyncPaginatedNoArg extends SyncPaginated {
+
+        private SyncPaginatedNoArg(IntermediateModel model, OperationModel opModel) {
+            super(model, opModel);
+        }
+
+        @Override
+        protected void applyParams(DocumentationBuilder docBuilder) {
+            // Link to non-simple method for discoverability
+            docBuilder.see("#%s(%s)", PaginatorUtils.getPaginatedMethodName(opModel.getMethodName()),
+                           opModel.getInput().getVariableType());
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -26,10 +26,13 @@ import org.slf4j.LoggerFactory;
 /**
  * Utilities for IO operations.
  */
-public enum IoUtils {
-    ;
+public final class IoUtils {
+
     private static final int BUFFER_SIZE = 1024 * 4;
     private static final Logger DEFAULT_LOG = LoggerFactory.getLogger(IoUtils.class);
+
+    private IoUtils() {
+    }
 
     /**
      * Reads and returns the rest of the given input stream as a byte array.
@@ -72,6 +75,17 @@ public enum IoUtils {
                     logger.debug("Ignore failure in closing the Closeable", ex);
                 }
             }
+        }
+    }
+
+    /**
+     * Closes the given Closeable quietly.
+     * @param is the given closeable
+     * @param log logger used to log any failure should the close fail
+     */
+    public static void closeIfCloseable(Object maybeCloseable, Logger log) {
+        if (maybeCloseable instanceof AutoCloseable) {
+            IoUtils.closeQuietly((AutoCloseable) maybeCloseable, log);
         }
     }
 

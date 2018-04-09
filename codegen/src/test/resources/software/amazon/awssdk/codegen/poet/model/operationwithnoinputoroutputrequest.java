@@ -1,15 +1,18 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AwsRequestOverrideConfig;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @Generated("software.amazon.awssdk:codegen")
-public class OperationWithNoInputOrOutputRequest extends AmazonWebServiceRequest implements
-        ToCopyableBuilder<OperationWithNoInputOrOutputRequest.Builder, OperationWithNoInputOrOutputRequest> {
+public class OperationWithNoInputOrOutputRequest extends JsonProtocolTestsRequest implements
+                                                                                  ToCopyableBuilder<OperationWithNoInputOrOutputRequest.Builder, OperationWithNoInputOrOutputRequest> {
     private OperationWithNoInputOrOutputRequest(BuilderImpl builder) {
+        super(builder);
     }
 
     @Override
@@ -47,26 +50,36 @@ public class OperationWithNoInputOrOutputRequest extends AmazonWebServiceRequest
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("{");
-        if (sb.length() > 1) {
-            sb.setLength(sb.length() - 1);
-        }
-        sb.append("}");
-        return sb.toString();
+        return ToString.builder("OperationWithNoInputOrOutputRequest").build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         return Optional.empty();
     }
 
-    public interface Builder extends CopyableBuilder<Builder, OperationWithNoInputOrOutputRequest> {
+    public interface Builder extends JsonProtocolTestsRequest.Builder,
+                                     CopyableBuilder<Builder, OperationWithNoInputOrOutputRequest> {
+        @Override
+        Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig);
     }
 
-    static final class BuilderImpl implements Builder {
+    static final class BuilderImpl extends JsonProtocolTestsRequest.BuilderImpl implements Builder {
         private BuilderImpl() {
         }
 
         private BuilderImpl(OperationWithNoInputOrOutputRequest model) {
+        }
+
+        @Override
+        public Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig) {
+            super.requestOverrideConfig(awsRequestOverrideConfig);
+            return this;
+        }
+
+        @Override
+        public Builder requestOverrideConfig(Consumer<AwsRequestOverrideConfig.Builder> builderConsumer) {
+            super.requestOverrideConfig(builderConsumer);
+            return this;
         }
 
         @Override

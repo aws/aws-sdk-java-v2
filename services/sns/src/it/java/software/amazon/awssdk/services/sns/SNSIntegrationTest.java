@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -36,8 +36,7 @@ import java.util.Map.Entry;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
-import software.amazon.awssdk.core.AmazonServiceException.ErrorType;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.sns.model.AddPermissionRequest;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.CreateTopicResponse;
@@ -111,13 +110,12 @@ public class SNSIntegrationTest extends IntegrationTestBase {
     public void testCloudcastExceptionHandling() {
         try {
             sns.createTopic(CreateTopicRequest.builder().name("").build());
-        } catch (AmazonServiceException ase) {
-            assertEquals("InvalidParameter", ase.getErrorCode());
-            assertEquals(ErrorType.Client, ase.getErrorType());
-            assertTrue(ase.getMessage().length() > 5);
-            assertTrue(ase.getRequestId().length() > 5);
-            assertTrue(ase.getServiceName().length() > 5);
-            assertEquals(400, ase.getStatusCode());
+        } catch (SdkServiceException exception) {
+            assertEquals("InvalidParameter", exception.errorCode());
+            assertTrue(exception.getMessage().length() > 5);
+            assertTrue(exception.requestId().length() > 5);
+            assertTrue(exception.serviceName().length() > 5);
+            assertEquals(400, exception.statusCode());
         }
     }
 

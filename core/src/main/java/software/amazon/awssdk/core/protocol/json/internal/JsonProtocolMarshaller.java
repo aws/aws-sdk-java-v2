@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,13 +15,16 @@
 
 package software.amazon.awssdk.core.protocol.json.internal;
 
+import static software.amazon.awssdk.http.Headers.CONTENT_LENGTH;
+import static software.amazon.awssdk.http.Headers.CONTENT_TYPE;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.protocol.MarshallingInfo;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.protocol.OperationInfo;
@@ -36,7 +39,7 @@ import software.amazon.awssdk.utils.BinaryUtils;
  * @param <OrigRequestT> Type of the original request object.
  */
 @SdkInternalApi
-public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolRequestMarshaller<OrigRequestT> {
+public class JsonProtocolMarshaller<OrigRequestT extends SdkRequest> implements ProtocolRequestMarshaller<OrigRequestT> {
 
     private static final MarshallerRegistry MARSHALLER_REGISTRY = createMarshallerRegistry();
 
@@ -74,11 +77,7 @@ public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolRequestMars
     }
 
     private DefaultRequest<OrigRequestT> createRequest(OperationInfo operationInfo, OrigRequestT originalRequest) {
-        if (originalRequest instanceof AmazonWebServiceRequest) {
-            return new DefaultRequest<>((AmazonWebServiceRequest) originalRequest, operationInfo.serviceName());
-        } else {
-            return new DefaultRequest<>(operationInfo.serviceName());
-        }
+        return new DefaultRequest<>(originalRequest, operationInfo.serviceName());
     }
 
     private static MarshallerRegistry createMarshallerRegistry() {
@@ -183,11 +182,11 @@ public class JsonProtocolMarshaller<OrigRequestT> implements ProtocolRequestMars
             byte[] content = jsonGenerator.getBytes();
             request.setContent(new ByteArrayInputStream(content));
             if (content.length > 0) {
-                request.addHeader("Content-Length", Integer.toString(content.length));
+                request.addHeader(CONTENT_LENGTH, Integer.toString(content.length));
             }
         }
-        if (!request.getHeaders().containsKey("Content-Type")) {
-            request.addHeader("Content-Type", contentType);
+        if (!request.getHeaders().containsKey(CONTENT_TYPE) && contentType != null) {
+            request.addHeader(CONTENT_TYPE, contentType);
         }
         return request;
     }

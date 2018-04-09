@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -99,20 +99,8 @@ public class Freemarker {
         return fmConfig.getTemplate(template.getMainTemplate());
     }
 
-    public Template getSyncClientBuilderTemplate() throws IOException {
-        return getTemplate(templateConfig.getSyncClientBuilder());
-    }
-
-    public Template getAsyncClientBuilderTemplate() throws IOException {
-        return getTemplate(templateConfig.getAsyncClientBuilder());
-    }
-
     public Template getModelMarshallerTemplate() throws IOException {
         return getTemplate(templateConfig.getModelMarshaller());
-    }
-
-    public Template getRequestMarshallerTemplate() throws IOException {
-        return getTemplate(templateConfig.getRequestMarshaller());
     }
 
     public Template getModelUnmarshallerTemplate() throws IOException {
@@ -161,18 +149,6 @@ public class Freemarker {
 
     public Template getBaseExceptionClassTemplate() throws IOException {
         return getTemplate(templateConfig.getBaseExceptionClass());
-    }
-
-    public Template getWaiterSdkFunctionTemplate() throws IOException {
-        return getTemplate(templateConfig.getSdkFunctionClass());
-    }
-
-    public Template getWaiterAcceptorTemplate() throws IOException {
-        return getTemplate(templateConfig.getAcceptorClass());
-    }
-
-    public Template getWaiterTemplate() throws IOException {
-        return getTemplate(templateConfig.getWaiterClass());
     }
 
     public Template getCustomAuthorizerTemplate() throws IOException {

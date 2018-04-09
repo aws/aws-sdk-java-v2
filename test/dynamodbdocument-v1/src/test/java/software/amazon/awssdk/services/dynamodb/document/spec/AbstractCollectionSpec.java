@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,8 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.document.spec;
 
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
-
+import software.amazon.awssdk.core.AwsRequest;
 
 /**
  * Abstract implementation class for parameter specification that involves
@@ -24,7 +23,7 @@ import software.amazon.awssdk.core.AmazonWebServiceRequest;
  *
  * @param <T> request type
  */
-abstract class AbstractCollectionSpec<T extends AmazonWebServiceRequest>
+abstract class AbstractCollectionSpec<T extends AwsRequest>
         extends AbstractSpec<T> {
 
     private Integer maxPageSize;

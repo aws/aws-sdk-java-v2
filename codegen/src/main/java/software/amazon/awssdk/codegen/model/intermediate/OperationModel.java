@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -40,6 +40,8 @@ public class OperationModel extends DocumentationModel {
     private boolean hasBlobMemberAsPayload;
 
     private boolean isAuthenticated = true;
+
+    private boolean isPaginated;
 
     @JsonIgnore
     private ShapeModel inputShape;
@@ -164,5 +166,18 @@ public class OperationModel extends DocumentationModel {
 
     public boolean hasStreamingOutput() {
         return outputShape != null && outputShape.isHasStreamingMember();
+    }
+
+    @JsonIgnore
+    public boolean isStreaming() {
+        return hasStreamingInput() || hasStreamingOutput();
+    }
+
+    public boolean isPaginated() {
+        return isPaginated;
+    }
+
+    public void setPaginated(boolean paginated) {
+        isPaginated = paginated;
     }
 }

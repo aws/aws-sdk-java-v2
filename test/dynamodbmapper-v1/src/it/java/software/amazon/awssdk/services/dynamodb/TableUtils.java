@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.dynamodb;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
@@ -33,7 +33,7 @@ import software.amazon.awssdk.services.dynamodb.model.TableStatus;
  * // ... create DynamoDB table ...
  * try {
  *     waitUntilActive(dynamoDB, myTableName());
- * } catch (AmazonClientException e) {
+ * } catch (SdkClientException e) {
  *     // table didn't become active
  * }
  * // ... start making calls to table ...

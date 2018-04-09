@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.client.builder;
 
 import java.net.URI;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
@@ -37,6 +38,15 @@ public interface ClientBuilder<B extends ClientBuilder<B, C>, C> extends SdkBuil
      * Specify overrides to the default SDK configuration that should be used for clients created by this builder.
      */
     B overrideConfiguration(ClientOverrideConfiguration overrideConfiguration);
+
+    /**
+     * Similar to {@link #overrideConfiguration(ClientOverrideConfiguration)}, but takes a lambda to configure a new
+     * {@link ClientOverrideConfiguration.Builder}. This removes the need to called {@link ClientOverrideConfiguration#builder()}
+     * and {@link ClientOverrideConfiguration.Builder#build()}.
+     */
+    default B overrideConfiguration(Consumer<ClientOverrideConfiguration.Builder> overrideConfiguration) {
+        return overrideConfiguration(ClientOverrideConfiguration.builder().apply(overrideConfiguration).build());
+    }
 
     /**
      * Configure the credentials that should be used to authenticate with AWS.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -102,6 +102,50 @@ public final class Either<L, R> {
      */
     public static <L, R> Either<L, R> right(R value) {
         return new Either<>(Optional.empty(), Optional.of(value));
+    }
+
+    /**
+     * Create a new Optional&lt;Either&rt; from two possibly null values.
+     *
+     * If both values are null, {@link Optional#empty()} is returned. Only one of the left or right values
+     * is allowed to be non-null, otherwise an {@link IllegalArgumentException} is thrown.
+     * @param left The left value (possibly null)
+     * @param right The right value (possibly null)
+     * @param <L> Left type
+     * @param <R> Right type
+     * @return an Optional Either representing one of the two values or empty if both are null
+     */
+    public static <L, R> Optional<Either<L, R>> fromNullable(L left, R right) {
+        if (left != null && right == null) {
+            return Optional.of(left(left));
+        }
+        if (left == null && right != null) {
+            return Optional.of(right(right));
+        }
+        if (left == null && right == null) {
+            return Optional.empty();
+        }
+        throw new IllegalArgumentException(String.format("Only one of either left or right should be non-null. "
+                                                         + "Got (left: %s, right: %s)", left, right));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Either)) {
+            return false;
+        }
+
+        final Either<?, ?> either = (Either<?, ?>) o;
+
+        return left.equals(either.left) && right.equals(either.right);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * left.hashCode() + right.hashCode();
     }
 }
 

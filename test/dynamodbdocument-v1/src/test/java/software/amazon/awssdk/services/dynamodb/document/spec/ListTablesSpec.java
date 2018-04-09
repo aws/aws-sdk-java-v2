@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.dynamodb.document.spec;
 
-import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
 
 /**
@@ -57,12 +56,6 @@ public class ListTablesSpec extends AbstractCollectionSpec<ListTablesRequest> {
     @Override
     public ListTablesSpec withMaxPageSize(int maxPageSize) {
         setMaxPageSize(maxPageSize);
-        return this;
-    }
-
-    @Override
-    public ListTablesSpec withProgressListener(ProgressListener progressListener) {
-        setProgressListener(progressListener);
         return this;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,8 +21,9 @@ import static org.junit.Assert.assertNull;
 import java.util.HashMap;
 import java.util.Random;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AwsRequest;
 import software.amazon.awssdk.core.ResponseMetadata;
+import software.amazon.awssdk.core.http.NoopTestAwsRequest;
 
 /** Tests for the response metadata cache class. */
 public class ResponseMetadataCacheTest {
@@ -32,10 +33,10 @@ public class ResponseMetadataCacheTest {
     public void testEviction() {
         ResponseMetadataCache cache = new ResponseMetadataCache(3);
 
-        AmazonWebServiceRequest key1 = new TestRequest();
-        AmazonWebServiceRequest key2 = new TestRequest();
-        AmazonWebServiceRequest key3 = new TestRequest();
-        AmazonWebServiceRequest key4 = new TestRequest();
+        AwsRequest key1 = NoopTestAwsRequest.builder().build();
+        AwsRequest key2 = NoopTestAwsRequest.builder().build();
+        AwsRequest key3 = NoopTestAwsRequest.builder().build();
+        AwsRequest key4 = NoopTestAwsRequest.builder().build();
         ResponseMetadata metadata1 = newResponseMetadata();
         ResponseMetadata metadata2 = newResponseMetadata();
         ResponseMetadata metadata3 = newResponseMetadata();
@@ -64,7 +65,7 @@ public class ResponseMetadataCacheTest {
     public void TestEmpty() {
         ResponseMetadataCache cache = new ResponseMetadataCache(0);
 
-        AmazonWebServiceRequest key = new TestRequest();
+        AwsRequest key = NoopTestAwsRequest.builder().build();
         ResponseMetadata metadata = newResponseMetadata();
         // Add item to the cache, it should be immediately evicted.
         cache.add(key, metadata);
@@ -77,8 +78,5 @@ public class ResponseMetadataCacheTest {
         HashMap<String, String> metadata = new HashMap<String, String>();
         metadata.put("foo", "bar-" + new Random().nextLong());
         return new ResponseMetadata(metadata);
-    }
-
-    private class TestRequest extends AmazonWebServiceRequest {
     }
 }

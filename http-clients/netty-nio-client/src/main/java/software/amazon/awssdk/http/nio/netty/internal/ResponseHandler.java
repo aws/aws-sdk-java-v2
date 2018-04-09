@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.mapping;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.RESPONSE_COMPLETE_KEY;
 
+import com.typesafe.netty.http.HttpStreamsClientHandler;
 import com.typesafe.netty.http.StreamedHttpResponse;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -31,6 +32,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
+import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.util.AttributeKey;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -75,12 +77,10 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         if (msg instanceof StreamedHttpResponse) {
             requestContext.handler().onStream(new PublisherAdapter((StreamedHttpResponse) msg, channelContext, requestContext));
         } else if (msg instanceof FullHttpResponse) {
-            // TODO: HttpStreamsClientHandler leaves a dangling LastHttpContent
-            // in the pipeline. Consume it ourselves to make sure the channel
-            // is empty at the end of stream and before releasing it back to he
-            // pool.  The HttpStreamsClientHandler should really be doing this
-            // for us.
-            channelContext.read();
+            // Be prepared to take care of (ignore) a trailing LastHttpResponse
+            // from the HttpClientCodec if there is one.
+            channelContext.pipeline().replace(HttpStreamsClientHandler.class,
+                    channelContext.name() + "-LastHttpContentSwallower", new LastHttpContentSwallower());
 
             ByteBuf fullContent = ((FullHttpResponse) msg).content();
             final ByteBuffer bb = copyToByteBuffer(fullContent);
@@ -116,7 +116,6 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         runAndLogError("SdkHttpResponseHandler threw an exception",
             () -> {
                 requestContext.handler().exceptionOccurred(cause);
-                requestContext.handler().complete();
             });
         runAndLogError("Could not release channel back to the pool", () -> closeAndRelease(ctx));
     }
@@ -238,6 +237,22 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
             subscriber.onNext(fullContent);
             channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY)
                     .set(subscriber);
+        }
+    }
+
+
+    private static class LastHttpContentSwallower extends SimpleChannelInboundHandler<HttpObject> {
+        @Override
+        protected void channelRead0(ChannelHandlerContext ctx, HttpObject obj) throws Exception {
+            if (obj instanceof LastHttpContent) {
+                // Queue another read to make up for the one we just ignored
+                ctx.read();
+            } else {
+                ctx.fireChannelRead(obj);
+            }
+            // Remove self from pipeline since we only care about potentially
+            // ignoring the very first message
+            ctx.pipeline().remove(this);
         }
     }
 }

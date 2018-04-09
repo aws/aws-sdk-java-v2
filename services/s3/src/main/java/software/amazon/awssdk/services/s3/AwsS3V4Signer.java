@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,10 +21,10 @@ import static software.amazon.awssdk.utils.Validate.validState;
 import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.core.ResetException;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.Aws4Signer;
 import software.amazon.awssdk.core.auth.internal.Aws4SignerRequestParams;
+import software.amazon.awssdk.core.exception.ResetException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.services.s3.auth.AwsChunkedEncodingInputStream;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;

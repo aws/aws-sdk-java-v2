@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -25,9 +25,10 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.core.exception.ErrorType;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.protocolquery.ProtocolQueryClient;
 import software.amazon.awssdk.services.protocolquery.model.AllTypesRequest;
@@ -46,7 +47,7 @@ public class QueryExceptionTests {
     @Before
     public void setupClient() {
         client = ProtocolQueryClient.builder()
-                                    .credentialsProvider(new StaticCredentialsProvider(new AwsCredentials("akid", "skid")))
+                                    .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
                                     .region(Region.US_EAST_1)
                                     .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                     .build();
@@ -60,27 +61,27 @@ public class QueryExceptionTests {
     }
 
     @Test
-    public void unmodeledException_ErrorCodeSetOnAse() {
+    public void unmodeledException_ErrorCodeSetOnServiceException() {
         stub404Response(PATH,
                 "<ErrorResponse><Error><Code>UnmodeledException</Code></Error></ErrorResponse>");
-        final AmazonServiceException ase = captureAse(this::callAllTypes);
-        assertEquals("UnmodeledException", ase.getErrorCode());
+        final SdkServiceException exception = captureServiceException(this::callAllTypes);
+        assertEquals("UnmodeledException", exception.errorCode());
     }
 
     @Test
-    public void unmodeledExceptionWithMessage_MessageSetOnAse() {
+    public void unmodeledExceptionWithMessage_MessageSetOnServiceException() {
         stub404Response(PATH,
                 "<ErrorResponse><Error><Code>UnmodeledException</Code><Message>Something happened</Message></Error></ErrorResponse>");
-        final AmazonServiceException ase = captureAse(this::callAllTypes);
-        assertEquals("Something happened", ase.getErrorMessage());
+        final SdkServiceException exception = captureServiceException(this::callAllTypes);
+        assertEquals("Something happened", exception.errorMessage());
     }
 
     @Test
-    public void unmodeledException_StatusCodeSetOnAse() {
+    public void unmodeledException_StatusCodeSetOnServiceException() {
         stub404Response(PATH,
                 "<ErrorResponse><Error><Code>UnmodeledException</Code></Error></ErrorResponse>");
-        final AmazonServiceException ase = captureAse(this::callAllTypes);
-        assertEquals(404, ase.getStatusCode());
+        final SdkServiceException exception = captureServiceException(this::callAllTypes);
+        assertEquals(404, exception.statusCode());
     }
 
     @Test
@@ -91,32 +92,32 @@ public class QueryExceptionTests {
             callAllTypes();
         } catch (EmptyModeledException e) {
             assertThat(e, instanceOf(ProtocolQueryException.class));
-            assertEquals("EmptyModeledException", e.getErrorCode());
+            assertEquals("EmptyModeledException", e.errorCode());
         }
     }
 
     @Test
-    public void modeledExceptionWithMessage_MessageSetOnAse() {
+    public void modeledExceptionWithMessage_MessageSetOnServiceExeption() {
         stub404Response(PATH,
                 "<ErrorResponse><Error><Code>EmptyModeledException</Code><Message>Something happened</Message></Error></ErrorResponse>");
-        final EmptyModeledException ase = captureModeledException(this::callAllTypes);
-        assertEquals("Something happened", ase.getErrorMessage());
+        final EmptyModeledException exception = captureModeledException(this::callAllTypes);
+        assertEquals("Something happened", exception.errorMessage());
     }
 
     @Test
-    public void modeledException_ErrorCodeSetOnAse() {
+    public void modeledException_ErrorCodeSetOnServiceException() {
         stub404Response(PATH,
                 "<ErrorResponse><Error><Code>EmptyModeledException</Code></Error></ErrorResponse>");
-        final EmptyModeledException ase = captureModeledException(this::callAllTypes);
-        assertEquals("EmptyModeledException", ase.getErrorCode());
+        final EmptyModeledException exception = captureModeledException(this::callAllTypes);
+        assertEquals("EmptyModeledException", exception.errorCode());
     }
 
     @Test
-    public void modeledException_StatusCodeSetOnAse() {
+    public void modeledException_StatusCodeSetOnServiceException() {
         stub404Response(PATH,
                 "<ErrorResponse><Error><Code>EmptyModeledException</Code></Error></ErrorResponse>");
-        final EmptyModeledException ase = captureModeledException(this::callAllTypes);
-        assertEquals(404, ase.getStatusCode());
+        final EmptyModeledException exception = captureModeledException(this::callAllTypes);
+        assertEquals(404, exception.statusCode());
     }
 
     @Test
@@ -135,42 +136,42 @@ public class QueryExceptionTests {
     public void errorTypeSender_UnmarshallsIntoClientErrorType() {
         stub404Response(PATH,
                 "<ErrorResponse><Error><Code>UnmodeledException</Code><Type>Sender</Type></Error></ErrorResponse>");
-        final AmazonServiceException ase = captureAse(this::callAllTypes);
-        assertEquals(AmazonServiceException.ErrorType.Client, ase.getErrorType());
+        final SdkServiceException exception = captureServiceException(this::callAllTypes);
+        assertEquals(ErrorType.CLIENT, exception.errorType());
     }
 
     @Test
     public void errorTypeReceiver_UnmarshallsIntoServiceErrorType() {
         stub404Response(PATH,
                 "<ErrorResponse><Error><Code>UnmodeledException</Code><Type>Receiver</Type></Error></ErrorResponse>");
-        final AmazonServiceException ase = captureAse(this::callAllTypes);
-        assertEquals(AmazonServiceException.ErrorType.Service, ase.getErrorType());
+        final SdkServiceException exception = captureServiceException(this::callAllTypes);
+        assertEquals(ErrorType.SERVICE, exception.errorType());
     }
 
     @Test
     public void noErrorTypeInXml_UnmarshallsIntoUnknownErrorType() {
         stub404Response(PATH,
                 "<ErrorResponse><Error><Code>UnmodeledException</Code></Error></ErrorResponse>");
-        final AmazonServiceException ase = captureAse(this::callAllTypes);
-        assertEquals(AmazonServiceException.ErrorType.Unknown, ase.getErrorType());
+        final SdkServiceException exception = captureServiceException(this::callAllTypes);
+        assertEquals(ErrorType.UNKNOWN, exception.errorType());
     }
 
     @Test
     public void emptyErrorResponse_UnmarshallsIntoUnknownErrorType() {
         stub404Response(PATH, "");
-        final AmazonServiceException ase = captureAse(this::callAllTypes);
-        assertEquals(AmazonServiceException.ErrorType.Unknown, ase.getErrorType());
-        assertEquals("404 Not Found", ase.getErrorCode());
-        assertEquals(404, ase.getStatusCode());
+        final SdkServiceException exception = captureServiceException(this::callAllTypes);
+        assertEquals(ErrorType.UNKNOWN, exception.errorType());
+        assertEquals("404 Not Found", exception.errorCode());
+        assertEquals(404, exception.statusCode());
     }
 
     @Test
     public void malformedErrorResponse_UnmarshallsIntoUnknownErrorType() {
         stub404Response(PATH, "THIS ISN'T XML");
-        final AmazonServiceException ase = captureAse(this::callAllTypes);
-        assertEquals(AmazonServiceException.ErrorType.Unknown, ase.getErrorType());
-        assertEquals("404 Not Found", ase.getErrorCode());
-        assertEquals(404, ase.getStatusCode());
+        final SdkServiceException exception = captureServiceException(this::callAllTypes);
+        assertEquals(ErrorType.UNKNOWN, exception.errorType());
+        assertEquals("404 Not Found", exception.errorCode());
+        assertEquals(404, exception.statusCode());
     }
 
     private void callAllTypes() {
@@ -185,12 +186,12 @@ public class QueryExceptionTests {
         }
     }
 
-    private AmazonServiceException captureAse(Runnable runnable) {
+    private SdkServiceException captureServiceException(Runnable runnable) {
         try {
             runnable.run();
             return null;
-        } catch (AmazonServiceException ase) {
-            return ase;
+        } catch (SdkServiceException exception) {
+            return exception;
         }
     }
 
@@ -198,8 +199,8 @@ public class QueryExceptionTests {
         try {
             runnable.run();
             return null;
-        } catch (EmptyModeledException ase) {
-            return ase;
+        } catch (EmptyModeledException exception) {
+            return exception;
         }
     }
 }

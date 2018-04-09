@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,7 +18,10 @@ package software.amazon.awssdk.testutils;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatterBuilder;
 
-public class DateUtils {
+public final class DateUtils {
+
+    private DateUtils() {
+    }
 
     /**
      * Returns the current time in yyMMdd-hhmmss format.

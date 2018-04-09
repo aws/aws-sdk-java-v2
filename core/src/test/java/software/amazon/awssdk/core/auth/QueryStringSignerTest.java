@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ public class QueryStringSignerTest {
                                                        .rawQueryParameter("foo", "bar")
                                                        .build();
 
-        request = SignerTestUtils.signRequest(signer, request, new AnonymousCredentialsProvider().getCredentials());
+        request = SignerTestUtils.signRequest(signer, request, AnonymousCredentialsProvider.create().getCredentials());
 
         assertNull(request.rawQueryParameters().get("Signature"));
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -342,18 +342,6 @@ public class ValidateTest  {
         coll.set(1, "b");
         final List<String> test = Validate.noNullElements(coll, "Message");
         assertSame(coll, test);
-    }
-
-    //-----------------------------------------------------------------------
-    //-----------------------------------------------------------------------
-    @Test
-    public void testConstructor() {
-        assertNotNull(new Validate());
-        final Constructor<?>[] cons = Validate.class.getDeclaredConstructors();
-        assertEquals(1, cons.length);
-        assertTrue(Modifier.isPublic(cons[0].getModifiers()));
-        assertTrue(Modifier.isPublic(Validate.class.getModifiers()));
-        assertFalse(Modifier.isFinal(Validate.class.getModifiers()));
     }
 
     @Test

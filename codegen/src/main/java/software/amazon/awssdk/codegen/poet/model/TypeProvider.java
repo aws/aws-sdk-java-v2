@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -39,10 +39,10 @@ import software.amazon.awssdk.codegen.poet.PoetExtensions;
 /**
  * Helper class for resolving Poet {@link TypeName}s for use in model classes.
  */
-class TypeProvider {
+public class TypeProvider {
     private final PoetExtensions poetExtensions;
 
-    TypeProvider(IntermediateModel intermediateModel) {
+    public TypeProvider(IntermediateModel intermediateModel) {
         this.poetExtensions = new PoetExtensions(intermediateModel);
     }
 
@@ -127,6 +127,13 @@ class TypeProvider {
         if (mapModel.getValueModel().isList()) {
             valueType = WildcardTypeName.subtypeOf(valueType);
         }
+
+        return ParameterizedTypeName.get(ClassName.get(Map.Entry.class), keyType, valueType);
+    }
+
+    public TypeName mapEntryWithConcreteTypes(MapModel mapModel) {
+        TypeName keyType = fieldType(mapModel.getKeyModel());
+        TypeName valueType = fieldType(mapModel.getValueModel());
 
         return ParameterizedTypeName.get(ClassName.get(Map.Entry.class), keyType, valueType);
     }

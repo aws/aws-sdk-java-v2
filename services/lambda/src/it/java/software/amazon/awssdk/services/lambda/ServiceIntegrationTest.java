@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,10 +15,14 @@
 
 package software.amazon.awssdk.services.lambda;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,12 +31,12 @@ import software.amazon.awssdk.services.lambda.model.CreateEventSourceMappingRequ
 import software.amazon.awssdk.services.lambda.model.CreateEventSourceMappingResponse;
 import software.amazon.awssdk.services.lambda.model.CreateFunctionResponse;
 import software.amazon.awssdk.services.lambda.model.DeleteEventSourceMappingRequest;
+import software.amazon.awssdk.services.lambda.model.DeleteFunctionRequest;
+import software.amazon.awssdk.services.lambda.model.FunctionCode;
 import software.amazon.awssdk.services.lambda.model.FunctionConfiguration;
 import software.amazon.awssdk.services.lambda.model.GetEventSourceMappingRequest;
 import software.amazon.awssdk.services.lambda.model.GetEventSourceMappingResponse;
-import software.amazon.awssdk.services.lambda.model.GetFunctionConfigurationRequest;
 import software.amazon.awssdk.services.lambda.model.GetFunctionConfigurationResponse;
-import software.amazon.awssdk.services.lambda.model.GetFunctionRequest;
 import software.amazon.awssdk.services.lambda.model.GetFunctionResponse;
 import software.amazon.awssdk.services.lambda.model.InvocationType;
 import software.amazon.awssdk.services.lambda.model.InvokeRequest;
@@ -40,6 +44,7 @@ import software.amazon.awssdk.services.lambda.model.InvokeResponse;
 import software.amazon.awssdk.services.lambda.model.ListFunctionsRequest;
 import software.amazon.awssdk.services.lambda.model.ListFunctionsResponse;
 import software.amazon.awssdk.services.lambda.model.LogType;
+import software.amazon.awssdk.services.lambda.model.Runtime;
 import software.amazon.awssdk.testutils.retry.RetryRule;
 import software.amazon.awssdk.utils.Base64Utils;
 
@@ -54,6 +59,34 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
     public static void setUpKinesis() {
         IntegrationTestBase.createKinesisStream();
     }
+
+    @Before
+    public void uploadFunction() throws IOException {
+        // Upload function
+        byte[] functionBits;
+        InputStream functionZip = new FileInputStream(cloudFuncZip);
+        try {
+            functionBits = read(functionZip);
+        } finally {
+            functionZip.close();
+        }
+
+        CreateFunctionResponse result = lambda.createFunction(r -> r.description("My cloud function").functionName(FUNCTION_NAME)
+                                                                    .code(FunctionCode.builder().zipFile(ByteBuffer.wrap(functionBits)).build())
+                                                                    .handler("helloworld.handler")
+                                                                    .memorySize(128)
+                                                                    .runtime(Runtime.NODEJS4_3)
+                                                                    .timeout(10)
+                                                                    .role(lambdaServiceRoleArn)).join();
+
+        checkValid_CreateFunctionResponse(result);
+    }
+
+    @After
+    public void deleteFunction() {
+        lambda.deleteFunction(DeleteFunctionRequest.builder().functionName(FUNCTION_NAME).build());
+    }
+
 
     private static void checkValid_CreateFunctionResponse(CreateFunctionResponse result) {
 
@@ -132,12 +165,12 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
     public void testFunctionOperations() throws IOException {
 
         // Get function
-        GetFunctionResponse getFunc = lambda.getFunction(GetFunctionRequest.builder().functionName(FUNCTION_NAME).build()).join();
+        GetFunctionResponse getFunc = lambda.getFunction(r -> r.functionName(FUNCTION_NAME)).join();
         checkValid_GetFunctionResponse(getFunc);
 
         // Get function configuration
-        GetFunctionConfigurationResponse getConfig = lambda
-                .getFunctionConfiguration(GetFunctionConfigurationRequest.builder().functionName(FUNCTION_NAME).build()).join();
+        GetFunctionConfigurationResponse getConfig = lambda.getFunctionConfiguration(r -> r.functionName(FUNCTION_NAME)).join();
+
         checkValid_GetFunctionConfigurationResponse(getConfig);
 
         // List functions

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,18 +20,17 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
-import software.amazon.awssdk.core.ReadLimitInfo;
+
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.http.HttpMethodName;
+import software.amazon.awssdk.core.http.NoopTestRequest;
 
-public class EmptyHttpRequest implements Request<Object> {
+public class EmptyHttpRequest implements Request<NoopTestRequest> {
 
     private final URI endpoint;
     private final HttpMethodName httpMethod;
     private InputStream content;
-    private AmazonWebServiceRequest originalRequest = new AmazonWebServiceRequest() {
-    };
+    private NoopTestRequest originalRequest = NoopTestRequest.builder().build();
 
     public EmptyHttpRequest(String endpoint, HttpMethodName httpMethod) {
         this(endpoint, httpMethod, null);
@@ -71,7 +70,7 @@ public class EmptyHttpRequest implements Request<Object> {
     }
 
     @Override
-    public Request<Object> withParameter(String name, String value) {
+    public Request<NoopTestRequest> withParameter(String name, String value) {
         return this;
     }
 
@@ -124,7 +123,7 @@ public class EmptyHttpRequest implements Request<Object> {
     }
 
     @Override
-    public AmazonWebServiceRequest getOriginalRequest() {
+    public NoopTestRequest getOriginalRequest() {
         return originalRequest;
     }
 
@@ -138,24 +137,7 @@ public class EmptyHttpRequest implements Request<Object> {
     }
 
     @Override
-    public Request<Object> withTimeOffset(int timeOffset) {
+    public Request<NoopTestRequest> withTimeOffset(int timeOffset) {
         return this;
-    }
-
-    @Override
-    public ReadLimitInfo getReadLimitInfo() {
-        return new AmazonWebServiceRequest() {
-        };
-    }
-
-    @Override
-    public InputStream getContentUnwrapped() {
-        return null;
-    }
-
-    @Override
-    public Object getOriginalRequestObject() {
-        return new AmazonWebServiceRequest() {
-        };
     }
 }

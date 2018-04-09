@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
 
 package utils.resources;
 
-import software.amazon.awssdk.core.AmazonClientException;
+import java.time.Duration;
+import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.utils.Logger;
 import utils.resources.RequiredResources.ResourceCreationPolicy;
 import utils.resources.TestResource.ResourceStatus;
@@ -57,17 +58,8 @@ public class TestResourceUtils {
     }
 
     public static ResourceStatus waitForFinalizedStatus(TestResource resource) throws InterruptedException {
-        long startTime = System.currentTimeMillis();
-        long endTime = startTime + (10 * 60 * 1000);
-        while (System.currentTimeMillis() < endTime) {
-            ResourceStatus status = resource.getResourceStatus();
-            if (status != ResourceStatus.TRANSIENT) {
-                return status;
-            }
-            log.info(() -> "Waiting for " + resource + " to escape the transient state...");
-            Thread.sleep(1000 * 10);
-        }
-
-        throw new AmazonClientException("Resource never escaped the transient state.");
+        return Waiter.run(resource::getResourceStatus)
+                     .until(s -> s != ResourceStatus.TRANSIENT)
+                     .orFailAfter(Duration.ofMinutes(5));
     }
 }

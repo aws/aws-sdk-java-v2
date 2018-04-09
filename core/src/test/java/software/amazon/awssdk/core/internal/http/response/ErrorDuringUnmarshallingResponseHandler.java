@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,14 +15,14 @@
 
 package software.amazon.awssdk.core.internal.http.response;
 
-import software.amazon.awssdk.core.AmazonWebServiceResponse;
+import software.amazon.awssdk.core.AwsResponse;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 
 public class ErrorDuringUnmarshallingResponseHandler extends NullResponseHandler {
     @Override
-    public AmazonWebServiceResponse<Object> handle(HttpResponse response,
-                                                   ExecutionAttributes executionAttributes) throws Exception {
+    public AwsResponse handle(HttpResponse response,
+                              ExecutionAttributes executionAttributes) throws Exception {
         throw new RuntimeException("Unable to unmarshall response");
     }
 }

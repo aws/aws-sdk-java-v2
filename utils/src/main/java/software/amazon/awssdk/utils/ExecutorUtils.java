@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Utilities that make it easier to create, use and destroy {@link ExecutorService}s.
  */
-public class ExecutorUtils {
+public final class ExecutorUtils {
     private static Logger LOG = LoggerFactory.getLogger(ExecutorUtils.class);
 
     private ExecutorUtils() {}

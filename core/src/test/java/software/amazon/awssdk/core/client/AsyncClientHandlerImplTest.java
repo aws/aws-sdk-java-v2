@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -31,11 +31,9 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.core.AmazonServiceException;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AwsRequest;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.RequestConfig;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.auth.AwsCredentials;
@@ -45,8 +43,10 @@ import software.amazon.awssdk.core.config.AsyncClientConfiguration;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.config.MutableClientConfiguration;
 import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.internal.auth.NoOpSignerProvider;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.async.AbortableRunnable;
@@ -60,13 +60,10 @@ public class AsyncClientHandlerImplTest {
     @Mock
     private AwsCredentialsProvider credentialsProvider;
 
-    private AwsCredentials awsCredentials = new AwsCredentials("public", "private");
+    private AwsCredentials awsCredentials = AwsCredentials.create("public", "private");
 
     @Mock
-    private AmazonWebServiceRequest request;
-
-    @Mock
-    private RequestConfig requestConfig;
+    private AwsRequest request;
 
     @Mock
     private Marshaller<Request<SdkRequest>, SdkRequest> marshaller;
@@ -83,7 +80,7 @@ public class AsyncClientHandlerImplTest {
     private HttpResponseHandler<SdkResponse> responseHandler;
 
     @Mock
-    private HttpResponseHandler<AmazonServiceException> errorResponseHandler;
+    private HttpResponseHandler<SdkServiceException> errorResponseHandler;
 
     @Mock
     private SdkResponse response;
@@ -116,7 +113,7 @@ public class AsyncClientHandlerImplTest {
 
     @Test
     public void failedExecutionCallsErrorResponseHandler() throws Exception {
-        AmazonServiceException exception = new AmazonServiceException("Uh oh!");
+        SdkServiceException exception = new SdkServiceException("Uh oh!");
 
         // Given
         ArgumentCaptor<SdkHttpResponseHandler> sdkHttpResponseHandler = ArgumentCaptor.forClass(SdkHttpResponseHandler.class);
@@ -137,7 +134,6 @@ public class AsyncClientHandlerImplTest {
 
     private void expectRetrievalFromMocks() {
         when(credentialsProvider.getCredentials()).thenReturn(awsCredentials);
-        when(requestConfig.getOriginalRequest()).thenReturn(request);
         when(marshaller.marshall(request)).thenReturn(marshalledRequest);
     }
 
@@ -145,7 +141,6 @@ public class AsyncClientHandlerImplTest {
         return new ClientExecutionParams<SdkRequest, SdkResponse>()
                 .withInput(request)
                 .withMarshaller(marshaller)
-                .withRequestConfig(requestConfig)
                 .withResponseHandler(responseHandler)
                 .withErrorResponseHandler(errorResponseHandler);
     }
@@ -159,6 +154,7 @@ public class AsyncClientHandlerImplTest {
         mutableClientConfiguration.overrideConfiguration(
             ClientOverrideConfiguration.builder()
                                        .advancedOption(AdvancedClientOption.SIGNER_PROVIDER, new NoOpSignerProvider())
+                                       .retryPolicy(RetryPolicy.builder().numRetries(0).build())
                                        .build());
 
         new GlobalClientConfigurationDefaults().applyAsyncDefaults(mutableClientConfiguration);

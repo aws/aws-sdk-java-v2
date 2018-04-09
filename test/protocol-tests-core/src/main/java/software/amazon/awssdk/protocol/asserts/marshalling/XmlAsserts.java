@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,11 +18,14 @@ package software.amazon.awssdk.protocol.asserts.marshalling;
 import static org.junit.Assert.fail;
 
 import java.io.StringWriter;
+import java.io.Writer;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -31,9 +34,12 @@ import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier;
 import org.w3c.dom.Document;
 import software.amazon.awssdk.core.util.StringInputStream;
 
-public class XmlAsserts {
+public final class XmlAsserts {
 
     private static final DocumentBuilder DOCUMENT_BUILDER = getDocumentBuilder();
+
+    private XmlAsserts() {
+    }
 
     private static DocumentBuilder getDocumentBuilder() {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -68,11 +74,20 @@ public class XmlAsserts {
     }
 
     private static String formatXml(Document xmlDocument) throws Exception {
-        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+        Transformer transformer = transformerFactory().newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         StreamResult result = new StreamResult(new StringWriter());
         DOMSource source = new DOMSource(xmlDocument);
         transformer.transform(source, result);
-        return result.getWriter().toString();
+        try (Writer writer = result.getWriter()) {
+            return writer.toString();
+        }
+    }
+
+    private static TransformerFactory transformerFactory() throws TransformerConfigurationException {
+        TransformerFactory factory = TransformerFactory.newInstance();
+        factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        factory.setFeature(XMLConstants.ACCESS_EXTERNAL_DTD, false);
+        return factory;
     }
 }

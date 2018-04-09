@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.services.dynamodb.document.AttributeUpdate;
 import software.amazon.awssdk.services.dynamodb.document.Expected;
 import software.amazon.awssdk.services.dynamodb.document.KeyAttribute;
@@ -234,12 +233,6 @@ public class UpdateItemSpec extends AbstractSpecWithPrimaryKey<UpdateItemRequest
 
     public UpdateItemSpec withReturnValues(String returnValues) {
         setRequest(getRequest().toBuilder().returnValues(returnValues).build());
-        return this;
-    }
-
-    @Override
-    public UpdateItemSpec withProgressListener(ProgressListener progressListener) {
-        setProgressListener(progressListener);
         return this;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,9 +24,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
-import software.amazon.awssdk.core.util.StringInputStream;
+import software.amazon.awssdk.core.util.Mimetypes;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
@@ -40,10 +41,12 @@ public class RequestBody {
     // TODO Handle stream management (progress listener, orig input stream tracking, etc
     private final InputStream inputStream;
     private final long contentLength;
+    private final String contentType;
 
-    private RequestBody(InputStream inputStream, long contentLength) {
+    private RequestBody(InputStream inputStream, long contentLength, String contentType) {
         this.inputStream = paramNotNull(inputStream, "contents");
         this.contentLength = contentLength;
+        this.contentType = paramNotNull(contentType, "contentType");
         validState(contentLength >= 0, "Content length must be greater than or equal to zero");
     }
 
@@ -57,8 +60,15 @@ public class RequestBody {
     /**
      * @return Content length of {@link RequestBody}.
      */
-    public long getContentLength() {
+    public long contentLength() {
         return contentLength;
+    }
+
+    /**
+     * @return Content type of {@link RequestBody}.
+     */
+    public String contentType() {
+        return contentType;
     }
 
     /**
@@ -78,7 +88,9 @@ public class RequestBody {
      * @return RequestBody instance.
      */
     public static RequestBody of(File file) {
-        return new RequestBody(invokeSafely(() -> new FileInputStream(file)), file.length());
+        return new RequestBody(invokeSafely(() -> new FileInputStream(file)),
+                               file.length(),
+                               Mimetypes.getInstance().getMimetype(file));
     }
 
     /**
@@ -94,7 +106,7 @@ public class RequestBody {
      * @return RequestBody instance.
      */
     public static RequestBody of(InputStream inputStream, long contentLength) {
-        return new RequestBody(inputStream, contentLength);
+        return new RequestBody(inputStream, contentLength, Mimetypes.MIMETYPE_OCTET_STREAM);
     }
 
     /**
@@ -104,7 +116,7 @@ public class RequestBody {
      * @return RequestBody instance.
      */
     public static RequestBody of(String contents) {
-        return new RequestBody(invokeSafely(() -> new StringInputStream(contents)), contents.length());
+        return ofByteDirect(contents.getBytes(StandardCharsets.UTF_8), Mimetypes.MIMETYPE_TEXT_PLAIN);
     }
 
     /**
@@ -142,7 +154,14 @@ public class RequestBody {
      * Creates a {@link RequestBody} using the specified bytes (without copying).
      */
     private static RequestBody ofByteDirect(byte[] bytes) {
-        return new RequestBody(new ByteArrayInputStream(bytes), bytes.length);
+        return ofByteDirect(bytes, Mimetypes.MIMETYPE_OCTET_STREAM);
+    }
+
+    /**
+     * Creates a {@link RequestBody} using the specified bytes (without copying).
+     */
+    private static RequestBody ofByteDirect(byte[] bytes, String mimetype) {
+        return new RequestBody(new ByteArrayInputStream(bytes), bytes.length, mimetype);
     }
 
 }

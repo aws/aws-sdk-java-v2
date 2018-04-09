@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,14 +24,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import software.amazon.awssdk.core.AmazonClientException;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.TableDescription;
-import software.amazon.awssdk.services.dynamodb.model.TableStatus;
+import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
+import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 import software.amazon.awssdk.utils.Logger;
 
@@ -46,7 +44,7 @@ public class DynamoDBTestBase extends AwsTestBase {
         try {
             setUpCredentials();
         } catch (Exception e) {
-            throw new AmazonClientException("Unable to load credential property file.", e);
+            throw new SdkClientException("Unable to load credential property file.", e);
         }
 
         dynamo = DynamoDBClient.builder().region(Region.US_EAST_1).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
@@ -66,36 +64,13 @@ public class DynamoDBTestBase extends AwsTestBase {
     public static void waitForTableToBecomeDeleted(DynamoDBClient dynamo, String tableName) {
         log.info(() -> "Waiting for " + tableName + " to become Deleted...");
 
-        long startTime = System.currentTimeMillis();
-        long endTime = startTime + (10 * 60 * 1000);
-        while (System.currentTimeMillis() < endTime) {
-            try {
-                Thread.sleep(1000 * 20);
-            } catch (Exception e) {
-                // Ignored or expected.
-            }
-            try {
-                DescribeTableRequest request = DescribeTableRequest.builder().tableName(tableName).build();
-                TableDescription table = dynamo.describeTable(request).table();
-
-                log.info(() -> "  - current state: " + table.tableStatusString());
-                if (table.tableStatus() == TableStatus.DELETING) {
-                    continue;
-                }
-            } catch (AmazonServiceException ase) {
-                if (ase.getErrorCode().equalsIgnoreCase("ResourceNotFoundException") == true) {
-                    log.info(() -> "successfully deleted");
-                    return;
-                }
-            }
-        }
-
-        throw new RuntimeException("Table " + tableName + " never went deleted");
+        Waiter.run(() -> dynamo.describeTable(r -> r.tableName(tableName)))
+              .untilException(ResourceNotFoundException.class)
+              .orFail();
     }
 
     protected static <T extends Object> void assertSetsEqual(Collection<T> expected, Collection<T> given) {
-        Set<T> givenCopy = new HashSet<T>();
-        givenCopy.addAll(given);
+        Set<T> givenCopy = new HashSet<T>(given);
         for (T e : expected) {
             if (!givenCopy.remove(e)) {
                 fail("Expected element not found: " + e);

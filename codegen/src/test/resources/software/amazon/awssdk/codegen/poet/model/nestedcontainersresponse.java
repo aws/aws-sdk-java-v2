@@ -4,18 +4,18 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.AmazonWebServiceResult;
-import software.amazon.awssdk.core.ResponseMetadata;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMetadata> implements
-        ToCopyableBuilder<NestedContainersResponse.Builder, NestedContainersResponse> {
+public class NestedContainersResponse extends JsonProtocolTestsResponse implements
+                                                                        ToCopyableBuilder<NestedContainersResponse.Builder, NestedContainersResponse> {
     private final List<List<String>> listOfListOfStrings;
 
     private final List<List<List<String>>> listOfListOfListOfStrings;
@@ -23,6 +23,7 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
     private final Map<String, List<List<String>>> mapOfStringToListOfListOfStrings;
 
     private NestedContainersResponse(BuilderImpl builder) {
+        super(builder);
         this.listOfListOfStrings = builder.listOfListOfStrings;
         this.listOfListOfListOfStrings = builder.listOfListOfListOfStrings;
         this.mapOfStringToListOfListOfStrings = builder.mapOfStringToListOfListOfStrings;
@@ -80,10 +81,9 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
     @Override
     public int hashCode() {
         int hashCode = 1;
-        hashCode = 31 * hashCode + ((listOfListOfStrings() == null) ? 0 : listOfListOfStrings().hashCode());
-        hashCode = 31 * hashCode + ((listOfListOfListOfStrings() == null) ? 0 : listOfListOfListOfStrings().hashCode());
-        hashCode = 31 * hashCode
-                + ((mapOfStringToListOfListOfStrings() == null) ? 0 : mapOfStringToListOfListOfStrings().hashCode());
+        hashCode = 31 * hashCode + Objects.hashCode(listOfListOfStrings());
+        hashCode = 31 * hashCode + Objects.hashCode(listOfListOfListOfStrings());
+        hashCode = 31 * hashCode + Objects.hashCode(mapOfStringToListOfListOfStrings());
         return hashCode;
     }
 
@@ -99,62 +99,32 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
             return false;
         }
         NestedContainersResponse other = (NestedContainersResponse) obj;
-        if (other.listOfListOfStrings() == null ^ this.listOfListOfStrings() == null) {
-            return false;
-        }
-        if (other.listOfListOfStrings() != null && !other.listOfListOfStrings().equals(this.listOfListOfStrings())) {
-            return false;
-        }
-        if (other.listOfListOfListOfStrings() == null ^ this.listOfListOfListOfStrings() == null) {
-            return false;
-        }
-        if (other.listOfListOfListOfStrings() != null
-                && !other.listOfListOfListOfStrings().equals(this.listOfListOfListOfStrings())) {
-            return false;
-        }
-        if (other.mapOfStringToListOfListOfStrings() == null ^ this.mapOfStringToListOfListOfStrings() == null) {
-            return false;
-        }
-        if (other.mapOfStringToListOfListOfStrings() != null
-                && !other.mapOfStringToListOfListOfStrings().equals(this.mapOfStringToListOfListOfStrings())) {
-            return false;
-        }
-        return true;
+        return Objects.equals(listOfListOfStrings(), other.listOfListOfStrings())
+               && Objects.equals(listOfListOfListOfStrings(), other.listOfListOfListOfStrings())
+               && Objects.equals(mapOfStringToListOfListOfStrings(), other.mapOfStringToListOfListOfStrings());
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("{");
-        if (listOfListOfStrings() != null) {
-            sb.append("ListOfListOfStrings: ").append(listOfListOfStrings()).append(",");
-        }
-        if (listOfListOfListOfStrings() != null) {
-            sb.append("ListOfListOfListOfStrings: ").append(listOfListOfListOfStrings()).append(",");
-        }
-        if (mapOfStringToListOfListOfStrings() != null) {
-            sb.append("MapOfStringToListOfListOfStrings: ").append(mapOfStringToListOfListOfStrings()).append(",");
-        }
-        if (sb.length() > 1) {
-            sb.setLength(sb.length() - 1);
-        }
-        sb.append("}");
-        return sb.toString();
+        return ToString.builder("NestedContainersResponse").add("ListOfListOfStrings", listOfListOfStrings())
+                       .add("ListOfListOfListOfStrings", listOfListOfListOfStrings())
+                       .add("MapOfStringToListOfListOfStrings", mapOfStringToListOfListOfStrings()).build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "ListOfListOfStrings":
-            return Optional.of(clazz.cast(listOfListOfStrings()));
-        case "ListOfListOfListOfStrings":
-            return Optional.of(clazz.cast(listOfListOfListOfStrings()));
-        case "MapOfStringToListOfListOfStrings":
-            return Optional.of(clazz.cast(mapOfStringToListOfListOfStrings()));
-        default:
-            return Optional.empty();
+            case "ListOfListOfStrings":
+                return Optional.of(clazz.cast(listOfListOfStrings()));
+            case "ListOfListOfListOfStrings":
+                return Optional.of(clazz.cast(listOfListOfListOfStrings()));
+            case "MapOfStringToListOfListOfStrings":
+                return Optional.of(clazz.cast(mapOfStringToListOfListOfStrings()));
+            default:
+                return Optional.empty();
         }
     }
 
-    public interface Builder extends CopyableBuilder<Builder, NestedContainersResponse> {
+    public interface Builder extends JsonProtocolTestsResponse.Builder, CopyableBuilder<Builder, NestedContainersResponse> {
         /**
          * Sets the value of the ListOfListOfStrings property for this object.
          *
@@ -202,7 +172,7 @@ public class NestedContainersResponse extends AmazonWebServiceResult<ResponseMet
                 Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings);
     }
 
-    static final class BuilderImpl implements Builder {
+    static final class BuilderImpl extends JsonProtocolTestsResponse.BuilderImpl implements Builder {
         private List<List<String>> listOfListOfStrings;
 
         private List<List<List<String>>> listOfListOfListOfStrings;

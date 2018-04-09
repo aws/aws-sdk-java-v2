@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~ Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License").
   ~ You may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.0.0-preview-5-SNAPSHOT</version>
+        <version>2.0.0-preview-10-SNAPSHOT</version>
     </parent>
     <artifactId>cognitosync</artifactId>
     <name>AWS Java SDK :: Services :: Amazon Cognito Sync</name>

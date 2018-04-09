@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.interceptor;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.SdkRequestOverrideConfig;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.regions.Region;
@@ -32,7 +32,7 @@ import software.amazon.awssdk.core.regions.Region;
                      + "4. The remaining public AWS stuff should be moved to the AWS module. "
                      + "We should also consider making some of the SDK/AWS-owned set of attributes part of the immutable context "
                      + "if we don't want the interceptors to modify them.")
-public class AwsExecutionAttributes {
+public final class AwsExecutionAttributes {
     /**
      * The key under which the request credentials are set.
      */
@@ -42,7 +42,7 @@ public class AwsExecutionAttributes {
      * The key under which the request config is stored.
      */
     @ReviewBeforeRelease("RequestConfig feels pretty internal. Can we just expose parts of it?")
-    public static final ExecutionAttribute<RequestConfig> REQUEST_CONFIG = new ExecutionAttribute<>("RequestConfig");
+    public static final ExecutionAttribute<SdkRequestOverrideConfig> REQUEST_CONFIG = new ExecutionAttribute<>("RequestConfig");
 
     /**
      * The key under which the service name is stored.
@@ -64,4 +64,7 @@ public class AwsExecutionAttributes {
      */
     public static final ExecutionAttribute<ServiceAdvancedConfiguration> SERVICE_ADVANCED_CONFIG =
             new ExecutionAttribute<>("ServiceAdvancedConfig");
+
+    private AwsExecutionAttributes() {
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -26,17 +26,15 @@ import static org.junit.Assert.fail;
 import static software.amazon.awssdk.core.retry.RetryHandler.HEADER_SDK_RETRY_INFO;
 
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.config.MutableClientConfiguration;
 import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.core.retry.RetryPolicyAdapter;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import utils.HttpTestUtils;
 import utils.http.WireMockTestBase;
-import utils.retry.AlwaysRetryCondition;
 import utils.retry.SimpleArrayBackoffStrategy;
 
 public class RetryCountInUserAgentTest extends WireMockTestBase {
@@ -70,11 +68,13 @@ public class RetryCountInUserAgentTest extends WireMockTestBase {
     }
 
     private void executeRequest() throws Exception {
+        RetryPolicy policy = RetryPolicy.builder().backoffStrategy(new SimpleArrayBackoffStrategy(BACKOFF_VALUES)).build();
+
         ClientOverrideConfiguration overrideConfig =
-                ClientOverrideConfiguration.builder().retryPolicy(buildRetryPolicy()).build();
+            ClientOverrideConfiguration.builder().retryPolicy(policy).build();
         MutableClientConfiguration clientConfiguration = new MutableClientConfiguration()
-                .overrideConfiguration(overrideConfig)
-                .httpClient(HttpTestUtils.testSdkHttpClient());
+            .overrideConfiguration(overrideConfig)
+            .httpClient(HttpTestUtils.testSdkHttpClient());
 
         new GlobalClientConfigurationDefaults().applySyncDefaults(clientConfiguration);
 
@@ -83,18 +83,13 @@ public class RetryCountInUserAgentTest extends WireMockTestBase {
             SdkHttpFullRequest request = SdkHttpFullRequestAdapter.toHttpFullRequest(newGetRequest(RESOURCE_PATH));
             httpClient.requestExecutionBuilder()
                       .request(request)
+                      .originalRequest(NoopTestAwsRequest.builder().build())
                       .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(request))
                       .errorResponseHandler(stubErrorHandler())
                       .execute();
             fail("Expected exception");
-        } catch (AmazonServiceException expected) {
+        } catch (SdkServiceException expected) {
             // Ignored or expected.
         }
     }
-
-    private RetryPolicyAdapter buildRetryPolicy() {
-        return new RetryPolicyAdapter(
-                new RetryPolicy(new AlwaysRetryCondition(), new SimpleArrayBackoffStrategy(BACKOFF_VALUES), 3, false));
-    }
-
 }

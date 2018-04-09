@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import static software.amazon.awssdk.utils.StringUtils.trim;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.AwsSystemSetting;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.SystemSetting;
 
@@ -59,13 +59,8 @@ abstract class SystemSettingsCredentialsProvider implements AwsCredentialsProvid
                                   AwsSystemSetting.AWS_SECRET_ACCESS_KEY.property()));
         }
 
-        return sessionToken == null ? new AwsCredentials(accessKey, secretKey)
-                                    : new AwsSessionCredentials(accessKey, secretKey, sessionToken);
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName();
+        return sessionToken == null ? AwsCredentials.create(accessKey, secretKey)
+                                    : AwsSessionCredentials.create(accessKey, secretKey, sessionToken);
     }
 
     /**

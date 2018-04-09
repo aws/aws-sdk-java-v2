@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ public class Metadata {
 
     private String requestTransformPackageName;
 
-    private String waitersPackageName;
+    private String paginatorsPackageName;
 
     private String authPolicyPackageName;
 
@@ -98,6 +98,10 @@ public class Metadata {
     private String uid;
 
     private AuthType authType;
+
+    private String baseRequestName;
+
+    private String baseResponseName;
 
     public String getApiVersion() {
         return apiVersion;
@@ -435,20 +439,20 @@ public class Metadata {
         return this;
     }
 
-    public String getFullWaitersPackageName() {
-        return joinPackageNames(rootPackageName, getWaitersPackageName());
+    public String getFullPaginatorsPackageName() {
+        return joinPackageNames(rootPackageName, getPaginatorsPackageName());
     }
 
-    public String getWaitersPackageName() {
-        return waitersPackageName;
+    public String getPaginatorsPackageName() {
+        return paginatorsPackageName;
     }
 
-    public void setWaitersPackageName(String waitersPackageName) {
-        this.waitersPackageName = waitersPackageName;
+    public void setPaginatorsPackageName(String paginatorsPackageName) {
+        this.paginatorsPackageName = paginatorsPackageName;
     }
 
-    public Metadata withWaitersPackageName(String waitersPackageName) {
-        setWaitersPackageName(waitersPackageName);
+    public Metadata withPaginatorsPackageName(String paginatorsPackageName) {
+        setPaginatorsPackageName(paginatorsPackageName);
         return this;
     }
 
@@ -689,6 +693,24 @@ public class Metadata {
 
     public Metadata withAuthType(AuthType authType) {
         this.authType = authType;
+        return this;
+    }
+
+    public String getBaseRequestName() {
+        return baseRequestName;
+    }
+
+    public Metadata withBaseRequestName(String baseRequestName) {
+        this.baseRequestName = baseRequestName;
+        return this;
+    }
+
+    public String getBaseResponseName() {
+        return baseResponseName;
+    }
+
+    public Metadata withBaseResponseName(String baseResponseName) {
+        this.baseResponseName = baseResponseName;
         return this;
     }
 

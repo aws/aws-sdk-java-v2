@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.time.Instant;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.iam.IAMClient;
 import software.amazon.awssdk.services.iam.model.AttachRolePolicyRequest;
@@ -131,7 +131,7 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
         }
     }
 
-    @Test(expected = AmazonServiceException.class)
+    @Test(expected = SdkServiceException.class)
     public void test() {
         client.generateDataSet(GenerateDataSetRequest.builder()
                                                      .dataSetPublicationDate(Instant.now())

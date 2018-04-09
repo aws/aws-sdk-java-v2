@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~ Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License").
   ~ You may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.0.0-preview-5-SNAPSHOT</version>
+        <version>2.0.0-preview-10-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -125,6 +125,29 @@
         <module>workdocs</module>
         <module>workspaces</module>
         <module>xray</module>
+        <module>appsync</module>
+        <module>alexaforbusiness</module>
+        <module>migrationhub</module>
+        <module>cost-explorer</module>
+        <module>cloud9</module>
+        <module>cloudhsmv2</module>
+        <module>comprehend</module>
+        <module>glue</module>
+        <module>guardduty</module>
+        <module>kinesisvideo</module>
+        <module>mediaconvert</module>
+        <module>medialive</module>
+        <module>mediapackage</module>
+        <module>mediastore</module>
+        <module>mobile</module>
+        <module>mq</module>
+        <module>pricing</module>
+        <module>resource-groups</module>
+        <module>sagemaker</module>
+        <module>serverlessrepo</module>
+        <module>servicediscovery</module>
+        <module>translate</module>
+        <module>workmail</module>
     </modules>
 
     <description>The AWS Java SDK services</description>
@@ -165,9 +188,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>io.burt</groupId>
-            <artifactId>jmespath-jackson</artifactId>
-            <version>0.2.0</version>
+            <groupId>io.reactivex.rxjava2</groupId>
+            <artifactId>rxjava</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -197,10 +220,10 @@
                     </executions>
                 </plugin>
 
-                <!-- Disable findbugs for service clients to speed up the build. -->
+                <!-- Disable spotbugs for service clients to speed up the build. -->
                 <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>findbugs-maven-plugin</artifactId>
+                    <groupId>com.github.spotbugs</groupId>
+                    <artifactId>spotbugs-maven-plugin</artifactId>
                     <configuration>
                         <skip>true</skip>
                     </configuration>

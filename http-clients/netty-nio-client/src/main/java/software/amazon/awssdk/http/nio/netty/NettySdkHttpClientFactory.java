@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,16 +17,18 @@ package software.amazon.awssdk.http.nio.netty;
 
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.SOCKET_TIMEOUT;
 
 import io.netty.channel.EventLoopGroup;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClientFactory;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -41,11 +43,17 @@ public final class NettySdkHttpClientFactory
     private final AttributeMap standardOptions;
     private final Optional<Boolean> trustAllCertificates;
     private final EventLoopGroupConfiguration eventLoopGroupConfiguration;
+    private final Duration readTimeout;
+    private final Duration writeTimeout;
+    private final Duration connectionAcquisitionTimeout;
 
     private NettySdkHttpClientFactory(DefaultBuilder builder) {
         this.standardOptions = builder.standardOptions.build();
         this.trustAllCertificates = Optional.ofNullable(builder.trustAllCertificates);
         this.eventLoopGroupConfiguration = builder.eventLoopGroupConfiguration;
+        this.readTimeout = validateIsWholeSecond(builder.readTimeout, "readTimeout");
+        this.writeTimeout = validateIsWholeSecond(builder.writeTimeout, "writeTimeout");
+        this.connectionAcquisitionTimeout = builder.connectionAcquisitionTimeout;
     }
 
     /**
@@ -57,11 +65,19 @@ public final class NettySdkHttpClientFactory
     }
 
     /**
-     * @return Optional of the socketTimeout setting.
-     * @see Builder#socketTimeout(Duration)
+     * @return Optional of the writeTimeout setting.
+     * @see Builder#writeTimeout(Duration)
      */
-    public Optional<Duration> socketTimeout() {
-        return Optional.ofNullable(standardOptions.get(SOCKET_TIMEOUT));
+    public Optional<Duration> writeTimeout() {
+        return Optional.ofNullable(writeTimeout);
+    }
+
+    /**
+     * @return Optional of the readTimeout setting.
+     * @see Builder#readTimeout(Duration)
+     */
+    public Optional<Duration> readTimeout() {
+        return Optional.ofNullable(readTimeout);
     }
 
     /**
@@ -69,7 +85,15 @@ public final class NettySdkHttpClientFactory
      * @see Builder#connectionTimeout(Duration)
      */
     public Optional<Duration> connectionTimeout() {
-        return Optional.ofNullable(standardOptions.get(SOCKET_TIMEOUT));
+        return Optional.ofNullable(standardOptions.get(CONNECTION_TIMEOUT));
+    }
+
+    /**
+     * @return Optional of the connectionAcquisitionTimeout setting.
+     * @see Builder#connectionTimeout(Duration)
+     */
+    public Optional<Duration> connectionAcquisitionTimeout() {
+        return Optional.ofNullable(connectionAcquisitionTimeout);
     }
 
     /**
@@ -119,6 +143,24 @@ public final class NettySdkHttpClientFactory
         return new DefaultBuilder(AttributeMap.builder());
     }
 
+    private Duration validateIsWholeSecond(Duration duration, String param) {
+        if (duration != null && duration.toMillis() % 1000 != 0) {
+            throw new IllegalArgumentException(param + "must be a whole second, got: " + duration);
+        }
+        return duration;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("NettySdkHttpClientFactory")
+                       .add("standardOptions", standardOptions)
+                       .add("trustAllCertificates", trustAllCertificates)
+                       .add("eventLoopGroupConfiguration", eventLoopGroupConfiguration)
+                       .add("readTimeout", readTimeout)
+                       .add("writeTimeout", writeTimeout)
+                       .add("connectionAcquisitionTimeout", connectionAcquisitionTimeout)
+                       .build();
+    }
 
     /**
      * Builder interface for {@link NettySdkHttpClientFactory}.
@@ -136,15 +178,43 @@ public final class NettySdkHttpClientFactory
         Builder maxConnectionsPerEndpoint(Integer maxConnectionsPerEndpoint);
 
         /**
-         * The amount of time to wait for data to be transferred over an established, open connection before the connection is
-         * timed out.
+         * The amount of time to wait for a read on a socket before an exception is thrown.
+         * <br/>
+         * <strong>note: minimum supported granularity is seconds, if {@link Duration} cannot be converted
+         * to a whole second an exception will be thrown</strong>
+         *
+         * @param timeout timeout duration
+         * @return this builder for method chaining.
          */
-        Builder socketTimeout(Duration socketTimeout);
+        Builder readTimeout(Duration timeout);
+
+        /**
+         * The amount of time to wait for a write on a socket before an exception is thrown.
+         * <br/>
+         * <strong>note: minimum supported granularity is seconds, if {@link Duration} cannot be converted
+         * to a whole second an exception will be thrown</strong>
+         *
+         * @param timeout timeout duration
+         * @return this builder for method chaining.
+         */
+        Builder writeTimeout(Duration timeout);
 
         /**
          * The amount of time to wait when initially establishing a connection before giving up and timing out.
+         *
+         * Defaults to {@link #connectionTimeout()} if not set.
+         * @param timeout the timeout duration
+         * @return this builder for method chaining.
          */
-        Builder connectionTimeout(Duration socketTimeout);
+        Builder connectionTimeout(Duration timeout);
+
+        /**
+         * The amount of time to wait when acquiring a connection from the pool before giving up and timing out.
+         * @param timeout the timeout duration
+         * @return this builder for method chaining.
+         */
+        @ReviewBeforeRelease("Does it make sense to separate 'connection acquisition' timeout from 'socket connection' timeout?")
+        Builder connectionAcquisitionTimeout(Duration timeout);
 
         /**
          * Forces the HTTP client to trust all certificates, even invalid or self signed certificates. This should only ever
@@ -169,6 +239,16 @@ public final class NettySdkHttpClientFactory
          */
         Builder eventLoopGroupConfiguration(EventLoopGroupConfiguration eventLoopGroupConfiguration);
 
+        /**
+         * Configuration for the Netty {@link EventLoopGroup} which multiplexes IO events.
+         *
+         * @param eventLoopGroupConfiguration consumer that allows a {@link EventLoopGroupConfiguration.Builder} to be mutated.
+         * @return This builder for method chaining.
+         * @see #eventLoopGroupConfiguration(EventLoopGroupConfiguration)
+         */
+        default Builder eventLoopGroupConfiguration(Consumer<EventLoopGroupConfiguration.Builder> eventLoopGroupConfiguration) {
+            return eventLoopGroupConfiguration(EventLoopGroupConfiguration.builder().apply(eventLoopGroupConfiguration).build());
+        }
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -176,6 +256,9 @@ public final class NettySdkHttpClientFactory
         private final AttributeMap.Builder standardOptions;
         private Boolean trustAllCertificates;
         private EventLoopGroupConfiguration eventLoopGroupConfiguration = EventLoopGroupConfiguration.builder().build();
+        private Duration readTimeout;
+        private Duration writeTimeout;
+        private Duration connectionAcquisitionTimeout;
 
         private DefaultBuilder(AttributeMap.Builder standardOptions) {
             this.standardOptions = standardOptions;
@@ -187,23 +270,31 @@ public final class NettySdkHttpClientFactory
             return this;
         }
 
+        @Override
+        public Builder readTimeout(Duration timeout) {
+            this.readTimeout = timeout;
+            return this;
+        }
+
+        @Override
+        public Builder writeTimeout(Duration timeout) {
+            this.writeTimeout = timeout;
+            return this;
+        }
+
         public void setMaxConnectionsPerEndpoint(Integer maxConnectionsPerEndpoint) {
             maxConnectionsPerEndpoint(maxConnectionsPerEndpoint);
         }
 
         @Override
-        public Builder socketTimeout(Duration socketTimeout) {
-            standardOptions.put(SOCKET_TIMEOUT, socketTimeout);
+        public Builder connectionTimeout(Duration timeout) {
+            standardOptions.put(CONNECTION_TIMEOUT, timeout);
             return this;
         }
 
-        public void setSocketTimeout(Duration socketTimeout) {
-            socketTimeout(socketTimeout);
-        }
-
         @Override
-        public Builder connectionTimeout(Duration connectionTimeout) {
-            standardOptions.put(CONNECTION_TIMEOUT, connectionTimeout);
+        public Builder connectionAcquisitionTimeout(Duration timeout) {
+            this.connectionAcquisitionTimeout = timeout;
             return this;
         }
 

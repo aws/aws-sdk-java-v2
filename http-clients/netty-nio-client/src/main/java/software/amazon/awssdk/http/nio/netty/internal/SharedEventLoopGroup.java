@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import software.amazon.awssdk.http.nio.netty.DefaultEventLoopGroupFactory;
  * clients are using the shared event loop group and will automatically close it when that count reaches zero. Event loop
  * group is lazily initialized for the first time and and subsequent requests after the count reaches zero.
  */
-public class SharedEventLoopGroup {
+public final class SharedEventLoopGroup {
 
     /**
      * Lazily initialized shared default event loop group.
@@ -38,6 +38,9 @@ public class SharedEventLoopGroup {
      * Reference count of clients using the shared event loop group.
      */
     private static int referenceCount = 0;
+
+    private SharedEventLoopGroup() {
+    }
 
     /**
      * @return The default {@link EventLoopGroup} that will be shared across all service clients. This is used when the customer

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,10 +24,10 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.core.retry.PredefinedRetryPolicies;
+import software.amazon.awssdk.core.retry.SdkDefaultRetrySettings;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
@@ -48,7 +48,7 @@ public class TT0035900619IntegrationTest {
 
     @BeforeClass
     public static void setup() throws InterruptedException {
-        client = DynamoDBClient.builder().credentialsProvider(new StaticCredentialsProvider(awsTestCredentials())).build();
+        client = DynamoDBClient.builder().credentialsProvider(StaticCredentialsProvider.create(awsTestCredentials())).build();
         List<AttributeDefinition> attributeDefinitions = new ArrayList<AttributeDefinition>();
         attributeDefinitions.add(AttributeDefinition.builder().attributeName("hashKey").attributeType(ScalarAttributeType.S).build());
         List<KeySchemaElement> keySchema = new ArrayList<KeySchemaElement>();
@@ -88,21 +88,16 @@ public class TT0035900619IntegrationTest {
         client.close();
     }
 
-    @Test
+    @Test(expected = RuntimeException.class)
     public void testFakeRuntimeException_Once() {
-        try {
-            AmazonHttpClient.configUnreliableTestConditions(
-                    new UnreliableTestConfig()
-                    .withMaxNumErrors(1)
-                    .withBytesReadBeforeException(10)
-                    .withFakeIoException(false)
-                    .withResetIntervalBeforeException(2)
-            );
-            System.out.println(client .describeTable(DescribeTableRequest.builder().tableName(TABLE_NAME).build()));
-            Assert.fail();
-        } catch (RuntimeException expected) {
-            expected.printStackTrace();
-        }
+        AmazonHttpClient.configUnreliableTestConditions(
+            new UnreliableTestConfig()
+                .withMaxNumErrors(1)
+                .withBytesReadBeforeException(10)
+                .withFakeIoException(false)
+                .withResetIntervalBeforeException(2)
+        );
+        System.out.println(client.describeTable(DescribeTableRequest.builder().tableName(TABLE_NAME).build()));
     }
 
     @Test
@@ -123,7 +118,7 @@ public class TT0035900619IntegrationTest {
     public void testFakeIOException_MaxRetries() {
         AmazonHttpClient.configUnreliableTestConditions(
                 new UnreliableTestConfig()
-                .withMaxNumErrors(PredefinedRetryPolicies.DYNAMODB_DEFAULT_MAX_ERROR_RETRY)
+                .withMaxNumErrors(SdkDefaultRetrySettings.DEFAULT_MAX_RETRIES)
                 .withBytesReadBeforeException(10)
                 .withFakeIoException(true)
                 .withResetIntervalBeforeException(2)
@@ -135,7 +130,7 @@ public class TT0035900619IntegrationTest {
     public void testFakeIOException_OneTooMany() {
         AmazonHttpClient.configUnreliableTestConditions(
                 new UnreliableTestConfig()
-                .withMaxNumErrors(PredefinedRetryPolicies.DYNAMODB_DEFAULT_MAX_ERROR_RETRY+1)
+                .withMaxNumErrors(SdkDefaultRetrySettings.DEFAULT_MAX_RETRIES + 1)
                 .withBytesReadBeforeException(10)
                 .withFakeIoException(true)
                 .withResetIntervalBeforeException(2)
@@ -143,7 +138,7 @@ public class TT0035900619IntegrationTest {
         try {
             System.out.println(client.describeTable(DescribeTableRequest.builder().tableName(TABLE_NAME).build()));
             Assert.fail();
-        } catch(AmazonClientException expected) {
+        } catch(SdkClientException expected) {
             expected.printStackTrace();
         }
     }

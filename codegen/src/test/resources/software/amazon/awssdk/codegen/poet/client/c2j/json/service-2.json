@@ -85,6 +85,36 @@
         "shape": "StructureWithStreamingMember"
       },
       "documentation": "Some operation with a streaming output"
+    },
+    "PaginatedOperationWithResultKey": {
+      "name": "PaginatedOperationWithResultKey",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "PaginatedOperationWithResultKeyRequest"
+      },
+      "output": {
+        "shape": "PaginatedOperationWithResultKeyResponse",
+        "resultWrapper": "PaginatedOperationWithResultKeyResult"
+      },
+      "documentation": "Some paginated operation with result_key in paginators.json file"
+    },
+    "PaginatedOperationWithoutResultKey": {
+      "name": "PaginatedOperationWithoutResultKey",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "PaginatedOperationWithoutResultKeyRequest"
+      },
+      "output": {
+        "shape": "PaginatedOperationWithoutResultKeyResponse",
+        "resultWrapper": "PaginatedOperationWithoutResultKeyResult"
+      },
+      "documentation": "Some paginated operation without result_key in paginators.json file"
     }
   },
   "shapes": {
@@ -204,6 +234,63 @@
         }
       },
       "payload": "StreamingMember"
+    },
+    "PaginatedOperationWithResultKeyRequest": {
+      "type": "structure",
+      "members": {
+        "NextToken": {
+          "shape": "subMember",
+          "documentation": "<p>Token for the next set of results</p>"
+        },
+        "MaxResults": {
+          "shape": "subMember",
+          "documentation": "<p>Maximum number of results in a single page</p>"
+        }
+      }
+    },
+    "PaginatedOperationWithResultKeyResponse": {
+      "type": "structure",
+      "members": {
+        "NextToken": {
+          "shape": "subMember",
+          "documentation": "<p>Token for the next set of results</p>"
+        },
+        "Items": {
+          "shape": "ItemsList",
+          "documentation": "<p>Maximum number of results in a single page</p>"
+        }
+      },
+      "documentation": "<p>Response type of a single page</p>"
+    },
+    "ItemsList":{
+      "type":"list",
+      "member":{"shape":"subMember"}
+    },
+    "PaginatedOperationWithoutResultKeyRequest": {
+      "type": "structure",
+      "required": [
+        "NextToken"
+      ],
+      "members": {
+        "NextToken": {
+          "shape": "subMember",
+          "documentation": "<p>Token for the next set of results</p>"
+        },
+        "MaxResults": {
+          "shape": "subMember",
+          "documentation": "<p>Maximum number of results in a single page</p>"
+        }
+      }
+    },
+    "PaginatedOperationWithoutResultKeyResponse": {
+      "type": "structure",
+      "members": {
+        "NextToken": {
+          "shape": "subMember",
+          "documentation": "<p>Token for the next set of results</p>"
+        }
+      },
+      "documentation": "<p>Response type of a single page</p>"
     }
   },
   "documentation": "A service that is implemented using the query protocol"

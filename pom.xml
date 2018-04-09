@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~ Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License").
   ~ You may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.0.0-preview-5-SNAPSHOT</version>
+    <version>2.0.0-preview-10-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -63,12 +63,13 @@
         <module>codegen-maven-plugin</module>
         <module>bundle</module>
         <module>build-tools</module>
-        <module>test/dynamodbmapper-v1</module>
         <module>test/dynamodbdocument-v1</module>
+        <module>test/dynamodbmapper-v1</module>
+        <module>test/http-client-tests</module>
         <module>test/protocol-tests</module>
         <module>test/protocol-tests-core</module>
-        <module>test/test-utils</module>
         <module>test/service-test-utils</module>
+        <module>test/test-utils</module>
         <module>annotations</module>
         <module>utils</module>
     </modules>
@@ -77,43 +78,34 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <jackson.version>2.9.1</jackson.version>
+        <jackson.version>2.9.3</jackson.version>
         <ion.java.version>1.0.2</ion.java.version>
         <junit.version>4.12</junit.version>
-        <easymock.version>3.4</easymock.version>
         <commons.lang.version>3.4</commons.lang.version>
-        <wiremock.version>1.55</wiremock.version>
+        <wiremock.version>2.12.0</wiremock.version>
         <slf4j.version>1.7.25</slf4j.version>
         <log4j.version>1.2.17</log4j.version>
         <hamcrest.version>1.3</hamcrest.version>
         <commons.io.version>2.5</commons.io.version>
         <mockito.version>1.10.19</mockito.version>
         <assertj.version>3.8.0</assertj.version>
-        <equalsverifier.version>2.3.1</equalsverifier.version>
+        <equalsverifier.version>2.3.3</equalsverifier.version>
         <guava.version>19.0</guava.version>
         <netty.version>4.1.23.Final</netty.version>
         <unitils.version>3.3</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
-        <jacksonjr.version>2.9.1</jacksonjr.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- These properties are used by SWF for its dependencies -->
         <spring.version>3.0.7.RELEASE</spring.version>
         <freemarker.version>2.3.9</freemarker.version>
         <aspectj.version>1.8.2</aspectj.version>
-
-        <!-- These properties are used by SES for its optional dependencies -->
-        <javax.mail.version>1.4.6</javax.mail.version>
+        
         <jre.version>1.8</jre.version>
-        <httpcomponents.httpclient.version>4.5.2</httpcomponents.httpclient.version>
+        <httpcomponents.httpclient.version>4.5.4</httpcomponents.httpclient.version>
 
         <!-- These properties are used by cucumber tests related code -->
-        <cucumber.info.cukes.version>1.2.4</cucumber.info.cukes.version>
-        <cucumber.guice.version>4.0</cucumber.guice.version>
         <unitils.version>3.3</unitils.version>
-
-        <!-- These properties are used by S3 for its test dependencies -->
-        <bouncycastle.version>1.56</bouncycastle.version>
 
         <!-- Sonar -->
         <root.offset>..</root.offset>
@@ -164,7 +156,7 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.jr</groupId>
                 <artifactId>jackson-jr-objects</artifactId>
-                <version>${jacksonjr.version}</version>
+                <version>${jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -237,55 +229,15 @@
                 <version>${netty.version}</version>
             </dependency>
             <dependency>
-                <artifactId>cucumber-java</artifactId>
-                <groupId>info.cukes</groupId>
-                <version>${cucumber.info.cukes.version}</version>
-            </dependency>
-            <dependency>
-                <artifactId>cucumber-junit</artifactId>
-                <groupId>info.cukes</groupId>
-                <version>${cucumber.info.cukes.version}</version>
-            </dependency>
-            <dependency>
-                <artifactId>cucumber-guice</artifactId>
-                <groupId>info.cukes</groupId>
-                <version>${cucumber.info.cukes.version}</version>
-            </dependency>
-            <dependency>
-                <artifactId>guice</artifactId>
-                <groupId>com.google.inject</groupId>
-                <version>${cucumber.guice.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
                 <version>${mockito.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.takari.junit</groupId>
-                <artifactId>takari-cpsuite</artifactId>
-                <version>${takari.cpsuite.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.bouncycastle</groupId>
-                <artifactId>bcprov-jdk15on</artifactId>
-                <version>${bouncycastle.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.easymock</groupId>
-                <artifactId>easymock</artifactId>
-                <version>${easymock.version}</version>
             </dependency>
             <dependency>
                 <groupId>nl.jqno.equalsverifier</groupId>
                 <artifactId>equalsverifier</artifactId>
                 <version>${equalsverifier.version}</version>
                 <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.assertj</groupId>
@@ -301,6 +253,11 @@
                 <groupId>com.typesafe.netty</groupId>
                 <artifactId>netty-reactive-streams-http</artifactId>
                 <version>2.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>io.reactivex.rxjava2</groupId>
+                <artifactId>rxjava</artifactId>
+                <version>2.1.9</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -325,13 +282,19 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>2.10.4</version>
+                    <version>3.0.0</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.0.2</version>
                 </plugin>
 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.19.1</version>
+                    <version>2.20.1</version>
                     <configuration>
                         <excludes>
                             <exclude>**/*CucumberTest.java</exclude>
@@ -395,9 +358,9 @@
                     </executions>
                 </plugin>
                 <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>findbugs-maven-plugin</artifactId>
-                    <version>3.0.5</version>
+                    <groupId>com.github.spotbugs</groupId>
+                    <artifactId>spotbugs-maven-plugin</artifactId>
+                    <version>3.1.1</version>
                     <dependencies>
                         <dependency>
                             <groupId>software.amazon.awssdk</groupId>
@@ -418,7 +381,7 @@
                         <failOnError>true</failOnError>
                         <fork>false</fork>
                         <findbugsXmlOutput>true</findbugsXmlOutput>
-                        <excludeFilterFile>software/amazon/awssdk/findbugs-suppressions.xml</excludeFilterFile>
+                        <excludeFilterFile>software/amazon/awssdk/spotbugs-suppressions.xml</excludeFilterFile>
                         <threshold>Low</threshold>
                         <effort>Max</effort>
                     </configuration>
@@ -427,6 +390,26 @@
         </pluginManagement>
 
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>analyze-only</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <failOnWarning>true</failOnWarning>
+                    <ignoredUsedUndeclaredDependencies>
+                        <!-- ultimately we'd remove the line below and resolve these too -->
+                        <ignoredUsedUndeclaredDependency>*</ignoredUsedUndeclaredDependency>
+                    </ignoredUsedUndeclaredDependencies>
+                    <ignoreNonCompile>true</ignoreNonCompile>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
@@ -488,8 +471,8 @@
             </plugin>
 
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
+                <groupId>com.github.hazendaz.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
             </plugin>
 
         </plugins>
@@ -516,7 +499,7 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.5.1</version>
+                        <version>1.6.8</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>sonatype-nexus-staging</serverId>
@@ -538,12 +521,28 @@
         </profile>
 
         <profile>
+            <id>quick</id>
+            <properties>
+                <checkstyle.skip>true</checkstyle.skip>
+                <findbugs.skip>true</findbugs.skip>
+                <skip.unit.tests>true</skip.unit.tests>
+                <mdep.analyze.skip>true</mdep.analyze.skip>
+            </properties>
+        </profile>
+
+        <profile>
             <id>integration-tests</id>
             <activation>
                 <property>
                     <name>doRelease</name>
                 </property>
             </activation>
+            <properties>
+                <checkstyle.skip>true</checkstyle.skip>
+                <findbugs.skip>true</findbugs.skip>
+                <skip.unit.tests>true</skip.unit.tests>
+                <mdep.analyze.skip>true</mdep.analyze.skip>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -582,7 +581,7 @@
                         <configuration>
                             <minmemory>128m</minmemory>
                             <maxmemory>4g</maxmemory>
-                            <includeDependencySources>true</includeDependencySources>
+                            <includeDependencySources>false</includeDependencySources>
                             <show>public</show>
                             <author>false</author>
                             <version>true</version>

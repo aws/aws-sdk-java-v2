@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
 import org.junit.AfterClass;
@@ -28,7 +29,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.AmazonServiceException.ErrorType;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.core.auth.policy.Action;
 import software.amazon.awssdk.core.auth.policy.Policy;
@@ -66,6 +66,7 @@ import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 import software.amazon.awssdk.services.cloudformation.model.StackSummary;
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackResponse;
+import software.amazon.awssdk.testutils.Waiter;
 
 /**
  * Tests of the Stack APIs : CloudFormation
@@ -377,8 +378,7 @@ public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
                     testStackName).build());
             fail("Should have thrown an Exception");
         } catch (AlreadyExistsException aex) {
-            assertEquals("AlreadyExistsException", aex.getErrorCode());
-            assertEquals(ErrorType.Client, aex.getErrorType());
+            assertEquals("AlreadyExistsException", aex.errorCode());
         } catch (Exception e) {
             fail("Should have thrown an AlreadyExists Exception.");
         }
@@ -392,27 +392,9 @@ public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
      *            the test stack has a status other than this.
      */
     private void waitForStackToChangeStatus(StackStatus oldStatus) throws Exception {
-        long startTime = System.currentTimeMillis();
-        long timeoutInMinutes = 35;
-        while (true) {
-            List<Stack> stacks = cf.describeStacks(DescribeStacksRequest.builder().stackName(testStackName).build())
-                                   .stacks();
-            assertEquals(1, stacks.size());
-
-            if (!stacks.get(0).stackStatusString().equalsIgnoreCase(oldStatus.toString())) {
-                return;
-            }
-
-            System.out.println("Waiting for stack to change out of status " + oldStatus.toString()
-                               + " (current status: " + stacks.get(0).stackStatus() + ")");
-
-            if ((System.currentTimeMillis() - startTime) > (timeoutInMinutes * 1000 * 60)) {
-                throw new RuntimeException("Waited " + timeoutInMinutes
-                                           + " minutes, but stack never changed status from " + oldStatus.toString());
-            }
-
-            Thread.sleep(1000 * 120);
-        }
+        Waiter.run(() -> cf.describeStacks(d -> d.stackName(testStackName)))
+              .until(r -> r.stacks().size() == 1 && r.stacks().get(0).stackStatus() != oldStatus)
+              .orFailAfter(Duration.ofMinutes(2));
     }
 
     /**

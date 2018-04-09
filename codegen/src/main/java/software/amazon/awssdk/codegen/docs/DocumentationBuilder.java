@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import software.amazon.awssdk.utils.StringUtils;
  */
 public final class DocumentationBuilder {
 
+    // TODO This prefix is not suitable for paginated operations. Either remove it for paginated operations
+    // or change the statement to something generic
     private static final String ASYNC_THROWS_PREFIX = "The CompletableFuture returned by this method can be completed " +
                                                       "exceptionally with the following exceptions.";
 

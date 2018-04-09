@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -83,8 +83,8 @@ public class MessageAttributesIntegrationTest extends IntegrationTestBase {
                                       .messageBody(MESSAGE_BODY)
                                       .messageAttributes(createRandomAttributeValues(10))
                                       .build());
-            fail("Expected AmazonClientException");
-        } catch (AmazonClientException e) {
+            fail("Expected SdkClientException");
+        } catch (SdkClientException e) {
             assertThat(e.getMessage(), containsString("MD5 returned by SQS does not match"));
         }
     }

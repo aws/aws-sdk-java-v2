@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -39,7 +39,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.AnonymousCredentialsProvider;
 import software.amazon.awssdk.core.auth.Aws4Signer;
 import software.amazon.awssdk.core.auth.StaticSignerProvider;
@@ -47,6 +46,7 @@ import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.config.ImmutableAsyncClientConfiguration;
 import software.amazon.awssdk.core.config.ImmutableSyncClientConfiguration;
 import software.amazon.awssdk.core.config.defaults.ClientConfigurationDefaults;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientFactory;
@@ -67,7 +67,7 @@ public class DefaultClientBuilderTest {
             .build();
 
     private static final String ENDPOINT_PREFIX = "prefix";
-    private static final StaticSignerProvider TEST_SIGNER_PROVIDER = new StaticSignerProvider(new Aws4Signer());
+    private static final StaticSignerProvider TEST_SIGNER_PROVIDER = StaticSignerProvider.create(new Aws4Signer());
     private static final URI ENDPOINT = URI.create("https://example.com");
 
     @Mock
@@ -195,7 +195,7 @@ public class DefaultClientBuilderTest {
         BeanInfo beanInfo = Introspector.getBeanInfo(builder.getClass());
         Method[] clientBuilderMethods = ClientBuilder.class.getDeclaredMethods();
 
-        Arrays.stream(clientBuilderMethods).forEach(builderMethod -> {
+        Arrays.stream(clientBuilderMethods).filter(m -> !m.isSynthetic()).forEach(builderMethod -> {
             String propertyName = builderMethod.getName();
 
             Optional<PropertyDescriptor> propertyForMethod =
@@ -218,7 +218,7 @@ public class DefaultClientBuilderTest {
                                            .advancedOption(ENABLE_DEFAULT_REGION_DETECTION, false)
                                            .build();
 
-        return new TestClientBuilder().credentialsProvider(new AnonymousCredentialsProvider())
+        return new TestClientBuilder().credentialsProvider(AnonymousCredentialsProvider.create())
                                       .overrideConfiguration(overrideConfig);
     }
 
@@ -229,7 +229,7 @@ public class DefaultClientBuilderTest {
                                            .advancedOption(ENABLE_DEFAULT_REGION_DETECTION, false)
                                            .build();
 
-        return new TestAsyncClientBuilder().credentialsProvider(new AnonymousCredentialsProvider())
+        return new TestAsyncClientBuilder().credentialsProvider(AnonymousCredentialsProvider.create())
                                            .overrideConfiguration(overrideConfig);
     }
 

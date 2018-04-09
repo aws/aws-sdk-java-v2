@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,6 +21,9 @@ import software.amazon.awssdk.codegen.model.config.customization.CustomizationCo
 
 public final class DefaultCustomizationProcessor {
 
+    private DefaultCustomizationProcessor() {
+    }
+
     public static CodegenCustomizationProcessor getProcessorFor(
             CustomizationConfig config) {
 
@@ -29,8 +32,6 @@ public final class DefaultCustomizationProcessor {
                 new ShapeModifiersProcessor(config.getShapeModifiers()),
                 new ShapeSubstitutionsProcessor(config.getShapeSubstitutions()),
                 new OperationModifiersProcessor(config.getOperationModifiers()),
-                new CustomConstructorsProcessor(config),
-                new SimpleMethodsProcessor(config.getSimpleMethods()),
                 new RemoveExceptionMessagePropertyProcessor(),
                 new RenameShapesProcessor(config.getRenameShapes())
         );

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -311,7 +311,7 @@ public class S3EndpointResolutionTest {
      */
     private S3ClientBuilder clientBuilder() {
         return S3Client.builder()
-                       .credentialsProvider(new StaticCredentialsProvider(new AwsCredentials("akid", "skid")))
+                       .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
                        .region(Region.AP_SOUTH_1)
                        .httpConfiguration(ClientHttpConfiguration.builder()
                                                                  .httpClient(mockHttpClient)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.StringUtils.trimToNull;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -51,7 +52,7 @@ public class AwsCredentials {
      * @param accessKeyId The AWS access key, used to identify the user interacting with AWS.
      * @param secretAccessKey The AWS secret access key, used to authenticate the user interacting with AWS.
      */
-    public AwsCredentials(String accessKeyId, String secretAccessKey) {
+    protected AwsCredentials(String accessKeyId, String secretAccessKey) {
         this(accessKeyId, secretAccessKey, true);
     }
 
@@ -63,6 +64,16 @@ public class AwsCredentials {
             Validate.notNull(this.accessKeyId, "Access key ID cannot be blank.");
             Validate.notNull(this.secretAccessKey, "Secret access key cannot be blank.");
         }
+    }
+
+    /**
+     * Constructs a new credentials object, with the specified AWS access key, AWS secret key and AWS session token.
+     *
+     * @param accessKeyId The AWS access key, used to identify the user interacting with AWS.
+     * @param secretAccessKey The AWS secret access key, used to authenticate the user interacting with AWS.
+     * */
+    public static AwsCredentials create(String accessKeyId, String secretAccessKey) {
+        return new AwsCredentials(accessKeyId, secretAccessKey);
     }
 
     /**
@@ -81,7 +92,9 @@ public class AwsCredentials {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + accessKeyId + ")";
+        return ToString.builder("AwsCredentials")
+                       .add("accessKeyId", accessKeyId)
+                       .build();
     }
 
     @Override

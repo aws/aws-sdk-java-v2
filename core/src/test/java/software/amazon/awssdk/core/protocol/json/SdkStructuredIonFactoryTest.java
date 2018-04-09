@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -26,13 +26,12 @@ import java.util.LinkedList;
 import java.util.List;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.response.JsonErrorResponseHandler;
 import software.amazon.awssdk.core.runtime.transform.JsonErrorUnmarshaller;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.ion.IonStruct;
 import software.amazon.ion.IonSystem;
 import software.amazon.ion.IonWriter;
@@ -79,9 +78,9 @@ public class SdkStructuredIonFactoryTest {
         HttpResponse error = createResponse(payload);
         error.addHeader("x-amzn-ErrorType", ERROR_TYPE);
 
-        AmazonServiceException exception = handleError(error);
+        SdkServiceException exception = handleError(error);
         assertThat(exception, instanceOf(InvalidParameterException.class));
-        assertEquals(ERROR_MESSAGE, exception.getErrorMessage());
+        assertEquals(ERROR_MESSAGE, exception.errorMessage());
     }
 
     @Test
@@ -91,9 +90,9 @@ public class SdkStructuredIonFactoryTest {
 
         HttpResponse error = createResponse(payload);
 
-        AmazonServiceException exception = handleError(error);
+        SdkServiceException exception = handleError(error);
         assertThat(exception, instanceOf(InvalidParameterException.class));
-        assertEquals(ERROR_MESSAGE, exception.getErrorMessage());
+        assertEquals(ERROR_MESSAGE, exception.errorMessage());
     }
 
     @Test
@@ -103,12 +102,12 @@ public class SdkStructuredIonFactoryTest {
 
         HttpResponse error = createResponse(payload);
 
-        AmazonServiceException exception = handleError(error);
+        SdkServiceException exception = handleError(error);
         assertThat(exception, instanceOf(InvalidParameterException.class));
-        assertEquals(ERROR_MESSAGE, exception.getErrorMessage());
+        assertEquals(ERROR_MESSAGE, exception.errorMessage());
     }
 
-    @Test(expected = AmazonClientException.class)
+    @Test(expected = SdkClientException.class)
     public void rejectPayloadsWithMultipleErrorAnnotations() throws Exception {
         IonStruct payload = createPayload();
         payload.addTypeAnnotation(ERROR_PREFIX + ERROR_TYPE);
@@ -128,12 +127,12 @@ public class SdkStructuredIonFactoryTest {
 
         HttpResponse error = createResponse(payload);
 
-        AmazonServiceException exception = handleError(error);
+        SdkServiceException exception = handleError(error);
         assertThat(exception, instanceOf(InvalidParameterException.class));
-        assertEquals(ERROR_MESSAGE, exception.getErrorMessage());
+        assertEquals(ERROR_MESSAGE, exception.errorMessage());
     }
 
-    private AmazonServiceException handleError(HttpResponse error) throws Exception {
+    private SdkServiceException handleError(HttpResponse error) throws Exception {
         List<JsonErrorUnmarshaller> unmarshallers = new LinkedList<>();
         unmarshallers.add(new JsonErrorUnmarshaller(InvalidParameterException.class, ERROR_TYPE));
 
@@ -142,7 +141,7 @@ public class SdkStructuredIonFactoryTest {
         return handler.handle(error, new ExecutionAttributes());
     }
 
-    private static class InvalidParameterException extends AmazonServiceException {
+    private static class InvalidParameterException extends SdkServiceException {
         private static final long serialVersionUID = 0;
 
         public InvalidParameterException(BeanStyleBuilder builder) {

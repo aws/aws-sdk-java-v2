@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.core.auth;
 
-import static software.amazon.awssdk.core.interceptor.AwsExecutionAttributes.REQUEST_CONFIG;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -28,17 +26,15 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import software.amazon.awssdk.core.AmazonClientException;
+
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.RequestClientOptions;
-import software.amazon.awssdk.core.RequestConfig;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.internal.Aws4SignerRequestParams;
-import software.amazon.awssdk.core.event.ProgressInputStream;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.io.SdkDigestInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.Base64Utils;
@@ -240,41 +236,26 @@ public abstract class AbstractAwsSigner implements Signer {
         return SdkHttpUtils.flattenQueryParameters(sorted).orElse("");
     }
 
+    @ReviewBeforeRelease("Do we still want to make read limit user-configurable as in V1?")
     protected static int getReadLimit(Aws4SignerRequestParams signerRequestParams) {
-        return Optional.ofNullable(signerRequestParams.executionAttributes().getAttribute(REQUEST_CONFIG))
-                       .map(RequestConfig::getRequestClientOptions)
-                       .map(RequestClientOptions::getReadLimit)
-                       .orElse(RequestClientOptions.DEFAULT_STREAM_BUFFER_SIZE);
+        return RequestClientOptions.DEFAULT_STREAM_BUFFER_SIZE;
+
     }
 
-    protected InputStream getBinaryRequestPayloadStream(InputStream wrapped) {
+    protected InputStream getBinaryRequestPayloadStream(InputStream stream) {
         try {
-            InputStream unwrapped = getContentUnwrapped(wrapped);
-            if (unwrapped == null) {
+            if (stream == null) {
                 return new ByteArrayInputStream(new byte[0]);
             }
-            if (!unwrapped.markSupported()) {
+            if (!stream.markSupported()) {
                 throw new SdkClientException("Unable to read request payload to sign request.");
             }
-            return unwrapped;
-        } catch (AmazonClientException e) {
+            return stream;
+        } catch (SdkClientException e) {
             throw e;
         } catch (Exception e) {
             throw new SdkClientException("Unable to read request payload to sign request: " + e.getMessage(), e);
         }
-    }
-
-    private InputStream getContentUnwrapped(InputStream is) {
-        if (is == null) {
-            return null;
-        }
-        // We want to disable the progress reporting when the stream is
-        // consumed for signing purpose.
-        while (is instanceof ProgressInputStream) {
-            ProgressInputStream pris = (ProgressInputStream) is;
-            is = pris.getWrappedInputStream();
-        }
-        return is;
     }
 
     protected String getCanonicalizedResourcePath(String resourcePath, boolean urlEncode) {
@@ -316,12 +297,12 @@ public abstract class AbstractAwsSigner implements Signer {
 
         if (credentials instanceof AwsSessionCredentials) {
             AwsSessionCredentials sessionCredentials = (AwsSessionCredentials) credentials;
-            return new AwsSessionCredentials(accessKeyId,
-                                             secretKey,
-                                             StringUtils.trim(sessionCredentials.sessionToken()));
+            return AwsSessionCredentials.create(accessKeyId,
+                                                secretKey,
+                                                StringUtils.trim(sessionCredentials.sessionToken()));
         }
 
-        return new AwsCredentials(accessKeyId, secretKey);
+        return AwsCredentials.create(accessKeyId, secretKey);
     }
 
     /**

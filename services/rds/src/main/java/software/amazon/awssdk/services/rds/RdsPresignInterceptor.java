@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,12 +17,11 @@ package software.amazon.awssdk.services.rds;
 
 import java.net.URI;
 import java.util.Date;
-import software.amazon.awssdk.core.AmazonClientException;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.auth.Aws4Signer;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -33,6 +32,7 @@ import software.amazon.awssdk.core.runtime.endpoint.DefaultServiceEndpointBuilde
 import software.amazon.awssdk.core.util.AwsHostNameUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.services.rds.model.RDSRequest;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 
@@ -42,7 +42,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  *
  * @param <T> The request type.
  */
-abstract class RdsPresignInterceptor<T extends AmazonWebServiceRequest> implements ExecutionInterceptor {
+abstract class RdsPresignInterceptor<T extends RDSRequest> implements ExecutionInterceptor {
     private static final String SERVICE_NAME = "rds";
     private static final String PARAM_SOURCE_REGION = "SourceRegion";
     private static final String PARAM_DESTINATION_REGION = "DestinationRegion";
@@ -144,7 +144,7 @@ abstract class RdsPresignInterceptor<T extends AmazonWebServiceRequest> implemen
         final Region region = Region.of(regionName);
 
         if (region == null) {
-            throw new AmazonClientException("{" + serviceName + ", " + regionName + "} was not "
+            throw new SdkClientException("{" + serviceName + ", " + regionName + "} was not "
                                             + "found in region metadata. Update to latest version of SDK and try again.");
         }
 

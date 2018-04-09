@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,7 +24,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
@@ -190,8 +191,8 @@ public class ParallelScanTask {
                     throw new SdkClientException("No Exception found in the failed scan task.");
                 } catch (ExecutionException ee) {
                     Throwable cause = ee.getCause();
-                    if (cause instanceof SdkClientException) {
-                        throw (SdkClientException) cause;
+                    if (cause instanceof SdkServiceException) {
+                        throw (SdkServiceException) cause;
                     } else {
                         throw new SdkClientException("Internal error during the scan on segment #" + segment + ".",
                                                      ee.getCause());

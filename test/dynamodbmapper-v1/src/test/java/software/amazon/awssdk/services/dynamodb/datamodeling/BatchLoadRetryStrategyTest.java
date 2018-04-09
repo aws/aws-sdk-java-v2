@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,6 +32,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper.BatchGetItemException;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.BatchLoadRetryStrategy;
@@ -42,6 +45,7 @@ import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 import software.amazon.awssdk.services.dynamodb.model.PutRequest;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 
+@RunWith(MockitoJUnitRunner.class)
 public class BatchLoadRetryStrategyTest {
 
     private static final String TABLE_NAME = "tableName";
@@ -62,96 +66,84 @@ public class BatchLoadRetryStrategyTest {
 
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
-    private DynamoDBClient ddbMock;
-    private DynamoDbMapper mapper;
-    private BatchGetItemRequest mockItemRequest;
-    private BatchGetItemResponse mockItemResult;
 
-    @Before
-    public void setup() {
-        ddbMock = createMock(DynamoDBClient.class);
-        mockItemRequest = createMock(BatchGetItemRequest.class);
-        mockItemResult = createMock(BatchGetItemResponse.class);
-    }
+    @Mock
+    private DynamoDBClient ddbMock;
+    @Mock
+    private BatchGetItemRequest mockItemRequest;
+    @Mock
+    private BatchGetItemResponse mockItemResult;
 
     @Test
     public void testBatchReadCallFailure_NoRetry() {
-        expect(ddbMock.batchGetItem((BatchGetItemRequest) anyObject()))
-                .andReturn(buildDefaultGetItemResponse().toBuilder().unprocessedKeys(buildUnprocessedKeysMap(1)).build())
-                .times(1);
+        when(ddbMock.batchGetItem(any(BatchGetItemRequest.class)))
+            .thenReturn(buildDefaultGetItemResponse().toBuilder().unprocessedKeys(buildUnprocessedKeysMap(1)).build());
         DynamoDbMapperConfig config =
                 getConfigWithCustomBatchLoadRetryStrategy(new DynamoDbMapperConfig.NoRetryBatchLoadRetryStrategy());
-        mapper = new DynamoDbMapper(ddbMock, config);
+        DynamoDbMapper mapper = new DynamoDbMapper(ddbMock, config);
 
-        replay(ddbMock);
         thrown.expect(BatchGetItemException.class);
         mapper.batchLoad(itemsToGet);
-        verify(ddbMock);
+        verify(ddbMock, times(1)).batchGetItem(any(BatchGetItemRequest.class));
     }
 
     @Test
     public void testBatchReadCallFailure_Retry() {
-        expect(ddbMock.batchGetItem((BatchGetItemRequest) anyObject()))
-                .andReturn(buildDefaultGetItemResponse().toBuilder().unprocessedKeys(buildUnprocessedKeysMap(1)).build())
-                .times(4);
-        mapper = new DynamoDbMapper(ddbMock, getConfigWithCustomBatchLoadRetryStrategy(new BatchLoadRetryStrategyWithNoDelay(3)));
+        when(ddbMock.batchGetItem(any(BatchGetItemRequest.class)))
+                .thenReturn(buildDefaultGetItemResponse().toBuilder().unprocessedKeys(buildUnprocessedKeysMap(1)).build());
 
-        replay(ddbMock);
+        DynamoDbMapper mapper = new DynamoDbMapper(ddbMock, getConfigWithCustomBatchLoadRetryStrategy(new BatchLoadRetryStrategyWithNoDelay(3)));
+
+
         thrown.expect(BatchGetItemException.class);
         mapper.batchLoad(itemsToGet);
-        verify(ddbMock);
+        verify(ddbMock, times(4)).batchGetItem(any(BatchGetItemRequest.class));
     }
 
     @Test
     public void testBatchReadCallSuccess_Retry() {
-        expect(ddbMock.batchGetItem((BatchGetItemRequest) anyObject())).andReturn(
-                buildDefaultGetItemResponse().toBuilder().unprocessedKeys(new HashMap<>(1)).build()).times(1);
+        when(ddbMock.batchGetItem(any(BatchGetItemRequest.class)))
+            .thenReturn(buildDefaultGetItemResponse().toBuilder().unprocessedKeys(new HashMap<>(1)).build());
+
         DynamoDbMapperConfig config =
                 getConfigWithCustomBatchLoadRetryStrategy(new DynamoDbMapperConfig.DefaultBatchLoadRetryStrategy());
-        mapper = new DynamoDbMapper(ddbMock, config);
+        DynamoDbMapper mapper = new DynamoDbMapper(ddbMock, config);
 
-        replay(ddbMock);
         mapper.batchLoad(itemsToGet);
-        verify(ddbMock);
+        verify(ddbMock, times(1)).batchGetItem(any(BatchGetItemRequest.class));
     }
 
     @Test
     public void testBatchReadCallFailure_Retry_RetryOnCompleteFailure() {
-        expect(ddbMock.batchGetItem((BatchGetItemRequest) anyObject()))
-                .andReturn(buildDefaultGetItemResponse().toBuilder().unprocessedKeys(buildUnprocessedKeysMap(3)).build())
-                .times(6);
+        when(ddbMock.batchGetItem(any(BatchGetItemRequest.class)))
+                .thenReturn(buildDefaultGetItemResponse().toBuilder().unprocessedKeys(buildUnprocessedKeysMap(3)).build());
         DynamoDbMapperConfig config =
                 getConfigWithCustomBatchLoadRetryStrategy(new DynamoDbMapperConfig.DefaultBatchLoadRetryStrategy());
-        mapper = new DynamoDbMapper(ddbMock, config);
+        DynamoDbMapper mapper = new DynamoDbMapper(ddbMock, config);
 
-        replay(ddbMock);
         thrown.expect(BatchGetItemException.class);
         mapper.batchLoad(itemsToGet);
-        verify(ddbMock);
+        verify(ddbMock, times(6)).batchGetItem(any(BatchGetItemRequest.class));
     }
 
     @Test
     public void testBatchReadCallFailure_NoRetry_RetryOnCompleteFailure() {
-        expect(ddbMock.batchGetItem((BatchGetItemRequest) anyObject()))
-                .andReturn(buildDefaultGetItemResponse().toBuilder().unprocessedKeys(buildUnprocessedKeysMap(3)).build())
-                .times(1);
+        when(ddbMock.batchGetItem(any(BatchGetItemRequest.class)))
+                .thenReturn(buildDefaultGetItemResponse().toBuilder().unprocessedKeys(buildUnprocessedKeysMap(3)).build());
         DynamoDbMapperConfig config =
                 getConfigWithCustomBatchLoadRetryStrategy(new DynamoDbMapperConfig.NoRetryBatchLoadRetryStrategy());
-        mapper = new DynamoDbMapper(ddbMock, config);
+        DynamoDbMapper mapper = new DynamoDbMapper(ddbMock, config);
 
-        replay(ddbMock);
         thrown.expect(BatchGetItemException.class);
         mapper.batchLoad(itemsToGet);
-        verify(ddbMock);
+        verify(ddbMock, times(1)).batchGetItem(any(BatchGetItemRequest.class));
     }
 
     @Test
     public void testNoDelayOnPartialFailure_DefaultRetry() {
         BatchLoadRetryStrategy defaultRetryStrategy = new DynamoDbMapperConfig.DefaultBatchLoadRetryStrategy();
-        expect(mockItemResult.unprocessedKeys()).andReturn(buildUnprocessedKeysMap(2));
-        expect(mockItemRequest.requestItems()).andReturn(buildUnprocessedKeysMap(3));
-        replay(mockItemRequest);
-        replay(mockItemResult);
+        when(mockItemResult.unprocessedKeys()).thenReturn(buildUnprocessedKeysMap(2));
+        when(mockItemRequest.requestItems()).thenReturn(buildUnprocessedKeysMap(3));
         BatchLoadContext context = new BatchLoadContext(mockItemRequest);
         context.setBatchGetItemResponse(mockItemResult);
         context.setRetriesAttempted(2);
@@ -161,10 +153,9 @@ public class BatchLoadRetryStrategyTest {
     @Test
     public void testDelayOnPartialFailure_DefaultRetry() {
         BatchLoadRetryStrategy defaultRetryStrategy = new DynamoDbMapperConfig.DefaultBatchLoadRetryStrategy();
-        expect(mockItemResult.unprocessedKeys()).andReturn(buildUnprocessedKeysMap(3));
-        expect(mockItemRequest.requestItems()).andReturn(buildUnprocessedKeysMap(3));
-        replay(mockItemRequest);
-        replay(mockItemResult);
+        when(mockItemResult.unprocessedKeys()).thenReturn(buildUnprocessedKeysMap(3));
+        when(mockItemRequest.requestItems()).thenReturn(buildUnprocessedKeysMap(3));
+
         BatchLoadContext context = new BatchLoadContext(mockItemRequest);
         context.setBatchGetItemResponse(mockItemResult);
         context.setRetriesAttempted(2);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ package software.amazon.awssdk.core.http.server;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Optional;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
@@ -139,19 +139,25 @@ public class MockServer {
         public void runServer(ServerSocket serverSocket) {
             try {
                 while (true) {
+                    Socket socket = null;
                     try {
-                        Socket socket = serverSocket.accept();
-                        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                        out.writeBytes("HTTP/1.1 200 OK\r\n");
-                        out.writeBytes("Content-Type: text/html\r\n");
-                        out.writeBytes("Content-Length: 500\r\n\r\n");
-                        out.writeBytes("<html><head></head><body><h1>Hello.");
-                        while (true) {
-                            Thread.sleep(1 * 1000);
-                            out.writeBytes("Hi.");
+                        socket = serverSocket.accept();
+                        try (DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
+                            out.writeBytes("HTTP/1.1 200 OK\r\n");
+                            out.writeBytes("Content-Type: text/html\r\n");
+                            out.writeBytes("Content-Length: 500\r\n\r\n");
+                            out.writeBytes("<html><head></head><body><h1>Hello.");
+                            while (true) {
+                                Thread.sleep(1 * 1000);
+                                out.writeBytes("Hi.");
+                            }
                         }
                     } catch (SocketException se) {
                         // Ignored or expected.
+                    } finally {
+                        if (socket != null) {
+                            socket.close();
+                        }
                     }
                 }
             } catch (IOException e) {
@@ -172,8 +178,9 @@ public class MockServer {
     public static class UnresponsiveServerBehavior implements ServerBehaviorStrategy {
         @Override
         public void runServer(ServerSocket serverSocket) {
+            Socket socket = null;
             try {
-                Socket socket = serverSocket.accept();
+                socket = serverSocket.accept();
                 System.out.println("Socket created on port " + socket.getLocalPort());
                 while (true) {
                     System.out.println("I don't want to talk.");
@@ -184,6 +191,14 @@ public class MockServer {
             } catch (InterruptedException e) {
                 System.err.println("Socket listener thread interrupted. Terminating the thread...");
                 return;
+            } finally {
+                try {
+                    if (socket != null) {
+                        socket.close();
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException("Fail to close the socket", e);
+                }
             }
         }
     }
@@ -212,33 +227,35 @@ public class MockServer {
         }
 
         private static void setEntity(HttpResponse response, String content) {
-            try {
-                BasicHttpEntity entity = new BasicHttpEntity();
-                entity.setContent(new StringInputStream(content));
-                response.setEntity(entity);
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
-            }
+            BasicHttpEntity entity = new BasicHttpEntity();
+            entity.setContent(new StringInputStream(content));
+            response.setEntity(entity);
         }
 
         @Override
         public void runServer(ServerSocket serverSocket) {
             try {
                 while (true) {
+                    Socket socket = null;
                     try {
-                        Socket socket = serverSocket.accept();
-                        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                        StringBuilder builder = new StringBuilder();
-                        builder.append(response.getStatusLine().toString() + "\r\n");
-                        for (Header header : response.getAllHeaders()) {
-                            builder.append(header.getName() + ":" + header.getValue() + "\r\n");
+                        socket = serverSocket.accept();
+                        try (DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
+                            StringBuilder builder = new StringBuilder();
+                            builder.append(response.getStatusLine().toString() + "\r\n");
+                            for (Header header : response.getAllHeaders()) {
+                                builder.append(header.getName() + ":" + header.getValue() + "\r\n");
+                            }
+                            builder.append("\r\n");
+                            builder.append(content);
+                            System.out.println(builder.toString());
+                            out.writeBytes(builder.toString());
                         }
-                        builder.append("\r\n");
-                        builder.append(content);
-                        System.out.println(builder.toString());
-                        out.writeBytes(builder.toString());
                     } catch (SocketException se) {
                         // Ignored or expected.
+                    } finally {
+                        if (socket != null) {
+                            socket.close();
+                        }
                     }
                 }
             } catch (IOException e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.iam;
 
 import java.util.UUID;
 import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.services.iam.model.AccessKeyMetadata;
 import software.amazon.awssdk.services.iam.model.CreateUserRequest;
 import software.amazon.awssdk.services.iam.model.DeleteAccessKeyRequest;
@@ -51,6 +52,7 @@ public class IAMUtil {
             IntegrationTestBase.setUpCredentials();
             client = IAMClient.builder()
                               .credentialsProvider(IntegrationTestBase.CREDENTIALS_PROVIDER_CHAIN)
+                              .overrideConfiguration(c -> c.retryPolicy(RetryPolicy.builder().numRetries(50).build()))
                               .region(Region.AWS_GLOBAL)
                               .build();
         } catch (Exception e) {

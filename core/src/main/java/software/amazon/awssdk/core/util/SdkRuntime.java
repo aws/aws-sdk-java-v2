@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,8 +15,10 @@
 
 package software.amazon.awssdk.core.util;
 
-public enum SdkRuntime {
-    ;
+public final class SdkRuntime {
+
+    private SdkRuntime() {
+    }
 
     /**
      * Returns true if the current operation should abort; false otherwise.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,8 +23,10 @@ import java.net.URL;
  * @deprecated should be replaced with {@link software.amazon.awssdk.core.util.ClassLoaderHelper}
  */
 @Deprecated
-public enum ClassLoaderHelper {
-    ;
+public final class ClassLoaderHelper {
+
+    private ClassLoaderHelper() {
+    }
 
     /**
      * If classesFirst is false, retrieves the resource via the context class loader of the current

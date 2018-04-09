@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import static org.junit.Assert.fail;
 
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -65,11 +65,12 @@ public class SdkTransactionIdInHeaderTest extends WireMockTestBase {
             SdkHttpFullRequest request = SdkHttpFullRequestAdapter.toHttpFullRequest(newGetRequest(RESOURCE_PATH));
             httpClient.requestExecutionBuilder()
                       .request(request)
+                      .originalRequest(NoopTestAwsRequest.builder().build())
                       .errorResponseHandler(stubErrorHandler())
                       .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(request))
                       .execute();
             fail("Expected exception");
-        } catch (AmazonServiceException expected) {
+        } catch (SdkServiceException expected) {
             // Ignored or expected.
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -41,14 +41,12 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ServiceExamples;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.codegen.model.intermediate.WaiterDefinitionModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.Operation;
+import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
-import software.amazon.awssdk.codegen.model.service.Waiters;
 import software.amazon.awssdk.codegen.naming.DefaultNamingStrategy;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
-import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Builds an intermediate model to be used by the templates from the service model and
@@ -64,7 +62,7 @@ public class IntermediateModelBuilder {
     private final NamingStrategy namingStrategy;
     private final TypeUtils typeUtils;
     private final List<IntermediateModelShapeProcessor> shapeProcessors;
-    private final Waiters waiters;
+    private final Paginators paginators;
 
     public IntermediateModelBuilder(C2jModels models) {
         this.customConfig = models.customizationConfig();
@@ -74,7 +72,7 @@ public class IntermediateModelBuilder {
         this.namingStrategy = new DefaultNamingStrategy(service, customConfig);
         this.typeUtils = new TypeUtils(namingStrategy);
         this.shapeProcessors = createShapeProcessors();
-        this.waiters = models.waitersModel();
+        this.paginators = models.paginatorsModel();
     }
 
 
@@ -107,11 +105,9 @@ public class IntermediateModelBuilder {
 
         final Map<String, OperationModel> operations = new TreeMap<>();
         final Map<String, ShapeModel> shapes = new HashMap<>();
-        final Map<String, WaiterDefinitionModel> waiters = new HashMap<>();
         final Map<String, AuthorizerModel> authorizers = new HashMap<>();
 
         operations.putAll(new AddOperations(this).constructOperations());
-        waiters.putAll(new AddWaiters(this.waiters, operations).constructWaiters());
         authorizers.putAll(new AddCustomAuthorizers(this.service, getNamingStrategy()).constructAuthorizers());
 
         for (IntermediateModelShapeProcessor processor : shapeProcessors) {
@@ -123,7 +119,7 @@ public class IntermediateModelBuilder {
 
         IntermediateModel fullModel = new IntermediateModel(
             constructMetadata(service, codeGenConfig, customConfig), operations, shapes,
-            customConfig, examples, waiters, authorizers);
+            customConfig, examples, authorizers, paginators.getPaginators());
 
         customization.postprocess(fullModel);
 
@@ -140,8 +136,8 @@ public class IntermediateModelBuilder {
                                                                trimmedShapes,
                                                                fullModel.getCustomizationConfig(),
                                                                fullModel.getExamples(),
-                                                               fullModel.getWaiters(),
-                                                               fullModel.getCustomAuthorizers());
+                                                               fullModel.getCustomAuthorizers(),
+                                                               fullModel.getPaginators());
 
         linkMembersToShapes(trimmedModel);
         linkOperationsToInputOutputShapes(trimmedModel);
@@ -170,23 +166,17 @@ public class IntermediateModelBuilder {
 
     private void linkOperationsToInputOutputShapes(IntermediateModel model) {
         for (Map.Entry<String, OperationModel> entry : model.getOperations().entrySet()) {
+
             Operation operation = service.getOperations().get(entry.getKey());
+
             if (entry.getValue().getInput() != null) {
                 entry.getValue().setInputShape(model.getShapes().get(entry.getValue().getInput().getSimpleType()));
             }
+
             if (operation.getOutput() != null) {
                 String outputShapeName = operation.getOutput().getShape();
-                // TODO need to figure this out for wrapper outputs.
-                // See [JAVA-1556]
-
-                // Only link when output shape is not a result wrapper. When it is a result wrapper
-                // we only preserve the single member the wrapper has in the intermediate model
-                // so this lookup will fail.
-                if (StringUtils.isBlank(operation.getOutput().getResultWrapper())) {
-                    entry.getValue().setOutputShape(model.getShapeByC2jName(outputShapeName));
-                }
+                entry.getValue().setOutputShape(model.getShapeByC2jName(outputShapeName));
             }
-
         }
     }
 
@@ -229,6 +219,7 @@ public class IntermediateModelBuilder {
 
             if (inputShape.getRequired() == null
                 && !config.getBlacklistedSimpleMethods().contains(methodName)
+                && !(config.getBlacklistedSimpleMethods().size() == 1 && config.getBlacklistedSimpleMethods().get(0).equals("*"))
                 && !m.getValue().hasStreamingInput()
                 && !m.getValue().hasStreamingOutput()) {
                 if (!methodName.matches(Constants.APPROVED_SIMPLE_METHOD_VERBS) &&
@@ -265,4 +256,7 @@ public class IntermediateModelBuilder {
         return typeUtils;
     }
 
+    public Paginators getPaginators() {
+        return paginators;
+    }
 }

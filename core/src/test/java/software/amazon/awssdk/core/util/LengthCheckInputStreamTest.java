@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 public class LengthCheckInputStreamTest {
 
@@ -158,7 +158,7 @@ public class LengthCheckInputStreamTest {
         try {
             StreamUtils.consumeInputStream(is);
             fail();
-        } catch (AmazonClientException ex) {
+        } catch (SdkClientException ex) {
             // expected
         }
         is.close();
@@ -191,7 +191,7 @@ public class LengthCheckInputStreamTest {
         try {
             StreamUtils.consumeInputStream(is);
             fail();
-        } catch (AmazonClientException ex) {
+        } catch (SdkClientException ex) {
             // expected
         }
         is.close();
@@ -208,7 +208,7 @@ public class LengthCheckInputStreamTest {
         try {
             is.skip(100);
             fail();
-        } catch (AmazonClientException ex) {
+        } catch (SdkClientException ex) {
             // expected
         }
         is.close();

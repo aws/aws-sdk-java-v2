@@ -1,0 +1,76 @@
+{
+    "date": "2017-09-19",
+    "version": "2.0.0-preview-4",
+    "entries": [
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "The [File](https://github.com/aws/aws-sdk-java-v2/blob/master/core/src/main/java/software/amazon/awssdk/sync/StreamingResponseHandler.java#L92) and [OutputStream](https://github.com/aws/aws-sdk-java-v2/blob/master/core/src/main/java/software/amazon/awssdk/sync/StreamingResponseHandler.java#L107) implementations of StreamingResponseHandler now return the POJO response in onComplete."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Added convenience methods for both sync and async streaming operations for file based uploads/downloads."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Major refactor of RequestHandler interfaces. Newly introduced [ExecutionInterceptors](https://github.com/aws/aws-sdk-java-v2/blob/master/core/src/main/java/software/amazon/awssdk/interceptor/ExecutionInterceptor.java) have a cleaner, more consistent API and are much more powerful."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Immutable objects can now be modified easily with a newly introduced [copy](https://github.com/aws/aws-sdk-java-v2/blob/master/utils/src/main/java/software/amazon/awssdk/utils/builder/ToCopyableBuilder.java#L42) method that applies a transformation on the builder for the object and returns a new immutable object."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "S3's CreateBucket no longer requires the location constraint to be specified, it will be inferred from the client region if not present."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Added some convenience implementation of [AsyncResponseHandler](https://github.com/aws/aws-sdk-java-v2/blob/master/core/src/main/java/software/amazon/awssdk/async/AsyncResponseHandler.java) to emit to a byte array or String."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Many improvments and fixes to the Netty NIO based transport."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Type parameters are now correctly included for [StreamingResponseHandler](https://github.com/aws/aws-sdk-java-v2/blob/master/core/src/main/java/software/amazon/awssdk/sync/StreamingResponseHandler.java) on the client interface."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Several fixes around S3's endpoint resolution, particularly with advanced options like path style addressing and accelerate mode. See [Issue #130](https://github.com/aws/aws-sdk-java-v2/issues/130)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Fixed a bug in default credential provider chain where it would erroneously abort at the ProfileCredentialsProvider. See [Issue #135](https://github.com/aws/aws-sdk-java-v2/issues/135)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "bugfix",
+            "description": "Several fixes around serialization and deserialization of immutable objects. See [Issue #122](https://github.com/aws/aws-sdk-java-v2/issues/122)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "removal",
+            "description": "Dependency on JodaTime has been dropped in favor of Java 8's APIS."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "removal",
+            "description": "Metrics subsystem has been removed."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "removal",
+            "description": "DynamoDBMapper and DynamoDB Document API have been removed."
+        }
+    ]
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -65,19 +65,19 @@ public class Ec2ProtocolSpec extends QueryXmlProtocolSpec {
                         "null",
                         "responseHandler",
                         "dryRunRequest")
-                .addStatement("throw new $T($S)", AmazonClientException.class,
+                .addStatement("throw new $T($S)", SdkClientException.class,
                         "Unrecognized service response for the dry-run request.")
                 .endControlFlow()
-                .beginControlFlow("catch (AmazonServiceException ase)")
-                .beginControlFlow("if (ase.getErrorCode().equals($S) && ase.getStatusCode() == 412)",
+                .beginControlFlow("catch (SdkServiceException exception)")
+                .beginControlFlow("if (exception.errorCode().equals($S) && exception.statusCode() == 412)",
                         "DryRunOperation")
-                .addStatement("return new $T(true, request, ase.getMessage(), ase)", dryRunResultGeneric)
+                .addStatement("return new $T(true, request, exception.getMessage(), exception)", dryRunResultGeneric)
                 .endControlFlow()
-                .beginControlFlow("else if (ase.getErrorCode().equals($S) && ase.getStatusCode() == 403)",
+                .beginControlFlow("else if (exception.errorCode().equals($S) && exception.statusCode() == 403)",
                         "UnauthorizedOperation")
-                .addStatement("return new $T(false, request, ase.getMessage(), ase)", dryRunResultGeneric)
+                .addStatement("return new $T(false, request, exception.getMessage(), exception)", dryRunResultGeneric)
                 .endControlFlow()
-                .addStatement("throw new $T($S, ase)", AmazonClientException.class,
+                .addStatement("throw new $T($S, exception)", SdkClientException.class,
                         "Unrecognized service response for the dry-run request.")
                 .endControlFlow()
                 .build();

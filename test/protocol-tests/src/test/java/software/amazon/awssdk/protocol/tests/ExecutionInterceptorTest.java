@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Matchers.any;
@@ -47,7 +48,6 @@ import org.mockito.Mockito;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestProvider;
@@ -56,6 +56,7 @@ import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.builder.ClientBuilder;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -76,7 +77,7 @@ import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOpe
  */
 public class ExecutionInterceptorTest {
     @Rule
-    public WireMockRule wireMock = new WireMockRule(0);
+    public WireMockRule wireMock = new WireMockRule(wireMockConfig().port(0), false);
 
     private static final String MEMBERS_IN_HEADERS_PATH = "/2016-03-11/membersInHeaders";
     private static final String STREAMING_INPUT_PATH = "/2016-03-11/streamingInputOperation";
@@ -202,7 +203,7 @@ public class ExecutionInterceptorTest {
         MembersInHeadersRequest request = MembersInHeadersRequest.builder().build();
 
         // When
-        assertThatExceptionOfType(AmazonServiceException.class).isThrownBy(() -> client.membersInHeaders(request));
+        assertThatExceptionOfType(SdkServiceException.class).isThrownBy(() -> client.membersInHeaders(request));
 
         // Expect
         expectServiceCallErrorMethodsCalled(interceptor);
@@ -217,7 +218,7 @@ public class ExecutionInterceptorTest {
 
         // When
         assertThatExceptionOfType(ExecutionException.class).isThrownBy(() -> client.membersInHeaders(request).get())
-                                                           .withCauseInstanceOf(AmazonServiceException.class);
+                                                           .withCauseInstanceOf(SdkServiceException.class);
 
         // Expect
         expectServiceCallErrorMethodsCalled(interceptor);
@@ -393,7 +394,7 @@ public class ExecutionInterceptorTest {
         assertThat(beforeUnmarshallingArg.getValue().httpResponse().statusCode()).isEqualTo(404);
 
         // Verify failed execution parameters
-        assertThat(failedExecutionArg.getValue().exception()).isInstanceOf(AmazonServiceException.class);
+        assertThat(failedExecutionArg.getValue().exception()).isInstanceOf(SdkServiceException.class);
         verifyFailedExecutionMethodCalled(failedExecutionArg, false);
     }
 
@@ -467,7 +468,7 @@ public class ExecutionInterceptorTest {
     private <T extends ClientBuilder<?, U>, U> U initializeAndBuild(T builder, ExecutionInterceptor interceptor) {
         return builder.region(Region.US_WEST_1)
                       .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                      .credentialsProvider(new StaticCredentialsProvider(new AwsCredentials("akid", "skid")))
+                      .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
                       .overrideConfiguration(ClientOverrideConfiguration.builder()
                                                                         .addLastExecutionInterceptor(interceptor)
                                                                         .build())
@@ -478,7 +479,9 @@ public class ExecutionInterceptorTest {
         @Override
         public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
             MembersInHeadersRequest request = (MembersInHeadersRequest) context.request();
-            return request.copy(b -> b.stringMember("1"));
+            return request.toBuilder()
+                    .stringMember("1")
+                    .build();
         }
 
         @Override
@@ -498,7 +501,9 @@ public class ExecutionInterceptorTest {
         @Override
         public SdkResponse modifyResponse(Context.ModifyResponse context, ExecutionAttributes executionAttributes) {
             MembersInHeadersResponse response = (MembersInHeadersResponse) context.response();
-            return response.copy(b -> b.stringMember("4"));
+            return response.toBuilder()
+                    .stringMember("4")
+                    .build();
         }
     }
 

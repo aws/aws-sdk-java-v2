@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,19 +27,18 @@ import java.net.UnknownHostException;
 
 /**
  * Starts a new EC2 Metadata server instance with given address and port number.
- *
  */
 public class EC2MetadataUtilsServer {
 
     private ServerSocket server;
 
-    public EC2MetadataUtilsServer(String address, int port)
-            throws UnknownHostException, IOException {
-        server = new ServerSocket(port, 1, InetAddress.getByName(address));
+    public EC2MetadataUtilsServer(int port)
+        throws UnknownHostException, IOException {
+        server = new ServerSocket(port, 1, InetAddress.getLoopbackAddress());
     }
 
     public void start()
-            throws UnknownHostException, IOException {
+        throws UnknownHostException, IOException {
 
         Thread thread = new Thread() {
             @Override
@@ -71,16 +70,11 @@ public class EC2MetadataUtilsServer {
 
     private void startServer() throws IOException {
         while (true) {
-            Socket sock = server.accept();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(
-                    sock.getInputStream()));
-            PrintWriter writer = new PrintWriter(sock.getOutputStream());
-
-            handleConnection(reader, writer);
-
-            writer.close();
-            reader.close();
-            sock.close();
+            try (Socket sock = server.accept(); BufferedReader reader = new BufferedReader(new InputStreamReader(
+                sock.getInputStream()));
+                 PrintWriter writer = new PrintWriter(sock.getOutputStream());) {
+                handleConnection(reader, writer);
+            }
         }
     }
 
@@ -110,7 +104,7 @@ public class EC2MetadataUtilsServer {
             outputIamCredList(output);
 
         } else if (path
-                .startsWith("/latest/meta-data/iam/security-credentials/")) {
+            .startsWith("/latest/meta-data/iam/security-credentials/")) {
 
             outputIamCred(output);
 
@@ -137,13 +131,13 @@ public class EC2MetadataUtilsServer {
     private void outputIamInfo(PrintWriter output) throws IOException {
 
         String payload =
-                "{"
-                + "\"Code\":\"Success\","
-                + "\"LastUpdated\":\"2014-04-07T08:18:41Z\","
-                + "\"InstanceProfileArn\":\"foobar\","
-                + "\"InstanceProfileId\":\"moobily\","
-                + "\"NewFeature\":12345"
-                + "}";
+            "{"
+            + "\"Code\":\"Success\","
+            + "\"LastUpdated\":\"2014-04-07T08:18:41Z\","
+            + "\"InstanceProfileArn\":\"foobar\","
+            + "\"InstanceProfileId\":\"moobily\","
+            + "\"NewFeature\":12345"
+            + "}";
 
         output.println("HTTP/1.1 200 OK");
         output.println("Connection: close");
@@ -155,7 +149,7 @@ public class EC2MetadataUtilsServer {
     }
 
     private void outputIamCredList(PrintWriter output)
-            throws IOException {
+        throws IOException {
 
         String payload = "test1\ntest2";
 
@@ -171,15 +165,15 @@ public class EC2MetadataUtilsServer {
     private void outputIamCred(PrintWriter output) throws IOException {
 
         String payload =
-                "{"
-                + "\"Code\":\"Success\","
-                + "\"LastUpdated\":\"2014-04-07T08:18:41Z\","
-                + "\"Type\":\"AWS-HMAC\","
-                + "\"AccessKeyId\":\"foobar\","
-                + "\"SecretAccessKey\":\"moobily\","
-                + "\"Token\":\"beebop\","
-                + "\"Expiration\":\"2014-04-08T23:16:53Z\""
-                + "}";
+            "{"
+            + "\"Code\":\"Success\","
+            + "\"LastUpdated\":\"2014-04-07T08:18:41Z\","
+            + "\"Type\":\"AWS-HMAC\","
+            + "\"AccessKeyId\":\"foobar\","
+            + "\"SecretAccessKey\":\"moobily\","
+            + "\"Token\":\"beebop\","
+            + "\"Expiration\":\"2014-04-08T23:16:53Z\""
+            + "}";
 
         output.println("HTTP/1.1 200 OK");
         output.println("Connection: close");
@@ -191,7 +185,7 @@ public class EC2MetadataUtilsServer {
     }
 
     private void outputInstanceInfo(PrintWriter output)
-            throws IOException {
+        throws IOException {
 
         String payload = constructInstanceInfo();
 

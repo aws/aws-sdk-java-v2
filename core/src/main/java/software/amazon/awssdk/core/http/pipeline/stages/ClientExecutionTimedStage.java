@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,11 +17,13 @@ package software.amazon.awssdk.core.http.pipeline.stages;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
-import software.amazon.awssdk.core.AbortedException;
-import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.SdkRequestOverrideConfig;
 import software.amazon.awssdk.core.config.ClientConfiguration;
+import software.amazon.awssdk.core.exception.AbortedException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpClientDependencies;
 import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
 import software.amazon.awssdk.core.http.exception.SdkInterruptedException;
@@ -124,9 +126,9 @@ public class ClientExecutionTimedStage<OutputT> implements RequestToResponsePipe
      * @param requestConfig Current request configuration
      * @return Client Execution timeout value or 0 if none is set
      */
-    private long getClientExecutionTimeoutInMillis(RequestConfig requestConfig) {
-        if (requestConfig.getClientExecutionTimeout() != null) {
-            return requestConfig.getClientExecutionTimeout();
+    private long getClientExecutionTimeoutInMillis(SdkRequestOverrideConfig requestConfig) {
+        if (requestConfig.requestExecutionTimeout().isPresent()) {
+            return requestConfig.requestExecutionTimeout().get().toMillis();
         } else if (clientConfig.overrideConfiguration().totalExecutionTimeout() != null) {
             return clientConfig.overrideConfiguration().totalExecutionTimeout().toMillis();
         } else {

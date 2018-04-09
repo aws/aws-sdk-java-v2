@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.core.regions.Region;
@@ -53,7 +53,7 @@ public class RestJsonExceptionTests {
     @Before
     public void setupClient() {
         client = ProtocolRestJsonClient.builder()
-                                       .credentialsProvider(new StaticCredentialsProvider(new AwsCredentials("akid", "skid")))
+                                       .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
                                        .region(Region.US_EAST_1)
                                        .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                        .build();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,11 +30,14 @@ import software.amazon.awssdk.core.util.ImmutableMapParameter;
  * {@link #getDocs(IntermediateModel, OperationModel, ClientType, SimpleMethodOverload)} with the specified
  * convenience overload as defined in {@link SimpleMethodOverload}.
  */
-public class OperationDocs {
+public final class OperationDocs {
 
     private static final Map<ClientType, Map<SimpleMethodOverload, Factory>> FACTORIES =
             ImmutableMapParameter.of(ClientType.SYNC, syncFactories(),
                                      ClientType.ASYNC, asyncFactories());
+
+    private OperationDocs() {
+    }
 
     /**
      * Get documentation for the {@link SimpleMethodOverload#NORMAL} overload. That is, the actual implementation that

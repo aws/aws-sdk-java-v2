@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ public class SqsPolicyIntegrationTest extends IntegrationTestBase {
      */
     @After
     public void tearDown() throws Exception {
-        sqsAsync.deleteQueue(DeleteQueueRequest.builder().queueUrl(queueUrl).build());
+        sqsSync.deleteQueue(DeleteQueueRequest.builder().queueUrl(queueUrl).build());
     }
 
     /**
@@ -58,7 +58,7 @@ public class SqsPolicyIntegrationTest extends IntegrationTestBase {
     @Test
     public void testPolicies() throws Exception {
         String queueName = getUniqueQueueName();
-        queueUrl = sqsAsync.createQueue(CreateQueueRequest.builder().queueName(queueName).build()).join().queueUrl();
+        queueUrl = sqsSync.createQueue(CreateQueueRequest.builder().queueName(queueName).build()).queueUrl();
 
         Policy policy = new Policy().withStatements(new Statement(Effect.Allow).withPrincipals(Principal.ALL_USERS)
                                                                                .withActions(new Action("sqs:SendMessage"), new Action("sqs:ReceiveMessage"))
@@ -72,6 +72,6 @@ public class SqsPolicyIntegrationTest extends IntegrationTestBase {
         Map<String, String> attributes = new HashMap<String, String>();
         attributes.put("Policy", policy.toJson());
 
-        sqsAsync.setQueueAttributes(SetQueueAttributesRequest.builder().queueUrl(queueUrl).attributes(attributes).build());
+        sqsSync.setQueueAttributes(SetQueueAttributesRequest.builder().queueUrl(queueUrl).attributes(attributes).build());
     }
 }

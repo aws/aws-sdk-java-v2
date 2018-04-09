@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,16 +27,22 @@ import software.amazon.awssdk.utils.JavaSystemSetting;
  * Utility class for accessing AWS SDK versioning information.
  */
 @ThreadSafe
-public class UserAgentUtils {
+public final class UserAgentUtils {
 
-    private static final String UA_STRING = "aws-sdk-{platform}/{version} {os.name}/{os.version} {java.vm.name}/{java.vm.version}"
-                                            + "/{java.version}{language.and.region}{additional.languages}";
+    private static final String UA_STRING = "aws-sdk-{platform}/{version} {os.name}/{os.version} {java.vm.name}/{java.vm"
+                                            + ".version} Java/{java.version}{language.and.region}{additional.languages}";
+
+    /** Disallowed characters in the user agent token: @see <a href="https://tools.ietf.org/html/rfc7230#section-3.2.6">RFC 7230</a> */
+    private static final String UA_BLACKLIST_REGEX = "[() ,/:;<=>?@\\[\\]{}\\\\]";
 
     /** Shared logger for any issues while loading version information. */
     private static final Logger log = LoggerFactory.getLogger(UserAgentUtils.class);
     private static final String UNKNOWN = "unknown";
     /** User Agent info. */
     private static volatile String userAgent;
+
+    private UserAgentUtils() {
+    }
 
     /**
      * @return Returns the User Agent string to be used when communicating with
@@ -70,11 +76,11 @@ public class UserAgentUtils {
         ua = ua
                 .replace("{platform}", "java")
                 .replace("{version}", VersionInfo.SDK_VERSION)
-                .replace("{os.name}", replaceSpaces(JavaSystemSetting.OS_NAME.getStringValue().orElse(null)))
-                .replace("{os.version}", replaceSpaces(JavaSystemSetting.OS_VERSION.getStringValue().orElse(null)))
-                .replace("{java.vm.name}", replaceSpaces(JavaSystemSetting.JAVA_VM_NAME.getStringValue().orElse(null)))
-                .replace("{java.vm.version}", replaceSpaces(JavaSystemSetting.JAVA_VM_VERSION.getStringValue().orElse(null)))
-                .replace("{java.version}", replaceSpaces(JavaSystemSetting.JAVA_VERSION.getStringValue().orElse(null)))
+                .replace("{os.name}", sanitizeInput(JavaSystemSetting.OS_NAME.getStringValue().orElse(null)))
+                .replace("{os.version}", sanitizeInput(JavaSystemSetting.OS_VERSION.getStringValue().orElse(null)))
+                .replace("{java.vm.name}", sanitizeInput(JavaSystemSetting.JAVA_VM_NAME.getStringValue().orElse(null)))
+                .replace("{java.vm.version}", sanitizeInput(JavaSystemSetting.JAVA_VM_VERSION.getStringValue().orElse(null)))
+                .replace("{java.version}", sanitizeInput(JavaSystemSetting.JAVA_VERSION.getStringValue().orElse(null)))
                 .replace("{additional.languages}", getAdditionalJvmLanguages());
 
         Optional<String> language = JavaSystemSetting.USER_LANGUAGE.getStringValue();
@@ -82,7 +88,7 @@ public class UserAgentUtils {
 
         String languageAndRegion = "";
         if (language.isPresent() && region.isPresent()) {
-            languageAndRegion = " " + replaceSpaces(language.get()) + "_" + replaceSpaces(region.get());
+            languageAndRegion = " (" + sanitizeInput(language.get()) + "_" + sanitizeInput(region.get()) + ")";
         }
         ua = ua.replace("{language.and.region}", languageAndRegion);
 
@@ -90,13 +96,13 @@ public class UserAgentUtils {
     }
 
     /**
-     * Replace any spaces in the input with underscores.
+     * Replace any spaces, parentheses in the input with underscores.
      *
      * @param input the input
      * @return the input with spaces replaced by underscores
      */
-    private static String replaceSpaces(final String input) {
-        return input == null ? UNKNOWN : input.replace(' ', '_');
+    private static String sanitizeInput(String input) {
+        return input == null ? UNKNOWN : input.replaceAll(UA_BLACKLIST_REGEX, "_");
     }
 
     private static String getAdditionalJvmLanguages() {

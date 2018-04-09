@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import static software.amazon.awssdk.codegen.internal.Utils.unCapitialize;
 
 import java.util.HashMap;
 import java.util.Map;
-import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
@@ -39,22 +38,16 @@ final class AddEmptyInputShape implements IntermediateModelShapeProcessor {
 
     private final ServiceModel serviceModel;
     private final NamingStrategy namingStrategy;
-    private final CustomizationConfig customizationConfig;
 
     AddEmptyInputShape(IntermediateModelBuilder builder) {
         this.serviceModel = builder.getService();
         this.namingStrategy = builder.getNamingStrategy();
-        this.customizationConfig = builder.getCustomConfig();
     }
 
     @Override
     public Map<String, ShapeModel> process(Map<String, OperationModel> currentOperations,
                                            Map<String, ShapeModel> currentShapes) {
-        if (customizationConfig.useModeledOutputShapeNames()) {
-            return currentShapes;
-        } else {
-            return addEmptyInputShapes(currentOperations);
-        }
+        return addEmptyInputShapes(currentOperations);
     }
 
     private Map<String, ShapeModel> addEmptyInputShapes(

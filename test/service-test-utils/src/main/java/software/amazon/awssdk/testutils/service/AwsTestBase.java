@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,11 +23,11 @@ import java.io.InputStream;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
-import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.auth.AwsCredentialsProviderChain;
 import software.amazon.awssdk.core.auth.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.core.auth.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.auth.SystemPropertyCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.utils.IoUtils;
 
 public abstract class AwsTestBase {
@@ -39,8 +39,8 @@ public abstract class AwsTestBase {
                                    .credentialsProviders(ProfileCredentialsProvider.builder()
                                                                                    .profileName(TEST_CREDENTIALS_PROFILE_NAME)
                                                                                    .build(),
-                                                         new SystemPropertyCredentialsProvider(),
-                                                         new EnvironmentVariableCredentialsProvider())
+                                                         SystemPropertyCredentialsProvider.create(),
+                                                         EnvironmentVariableCredentialsProvider.create())
                                    .build();
 
     /**
@@ -69,22 +69,22 @@ public abstract class AwsTestBase {
     }
 
     /**
-     * @deprecated Use {@link #isValidAmazonServiceException} in a hamcrest matcher
+     * @deprecated Use {@link #isValidSdkServiceException} in a hamcrest matcher
      */
     @Deprecated
-    protected void assertValidException(AmazonServiceException e) {
-        assertThat(e, isValidAmazonServiceException());
+    protected void assertValidException(SdkServiceException e) {
+        assertThat(e, isValidSdkServiceException());
     }
 
-    public static Matcher<AmazonServiceException> isValidAmazonServiceException() {
-        return new TypeSafeMatcher<AmazonServiceException>() {
+    public static Matcher<SdkServiceException> isValidSdkServiceException() {
+        return new TypeSafeMatcher<SdkServiceException>() {
             private StringBuilder sb = new StringBuilder();
             @Override
-            protected boolean matchesSafely(AmazonServiceException item) {
-                isNotBlank(item.getRequestId(), "requestId");
+            protected boolean matchesSafely(SdkServiceException item) {
+                isNotBlank(item.requestId(), "requestId");
                 isNotBlank(item.getMessage(), "message");
-                isNotBlank(item.getErrorCode(), "errorCode");
-                isNotBlank(item.getServiceName(), "serviceName");
+                isNotBlank(item.errorCode(), "errorCode");
+                isNotBlank(item.serviceName(), "serviceName");
                 return sb.length() == 0;
             }
 

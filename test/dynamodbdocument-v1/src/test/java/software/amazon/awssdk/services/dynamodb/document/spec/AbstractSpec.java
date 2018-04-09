@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,8 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.document.spec;
 
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
-import software.amazon.awssdk.core.event.ProgressListener;
+import software.amazon.awssdk.core.AwsRequest;
 import software.amazon.awssdk.services.dynamodb.document.internal.InternalUtils;
 
 /**
@@ -24,7 +23,7 @@ import software.amazon.awssdk.services.dynamodb.document.internal.InternalUtils;
  *
  * @param <T> request type
  */
-class AbstractSpec<T extends AmazonWebServiceRequest> {
+class AbstractSpec<T extends AwsRequest> {
     private T req;
 
     AbstractSpec(T req) {
@@ -41,19 +40,5 @@ class AbstractSpec<T extends AmazonWebServiceRequest> {
      */
     public T getRequest() {
         return req;
-    }
-
-    public ProgressListener getProgressListener() {
-        return getRequest().getGeneralProgressListener();
-    }
-
-    public void setProgressListener(ProgressListener progressListener) {
-        getRequest().setGeneralProgressListener(progressListener);
-    }
-
-    public AbstractSpec<T> withProgressListener(
-            ProgressListener progressListener) {
-        getRequest().setGeneralProgressListener(progressListener);
-        return this;
     }
 }

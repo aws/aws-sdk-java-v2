@@ -1,14 +1,16 @@
 /*
- * Copyright 2011-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with
- * the License. A copy of the License is located at
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
  *
- * http://aws.amazon.com/apache2.0
+ *  http://aws.amazon.com/apache2.0
  *
- * or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
- * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
- * and limitations under the License.
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  */
 package software.amazon.awssdk.services.rds;
 
@@ -24,7 +26,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AwsRequestOverrideConfig;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.auth.AwsCredentials;
@@ -33,11 +35,11 @@ import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
-import software.amazon.awssdk.core.internal.AmazonWebServiceRequestAdapter;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.core.runtime.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.services.rds.model.CopyDBSnapshotRequest;
+import software.amazon.awssdk.services.rds.model.RDSRequest;
 import software.amazon.awssdk.services.rds.transform.CopyDBSnapshotRequestMarshaller;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
@@ -45,7 +47,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  * Unit Tests for {@link RdsPresignInterceptor}
  */
 public class PresignRequestHandlerTest {
-    private static final AwsCredentials CREDENTIALS = new AwsCredentials("foo", "bar");
+    private static final AwsCredentials CREDENTIALS = AwsCredentials.create("foo", "bar");
     private static final Region DESTINATION_REGION = Region.of("us-west-2");
 
     private static RdsPresignInterceptor<CopyDBSnapshotRequest> presignInterceptor = new CopyDbSnapshotPresignInterceptor();
@@ -160,10 +162,10 @@ public class PresignRequestHandlerTest {
                          .build();
     }
 
-    private ExecutionAttributes executionAttributes(AmazonWebServiceRequest request) {
+    private ExecutionAttributes executionAttributes(RDSRequest request) {
         return new ExecutionAttributes().putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, CREDENTIALS)
-                                        .putAttribute(AwsExecutionAttributes.REQUEST_CONFIG,
-                                                      new AmazonWebServiceRequestAdapter(request));
+                                        .putAttribute(AwsExecutionAttributes.REQUEST_CONFIG, request.requestOverrideConfig()
+                                                .orElse(AwsRequestOverrideConfig.builder().build()));
     }
 
     private CopyDBSnapshotRequest makeTestRequest() {
@@ -176,7 +178,7 @@ public class PresignRequestHandlerTest {
     }
 
     private SdkHttpFullRequest modifyHttpRequest(ExecutionInterceptor interceptor,
-                                                 AmazonWebServiceRequest request,
+                                                 RDSRequest request,
                                                  SdkHttpFullRequest httpRequest) {
         InterceptorContext context = InterceptorContext.builder().request(request).httpRequest(httpRequest).build();
         return interceptor.modifyHttpRequest(context, executionAttributes(request));

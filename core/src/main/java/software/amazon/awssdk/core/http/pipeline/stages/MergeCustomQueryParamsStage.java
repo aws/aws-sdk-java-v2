@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -37,8 +37,8 @@ public class MergeCustomQueryParamsStage implements MutableRequestToRequestPipel
     private Map<String, List<String>> mergeParams(SdkHttpFullRequest.Builder request, RequestExecutionContext context) {
         Map<String, List<String>> merged = new LinkedHashMap<>(request.rawQueryParameters().size());
         merged.putAll(request.rawQueryParameters());
-        context.requestConfig().getCustomQueryParameters()
-               .forEach((key, val) -> merged.put(key, CollectionUtils.mergeLists(merged.get(key), val)));
+        context.requestConfig().rawQueryParameters().ifPresent(queryParams ->
+               queryParams.forEach((key, val) -> merged.put(key, CollectionUtils.mergeLists(merged.get(key), val))));
         return merged;
     }
 }

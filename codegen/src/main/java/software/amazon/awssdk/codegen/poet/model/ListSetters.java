@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -49,17 +49,17 @@ class ListSetters extends AbstractMemberSetters {
 
         String setterDocumentation = memberModel().getFluentSetterDocumentation();
 
-        fluentDeclarations.add(fluentSetterDeclaration(memberAsParameter(), returnType)
+        fluentDeclarations.add(fluentAbstractSetterDeclaration(memberAsParameter(), returnType)
                 .addJavadoc("$L", setterDocumentation)
                 .build());
 
-        fluentDeclarations.add(fluentSetterDeclaration(ParameterSpec.builder(asArray(), fieldName()).build(), returnType)
+        fluentDeclarations.add(fluentAbstractSetterDeclaration(ParameterSpec.builder(asArray(), fieldName()).build(), returnType)
                 .addJavadoc("$L", setterDocumentation)
                 .varargs(true)
                 .build());
 
         if (memberModel().getEnumType() != null) {
-            fluentDeclarations.add(fluentSetterDeclaration(ParameterSpec.builder(
+            fluentDeclarations.add(fluentAbstractSetterDeclaration(ParameterSpec.builder(
                     asArrayOfModeledEnum(), fieldName()).build(), returnType)
                     .varargs(true)
                     .addJavadoc("$L", setterDocumentation)

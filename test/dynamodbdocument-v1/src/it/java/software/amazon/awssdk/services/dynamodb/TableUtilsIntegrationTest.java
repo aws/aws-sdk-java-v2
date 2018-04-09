@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
@@ -172,7 +172,7 @@ public class TableUtilsIntegrationTest extends AwsIntegrationTestBase {
         assertNotNull(ddb.describeTable(DescribeTableRequest.builder().tableName(tableName).build()));
     }
 
-    @Test(expected = AmazonClientException.class, timeout = TEST_TIMEOUT)
+    @Test(expected = SdkClientException.class, timeout = TEST_TIMEOUT)
     public void waitUntilExists_NoSuchTable_BlocksUntilTimeoutThenThrowsException() throws
                                                                                     InterruptedException {
         TableUtils.waitUntilExists(ddb, tableName, CUSTOM_TIMEOUT, CUSTOM_POLLING_INTERVAL);

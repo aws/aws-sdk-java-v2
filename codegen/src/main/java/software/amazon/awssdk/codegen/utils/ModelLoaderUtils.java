@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -25,9 +25,12 @@ import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 
-public class ModelLoaderUtils {
+public final class ModelLoaderUtils {
 
     public static final Logger log = LoggerFactory.getLogger(ModelLoaderUtils.class);
+
+    private ModelLoaderUtils() {
+    }
 
     public static ServiceModel loadModel(String modelLocation) {
         return loadConfigurationModel(ServiceModel.class, modelLocation);

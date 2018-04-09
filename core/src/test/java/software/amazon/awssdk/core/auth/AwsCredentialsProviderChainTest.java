@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,10 +18,8 @@ package software.amazon.awssdk.core.auth;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.auth.AwsCredentialsProviderChain;
-import software.amazon.awssdk.core.auth.ProfileCredentialsProvider;
-import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.profile.ProfileFile;
+import software.amazon.awssdk.core.util.StringInputStream;
 
 public class AwsCredentialsProviderChainTest {
 
@@ -83,8 +81,14 @@ public class AwsCredentialsProviderChainTest {
     }
 
     @Test
-    public void testNullProfileFileUsesNextProvider() {
-        ProfileCredentialsProvider provider = ProfileCredentialsProvider.builder().defaultProfilesConfigFileLocator(() -> null).build();
+    public void testMissingProfileUsesNextProvider() {
+        ProfileCredentialsProvider provider =
+                ProfileCredentialsProvider.builder()
+                                          .defaultProfileFileLoader(() -> ProfileFile.builder()
+                                                                                     .content(new StringInputStream(""))
+                                                                                     .type(ProfileFile.Type.CONFIGURATION)
+                                                                                     .build())
+                                          .build();
 
         MockCredentialsProvider provider2 = new MockCredentialsProvider();
 
@@ -95,12 +99,13 @@ public class AwsCredentialsProviderChainTest {
     }
 
 
-    private static final class MockCredentialsProvider extends StaticCredentialsProvider {
+    private static final class MockCredentialsProvider implements AwsCredentialsProvider  {
+        private final StaticCredentialsProvider staticCredentialsProvider;
         public int getCredentialsCallCount = 0;
         public boolean throwException = false;
 
-        public MockCredentialsProvider() {
-            super(new AwsCredentials("accessKey", "secretKey"));
+        private MockCredentialsProvider() {
+            staticCredentialsProvider = StaticCredentialsProvider.create(AwsCredentials.create("accessKey", "secretKey"));
         }
 
         @Override
@@ -110,7 +115,7 @@ public class AwsCredentialsProviderChainTest {
             if (throwException) {
                 throw new RuntimeException("No credentials");
             } else {
-                return super.getCredentials();
+                return staticCredentialsProvider.getCredentials();
             }
         }
     }

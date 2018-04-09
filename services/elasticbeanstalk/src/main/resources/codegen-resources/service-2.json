@@ -455,6 +455,24 @@
       ],
       "documentation":"<p>Lists the available platforms.</p>"
     },
+    "ListTagsForResource":{
+      "name":"ListTagsForResource",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListTagsForResourceMessage"},
+      "output":{
+        "shape":"ResourceTagsDescriptionMessage",
+        "resultWrapper":"ListTagsForResourceResult"
+      },
+      "errors":[
+        {"shape":"InsufficientPrivilegesException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ResourceTypeNotSupportedException"}
+      ],
+      "documentation":"<p>Returns the tags applied to an AWS Elastic Beanstalk resource. The response contains a list of tag key-value pairs.</p> <p>Currently, Elastic Beanstalk only supports tagging Elastic Beanstalk environments.</p>"
+    },
     "RebuildEnvironment":{
       "name":"RebuildEnvironment",
       "http":{
@@ -598,6 +616,22 @@
         {"shape":"TooManyBucketsException"}
       ],
       "documentation":"<p>Updates the environment description, deploys a new application version, updates the configuration settings to an entirely new configuration template, or updates select configuration option values in the running environment.</p> <p> Attempting to update both the release and configuration is not allowed and AWS Elastic Beanstalk returns an <code>InvalidParameterCombination</code> error. </p> <p> When updating the configuration settings to a new template or individual settings, a draft configuration is created and <a>DescribeConfigurationSettings</a> for this environment returns two setting descriptions with different <code>DeploymentStatus</code> values. </p>"
+    },
+    "UpdateTagsForResource":{
+      "name":"UpdateTagsForResource",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateTagsForResourceMessage"},
+      "errors":[
+        {"shape":"InsufficientPrivilegesException"},
+        {"shape":"OperationInProgressException"},
+        {"shape":"TooManyTagsException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ResourceTypeNotSupportedException"}
+      ],
+      "documentation":"<p>Update the list of tags applied to an AWS Elastic Beanstalk resource. Two lists can be passed: <code>TagsToAdd</code> for tags to add or update, and <code>TagsToRemove</code>.</p> <p>Currently, Elastic Beanstalk only supports tagging of Elastic Beanstalk environments.</p>"
     },
     "ValidateConfigurationSettings":{
       "name":"ValidateConfigurationSettings",
@@ -840,7 +874,7 @@
         },
         "NextToken":{
           "shape":"Token",
-          "documentation":"<p>For a paginated request, the token that you can pass in a subsequent request to get the next page.</p>"
+          "documentation":"<p>In a paginated request, the token that you can pass in a subsequent request to get the next response page.</p>"
         }
       },
       "documentation":"<p>Result message wrapping a list of application version descriptions.</p>"
@@ -1196,7 +1230,7 @@
         },
         "PlatformArn":{
           "shape":"PlatformArn",
-          "documentation":"<p>The ARN of the custom platform.</p>"
+          "documentation":"<p>The ARN of the platform.</p>"
         },
         "Options":{
           "shape":"ConfigurationOptionDescriptionsList",
@@ -1214,7 +1248,7 @@
         },
         "PlatformArn":{
           "shape":"PlatformArn",
-          "documentation":"<p>The ARN of the custom platform.</p>"
+          "documentation":"<p>The ARN of the platform.</p>"
         },
         "ApplicationName":{
           "shape":"ApplicationName",
@@ -1397,7 +1431,7 @@
         },
         "EnvironmentName":{
           "shape":"EnvironmentName",
-          "documentation":"<p>A unique name for the deployment environment. Used in the application URL.</p> <p>Constraint: Must be from 4 to 40 characters in length. The name can contain only letters, numbers, and hyphens. It cannot start or end with a hyphen. This name must be unique in your account. If the specified name already exists, AWS Elastic Beanstalk returns an <code>InvalidParameterValue</code> error. </p> <p>Default: If the CNAME parameter is not specified, the environment name becomes part of the CNAME, and therefore part of the visible URL for your application.</p>"
+          "documentation":"<p>A unique name for the deployment environment. Used in the application URL.</p> <p>Constraint: Must be from 4 to 40 characters in length. The name can contain only letters, numbers, and hyphens. It cannot start or end with a hyphen. This name must be unique within a region in your account. If the specified name already exists in the region, AWS Elastic Beanstalk returns an <code>InvalidParameterValue</code> error. </p> <p>Default: If the CNAME parameter is not specified, the environment name becomes part of the CNAME, and therefore part of the visible URL for your application.</p>"
         },
         "GroupName":{
           "shape":"GroupName",
@@ -1433,7 +1467,7 @@
         },
         "PlatformArn":{
           "shape":"PlatformArn",
-          "documentation":"<p>The ARN of the custom platform.</p>"
+          "documentation":"<p>The ARN of the platform.</p>"
         },
         "OptionSettings":{
           "shape":"ConfigurationOptionSettingsList",
@@ -1638,7 +1672,7 @@
         },
         "DeploymentTime":{
           "shape":"DeploymentTimestamp",
-          "documentation":"<p>For in-progress deployments, the time that the deloyment started.</p> <p>For completed deployments, the time that the deployment ended.</p>"
+          "documentation":"<p>For in-progress deployments, the time that the deployment started.</p> <p>For completed deployments, the time that the deployment ended.</p>"
         }
       },
       "documentation":"<p>Information about an application version deployment.</p>"
@@ -1657,11 +1691,11 @@
         },
         "MaxRecords":{
           "shape":"MaxRecords",
-          "documentation":"<p>Specify a maximum number of application versions to paginate in the request.</p>"
+          "documentation":"<p>For a paginated request. Specify a maximum number of application versions to include in each response.</p> <p>If no <code>MaxRecords</code> is specified, all available application versions are retrieved in a single response.</p>"
         },
         "NextToken":{
           "shape":"Token",
-          "documentation":"<p>Specify a next token to retrieve the next page in a paginated request.</p>"
+          "documentation":"<p>For a paginated request. Specify a token from a previous response page to retrieve the next response page. All other parameter values must be identical to the ones specified in the initial request.</p> <p>If no <code>NextToken</code> is specified, the first page is retrieved.</p>"
         }
       },
       "documentation":"<p>Request to describe application versions.</p>"
@@ -1885,6 +1919,14 @@
         "IncludedDeletedBackTo":{
           "shape":"IncludeDeletedBackTo",
           "documentation":"<p> If specified when <code>IncludeDeleted</code> is set to <code>true</code>, then environments deleted after this date are displayed. </p>"
+        },
+        "MaxRecords":{
+          "shape":"MaxRecords",
+          "documentation":"<p>For a paginated request. Specify a maximum number of environments to include in each response.</p> <p>If no <code>MaxRecords</code> is specified, all available environments are retrieved in a single response.</p>"
+        },
+        "NextToken":{
+          "shape":"Token",
+          "documentation":"<p>For a paginated request. Specify a token from a previous response page to retrieve the next response page. All other parameter values must be identical to the ones specified in the initial request.</p> <p>If no <code>NextToken</code> is specified, the first page is retrieved.</p>"
         }
       },
       "documentation":"<p>Request to describe one or more environments.</p>"
@@ -2018,6 +2060,7 @@
       "exception":true
     },
     "EndpointURL":{"type":"string"},
+    "EnvironmentArn":{"type":"string"},
     "EnvironmentDescription":{
       "type":"structure",
       "members":{
@@ -2043,7 +2086,7 @@
         },
         "PlatformArn":{
           "shape":"PlatformArn",
-          "documentation":"<p>The ARN of the custom platform.</p>"
+          "documentation":"<p>The ARN of the platform.</p>"
         },
         "TemplateName":{
           "shape":"ConfigurationTemplateName",
@@ -2096,6 +2139,10 @@
         "EnvironmentLinks":{
           "shape":"EnvironmentLinks",
           "documentation":"<p>A list of links to other environments in the same group.</p>"
+        },
+        "EnvironmentArn":{
+          "shape":"EnvironmentArn",
+          "documentation":"<p>The environment's Amazon Resource Name (ARN), which can be used in other API reuqests that require an ARN.</p>"
         }
       },
       "documentation":"<p>Describes the properties of an environment.</p>"
@@ -2110,6 +2157,10 @@
         "Environments":{
           "shape":"EnvironmentDescriptionsList",
           "documentation":"<p> Returns an <a>EnvironmentDescription</a> list. </p>"
+        },
+        "NextToken":{
+          "shape":"Token",
+          "documentation":"<p>In a paginated request, the token that you can pass in a subsequent request to get the next response page.</p>"
         }
       },
       "documentation":"<p>Result message containing a list of environment descriptions.</p>"
@@ -2330,7 +2381,7 @@
         },
         "PlatformArn":{
           "shape":"PlatformArn",
-          "documentation":"<p>The ARN of the custom platform.</p>"
+          "documentation":"<p>The ARN of the platform.</p>"
         },
         "RequestId":{
           "shape":"RequestId",
@@ -2600,6 +2651,16 @@
         "NextToken":{
           "shape":"Token",
           "documentation":"<p>The starting index into the remaining list of platforms. if this value is not <code>null</code>, you can use it in a subsequent <code>ListPlatformVersion</code> call. </p>"
+        }
+      }
+    },
+    "ListTagsForResourceMessage":{
+      "type":"structure",
+      "required":["ResourceArn"],
+      "members":{
+        "ResourceArn":{
+          "shape":"ResourceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the resouce for which a tag list is requested.</p> <p>Must be the ARN of an Elastic Beanstalk environment.</p>"
         }
       }
     },
@@ -3129,11 +3190,49 @@
       "documentation":"<p>Request to retrieve logs from an environment and store them in your Elastic Beanstalk storage bucket.</p>"
     },
     "RequestId":{"type":"string"},
+    "ResourceArn":{"type":"string"},
     "ResourceId":{"type":"string"},
     "ResourceName":{
       "type":"string",
       "max":256,
       "min":1
+    },
+    "ResourceNotFoundException":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>A resource doesn't exist for the specified Amazon Resource Name (ARN).</p>",
+      "error":{
+        "code":"ResourceNotFoundException",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "ResourceTagsDescriptionMessage":{
+      "type":"structure",
+      "members":{
+        "ResourceArn":{
+          "shape":"ResourceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the resouce for which a tag list was requested.</p>"
+        },
+        "ResourceTags":{
+          "shape":"TagList",
+          "documentation":"<p>A list of tag key-value pairs.</p>"
+        }
+      }
+    },
+    "ResourceTypeNotSupportedException":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The type of the specified Amazon Resource Name (ARN) isn't supported for this operation.</p>",
+      "error":{
+        "code":"ResourceTypeNotSupportedException",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
     },
     "RestartAppServerMessage":{
       "type":"structure",
@@ -3447,6 +3546,14 @@
       "max":128,
       "min":1
     },
+    "TagKeyList":{
+      "type":"list",
+      "member":{"shape":"TagKey"}
+    },
+    "TagList":{
+      "type":"list",
+      "member":{"shape":"Tag"}
+    },
     "TagValue":{
       "type":"string",
       "max":256,
@@ -3546,6 +3653,18 @@
       "documentation":"<p>You have exceeded the maximum number of allowed platforms associated with the account.</p>",
       "error":{
         "code":"TooManyPlatformsException",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "TooManyTagsException":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The number of tags in the resource would exceed the number of tags that each resource can have.</p> <p>To calculate this, the operation considers both the number of tags the resource already has and the tags this operation would add if it succeeded.</p>",
+      "error":{
+        "code":"TooManyTagsException",
         "httpStatusCode":400,
         "senderFault":true
       },
@@ -3703,6 +3822,24 @@
         }
       },
       "documentation":"<p>Request to update an environment.</p>"
+    },
+    "UpdateTagsForResourceMessage":{
+      "type":"structure",
+      "required":["ResourceArn"],
+      "members":{
+        "ResourceArn":{
+          "shape":"ResourceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the resouce to be updated.</p> <p>Must be the ARN of an Elastic Beanstalk environment.</p>"
+        },
+        "TagsToAdd":{
+          "shape":"TagList",
+          "documentation":"<p>A list of tags to add or update.</p> <p>If a key of an existing tag is added, the tag's value is updated.</p>"
+        },
+        "TagsToRemove":{
+          "shape":"TagKeyList",
+          "documentation":"<p>A list of tag keys to remove.</p> <p>If a tag key doesn't exist, it is silently ignored.</p>"
+        }
+      }
     },
     "UserDefinedOption":{"type":"boolean"},
     "ValidateConfigurationSettingsMessage":{

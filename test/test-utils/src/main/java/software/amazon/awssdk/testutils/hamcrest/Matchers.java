@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -22,7 +22,10 @@ import java.util.List;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
 
-public class Matchers {
+public final class Matchers {
+
+    private Matchers() {
+    }
 
     /***
      * Creates a matcher that matches if the examined collection matches the specified matchers in order

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~ Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License").
   ~ You may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@
     <!-- Files must contain a copyright header. -->
     <module name="Header">
         <property name="header"
-                  value="/*\n * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.\n *\n * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;).\n * You may not use this file except in compliance with the License.\n * A copy of the License is located at\n *\n *  http://aws.amazon.com/apache2.0\n *\n * or in the &quot;license&quot; file accompanying this file. This file is distributed\n * on an &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either\n * express or implied. See the License for the specific language governing\n * permissions and limitations under the License.\n */"/>
+                  value="/*\n * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.\n *\n * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;).\n * You may not use this file except in compliance with the License.\n * A copy of the License is located at\n *\n *  http://aws.amazon.com/apache2.0\n *\n * or in the &quot;license&quot; file accompanying this file. This file is distributed\n * on an &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either\n * express or implied. See the License for the specific language governing\n * permissions and limitations under the License.\n */"/>
     </module>
 
     <module name="SuppressionFilter">
@@ -412,5 +412,8 @@
 
         <!-- Checks for redundant public modifier on interfaces and other redundant modifiers -->
         <module name="RedundantModifier" />
+
+        <!-- Checks for utility and constants classes to have private constructor-->
+        <module name="HideUtilityClassConstructor"/>
     </module>
 </module>

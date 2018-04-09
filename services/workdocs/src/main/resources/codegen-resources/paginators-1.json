@@ -1,0 +1,22 @@
+{
+  "pagination": {
+    "DescribeUsers": {
+      "input_token": "Marker",
+      "output_token": "Marker",
+      "limit_key": "Limit",
+      "result_key": "Users"
+    },
+    "DescribeFolderContents": {
+      "input_token": "Marker",
+      "output_token": "Marker",
+      "limit_key": "Limit",
+      "result_key": ["Folders", "Documents"]
+    },
+    "DescribeDocumentVersions": {
+      "input_token": "Marker",
+      "output_token": "Marker",
+      "limit_key": "Limit",
+      "result_key": "DocumentVersions"
+    }
+  }
+}

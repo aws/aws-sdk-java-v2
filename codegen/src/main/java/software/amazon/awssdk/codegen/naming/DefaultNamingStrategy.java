@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -25,63 +25,43 @@ import static software.amazon.awssdk.codegen.internal.Utils.capitialize;
 import static software.amazon.awssdk.codegen.internal.Utils.unCapitialize;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
-import software.amazon.awssdk.codegen.model.service.Output;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
- * Default implementation of naming strategy respecting customizations supplied by {@link
- * CustomizationConfig}.
+ * Default implementation of naming strategy respecting.
  */
 public class DefaultNamingStrategy implements NamingStrategy {
 
     private static Logger log = Logger.loggerFor(DefaultNamingStrategy.class);
 
-    private static final Set<String> RESERVED_KEYWORDS = new HashSet<String>() {
-        {
-            add("return");
-            add("public");
-            add("private");
-            add("class");
-            add("static");
-            add("protected");
-            add("string");
-            add("boolean");
-            add("integer");
-            add("int");
-            add("char");
-            add("null");
-            add("double");
-            add("object");
-            add("short");
-            add("long");
-            add("float");
-            add("byte");
-            add("bigDecimal");
-            add("bigInteger");
-            add("protected");
-            add("inputStream");
-            add("bytebuffer");
-            add("date");
-            add("list");
-            add("map");
-        }
-    };
+    private static final Set<String> RESERVED_KEYWORDS;
+
+    static {
+        Set<String> keywords = new HashSet<>();
+        Collections.addAll(keywords,
+                "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class",
+                "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for",
+                "if", "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "package",
+                "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch",
+                "synchronized", "this", "throw", "throws", "transient", "try", "void", "volatile", "while", "true",
+                "null", "false", "const", "goto");
+        RESERVED_KEYWORDS = Collections.unmodifiableSet(keywords);
+    }
 
     private final ServiceModel serviceModel;
-    private final CustomizationConfig customizationConfig;
 
     public DefaultNamingStrategy(ServiceModel serviceModel,
                                  CustomizationConfig customizationConfig) {
         this.serviceModel = serviceModel;
-        this.customizationConfig = customizationConfig;
     }
 
     private static boolean isJavaKeyword(String word) {
@@ -109,12 +89,6 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
     @Override
     public String getResponseClassName(String operationName) {
-        if (customizationConfig.useModeledOutputShapeNames()) {
-            final Output operationOutput = serviceModel.getOperation(operationName).getOutput();
-            if (operationOutput != null) {
-                return operationOutput.getShape();
-            }
-        }
         return capitialize(operationName + RESPONSE_CLASS_SUFFIX);
     }
 

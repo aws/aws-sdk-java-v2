@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~ Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License").
   ~ You may not use this file except in compliance with the License.
@@ -21,13 +21,14 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.0.0-preview-5-SNAPSHOT</version>
+        <version>2.0.0-preview-10-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
+
     <artifactId>bom</artifactId>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Bill of Materials</name>
-    <description>The AWS SDK for Java - BOM module holds the dependency mangements for individual java clients.
+    <description>The AWS SDK for Java - BOM module holds the dependency managements for individual java clients.
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
 
@@ -36,7 +37,6 @@
     </properties>
 
     <dependencyManagement>
-        <!-- The dependencies section in pom.xml is auto generated. No manual changes are allowed -->
         <dependencies>
             <dependency>
                 <artifactId>pinpoint</artifactId>
@@ -459,7 +459,42 @@
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
+                <artifactId>annotations</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>utils</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>http-client-spi</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>apache-client</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>netty-nio-client</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>url-connection-client</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
                 <artifactId>codegen</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>codegen-maven-plugin</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>

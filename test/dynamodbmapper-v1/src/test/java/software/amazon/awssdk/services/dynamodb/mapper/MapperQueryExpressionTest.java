@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ public class MapperQueryExpressionTest {
             Class<T> clazz, DynamoDbQueryExpression<T> queryExpression,
             String expectedErrorMessage) {
         try {
-            Mockito.when(mockClient.query(any())).thenReturn(QueryResponse.builder().items(new ArrayList<>()).build());
+            Mockito.when(mockClient.query(any(QueryRequest.class))).thenReturn(QueryResponse.builder().items(new ArrayList<>()).build());
 
             mapper.queryPage(clazz, queryExpression, DynamoDbMapperConfig.DEFAULT);
             if (expectedErrorMessage != null) {

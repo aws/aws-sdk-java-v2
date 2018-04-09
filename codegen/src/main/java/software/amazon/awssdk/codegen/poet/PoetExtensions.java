@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.poet;
 
 import com.squareup.javapoet.ClassName;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 
 /**
@@ -54,18 +55,34 @@ public class PoetExtensions {
     }
 
     /**
-     * @param className Simple name of class in waiters package.
-     * @return A Poet {@link ClassName} for the given class in the waiters package.
-     */
-    public ClassName getWaiterClass(String className) {
-        return ClassName.get(model.getMetadata().getFullWaitersPackageName(), className);
-    }
-
-    /**
      * @param className Simple name of class in base service package (i.e. software.amazon.awssdk.services.dynamodb).
      * @return A Poet {@link ClassName} for the given class in the base service package.
      */
     public ClassName getClientClass(String className) {
         return ClassName.get(model.getMetadata().getFullClientPackageName(), className);
+    }
+
+    /**
+     * @param operationName Name of the operation
+     * @return A Poet {@link ClassName} for the response type of a paginated operation in the base service package.
+     *
+     * Example: If operationName is "ListTables", then the response type of the paginated operation
+     * will be "ListTablesIterable" class.
+     */
+    @ReviewBeforeRelease("Naming of response shape for paginated APIs")
+    public ClassName getResponseClassForPaginatedSyncOperation(String operationName) {
+        return ClassName.get(model.getMetadata().getFullPaginatorsPackageName(), operationName + "Iterable");
+    }
+
+    /**
+     * @param operationName Name of the operation
+     * @return A Poet {@link ClassName} for the response type of a async paginated operation in the base service package.
+     *
+     * Example: If operationName is "ListTables", then the async response type of the paginated operation
+     * will be "ListTablesPublisher" class.
+     */
+    @ReviewBeforeRelease("Naming of response shape for paginated APIs")
+    public ClassName getResponseClassForPaginatedAsyncOperation(String operationName) {
+        return ClassName.get(model.getMetadata().getFullPaginatorsPackageName(), operationName + "Publisher");
     }
 }

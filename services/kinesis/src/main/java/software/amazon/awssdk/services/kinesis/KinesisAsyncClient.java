@@ -78,6 +78,9 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  */
 @Generated("software.amazon.awssdk:codegen")
 public interface KinesisAsyncClient extends SdkAutoCloseable {
+
+    String serviceName();
+
     /**
      * Create a {@link KinesisAsyncClient} with the region loaded from the
      * {@link software.amazon.awssdk.core.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from

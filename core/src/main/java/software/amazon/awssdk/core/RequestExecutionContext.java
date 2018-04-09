@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -29,16 +29,16 @@ import software.amazon.awssdk.utils.Validate;
  * {@link software.amazon.awssdk.http.pipeline.RequestPipeline#execute(Object, RequestExecutionContext)} method.
  */
 public final class RequestExecutionContext {
-
+    private static final SdkRequestOverrideConfig EMPTY_CONFIG = AwsRequestOverrideConfig.builder().build();
     private final SdkHttpRequestProvider requestProvider;
-    private final RequestConfig requestConfig;
+    private final SdkRequest originalRequest;
     private final ExecutionContext executionContext;
 
     private ClientExecutionAbortTrackerTask clientExecutionTrackerTask;
 
     private RequestExecutionContext(Builder builder) {
         this.requestProvider = builder.requestProvider;
-        this.requestConfig = Validate.paramNotNull(builder.requestConfig, "requestConfig");
+        this.originalRequest = Validate.paramNotNull(builder.originalRequest, "originalRequest");
         this.executionContext = Validate.paramNotNull(builder.executionContext, "executionContext");
     }
 
@@ -51,13 +51,6 @@ public final class RequestExecutionContext {
 
     public SdkHttpRequestProvider requestProvider() {
         return requestProvider;
-    }
-
-    /**
-     * @return Request level configuration.
-     */
-    public RequestConfig requestConfig() {
-        return requestConfig;
     }
 
     /**
@@ -75,6 +68,17 @@ public final class RequestExecutionContext {
                          + "these. Once that's done, this won't be needed.")
     public ExecutionContext executionContext() {
         return executionContext;
+    }
+
+    public SdkRequest originalRequest() {
+        return originalRequest;
+    }
+
+    public SdkRequestOverrideConfig requestConfig() {
+        return originalRequest.requestOverrideConfig()
+                // ugly but needed to avoid capture of capture and creating a type mismatch
+                .map(c -> (SdkRequestOverrideConfig) c)
+                .orElse(EMPTY_CONFIG);
     }
 
     /**
@@ -105,7 +109,7 @@ public final class RequestExecutionContext {
     public static final class Builder {
 
         private SdkHttpRequestProvider requestProvider;
-        private RequestConfig requestConfig;
+        private SdkRequest originalRequest;
         private ExecutionContext executionContext;
 
         public Builder requestProvider(SdkHttpRequestProvider requestProvider) {
@@ -113,8 +117,8 @@ public final class RequestExecutionContext {
             return this;
         }
 
-        public Builder requestConfig(RequestConfig requestConfig) {
-            this.requestConfig = requestConfig;
+        public Builder originalRequest(SdkRequest originalRequest) {
+            this.originalRequest = originalRequest;
             return this;
         }
 

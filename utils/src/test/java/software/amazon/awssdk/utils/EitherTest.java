@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package software.amazon.awssdk.utils;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 
 import org.junit.Test;
@@ -89,6 +90,14 @@ public class EitherTest {
         either.mapRight(this::assertNotCalled)
               .apply(s -> assertThat(s).isEqualTo(value),
                      this::assertNotCalled);
+    }
+
+    @Test
+    public void fromNullable() {
+        assertThat(Either.fromNullable("left", null)).contains(Either.left("left"));
+        assertThat(Either.fromNullable(null, "right")).contains(Either.right("right"));
+        assertThat(Either.fromNullable(null, null)).isEmpty();
+        assertThatThrownBy(() -> Either.fromNullable("left", "right")).isInstanceOf(IllegalArgumentException.class);
     }
 
     private <InT, OutT> OutT assertNotCalled(InT in) {

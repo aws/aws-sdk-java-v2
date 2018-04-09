@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,8 +18,11 @@ package software.amazon.awssdk.codegen.poet.builder;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
+import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
@@ -48,6 +51,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
 
         if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
             builder.addMethod(advancedConfigurationMethod());
+            builder.addMethod(advancedConfigurationConsumerBuilderMethod());
         }
 
         return builder.build();
@@ -62,11 +66,25 @@ public class BaseClientBuilderInterface implements ClassSpec {
 
     private MethodSpec advancedConfigurationMethod() {
         ClassName advancedConfiguration = ClassName.get(basePackage,
-                model.getCustomizationConfig().getServiceSpecificClientConfigClass());
+                                                        model.getCustomizationConfig().getServiceSpecificClientConfigClass());
         return MethodSpec.methodBuilder("advancedConfiguration")
                          .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
                          .returns(TypeVariableName.get("B"))
                          .addParameter(advancedConfiguration, "advancedConfiguration")
+                         .build();
+    }
+
+    private MethodSpec advancedConfigurationConsumerBuilderMethod() {
+        ClassName advancedConfiguration = ClassName.get(basePackage,
+                                                        model.getCustomizationConfig().getServiceSpecificClientConfigClass());
+        TypeName consumerBuilder = ParameterizedTypeName.get(ClassName.get(Consumer.class),
+                                                             advancedConfiguration.nestedClass("Builder"));
+        return MethodSpec.methodBuilder("advancedConfiguration")
+                         .addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
+                         .returns(TypeVariableName.get("B"))
+                         .addParameter(consumerBuilder, "advancedConfiguration")
+                         .addStatement("return advancedConfiguration($T.builder().apply(advancedConfiguration).build())",
+                                       advancedConfiguration)
                          .build();
     }
 

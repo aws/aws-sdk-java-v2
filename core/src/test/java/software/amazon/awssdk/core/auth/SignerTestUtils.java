@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 package software.amazon.awssdk.core.auth;
 
 import java.util.Date;
-import software.amazon.awssdk.core.SdkRequest;
+
+import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
@@ -26,7 +27,7 @@ public class SignerTestUtils {
     public static SdkHttpFullRequest signRequest(Signer signer,
                                                  SdkHttpFullRequest request,
                                                  AwsCredentials credentials) {
-        return signer.sign(InterceptorContext.builder().request(new SdkRequest() {}).httpRequest(request).build(),
+        return signer.sign(InterceptorContext.builder().request(NoopTestRequest.builder().build()).httpRequest(request).build(),
                            new ExecutionAttributes().putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, credentials));
     }
 
@@ -34,7 +35,7 @@ public class SignerTestUtils {
                                                     SdkHttpFullRequest request,
                                                     AwsCredentials credentials,
                                                     Date expiration) {
-        return presigner.presign(InterceptorContext.builder().request(new SdkRequest() {}).httpRequest(request).build(),
+        return presigner.presign(InterceptorContext.builder().request(NoopTestRequest.builder().build()).httpRequest(request).build(),
                                  new ExecutionAttributes().putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, credentials),
                                  expiration);
     }

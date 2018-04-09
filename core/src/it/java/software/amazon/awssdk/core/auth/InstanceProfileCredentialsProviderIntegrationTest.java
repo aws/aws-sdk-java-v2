@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import static org.junit.Assert.fail;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.LogCaptor;
 
 /**
@@ -35,7 +35,7 @@ public class InstanceProfileCredentialsProviderIntegrationTest extends LogCaptor
     /** Starts up the mock EC2 Instance Metadata Service. */
     @Before
     public void setUp() throws Exception {
-        mockServer = new EC2MetadataServiceMock();
+        mockServer = new EC2MetadataServiceMock(InstanceProfileCredentialsProvider.SECURITY_CREDENTIALS_RESOURCE);
         mockServer.start();
     }
 
@@ -52,7 +52,7 @@ public class InstanceProfileCredentialsProviderIntegrationTest extends LogCaptor
         mockServer.setResponseFileName("sessionResponse");
         mockServer.setAvailableSecurityCredentials("aws-dr-tools-test");
 
-        InstanceProfileCredentialsProvider credentialsProvider = new InstanceProfileCredentialsProvider();
+        InstanceProfileCredentialsProvider credentialsProvider = InstanceProfileCredentialsProvider.create();
         AwsSessionCredentials credentials = (AwsSessionCredentials) credentialsProvider.getCredentials();
 
         assertEquals("ACCESS_KEY_ID", credentials.accessKeyId());
@@ -69,7 +69,7 @@ public class InstanceProfileCredentialsProviderIntegrationTest extends LogCaptor
         mockServer.setResponseFileName("sessionResponse");
         mockServer.setAvailableSecurityCredentials("test-credentials");
 
-        InstanceProfileCredentialsProvider credentialsProvider = new InstanceProfileCredentialsProvider();
+        InstanceProfileCredentialsProvider credentialsProvider = InstanceProfileCredentialsProvider.create();
         AwsSessionCredentials credentials = (AwsSessionCredentials) credentialsProvider.getCredentials();
 
         assertEquals("ACCESS_KEY_ID", credentials.accessKeyId());
@@ -86,12 +86,12 @@ public class InstanceProfileCredentialsProviderIntegrationTest extends LogCaptor
         mockServer.setResponseFileName("sessionResponse");
         mockServer.setAvailableSecurityCredentials("");
 
-        InstanceProfileCredentialsProvider credentialsProvider = new InstanceProfileCredentialsProvider();
+        InstanceProfileCredentialsProvider credentialsProvider = InstanceProfileCredentialsProvider.create();
 
         try {
             credentialsProvider.getCredentials();
-            fail("Expected an AmazonClientException, but wasn't thrown");
-        } catch (AmazonClientException ace) {
+            fail("Expected an SdkClientException, but wasn't thrown");
+        } catch (SdkClientException ace) {
             assertNotNull(ace.getMessage());
         }
     }

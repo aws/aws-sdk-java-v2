@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 package software.amazon.awssdk.services.ec2.transform;
 
 import java.net.URI;
-import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.auth.Aws4Signer;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -122,7 +122,7 @@ public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
         final Region region = Region.of(regionName);
 
         if (region == null) {
-            throw new AmazonClientException("{" + serviceName + ", " + regionName + "} was not "
+            throw new SdkClientException("{" + serviceName + ", " + regionName + "} was not "
                                             + "found in region metadata. Update to latest version of SDK and try again.");
         }
 

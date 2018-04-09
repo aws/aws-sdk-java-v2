@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.core.client;
 
-import software.amazon.awssdk.core.RequestConfig;
+import software.amazon.awssdk.core.AwsRequestOverrideConfig;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkRequestOverrideConfig;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.core.auth.AwsCredentials;
@@ -42,10 +44,12 @@ abstract class BaseClientHandler {
         this.serviceAdvancedConfiguration = serviceAdvancedConfiguration;
     }
 
-    ExecutionContext createExecutionContext(RequestConfig requestConfig) {
-        AwsCredentialsProvider credentialsProvider = requestConfig.getCredentialsProvider() != null
-                ? requestConfig.getCredentialsProvider()
-                : clientConfiguration.credentialsProvider();
+    ExecutionContext createExecutionContext(SdkRequest originalRequest) {
+        AwsCredentialsProvider credentialsProvider = originalRequest.requestOverrideConfig()
+                .filter(c -> c instanceof AwsRequestOverrideConfig)
+                .map(c -> (AwsRequestOverrideConfig) c)
+                .flatMap(AwsRequestOverrideConfig::credentialsProvider)
+                .orElse(clientConfiguration.credentialsProvider());
 
         ClientOverrideConfiguration overrideConfiguration = clientConfiguration.overrideConfiguration();
 
@@ -56,14 +60,16 @@ abstract class BaseClientHandler {
         ExecutionAttributes executionAttributes = new ExecutionAttributes()
                 .putAttribute(AwsExecutionAttributes.SERVICE_ADVANCED_CONFIG, serviceAdvancedConfiguration)
                 .putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, credentials)
-                .putAttribute(AwsExecutionAttributes.REQUEST_CONFIG, requestConfig)
+                .putAttribute(AwsExecutionAttributes.REQUEST_CONFIG, originalRequest.requestOverrideConfig()
+                        .map(c -> (SdkRequestOverrideConfig) c)
+                        .orElse(AwsRequestOverrideConfig.builder().build()))
                 .putAttribute(AwsExecutionAttributes.AWS_REGION,
                               overrideConfiguration.advancedOption(AdvancedClientOption.AWS_REGION));
 
         return ExecutionContext.builder()
                                .interceptorChain(new ExecutionInterceptorChain(overrideConfiguration.lastExecutionInterceptors()))
                                .interceptorContext(InterceptorContext.builder()
-                                                                     .request(requestConfig.getOriginalRequest())
+                                                                     .request(originalRequest)
                                                                      .build())
                                .executionAttributes(executionAttributes)
                                .signerProvider(overrideConfiguration.advancedOption(AdvancedClientOption.SIGNER_PROVIDER))

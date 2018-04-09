@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import software.amazon.awssdk.utils.Validate;
  * attempts is reached. All Exceptions except for those wrapped in {@link NonRetryableException} are
  * retried. Only errors wrapped in {@link RetryableError} are retried.
  */
-public class RetryableAction<T> {
+public final class RetryableAction<T> {
 
     private final Callable<T> delegate;
     private final RetryableParams params;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,8 +23,10 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * @author Hanson Char
  */
 @SdkProtectedApi
-public enum CodecUtils {
-    ;
+public final class CodecUtils {
+
+    private CodecUtils() {
+    }
 
     /**
      * Transforms the given string into the given destination byte array

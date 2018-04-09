@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.ion.IonReader;
 import software.amazon.ion.IonSystem;
@@ -362,7 +362,7 @@ public class IonParserTest {
         IonParser parser = parse("foo {{}} {abc:123}");
         assertEquals(JsonToken.VALUE_STRING, parser.nextToken());
         assertNull(parser.getNumberType());
-        thrown.expect(AmazonClientException.class);
+        thrown.expect(SdkClientException.class);
         parser.getNumberValue();
     }
 

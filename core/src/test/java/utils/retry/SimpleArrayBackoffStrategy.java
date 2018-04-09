@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
 
 package utils.retry;
 
-import software.amazon.awssdk.core.AmazonClientException;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
-import software.amazon.awssdk.core.retry.RetryPolicy.BackoffStrategy;
+import java.time.Duration;
+import software.amazon.awssdk.core.retry.RetryPolicyContext;
+import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 
 /**
  * Backoff strategy used in tests to pull backoff value from a backing array. Number of retries is
@@ -32,9 +32,7 @@ public final class SimpleArrayBackoffStrategy implements BackoffStrategy {
     }
 
     @Override
-    public long delayBeforeNextRetry(AmazonWebServiceRequest originalRequest,
-                                     AmazonClientException exception,
-                                     int retriesAttempted) {
-        return backoffValues[retriesAttempted];
+    public Duration computeDelayBeforeNextRetry(RetryPolicyContext context) {
+        return Duration.ofMillis(backoffValues[context.retriesAttempted()]);
     }
 }

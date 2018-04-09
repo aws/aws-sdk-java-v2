@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.sqs;
 
 import static software.amazon.awssdk.core.util.StringUtils.UTF8;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -27,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -103,7 +102,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
         String bodyMd5Returned = sendMessageResult.md5OfMessageBody();
         String clientSideBodyMd5 = calculateMessageBodyMd5(messageBodySent);
         if (!clientSideBodyMd5.equals(bodyMd5Returned)) {
-            throw new AmazonClientException(String.format(MD5_MISMATCH_ERROR_MESSAGE, MESSAGE_BODY, clientSideBodyMd5,
+            throw new SdkClientException(String.format(MD5_MISMATCH_ERROR_MESSAGE, MESSAGE_BODY, clientSideBodyMd5,
                                                           bodyMd5Returned));
         }
 
@@ -112,7 +111,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
             String clientSideAttrMd5 = calculateMessageAttributesMd5(messageAttrSent);
             String attrMd5Returned = sendMessageResult.md5OfMessageAttributes();
             if (!clientSideAttrMd5.equals(attrMd5Returned)) {
-                throw new AmazonClientException(String.format(MD5_MISMATCH_ERROR_MESSAGE, MESSAGE_ATTRIBUTES,
+                throw new SdkClientException(String.format(MD5_MISMATCH_ERROR_MESSAGE, MESSAGE_ATTRIBUTES,
                                                               clientSideAttrMd5, attrMd5Returned));
             }
         }
@@ -129,7 +128,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
                 String bodyMd5Returned = messageReceived.md5OfBody();
                 String clientSideBodyMd5 = calculateMessageBodyMd5(messageBody);
                 if (!clientSideBodyMd5.equals(bodyMd5Returned)) {
-                    throw new AmazonClientException(String.format(MD5_MISMATCH_ERROR_MESSAGE, MESSAGE_BODY,
+                    throw new SdkClientException(String.format(MD5_MISMATCH_ERROR_MESSAGE, MESSAGE_BODY,
                                                                   clientSideBodyMd5, bodyMd5Returned));
                 }
 
@@ -138,7 +137,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
                     String attrMd5Returned = messageReceived.md5OfMessageAttributes();
                     String clientSideAttrMd5 = calculateMessageAttributesMd5(messageAttr);
                     if (!clientSideAttrMd5.equals(attrMd5Returned)) {
-                        throw new AmazonClientException(String.format(MD5_MISMATCH_ERROR_MESSAGE, MESSAGE_ATTRIBUTES,
+                        throw new SdkClientException(String.format(MD5_MISMATCH_ERROR_MESSAGE, MESSAGE_ATTRIBUTES,
                                                                       clientSideAttrMd5, attrMd5Returned));
                     }
                 }
@@ -165,7 +164,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
                 String bodyMd5Returned = entry.md5OfMessageBody();
                 String clientSideBodyMd5 = calculateMessageBodyMd5(messageBody);
                 if (!clientSideBodyMd5.equals(bodyMd5Returned)) {
-                    throw new AmazonClientException(String.format(MD5_MISMATCH_ERROR_MESSAGE_WITH_ID, MESSAGE_BODY,
+                    throw new SdkClientException(String.format(MD5_MISMATCH_ERROR_MESSAGE_WITH_ID, MESSAGE_BODY,
                                                                   entry.id(), clientSideBodyMd5, bodyMd5Returned));
                 }
 
@@ -175,7 +174,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
                     String attrMd5Returned = entry.md5OfMessageAttributes();
                     String clientSideAttrMd5 = calculateMessageAttributesMd5(messageAttr);
                     if (!clientSideAttrMd5.equals(attrMd5Returned)) {
-                        throw new AmazonClientException(String.format(MD5_MISMATCH_ERROR_MESSAGE_WITH_ID,
+                        throw new SdkClientException(String.format(MD5_MISMATCH_ERROR_MESSAGE_WITH_ID,
                                                                       MESSAGE_ATTRIBUTES, entry.id(), clientSideAttrMd5,
                                                                       attrMd5Returned));
                     }
@@ -195,7 +194,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
         try {
             expectedMd5 = Md5Utils.computeMD5Hash(messageBody.getBytes(UTF8));
         } catch (Exception e) {
-            throw new AmazonClientException("Unable to calculate the MD5 hash of the message body. " + e.getMessage(),
+            throw new SdkClientException("Unable to calculate the MD5 hash of the message body. " + e.getMessage(),
                                             e);
         }
         String expectedMd5Hex = BinaryUtils.toHex(expectedMd5);
@@ -250,7 +249,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
                 }
             }
         } catch (Exception e) {
-            throw new AmazonClientException("Unable to calculate the MD5 hash of the message attributes. "
+            throw new SdkClientException("Unable to calculate the MD5 hash of the message attributes. "
                                             + e.getMessage(), e);
         }
 
@@ -265,7 +264,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
      * Update the digest using a sequence of bytes that consists of the length (in 4 bytes) of the
      * input String and the actual utf8-encoded byte values.
      */
-    private static void updateLengthAndBytes(MessageDigest digest, String str) throws UnsupportedEncodingException {
+    private static void updateLengthAndBytes(MessageDigest digest, String str) {
         byte[] utf8Encoded = str.getBytes(UTF8);
         ByteBuffer lengthBytes = ByteBuffer.allocate(INTEGER_SIZE_IN_BYTES).putInt(utf8Encoded.length);
         digest.update(lengthBytes.array());

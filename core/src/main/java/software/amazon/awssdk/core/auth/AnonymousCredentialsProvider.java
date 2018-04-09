@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,11 +15,21 @@
 
 package software.amazon.awssdk.core.auth;
 
+import software.amazon.awssdk.utils.ToString;
+
 /**
  * Credentials provider that always returns anonymous {@link AwsCredentials}. Anonymous AWS credentials result in un-authenticated
  * requests and will fail unless the resource or API's policy has been configured to specifically allow anonymous access.
  */
 public class AnonymousCredentialsProvider implements AwsCredentialsProvider {
+
+    private AnonymousCredentialsProvider() {
+    }
+
+    public static AnonymousCredentialsProvider create() {
+        return new AnonymousCredentialsProvider();
+    }
+
     @Override
     public AwsCredentials getCredentials() {
         return AwsCredentials.ANONYMOUS_CREDENTIALS;
@@ -27,6 +37,6 @@ public class AnonymousCredentialsProvider implements AwsCredentialsProvider {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName();
+        return ToString.create("AnonymousCredentialsProvider");
     }
 }

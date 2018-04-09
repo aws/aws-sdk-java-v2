@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,9 +19,7 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
-import java.util.List;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.codegen.internal.Constants;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
@@ -42,7 +40,6 @@ public class ClientSimpleMethodsIntegrationTests implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         ClassName interfaceClass = poetExtensions.getClientClass(model.getMetadata().getSyncInterface());
-        List<String> whitelistedApis = model.getCustomizationConfig().getVerifiedSimpleMethods();
 
         TypeSpec.Builder builder = PoetUtils.createClassBuilder(className())
                                             .addModifiers(Modifier.PUBLIC)
@@ -51,12 +48,7 @@ public class ClientSimpleMethodsIntegrationTests implements ClassSpec {
                                                                .build())
                                             .addMethod(setup());
 
-        model.getOperations().values().stream()
-             .filter(v -> v.getInputShape().isSimpleMethod())
-             .filter(v -> !whitelistedApis.contains(v.getMethodName()))
-             .filter(v -> v.getMethodName().matches(Constants.APPROVED_SIMPLE_METHOD_VERBS))
-             .map(o -> simpleMethodsTest(o))
-             .forEach(builder::addMethod);
+        model.simpleMethodsRequiringTesting().stream().map(o -> simpleMethodsTest(o)).forEach(builder::addMethod);
 
         return builder.build();
     }

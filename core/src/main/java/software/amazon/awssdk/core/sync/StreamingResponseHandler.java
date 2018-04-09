@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,12 +15,20 @@
 
 package software.amazon.awssdk.core.sync;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import software.amazon.awssdk.core.exception.RetryableException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Interface for processing a streaming response from a service in a synchronous fashion. This interfaces gives
@@ -36,9 +44,9 @@ import software.amazon.awssdk.utils.IoUtils;
  * <h3>Retries</h3>
  * Exceptions thrown from the handler's {@link #apply(Object, AbortableInputStream)} method are not automatically retried by the
  * RetryPolicy of the client. Since we can't know if a handler implementation is idempotent or safe to retry, if you wish to
- * retry on the event of a failure you must throw a {@link software.amazon.awssdk.core.RetryableException} from the handler. This
+ * retry on the event of a failure you must throw a {@link SdkException} with retryable set to true from the handler. This
  * exception can wrap the original exception that was thrown. Note that throwing a {@link
- * software.amazon.awssdk.core.RetryableException} from the handler does not guarantee the request will be retried,
+ * SdkException} that is marked retryable from the handler does not guarantee the request will be retried,
  * retries are still limited by the max retry attempts and retry throttling
  * feature of the {@link software.amazon.awssdk.core.retry.v2.RetryPolicy}.
  * </p>
@@ -59,7 +67,6 @@ import software.amazon.awssdk.utils.IoUtils;
  */
 @FunctionalInterface
 public interface StreamingResponseHandler<ResponseT, ReturnT> {
-
     /**
      * Process the response contents.
      *
@@ -67,7 +74,7 @@ public interface StreamingResponseHandler<ResponseT, ReturnT> {
      * @param inputStream Input stream of streamed data.
      * @return Transformed type.
      * @throws Exception if any error occurs during processing of the response. This will be re-thrown by the SDK, possibly
-     *                   wrapped in an {@link software.amazon.awssdk.core.SdkClientException}.
+     *                   wrapped in an {@link SdkClientException}.
      */
     ReturnT apply(ResponseT response, AbortableInputStream inputStream) throws Exception;
 
@@ -91,8 +98,34 @@ public interface StreamingResponseHandler<ResponseT, ReturnT> {
      */
     static <ResponseT> StreamingResponseHandler<ResponseT, ResponseT> toFile(Path path) {
         return (resp, in) -> {
-            Files.copy(in, path);
-            return resp;
+            try {
+                Files.copy(in, path);
+                return resp;
+            } catch (IOException copyException) {
+                String copyError = "Failed to read response into file: " + path;
+
+                // If the write failed because of the state of the file, don't retry the request.
+                if (copyException instanceof FileAlreadyExistsException || copyException instanceof DirectoryNotEmptyException) {
+                    throw new IOException(copyError, copyException);
+                }
+
+                // Try to clean up the file so that we can retry the request. If we can't delete it, don't retry the request.
+                try {
+                    Files.deleteIfExists(path);
+                } catch (IOException deletionException) {
+                    Logger.loggerFor(StreamingResponseHandler.class)
+                          .error(() -> "Failed to delete destination file '" + path +
+                                       "' after reading the service response " +
+                                       "failed.", deletionException);
+
+                    throw new IOException(copyError + ". Additionally, the file could not be cleaned up (" +
+                                          deletionException.getMessage() + "), so the request will not be retried.",
+                                          copyException);
+                }
+
+                // Retry the request
+                throw new RetryableException(copyError, copyException);
+            }
         };
     }
 
@@ -108,6 +141,23 @@ public interface StreamingResponseHandler<ResponseT, ReturnT> {
         return (resp, in) -> {
             IoUtils.copy(in, outputStream);
             return resp;
+        };
+    }
+
+    /**
+     * Creates a response handler that loads all response content into memory, exposed as {@link ResponseBytes}. This allows
+     * for conversion into a {@link String}, {@link ByteBuffer}, etc.
+     *
+     * @param <ResponseT> Type of unmarshalled response POJO.
+     * @return The streaming response handler that can be used on the client streaming method.
+     */
+    static <ResponseT> StreamingResponseHandler<ResponseT, ResponseBytes<ResponseT>> toBytes() {
+        return (response, inputStream) -> {
+            try {
+                return new ResponseBytes<>(response, inputStream);
+            } catch (IOException e) {
+                throw new RetryableException("Failed to read response.", e);
+            }
         };
     }
 

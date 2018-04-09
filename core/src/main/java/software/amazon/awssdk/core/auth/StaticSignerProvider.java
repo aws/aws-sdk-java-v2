@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -28,8 +28,12 @@ public class StaticSignerProvider extends SignerProvider {
 
     private final Signer signer;
 
-    public StaticSignerProvider(Signer signer) {
+    private StaticSignerProvider(Signer signer) {
         this.signer = signer;
+    }
+
+    public static StaticSignerProvider create(Signer signer) {
+        return new StaticSignerProvider(signer);
     }
 
     @Override

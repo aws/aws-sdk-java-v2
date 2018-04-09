@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright 2010-2017. Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~ Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License").
   ~ You may not use this file except in compliance with the License.
   ~ A copy of the License is located at
   ~
-  ~ http://aws.amazon.com/apache2.0
+  ~  http://aws.amazon.com/apache2.0
   ~
-  ~ or in the "license" file accompanying this filae. This file is distributed
+  ~ or in the "license" file accompanying this file. This file is distributed
   ~ on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
   ~ express or implied. See the License for the specific language governing
   ~ permissions and limitations under the License.
@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.0.0-preview-5-SNAPSHOT</version>
+        <version>2.0.0-preview-10-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>service-test-utils</artifactId>
@@ -37,8 +37,9 @@
     <!-- The dependencies section in pom.xml is auto generated. No manual changes are allowed -->
     <dependencies>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>test-utils</artifactId>
+            <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -46,33 +47,8 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>test-utils</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
             <artifactId>junit</artifactId>
             <groupId>junit</groupId>
-        </dependency>
-        <dependency>
-            <artifactId>cucumber-java</artifactId>
-            <groupId>info.cukes</groupId>
-        </dependency>
-        <dependency>
-            <artifactId>cucumber-junit</artifactId>
-            <groupId>info.cukes</groupId>
-        </dependency>
-        <dependency>
-            <artifactId>cucumber-guice</artifactId>
-            <groupId>info.cukes</groupId>
-        </dependency>
-        <dependency>
-            <artifactId>guice</artifactId>
-            <groupId>com.google.inject</groupId>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-all</artifactId>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
@@ -92,9 +68,18 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <configuration>
+                    <ignoredUnusedDeclaredDependencies>
+                        <!-- nice to have this pulled in so that service tests have these in scope -->
+                        <ignoredUnusedDeclaredDependency>software.amazon.awssdk:test-utils:*</ignoredUnusedDeclaredDependency>
+                    </ignoredUnusedDeclaredDependencies>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
-
-    <!-- This profile uses the JAPICMP plugin to generate a report of changes between the release version and the latest version -->
-    <!-- For more information on the plugin, see https://github.com/siom79/japicmp -->
 </project>

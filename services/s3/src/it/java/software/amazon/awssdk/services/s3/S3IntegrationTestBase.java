@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -74,9 +74,9 @@ public class S3IntegrationTestBase extends AwsTestBase {
                                        .build());
         } catch (S3Exception e) {
             System.err.println("Error attempting to create bucket: " + bucketName);
-            if (e.getErrorCode().equals("BucketAlreadyOwnedByYou")) {
+            if (e.errorCode().equals("BucketAlreadyOwnedByYou")) {
                 System.err.printf("%s bucket already exists, likely leaked by a previous run\n", bucketName);
-            } else if (e.getErrorCode().equals("TooManyBuckets")) {
+            } else if (e.errorCode().equals("TooManyBuckets")) {
                 System.err.println("Printing all buckets for debug:");
                 s3.listBuckets().buckets().forEach(System.err::println);
                 if (retryCount < 2) {

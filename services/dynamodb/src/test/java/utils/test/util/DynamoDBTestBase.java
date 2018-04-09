@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import software.amazon.awssdk.core.AmazonClientException;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -46,7 +46,7 @@ public class DynamoDBTestBase extends AwsTestBase {
         try {
             setUpCredentials();
         } catch (Exception e) {
-            throw new AmazonClientException("Unable to load credential property file.", e);
+            throw new SdkClientException("Unable to load credential property file.", e);
         }
 
         dynamo = DynamoDBClient.builder().region(Region.US_EAST_1).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
@@ -82,8 +82,8 @@ public class DynamoDBTestBase extends AwsTestBase {
                 if (table.tableStatus() == TableStatus.DELETING) {
                     continue;
                 }
-            } catch (AmazonServiceException ase) {
-                if (ase.getErrorCode().equalsIgnoreCase("ResourceNotFoundException")) {
+            } catch (SdkServiceException exception) {
+                if (exception.errorCode().equalsIgnoreCase("ResourceNotFoundException")) {
                     log.info(() -> "successfully deleted");
                     return;
                 }

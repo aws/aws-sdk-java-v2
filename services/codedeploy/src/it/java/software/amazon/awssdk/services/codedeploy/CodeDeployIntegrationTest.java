@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.codedeploy.model.ApplicationInfo;
 import software.amazon.awssdk.services.codedeploy.model.CreateApplicationRequest;
 import software.amazon.awssdk.services.codedeploy.model.CreateApplicationResponse;
@@ -125,7 +125,7 @@ public class CodeDeployIntegrationTest extends IntegrationTestBase {
                     .deploymentGroupName(DEPLOYMENT_GROUP_NAME).build());
             fail("Create Deployment group should fail as it requires a service role ARN to be specified");
         } catch (Exception ace) {
-            assertTrue(ace instanceof AmazonServiceException);
+            assertTrue(ace instanceof SdkServiceException);
         }
     }
 }

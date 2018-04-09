@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.BasicCodeGenConfig;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.ServiceExamples;
+import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Waiters;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
@@ -50,6 +51,7 @@ public class GenerationMojo extends AbstractMojo {
     private static final String CUSTOMIZATION_CONFIG_FILE = "customization.config";
     private static final String EXAMPLES_FILE = "examples-1.json";
     private static final String WAITERS_FILE = "waiters-2.json";
+    private static final String PAGINATORS_FILE = "paginators-1.json";
 
     @Parameter(property = "codeGenResources", defaultValue = "${basedir}/src/main/resources/codegen-resources/")
     private File codeGenResources;
@@ -71,10 +73,11 @@ public class GenerationMojo extends AbstractMojo {
             try {
                 getLog().info("Loading from: " + p.toString());
                 generateCode(C2jModels.builder()
-                                      .codeGenConfig(loadCodeGenConfig(p))
+                                      .apply(b -> loadCodeGenConfig(p).ifPresent(b::codeGenConfig))
                                       .customizationConfig(loadCustomizationConfig(p))
                                       .serviceModel(loadServiceModel(p))
                                       .waitersModel(loadWaiterModel(p))
+                                      .paginatorsModel(loadPaginatorModel(p))
                                       .examplesModel(loadExamplesModel(p))
                                       .build());
             } catch (MojoExecutionException e) {
@@ -113,8 +116,8 @@ public class GenerationMojo extends AbstractMojo {
                      .execute();
     }
 
-    private BasicCodeGenConfig loadCodeGenConfig(Path root) throws MojoExecutionException {
-        return loadRequiredModel(BasicCodeGenConfig.class, root.resolve(CODE_GEN_CONFIG_FILE));
+    private Optional<BasicCodeGenConfig> loadCodeGenConfig(Path root) {
+        return loadOptionalModel(BasicCodeGenConfig.class, root.resolve(CODE_GEN_CONFIG_FILE));
     }
 
     private CustomizationConfig loadCustomizationConfig(Path root) {
@@ -132,6 +135,10 @@ public class GenerationMojo extends AbstractMojo {
 
     private Waiters loadWaiterModel(Path root) {
         return loadOptionalModel(Waiters.class, root.resolve(WAITERS_FILE)).orElse(Waiters.NONE);
+    }
+
+    private Paginators loadPaginatorModel(Path root) {
+        return loadOptionalModel(Paginators.class, root.resolve(PAGINATORS_FILE)).orElse(Paginators.NONE);
     }
 
     /**

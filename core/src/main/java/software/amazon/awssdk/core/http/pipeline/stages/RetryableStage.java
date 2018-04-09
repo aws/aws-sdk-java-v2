@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,28 +15,28 @@
 
 package software.amazon.awssdk.core.http.pipeline.stages;
 
-import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishProgress;
-
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.core.RequestClientOptions;
 import software.amazon.awssdk.core.RequestExecutionContext;
-import software.amazon.awssdk.core.ResetException;
 import software.amazon.awssdk.core.Response;
-import software.amazon.awssdk.core.SdkBaseException;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.SdkStandardLoggers;
-import software.amazon.awssdk.core.event.ProgressEventType;
-import software.amazon.awssdk.core.event.ProgressListener;
+import software.amazon.awssdk.core.exception.ResetException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpClientDependencies;
 import software.amazon.awssdk.core.http.InterruptMonitor;
 import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.http.pipeline.RequestToResponsePipeline;
 import software.amazon.awssdk.core.retry.RetryHandler;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.RetryUtils;
-import software.amazon.awssdk.core.retry.v2.RetryPolicy;
 import software.amazon.awssdk.core.util.CapacityManager;
 import software.amazon.awssdk.core.util.ClockSkewUtil;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -88,7 +88,6 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
 
         private final SdkHttpFullRequest request;
         private final RequestExecutionContext context;
-        private final ProgressListener progressListener;
         private final RetryHandler retryHandler;
 
         private int requestCount = 0;
@@ -96,7 +95,6 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
         private RetryExecutor(SdkHttpFullRequest request, RequestExecutionContext context) {
             this.request = request;
             this.context = context;
-            this.progressListener = context.requestConfig().getProgressListener();
             this.retryHandler = new RetryHandler(retryPolicy, retryCapacity);
         }
 
@@ -111,11 +109,11 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
                     } else {
                         retryHandler.setLastRetriedException(handleUnmarshalledException(response));
                     }
-                } catch (AmazonServiceException e) {
+                } catch (SdkServiceException e) {
                     // TODO This can be cleaned up a bit if we have separate hierarchies for service and client exceptions
                     // as we can just catch the client exception below.
                     throw e;
-                } catch (SdkBaseException | IOException e) {
+                } catch (SdkException | IOException e) {
                     retryHandler.setLastRetriedException(handleThrownException(e));
                 }
             }
@@ -130,7 +128,7 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
         private Response<OutputT> doExecute() throws Exception {
             if (retryHandler.isRetry()) {
                 request.content().ifPresent(RetryableStage::resetRequestInputStream);
-                pauseBeforeRetry();
+                doPauseBeforeRetry();
             }
 
             request.content().ifPresent(this::markInputStream);
@@ -141,8 +139,8 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
             return requestPipeline.execute(retryHandler.addRetryInfoHeader(request, requestCount), context);
         }
 
-        private SdkBaseException handleUnmarshalledException(Response<OutputT> response) {
-            SdkBaseException exception = response.getException();
+        private SdkException handleUnmarshalledException(Response<OutputT> response) {
+            SdkException exception = response.getException();
             if (!retryHandler.shouldRetry(response.getHttpResponse(), request, context, exception, requestCount)) {
                 throw exception;
             }
@@ -157,7 +155,7 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
             return exception;
         }
 
-        private SdkBaseException handleThrownException(Exception e) {
+        private SdkException handleThrownException(Exception e) {
             SdkClientException sdkClientException = e instanceof SdkClientException ?
                     (SdkClientException) e : new SdkClientException("Unable to execute HTTP request: " + e.getMessage(), e);
             boolean willRetry = retryHandler.shouldRetry(null, request, context, sdkClientException, requestCount);
@@ -186,17 +184,9 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
          * @return Allowed read limit that we can mark request input stream. If we read past this limit we cannot reset the stream
          * so we cannot retry the request.
          */
+        @ReviewBeforeRelease("Do we still want to make read limit user-configurable as in V1?")
         private int readLimit() {
-            return context.requestConfig().getRequestClientOptions().getReadLimit();
-        }
-
-        /**
-         * Pause before the next retry and record progress around retry behavior.
-         */
-        private void pauseBeforeRetry() throws InterruptedException {
-            // Notify the progress listener of the retry
-            publishProgress(progressListener, ProgressEventType.CLIENT_REQUEST_RETRY_EVENT);
-            doPauseBeforeRetry();
+            return RequestClientOptions.DEFAULT_STREAM_BUFFER_SIZE;
         }
 
         /**
@@ -204,12 +194,12 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
          */
         private void doPauseBeforeRetry() throws InterruptedException {
             final int retriesAttempted = requestCount - 2;
-            long delay = retryHandler.computeDelayBeforeNextRetry();
+            Duration delay = retryHandler.computeDelayBeforeNextRetry();
 
             if (log.isDebugEnabled()) {
                 log.debug("Retriable error detected, " + "will retry in " + delay + "ms, attempt number: " + retriesAttempted);
             }
-            Thread.sleep(delay);
+            TimeUnit.MILLISECONDS.sleep(delay.toMillis());
         }
     }
 }

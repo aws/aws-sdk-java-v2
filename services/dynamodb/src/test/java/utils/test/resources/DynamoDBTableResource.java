@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package utils.test.resources;
 
 import java.util.List;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
@@ -137,11 +137,11 @@ public abstract class DynamoDBTableResource implements TestResource {
         try {
             table = getClient().describeTable(DescribeTableRequest.builder().tableName(
                     createRequest.tableName()).build()).table();
-        } catch (AmazonServiceException ase) {
-            if (ase.getErrorCode().equalsIgnoreCase("ResourceNotFoundException")) {
+        } catch (SdkServiceException exception) {
+            if (exception.errorCode().equalsIgnoreCase("ResourceNotFoundException")) {
                 return ResourceStatus.NOT_EXIST;
             }
-            throw ase;
+            throw exception;
         }
 
         if (table.tableStatus() == TableStatus.ACTIVE) {

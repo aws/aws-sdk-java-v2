@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import software.amazon.awssdk.annotations.NotThreadSafe;
-import software.amazon.awssdk.core.event.ProgressInputStream;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.util.json.JacksonUtils;
 
@@ -35,12 +35,11 @@ import software.amazon.awssdk.core.util.json.JacksonUtils;
  */
 @NotThreadSafe
 public class DefaultRequest<T> implements Request<T> {
-
     /**
      * The original, user facing request object which this internal request
      * object is representing
      */
-    private final AmazonWebServiceRequest originalRequest;
+    private final T originalRequest;
 
     /** The resource path being requested. */
     private String resourcePath;
@@ -78,11 +77,9 @@ public class DefaultRequest<T> implements Request<T> {
      *            The original, user facing, AWS request being represented by
      *            this internal request object.
      */
-    public DefaultRequest(AmazonWebServiceRequest originalRequest, String serviceName) {
+    public DefaultRequest(T originalRequest, String serviceName) {
         this.serviceName = serviceName;
-        this.originalRequest = originalRequest == null
-                               ? AmazonWebServiceRequest.NOOP
-                               : originalRequest;
+        this.originalRequest = originalRequest;
     }
 
     /**
@@ -104,7 +101,7 @@ public class DefaultRequest<T> implements Request<T> {
      * @return The original, user facing request object which this request
      *         object is representing.
      */
-    public AmazonWebServiceRequest getOriginalRequest() {
+    public T getOriginalRequest() {
         return originalRequest;
     }
 
@@ -302,31 +299,5 @@ public class DefaultRequest<T> implements Request<T> {
         }
 
         return builder.toString();
-    }
-
-    @SuppressWarnings("resource")
-    @Override
-    public InputStream getContentUnwrapped() {
-        InputStream is = getContent();
-        if (is == null) {
-            return null;
-        }
-        // We want to disable the progress reporting when the stream is
-        // consumed for signing purpose.
-        while (is instanceof ProgressInputStream) {
-            ProgressInputStream pris = (ProgressInputStream) is;
-            is = pris.getWrappedInputStream();
-        }
-        return is;
-    }
-
-    @Override
-    public ReadLimitInfo getReadLimitInfo() {
-        return originalRequest;
-    }
-
-    @Override
-    public Object getOriginalRequestObject() {
-        return originalRequest;
     }
 }

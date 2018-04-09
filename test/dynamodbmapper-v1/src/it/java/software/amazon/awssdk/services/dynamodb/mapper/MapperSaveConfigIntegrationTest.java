@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 
@@ -422,8 +422,8 @@ public class MapperSaveConfigIntegrationTest extends MapperSaveConfigTestBase {
         try {
             dynamoMapper.save(testAppendToScalarItem, appendSetConfig);
             fail("Should have thrown a 'Type mismatch' service exception.");
-        } catch (AmazonServiceException ase) {
-            assertEquals("ValidationException", ase.getErrorCode());
+        } catch (SdkServiceException exception) {
+            assertEquals("ValidationException", exception.errorCode());
         }
     }
 

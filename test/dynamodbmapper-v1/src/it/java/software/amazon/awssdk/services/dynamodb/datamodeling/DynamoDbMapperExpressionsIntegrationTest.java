@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -41,6 +41,8 @@ import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ResourceInUseException;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
+import software.amazon.awssdk.services.dynamodb.model.TableStatus;
+import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class DynamoDbMapperExpressionsIntegrationTest extends AwsTestBase {
@@ -145,15 +147,9 @@ public class DynamoDbMapperExpressionsIntegrationTest extends AwsTestBase {
     }
 
     public static void waitForTableCreation() throws InterruptedException {
-        while (true) {
-            DescribeTableResponse describeResult = client
-                    .describeTable(DescribeTableRequest.builder().tableName(TABLENAME).build());
-            if (TABLE_STATUS_ACTIVE.equals(describeResult.table()
-                                                         .tableStatus())) {
-                break;
-            }
-            Thread.sleep(SLEEP_TIME_IN_MILLIS);
-        }
+        Waiter.run(() -> client.describeTable(r -> r.tableName(TABLENAME)))
+              .until(r -> r.table().tableStatus() == TableStatus.ACTIVE)
+              .orFail();
     }
 
     @AfterClass

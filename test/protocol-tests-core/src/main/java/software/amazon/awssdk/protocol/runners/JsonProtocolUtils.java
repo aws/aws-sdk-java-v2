@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,7 +21,10 @@ import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory;
 
 
-public class JsonProtocolUtils {
+public final class JsonProtocolUtils {
+
+    private JsonProtocolUtils() {
+    }
 
     /**
      * Create the software.amazon.awssdk.protocol factory needed to create the marshallers and response handlers for the

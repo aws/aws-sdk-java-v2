@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.core.http.pipeline.stages;
 
-import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishProgress;
-
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
@@ -24,9 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.Response;
-import software.amazon.awssdk.core.SdkBaseException;
-import software.amazon.awssdk.core.event.ProgressEventType;
-import software.amazon.awssdk.core.event.ProgressListener;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpAsyncClientDependencies;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.InterruptMonitor;
@@ -54,10 +50,10 @@ public class MakeAsyncHttpRequestStage<OutputT>
 
     private final SdkAsyncHttpClient sdkAsyncHttpClient;
     private final SdkHttpResponseHandler<OutputT> responseHandler;
-    private final SdkHttpResponseHandler<? extends SdkBaseException> errorResponseHandler;
+    private final SdkHttpResponseHandler<? extends SdkException> errorResponseHandler;
 
     public MakeAsyncHttpRequestStage(SdkHttpResponseHandler<OutputT> responseHandler,
-                                     SdkHttpResponseHandler<? extends SdkBaseException> errorResponseHandler,
+                                     SdkHttpResponseHandler<? extends SdkException> errorResponseHandler,
                                      HttpAsyncClientDependencies dependencies) {
         this.responseHandler = responseHandler;
         this.errorResponseHandler = errorResponseHandler;
@@ -71,18 +67,14 @@ public class MakeAsyncHttpRequestStage<OutputT>
                                                         RequestExecutionContext context) throws Exception {
 
         InterruptMonitor.checkInterrupted();
-        final ProgressListener listener = context.requestConfig().getProgressListener();
-
-        publishProgress(listener, ProgressEventType.HTTP_REQUEST_STARTED_EVENT);
-        return executeHttpRequest(request, context, listener);
+        return executeHttpRequest(request, context);
     }
 
     private CompletableFuture<Response<OutputT>> executeHttpRequest(SdkHttpFullRequest request,
-                                                                    RequestExecutionContext context,
-                                                                    ProgressListener listener) throws Exception {
+                                                                    RequestExecutionContext context) throws Exception {
         CompletableFuture<Response<OutputT>> future = new CompletableFuture<>();
 
-        SdkHttpResponseHandler<Response<OutputT>> handler = new ResponseHandler(request, future, listener);
+        SdkHttpResponseHandler<Response<OutputT>> handler = new ResponseHandler(request, future);
 
         SdkHttpRequestProvider requestProvider = context.requestProvider() == null
                 ? new SimpleRequestProvider(request, context.executionAttributes())
@@ -136,8 +128,6 @@ public class MakeAsyncHttpRequestStage<OutputT>
      * Detects whether the response succeeded or failed and delegates to appropriate response handler.
      */
     private class ResponseHandler implements SdkHttpResponseHandler<Response<OutputT>> {
-
-        private final ProgressListener listener;
         private final SdkHttpFullRequest request;
         private final CompletableFuture<Response<OutputT>> future;
 
@@ -147,12 +137,9 @@ public class MakeAsyncHttpRequestStage<OutputT>
         /**
          * @param request  Request being made
          * @param future   Future to notify when response has been handled.
-         * @param listener Listener to report HTTP end event.
          */
         private ResponseHandler(SdkHttpFullRequest request,
-                                CompletableFuture<Response<OutputT>> future,
-                                ProgressListener listener) {
-            this.listener = listener;
+                                CompletableFuture<Response<OutputT>> future) {
             this.request = request;
             this.future = future;
         }
@@ -189,8 +176,6 @@ public class MakeAsyncHttpRequestStage<OutputT>
         public Response<OutputT> complete() {
             try {
                 SdkHttpFullResponse httpFullResponse = (SdkHttpFullResponse) this.response;
-
-                publishProgress(listener, ProgressEventType.HTTP_REQUEST_COMPLETED_EVENT);
                 final HttpResponse httpResponse = SdkHttpResponseAdapter.adapt(false, request, httpFullResponse);
                 Response<OutputT> toReturn = handleResponse(httpResponse);
                 future.complete(toReturn);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
+import org.apache.log4j.BasicConfigurator;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.services.sqs.model.ListQueuesRequest;
@@ -35,6 +36,7 @@ public class SqsIntegrationTest extends IntegrationTestBase {
      */
     @Test
     public void clockSkewFailure_CorrectsGlobalTimeOffset() throws Exception {
+        BasicConfigurator.configure();
         final int originalOffset = SdkGlobalTime.getGlobalTimeOffset();
         final int skew = 3600;
 

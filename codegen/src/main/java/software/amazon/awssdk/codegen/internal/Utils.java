@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -40,7 +40,10 @@ import software.amazon.awssdk.codegen.model.service.XmlNamespace;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
-public class Utils {
+public final class Utils {
+
+    private Utils() {
+    }
 
     public static boolean isScalar(Shape shape) {
         // enums are treated as scalars in C2j.
@@ -131,9 +134,8 @@ public class Utils {
                                         Constants.PACKAGE_NAME_TRANSFORM_PATTERN);
     }
 
-    public static String getWaitersPackageName(String serviceName, CustomizationConfig customizationConfig) {
-        return getCustomizedPackageName(serviceName,
-                                        Constants.PACKAGE_NAME_WAITERS_PATTERN);
+    public static String getPaginatorsPackageName(String serviceName, CustomizationConfig customizationConfig) {
+        return getCustomizedPackageName(serviceName, Constants.PACKAGE_NAME_PAGINATORS_PATTERN);
     }
 
     public static String getSmokeTestPackageName(String serviceName, CustomizationConfig customizationConfig) {

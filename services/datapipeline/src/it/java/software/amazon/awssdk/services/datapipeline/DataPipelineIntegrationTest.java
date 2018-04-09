@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import static org.junit.Assert.fail;
 
 import org.junit.AfterClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.datapipeline.model.ActivatePipelineRequest;
 import software.amazon.awssdk.services.datapipeline.model.ActivatePipelineResponse;
 import software.amazon.awssdk.services.datapipeline.model.CreatePipelineRequest;
@@ -191,7 +191,7 @@ public class DataPipelineIntegrationTest extends IntegrationTestBase {
             if (describepipelinesResult.pipelineDescriptionList().size() > 0) {
                 fail();
             }
-        } catch (AmazonServiceException e) {
+        } catch (SdkServiceException e) {
             // Ignored or expected.
         }
     }

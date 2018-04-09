@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,37 +17,26 @@ package software.amazon.awssdk.core.internal.net;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.Proxy;
 import java.net.URI;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
 public class ConnectionUtils {
 
-    private static volatile ConnectionUtils instance;
-
-    private ConnectionUtils() {
-
+    public static ConnectionUtils create() {
+        return new ConnectionUtils();
     }
 
-    public static ConnectionUtils getInstance() {
-        if (instance == null) {
-            synchronized (ConnectionUtils.class) {
-                if (instance == null) {
-                    instance = new ConnectionUtils();
-                }
-            }
-        }
-        return instance;
-    }
-
-    public HttpURLConnection connectToEndpoint(URI endpoint) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) endpoint.toURL().openConnection();
+    public HttpURLConnection connectToEndpoint(URI endpoint, Map<String, String> headers) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) endpoint.toURL().openConnection(Proxy.NO_PROXY);
         connection.setConnectTimeout(1000 * 2);
         connection.setReadTimeout(1000 * 5);
         connection.setRequestMethod("GET");
         connection.setDoOutput(true);
-        // TODO should we autoredirect 3xx
-        // connection.setInstanceFollowRedirects(false);
+        headers.forEach(connection::addRequestProperty);
+        connection.setInstanceFollowRedirects(false);
         connection.connect();
 
         return connection;

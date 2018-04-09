@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,12 +23,12 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.server.MockServer;
 import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
 import software.amazon.awssdk.core.internal.http.response.EmptyAWSResponseHandler;
-import software.amazon.awssdk.core.retry.PredefinedRetryPolicies;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
 import utils.HttpTestUtils;
 
@@ -56,7 +56,7 @@ public class ConnectionPoolMaxConnectionsIntegrationTest {
 
         AmazonHttpClient httpClient = HttpTestUtils.testClientBuilder()
                                                    .clientExecutionTimeout(null)
-                                                   .retryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
+                                                   .retryPolicy(RetryPolicy.NONE)
                                                    .httpClient(ApacheSdkHttpClientFactory.builder()
                                                                                          .connectionTimeout(
                                                                                                  Duration.ofMillis(100))
@@ -70,6 +70,7 @@ public class ConnectionPoolMaxConnectionsIntegrationTest {
         // Block the first connection in the pool with this request.
         httpClient.requestExecutionBuilder()
                   .request(request)
+                  .originalRequest(NoopTestAwsRequest.builder().build())
                   .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
                   .execute(new EmptyAWSResponseHandler());
 
@@ -78,10 +79,11 @@ public class ConnectionPoolMaxConnectionsIntegrationTest {
             // ConnectionPoolTimeoutException.
             httpClient.requestExecutionBuilder()
                       .request(request)
+                      .originalRequest(NoopTestAwsRequest.builder().build())
                       .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
                       .execute();
             Assert.fail("Connection pool timeout exception is expected!");
-        } catch (AmazonClientException e) {
+        } catch (SdkClientException e) {
             Assert.assertTrue(e.getCause() instanceof ConnectionPoolTimeoutException);
         }
     }

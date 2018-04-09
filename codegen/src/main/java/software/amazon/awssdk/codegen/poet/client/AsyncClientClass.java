@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -58,7 +58,9 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                         .addSuperinterface(interfaceClass)
                                         .addJavadoc("Internal implementation of {@link $1T}.\n\n@see $1T#builder()",
                                                     interfaceClass)
+                                        .addMethod(nameMethod())
                                         .addMethods(operations())
+                                        .addMethods(paginatedTraditionalMethods())
                                         .addMethod(closeMethod())
                                         .addMethods(protocolSpec.additionalMethods())
                                         .addMethod(protocolSpec.initProtocolFactory(model));
@@ -81,6 +83,15 @@ public final class AsyncClientClass extends AsyncClientInterface {
                          .addStatement("this.clientHandler = new $T(clientConfiguration, null)",
                                        SdkAsyncClientHandler.class) // TODO this will likely differ for APIG clients
                          .addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name)
+                         .build();
+    }
+
+    private MethodSpec nameMethod() {
+        return MethodSpec.methodBuilder("serviceName")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                         .returns(String.class)
+                         .addStatement("return SERVICE_NAME")
                          .build();
     }
 
@@ -116,6 +127,14 @@ public final class AsyncClientClass extends AsyncClientInterface {
                       .addCode(protocolSpec.errorResponseHandler(opModel))
                       .addCode(protocolSpec.asyncExecutionHandler(opModel));
 
+    }
+
+    @Override
+    protected MethodSpec.Builder paginatedMethodBody(MethodSpec.Builder builder, OperationModel opModel) {
+        return builder.addModifiers(Modifier.PUBLIC)
+                      .addStatement("return new $T(this, $L)",
+                                    poetExtensions.getResponseClassForPaginatedAsyncOperation(opModel.getOperationName()),
+                                    opModel.getInput().getVariableName());
     }
 
     @Override

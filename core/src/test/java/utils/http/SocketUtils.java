@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,10 +24,9 @@ public class SocketUtils {
      * Returns an unused port in the localhost.
      */
     public static int getUnusedPort() throws IOException {
-        ServerSocket socket = new ServerSocket(0);
-        socket.setReuseAddress(true);
-        int port = socket.getLocalPort();
-        socket.close();
-        return port;
+        try (ServerSocket socket = new ServerSocket(0)) {
+            socket.setReuseAddress(true);
+            return socket.getLocalPort();
+        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,7 +19,10 @@ package software.amazon.awssdk.testutils.retry;
  * Utility to repeatedly invoke assertion logic until it succeeds or the max allowed attempts is
  * reached.
  */
-public class RetryableAssertion {
+public final class RetryableAssertion {
+
+    private RetryableAssertion() {
+    }
 
     /**
      * Static method to repeatedly call assertion logic until it succeeds or the max allowed

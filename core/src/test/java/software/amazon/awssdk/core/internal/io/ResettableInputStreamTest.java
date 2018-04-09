@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -26,9 +26,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.ClosedChannelException;
+import java.util.Optional;
 import org.apache.commons.io.IOUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.core.runtime.io.ReleasableInputStream;
 import software.amazon.awssdk.core.runtime.io.ResettableInputStream;
 
 public class ResettableInputStreamTest {
@@ -42,105 +44,115 @@ public class ResettableInputStreamTest {
 
     @Test
     public void testFileInputStream() throws IOException {
-        InputStream is = new FileInputStream(file);
-        assertFalse(is.markSupported());
-        final String content = IOUtils.toString(is);
-        final String content2 = IOUtils.toString(is);
-        assertTrue(content.length() == 100);
-        assertEquals(content2, "");
-        is.close();
+        try (InputStream is = new FileInputStream(file)) {
+            assertFalse(is.markSupported());
+            String content = IOUtils.toString(is);
+            String content2 = IOUtils.toString(is);
+            assertTrue(content.length() == 100);
+            assertEquals(content2, "");
+        }
     }
 
     @Test
     public void testResetInputStreamWithFile() throws IOException {
-        ResettableInputStream is = new ResettableInputStream(file);
-        assertTrue(is.markSupported());
-        final String content = IOUtils.toString(is);
-        is.reset();
-        final String content2 = IOUtils.toString(is);
-        assertTrue(content.length() == 100);
-        assertEquals(content, content2);
-        is.close();
-        assertEquals(file, is.getFile());
+        try (ResettableInputStream is = new ResettableInputStream(file)) {
+            assertTrue(is.markSupported());
+            String content = IOUtils.toString(is);
+            is.reset();
+            String content2 = IOUtils.toString(is);
+            assertTrue(content.length() == 100);
+            assertEquals(content, content2);
+            assertEquals(file, is.getFile());
+        }
     }
 
     @Test
     public void testResetFileInputStream() throws IOException {
-        ResettableInputStream is = new ResettableInputStream(
-                new FileInputStream(file));
-        assertTrue(is.markSupported());
-        final String content = IOUtils.toString(is);
-        is.reset();
-        final String content2 = IOUtils.toString(is);
-        assertTrue(content.length() == 100);
-        assertEquals(content, content2);
-        is.close();
-        assertNull(is.getFile());
+        try (ResettableInputStream is = new ResettableInputStream(
+            new FileInputStream(file))) {
+            assertTrue(is.markSupported());
+            String content = IOUtils.toString(is);
+            is.reset();
+            String content2 = IOUtils.toString(is);
+            assertTrue(content.length() == 100);
+            assertEquals(content, content2);
+            assertNull(is.getFile());
+        }
     }
 
     @Test
     public void testMarkAndResetWithFile() throws IOException {
-        ResettableInputStream is = new ResettableInputStream(file);
-        is.read(new byte[10]);
-        is.mark(-1);
-        final String content = IOUtils.toString(is);
-        is.reset();
-        final String content2 = IOUtils.toString(is);
-        assertTrue(content.length() == 90);
-        assertEquals(content, content2);
-        is.close();
+        try (ResettableInputStream is = new ResettableInputStream(file)) {
+            is.read(new byte[10]);
+            is.mark(-1);
+            String content = IOUtils.toString(is);
+            is.reset();
+            String content2 = IOUtils.toString(is);
+            assertTrue(content.length() == 90);
+            assertEquals(content, content2);
+        }
     }
 
     @Test
     public void testMarkAndResetFileInputStream() throws IOException {
-        ResettableInputStream is = new ResettableInputStream(new FileInputStream(file));
-        is.read(new byte[10]);
-        is.mark(-1);
-        final String content = IOUtils.toString(is);
-        is.reset();
-        final String content2 = IOUtils.toString(is);
-        assertTrue(content.length() == 90);
-        assertEquals(content, content2);
-        is.close();
+        try (ResettableInputStream is = new ResettableInputStream(new FileInputStream(file))) {
+            is.read(new byte[10]);
+            is.mark(-1);
+            String content = IOUtils.toString(is);
+            is.reset();
+            String content2 = IOUtils.toString(is);
+            assertTrue(content.length() == 90);
+            assertEquals(content, content2);
+        }
     }
 
     @Test
     public void testResetWithClosedFile() throws IOException {
-        ResettableInputStream is = new ResettableInputStream(file).disableClose();
-        final String content = IOUtils.toString(is);
-        is.close();
-        is.reset(); // survive a close operation!
-        final String content2 = IOUtils.toString(is);
-        assertTrue(content.length() == 100);
-        assertEquals(content, content2);
-        is.release();
+        ResettableInputStream is = null;
+        try {
+            is = new ResettableInputStream(file).disableClose();
+            String content = IOUtils.toString(is);
+            is.close();
+            is.reset(); // survive a close operation!
+            String content2 = IOUtils.toString(is);
+            assertTrue(content.length() == 100);
+            assertEquals(content, content2);
+        } finally {
+            Optional.ofNullable(is).ifPresent(ReleasableInputStream::release);
+        }
     }
 
     @Test(expected = ClosedChannelException.class)
     public void negativeTestResetWithClosedFile() throws IOException {
-        ResettableInputStream is = new ResettableInputStream(file);
-        is.close();
-        is.reset();
+        try (ResettableInputStream is = new ResettableInputStream(file)) {
+            is.close();
+            is.reset();
+        }
     }
 
     @Test
     public void testMarkAndResetWithClosedFile() throws IOException {
-        ResettableInputStream is = new ResettableInputStream(file).disableClose();
-        is.read(new byte[10]);
-        is.mark(-1);
-        final String content = IOUtils.toString(is);
-        is.close();
-        is.reset(); // survive a close operation!
-        final String content2 = IOUtils.toString(is);
-        assertTrue(content.length() == 90);
-        assertEquals(content, content2);
-        is.release();
+        ResettableInputStream is = null;
+        try {
+            is = new ResettableInputStream(file).disableClose();
+            is.read(new byte[10]);
+            is.mark(-1);
+            String content = IOUtils.toString(is);
+            is.close();
+            is.reset(); // survive a close operation!
+            String content2 = IOUtils.toString(is);
+            assertTrue(content.length() == 90);
+            assertEquals(content, content2);
+        } finally {
+            Optional.ofNullable(is).ifPresent(ReleasableInputStream::release);
+        }
     }
 
     @Test(expected = ClosedChannelException.class)
     public void testMarkAndResetClosedFileInputStream() throws IOException {
-        ResettableInputStream is = new ResettableInputStream(new FileInputStream(file));
-        is.close();
-        is.reset(); // cannot survive a close if not disabled
+        try (ResettableInputStream is = new ResettableInputStream(new FileInputStream(file))) {
+            is.close();
+            is.reset(); // cannot survive a close if not disabled
+        }
     }
 }

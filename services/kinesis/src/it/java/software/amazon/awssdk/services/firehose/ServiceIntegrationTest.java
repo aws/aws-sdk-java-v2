@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.auth.ProfileCredentialsProvider;
 import software.amazon.awssdk.services.firehose.model.CreateDeliveryStreamRequest;
 import software.amazon.awssdk.services.firehose.model.ListDeliveryStreamsRequest;
@@ -124,9 +124,9 @@ public class ServiceIntegrationTest extends AwsTestBase {
         try {
             firehose.createDeliveryStream(CreateDeliveryStreamRequest.builder().build());
             fail("ValidationException is expected.");
-        } catch (AmazonServiceException ase) {
-            assertEquals("ValidationException", ase.getErrorCode());
-            assertNotEmpty(ase.getErrorMessage());
+        } catch (SdkServiceException exception) {
+            assertEquals("ValidationException", exception.errorCode());
+            assertNotEmpty(exception.errorMessage());
         }
     }
 

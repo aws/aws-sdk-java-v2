@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -22,7 +22,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import software.amazon.awssdk.utils.IoUtils;
 
-public class InputStreamUtils {
+public final class InputStreamUtils {
+
+    private InputStreamUtils() {
+    }
 
     /**
      * Calculates the MD5 digest for the given input stream and returns it.

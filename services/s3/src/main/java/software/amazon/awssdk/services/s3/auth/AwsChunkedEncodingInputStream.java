@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,10 +27,10 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.SdkClientException;
 import software.amazon.awssdk.core.auth.AbstractAwsSigner;
 import software.amazon.awssdk.core.auth.Aws4Signer;
 import software.amazon.awssdk.core.auth.SigningAlgorithm;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.io.SdkInputStream;
 import software.amazon.awssdk.utils.BinaryUtils;
 

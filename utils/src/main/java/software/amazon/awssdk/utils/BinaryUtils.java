@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,7 +24,11 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * Utilities for encoding and decoding binary data to and from different forms.
  */
 @SdkProtectedApi
-public class BinaryUtils {
+public final class BinaryUtils {
+
+    private BinaryUtils() {
+    }
+
     /**
      * Converts byte data to a Hex-encoded string in lower case.
      *

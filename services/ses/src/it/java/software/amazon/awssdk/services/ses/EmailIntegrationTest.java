@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.ses.model.Body;
 import software.amazon.awssdk.services.ses.model.Content;
 import software.amazon.awssdk.services.ses.model.DeleteIdentityRequest;
@@ -111,7 +111,7 @@ public class EmailIntegrationTest extends IntegrationTestBase {
         assertNotNull(email.listIdentities(ListIdentitiesRequest.builder().maxItems(1).build()).nextToken());
     }
 
-    @Test(expected = AmazonServiceException.class)
+    @Test(expected = SdkServiceException.class)
     public void listIdentities_WithInvalidNextToken_ThrowsException() {
         email.listIdentities(ListIdentitiesRequest.builder().nextToken("invalid-next-token").build());
     }
@@ -170,7 +170,7 @@ public class EmailIntegrationTest extends IntegrationTestBase {
             try {
                 email.setIdentityDkimEnabled(SetIdentityDkimEnabledRequest.builder().identity(testDomain).build());
                 fail("Exception should have occurred during enable");
-            } catch (AmazonServiceException exception) {
+            } catch (SdkServiceException exception) {
                 // exception expected
             }
         } finally {

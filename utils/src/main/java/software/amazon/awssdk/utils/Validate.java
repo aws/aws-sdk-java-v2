@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -13,27 +13,9 @@
  * permissions and limitations under the License.
  */
 
-/*
- * Originally licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
 package software.amazon.awssdk.utils;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -66,13 +48,11 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  */
 @ReviewBeforeRelease("Remove the methods we don't end up using (and software.amazon.awssdk.core.util.ValidationUtils).")
 @SdkInternalApi
-public class Validate {
+public final class Validate {
     private static final String DEFAULT_IS_NULL_EX_MESSAGE = "The validated object is null";
 
-    /**
-     * Constructor. This class should not normally be instantiated.
-     */
-    public Validate() {}
+    private Validate() {
+    }
 
     // isTrue
     //---------------------------------------------------------------------------------
@@ -138,6 +118,30 @@ public class Validate {
             throw new NullPointerException(String.format("%s must not be null.", paramName));
         }
         return object;
+    }
+
+    /**
+     * <p>Validate that the specified char sequence is neither
+     * {@code null}, a length of zero (no characters), empty nor
+     * whitespace; otherwise throwing an exception with the specified
+     * message.
+     *
+     * <pre>Validate.paramNotBlank(myCharSequence, "myCharSequence");</pre>
+     *
+     * @param <T> the char sequence type
+     * @param chars  the character sequence to check
+     * @param paramName  The name of the param or field being checked.
+     * @return the validated char sequence (never {@code null} for method chaining)
+     * @throws NullPointerException if the char sequence is {@code null}
+     */
+    public static <T extends CharSequence> T paramNotBlank(final T chars, final String paramName) {
+        if (chars == null) {
+            throw new NullPointerException(String.format("%s must not be null.", paramName));
+        }
+        if (StringUtils.isBlank(chars)) {
+            throw new IllegalArgumentException(String.format("%s must not be blank or empty.", paramName));
+        }
+        return chars;
     }
 
     /**
@@ -584,5 +588,65 @@ public class Validate {
         if (!superType.isAssignableFrom(type)) {
             throw new IllegalArgumentException(String.format(message, values));
         }
+    }
+
+    /**
+     * Asserts that the given number is positive (non-negative and non-zero).
+     *
+     * @param num Number to validate
+     * @param fieldName Field name to display in exception message if not positive.
+     * @return Number if positive.
+     */
+    public static int isPositive(int num, String fieldName) {
+        if (num <= 0) {
+            throw new IllegalArgumentException(String.format("%s must be positive", fieldName));
+        }
+        return num;
+    }
+
+    public static int isNotNegative(int num, String fieldName) {
+
+        if (num < 0) {
+            throw new IllegalArgumentException(String.format("%s must not be negative", fieldName));
+        }
+
+        return num;
+    }
+
+    /**
+     * Asserts that the given duration is positive (non-negative and non-zero).
+     *
+     * @param duration Number to validate
+     * @param fieldName Field name to display in exception message if not positive.
+     * @return Duration if positive.
+     */
+    public static Duration isPositive(Duration duration, String fieldName) {
+        if (duration == null) {
+            throw new IllegalArgumentException(String.format("%s cannot be null", fieldName));
+        }
+
+        if (duration.isNegative() || duration.isZero()) {
+            throw new IllegalArgumentException(String.format("%s must be positive", fieldName));
+        }
+        return duration;
+    }
+
+    /**
+     * Asserts that the given duration is positive (non-negative and non-zero).
+     *
+     * @param duration Number to validate
+     * @param fieldName Field name to display in exception message if not positive.
+     * @return Duration if positive.
+     */
+    public static Duration isNotNegative(Duration duration, String fieldName) {
+        if (duration == null) {
+            throw new IllegalArgumentException(String.format("%s cannot be null", fieldName));
+        }
+
+        if (duration.isNegative()) {
+            throw new IllegalArgumentException(String.format("%s must not be negative", fieldName));
+        }
+
+        return duration;
     }
 }

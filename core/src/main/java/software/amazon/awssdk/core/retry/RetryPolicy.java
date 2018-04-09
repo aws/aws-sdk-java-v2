@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,221 +16,114 @@
 package software.amazon.awssdk.core.retry;
 
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.core.AmazonClientException;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
+import software.amazon.awssdk.core.retry.conditions.AndRetryCondition;
+import software.amazon.awssdk.core.retry.conditions.MaxNumberOfRetriesCondition;
+import software.amazon.awssdk.core.retry.conditions.RetryCondition;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Retry policy that can be configured on a specific service client using
- * {@link LegacyClientConfiguration}. This class is immutable, therefore safe to be
- * shared by multiple clients.
+ * Interface for specifying a retry policy to use when evaluating whether or not a request should be retried. An implementation
+ * of this interface can be provided to {@link ClientOverrideConfiguration#retryPolicy} or the {@link #builder()}} can be used
+ * to construct a retry policy from SDK provided policies or policies that directly implement {@link BackoffStrategy} and/or
+ * {@link RetryCondition}.
  *
- * @see LegacyClientConfiguration
- * @see PredefinedRetryPolicies
+ * When using the {@link #builder()} the SDK will use default values for fields that are not provided. The default number of
+ * retries that will be used is {@link SdkDefaultRetrySettings#DEFAULT_MAX_RETRIES}. The default retry condition is
+ * {@link RetryCondition#DEFAULT} and the default backoff strategy is {@link BackoffStrategy#defaultStrategy()}.
+ *
+ * @see RetryCondition for a list of SDK provided retry condition strategies
+ * @see BackoffStrategy for a list of SDK provided backoff strategies
  */
 @Immutable
-public final class RetryPolicy {
+@SdkPublicApi
+public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder, RetryPolicy> {
 
-    /**
-     * Condition on whether a request should be retried. This field
-     * should not be null.
-     */
+    public static final RetryPolicy DEFAULT = RetryPolicy.builder()
+                                                         .backoffStrategy(BackoffStrategy.defaultStrategy())
+                                                         .numRetries(SdkDefaultRetrySettings.DEFAULT_MAX_RETRIES)
+                                                         .retryCondition(RetryCondition.DEFAULT)
+                                                         .build();
+
+    public static final RetryPolicy NONE = RetryPolicy.builder()
+                                                      .backoffStrategy(BackoffStrategy.none())
+                                                      .retryCondition(RetryCondition.NONE)
+                                                      .build();
+
+    private final RetryCondition retryConditionFromBuilder;
     private final RetryCondition retryCondition;
-
-    /**
-     * Back-off strategy to control the sleep time between retry attempts. This
-     * field should not be null.
-     */
     private final BackoffStrategy backoffStrategy;
+    private final Integer numRetries;
 
-    /**
-     * Non-negative integer indicating the max retry count.
-     */
-    private final int maxErrorRetry;
-
-    /**
-     * Whether this retry policy should honor the max error retry set in ClientConfiguration.
-     */
-    private final boolean honorMaxErrorRetryInClientConfig;
-
-    /**
-     * Constructs a new retry policy. See {@link PredefinedRetryPolicies} for
-     * some pre-defined policy components, and also the default policies used by
-     * SDK.
-     *
-     * @param retryCondition
-     *            Retry condition on whether a specific request and exception
-     *            should be retried. If null value is specified, the SDK'
-     *            default retry condition is used.
-     * @param backoffStrategy
-     *            Back-off strategy for controlling how long the next retry
-     *            should wait. If null value is specified, the SDK' default
-     *            exponential back-off strategy is used.
-     * @param maxErrorRetry
-     *            Maximum number of retry attempts for failed requests.
-     * @param honorMaxErrorRetryInClientConfig
-     *            Whether this retry policy should honor the max error retry set
-     *            in configuration
-     * @see PredefinedRetryPolicies
-     */
-    public RetryPolicy(RetryCondition retryCondition,
-                       BackoffStrategy backoffStrategy,
-                       int maxErrorRetry,
-                       boolean honorMaxErrorRetryInClientConfig) {
-        if (retryCondition == null) {
-            retryCondition = PredefinedRetryPolicies.DEFAULT_RETRY_CONDITION;
-        }
-        if (backoffStrategy == null) {
-            backoffStrategy = PredefinedRetryPolicies.DEFAULT_BACKOFF_STRATEGY;
-        }
-        if (maxErrorRetry < 0) {
-            throw new IllegalArgumentException("Please provide a non-negative value for maxErrorRetry.");
-        }
-
-        this.retryCondition = retryCondition;
-        this.backoffStrategy = backoffStrategy;
-        this.maxErrorRetry = maxErrorRetry;
-        this.honorMaxErrorRetryInClientConfig = honorMaxErrorRetryInClientConfig;
+    RetryPolicy(Builder builder) {
+        this.backoffStrategy = builder.backoffStrategy;
+        this.numRetries = builder.numRetries;
+        this.retryConditionFromBuilder = builder.retryCondition;
+        this.retryCondition = new AndRetryCondition(new MaxNumberOfRetriesCondition(numRetries), retryConditionFromBuilder);
     }
 
-    ;
-
-    /**
-     * Returns the retry condition included in this retry policy.
-     *
-     * @return The retry condition included in this retry policy.
-     */
-    public RetryCondition getRetryCondition() {
+    public RetryCondition retryCondition() {
         return retryCondition;
     }
 
-    /**
-     * Returns the back-off strategy included in this retry policy.
-     *
-     * @return The back-off strategy included in this retry policy.
-     */
-    public BackoffStrategy getBackoffStrategy() {
+    public BackoffStrategy backoffStrategy() {
         return backoffStrategy;
     }
 
-    /**
-     * Returns the maximum number of retry attempts.
-     *
-     * @return The maximum number of retry attempts.
-     */
-    public int getMaxErrorRetry() {
-        return maxErrorRetry;
+    public Integer numRetries() {
+        return numRetries;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public Builder toBuilder() {
+        return builder().numRetries(numRetries).retryCondition(retryConditionFromBuilder).backoffStrategy(backoffStrategy);
     }
 
     /**
-     * Returns whether this retry policy should honor the max error retry set in
-     * ClientConfiguration.
-     *
-     * @return Whether this retry policy should honor the max error retry set in
-     *         ClientConfiguration
+     * Builder for a {@link RetryPolicy}.
      */
-    @ReviewBeforeRelease("This isn't used.")
-    public boolean isMaxErrorRetryInClientConfigHonored() {
-        return honorMaxErrorRetryInClientConfig;
-    }
+    public static final class Builder implements CopyableBuilder<Builder, RetryPolicy> {
 
-    /**
-     * The hook for providing custom condition on whether a failed request
-     * should be retried.
-     */
-    public interface RetryCondition {
-        RetryCondition NO_RETRY_CONDITION = new RetryCondition() {
-            @Override
-            public boolean shouldRetry(AmazonWebServiceRequest originalRequest,
-                                       AmazonClientException exception,
-                                       int retriesAttempted) {
-                return false;
-            }
-        };
+        private Integer numRetries = SdkDefaultRetrySettings.DEFAULT_MAX_RETRIES;
+        private BackoffStrategy backoffStrategy = BackoffStrategy.defaultStrategy();
+        private RetryCondition retryCondition = RetryCondition.DEFAULT;
 
-        /**
-         * Returns whether a failed request should be retried according to the
-         * given request context. In the following circumstances, the request
-         * will fail directly without consulting this method:
-         * <ul>
-         *   <li> if it has already reached the max retry limit,
-         *   <li> if the request contains non-repeatable content,
-         *   <li> if any RuntimeException or Error is thrown when executing the request.
-         * </ul>
-         *
-         * @param originalRequest
-         *            The original request object being executed. For
-         *            performance reason, this object is not a defensive copy,
-         *            and caller should not attempt to modify its data.
-         * @param exception
-         *            The exception from the failed request, represented as an
-         *            AmazonClientException object. There are two types of
-         *            exception that will be passed to this method:
-         *            <ul>
-         *            <li>AmazonServiceException (sub-class of
-         *            AmazonClientException) indicating a service error
-         *            <li>AmazonClientException caused by an IOException when
-         *            executing the HTTP request.
-         *            </ul>
-         *            Any other exceptions are regarded as unexpected failures
-         *            and are thrown immediately without any retry. For
-         *            performance reason, this object is not a defensive copy,
-         *            and caller should not attempt to modify its data.
-         * @param retriesAttempted
-         *            The number of times the current request has been
-         *            attempted.
-         *
-         * @return True if the failed request should be retried.
-         */
-        boolean shouldRetry(AmazonWebServiceRequest originalRequest,
-                            AmazonClientException exception,
-                            int retriesAttempted);
+        public Builder numRetries(Integer numRetries) {
+            this.numRetries = numRetries;
+            return this;
+        }
 
-    }
+        public Integer numRetries() {
+            return numRetries;
+        }
 
-    /**
-     * The hook for providing custom back-off strategy to control the sleep time
-     * between retries.
-     */
-    public interface BackoffStrategy {
-        RetryPolicy.BackoffStrategy NO_DELAY = new BackoffStrategy() {
-            @Override
-            public long delayBeforeNextRetry(AmazonWebServiceRequest originalRequest,
-                                             AmazonClientException exception,
-                                             int retriesAttempted) {
-                return 0;
-            }
-        };
+        public Builder backoffStrategy(BackoffStrategy backoffStrategy) {
+            this.backoffStrategy = backoffStrategy;
+            return this;
+        }
 
-        /**
-         * Returns the delay (in milliseconds) before next retry attempt.
-         *
-         * @param originalRequest
-         *            The original request object being executed. For
-         *            performance reason, this object is not a defensive copy,
-         *            and caller should not attempt to modify its data.
-         * @param exception
-         *            The exception from the failed request, represented as an
-         *            AmazonClientException object. There are two types of
-         *            exception that will be passed to this method:
-         *            <ul>
-         *              <li>AmazonServiceException (sub-class of
-         *                  AmazonClientException) indicating a service error
-         *              <li>AmazonClientException caused by an IOException when
-         *                  executing the HTTP request.
-         *            </ul>
-         *            Any other exceptions are regarded as unexpected failures
-         *            and are thrown immediately without any retry. For
-         *            performance reason, this object is not a defensive copy,
-         *            and caller should not attempt to modify its data.
-         * @param retriesAttempted
-         *            The number of times the current request has been attempted
-         *            (not including the next attempt after the delay).
-         *
-         * @return The delay (in milliseconds) before next retry attempt.
-         */
-        long delayBeforeNextRetry(AmazonWebServiceRequest originalRequest,
-                                  AmazonClientException exception,
-                                  int retriesAttempted);
+        public BackoffStrategy backoffStrategy() {
+            return backoffStrategy;
+        }
+
+        public Builder retryCondition(RetryCondition retryCondition) {
+            this.retryCondition = retryCondition;
+            return this;
+        }
+
+        public RetryCondition retryCondition() {
+            return retryCondition;
+        }
+
+        @Override
+        public RetryPolicy build() {
+            return new RetryPolicy(this);
+        }
     }
 }

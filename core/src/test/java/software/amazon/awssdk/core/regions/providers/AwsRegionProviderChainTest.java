@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.regions.Region;
 
 public class AwsRegionProviderChainTest {
@@ -85,14 +85,14 @@ public class AwsRegionProviderChainTest {
         assertNull(chain.getRegion());
     }
 
-    private static class NeverAwsRegionProvider extends AwsRegionProvider {
+    private static class NeverAwsRegionProvider implements AwsRegionProvider {
         @Override
-        public Region getRegion() throws AmazonClientException {
+        public Region getRegion() throws SdkClientException {
             return null;
         }
     }
 
-    private static class StaticAwsRegionProvider extends AwsRegionProvider {
+    private static class StaticAwsRegionProvider implements AwsRegionProvider {
         private final Region region;
 
         public StaticAwsRegionProvider(Region region) {
@@ -105,16 +105,16 @@ public class AwsRegionProviderChainTest {
         }
     }
 
-    private static class FaultyAwsRegionProvider extends AwsRegionProvider {
+    private static class FaultyAwsRegionProvider implements AwsRegionProvider {
         @Override
-        public Region getRegion() throws AmazonClientException {
-            throw new AmazonClientException("Unable to fetch region info");
+        public Region getRegion() throws SdkClientException {
+            throw new SdkClientException("Unable to fetch region info");
         }
     }
 
-    private static class FatalAwsRegionProvider extends AwsRegionProvider {
+    private static class FatalAwsRegionProvider implements AwsRegionProvider {
         @Override
-        public Region getRegion() throws AmazonClientException {
+        public Region getRegion() throws SdkClientException {
             throw new Error("Something really bad happened");
         }
     }

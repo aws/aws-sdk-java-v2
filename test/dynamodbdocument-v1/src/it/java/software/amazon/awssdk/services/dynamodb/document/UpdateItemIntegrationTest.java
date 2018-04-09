@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import java.util.Set;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.document.spec.GetItemSpec;
 import software.amazon.awssdk.services.dynamodb.document.utils.NameMap;
@@ -207,7 +207,7 @@ public class UpdateItemIntegrationTest {
                     new AttributeUpdate("phone").addElements(phoneNumber2));
             fail("Update Should fail as the phone number attribute is not present in the row");
         } catch (Exception e) {
-            assertTrue(e instanceof AmazonServiceException);
+            assertTrue(e instanceof SdkServiceException);
         }
     }
 
@@ -267,7 +267,7 @@ public class UpdateItemIntegrationTest {
                             .withString(":zipcode", "98104")
                             );
             fail("Update Should fail as the zip code mentioned in the conditon expression doesn't match");
-        } catch (AmazonServiceException e) {
+        } catch (SdkServiceException e) {
             assertTrue(e.getMessage().contains("conditional request failed"));
         }
     }

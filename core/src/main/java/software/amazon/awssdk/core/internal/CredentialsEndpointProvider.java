@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@ package software.amazon.awssdk.core.internal;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryPolicy;
 
@@ -30,26 +31,32 @@ import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryPolicy
  * </p>
  */
 @SdkInternalApi
-public abstract class CredentialsEndpointProvider {
+@FunctionalInterface
+public interface CredentialsEndpointProvider {
     /**
      * Returns the URI that contains the credentials.
      * @return
      *         URI to retrieve the credentials.
      *
-     * @throws URISyntaxException
-     *                 If the endpoint string could not be parsed as a URI reference.
-     *
      * @throws IOException
      *                 If any problems are encountered while connecting to the
      *                 service to retrieve the endpoint.
      */
-    public abstract URI getCredentialsEndpoint() throws URISyntaxException, IOException;
+    URI endpoint() throws IOException;
 
     /**
      * Allows the extending class to provide a custom retry policy.
      * The default behavior is not to retry.
      */
-    public CredentialsEndpointRetryPolicy getRetryPolicy() {
+    default CredentialsEndpointRetryPolicy retryPolicy() {
         return CredentialsEndpointRetryPolicy.NO_RETRY;
     }
+
+    /**
+     * Allows passing additional headers to the request
+     */
+    default Map<String, String> headers() {
+        return Collections.emptyMap();
+    }
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,11 +19,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.waiters.FixedDelayStrategy;
-import software.amazon.awssdk.core.waiters.MaxAttemptsRetryStrategy;
-import software.amazon.awssdk.core.waiters.PollingStrategy;
-import software.amazon.awssdk.core.waiters.Waiter;
-import software.amazon.awssdk.core.waiters.WaiterParameters;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.document.api.DeleteItemApi;
 import software.amazon.awssdk.services.dynamodb.document.api.GetItemApi;
@@ -456,19 +451,7 @@ public class Table implements PutItemApi, GetItemApi, QueryApi, ScanApi,
      * @throws ResourceNotFoundException if the table doesn't exist
      */
     public TableDescription waitForActive() throws InterruptedException {
-        Waiter waiter = client.waiters().tableExists();
-
-        try {
-            waiter.run(new WaiterParameters<>(DescribeTableRequest.builder().tableName(tableName).build())
-                               .withPollingStrategy(new PollingStrategy(new MaxAttemptsRetryStrategy(25),
-                                                                        new FixedDelayStrategy(5))));
-            return describe();
-        } catch (Exception exception) {
-            // The additional describe call is to return ResourceNotFoundException if the table doesn't exist.
-            // This is to preserve backwards compatibility.
-            describe();
-            throw new IllegalArgumentException("Table " + tableName + " did not transition into ACTIVE state.", exception);
-        }
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -478,14 +461,7 @@ public class Table implements PutItemApi, GetItemApi, QueryApi, ScanApi,
      * to poll the status of the table every 5 seconds.
      */
     public void waitForDelete() throws InterruptedException {
-        Waiter waiter = client.waiters().tableNotExists();
-        try {
-            waiter.run(new WaiterParameters<>(DescribeTableRequest.builder().tableName(tableName).build())
-                               .withPollingStrategy(new PollingStrategy(new MaxAttemptsRetryStrategy(25),
-                                                                        new FixedDelayStrategy(5))));
-        } catch (Exception exception) {
-            throw new IllegalArgumentException("Table " + tableName + " is not deleted.", exception);
-        }
+        throw new UnsupportedOperationException();
     }
 
     /**

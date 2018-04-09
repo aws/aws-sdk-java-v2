@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,11 +15,7 @@
 
 package software.amazon.awssdk.core.http.pipeline.stages;
 
-import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishProgress;
-
 import software.amazon.awssdk.core.RequestExecutionContext;
-import software.amazon.awssdk.core.event.ProgressEventType;
-import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.core.http.HttpSyncClientDependencies;
 import software.amazon.awssdk.core.http.InterruptMonitor;
 import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
@@ -48,12 +44,7 @@ public class MakeHttpRequestStage
     public Pair<SdkHttpFullRequest, SdkHttpFullResponse> execute(SdkHttpFullRequest request,
                                                                  RequestExecutionContext context) throws Exception {
         InterruptMonitor.checkInterrupted();
-        final ProgressListener listener = context.requestConfig().getProgressListener();
-
-        publishProgress(listener, ProgressEventType.HTTP_REQUEST_STARTED_EVENT);
         final SdkHttpFullResponse httpResponse = executeHttpRequest(request, context);
-        publishProgress(listener, ProgressEventType.HTTP_REQUEST_COMPLETED_EVENT);
-
         return Pair.of(request, httpResponse);
     }
 

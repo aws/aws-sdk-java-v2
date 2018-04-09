@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -34,6 +34,9 @@ import software.amazon.awssdk.codegen.model.intermediate.VariableModel;
  * operations and then adding the shapes referenced by each shapes.
  */
 final class RemoveUnusedShapes {
+
+    private RemoveUnusedShapes() {
+    }
 
     public static Map<String, ShapeModel> removeUnusedShapes(IntermediateModel model) {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import software.amazon.awssdk.codegen.model.service.Input;
 import software.amazon.awssdk.codegen.model.service.Member;
 import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.Output;
+import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
@@ -41,10 +42,12 @@ final class AddOperations {
 
     private final ServiceModel serviceModel;
     private final NamingStrategy namingStrategy;
+    private final Map<String, PaginatorDefinition> paginators;
 
     AddOperations(IntermediateModelBuilder builder) {
         this.serviceModel = builder.getService();
         this.namingStrategy = builder.getNamingStrategy();
+        this.paginators = builder.getPaginators().getPaginators();
     }
 
     private static boolean isAuthenticated(Operation op) {
@@ -151,6 +154,7 @@ final class AddOperations {
             operationModel.setDeprecated(op.isDeprecated());
             operationModel.setDocumentation(op.getDocumentation());
             operationModel.setIsAuthenticated(isAuthenticated(op));
+            operationModel.setPaginated(isPaginated(op));
 
             final Input input = op.getInput();
             if (input != null) {
@@ -218,5 +222,9 @@ final class AddOperations {
      */
     private Integer getHttpStatusCode(ErrorTrait errorTrait) {
         return errorTrait == null ? null : errorTrait.getHttpStatusCode();
+    }
+
+    private boolean isPaginated(Operation op) {
+        return paginators.keySet().contains(op.getName()) && paginators.get(op.getName()).isValid();
     }
 }

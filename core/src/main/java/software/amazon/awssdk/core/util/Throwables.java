@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,14 +16,16 @@
 package software.amazon.awssdk.core.util;
 
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.AbortedException;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.AbortedException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 /**
  * Utility for use with errors or exceptions.
  */
-public enum Throwables {
-    ;
+public final class Throwables {
+
+    private Throwables() {
+    }
 
     /**
      * Returns the root cause of the given throwable, or null if the given
@@ -63,12 +65,12 @@ public enum Throwables {
         }
         return t instanceof InterruptedException
                ? new AbortedException(t)
-               : new AmazonClientException(t);
+               : new SdkClientException(t);
     }
 
     /**
      * Same as {@link #failure(Throwable)}, but the given errmsg will be used if
-     * it was wrapped as either an {@link AmazonClientException} or
+     * it was wrapped as either an {@link SdkClientException} or
      * {@link AbortedException}.
      */
     public static RuntimeException failure(Throwable t, String errmsg) {
@@ -80,6 +82,6 @@ public enum Throwables {
         }
         return t instanceof InterruptedException
                ? new AbortedException(errmsg, t)
-               : new AmazonClientException(errmsg, t);
+               : new SdkClientException(errmsg, t);
     }
 }

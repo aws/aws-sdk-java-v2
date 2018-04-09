@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core;
 
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponse;
 
 /**
@@ -26,18 +27,18 @@ import software.amazon.awssdk.core.http.HttpResponse;
 public final class Response<T> {
     private final boolean isSuccess;
     private final T response;
-    private final SdkBaseException exception;
+    private final SdkException exception;
     private final HttpResponse httpResponse;
 
     /**
-     * @deprecated Use {@link #Response(boolean, Object, SdkBaseException, HttpResponse)}
+     * @deprecated Use {@link #Response(boolean, Object, SdkException, HttpResponse)}
      */
     @Deprecated
     public Response(T response, HttpResponse httpResponse) {
         this(true, response, null, httpResponse);
     }
 
-    private Response(boolean isSuccess, T response, SdkBaseException exception, HttpResponse httpResponse) {
+    private Response(boolean isSuccess, T response, SdkException exception, HttpResponse httpResponse) {
         this.isSuccess = isSuccess;
         this.response = response;
         this.exception = exception;
@@ -48,7 +49,7 @@ public final class Response<T> {
         return response;
     }
 
-    public SdkBaseException getException() {
+    public SdkException getException() {
         return exception;
     }
 
@@ -69,7 +70,7 @@ public final class Response<T> {
         return new Response<>(true, response, null, httpResponse);
     }
 
-    public static <T> Response<T> fromFailure(SdkBaseException exception, HttpResponse httpResponse) {
+    public static <T> Response<T> fromFailure(SdkException exception, HttpResponse httpResponse) {
         return new Response<>(false, null, exception, httpResponse);
     }
 }

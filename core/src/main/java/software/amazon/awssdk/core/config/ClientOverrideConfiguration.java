@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,11 +21,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.retry.v2.RetryPolicy;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -167,6 +169,19 @@ public class ClientOverrideConfiguration
         return lastExecutionInterceptors;
     }
 
+    @Override
+    public String toString() {
+        return ToString.builder("ClientOverrideConfiguration")
+                       .add("httpRequestTimeout", httpRequestTimeout)
+                       .add("totalExecutionTimeout", totalExecutionTimeout)
+                       .add("additionalHttpHeaders", additionalHttpHeaders)
+                       .add("gzipEnabled", gzipEnabled)
+                       .add("retryPolicy", retryPolicy)
+                       .add("lastExecutionInterceptors", lastExecutionInterceptors)
+                       .add("advancedOptions", advancedOptions)
+                       .build();
+    }
+
     /**
      * A builder for {@link ClientOverrideConfiguration}.
      *
@@ -247,6 +262,13 @@ public class ClientOverrideConfiguration
          * @see ClientOverrideConfiguration#retryPolicy()
          */
         Builder retryPolicy(RetryPolicy retryPolicy);
+
+        /**
+         * Configure the retry policy the should be used when handling failure cases.
+         */
+        default Builder retryPolicy(Consumer<RetryPolicy.Builder> retryPolicy) {
+            return retryPolicy(RetryPolicy.builder().apply(retryPolicy).build());
+        }
 
         /**
          * Configure a list of execution interceptors that will have access to read and modify the request and response objcets as

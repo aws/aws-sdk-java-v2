@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,16 +17,15 @@ package software.amazon.awssdk.core;
 
 import java.util.Optional;
 
+import software.amazon.awssdk.annotations.Immutable;
+
 /**
  * The base class for all SDK responses.
  *
- * TODO: SDK-specific options on the {@link AmazonWebServiceResponse} and {@link AmazonWebServiceResult} should be migrated here
- * as part of the base-model refactor.
- *
  * @see SdkRequest
  */
+@Immutable
 public abstract class SdkResponse {
-
     /**
      * Used to retrieve the value of a field from any class that extends {@link SdkResponse}. The field name
      * specified should match the member name from the corresponding service-2.json model specified in the
@@ -40,5 +39,11 @@ public abstract class SdkResponse {
      */
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         return Optional.empty();
+    }
+
+    public abstract Builder toBuilder();
+
+    public interface Builder {
+        SdkResponse build();
     }
 }

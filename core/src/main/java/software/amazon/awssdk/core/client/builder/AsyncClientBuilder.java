@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.client.builder;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Consumer;
 
 /**
  * This includes required and optional override configuration required by every async client builder. An instance can be acquired
@@ -49,4 +50,20 @@ public interface AsyncClientBuilder<B extends AsyncClientBuilder<B, C>, C>
      * finished with it, the SDK will only close HTTP clients that it creates.
      */
     B asyncHttpConfiguration(ClientAsyncHttpConfiguration asyncHttpConfiguration);
+
+    /**
+     * Configures the HTTP client used by the service client.
+     *
+     * Allows just specifying the builder parameters without having to instantiate a builder and call <code>build</code> on it.
+     * For example
+     *
+     * <pre><code>
+     *     builder().asyncHttpConfiguration(b -> b.httpClient(client));
+     * </code></pre>
+     *
+     * @see #asyncHttpConfiguration(ClientAsyncHttpConfiguration)
+     */
+    default B asyncHttpConfiguration(Consumer<ClientAsyncHttpConfiguration.Builder> asyncHttpConfiguration) {
+        return asyncHttpConfiguration(ClientAsyncHttpConfiguration.builder().apply(asyncHttpConfiguration).build());
+    }
 }

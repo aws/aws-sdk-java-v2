@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,59 +15,26 @@
 
 package software.amazon.awssdk.core.regions.providers;
 
-import java.io.File;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.profile.Profile;
+import software.amazon.awssdk.auth.profile.ProfileFile;
 import software.amazon.awssdk.core.AwsSystemSetting;
-import software.amazon.awssdk.core.SdkClientException;
-import software.amazon.awssdk.core.auth.profile.internal.AllProfiles;
-import software.amazon.awssdk.core.auth.profile.internal.BasicProfile;
-import software.amazon.awssdk.core.auth.profile.internal.BasicProfileConfigLoader;
-import software.amazon.awssdk.core.profile.path.AwsProfileFileLocationProvider;
 import software.amazon.awssdk.core.regions.Region;
-import software.amazon.awssdk.utils.StringUtils;
 
 /**
- * Loads region information from the shared AWS config file. Uses the default profile unless
- * otherwise specified.
+ * Loads region information from the {@link ProfileFile#defaultProfileFile()} using the default profile name.
  */
-public class AwsProfileRegionProvider extends AwsRegionProvider {
+@SdkInternalApi
+class AwsProfileRegionProvider implements AwsRegionProvider {
 
-    private final String profileName;
-    private final AwsProfileFileLocationProvider locationProvider;
-    private final BasicProfileConfigLoader profileConfigLoader;
-
-    public AwsProfileRegionProvider() {
-        this(AwsSystemSetting.AWS_DEFAULT_PROFILE.getStringValueOrThrow());
-    }
-
-    public AwsProfileRegionProvider(String profileName) {
-        this(profileName, AwsProfileFileLocationProvider.DEFAULT_CONFIG_LOCATION_PROVIDER,
-             BasicProfileConfigLoader.INSTANCE);
-    }
-
-    @SdkTestInternalApi
-    AwsProfileRegionProvider(String profileName, AwsProfileFileLocationProvider locationProvider,
-                             BasicProfileConfigLoader configLoader) {
-        this.profileName = profileName;
-        this.locationProvider = locationProvider;
-        this.profileConfigLoader = configLoader;
-    }
+    private final String profileName = AwsSystemSetting.AWS_PROFILE.getStringValueOrThrow();
 
     @Override
-    public Region getRegion() throws SdkClientException {
-        File configFile = locationProvider.getLocation();
-        if (configFile != null && configFile.exists()) {
-            BasicProfile profile = loadProfile(configFile);
-            if (profile != null && !StringUtils.isEmpty(profile.getRegion())) {
-                return Region.of(profile.getRegion());
-            }
-        }
-        return null;
+    public Region getRegion() {
+        return ProfileFile.defaultProfileFile()
+                          .profile(profileName)
+                          .flatMap(Profile::region)
+                          .orElse(null);
     }
-
-    private BasicProfile loadProfile(File configFile) {
-        final AllProfiles allProfiles = profileConfigLoader.loadProfiles(configFile);
-        return allProfiles.getProfile(profileName);
-    }
-
 }
+

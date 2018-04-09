@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,13 +18,11 @@ package software.amazon.awssdk.core.client;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseHandler;
 import software.amazon.awssdk.core.config.AsyncClientConfiguration;
-import software.amazon.awssdk.core.internal.AmazonWebServiceRequestAdapter;
 import software.amazon.awssdk.core.internal.http.response.AwsErrorResponseHandler;
 
 /**
@@ -61,8 +59,7 @@ public class SdkAsyncClientHandler extends AsyncClientHandler {
 
     private <InputT extends SdkRequest, OutputT> ClientExecutionParams<InputT, OutputT> addRequestConfig(
             ClientExecutionParams<InputT, OutputT> params) {
-        return params.withRequestConfig(new AmazonWebServiceRequestAdapter((AmazonWebServiceRequest) params.getInput()))
-                     .withErrorResponseHandler(
+        return params.withErrorResponseHandler(
                              // TODO this is a hack to get the build working. Also doesn't deal with AwsResponseHandlerAdapter
                              new AwsErrorResponseHandler(params.getErrorResponseHandler()));
     }

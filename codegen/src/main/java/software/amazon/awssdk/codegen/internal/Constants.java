@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.internal;
 
-public class Constants {
+public final class Constants {
 
     public static final String CODEGEN_CONFIG_FILE = "codegen.config";
 
@@ -36,6 +36,10 @@ public class Constants {
 
     public static final String BASE_EXCEPTION_NAME_PATTERN = "%sException";
 
+    public static final String BASE_REQUEST_NAME_PATTERN = "%sRequest";
+
+    public static final String BASE_RESPONSE_NAME_PATTERN = "%sResponse";
+
     public static final String PROTOCOL_CONFIG_LOCATION = "/protocol-config/%s.json";
 
     public static final String JAVA_FILE_NAME_SUFFIX = ".java";
@@ -48,7 +52,7 @@ public class Constants {
 
     public static final String PACKAGE_NAME_TRANSFORM_PATTERN = "%s.transform";
 
-    public static final String PACKAGE_NAME_WAITERS_PATTERN = "%s.waiters";
+    public static final String PACKAGE_NAME_PAGINATORS_PATTERN = "%s.paginators";
 
     public static final String PACKAGE_NAME_SMOKE_TEST_PATTERN = "%s.smoketests";
 
@@ -74,4 +78,6 @@ public class Constants {
 
     public static final String APPROVED_SIMPLE_METHOD_VERBS = "(get|list|describe|lookup|batchGet).*";
 
+    private Constants() {
+    }
 }

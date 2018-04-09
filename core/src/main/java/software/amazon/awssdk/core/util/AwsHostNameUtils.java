@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class AwsHostNameUtils {
+public final class AwsHostNameUtils {
 
     private static final Pattern S3_ENDPOINT_PATTERN =
             Pattern.compile("^(?:.+\\.)?s3[.-]([a-z0-9-]+)$");
@@ -29,6 +29,9 @@ public class AwsHostNameUtils {
 
     private static final Pattern EXTENDED_CLOUDSEARCH_ENDPOINT_PATTERN =
             Pattern.compile("^(?:.+\\.)?([a-z0-9-]+)\\.cloudsearch\\..+");
+
+    private AwsHostNameUtils() {
+    }
 
     /**
      * @deprecated in favor of {@link #parseRegionName(String, String)}.

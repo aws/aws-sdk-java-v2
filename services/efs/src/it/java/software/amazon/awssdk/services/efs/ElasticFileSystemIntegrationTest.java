@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ public class ElasticFileSystemIntegrationTest extends AwsIntegrationTestBase {
         try {
             client.describeFileSystems(DescribeFileSystemsRequest.builder().fileSystemId("fs-00000000").build());
         } catch (FileSystemNotFoundException e) {
-            assertEquals("FileSystemNotFound", e.getErrorCode());
+            assertEquals("FileSystemNotFound", e.errorCode());
         }
     }
 

@@ -7,6 +7,7 @@ import io.netty.handler.codec.http2.Http2FrameLogger;
 import io.netty.handler.codec.http2.Http2Headers;
 import io.netty.handler.codec.http2.Http2Settings;
 import io.netty.handler.logging.LogLevel;
+import java.nio.charset.StandardCharsets;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
@@ -110,6 +111,7 @@ class SdkHttp2FrameLogger extends Http2FrameLogger {
 
     @Override
     public void logData(Direction direction, ChannelHandlerContext ctx, int streamId, ByteBuf data, int padding, boolean endStream) {
+        log("REMOTE = " + ctx.channel().remoteAddress().toString());
         log("{} DATA: streamId={} padding={} endStream={} length={}\n{}",
             direction, streamId, padding, endStream, data.nioBuffer().remaining(),
             dataToString(direction, data));
@@ -120,14 +122,14 @@ class SdkHttp2FrameLogger extends Http2FrameLogger {
     }
 
     private String dataToString(Direction direction, ByteBuf data) {
-        StringBuilder builder = new StringBuilder(indentArrow(direction));
-        for (byte b : BinaryUtils.copyBytesFrom(data.nioBuffer())) {
-            builder.append(String.format("0x%02X", b))
-                   .append(" ");
-        }
-        return builder.toString();
+//        StringBuilder builder = new StringBuilder(indentArrow(direction));
+//        for (byte b : BinaryUtils.copyBytesFrom(data.nioBuffer())) {
+//            builder.append(String.format("0x%02X", b))
+//                   .append(" ");
+//        }
+//        return builder.toString();
         // TODO ?
-        //        return indentArrow(direction) + " " +
-        //               new String(BinaryUtils.copyBytesFrom(data.nioBuffer()), StandardCharsets.UTF_8);
+                return indentArrow(direction) + " " +
+                       new String(BinaryUtils.copyBytesFrom(data.nioBuffer()), StandardCharsets.UTF_8);
     }
 }

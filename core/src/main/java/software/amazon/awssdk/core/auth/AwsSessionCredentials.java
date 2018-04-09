@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.auth;
 
 import java.util.Objects;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -26,6 +27,11 @@ import software.amazon.awssdk.utils.Validate;
 public class AwsSessionCredentials extends AwsCredentials {
     private final String sessionToken;
 
+    private AwsSessionCredentials(String accessKey, String secretKey, String sessionToken) {
+        super(accessKey, secretKey);
+        this.sessionToken = Validate.notNull(sessionToken, "Session token cannot be null.");
+    }
+
     /**
      * Constructs a new session credentials object, with the specified AWS access key, AWS secret key and AWS session token.
      *
@@ -34,9 +40,8 @@ public class AwsSessionCredentials extends AwsCredentials {
      * @param sessionToken The AWS session token, retrieved from an AWS token service, used for authenticating that this user has
      *                     received temporary permission to access some resource.
      */
-    public AwsSessionCredentials(String accessKey, String secretKey, String sessionToken) {
-        super(accessKey, secretKey);
-        this.sessionToken = Validate.notNull(sessionToken, "Session token cannot be null.");
+    public static AwsSessionCredentials create(String accessKey, String secretKey, String sessionToken) {
+        return new AwsSessionCredentials(accessKey, secretKey, sessionToken);
     }
 
     /**
@@ -49,7 +54,9 @@ public class AwsSessionCredentials extends AwsCredentials {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + accessKeyId() + ")";
+        return ToString.builder("AwsSessionCredentials")
+                       .add("accessKeyId", accessKeyId())
+                       .build();
     }
 
     @Override

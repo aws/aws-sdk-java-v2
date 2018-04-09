@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,10 +17,6 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.codec.http.HttpRequest;
-import java.nio.ByteBuffer;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
@@ -32,19 +28,20 @@ public final class RequestContext {
     private final SdkHttpRequestProvider requestProvider;
     private final HttpRequest nettyRequest;
     private final SdkHttpResponseHandler handler;
-    private final Queue<ByteBuffer> pendingPublish = new LinkedList<>();
-    private final AtomicLong pendingRequests = new AtomicLong();
+    private final NettyConfiguration configuration;
 
     public RequestContext(ChannelPool channelPool,
                           SdkHttpRequest sdkRequest,
                           SdkHttpRequestProvider requestProvider,
                           HttpRequest nettyRequest,
-                          SdkHttpResponseHandler handler) {
+                          SdkHttpResponseHandler handler,
+                          NettyConfiguration configuration) {
         this.channelPool = channelPool;
         this.sdkRequest = sdkRequest;
         this.requestProvider = requestProvider;
         this.nettyRequest = nettyRequest;
         this.handler = handler;
+        this.configuration = configuration;
     }
 
     public SdkHttpResponseHandler handler() {
@@ -67,11 +64,7 @@ public final class RequestContext {
         return nettyRequest;
     }
 
-    public Queue<ByteBuffer> pendingPublish() {
-        return pendingPublish;
-    }
-
-    public AtomicLong pendingRequests() {
-        return pendingRequests;
+    NettyConfiguration configuration() {
+        return configuration;
     }
 }

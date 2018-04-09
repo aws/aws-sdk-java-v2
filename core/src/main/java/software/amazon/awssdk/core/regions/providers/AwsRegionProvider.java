@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,19 +16,22 @@
 package software.amazon.awssdk.core.regions.providers;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.regions.Region;
 
 /**
  * Interface for providing AWS region information. Implementations are free to use any strategy for
  * providing region information.
  */
-public abstract class AwsRegionProvider {
-
+@SdkProtectedApi
+@FunctionalInterface
+public interface AwsRegionProvider {
     /**
      * @return Region name to use or null if region information is not available.
      */
-    @ReviewBeforeRelease("Should this be Optional and have the same contract as credential providers?")
-    public abstract Region getRegion() throws SdkClientException;
+    @ReviewBeforeRelease("Should this throw exceptions so that its contract matches that of the credential providers? This is " +
+                         "currently a protected API used in STS, so we should decide before GA.")
+    Region getRegion() throws SdkClientException;
 
 }

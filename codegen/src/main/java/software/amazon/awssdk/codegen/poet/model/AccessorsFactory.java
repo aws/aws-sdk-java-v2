@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@ package software.amazon.awssdk.codegen.poet.model;
 
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
@@ -56,6 +58,16 @@ class AccessorsFactory {
         return new NonCollectionSetters(intermediateModel, shapeModel, memberModel, typeProvider).fluentDeclarations(returnType);
     }
 
+    public List<MethodSpec> convenienceSetterDeclarations(MemberModel memberModel, TypeName returnType) {
+        return intermediateModel.getCustomizationConfig().getConvenienceTypeOverloads().stream()
+                                .filter(c -> c.accepts(shapeModel, memberModel))
+                                .map(s -> new NonCollectionSetters(intermediateModel,
+                                                                   shapeModel,
+                                                                   memberModel,
+                                                                   typeProvider).convenienceDeclaration(returnType, s))
+                                .collect(Collectors.toList());
+    }
+
     public List<MethodSpec> fluentSetters(MemberModel memberModel, TypeName returnType) {
         if (memberModel.isList()) {
             return new ListSetters(intermediateModel, shapeModel, memberModel, typeProvider).fluent(returnType);
@@ -78,5 +90,23 @@ class AccessorsFactory {
         }
 
         return new NonCollectionSetters(intermediateModel, shapeModel, memberModel, typeProvider).beanStyle();
+    }
+
+    public List<MethodSpec> convenienceSetters(MemberModel memberModel, TypeName returnType) {
+
+        List<MethodSpec> convenienceSetters = new ArrayList<>();
+
+        intermediateModel.getCustomizationConfig().getConvenienceTypeOverloads().stream()
+                         .filter(c -> c.accepts(shapeModel, memberModel))
+                         .forEach(s -> {
+                             convenienceSetters.add(
+                                 new NonCollectionSetters(intermediateModel, shapeModel, memberModel, typeProvider)
+                                     .fluentConvenience(returnType, s));
+                             convenienceSetters.add(
+                                 new NonCollectionSetters(intermediateModel, shapeModel, memberModel, typeProvider)
+                                     .beanStyleConvenience(s));
+                         });
+
+        return convenienceSetters;
     }
 }

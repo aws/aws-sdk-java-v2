@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -20,12 +20,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -94,7 +94,7 @@ public final class AwsCredentialsProviderChain implements AwsCredentialsProvider
                 return credentials;
             } catch (RuntimeException e) {
                 // Ignore any exceptions and move onto the next provider
-                log.debug("Unable to load credentials from {}:{}", provider.toString(), e.getMessage(), e);
+                log.debug("Unable to load credentials from {}: {}", provider.toString(), e.getMessage(), e);
             }
         }
 
@@ -103,16 +103,14 @@ public final class AwsCredentialsProviderChain implements AwsCredentialsProvider
 
     @Override
     public void close() {
-        credentialsProviders.stream()
-                            .filter(AutoCloseable.class::isInstance)
-                            .map(AutoCloseable.class::cast)
-                            .forEach(c -> IoUtils.closeQuietly(c, null));
+        credentialsProviders.forEach(c -> IoUtils.closeIfCloseable(c, null));
     }
 
     @Override
     public String toString() {
-        String credentialProviders = credentialsProviders.stream().map(Object::toString).collect(Collectors.joining(", "));
-        return getClass().getSimpleName() + "(" + credentialProviders + ")";
+        return ToString.builder("AwsCredentialsProviderChain")
+                       .add("credentialsProviders", credentialsProviders)
+                       .build();
     }
 
     /**

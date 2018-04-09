@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
@@ -93,32 +94,33 @@ public class SdkHttpFullResponseAdapterTest {
     }
 
     @Test
-    public void adapt_InputStreamWithGzipEncoding_WrappedWithDecompressingStream() throws UnsupportedEncodingException {
-        InputStream content = getClass().getResourceAsStream("/resources/compressed_json_body.gz");
-        SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
-                                                              .statusCode(200)
-                                                              .header("Content-Encoding", "gzip")
-                                                              .content(new AbortableInputStream(content, () -> { }))
-                                                              .build();
-
-        HttpResponse adapted = adapt(httpResponse);
-
-        assertThat(adapted.getContent(), instanceOf(GZIPInputStream.class));
+    public void adapt_InputStreamWithGzipEncoding_WrappedWithDecompressingStream() throws IOException {
+        try (InputStream content = getClass().getResourceAsStream("/resources/compressed_json_body.gz")) {
+            SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
+                                                                  .statusCode(200)
+                                                                  .header("Content-Encoding", "gzip")
+                                                                  .content(new AbortableInputStream(content, () -> {
+                                                                  }))
+                                                                  .build();
+            HttpResponse adapted = adapt(httpResponse);
+            assertThat(adapted.getContent(), instanceOf(GZIPInputStream.class));
+        }
     }
 
     @Test
-    public void adapt_CalculateCrcFromCompressed_WrapsWithCrc32ThenGzip() throws UnsupportedEncodingException {
-        InputStream content = getClass().getResourceAsStream("/resources/compressed_json_body.gz");
-        SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
-                                                              .statusCode(200)
-                                                              .header("Content-Encoding", "gzip")
-                                                              .header("x-amz-crc32", "1234")
-                                                              .content(new AbortableInputStream(content, () -> { }))
-                                                              .build();
+    public void adapt_CalculateCrcFromCompressed_WrapsWithCrc32ThenGzip() throws IOException {
+        try (InputStream content = getClass().getResourceAsStream("/resources/compressed_json_body.gz")) {
+            SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
+                                                                  .statusCode(200)
+                                                                  .header("Content-Encoding", "gzip")
+                                                                  .header("x-amz-crc32", "1234")
+                                                                  .content(new AbortableInputStream(content, () -> {
+                                                                  }))
+                                                                  .build();
 
-        HttpResponse adapted = SdkHttpResponseAdapter.adapt(true, request, httpResponse);
-
-        assertThat(adapted.getContent(), instanceOf(GZIPInputStream.class));
+            HttpResponse adapted = SdkHttpResponseAdapter.adapt(true, request, httpResponse);
+            assertThat(adapted.getContent(), instanceOf(GZIPInputStream.class));
+        }
     }
 
     @Test(expected = UncheckedIOException.class)

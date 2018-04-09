@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ import software.amazon.awssdk.services.cloudsearchdomain.model.SearchRequest;
  * Unit tests for {@link SearchRequest}.
  */
 public class SearchRequestUnitTest {
-    private static final AwsCredentials CREDENTIALS = new AwsCredentials("access", "secret");
+    private static final AwsCredentials CREDENTIALS = AwsCredentials.create("access", "secret");
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(new WireMockConfiguration().port(0).notifier(new ConsoleNotifier(true)));
@@ -50,7 +50,7 @@ public class SearchRequestUnitTest {
     @Before
     public void testSetup() {
         searchClient = CloudSearchDomainClient.builder()
-                                              .credentialsProvider(new StaticCredentialsProvider(CREDENTIALS))
+                                              .credentialsProvider(StaticCredentialsProvider.create(CREDENTIALS))
                                               .region(Region.US_EAST_1)
                                               .endpointOverride(URI.create("http://localhost:" + wireMockRule.port()))
                                               .build();

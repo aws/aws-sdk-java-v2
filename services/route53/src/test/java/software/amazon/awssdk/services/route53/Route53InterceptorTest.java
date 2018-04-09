@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -25,12 +25,14 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.services.route53.internal.Route53IdInterceptor;
+import software.amazon.awssdk.services.route53.model.CreateHostedZoneRequest;
 import software.amazon.awssdk.services.route53.model.CreateHostedZoneResponse;
 import software.amazon.awssdk.services.route53.model.CreateReusableDelegationSetResponse;
 import software.amazon.awssdk.services.route53.model.DelegationSet;
 import software.amazon.awssdk.services.route53.model.GetHostedZoneResponse;
 import software.amazon.awssdk.services.route53.model.GetReusableDelegationSetResponse;
 import software.amazon.awssdk.services.route53.model.ListReusableDelegationSetsResponse;
+import software.amazon.awssdk.services.route53.model.Route53Request;
 
 /**
  * Unit test for request handler customization of delegation set id's
@@ -110,7 +112,7 @@ public class Route53InterceptorTest {
 
     private SdkResponse modifyResponse(ExecutionInterceptor interceptor, SdkResponse responseObject) {
         return interceptor.modifyResponse(InterceptorContext.builder()
-                                                            .request(new SdkRequest() {})
+                                                            .request(CreateHostedZoneRequest.builder().build())
                                                             .response(responseObject)
                                                             .build(),
                                           new ExecutionAttributes());

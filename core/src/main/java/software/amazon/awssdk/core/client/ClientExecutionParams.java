@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,10 +19,9 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.RequestConfig;
-import software.amazon.awssdk.core.SdkBaseException;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestProvider;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 
@@ -41,8 +40,7 @@ public class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private AsyncRequestProvider asyncRequestProvider;
     private Marshaller<Request<InputT>, InputT> marshaller;
     private HttpResponseHandler<OutputT> responseHandler;
-    private HttpResponseHandler<? extends SdkBaseException> errorResponseHandler;
-    private RequestConfig requestConfig;
+    private HttpResponseHandler<? extends SdkException> errorResponseHandler;
 
     public Marshaller<Request<InputT>, InputT> getMarshaller() {
         return marshaller;
@@ -73,22 +71,13 @@ public class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
         return this;
     }
 
-    public HttpResponseHandler<? extends SdkBaseException> getErrorResponseHandler() {
+    public HttpResponseHandler<? extends SdkException> getErrorResponseHandler() {
         return errorResponseHandler;
     }
 
     public ClientExecutionParams<InputT, OutputT> withErrorResponseHandler(
-            HttpResponseHandler<? extends SdkBaseException> errorResponseHandler) {
+            HttpResponseHandler<? extends SdkException> errorResponseHandler) {
         this.errorResponseHandler = errorResponseHandler;
-        return this;
-    }
-
-    public RequestConfig getRequestConfig() {
-        return requestConfig;
-    }
-
-    public ClientExecutionParams<InputT, OutputT> withRequestConfig(RequestConfig requestConfig) {
-        this.requestConfig = requestConfig;
         return this;
     }
 

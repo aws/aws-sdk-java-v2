@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -31,7 +31,10 @@ import java.util.Arrays;
 import org.junit.Assert;
 import software.amazon.awssdk.utils.IoUtils;
 
-public class SdkAsserts {
+public final class SdkAsserts {
+
+    private SdkAsserts() {
+    }
 
     /**
      * Asserts that the specified String is not null and not empty.

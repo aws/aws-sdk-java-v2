@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.storagegateway.model.DeleteGatewayRequest;
 import software.amazon.awssdk.services.storagegateway.model.InvalidGatewayRequestException;
@@ -52,11 +52,11 @@ public class ServiceIntegrationTest extends AwsTestBase {
 
     @Test(expected = InvalidGatewayRequestException.class)
     public void deleteGateway_InvalidArn_ThrowsException() {
-        sg.deleteGateway(DeleteGatewayRequest.builder().gatewayARN("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").build());
+        sg.deleteGateway(DeleteGatewayRequest.builder().gatewayARN("arn:aws:storagegateway:us-west-2:111122223333:gateway/sgw-12A3456B/volume/vol-1122AABBCCDDEEFFG").build());
     }
 
-    @Test(expected = AmazonServiceException.class)
-    public void deleteGateway_NullArn_ThrowsAmazonServiceException() {
+    @Test(expected = SdkServiceException.class)
+    public void deleteGateway_NullArn_ThrowsSdkServiceException() {
         sg.deleteGateway(DeleteGatewayRequest.builder().build());
 
     }

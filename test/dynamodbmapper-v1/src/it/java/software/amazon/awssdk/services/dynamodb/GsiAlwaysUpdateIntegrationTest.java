@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -22,13 +22,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.regions.Region;
-import software.amazon.awssdk.core.waiters.WaiterParameters;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbTableMapper;
-import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
+import software.amazon.awssdk.services.dynamodb.model.TableStatus;
 import software.amazon.awssdk.services.dynamodb.pojos.GsiWithAlwaysUpdateTimestamp;
+import software.amazon.awssdk.testutils.Waiter;
 
 public class GsiAlwaysUpdateIntegrationTest extends DynamoDBMapperIntegrationTestBase {
 
@@ -48,15 +49,18 @@ public class GsiAlwaysUpdateIntegrationTest extends DynamoDBMapperIntegrationTes
                 .withTableNameOverride(new DynamoDbMapperConfig.TableNameOverride(TABLE_NAME))
                 .build()).newTableMapper(GsiWithAlwaysUpdateTimestamp.class);
         mapper.createTable(ProvisionedThroughput.builder().readCapacityUnits(5L).writeCapacityUnits(5L).build());
-        ddb.waiters().tableExists()
-                .run(new WaiterParameters<DescribeTableRequest>(DescribeTableRequest.builder().tableName(TABLE_NAME).build()));
+        Waiter.run(() -> ddb.describeTable(r -> r.tableName(TABLE_NAME)))
+              .ignoringException(ResourceNotFoundException.class)
+              .until(r -> r.table().tableStatus() == TableStatus.ACTIVE)
+              .orFail();
     }
 
     @After
     public void tearDown() {
         mapper.deleteTableIfExists();
-        ddb.waiters().tableNotExists()
-                .run(new WaiterParameters<DescribeTableRequest>(DescribeTableRequest.builder().tableName(TABLE_NAME).build()));
+        Waiter.run(() -> ddb.describeTable(r -> r.tableName(TABLE_NAME)))
+              .untilException(ResourceNotFoundException.class)
+              .orFail();
     }
 
     @Test

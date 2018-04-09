@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -33,12 +33,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.core.AbortedException;
-import software.amazon.awssdk.core.AmazonClientException;
-import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.exception.AbortedException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.AmazonHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.MockServerTestBase;
+import software.amazon.awssdk.core.http.NoopTestAwsRequest;
+import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
 import software.amazon.awssdk.core.http.server.MockServer;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -113,10 +114,11 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockSer
         interruptCurrentThreadAfterDelay(1000);
         try {
             requestBuilder()
+                    .originalRequest(NoopTestAwsRequest.builder().build())
                     .executionContext(withInterceptors(new SlowExecutionInterceptor().afterTransmissionWaitInSeconds(10)))
                     .execute(new DummyResponseHandler().leaveConnectionOpen());
             fail("Expected exception");
-        } catch (AmazonClientException e) {
+        } catch (SdkClientException e) {
             assertThat(e.getCause(), instanceOf(InterruptedException.class));
         }
 
@@ -131,7 +133,7 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockSer
         return ExecutionContext.builder()
                                .signerProvider(new NoOpSignerProvider())
                                .executionAttributes(new ExecutionAttributes())
-                               .interceptorContext(InterceptorContext.builder().request(new SdkRequest() {}).build())
+                               .interceptorContext(InterceptorContext.builder().request(NoopTestRequest.builder().build()).build())
                                .interceptorChain(new ExecutionInterceptorChain(Arrays.asList(requestHandlers)))
                                .build();
     }

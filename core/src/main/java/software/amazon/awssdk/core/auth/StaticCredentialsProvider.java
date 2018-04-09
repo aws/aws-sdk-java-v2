@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.auth;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -25,11 +26,15 @@ import software.amazon.awssdk.utils.Validate;
 public class StaticCredentialsProvider implements AwsCredentialsProvider {
     private final AwsCredentials credentials;
 
+    private StaticCredentialsProvider(AwsCredentials credentials) {
+        this.credentials = Validate.notNull(credentials, "Credentials must not be null.");
+    }
+
     /**
      * Create a credentials provider that always returns the provided set of credentials.
      */
-    public StaticCredentialsProvider(AwsCredentials credentials) {
-        this.credentials = Validate.notNull(credentials, "Credentials must not be null.");
+    public static StaticCredentialsProvider create(AwsCredentials credentials) {
+        return new StaticCredentialsProvider(credentials);
     }
 
     @Override
@@ -39,6 +44,8 @@ public class StaticCredentialsProvider implements AwsCredentialsProvider {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + credentials + ")";
+        return ToString.builder("StaticCredentialsProvider")
+                       .add("credentials", credentials)
+                       .build();
     }
 }

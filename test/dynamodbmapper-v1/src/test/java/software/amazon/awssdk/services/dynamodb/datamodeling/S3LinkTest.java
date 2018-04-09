@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -31,12 +31,12 @@ public class S3LinkTest {
 
     @Before
     public void setUp() {
-        AwsCredentials credentials = new AwsCredentials("mock", "mock");
+        AwsCredentials credentials = AwsCredentials.create("mock", "mock");
         DynamoDBClient db = DynamoDBClient.builder()
-                                          .credentialsProvider(new StaticCredentialsProvider(credentials))
+                                          .credentialsProvider(StaticCredentialsProvider.create(credentials))
                                           .region(Region.US_WEST_2)
                                           .build();
-        mapper = new DynamoDbMapper(db, new StaticCredentialsProvider(credentials));
+        mapper = new DynamoDbMapper(db, StaticCredentialsProvider.create(credentials));
     }
 
     @Test(expected = IllegalArgumentException.class)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.ClassLoaderHelper;
 import software.amazon.awssdk.utils.Validate;
 
@@ -60,7 +60,7 @@ public final class ClasspathInterceptorChainFactory {
         try {
             return createExecutionInterceptorsFromResources(classLoader().getResources(path)).collect(Collectors.toList());
         } catch (IOException e) {
-            throw new AmazonClientException("Unable to instantiate execution interceptor chain.", e);
+            throw new SdkClientException("Unable to instantiate execution interceptor chain.", e);
         }
     }
 
@@ -96,7 +96,7 @@ public final class ClasspathInterceptorChainFactory {
 
             return interceptors.stream();
         } catch (IOException e) {
-            throw new AmazonClientException("Unable to instantiate execution interceptor chain.", e);
+            throw new SdkClientException("Unable to instantiate execution interceptor chain.", e);
         }
     }
 
@@ -114,12 +114,12 @@ public final class ClasspathInterceptorChainFactory {
             if (executionInterceptorObject instanceof ExecutionInterceptor) {
                 return (ExecutionInterceptor) executionInterceptorObject;
             } else {
-                throw new AmazonClientException("Unable to instantiate request handler chain for client. Listed request handler "
+                throw new SdkClientException("Unable to instantiate request handler chain for client. Listed request handler "
                                                 + "('" + interceptorClassName + "') does not implement the " +
                                                 ExecutionInterceptor.class + " API.");
             }
         } catch (IllegalAccessException | ClassNotFoundException | InstantiationException e) {
-            throw new AmazonClientException("Unable to instantiate executor interceptor for client.", e);
+            throw new SdkClientException("Unable to instantiate executor interceptor for client.", e);
         }
     }
 

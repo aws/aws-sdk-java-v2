@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public class InstanceProfileRegionProviderTest {
 
         @BeforeClass
         public static void setupFixture() throws IOException {
-            server = new EC2MetadataUtilsServer("localhost", 0);
+            server = new EC2MetadataUtilsServer(0);
             server.start();
 
             System.setProperty(AwsSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(),

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~ Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License").
   ~ You may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
     <artifactId>build-tools</artifactId>
     <name>AWS Java SDK :: Build Tools</name>
     <version>1.0</version>
-    <description>This package holds the resources used for checkstyle and findbugs.
+    <description>This package holds the resources used for checkstyle and spotbugs.
     </description>
 
     <build>

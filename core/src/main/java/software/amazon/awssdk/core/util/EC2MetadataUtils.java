@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -34,10 +34,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.AwsSystemSetting;
-import software.amazon.awssdk.core.SdkClientException;
-import software.amazon.awssdk.core.internal.EC2CredentialsUtils;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.internal.HttpCredentialsUtils;
 import software.amazon.awssdk.core.util.json.JacksonUtils;
 
 /**
@@ -56,22 +55,21 @@ import software.amazon.awssdk.core.util.json.JacksonUtils;
  *      EC2 User Guide: Instance Metadata</a>
  */
 @ReviewBeforeRelease("Cleanup")
-public class EC2MetadataUtils {
+public final class EC2MetadataUtils {
 
     /** Default resource path for credentials in the Amazon EC2 Instance Metadata Service. */
-    public static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
     private static final String REGION = "region";
     private static final String INSTANCE_IDENTITY_DOCUMENT = "instance-identity/document";
     private static final String EC2_METADATA_ROOT = "/latest/meta-data";
     private static final String EC2_USERDATA_ROOT = "/latest/user-data/";
     private static final String EC2_DYNAMICDATA_ROOT = "/latest/dynamic/";
-    /** Default endpoint for the Amazon EC2 Instance Metadata Service. */
-    private static final String EC2_METADATA_SERVICE_URL = "http://169.254.169.254";
     private static final int DEFAULT_QUERY_RETRIES = 3;
     private static final int MINIMUM_RETRY_WAIT_TIME_MILLISECONDS = 250;
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final Logger log = LoggerFactory.getLogger(EC2MetadataUtils.class);
-    private static Map<String, String> cache = new ConcurrentHashMap<String, String>();
+    private static Map<String, String> cache = new ConcurrentHashMap<>();
+
+    private EC2MetadataUtils() {}
 
     static {
         MAPPER.configure(
@@ -287,7 +285,7 @@ public class EC2MetadataUtils {
      * instance.
      */
     public static Map<String, IamSecurityCredential> getIamSecurityCredentials() {
-        Map<String, IamSecurityCredential> credentialsInfoMap = new HashMap<String, IamSecurityCredential>();
+        Map<String, IamSecurityCredential> credentialsInfoMap = new HashMap<>();
 
         List<String> credentials = getItems(EC2_METADATA_ROOT
                                             + "/iam/security-credentials");
@@ -313,7 +311,7 @@ public class EC2MetadataUtils {
      * Get the virtual devices associated with the ami, root, ebs, and swap.
      */
     public static Map<String, String> getBlockDeviceMapping() {
-        Map<String, String> blockDeviceMapping = new HashMap<String, String>();
+        Map<String, String> blockDeviceMapping = new HashMap<>();
 
         List<String> devices = getItems(EC2_METADATA_ROOT
                                         + "/block-device-mapping");
@@ -328,7 +326,7 @@ public class EC2MetadataUtils {
      * Get the list of network interfaces on the instance.
      */
     public static List<NetworkInterface> getNetworkInterfaces() {
-        List<NetworkInterface> networkInterfaces = new LinkedList<NetworkInterface>();
+        List<NetworkInterface> networkInterfaces = new LinkedList<>();
 
         List<String> macs = getItems(EC2_METADATA_ROOT
                                      + "/network/interfaces/macs/");
@@ -377,15 +375,15 @@ public class EC2MetadataUtils {
 
         List<String> items;
         try {
-            String hostAddress = getHostAddressForEc2MetadataService();
-            String response = EC2CredentialsUtils.getInstance().readResource(new URI(hostAddress + path));
+            String hostAddress = AwsSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
+            String response = HttpCredentialsUtils.instance().readResource(new URI(hostAddress + path));
             if (slurp) {
                 items = Collections.singletonList(response);
             } else {
                 items = Arrays.asList(response.split("\n"));
             }
             return items;
-        } catch (AmazonClientException ace) {
+        } catch (SdkClientException ace) {
             log.warn("Unable to retrieve the requested metadata.");
             return null;
         } catch (IOException | URISyntaxException | RuntimeException e) {
@@ -414,13 +412,6 @@ public class EC2MetadataUtils {
         } catch (RuntimeException e) {
             return null;
         }
-    }
-
-    /**
-     * Returns the host address of the Amazon EC2 Instance Metadata Service.
-     */
-    public static String getHostAddressForEc2MetadataService() {
-        return AwsSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
     }
 
     /**
@@ -582,7 +573,7 @@ public class EC2MetadataUtils {
         private String mac;
 
         private List<String> availableKeys;
-        private Map<String, String> data = new HashMap<String, String>();
+        private Map<String, String> data = new HashMap<>();
 
         public NetworkInterface(String macAddress) {
             mac = macAddress;
@@ -737,7 +728,7 @@ public class EC2MetadataUtils {
                 return EC2MetadataUtils
                         .getItems(EC2_METADATA_ROOT + path + key);
             } else {
-                return new LinkedList<String>();
+                return Collections.emptyList();
             }
         }
     }

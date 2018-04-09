@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import com.typesafe.netty.http.HttpStreamsClientHandler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
@@ -23,8 +24,11 @@ import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutHandler;
 import java.util.ArrayList;
 import java.util.List;
+import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
 import software.amazon.awssdk.http.nio.netty.internal.utils.LoggingHandler;
 import software.amazon.awssdk.utils.Logger;
 
@@ -63,5 +67,15 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
         p.addLast(handlers);
         // Disabling auto-read is needed for backpressure to work
         ch.config().setOption(ChannelOption.AUTO_READ, false);
+    }
+
+    @Override
+    public void channelReleased(Channel ch) throws Exception {
+        // Remove any existing handlers from the pipeline from the previous request.
+        ChannelUtils.removeIfExists(ch.pipeline(),
+                                    HttpStreamsClientHandler.class,
+                                    ResponseHandler.class,
+                                    ReadTimeoutHandler.class,
+                                    WriteTimeoutHandler.class);
     }
 }

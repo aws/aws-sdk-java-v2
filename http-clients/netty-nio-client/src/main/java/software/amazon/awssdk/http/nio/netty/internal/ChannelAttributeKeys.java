@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,16 +18,14 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import io.netty.util.AttributeKey;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
-import software.amazon.awssdk.http.nio.netty.h2.Http2MultiplexChannelPool;
 import software.amazon.awssdk.http.nio.netty.h2.MultiplexedChannelRecord;
 import software.amazon.awssdk.http.nio.netty.h2.SdkHttp2FrameVisitor;
 
 /**
  * Keys for attributes attached via {@link io.netty.channel.Channel#attr(AttributeKey)}.
  */
-public class ChannelAttributeKeys {
+public final class ChannelAttributeKeys {
 
     public static final AttributeKey<Boolean> FIRST_BYTE_RECEIVED = AttributeKey.newInstance("firstByteReceived");
 

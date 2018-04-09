@@ -27,13 +27,42 @@ To run the SDK you will need **Java 1.8+**. For more information about the requi
 settings for the SDK, please see the [Installing a Java Development Environment][docs-java-env]
 section of the developer guide.
 
-#### Install the SDK ####
+## Using the SDK
 
-The recommended way to use the AWS SDK for Java in your project is to consume it from Maven. Import
-the [bom][] and specify the SDK Maven modules that your project needs in the
-dependencies.
+The recommended way to use the AWS SDK for Java in your project is to consume it from Maven. 
 
-##### Importing the BOM #####
+#### Whole SDK ####
+
+You can import the whole SDK into your project (includes all services) as follows:
+
+```xml
+<dependency>
+  <groupId>software.amazon.awssdk</groupId>
+  <artifactId>aws-sdk-java</artifactId>
+  <version>2.0.0-preview-9</version>
+</dependency>
+```
+
+#### Individual Services ####
+
+Alternatively you can add dependencies for the specific services you use only:
+
+```xml
+<dependency>
+  <groupId>software.amazon.awssdk</groupId>
+  <artifactId>ec2</artifactId>
+  <version>2.0.0-preview-9</version>
+</dependency>
+<dependency>
+  <groupId>software.amazon.awssdk</groupId>
+  <artifactId>s3</artifactId>
+  <version>2.0.0-preview-9</version>
+</dependency>
+```
+
+#### Importing the BOM ####
+
+To automatically manage module versions (currently all modules have the same version, but this may not always be the case) we recommend you use the [Bill of Materials][bom] import as follows:
 
 ```xml
 <dependencyManagement>
@@ -41,7 +70,7 @@ dependencies.
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bom</artifactId>
-      <version>2.0.0-preview-2</version>
+      <version>2.0.0-preview-9</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -49,7 +78,7 @@ dependencies.
 </dependencyManagement>
 ```
 
-##### Using the SDK Maven modules #####
+Then individual models may omit the `version` from their dependency statement:
 
 ```xml
 <dependencies>
@@ -68,8 +97,7 @@ dependencies.
 </dependencies>
 ```
 
-See the [Set up the AWS SDK for Java][docs-setup] section of the developer guide for more
-information about installing the SDK through other means.
+See the [Set up the AWS SDK for Java][docs-setup] section of the developer guide for more usage information.
 
 ## New Features for Developer Preview
 
@@ -112,3 +140,4 @@ We need your help in making this SDK great. Please participate in the community 
 [features]: https://github.com/aws/aws-sdk-java-v2/issues?q=is%3Aopen+is%3Aissue+label%3A%22Feature+Request%22
 [support-center]: https://console.aws.amazon.com/support/
 [console]: https://console.aws.amazon.com
+[bom]: http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22software.amazon.awssdk%22%20AND%20a%3A%22bom%22

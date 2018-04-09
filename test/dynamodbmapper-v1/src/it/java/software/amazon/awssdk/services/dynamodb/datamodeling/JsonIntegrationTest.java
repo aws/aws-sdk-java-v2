@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.ConsistentReads;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.TableNameOverride;
@@ -34,6 +35,7 @@ import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.dynamodb.model.TableStatus;
+import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class JsonIntegrationTest extends AwsTestBase {
@@ -47,7 +49,7 @@ public class JsonIntegrationTest extends AwsTestBase {
     @BeforeClass
     public static void setup() throws Exception {
         setUpCredentials();
-        client = DynamoDBClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        client = DynamoDBClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.US_WEST_2).build();
 
         mapper = new DynamoDbMapper(
                 client,
@@ -65,21 +67,9 @@ public class JsonIntegrationTest extends AwsTestBase {
 
         client.createTable(request);
 
-        Thread.sleep(10000);
-
-        while (true) {
-            TableStatus status = client.describeTable(DescribeTableRequest.builder().tableName(TABLE_NAME).build())
-                                       .table()
-                                       .tableStatus();
-
-            if (status == TableStatus.ACTIVE) {
-                break;
-            } else if (status != TableStatus.CREATING) {
-                throw new RuntimeException("Table creation failed");
-            }
-
-            Thread.sleep(2000);
-        }
+        Waiter.run(() -> client.describeTable(r -> r.tableName(TABLE_NAME)))
+              .until(r -> r.table().tableStatus() == TableStatus.ACTIVE)
+              .orFail();
     }
 
     @AfterClass

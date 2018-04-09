@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.AmazonServiceException;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
@@ -39,17 +39,17 @@ import software.amazon.awssdk.utils.IoUtils;
  * A list of unmarshallers is passed into the constructor, and while handling a response, each
  * unmarshaller is tried, in order, until one is found that can successfully unmarshall the error
  * response.  If no unmarshaller is found that can unmarshall the error response, a generic
- * AmazonServiceException is created and populated with the AWS error response information (error
+ * SdkServiceException is created and populated with the AWS error response information (error
  * message, AWS error code, AWS request ID, etc).
  */
 @SdkProtectedApi
-public class DefaultErrorResponseHandler implements HttpResponseHandler<AmazonServiceException> {
+public class DefaultErrorResponseHandler implements HttpResponseHandler<SdkServiceException> {
     private static final Logger log = LoggerFactory.getLogger(DefaultErrorResponseHandler.class);
 
     /**
      * The list of error response unmarshallers to try to apply to error responses.
      */
-    private List<Unmarshaller<AmazonServiceException, Node>> unmarshallerList;
+    private List<Unmarshaller<SdkServiceException, Node>> unmarshallerList;
 
     /**
      * Constructs a new DefaultErrorResponseHandler that will handle error responses from Amazon
@@ -60,25 +60,25 @@ public class DefaultErrorResponseHandler implements HttpResponseHandler<AmazonSe
      *                         response.
      */
     public DefaultErrorResponseHandler(
-            List<Unmarshaller<AmazonServiceException, Node>> unmarshallerList) {
+            List<Unmarshaller<SdkServiceException, Node>> unmarshallerList) {
         this.unmarshallerList = unmarshallerList;
     }
 
     @Override
-    public AmazonServiceException handle(HttpResponse errorResponse,
-                                         ExecutionAttributes executionAttributes) throws Exception {
-        AmazonServiceException ase = createAse(errorResponse);
-        if (ase == null) {
+    public SdkServiceException handle(HttpResponse errorResponse,
+                                      ExecutionAttributes executionAttributes) throws Exception {
+        SdkServiceException exception = createServiceException(errorResponse);
+        if (exception == null) {
             throw new SdkClientException("Unable to unmarshall error response from service");
         }
-        ase.setHttpHeaders(errorResponse.getHeaders());
-        if (StringUtils.isNullOrEmpty(ase.getErrorCode())) {
-            ase.setErrorCode(errorResponse.getStatusCode() + " " + errorResponse.getStatusText());
+        exception.headers(errorResponse.getHeaders());
+        if (StringUtils.isNullOrEmpty(exception.errorCode())) {
+            exception.errorCode(errorResponse.getStatusCode() + " " + errorResponse.getStatusText());
         }
-        return ase;
+        return exception;
     }
 
-    private AmazonServiceException createAse(HttpResponse errorResponse) throws Exception {
+    private SdkServiceException createServiceException(HttpResponse errorResponse) throws Exception {
         // Try to parse the error response as XML
         final Document document = documentFromContent(errorResponse.getContent(), idString(errorResponse));
 
@@ -89,11 +89,11 @@ public class DefaultErrorResponseHandler implements HttpResponseHandler<AmazonSe
          * unmarshall the response, but we might need something a little more
          * sophisticated in the future.
          */
-        for (Unmarshaller<AmazonServiceException, Node> unmarshaller : unmarshallerList) {
-            AmazonServiceException ase = unmarshaller.unmarshall(document);
-            if (ase != null) {
-                ase.setStatusCode(errorResponse.getStatusCode());
-                return ase;
+        for (Unmarshaller<SdkServiceException, Node> unmarshaller : unmarshallerList) {
+            SdkServiceException exception = unmarshaller.unmarshall(document);
+            if (exception != null) {
+                exception.statusCode(errorResponse.getStatusCode());
+                return exception;
             }
         }
         return null;
@@ -114,7 +114,7 @@ public class DefaultErrorResponseHandler implements HttpResponseHandler<AmazonSe
         try {
             return IoUtils.toString(content);
         } catch (Exception e) {
-            log.info(String.format("Unable to read input stream to string (%s)", idString), e);
+            log.debug(String.format("Unable to read input stream to string (%s)", idString), e);
             throw e;
         }
     }
@@ -123,7 +123,7 @@ public class DefaultErrorResponseHandler implements HttpResponseHandler<AmazonSe
         try {
             return XpathUtils.documentFrom(xml);
         } catch (Exception e) {
-            log.info("Unable to parse HTTP response ({}) content to XML document '{}' ", idString, xml, e);
+            log.debug("Unable to parse HTTP response ({}) content to XML document '{}' ", idString, xml, e);
             throw e;
         }
     }
@@ -141,7 +141,7 @@ public class DefaultErrorResponseHandler implements HttpResponseHandler<AmazonSe
                 idString.append("Request Id:").append(errorResponse.getHeaders().get(X_AMZN_REQUEST_ID_HEADER));
             }
         } catch (NullPointerException npe) {
-            log.info("Error getting Request or Invocation ID from response", npe);
+            log.debug("Error getting Request or Invocation ID from response", npe);
         }
         return idString.length() > 0 ? idString.toString() : "Unknown";
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -41,17 +41,18 @@ public class ClassesTest {
 
     @Test
     public void jarFileOf() throws IOException {
-        JarFile jf = Classes.jarFileOf(Logger.class);
-        assertNotNull(jf);
-        Manifest mf = jf.getManifest();
-        Attributes attrs = mf.getMainAttributes();
-        String name = attrs.getValue("Bundle-Name");
-        String version = attrs.getValue("Bundle-Version");
-        if (VERBOSE) {
-            System.out.println(name);
-            System.out.println(version);
+        try (JarFile jf = Classes.jarFileOf(Logger.class)) {
+            assertNotNull(jf);
+            Manifest mf = jf.getManifest();
+            Attributes attrs = mf.getMainAttributes();
+            String name = attrs.getValue("Bundle-Name");
+            String version = attrs.getValue("Bundle-Version");
+            if (VERBOSE) {
+                System.out.println(name);
+                System.out.println(version);
+            }
+            assertNotNull(name);
+            assertNotNull(version);
         }
-        assertNotNull(name);
-        assertNotNull(version);
     }
 }

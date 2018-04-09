@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ final class SessionCredentialsHolder {
     private final Date sessionCredentialsExpiration;
 
     SessionCredentialsHolder(Credentials credentials) {
-        this.sessionCredentials = new AwsSessionCredentials(credentials.accessKeyId(),
+        this.sessionCredentials = AwsSessionCredentials.create(credentials.accessKeyId(),
                                                             credentials.secretAccessKey(),
                                                             credentials.sessionToken());
         this.sessionCredentialsExpiration = Date.from(credentials.expiration());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public class CodeGenerator {
     }
 
     /**
-     * load ServiceModel. load code gen configuration from individual client. load Waiters. generate intermediate model. generate
+     * load ServiceModel. load code gen configuration from individual client. generate intermediate model. generate
      * code.
      */
     public void execute() {

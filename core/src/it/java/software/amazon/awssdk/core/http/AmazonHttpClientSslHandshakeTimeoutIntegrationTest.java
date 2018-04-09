@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -22,10 +22,10 @@ import java.time.Duration;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
 import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
-import software.amazon.awssdk.core.retry.PredefinedRetryPolicies;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
 import utils.HttpTestUtils;
 
@@ -44,7 +44,7 @@ public class AmazonHttpClientSslHandshakeTimeoutIntegrationTest extends Unrespon
     public void testSslHandshakeTimeout() {
         AmazonHttpClient httpClient = HttpTestUtils.testClientBuilder()
                                                    .clientExecutionTimeout(null)
-                                                   .retryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
+                                                   .retryPolicy(RetryPolicy.NONE)
                                                    .httpClient(ApacheSdkHttpClientFactory.builder()
                                                                                          .socketTimeout(CLIENT_SOCKET_TO)
                                                                                          .build()
@@ -57,12 +57,13 @@ public class AmazonHttpClientSslHandshakeTimeoutIntegrationTest extends Unrespon
             EmptyHttpRequest request = new EmptyHttpRequest(server.getHttpsEndpoint(), HttpMethodName.GET);
             httpClient.requestExecutionBuilder()
                       .request(request)
+                      .originalRequest(NoopTestAwsRequest.builder().build())
                       .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
                       .errorResponseHandler(new NullErrorResponseHandler())
                       .execute();
             fail("Client-side socket read timeout is expected!");
 
-        } catch (AmazonClientException e) {
+        } catch (SdkClientException e) {
             /**
              * Http client catches the SocketTimeoutException and throws a
              * ConnectTimeoutException.

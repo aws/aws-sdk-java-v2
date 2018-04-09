@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ public class IntegrationTestBase extends AwsTestBase {
     @BeforeClass
     public static void setup() throws IOException {
         setUpCredentials();
-        lambda = LambdaAsyncClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        lambda = LambdaAsyncClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.US_WEST_2).build();
 
         cloudFuncZip = setupFunctionZip(HELLOWORLD_JS);
 
@@ -132,7 +132,7 @@ public class IntegrationTestBase extends AwsTestBase {
     }
 
     protected static void createKinesisStream() {
-        kinesis = KinesisClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        kinesis = KinesisClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.US_WEST_2).build();
 
         kinesis.createStream(CreateStreamRequest.builder().streamName(KINESIS_STREAM_NAME).shardCount(1).build());
 

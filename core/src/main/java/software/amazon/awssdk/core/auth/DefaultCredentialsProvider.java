@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.auth;
 
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.ToString;
 
 /**
  * AWS credentials provider chain that looks for credentials in this order:
@@ -31,26 +32,14 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * @see SystemPropertyCredentialsProvider
  * @see EnvironmentVariableCredentialsProvider
  * @see ProfileCredentialsProvider
- * @see ElasticContainerCredentialsProvider
+ * @see ContainerCredentialsProvider
  * @see InstanceProfileCredentialsProvider
  */
 public class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
-    /**
-     * As a minor optimization, we reuse the same underlying provider chain for all calls to
-     * {@link #DefaultCredentialsProvider()}. This is done because we reuse this chain in every client by default, and reusing
-     * the caches for all of the underlying providers feels worth the small complication of this reuse.
-     */
-    private static final AwsCredentialsProviderChain DEFAULT_PROVIDER_CHAIN = createChain(new Builder());
+
+    private static final DefaultCredentialsProvider DEFAULT_CREDENTIALS_PROVIDER = new DefaultCredentialsProvider(builder());
 
     private final AwsCredentialsProviderChain providerChain;
-
-    /**
-     * Create an instance of the {@link DefaultCredentialsProvider} using the default configuration. Configuration can be
-     * specified by creating an instance using the {@link #builder()}.
-     */
-    public DefaultCredentialsProvider() {
-        this.providerChain = DEFAULT_PROVIDER_CHAIN;
-    }
 
     /**
      * @see #builder()
@@ -60,16 +49,24 @@ public class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAu
     }
 
     /**
+     * Create an create of the {@link DefaultCredentialsProvider} using the default configuration. Configuration can be
+     * specified by creating an create using the {@link #builder()}.
+     */
+    public static DefaultCredentialsProvider create() {
+        return DEFAULT_CREDENTIALS_PROVIDER;
+    }
+
+    /**
      * Create the default credential chain using the configuration in the provided builder.
      */
     private static AwsCredentialsProviderChain createChain(Builder builder) {
         AwsCredentialsProvider[] credentialsProviders = new AwsCredentialsProvider[] {
-                new SystemPropertyCredentialsProvider(),
-                new EnvironmentVariableCredentialsProvider(),
-                new ProfileCredentialsProvider(),
-                ElasticContainerCredentialsProvider.builder()
-                                                   .asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled)
-                                                   .build(),
+                SystemPropertyCredentialsProvider.create(),
+                EnvironmentVariableCredentialsProvider.create(),
+                ProfileCredentialsProvider.create(),
+                ContainerCredentialsProvider.builder()
+                                            .asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled)
+                                            .build(),
                 InstanceProfileCredentialsProvider.builder()
                                                   .asyncCredentialUpdateEnabled(builder.asyncCredentialUpdateEnabled)
                                                   .build()
@@ -96,6 +93,13 @@ public class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAu
     @Override
     public void close() {
         providerChain.close();
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("DefaultCredentialsProvider")
+                       .add("providerChain", providerChain)
+                       .build();
     }
 
     /**

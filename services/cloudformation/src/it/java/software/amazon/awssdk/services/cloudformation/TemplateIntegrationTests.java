@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -26,8 +26,7 @@ import java.util.HashSet;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
-import software.amazon.awssdk.core.AmazonServiceException.ErrorType;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.cloudformation.model.EstimateTemplateCostRequest;
 import software.amazon.awssdk.services.cloudformation.model.EstimateTemplateCostResponse;
 import software.amazon.awssdk.services.cloudformation.model.TemplateParameter;
@@ -82,9 +81,8 @@ public class TemplateIntegrationTests extends CloudFormationIntegrationTestBase 
         try {
             cf.validateTemplate(ValidateTemplateRequest.builder().templateBody("{\"Foo\" : \"Bar\"}").build());
             fail("Should have thrown an exception");
-        } catch (AmazonServiceException acfx) {
-            assertEquals("ValidationError", acfx.getErrorCode());
-            assertEquals(ErrorType.Client, acfx.getErrorType());
+        } catch (SdkServiceException acfx) {
+            assertEquals("ValidationError", acfx.errorCode());
         } catch (Exception e) {
             fail("Should have thrown an AmazonCloudFormation Exception");
         }

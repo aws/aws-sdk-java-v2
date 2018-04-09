@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.region.PartitionMetadataProvider;
 import software.amazon.awssdk.core.internal.region.model.Partitions;
 import software.amazon.awssdk.utils.IoUtils;
@@ -28,7 +28,7 @@ import software.amazon.awssdk.utils.IoUtils;
  * Loads all the partition files into memory.
  */
 @SdkInternalApi
-public class RegionMetadataLoader {
+public final class RegionMetadataLoader {
 
     private static volatile PartitionMetadataProvider provider;
 
@@ -48,6 +48,9 @@ public class RegionMetadataLoader {
      * classloader to to be used for loading the partitions.
      */
     private static final ClassLoader CLASS_LOADER = RegionMetadataLoader.class.getClassLoader();
+
+    private RegionMetadataLoader() {
+    }
 
     /**
      * Loads the partition files from the {@link #PARTITIONS_OVERRIDE_RESOURCE_PATH}. If no files are present, then

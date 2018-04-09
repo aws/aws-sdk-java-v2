@@ -30,9 +30,11 @@ import software.amazon.awssdk.http.async.AbortableRunnable;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
+import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
 import software.amazon.awssdk.http.nio.netty.internal.RequestAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
+import software.amazon.awssdk.utils.AttributeMap;
 
 public class NettyH2AsyncHttpClient implements SdkAsyncHttpClient {
 
@@ -71,7 +73,8 @@ public class NettyH2AsyncHttpClient implements SdkAsyncHttpClient {
         RequestContext context = new RequestContext(pools.get(poolKey(sdkRequest)),
                                                     sdkRequest, requestProvider,
                                                     requestAdapter.adapt(sdkRequest),
-                                                    handler);
+                                                    // TODO configuration here is likely wrong
+                                                    handler, new NettyConfiguration(AttributeMap.empty(), null));
         return new H2RunnableRequest(context, metricsCollector);
     }
 

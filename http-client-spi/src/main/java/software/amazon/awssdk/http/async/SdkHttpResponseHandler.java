@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -49,12 +49,18 @@ public interface SdkHttpResponseHandler<T> {
     /**
      * Called when an exception occurs during the request/response.
      *
+     * This is a terminal method call, no other method invocations should be expected
+     * on the {@link SdkHttpResponseHandler} after this point.
+     *
      * @param throwable the exception that occurred.
      */
     void exceptionOccurred(Throwable throwable);
 
     /**
      * Called when all parts of the response have been received.
+     *
+     * This is a terminal method call, no other method invocations should be expected
+     * on the {@link SdkHttpResponseHandler} after this point.
      *
      * @return Transformed result.
      */

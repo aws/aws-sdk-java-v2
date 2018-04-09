@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@ package software.amazon.awssdk.core.retry;
 
 import java.util.HashSet;
 import java.util.Set;
-import software.amazon.awssdk.core.AmazonServiceException;
-import software.amazon.awssdk.core.SdkBaseException;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.http.HttpStatusCodes;
 
-public class RetryUtils {
+public final class RetryUtils {
 
     static final Set<String> THROTTLING_ERROR_CODES = new HashSet<>(9);
     static final Set<String> CLOCK_SKEW_ERROR_CODES = new HashSet<>(6);
@@ -50,22 +50,25 @@ public class RetryUtils {
         RETRYABLE_STATUS_CODES.add(HttpStatusCodes.GATEWAY_TIMEOUT);
     }
 
+    private RetryUtils() {
+    }
+
     /**
      * Returns true if the specified exception is a retryable service side exception.
      *
      * @param exception The exception to test.
      * @return True if the exception resulted from a retryable service error, otherwise false.
      */
-    public static boolean isRetryableServiceException(SdkBaseException exception) {
-        return isAse(exception) && RETRYABLE_STATUS_CODES.contains(toAse(exception).getStatusCode());
+    public static boolean isRetryableServiceException(SdkException exception) {
+        return isServiceException(exception) && RETRYABLE_STATUS_CODES.contains(toServiceException(exception).statusCode());
     }
 
     /**
-     * @deprecated In favor of {@link RetryUtils#isThrottlingException(SdkBaseException)}
+     * @deprecated In favor of {@link RetryUtils#isThrottlingException(SdkException)}
      */
     @Deprecated
-    public static boolean isThrottlingException(AmazonServiceException exception) {
-        return isThrottlingException((SdkBaseException) exception);
+    public static boolean isThrottlingException(SdkServiceException exception) {
+        return isThrottlingException((SdkException) exception);
     }
 
     /**
@@ -74,8 +77,8 @@ public class RetryUtils {
      * @param exception The exception to test.
      * @return True if the exception resulted from a throttling error message from a service, otherwise false.
      */
-    public static boolean isThrottlingException(SdkBaseException exception) {
-        return isAse(exception) && THROTTLING_ERROR_CODES.contains(toAse(exception).getErrorCode());
+    public static boolean isThrottlingException(SdkException exception) {
+        return isServiceException(exception) && THROTTLING_ERROR_CODES.contains(toServiceException(exception).errorCode());
     }
 
     /**
@@ -84,8 +87,8 @@ public class RetryUtils {
      * @param exception The exception to test.
      * @return True if the exception resulted from a request entity too large error message from a service, otherwise false.
      */
-    public static boolean isRequestEntityTooLargeException(SdkBaseException exception) {
-        return isAse(exception) && toAse(exception).getStatusCode() == HttpStatusCodes.REQUEST_TOO_LONG;
+    public static boolean isRequestEntityTooLargeException(SdkException exception) {
+        return isServiceException(exception) && toServiceException(exception).statusCode() == HttpStatusCodes.REQUEST_TOO_LONG;
     }
 
     /**
@@ -94,19 +97,19 @@ public class RetryUtils {
      * @param exception The exception to test.
      * @return True if the exception resulted from a clock skews error message from a service, otherwise false.
      */
-    public static boolean isClockSkewError(SdkBaseException exception) {
-        return isAse(exception) && CLOCK_SKEW_ERROR_CODES.contains(toAse(exception).getErrorCode());
+    public static boolean isClockSkewError(SdkException exception) {
+        return isServiceException(exception) && CLOCK_SKEW_ERROR_CODES.contains(toServiceException(exception).errorCode());
     }
 
-    private static boolean isAse(SdkBaseException e) {
-        return e instanceof AmazonServiceException;
+    private static boolean isServiceException(SdkException e) {
+        return e instanceof SdkServiceException;
     }
 
-    private static AmazonServiceException toAse(SdkBaseException e) {
-        if (!(e instanceof AmazonServiceException)) {
-            throw new IllegalStateException("Received non-AmazonServiceException where one was expected.", e);
+    private static SdkServiceException toServiceException(SdkException e) {
+        if (!(e instanceof SdkServiceException)) {
+            throw new IllegalStateException("Received non-SdkServiceException where one was expected.", e);
         }
-        return (AmazonServiceException) e;
+        return (SdkServiceException) e;
     }
 
 }

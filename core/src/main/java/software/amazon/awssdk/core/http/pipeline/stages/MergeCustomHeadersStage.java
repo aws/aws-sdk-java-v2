@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,10 +17,11 @@ package software.amazon.awssdk.core.http.pipeline.stages;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+
 import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.config.ClientConfiguration;
 import software.amazon.awssdk.core.http.HttpClientDependencies;
@@ -43,7 +44,8 @@ public class MergeCustomHeadersStage implements MutableRequestToRequestPipeline 
             throws Exception {
         return request.headers(mergeHeaders(request.headers(),
                                             config.overrideConfiguration().additionalHttpHeaders(),
-                                            adaptHeaders(context.requestConfig().getCustomRequestHeaders())));
+                                            adaptHeaders(context.requestConfig().headers()
+                                                    .orElse(Collections.emptyMap()))));
     }
 
     @SafeVarargs
@@ -55,10 +57,9 @@ public class MergeCustomHeadersStage implements MutableRequestToRequestPipeline 
         return result;
     }
 
-    // TODO change this representation
-    private Map<String, List<String>> adaptHeaders(Map<String, String> toConvert) {
-        Map<String, List<String>> adapted = new HashMap<>(toConvert.size());
-        toConvert.forEach((k, v) -> adapted.put(k, Collections.singletonList(v)));
+    private Map<String, List<String>> adaptHeaders(Map<String, List<String>> toConvert) {
+        Map<String, List<String>> adapted = new TreeMap<>();
+        toConvert.forEach((name, value) -> adapted.put(name, new ArrayList<>(value)));
         return adapted;
     }
 }

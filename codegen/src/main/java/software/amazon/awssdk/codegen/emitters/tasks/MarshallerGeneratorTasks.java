@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,19 +30,19 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
+import software.amazon.awssdk.codegen.poet.transform.JsonModelMarshallerSpec;
+import software.amazon.awssdk.codegen.poet.transform.MarshallerSpec;
 import software.amazon.awssdk.core.util.ImmutableMapParameter;
 
 public class MarshallerGeneratorTasks extends BaseGeneratorTasks {
 
     private final String transformClassDir;
-    private final String requestTransformClassDir;
     private final Metadata metadata;
     private final Map<String, ShapeModel> shapes;
 
     public MarshallerGeneratorTasks(GeneratorTaskParams dependencies) {
         super(dependencies);
         this.transformClassDir = dependencies.getPathProvider().getTransformDirectory();
-        this.requestTransformClassDir = dependencies.getPathProvider().getRequestTransformDirectory();
         this.metadata = model.getMetadata();
         this.shapes = model.getShapes();
     }
@@ -51,9 +51,9 @@ public class MarshallerGeneratorTasks extends BaseGeneratorTasks {
     protected List<GeneratorTask> createTasks() throws Exception {
         info("Emitting marshaller classes");
         return model.getShapes().entrySet().stream()
-                .filter(e -> shouldGenerate(e.getValue()))
-                .flatMap(safeFunction(e -> createTask(e.getKey(), e.getValue())))
-                .collect(Collectors.toList());
+                    .filter(e -> shouldGenerate(e.getValue()))
+                    .flatMap(safeFunction(e -> createTask(e.getKey(), e.getValue())))
+                    .collect(Collectors.toList());
     }
 
     private boolean shouldGenerate(ShapeModel shapeModel) {
@@ -69,39 +69,33 @@ public class MarshallerGeneratorTasks extends BaseGeneratorTasks {
     }
 
     private Stream<GeneratorTask> createTask(String javaShapeName, ShapeModel shapeModel) throws Exception {
-        if (shapeModel.getShapeType() == ShapeType.Request && metadata.isJsonProtocol()) {
-            return Stream.of(
-                    createMarshallerTask(javaShapeName,
-                                         freemarker.getRequestMarshallerTemplate(),
-                                         javaShapeName + "Marshaller",
-                                         requestTransformClassDir),
-                    createMarshallerTask(javaShapeName,
-                                         freemarker.getModelMarshallerTemplate(),
-                                         javaShapeName + "ModelMarshaller",
-                                         transformClassDir));
-        } else {
-            return Stream.of(
-                    createMarshallerTask(javaShapeName,
-                                         freemarker.getModelMarshallerTemplate(),
-                                         javaShapeName + "Marshaller",
-                                         transformClassDir));
+        if (metadata.isJsonProtocol()) {
+            return ShapeType.Request == shapeModel.getShapeType() ?
+                   Stream.of(createPoetGeneratorTask(new JsonModelMarshallerSpec(model, shapeModel, "ModelMarshaller")),
+                             createPoetGeneratorTask(new MarshallerSpec(model, shapeModel))) :
+                   Stream.of(createPoetGeneratorTask(new JsonModelMarshallerSpec(model, shapeModel, "Marshaller")));
         }
+
+        return Stream.of(
+            createMarshallerTask(javaShapeName,
+                                 freemarker.getModelMarshallerTemplate(),
+                                 javaShapeName + "Marshaller",
+                                 transformClassDir));
     }
 
     private GeneratorTask createMarshallerTask(String javaShapeName, Template template,
-                                               String marshallerClassName, String marshallerDirectory)
-            throws IOException {
+                                               String marshallerClassName, String marshallerDirectory) throws IOException {
         Map<String, Object> marshallerDataModel = ImmutableMapParameter.<String, Object>builder()
-                .put("fileHeader", model.getFileHeader())
-                .put("shapeName", javaShapeName)
-                .put("shapes", shapes)
-                .put("metadata", metadata)
-                .put("transformPackage", model.getMetadata().getFullTransformPackageName())
-                .put("requestTransformPackage", model.getMetadata().getFullRequestTransformPackageName())
-                .put("customConfig", model.getCustomizationConfig())
-                .put("className", marshallerClassName)
-                .put("protocolEnum", getProtocolEnumName())
-                .build();
+            .put("fileHeader", model.getFileHeader())
+            .put("shapeName", javaShapeName)
+            .put("shapes", shapes)
+            .put("metadata", metadata)
+            .put("transformPackage", model.getMetadata().getFullTransformPackageName())
+            .put("requestTransformPackage", model.getMetadata().getFullRequestTransformPackageName())
+            .put("customConfig", model.getCustomizationConfig())
+            .put("className", marshallerClassName)
+            .put("protocolEnum", getProtocolEnumName())
+            .build();
 
         return new FreemarkerGeneratorTask(marshallerDirectory,
                                            marshallerClassName,

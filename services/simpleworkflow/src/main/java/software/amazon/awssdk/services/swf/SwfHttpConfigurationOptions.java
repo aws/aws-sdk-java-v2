@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,11 +21,14 @@ import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.utils.AttributeMap;
 
 @SdkInternalApi
-class SwfHttpConfigurationOptions {
+final class SwfHttpConfigurationOptions {
 
     static final AttributeMap OPTIONS = AttributeMap
             .builder()
             .put(SdkHttpConfigurationOption.SOCKET_TIMEOUT, Duration.ofMillis(90_000))
             .put(SdkHttpConfigurationOption.MAX_CONNECTIONS, 1000)
             .build();
+
+    private SwfHttpConfigurationOptions() {
+    }
 }

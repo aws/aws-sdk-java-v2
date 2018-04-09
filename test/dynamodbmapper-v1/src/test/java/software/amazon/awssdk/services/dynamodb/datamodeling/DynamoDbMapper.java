@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -34,9 +34,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.AmazonServiceException;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.AwsRequest;
+import software.amazon.awssdk.core.AwsRequestOverrideConfig;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.core.retry.RetryUtils;
@@ -204,10 +205,10 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
     /**
      * User agent for requests made using the {@link DynamoDbMapper}.
      */
-    private static final String USER_AGENT =
-        DynamoDbMapper.class.getName() + "/" + VersionInfo.SDK_VERSION;
-    private static final String USER_AGENT_BATCH_OPERATION =
-            DynamoDbMapper.class.getName() + "_batch_operation/" + VersionInfo.SDK_VERSION;
+    private static final String USER_AGENT_NAME =
+        DynamoDbMapper.class.getName();
+    private static final String USER_AGENT_BATCH_OPERATION_NAME =
+            DynamoDbMapper.class.getName() + "_batch_operation";
     private static final Logger log = LoggerFactory.getLogger(DynamoDbMapper.class);
     private final DynamoDBClient db;
     private final DynamoDbMapperModelFactory models;
@@ -770,14 +771,28 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
         return mergedExpectedValues;
     }
 
-    static <X extends AmazonWebServiceRequest> X applyUserAgent(X request) {
-        request.getRequestClientOptions().appendUserAgent(USER_AGENT);
-        return request;
+    static <X extends AwsRequest> X applyUserAgent(X request) {
+        final AwsRequestOverrideConfig newCfg = request.requestOverrideConfig()
+                .map(c -> c.toBuilder())
+                .orElse(AwsRequestOverrideConfig.builder())
+                .addApiName(apiName -> apiName.name(USER_AGENT_NAME).version(VersionInfo.SDK_VERSION))
+                .build();
+
+        return (X) request.toBuilder()
+                .requestOverrideConfig(newCfg)
+                .build();
     }
 
-    static <X extends AmazonWebServiceRequest> X applyBatchOperationUserAgent(X request) {
-        request.getRequestClientOptions().appendUserAgent(USER_AGENT_BATCH_OPERATION);
-        return request;
+    static <X extends AwsRequest> X applyBatchOperationUserAgent(X request) {
+        final AwsRequestOverrideConfig newCfg = request.requestOverrideConfig()
+                .map(c -> c.toBuilder())
+                .orElse(AwsRequestOverrideConfig.builder())
+                .addApiName(apiName -> apiName.name(USER_AGENT_BATCH_OPERATION_NAME).version(VersionInfo.SDK_VERSION))
+                .build();
+
+        return (X) request.toBuilder()
+                .requestOverrideConfig(newCfg)
+                .build();
     }
 
     /**
@@ -1844,13 +1859,13 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
         }
 
         private boolean isRequestEntityTooLarge() {
-            return exception instanceof AmazonServiceException &&
-                   RetryUtils.isRequestEntityTooLargeException((AmazonServiceException) exception);
+            return exception instanceof SdkServiceException &&
+                   RetryUtils.isRequestEntityTooLargeException((SdkServiceException) exception);
         }
 
         private boolean isThrottling() {
-            return exception instanceof AmazonServiceException &&
-                   RetryUtils.isThrottlingException((AmazonServiceException) exception);
+            return exception instanceof SdkServiceException &&
+                   RetryUtils.isThrottlingException((SdkServiceException) exception);
         }
 
         private int size() {

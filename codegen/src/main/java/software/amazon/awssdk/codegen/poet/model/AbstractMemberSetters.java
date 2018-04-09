@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -54,11 +54,12 @@ abstract class AbstractMemberSetters implements MemberSetters {
         this.poetExtensions = new PoetExtensions(intermediateModel);
     }
 
-    protected MethodSpec.Builder fluentSetterDeclaration(ParameterSpec parameter, TypeName returnType) {
-        return MethodSpec.methodBuilder(memberModel().getFluentSetterMethodName())
-                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                .addParameter(parameter)
-                .returns(returnType);
+    protected MethodSpec.Builder fluentAbstractSetterDeclaration(ParameterSpec parameter, TypeName returnType) {
+        return fluentSetterDeclaration(parameter, returnType).addModifiers(Modifier.ABSTRACT);
+    }
+
+    protected MethodSpec.Builder fluentDefaultSetterDeclaration(ParameterSpec parameter, TypeName returnType) {
+        return fluentSetterDeclaration(parameter, returnType).addModifiers(Modifier.DEFAULT);
     }
 
     protected MethodSpec.Builder fluentSetterBuilder(TypeName returnType) {
@@ -140,6 +141,13 @@ abstract class AbstractMemberSetters implements MemberSetters {
 
     protected boolean annotateJsonProperty() {
         return intermediateModel.getMetadata().isJsonProtocol() && shapeModel.getShapeType() == ShapeType.Exception;
+    }
+
+    private MethodSpec.Builder fluentSetterDeclaration(ParameterSpec parameter, TypeName returnType) {
+        return MethodSpec.methodBuilder(memberModel().getFluentSetterMethodName())
+                         .addModifiers(Modifier.PUBLIC)
+                         .addParameter(parameter)
+                         .returns(returnType);
     }
 
     private CodeBlock copySetterBody(String copyAssignment, String regularAssignment, String copyMethodName) {

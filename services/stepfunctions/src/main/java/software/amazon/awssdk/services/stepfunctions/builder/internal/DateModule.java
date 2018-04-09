@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import java.util.Date;
 /**
  * Contains Jackson module for serializing dates to ISO8601 format per the <a href="https://states-language.net/spec.html#timestamps">spec</a>.
  */
-public class DateModule {
+public final class DateModule {
 
     public static final SimpleModule INSTANCE = new SimpleModule();
 
@@ -53,6 +53,9 @@ public class DateModule {
                 return fromJson(jsonParser.getValueAsString());
             }
         });
+    }
+
+    private DateModule() {
     }
 
     public static Date fromJson(String jsonText) {

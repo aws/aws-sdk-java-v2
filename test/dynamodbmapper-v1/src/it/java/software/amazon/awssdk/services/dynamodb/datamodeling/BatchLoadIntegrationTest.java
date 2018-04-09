@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -102,9 +102,8 @@ public class BatchLoadIntegrationTest extends DynamoDBMapperIntegrationTestBase 
         assertEquals(numItems, items.size());
 
         for (Object item : items) {
-            objs.contains(item);
+            assertTrue(objs.contains(item));
         }
-        Thread.sleep(1000 * 10);
     }
 
     @Test
@@ -190,7 +189,7 @@ public class BatchLoadIntegrationTest extends DynamoDBMapperIntegrationTestBase 
         NumberSetAttributeClass obj = getUniqueNumericObject();
         objs.add(obj);
         DynamoDBClient mockClient = mock(DynamoDBClient.class);
-        when(mockClient.batchGetItem(any())).thenAnswer(new Answer<BatchGetItemResponse>() {
+        when(mockClient.batchGetItem(any(BatchGetItemRequest.class))).thenAnswer(new Answer<BatchGetItemResponse>() {
             @Override
             public BatchGetItemResponse answer(InvocationOnMock invocation) throws Throwable {
                 Thread.sleep(3000);

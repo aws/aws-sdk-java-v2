@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.machinelearning.internal;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -39,7 +39,7 @@ public class PredictEndpointInterceptor implements ExecutionInterceptor {
         if (originalRequest instanceof PredictRequest) {
             PredictRequest pr = (PredictRequest) originalRequest;
             if (pr.predictEndpoint() == null) {
-                throw new AmazonClientException("PredictRequest.PredictEndpoint is required!");
+                throw new SdkClientException("PredictRequest.PredictEndpoint is required!");
             }
 
             try {
@@ -51,7 +51,7 @@ public class PredictEndpointInterceptor implements ExecutionInterceptor {
                               .encodedPath(SdkHttpUtils.appendUri(endpoint.getPath(), request.encodedPath()))
                               .build();
             } catch (URISyntaxException e) {
-                throw new AmazonClientException("Unable to parse PredictRequest.PredictEndpoint", e);
+                throw new SdkClientException("Unable to parse PredictRequest.PredictEndpoint", e);
             }
         }
         return request;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,21 +15,17 @@
 
 package software.amazon.awssdk.core.http;
 
-import static software.amazon.awssdk.core.event.SdkProgressPublisher.publishProgress;
 import static software.amazon.awssdk.core.http.AmazonHttpClient.unreliableTestConfig;
 import static software.amazon.awssdk.utils.IoUtils.closeQuietly;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.RequestConfig;
 import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.Response;
-import software.amazon.awssdk.core.event.ProgressEventType;
-import software.amazon.awssdk.core.event.ProgressInputStream;
-import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.runtime.io.ReleasableInputStream;
 import software.amazon.awssdk.core.runtime.io.ResettableInputStream;
@@ -55,19 +51,13 @@ public class StreamManagingStage<OutputT> implements RequestPipeline<SdkHttpFull
 
     @Override
     public Response<OutputT> execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
-        final InputStream toBeClosed = createManagedStream(request, context.requestConfig());
+        Optional<InputStream> toBeClosed = createManagedStream(request);
         try {
-            ProgressListener listener = context.requestConfig().getProgressListener();
-            publishProgress(listener, ProgressEventType.CLIENT_REQUEST_STARTED_EVENT);
-            Response<OutputT> response = wrapped.execute(
-                    request.toBuilder()
-                           .content(nonCloseableInputStream(toBeClosed))
-                           .build(), context);
-            publishProgress(listener, ProgressEventType.CLIENT_REQUEST_SUCCESS_EVENT);
-            return response;
+            return wrapped.execute(request.toBuilder().content(nonCloseableInputStream(toBeClosed).orElse(null)).build(),
+                                   context);
         } finally {
             // Always close so any progress tracking would get the final events propagated.
-            closeQuietly(toBeClosed, log);
+            toBeClosed.ifPresent(i -> closeQuietly(i, log));
         }
     }
 
@@ -77,24 +67,21 @@ public class StreamManagingStage<OutputT> implements RequestPipeline<SdkHttpFull
      * @param toBeClosed Input stream to disable close on.
      * @return An input stream with close disabled or null if toBeClosed is null.
      */
-    private InputStream nonCloseableInputStream(InputStream toBeClosed) {
-        return toBeClosed == null ? null : ReleasableInputStream.wrap(toBeClosed).disableClose();
+    private Optional<InputStream> nonCloseableInputStream(Optional<InputStream> toBeClosed) {
+        return toBeClosed.map(is -> ReleasableInputStream.wrap(is).disableClose());
     }
 
     /**
-     * Wraps the request input stream in several wrappers to handle both mark/retry behavior needed for retries
-     * and reporting needs via a {@link ProgressListener}. Also will inject faulty behavior if an {@link UnreliableTestConfig} is
-     * provided.
+     * Wraps the request input stream in several wrappers to handle both mark/retry behavior needed for retries.
+     * Also will inject faulty behavior if an {@link UnreliableTestConfig} is provided.
      *
      * @return Modified input stream to use for the remainder of the execution.
      */
-    private InputStream createManagedStream(SdkHttpFullRequest request, RequestConfig requestConfig) {
+    private Optional<InputStream> createManagedStream(SdkHttpFullRequest request) {
         return request.content()
                       .map(this::makeResettable)
                       .map(this::bufferIfNeeded)
-                      .map(content -> monitorStreamProgress(requestConfig.getProgressListener(), content))
-                      .map(content -> unreliableTestConfig == null ? content : makeUnreliable(content))
-                      .orElse(null);
+                      .map(content -> unreliableTestConfig == null ? content : makeUnreliable(content));
     }
 
     /**
@@ -125,18 +112,6 @@ public class StreamManagingStage<OutputT> implements RequestPipeline<SdkHttpFull
      */
     private InputStream bufferIfNeeded(InputStream content) {
         return content.markSupported() ? content : new SdkBufferedInputStream(content);
-    }
-
-    /**
-     * Wrap with a {@link ProgressInputStream} to report request progress to listener.
-     *
-     * @param listener Listener to report to
-     * @param content  Input stream to monitor progress for
-     * @return Wrapped input stream with progress monitoring capabilities.
-     */
-    private InputStream monitorStreamProgress(ProgressListener listener,
-                                              InputStream content) {
-        return ProgressInputStream.inputStreamForRequest(content, listener);
     }
 
     /**

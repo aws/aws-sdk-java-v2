@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-public class HeaderMarshallers {
+public final class HeaderMarshallers {
 
     public static final JsonMarshaller<String> STRING = new SimpleHeaderMarshaller<>(ValueToStringConverters.FROM_STRING);
 
@@ -34,6 +34,9 @@ public class HeaderMarshallers {
     public static final JsonMarshaller<Boolean> BOOLEAN = new SimpleHeaderMarshaller<>(ValueToStringConverters.FROM_BOOLEAN);
 
     public static final JsonMarshaller<Instant> INSTANT = new SimpleHeaderMarshaller<>(ValueToStringConverters.FROM_INSTANT);
+
+    private HeaderMarshallers() {
+    }
 
     private static class SimpleHeaderMarshaller<T> implements JsonMarshaller<T> {
 

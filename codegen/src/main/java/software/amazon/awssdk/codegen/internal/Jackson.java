@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
 
-public class Jackson {
+public final class Jackson {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -43,6 +43,11 @@ public class Jackson {
         MAPPER.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
         // TODO: Un comment this once we know for sure, we capture everything in C2j model.
         MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+        MAPPER.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
+    }
+
+    private Jackson() {
     }
 
     public static <T> T load(Class<T> clazz, File file)

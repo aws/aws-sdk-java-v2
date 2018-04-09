@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -26,11 +26,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.core.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.AmazonHttpClient;
 import software.amazon.awssdk.core.internal.http.response.NullResponseHandler;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
-import software.amazon.awssdk.core.retry.PredefinedRetryPolicies;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -61,14 +61,14 @@ public class MockedClientTests {
     public void clientExecutionTimeoutEnabled_RequestCompletesWithinTimeout_TaskCanceled() throws Exception {
         AmazonHttpClient httpClient = HttpTestUtils.testClientBuilder()
                                                    .httpClient(sdkHttpClient)
-                                                   .retryPolicy(PredefinedRetryPolicies.NO_RETRY_POLICY)
+                                                   .retryPolicy(RetryPolicy.NONE)
                                                    .build();
 
         try {
             ClientExecutionAndRequestTimerTestUtils
                     .execute(httpClient, ClientExecutionAndRequestTimerTestUtils.createMockGetRequest());
             fail("Exception expected");
-        } catch (AmazonClientException e) {
+        } catch (SdkClientException e) {
             NullResponseHandler.assertIsUnmarshallingException(e);
         }
 

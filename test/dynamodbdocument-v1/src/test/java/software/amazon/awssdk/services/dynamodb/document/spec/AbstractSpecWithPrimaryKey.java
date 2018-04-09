@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -17,14 +17,14 @@ package software.amazon.awssdk.services.dynamodb.document.spec;
 
 import java.util.Arrays;
 import java.util.Collection;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
+import software.amazon.awssdk.core.AwsRequest;
 import software.amazon.awssdk.services.dynamodb.document.KeyAttribute;
 import software.amazon.awssdk.services.dynamodb.document.PrimaryKey;
 
 /**
  * Common base class for parameter specification that involves a primary key.
  */
-public class AbstractSpecWithPrimaryKey<T extends AmazonWebServiceRequest>
+public class AbstractSpecWithPrimaryKey<T extends AwsRequest>
         extends AbstractSpec<T> {
     private Collection<KeyAttribute> keyComponents;
 

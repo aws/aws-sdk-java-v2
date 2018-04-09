@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -36,8 +36,8 @@ public abstract class AwsIntegrationTestBase {
                                    .credentialsProviders(ProfileCredentialsProvider.builder()
                                                                                    .profileName(TEST_CREDENTIALS_PROFILE_NAME)
                                                                                    .build(),
-                                                         new SystemPropertyCredentialsProvider(),
-                                                         new EnvironmentVariableCredentialsProvider())
+                                                         SystemPropertyCredentialsProvider.create(),
+                                                         EnvironmentVariableCredentialsProvider.create())
                                    .build();
 
 
@@ -59,7 +59,7 @@ public abstract class AwsIntegrationTestBase {
      * @return AwsCredentialsProvider to use during tests. Setup by base fixture
      */
     protected static AwsCredentialsProvider getCredentialsProvider() {
-        return new StaticCredentialsProvider(CREDENTIALS);
+        return StaticCredentialsProvider.create(CREDENTIALS);
     }
 
     /**

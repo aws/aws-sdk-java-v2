@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ class MapSetters extends AbstractMemberSetters {
     }
 
     public List<MethodSpec> fluentDeclarations(TypeName returnType) {
-        return Collections.singletonList(fluentSetterDeclaration(memberAsParameter(), returnType)
+        return Collections.singletonList(fluentAbstractSetterDeclaration(memberAsParameter(), returnType)
                 .addJavadoc("$L", memberModel().getFluentSetterDocumentation())
                 .build());
     }

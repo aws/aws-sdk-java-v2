@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import com.typesafe.netty.http.HttpStreamsClientHandler;
 import com.typesafe.netty.http.StreamedHttpRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.HttpContent;
@@ -42,6 +41,7 @@ import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.async.AbortableRunnable;
+import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 
 public final class RunnableRequest implements AbortableRunnable {
@@ -77,33 +77,8 @@ public final class RunnableRequest implements AbortableRunnable {
      * Add any per-request handlers to the pipeline.
      */
     private void initializePerRequestHandlers() {
-        // Remove any existing handlers from the pipeline from the previous request.
-        removeIfExists(HttpStreamsClientHandler.class, ResponseHandler.class,
-                       ReadTimeoutHandler.class, WriteTimeoutHandler.class);
-
-        // TODO: We should only be adding the WriteTimeoutHandler handler here,
-        // and remove it once the request is written.  Similarly,
-        // ReadTimeoutHandler should be added during the the request execution
-        // as necessary when we make read() calls, and removed after the data
-        // is read.
-        channel.pipeline().addFirst(new WriteTimeoutHandler(50));
-        channel.pipeline().addFirst(new ReadTimeoutHandler(50));
         channel.pipeline().addLast(new HttpStreamsClientHandler());
         channel.pipeline().addLast(new ResponseHandler());
-    }
-
-    /**
-     * Removes the handler from the pipeline if present.
-     *
-     * @param handlers Handlers to remove, identified by class.
-     */
-    @SafeVarargs
-    private final void removeIfExists(Class<? extends ChannelHandler>... handlers) {
-        for (Class<? extends ChannelHandler> handler : handlers) {
-            if (channel.pipeline().get(handler) != null) {
-                channel.pipeline().remove(handler);
-            }
-        }
     }
 
     @Override
@@ -115,9 +90,12 @@ public final class RunnableRequest implements AbortableRunnable {
 
     private void makeRequest(HttpRequest request) {
         log.debug("Writing request: {}", request);
+        channel.pipeline().addFirst(new WriteTimeoutHandler(context.configuration().writeTimeout()));
         channel.writeAndFlush(new StreamedRequest(request, context.sdkRequestProvider(), channel))
                .addListener(wireCall -> {
+                   ChannelUtils.removeIfExists(channel.pipeline(), WriteTimeoutHandler.class);
                    if (wireCall.isSuccess()) {
+                       channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeout()));
                        // Auto-read is turned off so trigger an explicit read to give control to HttpStreamsClientHandler
                        channel.read();
                    } else {

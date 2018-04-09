@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package software.amazon.awssdk.core;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpMethodName;
 
 /**
@@ -100,15 +101,9 @@ public interface Request<T> extends SignableRequest<T> {
      *         as the service name set in request metrics and service
      *         exceptions.
      *
-     * @see {@link AmazonServiceException#getServiceName()}
+     * @see {@link SdkServiceException#serviceName()}
      */
     String getServiceName();
-
-    /**
-     * Returns the original, user facing request object which this internal
-     * request object is representing.
-     */
-    AmazonWebServiceRequest getOriginalRequest();
 
     /**
      * Sets the optional value for time offset for this request.  This

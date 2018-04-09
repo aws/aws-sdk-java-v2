@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.protocol;
 
-import software.amazon.awssdk.core.SdkBaseException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 
 public class ApiGatewayProtocolMetadataProvider extends BaseJsonProtocolMetadataProvider {
     public static final long serialVersionUID = 1L;
@@ -32,7 +32,7 @@ public class ApiGatewayProtocolMetadataProvider extends BaseJsonProtocolMetadata
 
     @Override
     public String getBaseExceptionFqcn() {
-        return SdkBaseException.class.getName();
+        return SdkServiceException.class.getName();
     }
 
     @Override

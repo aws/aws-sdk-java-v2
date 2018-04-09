@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.cloudwatchlogs.model.CreateLogGroupRequest;
 import software.amazon.awssdk.services.cloudwatchlogs.model.CreateLogStreamRequest;
 import software.amazon.awssdk.services.cloudwatchlogs.model.DeleteLogGroupRequest;
@@ -147,17 +147,17 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
     public void tearDown() {
         try {
             awsLogs.deleteLogStream(DeleteLogStreamRequest.builder().logGroupName(logGroupName).logStreamName(logStreamName).build());
-        } catch (AmazonServiceException ase) {
+        } catch (SdkServiceException exception) {
             System.err.println("Unable to delete log stream " + logStreamName);
         }
         try {
             awsLogs.deleteMetricFilter(DeleteMetricFilterRequest.builder().logGroupName(logGroupName).filterName(logMetricFilterName).build());
-        } catch (AmazonServiceException ase) {
+        } catch (SdkServiceException exception) {
             System.err.println("Unable to delete metric filter " + logMetricFilterName);
         }
         try {
             awsLogs.deleteLogGroup(DeleteLogGroupRequest.builder().logGroupName(logGroupName).build());
-        } catch (AmazonServiceException ase) {
+        } catch (SdkServiceException exception) {
             System.err.println("Unable to delete log group " + logGroupName);
         }
     }

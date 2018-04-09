@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ public class Example {
     private JsonNode output;
 
     public Example(
-            @JsonProperty(value = "description", required = true) String description,
+            @JsonProperty(value = "description") String description,
             @JsonProperty(value = "id", required = true) String id,
             @JsonProperty(value = "title", required = true) String title,
             @JsonProperty(value = "input") JsonNode input,

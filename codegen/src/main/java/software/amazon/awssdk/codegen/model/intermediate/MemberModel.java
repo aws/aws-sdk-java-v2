@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -377,33 +377,56 @@ public class MemberModel extends DocumentationModel {
     }
 
     public String getFluentSetterDocumentation() {
-        StringBuilder docBuilder = new StringBuilder();
-        docBuilder.append(getSetterDocumentation())
-                .append(LF)
-                .append("@return " + stripHtmlTags(DEFAULT_FLUENT_RETURN))
-                .append(getEnumDoc());
-        return docBuilder.toString();
+        return getSetterDocumentation()
+               + LF
+               + "@return " + stripHtmlTags(DEFAULT_FLUENT_RETURN)
+               + getEnumDoc();
+    }
+
+    public String getDefaultConsumerFluentSetterDocumentation() {
+        return (StringUtils.isNotBlank(documentation) ? documentation : DEFAULT_SETTER.replace("%s", name) + "\n")
+               + LF
+               + "This is a convenience that creates an instance of the {@link "
+               + variable.getSimpleType()
+               + ".Builder} avoiding the need to create one manually via {@link "
+               + variable.getSimpleType()
+               + "#builder()}.\n"
+               + LF
+               + "When the {@link Consumer} completes, {@link "
+               + variable.getSimpleType()
+               + ".Builder#build()} is called immediately and its result is passed to {@link #"
+               + getFluentGetterMethodName()
+               + "("
+               + variable.getSimpleType()
+               + ")}."
+               + LF
+               + "@param "
+               + variable.getVariableName()
+               + " a consumer that will call methods on {@link "
+               + variable.getSimpleType() + ".Builder}"
+               + LF
+               + "@return " + stripHtmlTags(DEFAULT_FLUENT_RETURN)
+               + LF
+               + "@see #"
+               + getFluentSetterMethodName()
+               + "("
+               + variable.getSimpleType()
+               + ")";
     }
 
     private String getParamDoc() {
-        StringBuilder docBuilder = new StringBuilder();
-
-        String variableDesc = StringUtils.isNotBlank(documentation) ? documentation : DEFAULT_SETTER_PARAM.replace("%s", name);
-
-        docBuilder.append(LF)
-                  .append("@param ")
-                  .append(variable.getVariableName())
-                  .append(" ")
-                  .append(stripHtmlTags(variableDesc));
-        return docBuilder.toString();
+        return LF
+               + "@param "
+               + variable.getVariableName()
+               + " "
+               + stripHtmlTags(StringUtils.isNotBlank(documentation) ? documentation : DEFAULT_SETTER_PARAM.replace("%s", name));
     }
 
     private String getEnumDoc() {
         StringBuilder docBuilder = new StringBuilder();
 
         if (enumType != null) {
-            docBuilder.append(LF);
-            docBuilder.append("@see " + enumType);
+            docBuilder.append(LF).append("@see ").append(enumType);
         }
 
         return docBuilder.toString();

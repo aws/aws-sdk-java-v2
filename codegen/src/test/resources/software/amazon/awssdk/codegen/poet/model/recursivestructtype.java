@@ -4,7 +4,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -12,6 +14,7 @@ import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.protocol.StructuredPojo;
 import software.amazon.awssdk.services.jsonprotocoltests.transform.RecursiveStructTypeMarshaller;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -92,10 +95,10 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
     @Override
     public int hashCode() {
         int hashCode = 1;
-        hashCode = 31 * hashCode + ((noRecurse() == null) ? 0 : noRecurse().hashCode());
-        hashCode = 31 * hashCode + ((recursiveStruct() == null) ? 0 : recursiveStruct().hashCode());
-        hashCode = 31 * hashCode + ((recursiveList() == null) ? 0 : recursiveList().hashCode());
-        hashCode = 31 * hashCode + ((recursiveMap() == null) ? 0 : recursiveMap().hashCode());
+        hashCode = 31 * hashCode + Objects.hashCode(noRecurse());
+        hashCode = 31 * hashCode + Objects.hashCode(recursiveStruct());
+        hashCode = 31 * hashCode + Objects.hashCode(recursiveList());
+        hashCode = 31 * hashCode + Objects.hashCode(recursiveMap());
         return hashCode;
     }
 
@@ -111,67 +114,29 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
             return false;
         }
         RecursiveStructType other = (RecursiveStructType) obj;
-        if (other.noRecurse() == null ^ this.noRecurse() == null) {
-            return false;
-        }
-        if (other.noRecurse() != null && !other.noRecurse().equals(this.noRecurse())) {
-            return false;
-        }
-        if (other.recursiveStruct() == null ^ this.recursiveStruct() == null) {
-            return false;
-        }
-        if (other.recursiveStruct() != null && !other.recursiveStruct().equals(this.recursiveStruct())) {
-            return false;
-        }
-        if (other.recursiveList() == null ^ this.recursiveList() == null) {
-            return false;
-        }
-        if (other.recursiveList() != null && !other.recursiveList().equals(this.recursiveList())) {
-            return false;
-        }
-        if (other.recursiveMap() == null ^ this.recursiveMap() == null) {
-            return false;
-        }
-        if (other.recursiveMap() != null && !other.recursiveMap().equals(this.recursiveMap())) {
-            return false;
-        }
-        return true;
+        return Objects.equals(noRecurse(), other.noRecurse()) && Objects.equals(recursiveStruct(), other.recursiveStruct())
+               && Objects.equals(recursiveList(), other.recursiveList()) && Objects.equals(recursiveMap(), other.recursiveMap());
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("{");
-        if (noRecurse() != null) {
-            sb.append("NoRecurse: ").append(noRecurse()).append(",");
-        }
-        if (recursiveStruct() != null) {
-            sb.append("RecursiveStruct: ").append(recursiveStruct()).append(",");
-        }
-        if (recursiveList() != null) {
-            sb.append("RecursiveList: ").append(recursiveList()).append(",");
-        }
-        if (recursiveMap() != null) {
-            sb.append("RecursiveMap: ").append(recursiveMap()).append(",");
-        }
-        if (sb.length() > 1) {
-            sb.setLength(sb.length() - 1);
-        }
-        sb.append("}");
-        return sb.toString();
+        return ToString.builder("RecursiveStructType").add("NoRecurse", noRecurse())
+                       .add("RecursiveStruct", recursiveStruct()).add("RecursiveList", recursiveList())
+                       .add("RecursiveMap", recursiveMap()).build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "NoRecurse":
-            return Optional.of(clazz.cast(noRecurse()));
-        case "RecursiveStruct":
-            return Optional.of(clazz.cast(recursiveStruct()));
-        case "RecursiveList":
-            return Optional.of(clazz.cast(recursiveList()));
-        case "RecursiveMap":
-            return Optional.of(clazz.cast(recursiveMap()));
-        default:
-            return Optional.empty();
+            case "NoRecurse":
+                return Optional.of(clazz.cast(noRecurse()));
+            case "RecursiveStruct":
+                return Optional.of(clazz.cast(recursiveStruct()));
+            case "RecursiveList":
+                return Optional.of(clazz.cast(recursiveList()));
+            case "RecursiveMap":
+                return Optional.of(clazz.cast(recursiveMap()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -199,6 +164,24 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder recursiveStruct(RecursiveStructType recursiveStruct);
+
+        /**
+         * Sets the value of the RecursiveStruct property for this object.
+         *
+         * This is a convenience that creates an instance of the {@link RecursiveStructType.Builder} avoiding the need
+         * to create one manually via {@link RecursiveStructType#builder()}.
+         *
+         * When the {@link Consumer} completes, {@link RecursiveStructType.Builder#build()} is called immediately and
+         * its result is passed to {@link #recursiveStruct(RecursiveStructType)}.
+         *
+         * @param recursiveStruct
+         *        a consumer that will call methods on {@link RecursiveStructType.Builder}
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #recursiveStruct(RecursiveStructType)
+         */
+        default Builder recursiveStruct(Consumer<Builder> recursiveStruct) {
+            return recursiveStruct(RecursiveStructType.builder().apply(recursiveStruct).build());
+        }
 
         /**
          * Sets the value of the RecursiveList property for this object.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -38,12 +38,13 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import software.amazon.awssdk.utils.Base64Utils;
+import software.amazon.awssdk.utils.XmlUtils;
 
 /**
  * Utility methods for extracting data from XML documents using Xpath
  * expressions.
  */
-public class XpathUtils {
+public final class XpathUtils {
 
     /** The default property name to load the Xalan DTM manager. */
     private static final String DTM_MANAGER_DEFAULT_PROP_NAME = "com.sun.org.apache.xml.internal.dtm.DTMManager";
@@ -98,6 +99,9 @@ public class XpathUtils {
         } catch (Throwable t) {
             log.debug("Ingore failure in speeding up DTMManager", t);
         }
+    }
+
+    private XpathUtils() {
     }
 
     /**
@@ -161,7 +165,7 @@ public class XpathUtils {
             throws SAXException, IOException, ParserConfigurationException {
         is = new NamespaceRemovingInputStream(is);
         // DocumentBuilderFactory is not thread safe
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory factory = XmlUtils.documentBuilderFactory();
         DocumentBuilder builder = factory.newDocumentBuilder();
         // ensure that parser writes error/warning messages to the logger
         // rather than stderr

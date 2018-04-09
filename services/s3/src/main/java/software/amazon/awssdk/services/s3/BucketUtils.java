@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,6 +27,9 @@ public class BucketUtils {
     private static final int MAX_BUCKET_NAME_LENGTH = 63;
 
     private static final Pattern IP_ADDRESS_PATTERN = Pattern.compile("(\\d+\\.){3}\\d+");
+
+    private BucketUtils() {
+    }
 
     /**
      * Validates that the specified bucket name is valid for Amazon S3 V2 naming

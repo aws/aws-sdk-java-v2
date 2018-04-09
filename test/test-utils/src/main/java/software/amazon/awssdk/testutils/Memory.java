@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -24,8 +24,10 @@ import java.util.Iterator;
 /**
  * Used to retrieve information about the JVM memory.
  */
-public enum Memory {
-    ;
+public final class Memory {
+
+    private Memory() {
+    }
 
     /**
      * Returns a summary information about the heap memory.

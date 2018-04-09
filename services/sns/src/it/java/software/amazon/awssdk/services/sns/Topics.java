@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.core.AmazonClientException;
-import software.amazon.awssdk.core.AmazonServiceException;
 import software.amazon.awssdk.core.auth.policy.Action;
 import software.amazon.awssdk.core.auth.policy.Policy;
 import software.amazon.awssdk.core.auth.policy.Principal;
@@ -28,6 +26,8 @@ import software.amazon.awssdk.core.auth.policy.Resource;
 import software.amazon.awssdk.core.auth.policy.Statement;
 import software.amazon.awssdk.core.auth.policy.Statement.Effect;
 import software.amazon.awssdk.core.auth.policy.conditions.ConditionFactory;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.sns.model.SubscribeRequest;
 import software.amazon.awssdk.services.sns.model.SubscribeResponse;
 import software.amazon.awssdk.services.sqs.SQSClient;
@@ -99,17 +99,17 @@ public class Topics {
      * @return The subscription ARN as returned by Amazon SNS when the queue is
      *         successfully subscribed to the topic.
      *
-     * @throws AmazonClientException
+     * @throws SdkClientException
      *             If any internal errors are encountered inside the client
      *             while attempting to make the request or handle the response.
      *             For example if a network connection is not available.
-     * @throws AmazonServiceException
+     * @throws SdkServiceException
      *             If an error response is returned by SnsClient indicating
      *             either a problem with the data in the request, or a server
      *             side issue.
      */
     public static String subscribeQueue(SNSClient sns, SQSClient sqs, String snsTopicArn, String sqsQueueUrl)
-            throws AmazonClientException, AmazonServiceException {
+            throws SdkClientException, SdkServiceException {
         return Topics.subscribeQueue(sns, sqs, snsTopicArn, sqsQueueUrl, false);
     }
 
@@ -170,18 +170,18 @@ public class Topics {
      * @return The subscription ARN as returned by Amazon SNS when the queue is
      *         successfully subscribed to the topic.
      *
-     * @throws AmazonClientException
+     * @throws SdkClientException
      *             If any internal errors are encountered inside the client
      *             while attempting to make the request or handle the response.
      *             For example if a network connection is not available.
-     * @throws AmazonServiceException
+     * @throws SdkServiceException
      *             If an error response is returned by SnsClient indicating
      *             either a problem with the data in the request, or a server
      *             side issue.
      */
     public static String subscribeQueue(SNSClient sns, SQSClient sqs, String snsTopicArn, String sqsQueueUrl,
                                         boolean extendPolicy)
-            throws AmazonClientException, AmazonServiceException {
+            throws SdkClientException, SdkServiceException {
         List<String> sqsAttrNames = Arrays.asList(QueueAttributeName.QUEUE_ARN.toString(),
                                                   QueueAttributeName.POLICY.toString());
         Map<String, String> sqsAttrs =

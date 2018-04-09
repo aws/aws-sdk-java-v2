@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,7 +30,10 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  * Adapts a {@link Request} to the new {@link SdkHttpFullRequest} interface.
  */
 @ReviewBeforeRelease("This should eventually be removed and SdkHttpFullRequest should completely replace Request")
-public class SdkHttpFullRequestAdapter {
+public final class SdkHttpFullRequestAdapter {
+
+    private SdkHttpFullRequestAdapter() {
+    }
 
     public static SdkHttpFullRequest toHttpFullRequest(Request<?> request) {
         return toMutableHttpFullRequest(request).build();

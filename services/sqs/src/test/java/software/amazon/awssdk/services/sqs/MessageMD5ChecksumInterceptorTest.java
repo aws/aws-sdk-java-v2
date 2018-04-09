@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonClientException;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.services.sqs.model.Message;
@@ -231,7 +231,7 @@ public class MessageMD5ChecksumInterceptorTest {
 
     private void assertFailure(SdkRequest request, SdkResponse response) {
         assertThatThrownBy(() -> callInterceptor(request, response))
-                .isInstanceOf(AmazonClientException.class);
+                .isInstanceOf(SdkClientException.class);
     }
 
     private void callInterceptor(SdkRequest request, SdkResponse response) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public final class PoetUtils {
 
     public static void addJavadoc(Consumer<String> builder, String javadoc) {
         if (isNotBlank(javadoc)) {
-            builder.accept(javadoc + (javadoc.endsWith("\n") ? "" : "\n"));
+            builder.accept(javadoc.replace("$", "$$") + (javadoc.endsWith("\n") ? "" : "\n"));
         }
     }
 

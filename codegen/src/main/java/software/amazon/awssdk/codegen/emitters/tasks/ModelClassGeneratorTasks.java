@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.common.EnumClass;
+import software.amazon.awssdk.codegen.poet.model.AwsServiceBaseRequestSpec;
+import software.amazon.awssdk.codegen.poet.model.AwsServiceBaseResponseSpec;
 import software.amazon.awssdk.codegen.poet.model.AwsServiceModel;
 import software.amazon.awssdk.codegen.poet.model.ServiceModelCopiers;
 
@@ -44,6 +46,9 @@ class ModelClassGeneratorTasks extends BaseGeneratorTasks {
     protected List<GeneratorTask> createTasks() throws Exception {
         info("Emitting model classes");
         List<GeneratorTask> tasks = new ArrayList<>();
+
+        tasks.add(new PoetGeneratorTask(modelClassDir, model.getFileHeader(), new AwsServiceBaseRequestSpec(model)));
+        tasks.add(new PoetGeneratorTask(modelClassDir, model.getFileHeader(), new AwsServiceBaseResponseSpec(model)));
 
         model.getShapes().values().stream()
                     .filter(this::shouldGenerateShape)

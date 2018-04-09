@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -19,7 +19,11 @@ import java.util.Arrays;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 @ReviewBeforeRelease("Remove before GA")
-public class ImmutableObjectUtils {
+public final class ImmutableObjectUtils {
+
+    private ImmutableObjectUtils() {
+    }
+
     public static <T> void setObjectMember(Object o, String memberName, T value) {
         Arrays.stream(o.getClass().getDeclaredFields())
                 .filter(f -> f.getName().equals(memberName))

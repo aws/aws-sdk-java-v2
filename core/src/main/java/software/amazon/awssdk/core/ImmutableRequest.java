@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -90,25 +90,7 @@ public interface ImmutableRequest<T> {
     InputStream getContent();
 
     /**
-     * Returns the optional raw stream containing the payload data to include
-     * for this request, with all progress stream wrappers. Not all requests
-     * contain payload data.
-     *
-     * @return The optional raw stream containing the payload data to include
-     *         for this request, with all progress stream wrappers removed.
-     */
-    InputStream getContentUnwrapped();
-
-    /**
-     * Returns the read limit info about the original request.
-     */
-    ReadLimitInfo getReadLimitInfo();
-
-    /**
-     * Returns the original, user facing request object which this internal
      * request object is representing.
-     *
-     * @return an instance of request as an <code>Object</code>.
      */
-    Object getOriginalRequestObject();
+    T getOriginalRequest();
 }

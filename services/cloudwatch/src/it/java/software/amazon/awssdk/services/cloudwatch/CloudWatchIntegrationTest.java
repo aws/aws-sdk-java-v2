@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,36 +15,39 @@
 
 package software.amazon.awssdk.services.cloudwatch;
 
+import static java.util.stream.Collectors.toList;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.isIn;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static software.amazon.awssdk.testutils.service.AwsTestBase.isValidAmazonServiceException;
+import static software.amazon.awssdk.testutils.service.AwsTestBase.isValidSdkServiceException;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.model.Datapoint;
 import software.amazon.awssdk.services.cloudwatch.model.DeleteAlarmsRequest;
-import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmHistoryRequest;
-import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmHistoryResponse;
-import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsForMetricRequest;
 import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsForMetricResponse;
 import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsRequest;
 import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsResponse;
 import software.amazon.awssdk.services.cloudwatch.model.Dimension;
-import software.amazon.awssdk.services.cloudwatch.model.DisableAlarmActionsRequest;
-import software.amazon.awssdk.services.cloudwatch.model.EnableAlarmActionsRequest;
 import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsRequest;
 import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsResponse;
 import software.amazon.awssdk.services.cloudwatch.model.HistoryItemType;
@@ -55,9 +58,9 @@ import software.amazon.awssdk.services.cloudwatch.model.MetricAlarm;
 import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricAlarmRequest;
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataRequest;
-import software.amazon.awssdk.services.cloudwatch.model.SetAlarmStateRequest;
+import software.amazon.awssdk.services.cloudwatch.model.StateValue;
+import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
-import software.amazon.awssdk.testutils.SdkAsserts;
 
 /**
  * Integration tests for the AWS CloudWatch service.
@@ -75,7 +78,10 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
      */
     @BeforeClass
     public static void setUp() throws IOException {
-        cloudwatch = CloudWatchClient.builder().credentialsProvider(new StaticCredentialsProvider(getCredentials())).build();
+        cloudwatch = CloudWatchClient.builder()
+                                     .credentialsProvider(getCredentialsProvider())
+                                     .region(Region.US_WEST_2)
+                                     .build();
     }
 
     /**
@@ -85,7 +91,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
     public static void cleanupAlarms() {
         if (cloudwatch != null) {
             DescribeAlarmsResponse describeResult = cloudwatch.describeAlarms(DescribeAlarmsRequest.builder().build());
-            Collection<String> toDelete = new LinkedList<String>();
+            Collection<String> toDelete = new LinkedList<>();
             for (MetricAlarm alarm : describeResult.metricAlarms()) {
                 if (alarm.metricName().startsWith(CloudWatchIntegrationTest.class.getName())) {
                     toDelete.add(alarm.alarmName());
@@ -116,20 +122,17 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
         cloudwatch.putMetricData(PutMetricDataRequest.builder()
                                          .namespace("AWS.EC2").metricData(datum).build());
 
-        // TODO: get an ETA on the arrival of this data
-        Thread.sleep(60 * 1000);
-
-        GetMetricStatisticsRequest getRequest = GetMetricStatisticsRequest.builder()
-                .startTime(Instant.now().minus(Duration.ofDays(7)))
-                .namespace("AWS.EC2")
-                .period(60 * 60)
-                .dimensions(Dimension.builder().name("InstanceType").value("m1.small").build())
-                .metricName(measureName)
-                .statistics("Average", "Maximum", "Minimum", "Sum")
-                .endTime(Instant.now())
-                .build();
-        GetMetricStatisticsResponse result = cloudwatch
-                .getMetricStatistics(getRequest);
+        GetMetricStatisticsResponse result =
+                Waiter.run(() -> cloudwatch.getMetricStatistics(r -> r.startTime(Instant.now().minus(Duration.ofDays(7)))
+                                                                      .namespace("AWS.EC2")
+                                                                      .period(60 * 60)
+                                                                      .dimensions(Dimension.builder().name("InstanceType")
+                                                                                           .value("m1.small").build())
+                                                                      .metricName(measureName)
+                                                                      .statistics("Average", "Maximum", "Minimum", "Sum")
+                                                                      .endTime(Instant.now())))
+                      .until(r -> r.datapoints().size() == 1)
+                      .orFailAfter(Duration.ofMinutes(1));
 
         assertNotNull(result.label());
         assertEquals(measureName, result.label());
@@ -174,7 +177,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
         long now = System.currentTimeMillis();
         double value = 42.0;
 
-        Collection<MetricDatum> data = new LinkedList<MetricDatum>();
+        Collection<MetricDatum> data = new LinkedList<>();
         for (int i = ONE_WEEK_IN_MILLISECONDS; i >= 0; i -= ONE_HOUR_IN_MILLISECONDS) {
             long time = now - i;
             MetricDatum datum = MetricDatum.builder().dimensions(
@@ -188,8 +191,8 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
             cloudwatch.putMetricData(PutMetricDataRequest.builder().namespace(
                     "AWS/EC2").metricData(data).build());
             fail("Expected an error");
-        } catch (AmazonServiceException e) {
-            assertTrue(413 == e.getStatusCode());
+        } catch (SdkServiceException e) {
+            assertTrue(413 == e.statusCode());
         }
     }
 
@@ -198,49 +201,27 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
      */
     @Test
     public void describe_alarms_returns_values_set() {
-        String metricName = this.getClass().getName()
-                            + System.currentTimeMillis();
+        String metricName = this.getClass().getName() + System.currentTimeMillis();
 
-        PutMetricAlarmRequest[] rqs = createTwoNewAlarms(metricName);
+        List<PutMetricAlarmRequest> rqs = createTwoNewAlarms(metricName);
 
-        PutMetricAlarmRequest rq1 = rqs[0];
-        PutMetricAlarmRequest rq2 = rqs[1];
+        rqs.forEach(rq -> cloudwatch.setAlarmState(r -> r.alarmName(rq.alarmName()).stateValue("ALARM").stateReason("manual")));
 
-        /*
-         * Set the state
-         */
-        SetAlarmStateRequest setAlarmStateRequest = SetAlarmStateRequest.builder()
-                .alarmName(rq1.alarmName()).stateValue("ALARM")
-                .stateReason("manual").build();
-        cloudwatch.setAlarmState(setAlarmStateRequest);
-        setAlarmStateRequest = SetAlarmStateRequest.builder().alarmName(
-                rq2.alarmName()).stateValue("ALARM").stateReason(
-                "manual").build();
-        cloudwatch.setAlarmState(setAlarmStateRequest);
+        DescribeAlarmsForMetricResponse describeResult = describeAlarmsForMetric(rqs);
 
-        DescribeAlarmsForMetricResponse describeResult = cloudwatch
-                .describeAlarmsForMetric(DescribeAlarmsForMetricRequest.builder()
-                                                 .dimensions(rq1.dimensions()).metricName(
-                                metricName).namespace(rq1.namespace()).build());
-        assertEquals(2, describeResult.metricAlarms().size());
-        for (MetricAlarm alarm : describeResult.metricAlarms()) {
-            assertTrue(rq1.alarmName().equals(alarm.alarmName())
-                       || rq2.alarmName().equals(alarm.alarmName()));
-            assertEquals(setAlarmStateRequest.stateValue(), alarm
-                    .stateValue());
-            assertEquals(setAlarmStateRequest.stateReason(), alarm
-                    .stateReason());
-        }
+        assertThat(describeResult.metricAlarms(), hasSize(2));
 
-        /*
-         * Get the history
-         */
-        DescribeAlarmHistoryRequest alarmHistoryRequest = DescribeAlarmHistoryRequest.builder()
-                .alarmName(rq1.alarmName()).historyItemType(HistoryItemType.STATE_UPDATE)
-                .build();
-        DescribeAlarmHistoryResponse historyResult = cloudwatch
-                .describeAlarmHistory(alarmHistoryRequest);
-        assertEquals(1, historyResult.alarmHistoryItems().size());
+        //check the state is correct
+        describeResult.metricAlarms().forEach(alarm -> {
+            assertThat(alarm.alarmName(), isIn(rqs.stream().map(PutMetricAlarmRequest::alarmName).collect(toList())));
+            assertThat(alarm.stateValue(), equalTo(StateValue.ALARM));
+            assertThat(alarm.stateReason(), equalTo("manual"));
+        });
+
+        //check the state history has been recorded
+        rqs.stream().map(alarm -> cloudwatch.describeAlarmHistory(r -> r.alarmName(alarm.alarmName())
+                                                                        .historyItemType(HistoryItemType.STATE_UPDATE)))
+           .forEach(history -> assertThat(history.alarmHistoryItems(), hasSize(greaterThan(0))));
     }
 
     /**
@@ -248,62 +229,60 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
      */
     @Test
     public void disable_enable_alarms_returns_success() {
-        String metricName = this.getClass().getName()
-                            + System.currentTimeMillis();
+        String metricName = this.getClass().getName() + System.currentTimeMillis();
 
-        PutMetricAlarmRequest[] rqs = createTwoNewAlarms(metricName);
+        List<PutMetricAlarmRequest> rqs = createTwoNewAlarms(metricName);
+        List<String> alarmNames = rqs.stream().map(PutMetricAlarmRequest::alarmName).collect(toList());
 
-        PutMetricAlarmRequest rq1 = rqs[0];
-        PutMetricAlarmRequest rq2 = rqs[1];
+        PutMetricAlarmRequest rq1 = rqs.get(0);
+        PutMetricAlarmRequest rq2 = rqs.get(1);
 
         /*
          * Disable
          */
-        DisableAlarmActionsRequest disable = DisableAlarmActionsRequest.builder()
-                .alarmNames(rq1.alarmName(), rq2.alarmName()).build();
-        cloudwatch.disableAlarmActions(disable);
+        cloudwatch.disableAlarmActions(r -> r.alarmNames(alarmNames));
 
-        DescribeAlarmsForMetricResponse describeResult = cloudwatch
-                .describeAlarmsForMetric(DescribeAlarmsForMetricRequest.builder()
-                                                 .dimensions(rq1.dimensions()).metricName(
-                                metricName).namespace(rq1.namespace()).build());
-        assertEquals(2, describeResult.metricAlarms().size());
-        for (MetricAlarm alarm : describeResult.metricAlarms()) {
-            assertTrue(rq1.alarmName().equals(alarm.alarmName())
-                       || rq2.alarmName().equals(alarm.alarmName()));
-            assertFalse(alarm.actionsEnabled());
-        }
+        DescribeAlarmsForMetricResponse describeDisabledResult = describeAlarmsForMetric(rqs);
+
+        assertThat(describeDisabledResult.metricAlarms(), hasSize(2));
+
+        describeDisabledResult.metricAlarms().forEach(alarm -> {
+            assertThat(alarm.alarmName(), isIn(alarmNames));
+            assertThat(alarm.actionsEnabled(), is(false));
+        });
 
         /*
          * Enable
          */
-        EnableAlarmActionsRequest enable = EnableAlarmActionsRequest.builder()
-                .alarmNames(rq1.alarmName(), rq2.alarmName()).build();
-        cloudwatch.enableAlarmActions(enable);
+        cloudwatch.enableAlarmActions(r -> r.alarmNames(alarmNames));
 
-        describeResult = cloudwatch
-                .describeAlarmsForMetric(DescribeAlarmsForMetricRequest.builder()
-                                                 .dimensions(rq1.dimensions()).metricName(
-                                metricName).namespace(rq1.namespace()).build());
-        assertEquals(2, describeResult.metricAlarms().size());
-        for (MetricAlarm alarm : describeResult.metricAlarms()) {
-            assertTrue(rq1.alarmName().equals(alarm.alarmName())
-                       || rq2.alarmName().equals(alarm.alarmName()));
-            assertTrue(alarm.actionsEnabled());
-        }
+        DescribeAlarmsForMetricResponse describeEnabledResult = describeAlarmsForMetric(rqs);
+
+        assertThat(describeEnabledResult.metricAlarms(), hasSize(2));
+        describeEnabledResult.metricAlarms().forEach(alarm -> {
+            assertThat(alarm.alarmName(), isIn(alarmNames));
+            assertThat(alarm.actionsEnabled(), is(true));
+        });
+    }
+
+    private DescribeAlarmsForMetricResponse describeAlarmsForMetric(List<PutMetricAlarmRequest> rqs) {
+        return cloudwatch.describeAlarmsForMetric(r -> r.dimensions(rqs.get(0).dimensions())
+                                                        .metricName(rqs.get(0).metricName())
+                                                        .namespace(rqs.get(0).namespace()));
     }
 
     /**
      * Creates two alarms on the metric name given and returns the two requests
      * as an array.
      */
-    private PutMetricAlarmRequest[] createTwoNewAlarms(String metricName) {
-        PutMetricAlarmRequest[] rqs = new PutMetricAlarmRequest[2];
+    private List<PutMetricAlarmRequest> createTwoNewAlarms(String metricName) {
+
+        List<PutMetricAlarmRequest> rqs = new ArrayList<>();
 
         /*
-         * Put two metric alarms
+         * Create & put two metric alarms
          */
-        rqs[0] = PutMetricAlarmRequest.builder().actionsEnabled(true)
+        rqs.add(PutMetricAlarmRequest.builder().actionsEnabled(true)
                                             .alarmDescription("Some alarm description").alarmName(
                         "An Alarm Name" + metricName).comparisonOperator(
                         "GreaterThanThreshold").dimensions(
@@ -312,11 +291,10 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
                                             .metricName(metricName).namespace("AWS/EC2")
                                             .period(60).statistic("Average").threshold(1.0)
                                             .unit("Count")
-                .build();
+                .build());
 
-        cloudwatch.putMetricAlarm(rqs[0]);
 
-        rqs[1] = PutMetricAlarmRequest.builder().actionsEnabled(true)
+        rqs.add(PutMetricAlarmRequest.builder().actionsEnabled(true)
                                             .alarmDescription("Some alarm description 2")
                                             .alarmName("An Alarm Name 2" + metricName)
                                             .comparisonOperator("GreaterThanThreshold").dimensions(
@@ -325,23 +303,24 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
                                             .metricName(metricName).namespace("AWS/EC2")
                                             .period(60).statistic("Average").threshold(2.0)
                                             .unit("Count")
-                .build();
-        cloudwatch.putMetricAlarm(rqs[1]);
+                .build());
+
+        rqs.forEach(cloudwatch::putMetricAlarm);
         return rqs;
     }
 
     /**
      * Tests that an error response from CloudWatch is correctly unmarshalled
-     * into an AmazonServiceException object.
+     * into an SdkServiceException object.
      */
     @Test
     public void testExceptionHandling() throws Exception {
         try {
             cloudwatch.getMetricStatistics(GetMetricStatisticsRequest.builder()
                                                    .namespace("fake-namespace").build());
-            fail("Expected an AmazonServiceException, but wasn't thrown");
-        } catch (AmazonServiceException e) {
-            assertThat(e, isValidAmazonServiceException());
+            fail("Expected an SdkServiceException, but wasn't thrown");
+        } catch (SdkServiceException e) {
+            assertThat(e, isValidSdkServiceException());
         }
     }
 
@@ -355,7 +334,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
         SdkGlobalTime.setGlobalTimeOffset(3600);
 
         CloudWatchClient cloudwatch = CloudWatchClient.builder()
-                .credentialsProvider(new StaticCredentialsProvider(getCredentials()))
+                .credentialsProvider(StaticCredentialsProvider.create(getCredentials()))
                 .build();
         cloudwatch.listMetrics(ListMetricsRequest.builder().build());
         assertTrue(SdkGlobalTime.getGlobalTimeOffset() < 3600);

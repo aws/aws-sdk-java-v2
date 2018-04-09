@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -51,6 +51,6 @@ public class BaseResultIntegrationTest extends AwsIntegrationTestBase {
     public void httpMetadataInBaseResultIsValid() {
         ListTablesResponse result = dynamoDB.listTables(ListTablesRequest.builder().build());
         //assertEquals(200, result.getSdkHttpMetadata().getHttpStatusCode());
-        //assertThat(result.getSdkHttpMetadata().getHttpHeaders(), hasKey("x-amz-crc32"));
+        //assertThat(result.getSdkHttpMetadata().headers(), hasKey("x-amz-crc32"));
     }
 }

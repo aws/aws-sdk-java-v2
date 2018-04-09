@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import java.util.Optional;
 import java.util.concurrent.ThreadFactory;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -87,6 +88,14 @@ public final class DefaultEventLoopGroupFactory
      */
     public static Builder builder() {
         return new DefaultBuilder();
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("DefaultEventLoopGroupFactory")
+                       .add("numberOfThreads", numberOfThreads)
+                       .add("threadFactory", threadFactory)
+                       .build();
     }
 
     /**

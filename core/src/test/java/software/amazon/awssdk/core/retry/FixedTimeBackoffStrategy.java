@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -15,25 +15,22 @@
 
 package software.amazon.awssdk.core.retry;
 
-import software.amazon.awssdk.core.AmazonClientException;
-import software.amazon.awssdk.core.AmazonWebServiceRequest;
-import software.amazon.awssdk.core.retry.RetryPolicy.BackoffStrategy;
+import java.time.Duration;
+import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 
 /**
  * Test implementation of {@link BackoffStrategy} to wait a fixed time between retries
  */
 public class FixedTimeBackoffStrategy implements BackoffStrategy {
 
-    private final long fixedTimeDelay;
+    private final Duration fixedTimeDelay;
 
-    public FixedTimeBackoffStrategy(long fixedTimeDelay) {
+    public FixedTimeBackoffStrategy(Duration fixedTimeDelay) {
         this.fixedTimeDelay = fixedTimeDelay;
     }
 
     @Override
-    public long delayBeforeNextRetry(AmazonWebServiceRequest originalRequest,
-                                     AmazonClientException exception,
-                                     int retriesAttempted) {
+    public Duration computeDelayBeforeNextRetry(RetryPolicyContext context) {
         return this.fixedTimeDelay;
     }
 

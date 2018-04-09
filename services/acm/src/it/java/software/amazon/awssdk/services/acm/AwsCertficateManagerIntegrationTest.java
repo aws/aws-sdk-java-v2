@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.acm;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.services.acm.model.GetCertificateRequest;
 import software.amazon.awssdk.services.acm.model.ListCertificatesRequest;
@@ -31,7 +31,7 @@ public class AwsCertficateManagerIntegrationTest extends AwsIntegrationTestBase 
 
     @BeforeClass
     public static void setUp() {
-        client = ACMClient.builder().credentialsProvider(new StaticCredentialsProvider(getCredentials())).build();
+        client = ACMClient.builder().credentialsProvider(StaticCredentialsProvider.create(getCredentials())).build();
     }
 
     @Test
@@ -42,11 +42,11 @@ public class AwsCertficateManagerIntegrationTest extends AwsIntegrationTestBase 
 
     /**
      * Ideally the service must be throwing a Invalid Arn exception
-     * instead of AmazonServiceException. Have reported this to service to
+     * instead of SdkServiceException. Have reported this to service to
      * fix it.
      *  TODO Change the expected when service fix this.
      */
-    @Test(expected = AmazonServiceException.class)
+    @Test(expected = SdkServiceException.class)
     public void get_certificate_fake_arn_throws_exception() {
         client.getCertificate(GetCertificateRequest.builder().certificateArn("arn:aws:acm:us-east-1:123456789:fakecert").build());
     }

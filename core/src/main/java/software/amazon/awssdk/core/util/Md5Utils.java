@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -29,8 +29,11 @@ import software.amazon.awssdk.utils.Base64Utils;
 /**
  * Utility methods for computing MD5 sums.
  */
-public class Md5Utils {
+public final class Md5Utils {
     private static final int SIXTEEN_K = 1 << 14;
+
+    private Md5Utils() {
+    }
 
     /**
      * Computes the MD5 hash of the data in the given input stream and returns

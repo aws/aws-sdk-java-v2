@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -69,13 +69,7 @@ public final class ClientHttpConfiguration
      */
     @SdkInternalApi
     Optional<Either<SdkHttpClient, SdkHttpClientFactory>> toEither() {
-        if (httpClient != null) {
-            return Optional.of(Either.left(httpClient));
-        } else if (httpClientFactory != null) {
-            return Optional.of(Either.right(httpClientFactory));
-        } else {
-            return Optional.empty();
-        }
+        return Either.fromNullable(httpClient, httpClientFactory);
     }
 
     /**

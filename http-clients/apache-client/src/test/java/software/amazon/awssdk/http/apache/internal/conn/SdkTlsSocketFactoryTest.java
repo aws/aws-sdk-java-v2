@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,12 +18,15 @@ package software.amazon.awssdk.http.apache.internal.conn;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.IOException;
+import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
 import org.junit.Test;
 
 public class SdkTlsSocketFactoryTest {
@@ -31,9 +34,9 @@ public class SdkTlsSocketFactoryTest {
      * Test when the edge case when the both supported and enabled protocols are null.
      */
     @Test
-    public void preparedSocket_NullProtocols() throws NoSuchAlgorithmException {
+    public void preparedSocket_NullProtocols() throws NoSuchAlgorithmException, IOException {
         SdkTlsSocketFactory f = new SdkTlsSocketFactory(SSLContext.getDefault(), null);
-        f.prepareSocket(new TestSSLSocket() {
+        try (SSLSocket socket = new TestSSLSocket() {
             @Override
             public String[] getSupportedProtocols() {
                 return null;
@@ -48,71 +51,79 @@ public class SdkTlsSocketFactoryTest {
             public void setEnabledProtocols(String[] protocols) {
                 fail();
             }
-        });
+        }) {
+            f.prepareSocket(socket);
+        }
     }
 
     @Test
-    public void typical() throws NoSuchAlgorithmException {
+    public void typical() throws NoSuchAlgorithmException, IOException {
         SdkTlsSocketFactory f = new SdkTlsSocketFactory(SSLContext.getDefault(), null);
-        f.prepareSocket(new TestSSLSocket() {
+        try (SSLSocket socket = new TestSSLSocket() {
             @Override
             public String[] getSupportedProtocols() {
-                return shuffle(new String[]{"SSLv2Hello", "SSLv3", "TLSv1", "TLSv1.1", "TLSv1.2"});
+                return shuffle(new String[] {"SSLv2Hello", "SSLv3", "TLSv1", "TLSv1.1", "TLSv1.2"});
             }
 
             @Override
             public String[] getEnabledProtocols() {
-                return shuffle(new String[]{"SSLv3", "TLSv1"});
+                return shuffle(new String[] {"SSLv3", "TLSv1"});
             }
 
             @Override
             public void setEnabledProtocols(String[] protocols) {
-                assertTrue(Arrays.equals(protocols, new String[]{"TLSv1.2", "TLSv1.1", "TLSv1", "SSLv3"}));
+                assertTrue(Arrays.equals(protocols, new String[] {"TLSv1.2", "TLSv1.1", "TLSv1", "SSLv3"}));
             }
-        });
+        }) {
+            f.prepareSocket(socket);
+        }
     }
 
     @Test
-    public void noTLS() throws NoSuchAlgorithmException {
+    public void noTLS() throws NoSuchAlgorithmException, IOException {
         SdkTlsSocketFactory f = new SdkTlsSocketFactory(SSLContext.getDefault(), null);
-        f.prepareSocket(new TestSSLSocket() {
+        try (SSLSocket socket = new TestSSLSocket() {
             @Override
             public String[] getSupportedProtocols() {
-                return shuffle(new String[]{"SSLv2Hello", "SSLv3"});
+                return shuffle(new String[] {"SSLv2Hello", "SSLv3"});
             }
 
             @Override
             public String[] getEnabledProtocols() {
-                return new String[]{"SSLv3"};
+                return new String[] {"SSLv3"};
             }
 
             @Override
             public void setEnabledProtocols(String[] protocols) {
                 // For backward compatibility
-                assertTrue(Arrays.equals(protocols, new String[]{"SSLv3"}));
+                assertTrue(Arrays.equals(protocols, new String[] {"SSLv3"}));
             }
-        });
+        }) {
+            f.prepareSocket(socket);
+        }
     }
 
     @Test
-    public void notIdeal() throws NoSuchAlgorithmException {
+    public void notIdeal() throws NoSuchAlgorithmException, IOException {
         SdkTlsSocketFactory f = new SdkTlsSocketFactory(SSLContext.getDefault(), null);
-        f.prepareSocket(new TestSSLSocket() {
+        try (SSLSocket socket = new TestSSLSocket() {
             @Override
             public String[] getSupportedProtocols() {
-                return shuffle(new String[]{"SSLv2Hello", "SSLv3", "TLSv1", "TLSv1.1"});
+                return shuffle(new String[] {"SSLv2Hello", "SSLv3", "TLSv1", "TLSv1.1"});
             }
 
             @Override
             public String[] getEnabledProtocols() {
-                return shuffle(new String[]{"SSLv3", "TLSv1"});
+                return shuffle(new String[] {"SSLv3", "TLSv1"});
             }
 
             @Override
             public void setEnabledProtocols(String[] protocols) {
-                assertTrue(Arrays.equals(protocols, new String[]{"TLSv1.1", "TLSv1", "SSLv3"}));
+                assertTrue(Arrays.equals(protocols, new String[] {"TLSv1.1", "TLSv1", "SSLv3"}));
             }
-        });
+        }) {
+            f.prepareSocket(socket);
+        }
     }
 
     private String[] shuffle(String[] in) {

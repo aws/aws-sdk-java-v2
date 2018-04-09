@@ -2,15 +2,15 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Optional;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.AmazonWebServiceResult;
-import software.amazon.awssdk.core.ResponseMetadata;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @Generated("software.amazon.awssdk:codegen")
-public class StreamingInputOperationResponse extends AmazonWebServiceResult<ResponseMetadata> implements
-        ToCopyableBuilder<StreamingInputOperationResponse.Builder, StreamingInputOperationResponse> {
+public class StreamingInputOperationResponse extends JsonProtocolTestsResponse implements
+                                                                               ToCopyableBuilder<StreamingInputOperationResponse.Builder, StreamingInputOperationResponse> {
     private StreamingInputOperationResponse(BuilderImpl builder) {
+        super(builder);
     }
 
     @Override
@@ -48,22 +48,17 @@ public class StreamingInputOperationResponse extends AmazonWebServiceResult<Resp
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("{");
-        if (sb.length() > 1) {
-            sb.setLength(sb.length() - 1);
-        }
-        sb.append("}");
-        return sb.toString();
+        return ToString.builder("StreamingInputOperationResponse").build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         return Optional.empty();
     }
 
-    public interface Builder extends CopyableBuilder<Builder, StreamingInputOperationResponse> {
+    public interface Builder extends JsonProtocolTestsResponse.Builder, CopyableBuilder<Builder, StreamingInputOperationResponse> {
     }
 
-    static final class BuilderImpl implements Builder {
+    static final class BuilderImpl extends JsonProtocolTestsResponse.BuilderImpl implements Builder {
         private BuilderImpl() {
         }
 

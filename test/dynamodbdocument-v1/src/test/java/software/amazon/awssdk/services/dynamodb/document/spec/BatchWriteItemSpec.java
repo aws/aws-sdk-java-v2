@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import software.amazon.awssdk.core.event.ProgressListener;
 import software.amazon.awssdk.services.dynamodb.document.TableWriteItems;
 import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
@@ -70,12 +69,6 @@ public class BatchWriteItemSpec extends AbstractSpec<BatchWriteItemRequest> {
 
     public BatchWriteItemSpec withReturnConsumedCapacity(ReturnConsumedCapacity capacity) {
         setRequest(getRequest().toBuilder().returnConsumedCapacity(capacity).build());
-        return this;
-    }
-
-    @Override
-    public BatchWriteItemSpec withProgressListener(ProgressListener progressListener) {
-        setProgressListener(progressListener);
         return this;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@
 package software.amazon.awssdk.core.regions.providers;
 
 import software.amazon.awssdk.core.AwsSystemSetting;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.regions.Region;
 
 /**
  * Loads region information from the 'aws.region' system property or the 'AWS_REGION' environment variable. If both are specified,
  * the system property will be used.
  */
-public class SystemSettingsRegionProvider extends AwsRegionProvider {
+public class SystemSettingsRegionProvider implements AwsRegionProvider {
     @Override
     public Region getRegion() throws SdkClientException {
         return AwsSystemSetting.AWS_REGION.getStringValue().map(Region::of).orElse(null);

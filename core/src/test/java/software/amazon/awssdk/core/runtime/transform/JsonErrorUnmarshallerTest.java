@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 
 public class JsonErrorUnmarshallerTest {
 
@@ -47,18 +47,18 @@ public class JsonErrorUnmarshallerTest {
 
     @Test
     public void unmarshall_ValidJsonContent_UnmarshallsCorrectly() throws Exception {
-        CustomException ase = (CustomException) unmarshaller.unmarshall(JSON);
-        assertEquals("Some error message", ase.getErrorMessage());
-        assertEquals("This is a customField", ase.getCustomField());
-        assertEquals(Integer.valueOf(42), ase.getCustomInt());
+        CustomException exception = (CustomException) unmarshaller.unmarshall(JSON);
+        assertEquals("Some error message", exception.errorMessage());
+        assertEquals("This is a customField", exception.getCustomField());
+        assertEquals(Integer.valueOf(42), exception.getCustomInt());
     }
 
     @Test
     public void unmarshall_InvalidCaseJsonContent_DoesNotUnmarshallCustomFields() throws Exception {
-        CustomException ase = (CustomException) unmarshaller.unmarshall(INVALID_CASE_JSON);
-        assertEquals("Some error message", ase.getErrorMessage());
-        assertNull(ase.getCustomField());
-        assertNull(ase.getCustomInt());
+        CustomException exception = (CustomException) unmarshaller.unmarshall(INVALID_CASE_JSON);
+        assertEquals("Some error message", exception.errorMessage());
+        assertNull(exception.getCustomField());
+        assertNull(exception.getCustomInt());
     }
 
     @Test
@@ -84,7 +84,7 @@ public class JsonErrorUnmarshallerTest {
         assertFalse(unmarshaller.matchErrorCode(null));
     }
 
-    private static class CustomException extends AmazonServiceException {
+    private static class CustomException extends SdkServiceException {
 
         private static final long serialVersionUID = 4140670458615826397L;
 

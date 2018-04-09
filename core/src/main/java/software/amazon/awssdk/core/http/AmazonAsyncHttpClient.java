@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@ package software.amazon.awssdk.core.http;
 import static software.amazon.awssdk.core.http.pipeline.RequestPipelineBuilder.async;
 
 import java.util.concurrent.CompletableFuture;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.RequestConfig;
 import software.amazon.awssdk.core.RequestExecutionContext;
-import software.amazon.awssdk.core.SdkBaseException;
-import software.amazon.awssdk.core.SdkClientException;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.config.AsyncClientConfiguration;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.pipeline.RequestPipelineBuilder;
 import software.amazon.awssdk.core.http.pipeline.stages.AfterExecutionInterceptorsStage;
 import software.amazon.awssdk.core.http.pipeline.stages.ApplyTransactionIdStage;
@@ -38,11 +39,10 @@ import software.amazon.awssdk.core.http.pipeline.stages.MakeRequestMutable;
 import software.amazon.awssdk.core.http.pipeline.stages.MergeCustomHeadersStage;
 import software.amazon.awssdk.core.http.pipeline.stages.MergeCustomQueryParamsStage;
 import software.amazon.awssdk.core.http.pipeline.stages.MoveParametersToBodyStage;
-import software.amazon.awssdk.core.http.pipeline.stages.ReportRequestContentLengthStage;
 import software.amazon.awssdk.core.http.pipeline.stages.SigningStage;
 import software.amazon.awssdk.core.http.pipeline.stages.UnwrapResponseContainer;
 import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
-import software.amazon.awssdk.core.retry.v2.RetryPolicy;
+import software.amazon.awssdk.core.retry.SdkDefaultRetrySettings;
 import software.amazon.awssdk.core.util.CapacityManager;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
@@ -65,7 +65,7 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
     private CapacityManager createCapacityManager() {
         // When enabled, total retry capacity is computed based on retry cost and desired number of retries.
         // TODO: Allow customers to configure throttled retries (https://github.com/aws/aws-sdk-java-v2/issues/17)
-        return new CapacityManager(RetryPolicy.THROTTLED_RETRY_COST * RetryPolicy.THROTTLED_RETRIES);
+        return new CapacityManager(SdkDefaultRetrySettings.RETRY_THROTTLING_COST * SdkDefaultRetrySettings.THROTTLED_RETRIES);
     }
 
     /**
@@ -114,7 +114,7 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
          * @return This builder for method chaining.
          */
         RequestExecutionBuilder errorResponseHandler(
-                SdkHttpResponseHandler<? extends SdkBaseException> errorResponseHandler);
+                SdkHttpResponseHandler<? extends SdkException> errorResponseHandler);
 
         /**
          * Fluent setter for the execution context
@@ -130,7 +130,7 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
          * @param requestConfig Request config object
          * @return This builder for method chaining.
          */
-        RequestExecutionBuilder requestConfig(RequestConfig requestConfig);
+        RequestExecutionBuilder originalRequest(SdkRequest originalRequest);
 
         /**
          * Executes the request with the given configuration.
@@ -147,8 +147,8 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
 
         private SdkHttpRequestProvider requestProvider;
         private SdkHttpFullRequest request;
-        private RequestConfig requestConfig;
-        private SdkHttpResponseHandler<? extends SdkBaseException> errorResponseHandler;
+        private SdkHttpResponseHandler<? extends SdkException> errorResponseHandler;
+        private SdkRequest originalRequest;
         private ExecutionContext executionContext;
 
         @Override
@@ -165,7 +165,7 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
 
         @Override
         public RequestExecutionBuilder errorResponseHandler(
-                SdkHttpResponseHandler<? extends SdkBaseException> errorResponseHandler) {
+                SdkHttpResponseHandler<? extends SdkException> errorResponseHandler) {
             this.errorResponseHandler = errorResponseHandler;
             return this;
         }
@@ -178,8 +178,8 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
         }
 
         @Override
-        public RequestExecutionBuilder requestConfig(RequestConfig requestConfig) {
-            this.requestConfig = requestConfig;
+        public RequestExecutionBuilder originalRequest(SdkRequest originalRequest) {
+            this.originalRequest = originalRequest;
             return this;
         }
 
@@ -195,7 +195,6 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                 .then(MergeCustomQueryParamsStage::new)
                                 .then(MoveParametersToBodyStage::new)
                                 .then(MakeRequestImmutable::new)
-                                .then(ReportRequestContentLengthStage::new)
                                 .then(RequestPipelineBuilder
                                       .firstAsync(SigningStage::new)
                                       .then(BeforeTransmissionExecutionInterceptorsStage::new)
@@ -217,7 +216,7 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
         private RequestExecutionContext createRequestExecutionDependencies() {
             return RequestExecutionContext.builder()
                                           .requestProvider(requestProvider)
-                                          .requestConfig(requestConfig)
+                                          .originalRequest(originalRequest)
                                           .executionContext(executionContext)
                                           .build();
         }

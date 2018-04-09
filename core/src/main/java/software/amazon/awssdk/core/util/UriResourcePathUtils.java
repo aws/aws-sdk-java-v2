@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -18,6 +18,9 @@ package software.amazon.awssdk.core.util;
 import software.amazon.awssdk.core.Request;
 
 public final class UriResourcePathUtils {
+
+    private UriResourcePathUtils() {
+    }
 
     /**
      * Identifies the static query parameters in Uri resource path for and adds it to

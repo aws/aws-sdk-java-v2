@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.lang.reflect.Method;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.AmazonServiceException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 
 /**
  * Unmarshaller for JSON error responses from AWS services.
@@ -33,7 +33,7 @@ import software.amazon.awssdk.core.AmazonServiceException;
 public class JsonErrorUnmarshaller extends AbstractErrorUnmarshaller<JsonNode> {
 
     public static final JsonErrorUnmarshaller DEFAULT_UNMARSHALLER = new JsonErrorUnmarshaller(
-        AmazonServiceException.class, null);
+        SdkServiceException.class, null);
 
     private static final ObjectMapper MAPPER = new ObjectMapper().configure(
             DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setPropertyNamingStrategy(
@@ -45,7 +45,7 @@ public class JsonErrorUnmarshaller extends AbstractErrorUnmarshaller<JsonNode> {
      * @param exceptionClass   Exception class this unmarshaller will attempt to deserialize error response into
      * @param handledErrorCode AWS error code that this unmarshaller handles. Pass null to handle all exceptions
      */
-    public JsonErrorUnmarshaller(Class<? extends AmazonServiceException> exceptionClass, String handledErrorCode) {
+    public JsonErrorUnmarshaller(Class<? extends SdkServiceException> exceptionClass, String handledErrorCode) {
         super(exceptionClass);
         this.handledErrorCode = handledErrorCode;
     }
@@ -53,7 +53,7 @@ public class JsonErrorUnmarshaller extends AbstractErrorUnmarshaller<JsonNode> {
     @Override
     @ReviewBeforeRelease("Figure out a better way to go from exception class to it's builder class in order to perform the " +
             "deserialization")
-    public AmazonServiceException unmarshall(JsonNode jsonContent) throws Exception {
+    public SdkServiceException unmarshall(JsonNode jsonContent) throws Exception {
         // FIXME: dirty hack below
         try {
             Method builderClassGetter = exceptionClass.getDeclaredMethod("serializableBuilderClass");
@@ -62,7 +62,7 @@ public class JsonErrorUnmarshaller extends AbstractErrorUnmarshaller<JsonNode> {
             Method buildMethod = builderClass.getMethod("build");
             makeAccessible(buildMethod);
             Object o = MAPPER.treeToValue(jsonContent, builderClass);
-            return (AmazonServiceException) buildMethod.invoke(o);
+            return (SdkServiceException) buildMethod.invoke(o);
         } catch (NoSuchMethodException e) {
             // This exception is not the new style with a builder, assume it's still the old
             // style that we can directly map from JSON
