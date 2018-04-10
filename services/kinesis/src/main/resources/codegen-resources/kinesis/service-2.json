@@ -394,7 +394,8 @@
       ],
       "members":{
         "StreamName":{"shape":"StreamName"},
-        "Tags":{"shape":"TagMap"}
+        "Tags":{"shape":"TagMap"},
+        "todoThisIsNotReallyAMemberShorea": {"shape":"RecordBatchEvent"}
       }
     },
     "BooleanObject":{"type":"boolean"},

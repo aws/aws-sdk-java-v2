@@ -100,7 +100,7 @@
         <spring.version>3.0.7.RELEASE</spring.version>
         <freemarker.version>2.3.9</freemarker.version>
         <aspectj.version>1.8.2</aspectj.version>
-        
+
         <jre.version>1.8</jre.version>
         <httpcomponents.httpclient.version>4.5.4</httpcomponents.httpclient.version>
 
@@ -275,7 +275,17 @@
                         <target>${jre.version}</target>
                         <encoding>UTF-8</encoding>
                         <forceJavacCompilerUse>true</forceJavacCompilerUse>
+                        <compilerArgument>-proc:none</compilerArgument>
                         <fork>false</fork>
+                        <compilerArgument>-proc:none</compilerArgument>
+                        <excludes>
+                            <exclude>software/amazon/awssdk/services/kinesis/KinesisAsyncClient.java</exclude>
+                            <exclude>software/amazon/awssdk/services/kinesis/DefaultKinesisAsyncClient.java</exclude>
+                            <exclude>software/amazon/awssdk/services/kinesis/model/RecordBatchEvent.java</exclude>
+                            <exclude>software/amazon/awssdk/services/kinesis/transform/RecordBatchEventUnmarshaller.java</exclude>
+                            <exclude>software/amazon/awssdk/services/sms/model/InternalError.java</exclude>
+                            <exclude>software/amazon/awssdk/services/kinesis/transform/SubscribeToShardResponseUnmarshaller.java</exclude>
+                        </excludes>
                     </configuration>
                 </plugin>
 
