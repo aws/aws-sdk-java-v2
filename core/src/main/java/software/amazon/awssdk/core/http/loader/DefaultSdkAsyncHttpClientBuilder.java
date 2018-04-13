@@ -18,14 +18,13 @@ package software.amazon.awssdk.core.http.loader;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClientFactory;
 import software.amazon.awssdk.http.async.SdkAsyncHttpService;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
  * Utility to load the default HTTP client factory and create an instance of {@link SdkHttpClient}.
  */
-public final class DefaultSdkAsyncHttpClientFactory implements SdkAsyncHttpClientFactory {
+public final class DefaultSdkAsyncHttpClientBuilder implements SdkAsyncHttpClient.Builder {
 
     private static final SdkHttpServiceProvider<SdkAsyncHttpService> DEFAULT_CHAIN = new CachingSdkHttpServiceProvider<>(
             new SdkHttpServiceProviderChain<>(
@@ -34,12 +33,12 @@ public final class DefaultSdkAsyncHttpClientFactory implements SdkAsyncHttpClien
             ));
 
     @Override
-    public SdkAsyncHttpClient createHttpClientWithDefaults(AttributeMap serviceDefaults) {
-        // TODO We create and SdkHttpClientFactory every time. Do we want to cache it instead of the service binding?
+    public SdkAsyncHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
+        // TODO We create and build every time. Do we want to cache it instead of the service binding?
         return DEFAULT_CHAIN
                 .loadService()
                 .map(SdkAsyncHttpService::createAsyncHttpClientFactory)
-                .map(f -> f.createHttpClientWithDefaults(serviceDefaults))
+                .map(f -> f.buildWithDefaults(serviceDefaults))
                 .orElseThrow(
                     () -> new SdkClientException("Unable to load an HTTP implementation from any provider in the chain. " +
                                                  "You must declare a dependency on an appropriate HTTP implementation or " +

@@ -18,17 +18,19 @@ package software.amazon.awssdk.http.urlconnection;
 import static software.amazon.awssdk.http.HttpStatusFamily.CLIENT_ERROR;
 import static software.amazon.awssdk.http.HttpStatusFamily.SERVER_ERROR;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIMEOUT;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.SOCKET_TIMEOUT;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.READ_TIMEOUT;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpStatusFamily;
@@ -40,13 +42,26 @@ import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 
-@SdkInternalApi
-final class UrlConnectionHttpClient implements SdkHttpClient {
+/**
+ * An implementation of {@link SdkHttpClient} that uses {@link HttpURLConnection} to communicate with the service. This is the
+ * leanest synchronous client that optimizes for minimum dependencies and startup latency in exchange for having less
+ * functionality than other implementations.
+ *
+ * <p>See software.amazon.awssdk.http.apache.ApacheHttpClient for an alternative implementation.</p>
+ *
+ * <p>This can be created via {@link #builder()}</p>
+ */
+@SdkPublicApi
+public final class UrlConnectionHttpClient implements SdkHttpClient {
 
     private final AttributeMap options;
 
-    UrlConnectionHttpClient(AttributeMap options) {
+    private UrlConnectionHttpClient(AttributeMap options) {
         this.options = options;
+    }
+
+    public static Builder builder() {
+        return new DefaultBuilder();
     }
 
     @Override
@@ -74,7 +89,7 @@ final class UrlConnectionHttpClient implements SdkHttpClient {
         }
 
         connection.setConnectTimeout(saturatedCast(options.get(CONNECTION_TIMEOUT).toMillis()));
-        connection.setReadTimeout(saturatedCast(options.get(SOCKET_TIMEOUT).toMillis()));
+        connection.setReadTimeout(saturatedCast(options.get(READ_TIMEOUT).toMillis()));
 
         return connection;
     }
@@ -116,6 +131,89 @@ final class UrlConnectionHttpClient implements SdkHttpClient {
         @Override
         public void abort() {
             connection.disconnect();
+        }
+    }
+
+    /**
+     * A builder for an instance of {@link SdkHttpClient} that uses JDKs build-in {@link java.net.URLConnection} HTTP
+     * implementation. A builder can be created via {@link #builder()}.
+     *
+     * <pre class="brush: java">
+     * SdkHttpClient httpClient = UrlConnectionHttpClient.builder()
+     * .socketTimeout(Duration.ofSeconds(10))
+     * .connectionTimeout(Duration.ofSeconds(1))
+     * .build();
+     * </pre>
+     */
+    public interface Builder extends SdkHttpClient.Builder {
+        default Builder apply(Consumer<Builder> mutator) {
+            mutator.accept(this);
+            return this;
+        }
+
+        /**
+         * The amount of time to wait for data to be transferred over an established, open connection before the connection is
+         * timed out. A duration of 0 means infinity, and is not recommended.
+         */
+        Builder socketTimeout(Duration socketTimeout);
+
+        /**
+         * The amount of time to wait when initially establishing a connection before giving up and timing out. A duration of 0
+         * means infinity, and is not recommended.
+         */
+        Builder connectionTimeout(Duration connectionTimeout);
+    }
+
+    private static final class DefaultBuilder implements Builder {
+        private final AttributeMap.Builder standardOptions = AttributeMap.builder();
+
+        private DefaultBuilder() {
+        }
+
+        /**
+         * Sets the read timeout to a specified timeout. A timeout of zero is interpreted as an infinite timeout.
+         *
+         * @param socketTimeout the timeout as a {@link Duration}
+         * @return this object for method chaining
+         */
+        @Override
+        public Builder socketTimeout(Duration socketTimeout) {
+            standardOptions.put(READ_TIMEOUT, socketTimeout);
+            return this;
+        }
+
+        public void setSocketTimeout(Duration socketTimeout) {
+            socketTimeout(socketTimeout);
+        }
+
+        /**
+         * Sets the connect timeout to a specified timeout. A timeout of zero is interpreted as an infinite timeout.
+         *
+         * @param connectionTimeout the timeout as a {@link Duration}
+         * @return this object for method chaining
+         */
+        @Override
+        public Builder connectionTimeout(Duration connectionTimeout) {
+            standardOptions.put(CONNECTION_TIMEOUT, connectionTimeout);
+            return this;
+        }
+
+        public void setConnectionTimeout(Duration connectionTimeout) {
+            connectionTimeout(connectionTimeout);
+        }
+
+        /**
+         * Used by the SDK to create a {@link SdkHttpClient} with service-default values if no other values have been configured
+         *
+         * @param serviceDefaults Service specific defaults. Keys will be one of the constants defined in
+         * {@link SdkHttpConfigurationOption}.
+         * @return an instance of {@link SdkHttpClient}
+         */
+        @Override
+        public SdkHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
+            return new UrlConnectionHttpClient(standardOptions.build()
+                                                              .merge(serviceDefaults)
+                                                              .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
         }
     }
 }

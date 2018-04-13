@@ -26,12 +26,11 @@ import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.core.client.builder.ClientHttpConfiguration;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.testutils.service.http.MockHttpClient;
 
@@ -313,9 +312,7 @@ public class S3EndpointResolutionTest {
         return S3Client.builder()
                        .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
                        .region(Region.AP_SOUTH_1)
-                       .httpConfiguration(ClientHttpConfiguration.builder()
-                                                                 .httpClient(mockHttpClient)
-                                                                 .build());
+                       .httpClient(mockHttpClient);
     }
 
     /**

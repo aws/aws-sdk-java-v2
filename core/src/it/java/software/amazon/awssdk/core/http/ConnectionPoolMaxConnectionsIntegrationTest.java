@@ -29,7 +29,7 @@ import software.amazon.awssdk.core.http.server.MockServer;
 import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
 import software.amazon.awssdk.core.internal.http.response.EmptySdkResponseHandler;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import utils.HttpTestUtils;
 
 public class ConnectionPoolMaxConnectionsIntegrationTest {
@@ -57,12 +57,10 @@ public class ConnectionPoolMaxConnectionsIntegrationTest {
         AmazonSyncHttpClient httpClient = HttpTestUtils.testClientBuilder()
                                                        .clientExecutionTimeout(null)
                                                        .retryPolicy(RetryPolicy.NONE)
-                                                       .httpClient(ApacheSdkHttpClientFactory.builder()
-                                                                                         .connectionTimeout(
-                                                                                                 Duration.ofMillis(100))
-                                                                                         .maxConnections(1)
-                                                                                         .build()
-                                                                                         .createHttpClient())
+                                                       .httpClient(ApacheHttpClient.builder()
+                                                                                   .connectionTimeout(Duration.ofMillis(100))
+                                                                                   .maxConnections(1)
+                                                                                   .build())
                                                        .build();
 
         Request<?> request = new EmptyHttpRequest(localhostEndpoint, HttpMethodName.GET);
