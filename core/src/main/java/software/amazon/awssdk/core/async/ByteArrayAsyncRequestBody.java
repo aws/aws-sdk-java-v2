@@ -19,6 +19,14 @@ import java.nio.ByteBuffer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+/**
+ * An implementation of {@link AsyncRequestBody} for providing data from memory. This is created using static
+ * methods on {@link AsyncRequestBody}
+ *
+ * @see AsyncRequestBody#fromBytes(byte[])
+ * @see AsyncRequestBody#fromByteBuffer(ByteBuffer)
+ * @see AsyncRequestBody#fromString(String)
+ */
 class ByteArrayAsyncRequestBody implements AsyncRequestBody {
 
     private final byte[] bytes;

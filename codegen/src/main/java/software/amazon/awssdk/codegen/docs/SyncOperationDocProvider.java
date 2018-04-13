@@ -101,12 +101,12 @@ class SyncOperationDocProvider extends OperationDocProvider {
         protected void applyParams(DocumentationBuilder docBuilder) {
             emitRequestParm(docBuilder);
             if (opModel.hasStreamingInput()) {
-                docBuilder.param("path", SIMPLE_FILE_INPUT_DOCS + getStreamingInputDocs())
+                docBuilder.param("sourcePath", SIMPLE_FILE_INPUT_DOCS + getStreamingInputDocs())
                           // Link to non-simple method for discoverability
                           .see("#%s(%s, RequestBody)", opModel.getMethodName(), opModel.getInput().getVariableType());
             }
             if (opModel.hasStreamingOutput()) {
-                docBuilder.param("path", SIMPLE_FILE_OUTPUT_DOCS + getStreamingOutputDocs())
+                docBuilder.param("destinationPath", SIMPLE_FILE_OUTPUT_DOCS + getStreamingOutputDocs())
                           // Link to non-simple method for discoverability
                           .see("#%s(%s, ResponseTransformer)", opModel.getMethodName(),
                                opModel.getInput().getVariableType());

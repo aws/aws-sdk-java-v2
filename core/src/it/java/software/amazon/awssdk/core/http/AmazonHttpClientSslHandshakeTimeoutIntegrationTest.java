@@ -26,7 +26,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
 import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import utils.HttpTestUtils;
 
 /**
@@ -45,10 +45,9 @@ public class AmazonHttpClientSslHandshakeTimeoutIntegrationTest extends Unrespon
         AmazonSyncHttpClient httpClient = HttpTestUtils.testClientBuilder()
                                                        .clientExecutionTimeout(null)
                                                        .retryPolicy(RetryPolicy.NONE)
-                                                       .httpClient(ApacheSdkHttpClientFactory.builder()
-                                                                                         .socketTimeout(CLIENT_SOCKET_TO)
-                                                                                         .build()
-                                                                                         .createHttpClient())
+                                                       .httpClient(ApacheHttpClient.builder()
+                                                                               .socketTimeout(CLIENT_SOCKET_TO)
+                                                                               .build())
                                                        .build();
 
         System.out.println("Sending request to localhost...");

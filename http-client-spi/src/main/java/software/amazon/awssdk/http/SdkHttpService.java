@@ -26,15 +26,15 @@ import software.amazon.awssdk.annotations.ThreadSafe;
  * information.
  *
  * <p>
- * This interface is simply a factory for {@link SdkHttpClientFactory}. Implementations must be thread safe.
+ * This interface is simply a factory for {@link SdkHttpClient.Builder}. Implementations must be thread safe.
  * </p>
  */
 @ThreadSafe
 public interface SdkHttpService {
 
     /**
-     * @return An {@link SdkHttpClientFactory} capable of creating {@link SdkHttpClient} instances. This factory should be thread
+     * @return An {@link SdkHttpClient.Builder} capable of creating {@link SdkHttpClient} instances. This factory should be thread
      * safe.
      */
-    SdkHttpClientFactory createHttpClientFactory();
+    SdkHttpClient.Builder createHttpClientBuilder();
 }

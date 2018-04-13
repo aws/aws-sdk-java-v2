@@ -35,8 +35,8 @@ import software.amazon.awssdk.core.client.builder.ExecutorProvider;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.http.SdkHttpClientFactory;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClientFactory;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
@@ -75,9 +75,9 @@ public abstract class AwsDefaultClientBuilder<B extends AwsClientBuilder<B, C>, 
     }
 
     @SdkTestInternalApi
-    AwsDefaultClientBuilder(SdkHttpClientFactory defaultHttpClientFactory,
-                            SdkAsyncHttpClientFactory defaultAsyncHttpClientFactory) {
-        super(defaultHttpClientFactory, defaultAsyncHttpClientFactory);
+    AwsDefaultClientBuilder(SdkHttpClient.Builder defaultHttpClientBuilder,
+                            SdkAsyncHttpClient.Builder defaultAsyncHttpClientFactory) {
+        super(defaultHttpClientBuilder, defaultAsyncHttpClientFactory);
     }
 
     /**
