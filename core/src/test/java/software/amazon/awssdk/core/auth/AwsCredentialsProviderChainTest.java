@@ -17,11 +17,18 @@ package software.amazon.awssdk.core.auth;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
 import software.amazon.awssdk.auth.profile.ProfileFile;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.StringInputStream;
 
 public class AwsCredentialsProviderChainTest {
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     /**
      * Tests that, by default, the chain remembers which provider was able to
@@ -30,8 +37,7 @@ public class AwsCredentialsProviderChainTest {
      */
     @Test
     public void testReusingLastProvider() throws Exception {
-        MockCredentialsProvider provider1 = new MockCredentialsProvider();
-        provider1.throwException = true;
+        MockCredentialsProvider provider1 = new MockCredentialsProvider("Failed!");
         MockCredentialsProvider provider2 = new MockCredentialsProvider();
         AwsCredentialsProviderChain chain = AwsCredentialsProviderChain.builder()
                                                                        .credentialsProviders(provider1, provider2)
@@ -60,8 +66,7 @@ public class AwsCredentialsProviderChainTest {
      */
     @Test
     public void testDisableReusingLastProvider() throws Exception {
-        MockCredentialsProvider provider1 = new MockCredentialsProvider();
-        provider1.throwException = true;
+        MockCredentialsProvider provider1 = new MockCredentialsProvider("Failed!");
         MockCredentialsProvider provider2 = new MockCredentialsProvider();
         AwsCredentialsProviderChain chain = AwsCredentialsProviderChain.builder()
                                                                        .credentialsProviders(provider1, provider2)
@@ -98,22 +103,46 @@ public class AwsCredentialsProviderChainTest {
         assertEquals(1, provider2.getCredentialsCallCount);
     }
 
+    /**
+     * Tests that getCredentials throws an thrown if all providers in the
+     * chain fail to provide credentials.
+     */
+    @Test
+    public void testGetCredentialsException() {
+        MockCredentialsProvider provider1 = new MockCredentialsProvider("Failed!");
+        MockCredentialsProvider provider2 = new MockCredentialsProvider("Bad!");
+        AwsCredentialsProviderChain chain = AwsCredentialsProviderChain.builder()
+                                                                       .credentialsProviders(provider1, provider2)
+                                                                       .build();
+
+        thrown.expect(SdkClientException.class);
+        thrown.expectMessage(provider1.exceptionMessage);
+        thrown.expectMessage(provider2.exceptionMessage);
+
+        chain.getCredentials();
+    }
+
 
     private static final class MockCredentialsProvider implements AwsCredentialsProvider  {
         private final StaticCredentialsProvider staticCredentialsProvider;
+        private final String exceptionMessage;
         public int getCredentialsCallCount = 0;
-        public boolean throwException = false;
 
         private MockCredentialsProvider() {
+            this(null);
+        }
+
+        private MockCredentialsProvider(String exceptionMessage) {
             staticCredentialsProvider = StaticCredentialsProvider.create(AwsCredentials.create("accessKey", "secretKey"));
+            this.exceptionMessage = exceptionMessage;
         }
 
         @Override
         public AwsCredentials getCredentials() {
             getCredentialsCallCount++;
 
-            if (throwException) {
-                throw new RuntimeException("No credentials");
+            if (exceptionMessage != null) {
+                throw new RuntimeException(exceptionMessage);
             } else {
                 return staticCredentialsProvider.getCredentials();
             }
