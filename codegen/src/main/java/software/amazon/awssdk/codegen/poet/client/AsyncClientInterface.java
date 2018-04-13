@@ -307,8 +307,8 @@ public class AsyncClientInterface implements ClassSpec {
         return interfaceMethodSignature(opModel)
                 .addJavadoc(opModel.getDocs(model, ClientType.ASYNC, SimpleMethodOverload.FILE))
                 .addParameter(requestType, opModel.getInput().getVariableName())
-                .addParameter(ClassName.get(Path.class), "path")
-                .addStatement("return $L($L, $T.fromFile(path))", opModel.getMethodName(),
+                .addParameter(ClassName.get(Path.class), "sourcePath")
+                .addStatement("return $L($L, $T.fromFile(sourcePath))", opModel.getMethodName(),
                               opModel.getInput().getVariableName(),
                               ClassName.get(AsyncRequestBody.class))
                 .build();
@@ -324,8 +324,8 @@ public class AsyncClientInterface implements ClassSpec {
                 .returns(completableFutureType(getPojoResponseType(opModel)))
                 .addJavadoc(opModel.getDocs(model, ClientType.ASYNC, SimpleMethodOverload.FILE))
                 .addParameter(requestType, opModel.getInput().getVariableName())
-                .addParameter(ClassName.get(Path.class), "path")
-                .addStatement("return $L($L, $T.toFile(path))", opModel.getMethodName(),
+                .addParameter(ClassName.get(Path.class), "destinationPath")
+                .addStatement("return $L($L, $T.toFile(destinationPath))", opModel.getMethodName(),
                               opModel.getInput().getVariableName(),
                               ClassName.get(AsyncResponseTransformer.class))
                 .build();

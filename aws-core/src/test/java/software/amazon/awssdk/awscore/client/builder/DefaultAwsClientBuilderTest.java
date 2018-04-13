@@ -45,15 +45,11 @@ import software.amazon.awssdk.auth.signer.StaticSignerProvider;
 import software.amazon.awssdk.awscore.config.AwsImmutableAsyncClientConfiguration;
 import software.amazon.awssdk.awscore.config.AwsImmutableSyncClientConfiguration;
 import software.amazon.awssdk.awscore.config.defaults.AwsClientConfigurationDefaults;
-import software.amazon.awssdk.core.client.builder.ClientAsyncHttpConfiguration;
-import software.amazon.awssdk.core.client.builder.ClientHttpConfiguration;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpClientFactory;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClientFactory;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -65,7 +61,7 @@ public class DefaultAwsClientBuilderTest {
 
     private static final AttributeMap MOCK_DEFAULTS = AttributeMap
         .builder()
-        .put(SdkHttpConfigurationOption.SOCKET_TIMEOUT, Duration.ofSeconds(10))
+        .put(SdkHttpConfigurationOption.READ_TIMEOUT, Duration.ofSeconds(10))
         .build();
 
     private static final String ENDPOINT_PREFIX = "prefix";
@@ -73,15 +69,15 @@ public class DefaultAwsClientBuilderTest {
     private static final URI ENDPOINT = URI.create("https://example.com");
 
     @Mock
-    private SdkHttpClientFactory defaultHttpClientFactory;
+    private SdkHttpClient.Builder defaultHttpClientBuilder;
 
     @Mock
-    private SdkAsyncHttpClientFactory defaultAsyncHttpClientFactory;
+    private SdkAsyncHttpClient.Builder defaultAsyncHttpClientFactory;
 
     @Before
     public void setup() {
-        when(defaultHttpClientFactory.createHttpClientWithDefaults(any())).thenReturn(mock(SdkHttpClient.class));
-        when(defaultAsyncHttpClientFactory.createHttpClientWithDefaults(any())).thenReturn(mock(SdkAsyncHttpClient.class));
+        when(defaultHttpClientBuilder.buildWithDefaults(any())).thenReturn(mock(SdkHttpClient.class));
+        when(defaultAsyncHttpClientFactory.buildWithDefaults(any())).thenReturn(mock(SdkAsyncHttpClient.class));
     }
 
     @Test
@@ -119,7 +115,7 @@ public class DefaultAwsClientBuilderTest {
         TestClient client = testClientBuilder().region(Region.US_WEST_2).build();
         assertThat(client.syncClientConfiguration.httpClient())
             .isNotInstanceOf(AwsDefaultClientBuilder.NonManagedSdkHttpClient.class);
-        verify(defaultHttpClientFactory, times(1)).createHttpClientWithDefaults(any());
+        verify(defaultHttpClientBuilder, times(1)).buildWithDefaults(any());
     }
 
     @Test
@@ -127,67 +123,57 @@ public class DefaultAwsClientBuilderTest {
         TestAsyncClient client = testAsyncClientBuilder().region(Region.US_WEST_2).build();
         assertThat(client.asyncClientConfiguration.asyncHttpClient())
             .isNotInstanceOf(AwsDefaultClientBuilder.NonManagedSdkAsyncHttpClient.class);
-        verify(defaultAsyncHttpClientFactory, times(1)).createHttpClientWithDefaults(any());
+        verify(defaultAsyncHttpClientFactory, times(1)).buildWithDefaults(any());
     }
 
     @Test
     public void clientFactoryProvided_ClientIsManagedBySdk() {
         TestClient client = testClientBuilder()
             .region(Region.US_WEST_2)
-            .httpConfiguration(ClientHttpConfiguration.builder()
-                                                      .httpClientFactory(serviceDefaults -> {
-                                                          assertThat(serviceDefaults).isEqualTo(MOCK_DEFAULTS);
-                                                          return mock(SdkHttpClient.class);
-                                                      })
-                                                      .build())
+            .httpClientBuilder(serviceDefaults -> {
+                assertThat(serviceDefaults).isEqualTo(MOCK_DEFAULTS);
+                return mock(SdkHttpClient.class);
+            })
             .build();
         assertThat(client.syncClientConfiguration.httpClient())
             .isNotInstanceOf(AwsDefaultClientBuilder.NonManagedSdkHttpClient.class);
-        verify(defaultHttpClientFactory, never()).createHttpClientWithDefaults(any());
+        verify(defaultHttpClientBuilder, never()).buildWithDefaults(any());
     }
 
     @Test
     public void asyncHttpClientFactoryProvided_ClientIsManagedBySdk() {
         TestAsyncClient client = testAsyncClientBuilder()
             .region(Region.US_WEST_2)
-            .asyncHttpConfiguration(ClientAsyncHttpConfiguration
-                                        .builder()
-                                        .httpClientFactory(serviceDefaults -> {
-                                            assertThat(serviceDefaults).isEqualTo(MOCK_DEFAULTS);
-                                            return mock(SdkAsyncHttpClient.class);
-                                        })
-                                        .build())
+            .asyncHttpClientBuilder(serviceDefaults -> {
+                assertThat(serviceDefaults).isEqualTo(MOCK_DEFAULTS);
+                return mock(SdkAsyncHttpClient.class);
+            })
             .build();
         assertThat(client.asyncClientConfiguration.asyncHttpClient())
             .isNotInstanceOf(AwsDefaultClientBuilder.NonManagedSdkAsyncHttpClient.class);
-        verify(defaultAsyncHttpClientFactory, never()).createHttpClientWithDefaults(any());
+        verify(defaultAsyncHttpClientFactory, never()).buildWithDefaults(any());
     }
 
     @Test
     public void explicitClientProvided_ClientIsNotManagedBySdk() {
         TestClient client = testClientBuilder()
             .region(Region.US_WEST_2)
-            .httpConfiguration(ClientHttpConfiguration.builder()
-                                                      .httpClient(mock(SdkHttpClient.class))
-                                                      .build())
+            .httpClient(mock(SdkHttpClient.class))
             .build();
         assertThat(client.syncClientConfiguration.httpClient())
             .isInstanceOf(AwsDefaultClientBuilder.NonManagedSdkHttpClient.class);
-        verify(defaultHttpClientFactory, never()).createHttpClientWithDefaults(any());
+        verify(defaultHttpClientBuilder, never()).buildWithDefaults(any());
     }
 
     @Test
     public void explicitAsyncHttpClientProvided_ClientIsNotManagedBySdk() {
         TestAsyncClient client = testAsyncClientBuilder()
             .region(Region.US_WEST_2)
-            .asyncHttpConfiguration(ClientAsyncHttpConfiguration
-                                        .builder()
-                                        .httpClient(mock(SdkAsyncHttpClient.class))
-                                        .build())
+            .asyncHttpClient(mock(SdkAsyncHttpClient.class))
             .build();
         assertThat(client.asyncClientConfiguration.asyncHttpClient())
             .isInstanceOf(AwsDefaultClientBuilder.NonManagedSdkAsyncHttpClient.class);
-        verify(defaultAsyncHttpClientFactory, never()).createHttpClientWithDefaults(any());
+        verify(defaultAsyncHttpClientFactory, never()).buildWithDefaults(any());
     }
 
     @Test
@@ -250,7 +236,7 @@ public class DefaultAwsClientBuilderTest {
         implements AwsClientBuilder<TestClientBuilder, TestClient> {
 
         public TestClientBuilder() {
-            super(defaultHttpClientFactory, null);
+            super(defaultHttpClientBuilder, null);
         }
 
         @Override
@@ -293,7 +279,7 @@ public class DefaultAwsClientBuilderTest {
         implements AwsClientBuilder<TestAsyncClientBuilder, TestAsyncClient> {
 
         public TestAsyncClientBuilder() {
-            super(defaultHttpClientFactory, defaultAsyncHttpClientFactory);
+            super(defaultHttpClientBuilder, defaultAsyncHttpClientFactory);
         }
 
         @Override
