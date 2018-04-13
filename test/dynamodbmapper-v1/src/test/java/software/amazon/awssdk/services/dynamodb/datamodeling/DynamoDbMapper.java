@@ -34,6 +34,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.AwsRequest;
@@ -1864,8 +1865,8 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
         }
 
         private boolean isThrottling() {
-            return exception instanceof SdkServiceException &&
-                   RetryUtils.isThrottlingException((SdkServiceException) exception);
+            return exception instanceof SdkException &&
+                   RetryUtils.isThrottlingException((SdkException) exception);
         }
 
         private int size() {
