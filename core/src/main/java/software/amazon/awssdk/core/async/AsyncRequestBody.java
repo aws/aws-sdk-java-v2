@@ -44,11 +44,10 @@ import software.amazon.awssdk.utils.BinaryUtils;
  * for chunks will be notified via the {@link org.reactivestreams.Subscription#request(long)} method.
  * </p>
  *
- * @see FileAsyncRequestProvider
+ * @see FileAsyncRequestBody
  */
-@ReviewBeforeRelease("This is exactly the same of SdkHttpRequestProvider. Can we just have one? Also I like Producer better" +
-                     "than Provider")
-public interface AsyncRequestProvider extends Publisher<ByteBuffer> {
+@ReviewBeforeRelease("This is exactly the same of SdkHttpRequestProvider. Can we just have one?")
+public interface AsyncRequestBody extends Publisher<ByteBuffer> {
 
     /**
      * @return The content length of the data being produced.
@@ -56,80 +55,80 @@ public interface AsyncRequestProvider extends Publisher<ByteBuffer> {
     long contentLength();
 
     /**
-     * Creates an {@link AsyncRequestProvider} that produces data from the contents of a file. See
-     * {@link FileAsyncRequestProvider#builder} to create a customized provider implementation.
+     * Creates an {@link AsyncRequestBody} that produces data from the contents of a file. See
+     * {@link FileAsyncRequestBody#builder} to create a customized body implementation.
      *
      * @param path Path to file to read from.
-     * @return Implementation of {@link AsyncRequestProvider} that reads data from the specified file.
-     * @see FileAsyncRequestProvider
+     * @return Implementation of {@link AsyncRequestBody} that reads data from the specified file.
+     * @see FileAsyncRequestBody
      */
-    static AsyncRequestProvider fromFile(Path path) {
-        return FileAsyncRequestProvider.builder().path(path).build();
+    static AsyncRequestBody fromFile(Path path) {
+        return FileAsyncRequestBody.builder().path(path).build();
     }
 
     /**
-     * Creates an {@link AsyncRequestProvider} that produces data from the contents of a file. See
-     * {@link FileAsyncRequestProvider#builder} to create a customized provider implementation.
+     * Creates an {@link AsyncRequestBody} that produces data from the contents of a file. See
+     * {@link FileAsyncRequestBody#builder} to create a customized body implementation.
      *
      * @param file The file to read from.
-     * @return Implementation of {@link AsyncRequestProvider} that reads data from the specified file.
-     * @see FileAsyncRequestProvider
+     * @return Implementation of {@link AsyncRequestBody} that reads data from the specified file.
+     * @see FileAsyncRequestBody
      */
-    static AsyncRequestProvider fromFile(File file) {
-        return FileAsyncRequestProvider.builder().path(file.toPath()).build();
+    static AsyncRequestBody fromFile(File file) {
+        return FileAsyncRequestBody.builder().path(file.toPath()).build();
     }
 
     /**
-     * Creates an {@link AsyncRequestProvider} that uses a single string as data.
+     * Creates an {@link AsyncRequestBody} that uses a single string as data.
      *
      * @param string The string to provide.
      * @param cs The {@link Charset} to use.
-     * @return Implementation of {@link AsyncRequestProvider} that uses the specified string.
-     * @see ByteArrayAsyncRequestProvider
+     * @return Implementation of {@link AsyncRequestBody} that uses the specified string.
+     * @see ByteArrayAsyncRequestBody
      */
-    static AsyncRequestProvider fromString(String string, Charset cs) {
-        return new ByteArrayAsyncRequestProvider(string.getBytes(cs));
+    static AsyncRequestBody fromString(String string, Charset cs) {
+        return new ByteArrayAsyncRequestBody(string.getBytes(cs));
     }
 
     /**
-     * Creates an {@link AsyncRequestProvider} that uses a single string as data with UTF_8 encoding.
+     * Creates an {@link AsyncRequestBody} that uses a single string as data with UTF_8 encoding.
      *
-     * @param string The string to provider.
-     * @return Implementation of {@link AsyncRequestProvider} that uses the specified string.
+     * @param string The string to send.
+     * @return Implementation of {@link AsyncRequestBody} that uses the specified string.
      * @see #fromString(String, Charset)
      */
-    static AsyncRequestProvider fromString(String string) {
+    static AsyncRequestBody fromString(String string) {
         return fromString(string, StandardCharsets.UTF_8);
     }
 
     /**
-     * Creates a {@link AsyncRequestProvider} from a byte array. The contents of the byte array are copied so modifications to the
-     * original byte array are not reflected in the {@link AsyncRequestProvider}.
+     * Creates a {@link AsyncRequestBody} from a byte array. The contents of the byte array are copied so modifications to the
+     * original byte array are not reflected in the {@link AsyncRequestBody}.
      *
      * @param bytes The bytes to send to the service.
-     * @return AsyncRequestProvider instance.
+     * @return AsyncRequestBody instance.
      */
-    static AsyncRequestProvider fromBytes(byte[] bytes) {
-        return new ByteArrayAsyncRequestProvider(Arrays.copyOf(bytes, bytes.length));
+    static AsyncRequestBody fromBytes(byte[] bytes) {
+        return new ByteArrayAsyncRequestBody(Arrays.copyOf(bytes, bytes.length));
     }
 
     /**
-     * Creates a {@link AsyncRequestProvider} from a {@link ByteBuffer}. Buffer contents are copied so any modifications
-     * made to the original {@link ByteBuffer} are not reflected in the {@link AsyncRequestProvider}.
+     * Creates a {@link AsyncRequestBody} from a {@link ByteBuffer}. Buffer contents are copied so any modifications
+     * made to the original {@link ByteBuffer} are not reflected in the {@link AsyncRequestBody}.
      *
      * @param byteBuffer ByteBuffer to send to the service.
-     * @return AsyncRequestProvider instance.
+     * @return AsyncRequestBody instance.
      */
-    static AsyncRequestProvider fromByteBuffer(ByteBuffer byteBuffer) {
-        return new ByteArrayAsyncRequestProvider(BinaryUtils.copyAllBytesFrom(byteBuffer));
+    static AsyncRequestBody fromByteBuffer(ByteBuffer byteBuffer) {
+        return new ByteArrayAsyncRequestBody(BinaryUtils.copyAllBytesFrom(byteBuffer));
     }
 
     /**
-     * Creates a {@link AsyncRequestProvider} with no content.
+     * Creates a {@link AsyncRequestBody} with no content.
      *
-     * @return AsyncRequestProvider instance.
+     * @return AsyncRequestBody instance.
      */
-    static AsyncRequestProvider empty() {
+    static AsyncRequestBody empty() {
         return fromBytes(new byte[0]);
     }
 }

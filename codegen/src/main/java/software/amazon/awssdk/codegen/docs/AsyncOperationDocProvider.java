@@ -25,10 +25,10 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
  */
 class AsyncOperationDocProvider extends OperationDocProvider {
 
-    private static final String REQUEST_PROVIDER_DOCS =
+    private static final String REQUEST_BODY_DOCS =
             "Functional interface that can be implemented to produce the request content " +
             "in a non-blocking manner. The size of the content is expected to be known up front. " +
-            "See {@link AsyncRequestProvider} for specific details on implementing this interface as well " +
+            "See {@link AsyncRequestBody} for specific details on implementing this interface as well " +
             "as links to precanned implementations for common scenarios like uploading from a file. ";
 
     private static final String STREAM_RESPONSE_HANDLER_DOCS =
@@ -66,7 +66,7 @@ class AsyncOperationDocProvider extends OperationDocProvider {
     protected void applyParams(DocumentationBuilder docBuilder) {
         emitRequestParm(docBuilder);
         if (opModel.hasStreamingInput()) {
-            docBuilder.param("requestProvider", REQUEST_PROVIDER_DOCS + getStreamingInputDocs());
+            docBuilder.param("requestBody", REQUEST_BODY_DOCS + getStreamingInputDocs());
         }
         if (opModel.hasStreamingOutput()) {
             docBuilder.param("asyncResponseHandler", STREAM_RESPONSE_HANDLER_DOCS + getStreamingOutputDocs());
