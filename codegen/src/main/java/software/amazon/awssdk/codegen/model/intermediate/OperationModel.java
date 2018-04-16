@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.codegen.docs.ClientType;
+import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.OperationDocs;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.internal.Utils;
@@ -78,6 +79,13 @@ public class OperationModel extends DocumentationModel {
                           ClientType clientType,
                           SimpleMethodOverload methodOverload) {
         return OperationDocs.getDocs(model, this, clientType, methodOverload);
+    }
+
+    public String getDocs(IntermediateModel model,
+                          ClientType clientType,
+                          SimpleMethodOverload methodOverload,
+                          DocConfiguration config) {
+        return OperationDocs.getDocs(model, this, clientType, methodOverload, config);
     }
 
     public boolean isAuthenticated() {
