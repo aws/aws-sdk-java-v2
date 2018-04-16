@@ -41,7 +41,7 @@ import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.SdkClient;
-import software.amazon.awssdk.core.async.AsyncRequestProvider;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseHandler;
 import software.amazon.awssdk.core.auth.DefaultCredentialsProvider;
 import software.amazon.awssdk.core.regions.providers.DefaultAwsRegionProviderChain;
@@ -269,7 +269,7 @@ public class AsyncClientInterface implements ClassSpec {
                 .addJavadoc(opModel.getDocs(model, ClientType.ASYNC));
 
         if (opModel.hasStreamingInput()) {
-            builder.addParameter(ClassName.get(AsyncRequestProvider.class), "requestProvider");
+            builder.addParameter(ClassName.get(AsyncRequestBody.class), "requestBody");
         }
         if (opModel.hasStreamingOutput()) {
             builder.addTypeVariable(STREAMING_TYPE_VARIABLE);
@@ -304,7 +304,7 @@ public class AsyncClientInterface implements ClassSpec {
                 .addParameter(ClassName.get(Path.class), "path")
                 .addStatement("return $L($L, $T.fromFile(path))", opModel.getMethodName(),
                               opModel.getInput().getVariableName(),
-                              ClassName.get(AsyncRequestProvider.class))
+                              ClassName.get(AsyncRequestBody.class))
                 .build();
     }
 

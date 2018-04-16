@@ -29,7 +29,7 @@ import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
-import software.amazon.awssdk.core.async.AsyncRequestProvider;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseHandler;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.config.AsyncClientConfiguration;
@@ -126,9 +126,9 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
         runAfterMarshallingInterceptors(executionContext);
         SdkHttpFullRequest marshalled = runModifyHttpRequestInterceptors(executionContext);
 
-        SdkHttpRequestProvider requestProvider = executionParams.getAsyncRequestProvider() == null
+        SdkHttpRequestProvider requestProvider = executionParams.getAsyncRequestBody() == null
                                                  ? null
-                                                 : new SdkHttpRequestProviderAdapter(executionParams.getAsyncRequestProvider());
+                                                 : new SdkHttpRequestProviderAdapter(executionParams.getAsyncRequestBody());
 
         HttpResponseAdapter responseAdapter
                 = r -> SdkHttpResponseAdapter.adapt(isCalculateCrc32FromCompressedData(), marshalled, r);
@@ -324,26 +324,26 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
     }
 
     /**
-     * When an operation has a streaming input, the customer must supply an {@link AsyncRequestProvider} to
+     * When an operation has a streaming input, the customer must supply an {@link AsyncRequestBody} to
      * provide the request content in a non-blocking manner. This adapts that interface to the
      * {@link SdkHttpRequestProvider} which the HTTP client SPI expects.
      */
     private static class SdkHttpRequestProviderAdapter implements SdkHttpRequestProvider {
 
-        private final AsyncRequestProvider asyncRequestProvider;
+        private final AsyncRequestBody asyncRequestBody;
 
-        private SdkHttpRequestProviderAdapter(AsyncRequestProvider asyncRequestProvider) {
-            this.asyncRequestProvider = asyncRequestProvider;
+        private SdkHttpRequestProviderAdapter(AsyncRequestBody asyncRequestBody) {
+            this.asyncRequestBody = asyncRequestBody;
         }
 
         @Override
         public long contentLength() {
-            return asyncRequestProvider.contentLength();
+            return asyncRequestBody.contentLength();
         }
 
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> s) {
-            asyncRequestProvider.subscribe(s);
+            asyncRequestBody.subscribe(s);
         }
 
     }
