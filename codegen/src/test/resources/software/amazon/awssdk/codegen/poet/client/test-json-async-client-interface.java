@@ -5,7 +5,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import javax.annotation.Generated;
 import software.amazon.awssdk.core.SdkClient;
-import software.amazon.awssdk.core.async.AsyncRequestProvider;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseHandler;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
@@ -702,12 +702,11 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      * Some operation with a streaming input
      *
      * @param streamingInputOperationRequest
-     * @param requestProvider
+     * @param requestBody
      *        Functional interface that can be implemented to produce the request content in a non-blocking manner. The
-     *        size of the content is expected to be known up front. See {@link AsyncRequestProvider} for specific
-     *        details on implementing this interface as well as links to precanned implementations for common scenarios
-     *        like uploading from a file. The service documentation for the request content is as follows 'This be a
-     *        stream'
+     *        size of the content is expected to be known up front. See {@link AsyncRequestBody} for specific details on
+     *        implementing this interface as well as links to precanned implementations for common scenarios like
+     *        uploading from a file. The service documentation for the request content is as follows 'This be a stream'
      * @return A Java Future containing the result of the StreamingInputOperation operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
@@ -724,7 +723,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
-            StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestProvider requestProvider) {
+            StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestBody requestBody) {
         throw new UnsupportedOperationException();
     }
 
@@ -738,12 +737,11 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      * @param streamingInputOperationRequest
      *        A {@link Consumer} that will call methods on {@link StructureWithStreamingMember.Builder} to create a
      *        request.
-     * @param requestProvider
+     * @param requestBody
      *        Functional interface that can be implemented to produce the request content in a non-blocking manner. The
-     *        size of the content is expected to be known up front. See {@link AsyncRequestProvider} for specific
-     *        details on implementing this interface as well as links to precanned implementations for common scenarios
-     *        like uploading from a file. The service documentation for the request content is as follows 'This be a
-     *        stream'
+     *        size of the content is expected to be known up front. See {@link AsyncRequestBody} for specific details on
+     *        implementing this interface as well as links to precanned implementations for common scenarios like
+     *        uploading from a file. The service documentation for the request content is as follows 'This be a stream'
      * @return A Java Future containing the result of the StreamingInputOperation operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
@@ -760,9 +758,9 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
-            Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, AsyncRequestProvider requestProvider) {
+            Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, AsyncRequestBody requestBody) {
         return streamingInputOperation(StreamingInputOperationRequest.builder().apply(streamingInputOperationRequest).build(),
-                                       requestProvider);
+                                       requestBody);
     }
 
     /**
@@ -791,7 +789,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
             StreamingInputOperationRequest streamingInputOperationRequest, Path path) {
-        return streamingInputOperation(streamingInputOperationRequest, AsyncRequestProvider.fromFile(path));
+        return streamingInputOperation(streamingInputOperationRequest, AsyncRequestBody.fromFile(path));
     }
 
     /**

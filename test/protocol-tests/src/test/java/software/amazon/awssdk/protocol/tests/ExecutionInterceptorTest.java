@@ -50,7 +50,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.async.AsyncRequestProvider;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseHandler;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
@@ -143,7 +143,7 @@ public class ExecutionInterceptorTest {
         stubFor(post(urlPathEqualTo(STREAMING_INPUT_PATH)).willReturn(aResponse().withStatus(200).withBody("")));
 
         // When
-        client.streamingInputOperation(request, new NoOpRequestProvider()).get(10, TimeUnit.SECONDS);
+        client.streamingInputOperation(request, new NoOpAsyncRequestBody()).get(10, TimeUnit.SECONDS);
 
         // Expect
         Context.BeforeTransmission beforeTransmissionArg = captureBeforeTransmissionArg(interceptor);
@@ -511,7 +511,7 @@ public class ExecutionInterceptorTest {
 
     }
 
-    private static class NoOpRequestProvider implements AsyncRequestProvider {
+    private static class NoOpAsyncRequestBody implements AsyncRequestBody {
         @Override
         public long contentLength() {
             return 0;

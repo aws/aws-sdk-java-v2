@@ -3,7 +3,7 @@ package software.amazon.awssdk.services.json;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.async.AsyncRequestProvider;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseHandler;
 import software.amazon.awssdk.core.client.AsyncClientHandler;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
@@ -411,12 +411,11 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * Some operation with a streaming input
      *
      * @param streamingInputOperationRequest
-     * @param requestProvider
+     * @param requestBody
      *        Functional interface that can be implemented to produce the request content in a non-blocking manner. The
-     *        size of the content is expected to be known up front. See {@link AsyncRequestProvider} for specific
-     *        details on implementing this interface as well as links to precanned implementations for common scenarios
-     *        like uploading from a file. The service documentation for the request content is as follows 'This be a
-     *        stream'
+     *        size of the content is expected to be known up front. See {@link AsyncRequestBody} for specific details on
+     *        implementing this interface as well as links to precanned implementations for common scenarios like
+     *        uploading from a file. The service documentation for the request content is as follows 'This be a stream'
      * @return A Java Future containing the result of the StreamingInputOperation operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
@@ -434,7 +433,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      */
     @Override
     public CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
-            StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestProvider requestProvider) {
+            StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestBody requestBody) {
 
         HttpResponseHandler<StreamingInputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
                 new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
@@ -445,7 +444,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         return clientHandler.execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
                                              .withMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                             .withAsyncRequestProvider(requestProvider).withInput(streamingInputOperationRequest));
+                                             .withAsyncRequestBody(requestBody).withInput(streamingInputOperationRequest));
     }
 
     /**
