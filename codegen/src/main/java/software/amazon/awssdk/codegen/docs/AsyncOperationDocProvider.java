@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.codegen.docs;
 
-import java.util.Map;
-import software.amazon.awssdk.codegen.internal.ImmutableMapParameter;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 
@@ -39,8 +37,8 @@ class AsyncOperationDocProvider extends OperationDocProvider {
             "should be implemented and for links to precanned implementations for common scenarios like " +
             "downloading to a file. ";
 
-    private AsyncOperationDocProvider(IntermediateModel model, OperationModel opModel) {
-        super(model, opModel);
+    AsyncOperationDocProvider(IntermediateModel model, OperationModel opModel, DocConfiguration configuration) {
+        super(model, opModel, configuration);
     }
 
     @Override
@@ -81,29 +79,13 @@ class AsyncOperationDocProvider extends OperationDocProvider {
     }
 
     /**
-     * Note that {@link SimpleMethodOverload#INPUT_STREAM} does not make sense for Async and is not generated.
-     *
-     * @return Factories to use for the {@link ClientType#ASYNC} method type.
-     */
-    static Map<SimpleMethodOverload, Factory> asyncFactories() {
-        return new ImmutableMapParameter.Builder<SimpleMethodOverload, Factory>()
-            .put(SimpleMethodOverload.NORMAL, AsyncOperationDocProvider::new)
-            .put(SimpleMethodOverload.NO_ARG, AsyncNoArg::new)
-            .put(SimpleMethodOverload.FILE, AsyncFile::new)
-            .put(SimpleMethodOverload.CONSUMER_BUILDER, AsyncConsumerBuilder::new)
-            .put(SimpleMethodOverload.PAGINATED, AsyncPaginated::new)
-            .put(SimpleMethodOverload.NO_ARG_PAGINATED, AsyncPaginatedNoArg::new)
-            .build();
-    }
-
-    /**
      * Provider for streaming simple methods that take a file (to either upload from for streaming inputs or download to for
      * streaming outputs).
      */
-    private static class AsyncFile extends AsyncOperationDocProvider {
+    static class AsyncFile extends AsyncOperationDocProvider {
 
-        private AsyncFile(IntermediateModel model, OperationModel opModel) {
-            super(model, opModel);
+        AsyncFile(IntermediateModel model, OperationModel opModel, DocConfiguration configuration) {
+            super(model, opModel, configuration);
         }
 
         @Override
@@ -122,46 +104,24 @@ class AsyncOperationDocProvider extends OperationDocProvider {
     /**
      * Provider for simple method that takes no arguments and creates an empty request object.
      */
-    private static class AsyncNoArg extends AsyncOperationDocProvider {
+    static class AsyncNoArg extends AsyncOperationDocProvider {
 
-        private AsyncNoArg(IntermediateModel model, OperationModel opModel) {
-            super(model, opModel);
+        AsyncNoArg(IntermediateModel model, OperationModel opModel, DocConfiguration configuration) {
+            super(model, opModel, configuration);
         }
 
         @Override
         protected void applyParams(DocumentationBuilder docBuilder) {
-        }
-    }
-
-    private static class AsyncConsumerBuilder extends AsyncOperationDocProvider {
-        private AsyncConsumerBuilder(IntermediateModel model, OperationModel opModel) {
-            super(model, opModel);
-        }
-
-        @Override
-        protected String appendToDescription() {
-            return "This is a convenience which creates an instance of the {@link " +
-                   opModel.getInput().getSimpleType() +
-                   ".Builder} avoiding the need to create one manually via {@link " +
-                   opModel.getInput().getSimpleType() +
-                   "#builder()}";
-        }
-
-        @Override
-        protected void applyParams(DocumentationBuilder docBuilder) {
-            docBuilder.param(opModel.getInput().getVariableName(),
-                             "a {@link Consumer} that will call methods on {@link %s.Builder}.",
-                             opModel.getInputShape().getC2jName());
         }
     }
 
     /**
      * Provider for traditional paginated method that takes in a request object and returns a response object.
      */
-    private static class AsyncPaginated extends AsyncOperationDocProvider {
+    static class AsyncPaginated extends AsyncOperationDocProvider {
 
-        private AsyncPaginated(IntermediateModel model, OperationModel opModel) {
-            super(model, opModel);
+        AsyncPaginated(IntermediateModel model, OperationModel opModel, DocConfiguration configuration) {
+            super(model, opModel, configuration);
         }
 
         @Override
@@ -178,10 +138,10 @@ class AsyncOperationDocProvider extends OperationDocProvider {
     /**
      * Provider for paginated simple method that takes no arguments and creates an empty request object.
      */
-    private static class AsyncPaginatedNoArg extends AsyncPaginated {
+    static class AsyncPaginatedNoArg extends AsyncPaginated {
 
-        private AsyncPaginatedNoArg(IntermediateModel model, OperationModel opModel) {
-            super(model, opModel);
+        AsyncPaginatedNoArg(IntermediateModel model, OperationModel opModel, DocConfiguration configuration) {
+            super(model, opModel, configuration);
         }
 
         @Override

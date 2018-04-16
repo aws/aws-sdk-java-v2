@@ -51,11 +51,13 @@ abstract class OperationDocProvider {
 
     protected final IntermediateModel model;
     protected final OperationModel opModel;
+    protected final DocConfiguration config;
     protected final PaginationDocs paginationDocs;
 
-    OperationDocProvider(IntermediateModel model, OperationModel opModel) {
+    OperationDocProvider(IntermediateModel model, OperationModel opModel, DocConfiguration config) {
         this.model = model;
         this.opModel = opModel;
+        this.config = config;
         this.paginationDocs = new PaginationDocs(model, opModel);
     }
 
@@ -70,6 +72,10 @@ abstract class OperationDocProvider {
                              getDefaultServiceDocs();
 
         String appendedDescription = appendToDescription();
+
+        if (config.isConsumerBuilder()) {
+            appendedDescription += getConsumerBuilderDocs();
+        }
 
         docBuilder.description(StringUtils.isNotBlank(appendedDescription) ?
                                description + "<br/>" + appendedDescription :
@@ -108,6 +114,17 @@ abstract class OperationDocProvider {
     final String getStreamingOutputDocs() {
         return String.format("The service documentation for the response content is as follows '%s'.",
                              getStreamingMemberDocs(opModel.getOutputShape()));
+    }
+
+    /**
+     * @return Documentation describing the consumer-builder variant of a method.
+     */
+    private String getConsumerBuilderDocs() {
+        return "<p>This is a convenience which creates an instance of the {@link " +
+               opModel.getInput().getSimpleType() +
+               ".Builder} avoiding the need to create one manually via {@link " +
+               opModel.getInput().getSimpleType() +
+               "#builder()}</p>";
     }
 
     /**
@@ -151,7 +168,16 @@ abstract class OperationDocProvider {
      * @param docBuilder {@link DocumentationBuilder} to emit param to.
      */
     final void emitRequestParm(DocumentationBuilder docBuilder) {
-        docBuilder.param(opModel.getInput().getVariableName(), stripHtmlTags(opModel.getInput().getDocumentation()));
+        String parameterDocs = stripHtmlTags(opModel.getInput().getDocumentation());
+
+        if (config.isConsumerBuilder()) {
+            docBuilder.param(opModel.getInput().getVariableName(),
+                             "A {@link Consumer} that will call methods on {@link %s.Builder} to create a request. %s",
+                             opModel.getInputShape().getC2jName(),
+                             parameterDocs);
+        } else {
+            docBuilder.param(opModel.getInput().getVariableName(), parameterDocs);
+        }
     }
 
     /**

@@ -15,13 +15,21 @@
 
 package software.amazon.awssdk.codegen.docs;
 
-import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-
 /**
- * Factory interface for creating an instance of {@link OperationDocProvider}.
+ * Configuration for generation in a {@link OperationDocProvider}.
  */
-@FunctionalInterface
-interface Factory {
-    OperationDocProvider create(IntermediateModel model, OperationModel opModel, DocConfiguration config);
+public class DocConfiguration {
+    /**
+     * Whether the documentation should be generated for a consumer builder method.
+     */
+    private boolean isConsumerBuilder = false;
+
+    public DocConfiguration isConsumerBuilder(boolean isConsumerBuilder) {
+        this.isConsumerBuilder = isConsumerBuilder;
+        return this;
+    }
+
+    public boolean isConsumerBuilder() {
+        return isConsumerBuilder;
+    }
 }
