@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Generated;
 import software.amazon.awssdk.core.runtime.StandardMemberCopier;
 import software.amazon.awssdk.core.runtime.TypeConverter;
@@ -563,10 +564,10 @@ public class AllTypesResponse extends JsonProtocolTestsResponse implements
 
     @Override
     public String toString() {
-        return ToString.builder("AllTypesResponse").add("StringMember", stringMember())
-                       .add("IntegerMember", integerMember()).add("BooleanMember", booleanMember()).add("FloatMember", floatMember())
-                       .add("DoubleMember", doubleMember()).add("LongMember", longMember()).add("SimpleList", simpleList())
-                       .add("ListOfEnums", listOfEnumsStrings()).add("ListOfMaps", listOfMaps()).add("ListOfStructs", listOfStructs())
+        return ToString.builder("AllTypesResponse").add("StringMember", stringMember()).add("IntegerMember", integerMember())
+                       .add("BooleanMember", booleanMember()).add("FloatMember", floatMember()).add("DoubleMember", doubleMember())
+                       .add("LongMember", longMember()).add("SimpleList", simpleList()).add("ListOfEnums", listOfEnumsStrings())
+                       .add("ListOfMaps", listOfMaps()).add("ListOfStructs", listOfStructs())
                        .add("MapOfStringToIntegerList", mapOfStringToIntegerList()).add("MapOfStringToString", mapOfStringToString())
                        .add("MapOfStringToSimpleStruct", mapOfStringToSimpleStruct()).add("MapOfEnumToEnum", mapOfEnumToEnumStrings())
                        .add("MapOfEnumToString", mapOfEnumToStringStrings()).add("MapOfStringToEnum", mapOfStringToEnumStrings())
@@ -765,6 +766,22 @@ public class AllTypesResponse extends JsonProtocolTestsResponse implements
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder listOfStructs(SimpleStruct... listOfStructs);
+
+        /**
+         * Sets the value of the ListOfStructs property for this object.
+         *
+         * This is a convenience that creates an instance of the {@link List<SimpleStruct>.Builder} avoiding the need to
+         * create one manually via {@link List<SimpleStruct>#builder()}.
+         *
+         * When the {@link Consumer} completes, {@link List<SimpleStruct>.Builder#build()} is called immediately and its
+         * result is passed to {@link #listOfStructs(List<SimpleStruct>)}.
+         *
+         * @param listOfStructs
+         *        a consumer that will call methods on {@link List<SimpleStruct>.Builder}
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #listOfStructs(List<SimpleStruct>)
+         */
+        Builder listOfStructs(Consumer<SimpleStruct.Builder>... listOfStructs);
 
         /**
          * Sets the value of the MapOfStringToIntegerList property for this object.
@@ -1288,6 +1305,13 @@ public class AllTypesResponse extends JsonProtocolTestsResponse implements
         @SafeVarargs
         public final Builder listOfStructs(SimpleStruct... listOfStructs) {
             listOfStructs(Arrays.asList(listOfStructs));
+            return this;
+        }
+
+        @Override
+        @SafeVarargs
+        public final Builder listOfStructs(Consumer<SimpleStruct.Builder>... listOfStructs) {
+            listOfStructs(Stream.of(listOfStructs).map(c -> SimpleStruct.builder().apply(c).build()).collect(Collectors.toList()));
             return this;
         }
 
