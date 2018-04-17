@@ -3,14 +3,14 @@ package software.amazon.awssdk.services.json;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 import javax.annotation.Generated;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.regions.ServiceMetadata;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.core.sync.ResponseBytes;
-import software.amazon.awssdk.core.sync.ResponseInputStream;
-import software.amazon.awssdk.core.sync.StreamingResponseHandler;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -821,10 +821,10 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *        Functional interface for processing the streamed response content. The unmarshalled
      *        StreamingInputOperationRequest and an InputStream to the response content are provided as parameters to
      *        the callback. The callback may return a transformed type which will be the return value of this method.
-     *        See {@link software.amazon.awssdk.core.sync.StreamingResponseHandler} for details on implementing this
+     *        See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing this
      *        interface and for links to pre-canned implementations for common scenarios like downloading to a file. The
      *        service documentation for the response content is as follows 'This be a stream'.
-     * @return The transformed result of the StreamingResponseHandler.
+     * @return The transformed result of the ResponseTransformer.
      * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
@@ -837,8 +837,8 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default <ReturnT> ReturnT streamingOutputOperation(StreamingOutputOperationRequest streamingOutputOperationRequest,
-                                                       StreamingResponseHandler<StreamingOutputOperationResponse, ReturnT> streamingResponseHandler)
-            throws SdkServiceException, SdkClientException, JsonException {
+                                                       ResponseTransformer<StreamingOutputOperationResponse, ReturnT> responseTransformer) throws SdkServiceException,
+                                                                                                                                                  SdkClientException, JsonException {
         throw new UnsupportedOperationException();
     }
 
@@ -856,10 +856,10 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *        Functional interface for processing the streamed response content. The unmarshalled
      *        StreamingInputOperationRequest and an InputStream to the response content are provided as parameters to
      *        the callback. The callback may return a transformed type which will be the return value of this method.
-     *        See {@link software.amazon.awssdk.core.sync.StreamingResponseHandler} for details on implementing this
+     *        See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing this
      *        interface and for links to pre-canned implementations for common scenarios like downloading to a file. The
      *        service documentation for the response content is as follows 'This be a stream'.
-     * @return The transformed result of the StreamingResponseHandler.
+     * @return The transformed result of the ResponseTransformer.
      * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
@@ -873,10 +873,10 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      */
     default <ReturnT> ReturnT streamingOutputOperation(
             Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest,
-            StreamingResponseHandler<StreamingOutputOperationResponse, ReturnT> streamingResponseHandler)
-            throws SdkServiceException, SdkClientException, JsonException {
+            ResponseTransformer<StreamingOutputOperationResponse, ReturnT> responseTransformer) throws SdkServiceException,
+                                                                                                       SdkClientException, JsonException {
         return streamingOutputOperation(StreamingOutputOperationRequest.builder().apply(streamingOutputOperationRequest).build(),
-                                        streamingResponseHandler);
+                                        responseTransformer);
     }
 
     /**
@@ -887,7 +887,7 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *        {@link Path} to file that response contents will be written to. The file must not exist or this method
      *        will throw an exception. If the file is not writable by the current user then an exception will be thrown.
      *        The service documentation for the response content is as follows 'This be a stream'.
-     * @return The transformed result of the StreamingResponseHandler.
+     * @return The transformed result of the ResponseTransformer.
      * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
@@ -896,14 +896,14 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingOutputOperation
-     * @see #streamingOutputOperation(StreamingOutputOperationRequest, StreamingResponseHandler)
+     * @see #streamingOutputOperation(StreamingOutputOperationRequest, ResponseTransformer)
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default StreamingOutputOperationResponse streamingOutputOperation(
             StreamingOutputOperationRequest streamingOutputOperationRequest, Path filePath) throws SdkServiceException,
                                                                                                    SdkClientException, JsonException {
-        return streamingOutputOperation(streamingOutputOperationRequest, StreamingResponseHandler.toFile(filePath));
+        return streamingOutputOperation(streamingOutputOperationRequest, ResponseTransformer.toFile(filePath));
     }
 
     /**
@@ -920,7 +920,7 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *        {@link Path} to file that response contents will be written to. The file must not exist or this method
      *        will throw an exception. If the file is not writable by the current user then an exception will be thrown.
      *        The service documentation for the response content is as follows 'This be a stream'.
-     * @return The transformed result of the StreamingResponseHandler.
+     * @return The transformed result of the ResponseTransformer.
      * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
@@ -929,7 +929,7 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingOutputOperation
-     * @see #streamingOutputOperation(StreamingOutputOperationRequest, StreamingResponseHandler)
+     * @see #streamingOutputOperation(StreamingOutputOperationRequest, ResponseTransformer)
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
@@ -958,14 +958,14 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingOutputOperation
-     * @see #getObject(streamingOutputOperation, StreamingResponseHandler)
+     * @see #getObject(streamingOutputOperation, ResponseTransformer)
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default ResponseInputStream<StreamingOutputOperationResponse> streamingOutputOperation(
             StreamingOutputOperationRequest streamingOutputOperationRequest) throws SdkServiceException, SdkClientException,
                                                                                     JsonException {
-        return streamingOutputOperation(streamingOutputOperationRequest, StreamingResponseHandler.toInputStream());
+        return streamingOutputOperation(streamingOutputOperationRequest, ResponseTransformer.toInputStream());
     }
 
     /**
@@ -992,7 +992,7 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingOutputOperation
-     * @see #getObject(streamingOutputOperation, StreamingResponseHandler)
+     * @see #getObject(streamingOutputOperation, ResponseTransformer)
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
@@ -1018,14 +1018,14 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingOutputOperation
-     * @see #getObject(streamingOutputOperation, StreamingResponseHandler)
+     * @see #getObject(streamingOutputOperation, ResponseTransformer)
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default ResponseBytes<StreamingOutputOperationResponse> streamingOutputOperationBytes(
             StreamingOutputOperationRequest streamingOutputOperationRequest) throws SdkServiceException, SdkClientException,
                                                                                     JsonException {
-        return streamingOutputOperation(streamingOutputOperationRequest, StreamingResponseHandler.toBytes());
+        return streamingOutputOperation(streamingOutputOperationRequest, ResponseTransformer.toBytes());
     }
 
     /**
@@ -1050,7 +1050,7 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingOutputOperation
-     * @see #getObject(streamingOutputOperation, StreamingResponseHandler)
+     * @see #getObject(streamingOutputOperation, ResponseTransformer)
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */

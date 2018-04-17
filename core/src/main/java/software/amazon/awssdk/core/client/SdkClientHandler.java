@@ -22,7 +22,7 @@ import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.core.config.SyncClientConfiguration;
 import software.amazon.awssdk.core.internal.http.response.AwsErrorResponseHandler;
-import software.amazon.awssdk.core.sync.StreamingResponseHandler;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 
 /**
  * Client handler for SDK clients.
@@ -49,8 +49,8 @@ public class SdkClientHandler extends ClientHandler {
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> ReturnT execute(
             ClientExecutionParams<InputT, OutputT> executionParams,
-            StreamingResponseHandler<OutputT, ReturnT> streamingResponseHandler) {
-        return delegateHandler.execute(addRequestConfig(executionParams), streamingResponseHandler);
+            ResponseTransformer<OutputT, ReturnT> responseTransformer) {
+        return delegateHandler.execute(addRequestConfig(executionParams), responseTransformer);
     }
 
     @Override

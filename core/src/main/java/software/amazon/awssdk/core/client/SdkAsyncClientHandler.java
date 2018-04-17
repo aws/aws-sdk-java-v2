@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
-import software.amazon.awssdk.core.async.AsyncResponseHandler;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.config.AsyncClientConfiguration;
 import software.amazon.awssdk.core.internal.http.response.AwsErrorResponseHandler;
 
@@ -48,8 +48,9 @@ public class SdkAsyncClientHandler extends AsyncClientHandler {
 
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> CompletableFuture<ReturnT> execute(
-            ClientExecutionParams<InputT, OutputT> executionParams, AsyncResponseHandler<OutputT, ReturnT> asyncResponseHandler) {
-        return delegateHandler.execute(addRequestConfig(executionParams), asyncResponseHandler);
+            ClientExecutionParams<InputT, OutputT> executionParams,
+            AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer) {
+        return delegateHandler.execute(addRequestConfig(executionParams), asyncResponseTransformer);
     }
 
     @Override
