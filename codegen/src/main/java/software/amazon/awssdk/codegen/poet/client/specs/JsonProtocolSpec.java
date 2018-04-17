@@ -145,7 +145,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
         }
 
         return codeBlock.add(".withMarshaller(new $T(protocolFactory))$L);", marshaller,
-                             opModel.hasStreamingOutput() ? ", streamingResponseHandler" : "")
+                             opModel.hasStreamingOutput() ? ", responseTransformer" : "")
                         .build();
     }
 
@@ -168,7 +168,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                                        pojoResponseType,
                                        marshaller,
                                        opModel.getInput().getVariableName(),
-                                       opModel.hasStreamingOutput() ? ", asyncResponseHandler" : "")
+                                       opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "")
                         .build();
     }
 

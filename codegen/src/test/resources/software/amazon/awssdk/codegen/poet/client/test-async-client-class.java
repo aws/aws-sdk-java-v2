@@ -4,7 +4,7 @@ import java.util.concurrent.CompletableFuture;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.async.AsyncResponseHandler;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.AsyncClientHandler;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
 import software.amazon.awssdk.core.client.SdkAsyncClientHandler;
@@ -451,12 +451,12 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
      * Some operation with a streaming output
      *
      * @param streamingOutputOperationRequest
-     * @param asyncResponseHandler
-     *        The response handler for processing the streaming response in a non-blocking manner. See
-     *        {@link AsyncResponseHandler} for details on how this callback should be implemented and for links to
+     * @param asyncResponseTransformer
+     *        The response transformer for processing the streaming response in a non-blocking manner. See
+     *        {@link AsyncResponseTransformer} for details on how this callback should be implemented and for links to
      *        precanned implementations for common scenarios like downloading to a file. The service documentation for
      *        the response content is as follows 'This be a stream'.
-     * @return A future to the transformed result of the AsyncResponseHandler.<br/>
+     * @return A future to the transformed result of the AsyncResponseTransformer.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
      *         <ul>
@@ -474,7 +474,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
             StreamingOutputOperationRequest streamingOutputOperationRequest,
-            AsyncResponseHandler<StreamingOutputOperationResponse, ReturnT> asyncResponseHandler) {
+            AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
 
         HttpResponseHandler<StreamingOutputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
                 new JsonOperationMetadata().withPayloadJson(false).withHasStreamingSuccessResponse(true),
@@ -486,7 +486,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
                         .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
                         .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                        .withInput(streamingOutputOperationRequest), asyncResponseHandler);
+                        .withInput(streamingOutputOperationRequest), asyncResponseTransformer);
     }
 
     @Override

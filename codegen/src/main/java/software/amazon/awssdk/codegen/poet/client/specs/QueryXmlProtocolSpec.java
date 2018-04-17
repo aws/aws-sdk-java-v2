@@ -143,7 +143,7 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
                             .build();
         }
         return codeBlock.add(".withMarshaller(new $T()) $L);", marshaller,
-                             opModel.hasStreamingOutput() ? ", streamingResponseHandler" : "").build();
+                             opModel.hasStreamingOutput() ? ", responseTransformer" : "").build();
     }
 
     @Override
@@ -166,7 +166,7 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
                                        marshaller,
                                        "errorResponseHandler",
                                        opModel.getInput().getVariableName(),
-                                       opModel.hasStreamingOutput() ? ", asyncResponseHandler" : "")
+                                       opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "")
                         .build();
     }
 

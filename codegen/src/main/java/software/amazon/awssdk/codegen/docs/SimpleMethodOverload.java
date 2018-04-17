@@ -27,7 +27,8 @@ import software.amazon.awssdk.codegen.docs.SyncOperationDocProvider.SyncPaginate
 import software.amazon.awssdk.codegen.docs.SyncOperationDocProvider.SyncPaginatedNoArg;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.core.sync.ResponseBytes;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.ResponseInputStream;
 
 /**
  * Enum describing all the convenience overloads we generate for operation methods.
@@ -62,7 +63,7 @@ public enum SimpleMethodOverload {
 
     /**
      * Simple method only for sync operations that have a streaming output. Takes a request object
-     * and returns an unmanaged {@link software.amazon.awssdk.core.sync.ResponseInputStream} to read the response
+     * and returns an unmanaged {@link ResponseInputStream} to read the response
      * contents.
      */
     INPUT_STREAM(SyncInputStream::new, null),

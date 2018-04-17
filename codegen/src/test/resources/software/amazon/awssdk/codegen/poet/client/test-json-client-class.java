@@ -17,7 +17,7 @@ import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
 import software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.core.sync.StreamingResponseHandler;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -457,10 +457,10 @@ final class DefaultJsonClient implements JsonClient {
      *        Functional interface for processing the streamed response content. The unmarshalled
      *        StreamingInputOperationRequest and an InputStream to the response content are provided as parameters to
      *        the callback. The callback may return a transformed type which will be the return value of this method.
-     *        See {@link software.amazon.awssdk.core.sync.StreamingResponseHandler} for details on implementing this
+     *        See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing this
      *        interface and for links to pre-canned implementations for common scenarios like downloading to a file. The
      *        service documentation for the response content is as follows 'This be a stream'.
-     * @return The transformed result of the StreamingResponseHandler.
+     * @return The transformed result of the ResponseTransformer.
      * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
@@ -474,8 +474,8 @@ final class DefaultJsonClient implements JsonClient {
      */
     @Override
     public <ReturnT> ReturnT streamingOutputOperation(StreamingOutputOperationRequest streamingOutputOperationRequest,
-                                                      StreamingResponseHandler<StreamingOutputOperationResponse, ReturnT> streamingResponseHandler)
-            throws SdkServiceException, SdkClientException, JsonException {
+                                                      ResponseTransformer<StreamingOutputOperationResponse, ReturnT> responseTransformer) throws SdkServiceException,
+                                                                                                                                                 SdkClientException, JsonException {
 
         HttpResponseHandler<StreamingOutputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
                 new JsonOperationMetadata().withPayloadJson(false).withHasStreamingSuccessResponse(true),
@@ -483,13 +483,11 @@ final class DefaultJsonClient implements JsonClient {
 
         HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
 
-        return clientHandler
-                .execute(
-                        new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
-                                .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                .withInput(streamingOutputOperationRequest)
-                                .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)),
-                        streamingResponseHandler);
+        return clientHandler.execute(
+                new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
+                        .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                        .withInput(streamingOutputOperationRequest)
+                        .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
     }
 
     private HttpResponseHandler<SdkServiceException> createErrorResponseHandler() {
