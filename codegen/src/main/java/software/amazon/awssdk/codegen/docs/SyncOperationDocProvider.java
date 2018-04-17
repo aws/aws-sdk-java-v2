@@ -34,7 +34,7 @@ class SyncOperationDocProvider extends OperationDocProvider {
             "The content to send to the service. A {@link RequestBody} can be created using one of " +
             "several factory methods for various sources of data. For example, to create a request body " +
             "from a file you can do the following. " +
-            "<pre>{@code RequestBody.of(new File(\"myfile.txt\"))}</pre>" +
+            "<pre>{@code RequestBody.fromFile(new File(\"myfile.txt\"))}</pre>" +
             "See documentation in {@link RequestBody} for additional details and which sources of data are supported. ";
 
     private static final String STREAM_RESPONSE_HANDLER_DOCS =

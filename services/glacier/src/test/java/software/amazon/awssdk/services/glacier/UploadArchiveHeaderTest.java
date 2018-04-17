@@ -19,19 +19,15 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static software.amazon.awssdk.http.Headers.CONTENT_TYPE;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import org.junit.Before;
 import org.junit.Rule;
@@ -41,7 +37,6 @@ import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.util.Mimetypes;
-import software.amazon.awssdk.services.glacier.model.ListVaultsRequest;
 import software.amazon.awssdk.services.glacier.model.UploadArchiveRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
 
@@ -73,7 +68,7 @@ public class UploadArchiveHeaderTest {
                     .willReturn(aResponse()
                                     .withStatus(200)
                                     .withBody("{}")));
-        glacier.uploadArchive(request, RequestBody.of("test".getBytes()));
+        glacier.uploadArchive(request, RequestBody.fromBytes("test".getBytes()));
         verify(postRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetypes.MIMETYPE_OCTET_STREAM)));
     }
 
@@ -84,7 +79,7 @@ public class UploadArchiveHeaderTest {
                     .willReturn(aResponse()
                                     .withStatus(200)
                                     .withBody("{}")));
-        glacier.uploadArchive(request, RequestBody.of(file));
+        glacier.uploadArchive(request, RequestBody.fromFile(file));
         file.delete();
         verify(postRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo("text/tab-separated-values")));
     }
@@ -97,7 +92,7 @@ public class UploadArchiveHeaderTest {
                                     .withBody("{}")));
 
         request = (UploadArchiveRequest) request.toBuilder().requestOverrideConfig(b -> b.header(CONTENT_TYPE, "test")).build();
-        glacier.uploadArchive(request, RequestBody.of("test".getBytes()));
+        glacier.uploadArchive(request, RequestBody.fromBytes("test".getBytes()));
         verify(postRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo("test")));
     }
 }

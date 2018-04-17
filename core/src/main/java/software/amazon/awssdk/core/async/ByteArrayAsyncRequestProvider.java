@@ -19,11 +19,11 @@ import java.nio.ByteBuffer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-class SingleByteArrayAsyncRequestProvider implements AsyncRequestProvider {
+class ByteArrayAsyncRequestProvider implements AsyncRequestProvider {
 
     private final byte[] bytes;
 
-    SingleByteArrayAsyncRequestProvider(byte[] bytes) {
+    ByteArrayAsyncRequestProvider(byte[] bytes) {
         this.bytes = bytes.clone();
     }
 

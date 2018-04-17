@@ -125,7 +125,7 @@ public class ExecutionInterceptorTest {
         stubFor(post(urlPathEqualTo(STREAMING_INPUT_PATH)).willReturn(aResponse().withStatus(200).withBody("")));
 
         // When
-        client.streamingInputOperation(request, RequestBody.of(new byte[] {0}));
+        client.streamingInputOperation(request, RequestBody.fromBytes(new byte[] {0}));
 
         // Expect
         Context.BeforeTransmission beforeTransmissionArg = captureBeforeTransmissionArg(interceptor);
