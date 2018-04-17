@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 import javax.annotation.Generated;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.async.AsyncResponseHandler;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -832,12 +832,12 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      * Some operation with a streaming output
      *
      * @param streamingOutputOperationRequest
-     * @param asyncResponseHandler
-     *        The response handler for processing the streaming response in a non-blocking manner. See
-     *        {@link AsyncResponseHandler} for details on how this callback should be implemented and for links to
+     * @param asyncResponseTransformer
+     *        The response transformer for processing the streaming response in a non-blocking manner. See
+     *        {@link AsyncResponseTransformer} for details on how this callback should be implemented and for links to
      *        precanned implementations for common scenarios like downloading to a file. The service documentation for
      *        the response content is as follows 'This be a stream'.
-     * @return A future to the transformed result of the AsyncResponseHandler.<br/>
+     * @return A future to the transformed result of the AsyncResponseTransformer.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
      *         <ul>
@@ -854,7 +854,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      */
     default <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
             StreamingOutputOperationRequest streamingOutputOperationRequest,
-            AsyncResponseHandler<StreamingOutputOperationResponse, ReturnT> asyncResponseHandler) {
+            AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
         throw new UnsupportedOperationException();
     }
 
@@ -868,12 +868,12 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      * @param streamingOutputOperationRequest
      *        A {@link Consumer} that will call methods on {@link StreamingOutputOperationRequest.Builder} to create a
      *        request.
-     * @param asyncResponseHandler
-     *        The response handler for processing the streaming response in a non-blocking manner. See
-     *        {@link AsyncResponseHandler} for details on how this callback should be implemented and for links to
+     * @param asyncResponseTransformer
+     *        The response transformer for processing the streaming response in a non-blocking manner. See
+     *        {@link AsyncResponseTransformer} for details on how this callback should be implemented and for links to
      *        precanned implementations for common scenarios like downloading to a file. The service documentation for
      *        the response content is as follows 'This be a stream'.
-     * @return A future to the transformed result of the AsyncResponseHandler.<br/>
+     * @return A future to the transformed result of the AsyncResponseTransformer.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
      *         <ul>
@@ -890,9 +890,9 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      */
     default <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
             Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest,
-            AsyncResponseHandler<StreamingOutputOperationResponse, ReturnT> asyncResponseHandler) {
+            AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
         return streamingOutputOperation(StreamingOutputOperationRequest.builder().apply(streamingOutputOperationRequest).build(),
-                                        asyncResponseHandler);
+                                        asyncResponseTransformer);
     }
 
     /**
@@ -903,7 +903,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *        {@link Path} to file that response contents will be written to. The file must not exist or this method
      *        will throw an exception. If the file is not writable by the current user then an exception will be thrown.
      *        The service documentation for the response content is as follows 'This be a stream'.
-     * @return A future to the transformed result of the AsyncResponseHandler.<br/>
+     * @return A future to the transformed result of the AsyncResponseTransformer.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
      *         <ul>
@@ -920,7 +920,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      */
     default CompletableFuture<StreamingOutputOperationResponse> streamingOutputOperation(
             StreamingOutputOperationRequest streamingOutputOperationRequest, Path path) {
-        return streamingOutputOperation(streamingOutputOperationRequest, AsyncResponseHandler.toFile(path));
+        return streamingOutputOperation(streamingOutputOperationRequest, AsyncResponseTransformer.toFile(path));
     }
 
     /**
@@ -937,7 +937,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *        {@link Path} to file that response contents will be written to. The file must not exist or this method
      *        will throw an exception. If the file is not writable by the current user then an exception will be thrown.
      *        The service documentation for the response content is as follows 'This be a stream'.
-     * @return A future to the transformed result of the AsyncResponseHandler.<br/>
+     * @return A future to the transformed result of the AsyncResponseTransformer.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions.
      *         <ul>

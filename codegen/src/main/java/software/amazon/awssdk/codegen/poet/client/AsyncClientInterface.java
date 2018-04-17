@@ -42,7 +42,7 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.async.AsyncResponseHandler;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.auth.DefaultCredentialsProvider;
 import software.amazon.awssdk.core.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -274,8 +274,8 @@ public class AsyncClientInterface implements ClassSpec {
         if (opModel.hasStreamingOutput()) {
             builder.addTypeVariable(STREAMING_TYPE_VARIABLE);
             final ParameterizedTypeName asyncResponseHandlerType = ParameterizedTypeName
-                    .get(ClassName.get(AsyncResponseHandler.class), responsePojoType, STREAMING_TYPE_VARIABLE);
-            builder.addParameter(asyncResponseHandlerType, "asyncResponseHandler");
+                    .get(ClassName.get(AsyncResponseTransformer.class), responsePojoType, STREAMING_TYPE_VARIABLE);
+            builder.addParameter(asyncResponseHandlerType, "asyncResponseTransformer");
         }
         return operationBody(builder, opModel).build();
     }
@@ -321,7 +321,7 @@ public class AsyncClientInterface implements ClassSpec {
                 .addParameter(ClassName.get(Path.class), "path")
                 .addStatement("return $L($L, $T.toFile(path))", opModel.getMethodName(),
                               opModel.getInput().getVariableName(),
-                              ClassName.get(AsyncResponseHandler.class))
+                              ClassName.get(AsyncResponseTransformer.class))
                 .build();
     }
 

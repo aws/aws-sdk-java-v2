@@ -22,7 +22,7 @@ import java.io.OutputStream;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.core.sync.StreamingResponseHandler;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.core.util.json.JacksonUtils;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.AccessControlPolicy;
@@ -244,7 +244,7 @@ public class S3Link {
                                                              .bucket(bucketName())
                                                              .key(getKey())
                                                              .build(),
-                                             StreamingResponseHandler.toFile(destination.toPath()));
+                                             ResponseTransformer.toFile(destination.toPath()));
     }
 
     /**
@@ -261,7 +261,7 @@ public class S3Link {
                                                              .bucket(bucketName())
                                                              .key(getKey())
                                                              .build(),
-                                             StreamingResponseHandler.toOutputStream(output));
+                                             ResponseTransformer.toOutputStream(output));
     }
 
     /**

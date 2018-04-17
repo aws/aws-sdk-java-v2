@@ -23,20 +23,23 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
- * Implementation of {@link AsyncResponseHandler} that dumps content into a byte array.
+ * Implementation of {@link AsyncResponseTransformer} that dumps content into a byte array.
  *
  * @param <ResponseT> Pojo response type.
  */
 @SdkInternalApi
-class ByteArrayAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<ResponseT, byte[]> {
+class ByteArrayAsyncResponseTransformer<ResponseT> implements AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>> {
 
+    private ResponseT response;
     private ByteArrayOutputStream baos;
 
     @Override
     public void responseReceived(ResponseT response) {
+        this.response = response;
     }
 
     @Override
@@ -51,9 +54,9 @@ class ByteArrayAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<R
     }
 
     @Override
-    public byte[] complete() {
+    public ResponseBytes<ResponseT> complete() {
         try {
-            return baos.toByteArray();
+            return new ResponseBytes<>(response, baos.toByteArray());
         } finally {
             baos = null;
         }
@@ -80,12 +83,12 @@ class ByteArrayAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<R
 
         @Override
         public void onError(Throwable throwable) {
-            // Handled by response handler
+            // Handled by response transformer
         }
 
         @Override
         public void onComplete() {
-            // Handled by response handler
+            // Handled by response transformer
         }
     }
 }

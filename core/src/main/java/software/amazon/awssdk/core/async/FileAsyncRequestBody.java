@@ -33,7 +33,7 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 /**
  * Implementation of {@link AsyncRequestBody} that reads data from a file.
  */
-public final class FileAsyncRequestBody implements AsyncRequestBody {
+final class FileAsyncRequestBody implements AsyncRequestBody {
 
     /**
      * Default size (in bytes) of ByteBuffer chunks read from the file and delivered to the subscriber.

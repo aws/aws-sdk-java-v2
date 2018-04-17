@@ -34,7 +34,7 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.sync.StreamingResponseHandler;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
@@ -60,12 +60,12 @@ public class SyncClientHandlerImpl extends ClientHandler {
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> ReturnT execute(
             ClientExecutionParams<InputT, OutputT> executionParams,
-            StreamingResponseHandler<OutputT, ReturnT> streamingResponseHandler) {
+            ResponseTransformer<OutputT, ReturnT> responseTransformer) {
         ExecutionContext executionContext = createExecutionContext(executionParams.getInput());
         HttpResponseHandler<OutputT> interceptorCallingResponseHandler =
                 interceptorCalling(executionParams.getResponseHandler(), executionContext);
         HttpResponseHandler<ReturnT> httpResponseHandler =
-                new HttpResponseHandlerAdapter<>(interceptorCallingResponseHandler, streamingResponseHandler);
+                new HttpResponseHandlerAdapter<>(interceptorCallingResponseHandler, responseTransformer);
         return execute(executionParams, executionContext, httpResponseHandler);
     }
 
@@ -153,23 +153,23 @@ public class SyncClientHandlerImpl extends ClientHandler {
             implements HttpResponseHandler<ReturnT> {
 
         private final HttpResponseHandler<OutputT> httpResponseHandler;
-        private final StreamingResponseHandler<OutputT, ReturnT> streamingResponseHandler;
+        private final ResponseTransformer<OutputT, ReturnT> responseTransformer;
 
         private HttpResponseHandlerAdapter(HttpResponseHandler<OutputT> httpResponseHandler,
-                                           StreamingResponseHandler<OutputT, ReturnT> streamingResponseHandler) {
+                                           ResponseTransformer<OutputT, ReturnT> responseTransformer) {
             this.httpResponseHandler = httpResponseHandler;
-            this.streamingResponseHandler = streamingResponseHandler;
+            this.responseTransformer = responseTransformer;
         }
 
         @Override
         public ReturnT handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
             OutputT resp = httpResponseHandler.handle(response, executionAttributes);
-            return streamingResponseHandler.apply(resp, new AbortableInputStream(response.getContent(), response));
+            return responseTransformer.apply(resp, new AbortableInputStream(response.getContent(), response));
         }
 
         @Override
         public boolean needsConnectionLeftOpen() {
-            return streamingResponseHandler.needsConnectionLeftOpen();
+            return responseTransformer.needsConnectionLeftOpen();
         }
     }
 }

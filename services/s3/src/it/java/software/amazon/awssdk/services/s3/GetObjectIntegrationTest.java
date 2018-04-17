@@ -30,8 +30,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.sync.ResponseInputStream;
-import software.amazon.awssdk.core.sync.StreamingResponseHandler;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.GetObjectAsyncIntegrationTest.AssertingExecutionInterceptor;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -88,7 +88,7 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
     @Test
     public void toOutputStream() throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        GetObjectResponse response = s3.getObject(getObjectRequest, StreamingResponseHandler.toOutputStream(baos));
+        GetObjectResponse response = s3.getObject(getObjectRequest, ResponseTransformer.toOutputStream(baos));
         assertMd5MatchesEtag(new ByteArrayInputStream(baos.toByteArray()), response);
     }
 

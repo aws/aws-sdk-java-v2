@@ -31,9 +31,9 @@ class AsyncOperationDocProvider extends OperationDocProvider {
             "See {@link AsyncRequestBody} for specific details on implementing this interface as well " +
             "as links to precanned implementations for common scenarios like uploading from a file. ";
 
-    private static final String STREAM_RESPONSE_HANDLER_DOCS =
-            "The response handler for processing the streaming response in a " +
-            "non-blocking manner. See {@link AsyncResponseHandler} for details on how this callback " +
+    private static final String STREAM_RESPONSE_TRANSFORMER_DOCS =
+            "The response transformer for processing the streaming response in a " +
+            "non-blocking manner. See {@link AsyncResponseTransformer} for details on how this callback " +
             "should be implemented and for links to precanned implementations for common scenarios like " +
             "downloading to a file. ";
 
@@ -54,7 +54,7 @@ class AsyncOperationDocProvider extends OperationDocProvider {
     @Override
     protected void applyReturns(DocumentationBuilder docBuilder) {
         if (opModel.hasStreamingOutput()) {
-            docBuilder.returns("A future to the transformed result of the AsyncResponseHandler.");
+            docBuilder.returns("A future to the transformed result of the AsyncResponseTransformer.");
         } else {
             docBuilder.returns("A Java Future containing the result of the %s operation returned by the service.",
                                opModel.getOperationName());
@@ -69,7 +69,7 @@ class AsyncOperationDocProvider extends OperationDocProvider {
             docBuilder.param("requestBody", REQUEST_BODY_DOCS + getStreamingInputDocs());
         }
         if (opModel.hasStreamingOutput()) {
-            docBuilder.param("asyncResponseHandler", STREAM_RESPONSE_HANDLER_DOCS + getStreamingOutputDocs());
+            docBuilder.param("asyncResponseTransformer", STREAM_RESPONSE_TRANSFORMER_DOCS + getStreamingOutputDocs());
         }
     }
 

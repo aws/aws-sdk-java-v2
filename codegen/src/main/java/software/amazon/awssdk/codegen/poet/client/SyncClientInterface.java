@@ -40,6 +40,8 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.auth.DefaultCredentialsProvider;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -47,9 +49,7 @@ import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.regions.ServiceMetadata;
 import software.amazon.awssdk.core.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.core.sync.ResponseBytes;
-import software.amazon.awssdk.core.sync.ResponseInputStream;
-import software.amazon.awssdk.core.sync.StreamingResponseHandler;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public final class SyncClientInterface implements ClassSpec {
@@ -268,8 +268,8 @@ public final class SyncClientInterface implements ClassSpec {
         if (opModel.hasStreamingOutput()) {
             methodBuilder.addTypeVariable(STREAMING_TYPE_VARIABLE);
             ParameterizedTypeName streamingResponseHandlerType = ParameterizedTypeName
-                    .get(ClassName.get(StreamingResponseHandler.class), responseType, STREAMING_TYPE_VARIABLE);
-            methodBuilder.addParameter(streamingResponseHandlerType, "streamingResponseHandler");
+                    .get(ClassName.get(ResponseTransformer.class), responseType, STREAMING_TYPE_VARIABLE);
+            methodBuilder.addParameter(streamingResponseHandlerType, "responseTransformer");
         }
     }
 
@@ -346,7 +346,7 @@ public final class SyncClientInterface implements ClassSpec {
                          .addExceptions(getExceptionClasses(model, opModel))
                          .addStatement("return $L($L, $T.toInputStream())", opModel.getMethodName(),
                                        opModel.getInput().getVariableName(),
-                                       ClassName.get(StreamingResponseHandler.class))
+                                       ClassName.get(ResponseTransformer.class))
                          .build();
     }
 
@@ -363,7 +363,7 @@ public final class SyncClientInterface implements ClassSpec {
                          .addExceptions(getExceptionClasses(model, opModel))
                          .addStatement("return $L($L, $T.toBytes())", opModel.getMethodName(),
                                        opModel.getInput().getVariableName(),
-                                       ClassName.get(StreamingResponseHandler.class))
+                                       ClassName.get(ResponseTransformer.class))
                          .build();
     }
 
@@ -380,7 +380,7 @@ public final class SyncClientInterface implements ClassSpec {
                          .addExceptions(getExceptionClasses(model, opModel))
                          .addStatement("return $L($L, $T.toFile($L))", opModel.getMethodName(),
                                        opModel.getInput().getVariableName(),
-                                       ClassName.get(StreamingResponseHandler.class),
+                                       ClassName.get(ResponseTransformer.class),
                                        "filePath")
                          .build();
     }

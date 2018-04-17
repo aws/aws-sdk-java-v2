@@ -18,8 +18,9 @@ package software.amazon.awssdk.codegen.docs;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
-import software.amazon.awssdk.core.sync.ResponseBytes;
-import software.amazon.awssdk.core.sync.StreamingResponseHandler;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 
 /**
  * Implementations of {@link OperationDocProvider} for sync client methods. This implementation is for the typical
@@ -41,7 +42,7 @@ class SyncOperationDocProvider extends OperationDocProvider {
             "Functional interface for processing the streamed response content. The unmarshalled %s " +
             "and an InputStream to the response content are provided as parameters to the callback. " +
             "The callback may return a transformed type which will be the return value of this method. " +
-            "See {@link " + StreamingResponseHandler.class.getName() + "} for details on " +
+            "See {@link " + ResponseTransformer.class.getName() + "} for details on " +
             "implementing this interface and for links to pre-canned implementations for common scenarios " +
             "like downloading to a file. ";
 
@@ -62,7 +63,7 @@ class SyncOperationDocProvider extends OperationDocProvider {
     @Override
     protected void applyReturns(DocumentationBuilder docBuilder) {
         if (opModel.hasStreamingOutput()) {
-            docBuilder.returns("The transformed result of the StreamingResponseHandler.");
+            docBuilder.returns("The transformed result of the ResponseTransformer.");
         } else {
             docBuilder.returns(DEFAULT_RETURN, opModel.getOperationName());
         }
@@ -107,14 +108,14 @@ class SyncOperationDocProvider extends OperationDocProvider {
             if (opModel.hasStreamingOutput()) {
                 docBuilder.param("path", SIMPLE_FILE_OUTPUT_DOCS + getStreamingOutputDocs())
                           // Link to non-simple method for discoverability
-                          .see("#%s(%s, StreamingResponseHandler)", opModel.getMethodName(),
+                          .see("#%s(%s, ResponseTransformer)", opModel.getMethodName(),
                                opModel.getInput().getVariableType());
             }
         }
     }
 
     /**
-     * Provider for streaming output simple methods that return an {@link software.amazon.awssdk.core.sync.ResponseInputStream}
+     * Provider for streaming output simple methods that return an {@link ResponseInputStream}
      * containing response content and unmarshalled POJO. Only applicable to operations that have a streaming member in
      * the output shape.
      */
@@ -133,7 +134,7 @@ class SyncOperationDocProvider extends OperationDocProvider {
                     "and exhausting connections in the connection pool. The unmarshalled response object can be obtained via " +
                     "{@link ResponseInputStream#response()}. " + getStreamingOutputDocs());
             // Link to non-simple method for discoverability
-            docBuilder.see("#getObject(%s, StreamingResponseHandler)", opModel.getMethodName(),
+            docBuilder.see("#getObject(%s, ResponseTransformer)", opModel.getMethodName(),
                            opModel.getInput().getVariableType());
         }
 
@@ -160,7 +161,7 @@ class SyncOperationDocProvider extends OperationDocProvider {
                     "convenient in-memory representations like a byte buffer or string. The unmarshalled response object can " +
                     "be obtained via {@link ResponseBytes#response()}. " + getStreamingOutputDocs());
             // Link to non-simple method for discoverability
-            docBuilder.see("#getObject(%s, StreamingResponseHandler)", opModel.getMethodName(),
+            docBuilder.see("#getObject(%s, ResponseTransformer)", opModel.getMethodName(),
                            opModel.getInput().getVariableType());
         }
 

@@ -20,7 +20,7 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.core.config.ClientConfiguration;
-import software.amazon.awssdk.core.sync.StreamingResponseHandler;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
@@ -51,14 +51,14 @@ public abstract class ClientHandler extends BaseClientHandler implements SdkAuto
      * underlying HTTP call(s).
      *
      * @param executionParams          Parameters specific to this invocation of an API.
-     * @param streamingResponseHandler Response handler for a streaming response. Receives unmarshalled POJO and input stream and
+     * @param responseTransformer Response handler for a streaming response. Receives unmarshalled POJO and input stream and
      *                                 returns a transformed result.
      * @param <InputT>                 Input POJO type
      * @param <OutputT>                Output POJO type
-     * @param <ReturnT>                Transformed result returned by streamingResponseHandler. Returned by this method.
-     * @return Transformed result as returned by streamingResponseHandler.
+     * @param <ReturnT>                Transformed result returned by responseTransformer. Returned by this method.
+     * @return Transformed result as returned by responseTransformer.
      */
     public abstract <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> ReturnT execute(
             ClientExecutionParams<InputT, OutputT> executionParams,
-            StreamingResponseHandler<OutputT, ReturnT> streamingResponseHandler);
+            ResponseTransformer<OutputT, ReturnT> responseTransformer);
 }
