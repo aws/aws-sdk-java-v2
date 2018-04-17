@@ -326,7 +326,7 @@ public final class SyncClientInterface implements ClassSpec {
                          .addParameter(ClassName.get(Path.class), "filePath")
                          .addJavadoc(opModel.getDocs(model, ClientType.SYNC, SimpleMethodOverload.FILE))
                          .addExceptions(getExceptionClasses(model, opModel))
-                         .addStatement("return $L($L, $T.of($L))", opModel.getMethodName(),
+                         .addStatement("return $L($L, $T.fromFile($L))", opModel.getMethodName(),
                                        opModel.getInput().getVariableName(),
                                        ClassName.get(RequestBody.class),
                                        "filePath")

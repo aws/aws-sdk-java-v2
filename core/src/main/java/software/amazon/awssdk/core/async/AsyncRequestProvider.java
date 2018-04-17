@@ -15,13 +15,16 @@
 
 package software.amazon.awssdk.core.async;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Arrays;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * Interface to allow non-blocking streaming of request content. This follows the reactive streams pattern where
@@ -65,15 +68,27 @@ public interface AsyncRequestProvider extends Publisher<ByteBuffer> {
     }
 
     /**
+     * Creates an {@link AsyncRequestProvider} that produces data from the contents of a file. See
+     * {@link FileAsyncRequestProvider#builder} to create a customized provider implementation.
+     *
+     * @param file The file to read from.
+     * @return Implementation of {@link AsyncRequestProvider} that reads data from the specified file.
+     * @see FileAsyncRequestProvider
+     */
+    static AsyncRequestProvider fromFile(File file) {
+        return FileAsyncRequestProvider.builder().path(file.toPath()).build();
+    }
+
+    /**
      * Creates an {@link AsyncRequestProvider} that uses a single string as data.
      *
      * @param string The string to provide.
      * @param cs The {@link Charset} to use.
      * @return Implementation of {@link AsyncRequestProvider} that uses the specified string.
-     * @see SingleByteArrayAsyncRequestProvider
+     * @see ByteArrayAsyncRequestProvider
      */
     static AsyncRequestProvider fromString(String string, Charset cs) {
-        return new SingleByteArrayAsyncRequestProvider(string.getBytes(cs));
+        return new ByteArrayAsyncRequestProvider(string.getBytes(cs));
     }
 
     /**
@@ -87,4 +102,34 @@ public interface AsyncRequestProvider extends Publisher<ByteBuffer> {
         return fromString(string, StandardCharsets.UTF_8);
     }
 
+    /**
+     * Creates a {@link AsyncRequestProvider} from a byte array. The contents of the byte array are copied so modifications to the
+     * original byte array are not reflected in the {@link AsyncRequestProvider}.
+     *
+     * @param bytes The bytes to send to the service.
+     * @return AsyncRequestProvider instance.
+     */
+    static AsyncRequestProvider fromBytes(byte[] bytes) {
+        return new ByteArrayAsyncRequestProvider(Arrays.copyOf(bytes, bytes.length));
+    }
+
+    /**
+     * Creates a {@link AsyncRequestProvider} from a {@link ByteBuffer}. Buffer contents are copied so any modifications
+     * made to the original {@link ByteBuffer} are not reflected in the {@link AsyncRequestProvider}.
+     *
+     * @param byteBuffer ByteBuffer to send to the service.
+     * @return AsyncRequestProvider instance.
+     */
+    static AsyncRequestProvider fromByteBuffer(ByteBuffer byteBuffer) {
+        return new ByteArrayAsyncRequestProvider(BinaryUtils.copyAllBytesFrom(byteBuffer));
+    }
+
+    /**
+     * Creates a {@link AsyncRequestProvider} with no content.
+     *
+     * @return AsyncRequestProvider instance.
+     */
+    static AsyncRequestProvider empty() {
+        return fromBytes(new byte[0]);
+    }
 }

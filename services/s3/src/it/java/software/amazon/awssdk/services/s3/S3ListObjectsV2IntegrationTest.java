@@ -111,7 +111,7 @@ public class S3ListObjectsV2IntegrationTest extends S3IntegrationTestBase {
                                      .bucket(bucketName)
                                      .key(key)
                                      .build(),
-                     RequestBody.of(file));
+                     RequestBody.fromFile(file));
         keys.add(key);
     }
 

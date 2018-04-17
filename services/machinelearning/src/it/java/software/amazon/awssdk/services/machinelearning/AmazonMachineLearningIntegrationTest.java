@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.HashMap;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.regions.Region;
@@ -35,15 +34,9 @@ import software.amazon.awssdk.services.machinelearning.model.DeleteDataSourceReq
 import software.amazon.awssdk.services.machinelearning.model.DeleteMLModelRequest;
 import software.amazon.awssdk.services.machinelearning.model.DeleteRealtimeEndpointRequest;
 import software.amazon.awssdk.services.machinelearning.model.EntityStatus;
-import software.amazon.awssdk.services.machinelearning.model.GetDataSourceRequest;
-import software.amazon.awssdk.services.machinelearning.model.GetDataSourceResponse;
-import software.amazon.awssdk.services.machinelearning.model.GetMLModelRequest;
-import software.amazon.awssdk.services.machinelearning.model.GetMLModelResponse;
 import software.amazon.awssdk.services.machinelearning.model.MLModelType;
-import software.amazon.awssdk.services.machinelearning.model.PredictRequest;
 import software.amazon.awssdk.services.machinelearning.model.Prediction;
 import software.amazon.awssdk.services.machinelearning.model.PredictorNotMountedException;
-import software.amazon.awssdk.services.machinelearning.model.RealtimeEndpointInfo;
 import software.amazon.awssdk.services.machinelearning.model.RealtimeEndpointStatus;
 import software.amazon.awssdk.services.machinelearning.model.S3DataSpec;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -123,7 +116,7 @@ public class AmazonMachineLearningIntegrationTest extends AwsTestBase {
                                      .key(KEY)
                                      .acl(ObjectCannedACL.PUBLIC_READ)
                                      .build(),
-                     RequestBody.of(DATA.getBytes()));
+                     RequestBody.fromBytes(DATA.getBytes()));
     }
 
     @AfterClass
