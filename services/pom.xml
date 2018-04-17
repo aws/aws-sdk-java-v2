@@ -86,6 +86,7 @@
         <module>inspector</module>
         <module>iot</module>
         <module>kinesis</module>
+        <module>kinesis-bundle</module>
         <module>kms</module>
         <module>lambda</module>
         <module>lightsail</module>
