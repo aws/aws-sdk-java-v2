@@ -687,7 +687,7 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *        following.
      *
      *        <pre>
-     * {@code RequestBody.of(new File("myfile.txt"))}
+     * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
      *
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
@@ -726,7 +726,7 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *        following.
      *
      *        <pre>
-     * {@code RequestBody.of(new File("myfile.txt"))}
+     * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
      *
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
@@ -775,7 +775,7 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
     default StreamingInputOperationResponse streamingInputOperation(
             StreamingInputOperationRequest streamingInputOperationRequest, Path filePath) throws SdkServiceException,
                                                                                                  SdkClientException, JsonException {
-        return streamingInputOperation(streamingInputOperationRequest, RequestBody.of(filePath));
+        return streamingInputOperation(streamingInputOperationRequest, RequestBody.fromFile(filePath));
     }
 
     /**

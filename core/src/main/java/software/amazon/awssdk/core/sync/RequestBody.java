@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -77,8 +78,8 @@ public class RequestBody {
      * @param path File to send to the service.
      * @return RequestBody instance.
      */
-    public static RequestBody of(Path path) {
-        return of(path.toFile());
+    public static RequestBody fromFile(Path path) {
+        return fromFile(path.toFile());
     }
 
     /**
@@ -87,7 +88,7 @@ public class RequestBody {
      * @param file File to send to the service.
      * @return RequestBody instance.
      */
-    public static RequestBody of(File file) {
+    public static RequestBody fromFile(File file) {
         return new RequestBody(invokeSafely(() -> new FileInputStream(file)),
                                file.length(),
                                Mimetypes.getInstance().getMimetype(file));
@@ -105,8 +106,19 @@ public class RequestBody {
      * @param contentLength Content length of data in input stream.
      * @return RequestBody instance.
      */
-    public static RequestBody of(InputStream inputStream, long contentLength) {
+    public static RequestBody fromInputStream(InputStream inputStream, long contentLength) {
         return new RequestBody(inputStream, contentLength, Mimetypes.MIMETYPE_OCTET_STREAM);
+    }
+
+    /**
+     * Creates a {@link RequestBody} from a string. String is sent using the provided encoding.
+     *
+     * @param contents String to send to the service.
+     * @param cs The {@link Charset} to use.
+     * @return RequestBody instance.
+     */
+    public static RequestBody fromString(String contents, Charset cs) {
+        return fromBytesDirect(contents.getBytes(cs), Mimetypes.MIMETYPE_TEXT_PLAIN);
     }
 
     /**
@@ -115,8 +127,8 @@ public class RequestBody {
      * @param contents String to send to the service.
      * @return RequestBody instance.
      */
-    public static RequestBody of(String contents) {
-        return ofByteDirect(contents.getBytes(StandardCharsets.UTF_8), Mimetypes.MIMETYPE_TEXT_PLAIN);
+    public static RequestBody fromString(String contents) {
+        return fromString(contents, StandardCharsets.UTF_8);
     }
 
     /**
@@ -126,8 +138,8 @@ public class RequestBody {
      * @param bytes The bytes to send to the service.
      * @return RequestBody instance.
      */
-    public static RequestBody of(byte[] bytes) {
-        return ofByteDirect(Arrays.copyOf(bytes, bytes.length));
+    public static RequestBody fromBytes(byte[] bytes) {
+        return fromBytesDirect(Arrays.copyOf(bytes, bytes.length));
     }
 
     /**
@@ -137,8 +149,8 @@ public class RequestBody {
      * @param byteBuffer ByteBuffer to send to the service.
      * @return RequestBody instance.
      */
-    public static RequestBody of(ByteBuffer byteBuffer) {
-        return ofByteDirect(BinaryUtils.copyAllBytesFrom(byteBuffer));
+    public static RequestBody fromByteBuffer(ByteBuffer byteBuffer) {
+        return fromBytesDirect(BinaryUtils.copyAllBytesFrom(byteBuffer));
     }
 
     /**
@@ -147,21 +159,20 @@ public class RequestBody {
      * @return RequestBody instance.
      */
     public static RequestBody empty() {
-        return ofByteDirect(new byte[0]);
+        return fromBytesDirect(new byte[0]);
     }
 
     /**
      * Creates a {@link RequestBody} using the specified bytes (without copying).
      */
-    private static RequestBody ofByteDirect(byte[] bytes) {
-        return ofByteDirect(bytes, Mimetypes.MIMETYPE_OCTET_STREAM);
+    private static RequestBody fromBytesDirect(byte[] bytes) {
+        return fromBytesDirect(bytes, Mimetypes.MIMETYPE_OCTET_STREAM);
     }
 
     /**
      * Creates a {@link RequestBody} using the specified bytes (without copying).
      */
-    private static RequestBody ofByteDirect(byte[] bytes, String mimetype) {
+    private static RequestBody fromBytesDirect(byte[] bytes, String mimetype) {
         return new RequestBody(new ByteArrayInputStream(bytes), bytes.length, mimetype);
     }
-
 }

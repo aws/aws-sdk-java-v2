@@ -73,7 +73,7 @@ public class UserMetadataIntegrationTest extends S3IntegrationTestBase {
                                      .key(key)
                                      .metadata(userMetadata)
                                      .build(),
-                     RequestBody.of(file));
+                     RequestBody.fromFile(file));
 
         HeadObjectResponse response = s3.headObject(HeadObjectRequest.builder()
                                                                      .bucket(BUCKET_NAME)

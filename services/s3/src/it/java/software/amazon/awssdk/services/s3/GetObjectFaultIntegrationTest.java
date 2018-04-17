@@ -51,7 +51,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET)
                                      .key(KEY)
-                                     .build(), RequestBody.of("some contents"));
+                                     .build(), RequestBody.fromString("some contents"));
         s3ClientWithTimeout = s3ClientBuilder()
                 .overrideConfiguration(ClientOverrideConfiguration.builder()
                                                                   .totalExecutionTimeout(Duration.ofSeconds(5))

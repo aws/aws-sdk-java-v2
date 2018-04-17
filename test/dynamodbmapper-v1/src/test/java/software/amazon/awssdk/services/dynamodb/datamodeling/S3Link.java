@@ -187,7 +187,7 @@ public class S3Link {
         return getAmazonS3Client().putObject(PutObjectRequest.builder()
                                                              .bucket(bucketName())
                                                              .key(getKey())
-                                                             .build(), RequestBody.of(source));
+                                                             .build(), RequestBody.fromFile(source));
     }
 
     /**
@@ -205,7 +205,7 @@ public class S3Link {
                                                              .bucket(bucketName())
                                                              .key(getKey())
                                                              .contentLength((long) buffer.length)
-                                                             .build(), RequestBody.of(buffer));
+                                                             .build(), RequestBody.fromBytes(buffer));
     }
 
     /**

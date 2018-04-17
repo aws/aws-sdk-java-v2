@@ -68,13 +68,13 @@ public class CloudFormationIntegrationTestBase extends AwsTestBase {
                                      .bucket(bucketName)
                                      .key(templateForCloudFormationIntegrationTests)
                                      .build(),
-                     RequestBody.of(new File("tst/" + templateForCloudFormationIntegrationTests)));
+                     RequestBody.fromFile(new File("tst/" + templateForCloudFormationIntegrationTests)));
 
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(bucketName)
                                      .key(templateForStackIntegrationTests)
                                      .build(),
-                     RequestBody.of(new File("tst/" + templateForStackIntegrationTests)));
+                     RequestBody.fromFile(new File("tst/" + templateForStackIntegrationTests)));
     }
 
     @AfterClass
