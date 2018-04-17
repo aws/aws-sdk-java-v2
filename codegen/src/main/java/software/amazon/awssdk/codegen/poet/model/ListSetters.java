@@ -18,18 +18,23 @@ package software.amazon.awssdk.codegen.poet.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ArrayTypeName;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.utils.Validate;
 
 class ListSetters extends AbstractMemberSetters {
     private final TypeProvider typeProvider;
@@ -58,6 +63,15 @@ class ListSetters extends AbstractMemberSetters {
                 .varargs(true)
                 .build());
 
+        if (elementModel().hasBuilder()) {
+            fluentDeclarations.add(fluentAbstractSetterDeclaration(ParameterSpec.builder(asConsumerBuilderArray(),
+                                                                                         fieldName())
+                                                                                .build(), returnType)
+                                           .varargs(true)
+                                           .addJavadoc("$L", memberModel().getDefaultConsumerFluentSetterDocumentation())
+                                           .build());
+        }
+
         if (memberModel().getEnumType() != null) {
             fluentDeclarations.add(fluentAbstractSetterDeclaration(ParameterSpec.builder(
                     asArrayOfModeledEnum(), fieldName()).build(), returnType)
@@ -75,6 +89,10 @@ class ListSetters extends AbstractMemberSetters {
 
         fluent.add(fluentCopySetter(returnType));
         fluent.add(fluentVarargToListSetter(returnType));
+
+        if (elementModel().hasBuilder()) {
+            fluent.add(fluentVarargConsumerBuilderSetter(returnType));
+        }
 
         if (memberModel().getEnumType() != null) {
             fluent.add(fluentEnumVarargToListSetter(returnType));
@@ -115,6 +133,15 @@ class ListSetters extends AbstractMemberSetters {
                 .build();
     }
 
+    private MethodSpec fluentVarargConsumerBuilderSetter(TypeName returnType) {
+        return fluentSetterBuilder(ParameterSpec.builder(asConsumerBuilderArray(), fieldName()).build(), returnType)
+                .varargs(true)
+                .addAnnotation(SafeVarargs.class)
+                .addCode(consumerBuilderVarargSetterBody())
+                .addStatement("return this")
+                .build();
+    }
+
     private MethodSpec fluentEnumVarargToListSetter(TypeName returnType) {
         return fluentSetterBuilder(ParameterSpec.builder(asArrayOfModeledEnum(), fieldName()).build(), returnType)
                 .varargs(true)
@@ -129,9 +156,14 @@ class ListSetters extends AbstractMemberSetters {
         return CodeBlock.of("$1L($2T.asList($1L));", fieldName(), Arrays.class);
     }
 
+    private CodeBlock consumerBuilderVarargSetterBody() {
+        return CodeBlock.of("$1L($2T.of($1L).map(c -> $3T.builder().apply(c).build()).collect($4T.toList()));",
+                            fieldName(), Stream.class, listElementType(), Collectors.class);
+    }
+
     private CodeBlock enumVarargToListSetterBody() {
-        return CodeBlock.of("$1L($2T.asList($1L).stream().map($3T::toString).collect($4T.toList()));",
-                            fieldName(), Arrays.class, Object.class, Collectors.class);
+        return CodeBlock.of("$1L($2T.of($1L).map($3T::toString).collect($4T.toList()));",
+                            fieldName(), Stream.class, Object.class, Collectors.class);
     }
 
     private MemberModel elementModel() {
@@ -144,6 +176,19 @@ class ListSetters extends AbstractMemberSetters {
 
     private TypeName listElementType() {
         return typeProvider.parameterType(elementModel());
+    }
+
+    private TypeName listElementConsumerBuilderType() {
+        TypeName listElementType = listElementType();
+        ClassName classType = Validate.isInstanceOf(ClassName.class, listElementType,
+                                                    "List element type must be of type class, but was %s", listElementType);
+        return classType.nestedClass("Builder");
+    }
+
+    private TypeName asConsumerBuilderArray() {
+        ParameterizedTypeName consumerBuilder = ParameterizedTypeName.get(ClassName.get(Consumer.class),
+                                                                          listElementConsumerBuilderType());
+        return ArrayTypeName.of(consumerBuilder);
     }
 
     private ArrayTypeName asArray() {

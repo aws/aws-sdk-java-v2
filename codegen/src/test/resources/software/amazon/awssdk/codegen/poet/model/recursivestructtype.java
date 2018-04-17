@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
@@ -120,9 +121,8 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
 
     @Override
     public String toString() {
-        return ToString.builder("RecursiveStructType").add("NoRecurse", noRecurse())
-                       .add("RecursiveStruct", recursiveStruct()).add("RecursiveList", recursiveList())
-                       .add("RecursiveMap", recursiveMap()).build();
+        return ToString.builder("RecursiveStructType").add("NoRecurse", noRecurse()).add("RecursiveStruct", recursiveStruct())
+                       .add("RecursiveList", recursiveList()).add("RecursiveMap", recursiveMap()).build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
@@ -202,6 +202,22 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
         Builder recursiveList(RecursiveStructType... recursiveList);
 
         /**
+         * Sets the value of the RecursiveList property for this object.
+         *
+         * This is a convenience that creates an instance of the {@link List<RecursiveStructType>.Builder} avoiding the
+         * need to create one manually via {@link List<RecursiveStructType>#builder()}.
+         *
+         * When the {@link Consumer} completes, {@link List<RecursiveStructType>.Builder#build()} is called immediately
+         * and its result is passed to {@link #recursiveList(List<RecursiveStructType>)}.
+         *
+         * @param recursiveList
+         *        a consumer that will call methods on {@link List<RecursiveStructType>.Builder}
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #recursiveList(List<RecursiveStructType>)
+         */
+        Builder recursiveList(Consumer<Builder>... recursiveList);
+
+        /**
          * Sets the value of the RecursiveMap property for this object.
          *
          * @param recursiveMap
@@ -273,6 +289,14 @@ public class RecursiveStructType implements StructuredPojo, ToCopyableBuilder<Re
         @SafeVarargs
         public final Builder recursiveList(RecursiveStructType... recursiveList) {
             recursiveList(Arrays.asList(recursiveList));
+            return this;
+        }
+
+        @Override
+        @SafeVarargs
+        public final Builder recursiveList(Consumer<Builder>... recursiveList) {
+            recursiveList(Stream.of(recursiveList).map(c -> RecursiveStructType.builder().apply(c).build())
+                                .collect(Collectors.toList()));
             return this;
         }
 
