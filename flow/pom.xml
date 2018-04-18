@@ -31,7 +31,6 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.7.0</version>
                 <configuration>
-                    <release>8</release>
                     <!-- IntelliJ IDEA does not yet recognize the <release> element, so we add the old flags to
                          prevent it from importing the project as a JDK5 project. -->
                     <source>1.8</source>
