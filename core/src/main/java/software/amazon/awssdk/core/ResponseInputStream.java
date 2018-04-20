@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.sync;
+package software.amazon.awssdk.core;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.runtime.io.SdkFilterInputStream;
 import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -30,13 +30,13 @@ import software.amazon.awssdk.http.AbortableInputStream;
  * cost of reading the additional data.
  * </p>
  */
+@SdkPublicApi
 public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream implements Abortable {
 
     private final ResponseT response;
     private final Abortable abortable;
 
-    @SdkInternalApi
-    ResponseInputStream(ResponseT resp, AbortableInputStream in) {
+    public ResponseInputStream(ResponseT resp, AbortableInputStream in) {
         super(in);
         this.response = resp;
         this.abortable = in;

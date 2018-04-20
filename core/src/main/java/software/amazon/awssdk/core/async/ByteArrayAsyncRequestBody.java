@@ -19,11 +19,11 @@ import java.nio.ByteBuffer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-class SingleByteArrayAsyncRequestProvider implements AsyncRequestProvider {
+class ByteArrayAsyncRequestBody implements AsyncRequestBody {
 
     private final byte[] bytes;
 
-    SingleByteArrayAsyncRequestProvider(byte[] bytes) {
+    ByteArrayAsyncRequestBody(byte[] bytes) {
         this.bytes = bytes.clone();
     }
 
@@ -35,19 +35,18 @@ class SingleByteArrayAsyncRequestProvider implements AsyncRequestProvider {
     @Override
     public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
         subscriber.onSubscribe(
-            new Subscription() {
-                @Override
-                public void request(long n) {
-                    if (n > 0) {
-                        subscriber.onNext(ByteBuffer.wrap(bytes));
-                        subscriber.onComplete();
+                new Subscription() {
+                    @Override
+                    public void request(long n) {
+                        if (n > 0) {
+                            subscriber.onNext(ByteBuffer.wrap(bytes));
+                            subscriber.onComplete();
+                        }
                     }
-                }
 
-                @Override
-                public void cancel() {
-                }
-            }
-        );
+                    @Override
+                    public void cancel() {
+                    }
+                });
     }
 }

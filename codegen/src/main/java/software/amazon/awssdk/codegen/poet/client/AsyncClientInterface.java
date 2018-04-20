@@ -29,9 +29,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
+import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.docs.ClientType;
+import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -40,8 +41,8 @@ import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.SdkClient;
-import software.amazon.awssdk.core.async.AsyncRequestProvider;
-import software.amazon.awssdk.core.async.AsyncResponseHandler;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.auth.DefaultCredentialsProvider;
 import software.amazon.awssdk.core.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -120,34 +121,54 @@ public class AsyncClientInterface implements ClassSpec {
      */
     protected final List<MethodSpec> operations() {
         return model.getOperations().values().stream()
-                    .map(this::traditionalMethod)
-                    .map(MethodSpec.Builder::build)
+                    .flatMap(this::operations)
+                    .sorted(Comparator.comparing(m -> m.name))
                     .collect(toList());
+    }
+
+    private Stream<MethodSpec> operations(OperationModel opModel) {
+        List<MethodSpec> methods = new ArrayList<>();
+        methods.add(traditionalMethod(opModel));
+        if (opModel.isPaginated()) {
+            methods.add(paginatedTraditionalMethod(opModel));
+        }
+        return methods.stream();
     }
 
     /**
-     * @return Traditional request/response methods plus any additional simple method overloads (for no-args and streaming for
-     * example).
+     * @return List generated of methods for all operations.
      */
     private Iterable<MethodSpec> operationsAndSimpleMethods() {
-        List<MethodSpec> methods = operations();
-        methods.addAll(model.getOperations().values().stream()
-                            .map(this::addMethodOverloads)
-                            .flatMap(List::stream)
-                            .map(MethodSpec.Builder::build)
-                            .collect(toList()));
-
-        methods.addAll(paginatedTraditionalMethods());
-        methods.addAll(paginatedSimpleMethods());
-
-        return methods.stream().sorted(Comparator.comparing(m -> m.name)).collect(toList());
+        return model.getOperations().values().stream()
+                    .flatMap(this::operationsAndSimpleMethods)
+                    .sorted(Comparator.comparing(m -> m.name))
+                    .collect(toList());
     }
 
-    protected List<MethodSpec> paginatedTraditionalMethods() {
-        return model.getOperations().values().stream()
-                    .filter(operationModel -> operationModel.isPaginated())
-                    .map(this::paginatedTraditionalMethod)
-                    .collect(toList());
+    private Stream<MethodSpec> operationsAndSimpleMethods(OperationModel operationModel) {
+        List<MethodSpec> methods = new ArrayList<>();
+        methods.addAll(traditionalMethods(operationModel));
+        methods.addAll(overloadMethods(operationModel));
+        methods.addAll(paginatedMethods(operationModel));
+        return methods.stream();
+    }
+
+    private List<MethodSpec> paginatedMethods(OperationModel opModel) {
+        List<MethodSpec> methods = new ArrayList<>();
+
+        if (opModel.isPaginated()) {
+            MethodSpec paginatedMethod = paginatedTraditionalMethod(opModel);
+            methods.add(paginatedMethod);
+
+            if (opModel.getInputShape().isSimpleMethod()) {
+                methods.add(paginatedSimpleMethod(opModel));
+            } else {
+                String consumerBuilderJavadoc = consumerBuilderJavadoc(opModel, SimpleMethodOverload.PAGINATED);
+                methods.add(ClientClassUtils.consumerBuilderVariant(paginatedMethod, consumerBuilderJavadoc));
+            }
+        }
+
+        return methods;
     }
 
     private MethodSpec paginatedTraditionalMethod(OperationModel opModel) {
@@ -170,14 +191,6 @@ public class AsyncClientInterface implements ClassSpec {
                       .addStatement("throw new $T()", UnsupportedOperationException.class);
     }
 
-    private List<MethodSpec> paginatedSimpleMethods() {
-        return model.getOperations().values().stream()
-                    .filter(operationModel -> operationModel.isPaginated())
-                    .filter(operationModel -> operationModel.getInputShape().isSimpleMethod())
-                    .map(this::paginatedSimpleMethod)
-                    .collect(toList());
-    }
-
     private MethodSpec paginatedSimpleMethod(OperationModel opModel) {
         final String methodName = PaginatorUtils.getPaginatedMethodName(opModel.getMethodName());
         final ClassName requestType = ClassName.get(modelPackage, opModel.getInput().getVariableType());
@@ -198,20 +211,24 @@ public class AsyncClientInterface implements ClassSpec {
      * @param opModel Operation to generate simple methods for.
      * @return All simple method overloads for a given operation.
      */
-    private List<MethodSpec.Builder> addMethodOverloads(OperationModel opModel) {
-        List<MethodSpec.Builder> methodOverloads = new ArrayList<>();
+    private List<MethodSpec> overloadMethods(OperationModel opModel) {
+        String consumerBuilderFileJavadoc = consumerBuilderJavadoc(opModel, SimpleMethodOverload.FILE);
+
+        List<MethodSpec> methodOverloads = new ArrayList<>();
         if (opModel.getInputShape().isSimpleMethod()) {
             methodOverloads.add(noArgSimpleMethod(opModel));
         }
         if (opModel.hasStreamingInput()) {
-            methodOverloads.add(streamingInputFileSimpleMethod(opModel));
+            MethodSpec streamingInputMethod = streamingInputFileSimpleMethod(opModel);
+            methodOverloads.add(streamingInputMethod);
+            methodOverloads.add(ClientClassUtils.consumerBuilderVariant(streamingInputMethod, consumerBuilderFileJavadoc));
         }
         if (opModel.hasStreamingOutput()) {
-            methodOverloads.add(streamingOutputFileSimpleMethod(opModel));
+            MethodSpec streamingOutputMethod = streamingOutputFileSimpleMethod(opModel);
+            methodOverloads.add(streamingOutputMethod);
+            methodOverloads.add(ClientClassUtils.consumerBuilderVariant(streamingOutputMethod, consumerBuilderFileJavadoc));
         }
-        if (!opModel.isStreaming()) {
-            methodOverloads.add(builderConsumerMethod(opModel));
-        }
+
         return methodOverloads;
     }
 
@@ -232,7 +249,18 @@ public class AsyncClientInterface implements ClassSpec {
     /**
      * Generates the traditional method for an operation (i.e. one that takes a request and returns a response).
      */
-    private MethodSpec.Builder traditionalMethod(OperationModel opModel) {
+    private List<MethodSpec> traditionalMethods(OperationModel opModel) {
+        List<MethodSpec> methods = new ArrayList<>();
+
+        methods.add(traditionalMethod(opModel));
+
+        String consumerBuilderJavadoc = consumerBuilderJavadoc(opModel, SimpleMethodOverload.NORMAL);
+        methods.add(ClientClassUtils.consumerBuilderVariant(methods.get(0), consumerBuilderJavadoc));
+
+        return methods;
+    }
+
+    private MethodSpec traditionalMethod(OperationModel opModel) {
         ClassName responsePojoType = getPojoResponseType(opModel);
         ClassName requestType = ClassName.get(modelPackage, opModel.getInput().getVariableType());
 
@@ -241,53 +269,34 @@ public class AsyncClientInterface implements ClassSpec {
                 .addJavadoc(opModel.getDocs(model, ClientType.ASYNC));
 
         if (opModel.hasStreamingInput()) {
-            builder.addParameter(ClassName.get(AsyncRequestProvider.class), "requestProvider");
+            builder.addParameter(ClassName.get(AsyncRequestBody.class), "requestBody");
         }
         if (opModel.hasStreamingOutput()) {
             builder.addTypeVariable(STREAMING_TYPE_VARIABLE);
             final ParameterizedTypeName asyncResponseHandlerType = ParameterizedTypeName
-                    .get(ClassName.get(AsyncResponseHandler.class), responsePojoType, STREAMING_TYPE_VARIABLE);
-            builder.addParameter(asyncResponseHandlerType, "asyncResponseHandler");
+                    .get(ClassName.get(AsyncResponseTransformer.class), responsePojoType, STREAMING_TYPE_VARIABLE);
+            builder.addParameter(asyncResponseHandlerType, "asyncResponseTransformer");
         }
-
-        return operationBody(builder, opModel);
+        return operationBody(builder, opModel).build();
     }
 
     /**
      * Generate a simple method that takes no arguments for operations with no required parameters.
      */
-    private MethodSpec.Builder noArgSimpleMethod(OperationModel opModel) {
+    private MethodSpec noArgSimpleMethod(OperationModel opModel) {
         return interfaceMethodSignature(opModel)
                 .addJavadoc(opModel.getDocs(model, ClientType.ASYNC, SimpleMethodOverload.NO_ARG))
                 .addStatement("return $N($N.builder().build())",
                               opModel.getMethodName(),
-                              opModel.getInput().getVariableType());
-    }
-
-
-    /**
-     * Creates a method that thats a Consumer of Request.Builder
-     */
-    private MethodSpec.Builder builderConsumerMethod(OperationModel opModel) {
-        ClassName requestType = ClassName.get(model.getMetadata().getFullModelPackageName(),
-                                              opModel.getInput().getVariableType());
-        ClassName builder = requestType.nestedClass("Builder");
-        TypeName consumer = ParameterizedTypeName.get(ClassName.get(Consumer.class), builder);
-
-        return interfaceMethodSignature(opModel)
-            .addParameter(consumer, opModel.getInput().getVariableName())
-            .addJavadoc(opModel.getDocs(model, ClientType.ASYNC, SimpleMethodOverload.CONSUMER_BUILDER))
-            .addStatement("return $N($T.builder().apply($N).build())",
-                          opModel.getMethodName(),
-                          requestType,
-                          opModel.getInput().getVariableName());
+                              opModel.getInput().getVariableType())
+                .build();
     }
 
     /**
      * Generate a simple method for operations with a streaming input member that takes a {@link Path} containing the data
      * to upload.
      */
-    private MethodSpec.Builder streamingInputFileSimpleMethod(OperationModel opModel) {
+    private MethodSpec streamingInputFileSimpleMethod(OperationModel opModel) {
         ClassName requestType = ClassName.get(modelPackage, opModel.getInput().getVariableType());
         return interfaceMethodSignature(opModel)
                 .addJavadoc(opModel.getDocs(model, ClientType.ASYNC, SimpleMethodOverload.FILE))
@@ -295,24 +304,25 @@ public class AsyncClientInterface implements ClassSpec {
                 .addParameter(ClassName.get(Path.class), "path")
                 .addStatement("return $L($L, $T.fromFile(path))", opModel.getMethodName(),
                               opModel.getInput().getVariableName(),
-                              ClassName.get(AsyncRequestProvider.class));
+                              ClassName.get(AsyncRequestBody.class))
+                .build();
     }
 
     /**
      * Generate a simple method for operations with a streaming output member that takes a {@link Path} where data
      * will be downloaded to.
      */
-    private MethodSpec.Builder streamingOutputFileSimpleMethod(OperationModel opModel) {
+    private MethodSpec streamingOutputFileSimpleMethod(OperationModel opModel) {
         ClassName requestType = ClassName.get(modelPackage, opModel.getInput().getVariableType());
         return interfaceMethodSignature(opModel)
-                .returns(
-                        completableFutureType(getPojoResponseType(opModel)))
+                .returns(completableFutureType(getPojoResponseType(opModel)))
                 .addJavadoc(opModel.getDocs(model, ClientType.ASYNC, SimpleMethodOverload.FILE))
                 .addParameter(requestType, opModel.getInput().getVariableName())
                 .addParameter(ClassName.get(Path.class), "path")
                 .addStatement("return $L($L, $T.toFile(path))", opModel.getMethodName(),
                               opModel.getInput().getVariableName(),
-                              ClassName.get(AsyncResponseHandler.class));
+                              ClassName.get(AsyncResponseTransformer.class))
+                .build();
     }
 
     /**
@@ -364,5 +374,9 @@ public class AsyncClientInterface implements ClassSpec {
      */
     private ParameterizedTypeName completableFutureType(TypeName typeName) {
         return ParameterizedTypeName.get(ClassName.get(CompletableFuture.class), typeName);
+    }
+
+    private String consumerBuilderJavadoc(OperationModel opModel, SimpleMethodOverload overload) {
+        return opModel.getDocs(model, ClientType.ASYNC, overload, new DocConfiguration().isConsumerBuilder(true));
     }
 }

@@ -31,9 +31,9 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
- * Implementation of {@link AsyncRequestProvider} that reads data from a file.
+ * Implementation of {@link AsyncRequestBody} that reads data from a file.
  */
-public final class FileAsyncRequestProvider implements AsyncRequestProvider {
+final class FileAsyncRequestBody implements AsyncRequestBody {
 
     /**
      * Default size (in bytes) of ByteBuffer chunks read from the file and delivered to the subscriber.
@@ -50,7 +50,7 @@ public final class FileAsyncRequestProvider implements AsyncRequestProvider {
      */
     private final int chunkSizeInBytes;
 
-    private FileAsyncRequestProvider(DefaultBuilder builder) {
+    private FileAsyncRequestBody(DefaultBuilder builder) {
         this.file = builder.path.toFile();
         this.chunkSizeInBytes = builder.chunkSizeInBytes == null ? DEFAULT_CHUNK_SIZE : builder.chunkSizeInBytes;
     }
@@ -66,16 +66,16 @@ public final class FileAsyncRequestProvider implements AsyncRequestProvider {
     }
 
     /**
-     * @return Builder instance to construct a {@link FileAsyncRequestProvider}.
+     * @return Builder instance to construct a {@link FileAsyncRequestBody}.
      */
     public static Builder builder() {
         return new DefaultBuilder();
     }
 
     /**
-     * A builder for {@link FileAsyncRequestProvider}.
+     * A builder for {@link FileAsyncRequestBody}.
      */
-    public interface Builder extends SdkBuilder<Builder, FileAsyncRequestProvider> {
+    public interface Builder extends SdkBuilder<Builder, FileAsyncRequestBody> {
 
         /**
          * Sets the file to send to the service.
@@ -125,8 +125,8 @@ public final class FileAsyncRequestProvider implements AsyncRequestProvider {
         }
 
         @Override
-        public FileAsyncRequestProvider build() {
-            return new FileAsyncRequestProvider(this);
+        public FileAsyncRequestBody build() {
+            return new FileAsyncRequestBody(this);
         }
     }
 

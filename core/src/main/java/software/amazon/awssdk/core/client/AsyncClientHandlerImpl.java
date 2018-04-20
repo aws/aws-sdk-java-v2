@@ -29,8 +29,8 @@ import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
-import software.amazon.awssdk.core.async.AsyncRequestProvider;
-import software.amazon.awssdk.core.async.AsyncResponseHandler;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.config.AsyncClientConfiguration;
 import software.amazon.awssdk.core.config.InternalAdvancedClientOption;
@@ -99,11 +99,12 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> CompletableFuture<ReturnT> execute(
             ClientExecutionParams<InputT, OutputT> executionParams,
-            AsyncResponseHandler<OutputT, ReturnT> asyncResponseHandler) {
+            AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer) {
 
         ExecutionContext context = createExecutionContext(executionParams.getInput());
         ResponseHandlerFactory<ReturnT> sdkHttpResponseHandler = responseAdapter ->
-                new UnmarshallingSdkHttpResponseHandler<>(asyncResponseHandler, context, executionParams.getResponseHandler());
+                new UnmarshallingSdkHttpResponseHandler<>(asyncResponseTransformer, context,
+                                                          executionParams.getResponseHandler());
 
         return execute(executionParams, context, sdkHttpResponseHandler);
     }
@@ -126,9 +127,9 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
         runAfterMarshallingInterceptors(executionContext);
         SdkHttpFullRequest marshalled = runModifyHttpRequestInterceptors(executionContext);
 
-        SdkHttpRequestProvider requestProvider = executionParams.getAsyncRequestProvider() == null
+        SdkHttpRequestProvider requestProvider = executionParams.getAsyncRequestBody() == null
                                                  ? null
-                                                 : new SdkHttpRequestProviderAdapter(executionParams.getAsyncRequestProvider());
+                                                 : new SdkHttpRequestProviderAdapter(executionParams.getAsyncRequestBody());
 
         HttpResponseAdapter responseAdapter
                 = r -> SdkHttpResponseAdapter.adapt(isCalculateCrc32FromCompressedData(), marshalled, r);
@@ -271,24 +272,24 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
     }
 
     /**
-     * Adapter to {@link AsyncResponseHandler} that performs unmarshalling and calls {@link
+     * Adapter to {@link AsyncResponseTransformer} that performs unmarshalling and calls {@link
      * software.amazon.awssdk.core.interceptor.ExecutionInterceptor}
      * callbacks.
      *
      * @param <OutputT> Unmarshalled POJO response type.
-     * @param <ReturnT> Return type of {@link AsyncResponseHandler}
+     * @param <ReturnT> Return type of {@link AsyncResponseTransformer}
      */
     private static class UnmarshallingSdkHttpResponseHandler<OutputT extends SdkResponse, ReturnT>
             implements SdkHttpResponseHandler<ReturnT> {
 
-        private final AsyncResponseHandler<OutputT, ReturnT> asyncResponseHandler;
+        private final AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer;
         private final ExecutionContext executionContext;
         private final HttpResponseHandler<OutputT> responseHandler;
 
-        UnmarshallingSdkHttpResponseHandler(AsyncResponseHandler<OutputT, ReturnT> asyncResponseHandler,
+        UnmarshallingSdkHttpResponseHandler(AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer,
                                             ExecutionContext executionContext,
                                             HttpResponseHandler<OutputT> responseHandler) {
-            this.asyncResponseHandler = asyncResponseHandler;
+            this.asyncResponseTransformer = asyncResponseTransformer;
             this.executionContext = executionContext;
             this.responseHandler = responseHandler;
         }
@@ -301,7 +302,7 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
                 // TODO would be better to pass in AwsExecutionAttributes to the async response handler so we can
                 // provide them to HttpResponseHandler
                 OutputT resp = interceptorCalling(responseHandler, executionContext).handle(httpResponse, null);
-                asyncResponseHandler.responseReceived(resp);
+                asyncResponseTransformer.responseReceived(resp);
             } catch (Exception e) {
                 throw Throwables.failure(e);
             }
@@ -309,41 +310,41 @@ class AsyncClientHandlerImpl extends AsyncClientHandler {
 
         @Override
         public void onStream(Publisher<ByteBuffer> publisher) {
-            asyncResponseHandler.onStream(publisher);
+            asyncResponseTransformer.onStream(publisher);
         }
 
         @Override
         public void exceptionOccurred(Throwable throwable) {
-            asyncResponseHandler.exceptionOccurred(throwable);
+            asyncResponseTransformer.exceptionOccurred(throwable);
         }
 
         @Override
         public ReturnT complete() {
-            return asyncResponseHandler.complete();
+            return asyncResponseTransformer.complete();
         }
     }
 
     /**
-     * When an operation has a streaming input, the customer must supply an {@link AsyncRequestProvider} to
+     * When an operation has a streaming input, the customer must supply an {@link AsyncRequestBody} to
      * provide the request content in a non-blocking manner. This adapts that interface to the
      * {@link SdkHttpRequestProvider} which the HTTP client SPI expects.
      */
     private static class SdkHttpRequestProviderAdapter implements SdkHttpRequestProvider {
 
-        private final AsyncRequestProvider asyncRequestProvider;
+        private final AsyncRequestBody asyncRequestBody;
 
-        private SdkHttpRequestProviderAdapter(AsyncRequestProvider asyncRequestProvider) {
-            this.asyncRequestProvider = asyncRequestProvider;
+        private SdkHttpRequestProviderAdapter(AsyncRequestBody asyncRequestBody) {
+            this.asyncRequestBody = asyncRequestBody;
         }
 
         @Override
         public long contentLength() {
-            return asyncRequestProvider.contentLength();
+            return asyncRequestBody.contentLength();
         }
 
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> s) {
-            asyncRequestProvider.subscribe(s);
+            asyncRequestBody.subscribe(s);
         }
 
     }

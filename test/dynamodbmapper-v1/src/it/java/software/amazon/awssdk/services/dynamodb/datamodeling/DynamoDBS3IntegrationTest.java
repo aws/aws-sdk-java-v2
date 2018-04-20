@@ -64,7 +64,7 @@ public class DynamoDBS3IntegrationTest extends DynamoDBS3IntegrationTestBase {
                                                                .bucket(linkWest.bucketName())
                                                                .key(linkWest.getKey())
                                                                .build(),
-                                               RequestBody.of(new RandomTempFile(westKey, OBJECT_SIZE)));
+                                               RequestBody.fromFile(new RandomTempFile(westKey, OBJECT_SIZE)));
 
         assertObjectExists(s3West, obj.s3LinkWest().bucketName(), westKey);
 
@@ -76,7 +76,7 @@ public class DynamoDBS3IntegrationTest extends DynamoDBS3IntegrationTestBase {
                                                                .bucket(linkEast.bucketName())
                                                                .key(linkEast.getKey())
                                                                .build(),
-                                               RequestBody.of(new RandomTempFile(westKey, OBJECT_SIZE)));
+                                               RequestBody.fromFile(new RandomTempFile(westKey, OBJECT_SIZE)));
         mapper.save(obj);
 
         assertObjectExists(s3West, obj.s3LinkWest().bucketName(), westKey);

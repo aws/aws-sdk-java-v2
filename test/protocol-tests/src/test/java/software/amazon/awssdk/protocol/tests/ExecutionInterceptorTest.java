@@ -50,8 +50,8 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.async.AsyncRequestProvider;
-import software.amazon.awssdk.core.async.AsyncResponseHandler;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.builder.ClientBuilder;
@@ -125,7 +125,7 @@ public class ExecutionInterceptorTest {
         stubFor(post(urlPathEqualTo(STREAMING_INPUT_PATH)).willReturn(aResponse().withStatus(200).withBody("")));
 
         // When
-        client.streamingInputOperation(request, RequestBody.of(new byte[] {0}));
+        client.streamingInputOperation(request, RequestBody.fromBytes(new byte[] {0}));
 
         // Expect
         Context.BeforeTransmission beforeTransmissionArg = captureBeforeTransmissionArg(interceptor);
@@ -143,7 +143,7 @@ public class ExecutionInterceptorTest {
         stubFor(post(urlPathEqualTo(STREAMING_INPUT_PATH)).willReturn(aResponse().withStatus(200).withBody("")));
 
         // When
-        client.streamingInputOperation(request, new NoOpRequestProvider()).get(10, TimeUnit.SECONDS);
+        client.streamingInputOperation(request, new NoOpAsyncRequestBody()).get(10, TimeUnit.SECONDS);
 
         // Expect
         Context.BeforeTransmission beforeTransmissionArg = captureBeforeTransmissionArg(interceptor);
@@ -188,7 +188,7 @@ public class ExecutionInterceptorTest {
         stubFor(post(urlPathEqualTo(STREAMING_OUTPUT_PATH)).willReturn(aResponse().withStatus(200).withBody("\0")));
 
         // When
-        client.streamingOutputOperation(request, new NoOpResponseHandler()).get(10, TimeUnit.SECONDS);
+        client.streamingOutputOperation(request, new NoOpAsyncResponseTransformer()).get(10, TimeUnit.SECONDS);
 
         // Expect
         Context.AfterTransmission afterTransmissionArg = captureAfterTransmissionArg(interceptor);
@@ -511,7 +511,7 @@ public class ExecutionInterceptorTest {
 
     }
 
-    private static class NoOpRequestProvider implements AsyncRequestProvider {
+    private static class NoOpAsyncRequestBody implements AsyncRequestBody {
         @Override
         public long contentLength() {
             return 0;
@@ -533,7 +533,8 @@ public class ExecutionInterceptorTest {
         }
     }
 
-    private static class NoOpResponseHandler implements AsyncResponseHandler<StreamingOutputOperationResponse, Object> {
+    private static class NoOpAsyncResponseTransformer
+            implements AsyncResponseTransformer<StreamingOutputOperationResponse, Object> {
         private StreamingOutputOperationResponse response;
 
         @Override

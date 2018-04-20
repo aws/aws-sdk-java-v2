@@ -31,7 +31,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.async.AsyncResponseHandler;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -85,13 +85,13 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
 
     @Test
     public void dumpToString() throws IOException {
-        String returned = s3Async.getObject(getObjectRequest, AsyncResponseHandler.toUtf8String()).join();
+        String returned = s3Async.getObject(getObjectRequest, AsyncResponseTransformer.toBytes()).join().asUtf8String();
         assertThat(returned).isEqualTo(new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
     }
 
     @Test
     public void toByteArray() throws IOException {
-        byte[] returned = s3Async.getObject(getObjectRequest, AsyncResponseHandler.toByteArray()).join();
+        byte[] returned = s3Async.getObject(getObjectRequest, AsyncResponseTransformer.toBytes()).join().asByteArray();
         assertThat(returned).isEqualTo(Files.readAllBytes(file.toPath()));
     }
 
@@ -99,11 +99,11 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
     public void customResponseHandler_InterceptorRecievesResponsePojo() throws Exception {
         try (S3AsyncClient asyncWithInterceptor = createClientWithInterceptor(new AssertingExecutionInterceptor())) {
             String result = asyncWithInterceptor
-                    .getObject(getObjectRequest, new AsyncResponseHandler<GetObjectResponse, String>() {
+                    .getObject(getObjectRequest, new AsyncResponseTransformer<GetObjectResponse, String>() {
 
                         @Override
                         public void responseReceived(GetObjectResponse response) {
-                            // POJO returned by modifyResponse should be delivered to the AsyncResponseHandler
+                            // POJO returned by modifyResponse should be delivered to the AsyncResponseTransformer
                             assertThat(response.metadata()).hasEntrySatisfying("x-amz-assert",
                                                                                s -> assertThat(s).isEqualTo("injected-value"));
                         }
@@ -144,7 +144,7 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
     public static class AssertingExecutionInterceptor implements ExecutionInterceptor {
         @Override
         public void afterUnmarshalling(Context.AfterUnmarshalling context, ExecutionAttributes executionAttributes) {
-            // The response object should be the pojo. Not the result type of the AsyncResponseHandler
+            // The response object should be the pojo. Not the result type of the AsyncResponseTransformer
             assertThat(context.response()).isInstanceOf(GetObjectResponse.class);
         }
 

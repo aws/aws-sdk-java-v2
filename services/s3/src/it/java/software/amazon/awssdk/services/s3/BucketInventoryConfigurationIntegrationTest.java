@@ -63,7 +63,7 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
                                      .bucket(BUCKET_NAME)
                                      .key(KEY)
                                      .build(),
-                     RequestBody.of(new RandomTempFile("foo", 1024)));
+                     RequestBody.fromFile(new RandomTempFile("foo", 1024)));
     }
 
     @AfterClass
