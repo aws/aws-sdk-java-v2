@@ -31,7 +31,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.core.sync.StreamingResponseHandler;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -51,7 +51,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET)
                                      .key(KEY)
-                                     .build(), RequestBody.of("some contents"));
+                                     .build(), RequestBody.fromString("some contents"));
         s3ClientWithTimeout = s3ClientBuilder()
                 .overrideConfiguration(ClientOverrideConfiguration.builder()
                                                                   .totalExecutionTimeout(Duration.ofSeconds(5))
@@ -66,7 +66,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
 
     @Test
     public void handlerThrowsRetryableException_RetriedUpToLimit() throws Exception {
-        RequestCountingResponseHandler<GetObjectResponse, ?> handler = new RequestCountingResponseHandler<>(
+        RequestCountingResponseTransformer<GetObjectResponse, ?> handler = new RequestCountingResponseTransformer<>(
                 (resp, in) -> {
                     throw new RetryableException("");
                 });
@@ -77,7 +77,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
 
     @Test
     public void handlerThrowsNonRetryableException_RequestNotRetried() throws Exception {
-        RequestCountingResponseHandler<GetObjectResponse, ?> handler = new RequestCountingResponseHandler<>(
+        RequestCountingResponseTransformer<GetObjectResponse, ?> handler = new RequestCountingResponseTransformer<>(
                 (resp, in) -> {
                     throw new NonRetryableException("");
                 });
@@ -88,7 +88,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
 
     @Test
     public void slowHandlerIsInterrupted() throws Exception {
-        RequestCountingResponseHandler<GetObjectResponse, ?> handler = new RequestCountingResponseHandler<>(
+        RequestCountingResponseTransformer<GetObjectResponse, ?> handler = new RequestCountingResponseTransformer<>(
                 (resp, in) -> {
                     try {
                         Thread.sleep(10_000);
@@ -108,7 +108,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
      */
     @Test
     public void slowHandlerIsInterrupted_SetsInterruptFlag() throws Exception {
-        RequestCountingResponseHandler<GetObjectResponse, ?> handler = new RequestCountingResponseHandler<>(
+        RequestCountingResponseTransformer<GetObjectResponse, ?> handler = new RequestCountingResponseTransformer<>(
                 (resp, in) -> {
                     try {
                         Thread.sleep(10_000);
@@ -130,7 +130,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
      */
     @Test
     public void handlerSquashsInterrupt_DoesNotThrowClientTimeoutException() throws Exception {
-        RequestCountingResponseHandler<GetObjectResponse, ?> handler = new RequestCountingResponseHandler<>(
+        RequestCountingResponseTransformer<GetObjectResponse, ?> handler = new RequestCountingResponseTransformer<>(
                 (resp, in) -> {
                     try {
                         Thread.sleep(10_000);
@@ -153,15 +153,15 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
     }
 
     /**
-     * Wrapper around a {@link StreamingResponseHandler} that counts how many times it's been invoked.
+     * Wrapper around a {@link ResponseTransformer} that counts how many times it's been invoked.
      */
-    private static class RequestCountingResponseHandler<ResponseT, ReturnT>
-            implements StreamingResponseHandler<ResponseT, ReturnT> {
+    private static class RequestCountingResponseTransformer<ResponseT, ReturnT>
+            implements ResponseTransformer<ResponseT, ReturnT> {
 
-        private final StreamingResponseHandler<ResponseT, ReturnT> delegate;
+        private final ResponseTransformer<ResponseT, ReturnT> delegate;
         private final AtomicInteger callCount = new AtomicInteger(0);
 
-        private RequestCountingResponseHandler(StreamingResponseHandler<ResponseT, ReturnT> delegate) {
+        private RequestCountingResponseTransformer(ResponseTransformer<ResponseT, ReturnT> delegate) {
             this.delegate = delegate;
         }
 

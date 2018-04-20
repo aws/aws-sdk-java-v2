@@ -19,7 +19,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
@@ -30,7 +29,6 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Optional;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -71,7 +69,7 @@ public class PutObjectHeaderTest {
                     .willReturn(aResponse()
                                     .withStatus(200)
                                     .withBody("{}")));
-        s3Client.putObject(PutObjectRequest.builder().bucket("test").key("test").build(), RequestBody.of("Hello World".getBytes()));
+        s3Client.putObject(PutObjectRequest.builder().bucket("test").key("test").build(), RequestBody.fromBytes("Hello World".getBytes()));
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetypes.MIMETYPE_OCTET_STREAM)));
     }
 
@@ -82,7 +80,7 @@ public class PutObjectHeaderTest {
                     .willReturn(aResponse()
                                     .withStatus(200)
                                     .withBody("{}")));
-        s3Client.putObject(putObjectRequest, RequestBody.of(file));
+        s3Client.putObject(putObjectRequest, RequestBody.fromFile(file));
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo("text/html")));
     }
 
@@ -93,7 +91,7 @@ public class PutObjectHeaderTest {
                     .willReturn(aResponse()
                                     .withStatus(200)
                                     .withBody("{}")));
-        s3Client.putObject(putObjectRequest, RequestBody.of(file));
+        s3Client.putObject(putObjectRequest, RequestBody.fromFile(file));
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetypes.MIMETYPE_OCTET_STREAM)));
     }
 
@@ -105,7 +103,7 @@ public class PutObjectHeaderTest {
                                     .withBody("{}")));
         String contentType = "something";
         putObjectRequest = putObjectRequest.toBuilder().contentType(contentType).build();
-        s3Client.putObject(putObjectRequest, RequestBody.of("test"));
+        s3Client.putObject(putObjectRequest, RequestBody.fromString("test"));
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(contentType)));
     }
 
@@ -118,7 +116,7 @@ public class PutObjectHeaderTest {
         String contentType = "hello world";
 
         putObjectRequest = (PutObjectRequest) putObjectRequest.toBuilder().requestOverrideConfig(b -> b.header(CONTENT_TYPE, contentType)).build();
-        s3Client.putObject(putObjectRequest, RequestBody.of("test"));
+        s3Client.putObject(putObjectRequest, RequestBody.fromString("test"));
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(contentType)));
     }
 }

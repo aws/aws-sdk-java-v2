@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.sync;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,9 +24,13 @@ import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -42,13 +47,13 @@ import software.amazon.awssdk.utils.Logger;
  *
  * <p>
  * <h3>Retries</h3>
- * Exceptions thrown from the handler's {@link #apply(Object, AbortableInputStream)} method are not automatically retried by the
- * RetryPolicy of the client. Since we can't know if a handler implementation is idempotent or safe to retry, if you wish to
- * retry on the event of a failure you must throw a {@link SdkException} with retryable set to true from the handler. This
+ * Exceptions thrown from the transformer's {@link #apply(Object, AbortableInputStream)} method are not automatically retried by
+ * the RetryPolicy of the client. Since we can't know if a transformer implementation is idempotent or safe to retry, if you wish
+ * to retry on the event of a failure you must throw a {@link SdkException} with retryable set to true from the transformer. This
  * exception can wrap the original exception that was thrown. Note that throwing a {@link
- * SdkException} that is marked retryable from the handler does not guarantee the request will be retried,
+ * SdkException} that is marked retryable from the transformer does not guarantee the request will be retried,
  * retries are still limited by the max retry attempts and retry throttling
- * feature of the {@link software.amazon.awssdk.core.retry.v2.RetryPolicy}.
+ * feature of the {@link RetryPolicy}.
  * </p>
  *
  * <p>
@@ -66,7 +71,7 @@ import software.amazon.awssdk.utils.Logger;
  *                    whatever transformations are appropriate.
  */
 @FunctionalInterface
-public interface StreamingResponseHandler<ResponseT, ReturnT> {
+public interface ResponseTransformer<ResponseT, ReturnT> {
     /**
      * Process the response contents.
      *
@@ -80,7 +85,7 @@ public interface StreamingResponseHandler<ResponseT, ReturnT> {
 
     /**
      * Hook to allow connection to be left open after the SDK returns a response. Useful for returning the InputStream to
-     * the response content from the handler.
+     * the response content from the transformer.
      *
      * @return True if connection (and InputStream) should be left open after the SDK returns a response, false otherwise.
      */
@@ -89,14 +94,14 @@ public interface StreamingResponseHandler<ResponseT, ReturnT> {
     }
 
     /**
-     * Creates a response handler that writes all response content to the specified file. If the file already exists
+     * Creates a response transformer that writes all response content to the specified file. If the file already exists
      * then a {@link java.nio.file.FileAlreadyExistsException} will be thrown.
      *
      * @param path        Path to file to write to.
      * @param <ResponseT> Type of unmarshalled response POJO.
-     * @return StreamingResponseHandler instance.
+     * @return ResponseTransformer instance.
      */
-    static <ResponseT> StreamingResponseHandler<ResponseT, ResponseT> toFile(Path path) {
+    static <ResponseT> ResponseTransformer<ResponseT, ResponseT> toFile(Path path) {
         return (resp, in) -> {
             try {
                 Files.copy(in, path);
@@ -113,7 +118,7 @@ public interface StreamingResponseHandler<ResponseT, ReturnT> {
                 try {
                     Files.deleteIfExists(path);
                 } catch (IOException deletionException) {
-                    Logger.loggerFor(StreamingResponseHandler.class)
+                    Logger.loggerFor(ResponseTransformer.class)
                           .error(() -> "Failed to delete destination file '" + path +
                                        "' after reading the service response " +
                                        "failed.", deletionException);
@@ -130,14 +135,26 @@ public interface StreamingResponseHandler<ResponseT, ReturnT> {
     }
 
     /**
-     * Creates a response handler that writes all response content to the given {@link OutputStream}. Note that
+     * Creates a response transformer that writes all response content to the specified file. If the file already exists
+     * then a {@link java.nio.file.FileAlreadyExistsException} will be thrown.
+     *
+     * @param file        File to write to.
+     * @param <ResponseT> Type of unmarshalled response POJO.
+     * @return ResponseTransformer instance.
+     */
+    static <ResponseT> ResponseTransformer<ResponseT, ResponseT> toFile(File file) {
+        return toFile(file.toPath());
+    }
+
+    /**
+     * Creates a response transformer that writes all response content to the given {@link OutputStream}. Note that
      * the {@link OutputStream} is not closed or flushed after writing.
      *
      * @param outputStream Output stream to write data to.
      * @param <ResponseT>  Type of unmarshalled response POJO.
-     * @return StreamingResponseHandler instance.
+     * @return ResponseTransformer instance.
      */
-    static <ResponseT> StreamingResponseHandler<ResponseT, ResponseT> toOutputStream(OutputStream outputStream) {
+    static <ResponseT> ResponseTransformer<ResponseT, ResponseT> toOutputStream(OutputStream outputStream) {
         return (resp, in) -> {
             IoUtils.copy(in, outputStream);
             return resp;
@@ -145,16 +162,16 @@ public interface StreamingResponseHandler<ResponseT, ReturnT> {
     }
 
     /**
-     * Creates a response handler that loads all response content into memory, exposed as {@link ResponseBytes}. This allows
+     * Creates a response transformer that loads all response content into memory, exposed as {@link ResponseBytes}. This allows
      * for conversion into a {@link String}, {@link ByteBuffer}, etc.
      *
      * @param <ResponseT> Type of unmarshalled response POJO.
-     * @return The streaming response handler that can be used on the client streaming method.
+     * @return The streaming response transformer that can be used on the client streaming method.
      */
-    static <ResponseT> StreamingResponseHandler<ResponseT, ResponseBytes<ResponseT>> toBytes() {
+    static <ResponseT> ResponseTransformer<ResponseT, ResponseBytes<ResponseT>> toBytes() {
         return (response, inputStream) -> {
             try {
-                return new ResponseBytes<>(response, inputStream);
+                return new ResponseBytes<>(response, IoUtils.toByteArray(inputStream));
             } catch (IOException e) {
                 throw new RetryableException("Failed to read response.", e);
             }
@@ -162,7 +179,7 @@ public interface StreamingResponseHandler<ResponseT, ReturnT> {
     }
 
     /**
-     * Creates a response handler that returns an unmanaged input stream with the response content. This input stream must
+     * Creates a response transformer that returns an unmanaged input stream with the response content. This input stream must
      * be explicitly closed to release the connection. The unmarshalled response object can be obtained via the {@link
      * ResponseInputStream#response} method.
      *
@@ -175,27 +192,27 @@ public interface StreamingResponseHandler<ResponseT, ReturnT> {
      * </p>
      *
      * @param <ResponseT> Type of unmarshalled response POJO.
-     * @return StreamingResponseHandler instance.
+     * @return ResponseTransformer instance.
      */
-    static <ResponseT> StreamingResponseHandler<ResponseT, ResponseInputStream<ResponseT>> toInputStream() {
+    static <ResponseT> ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toInputStream() {
         return unmanaged(ResponseInputStream::new);
     }
 
     /**
-     * Static helper method to create a response handler that allows the connection to be left open. Useful for creating a
-     * {@link StreamingResponseHandler} with a lambda or method reference rather than an anonymous inner class.
+     * Static helper method to create a response transformer that allows the connection to be left open. Useful for creating a
+     * {@link ResponseTransformer} with a lambda or method reference rather than an anonymous inner class.
      *
-     * @param handler     Handler to wrap.
+     * @param transformer     Transformer to wrap.
      * @param <ResponseT> Type of unmarshalled response POJO.
-     * @param <ReturnT>   Return type of handler.
-     * @return New {@link StreamingResponseHandler} which does not close the connection afterwards.
+     * @param <ReturnT>   Return type of transformer.
+     * @return New {@link ResponseTransformer} which does not close the connection afterwards.
      */
-    static <ResponseT, ReturnT> StreamingResponseHandler<ResponseT, ReturnT> unmanaged(
-            StreamingResponseHandler<ResponseT, ReturnT> handler) {
-        return new StreamingResponseHandler<ResponseT, ReturnT>() {
+    static <ResponseT, ReturnT> ResponseTransformer<ResponseT, ReturnT> unmanaged(
+            ResponseTransformer<ResponseT, ReturnT> transformer) {
+        return new ResponseTransformer<ResponseT, ReturnT>() {
             @Override
             public ReturnT apply(ResponseT response, AbortableInputStream inputStream) throws Exception {
-                return handler.apply(response, inputStream);
+                return transformer.apply(response, inputStream);
             }
 
             @Override

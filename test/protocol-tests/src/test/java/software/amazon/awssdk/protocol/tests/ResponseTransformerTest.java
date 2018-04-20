@@ -39,8 +39,8 @@ import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.client.builder.ClientHttpConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.regions.Region;
-import software.amazon.awssdk.core.sync.ResponseBytes;
-import software.amazon.awssdk.core.sync.StreamingResponseHandler;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.SdkHttpClientFactory;
 import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
@@ -49,9 +49,9 @@ import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOpe
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
- * Verify the end-to-end functionality of the SDK-provided {@link StreamingResponseHandler} implementations.
+ * Verify the end-to-end functionality of the SDK-provided {@link ResponseTransformer} implementations.
  */
-public class StreamingResponseHandlerTest {
+public class ResponseTransformerTest {
     @Rule
     public WireMockRule wireMock = new WireMockRule(0);
 
@@ -106,7 +106,8 @@ public class StreamingResponseHandlerTest {
         stubForRetries();
 
         assertThatThrownBy(() -> testClient().streamingOutputOperation(StreamingOutputOperationRequest.builder().build(),
-                                                                       StreamingResponseHandler.toOutputStream(new ByteArrayOutputStream())))
+                                                                       ResponseTransformer
+                                                                               .toOutputStream(new ByteArrayOutputStream())))
                 .isInstanceOf(SdkClientException.class);
     }
 

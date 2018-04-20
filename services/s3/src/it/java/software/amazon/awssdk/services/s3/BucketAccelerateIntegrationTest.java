@@ -171,7 +171,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
                                                    .bucket(US_BUCKET_NAME)
                                                    .key(KEY_NAME)
                                                    .build(),
-                                   RequestBody.of(uploadFile));
+                                   RequestBody.fromFile(uploadFile));
     }
 
     private void enableAccelerateOnBucket() throws InterruptedException {
