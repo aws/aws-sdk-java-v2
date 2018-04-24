@@ -15,6 +15,7 @@ package software.amazon.awssdk.http.nio.netty.h2;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.MAX_CONCURRENT_STREAMS;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.doInEventLoop;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.promiseNotifyingBiConsumer;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -92,7 +93,8 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
                                  Channel newChannel = future.getNow();
                                  // TODO protocol future failure?
                                  newChannel.attr(PROTOCOL_FUTURE).get()
-                                           .thenAccept(s -> configureProtocol(newChannel, s));
+                                           .whenComplete(promiseNotifyingBiConsumer(s -> configureProtocol(newChannel, s),
+                                                                                    protocolImplPromise));
                              } else {
                                  protocolImplPromise.setFailure(future.cause());
                                  // Next acquire will attempt to renegotiate protocol
@@ -101,38 +103,33 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
                          });
     }
 
-    private void configureProtocol(Channel newChannel, String s) {
-        try {
-            if (ApplicationProtocolNames.HTTP_1_1.equals(s)) {
-                // TODO more options
-                // For HTTP/1.1 we use a traditional channel pool without multiplexing
-                protocolImpl = BetterFixedChannelPool.builder()
-                                                     .channelPool(simpleChannelPool)
-                                                     .executor(eventLoop)
-                                                     .acquireTimeoutAction(BetterFixedChannelPool.AcquireTimeoutAction.FAIL)
-                                                     .acquireTimeoutMillis(1000)
-                                                     .maxConnections(maxConcurrency)
-                                                     .maxPendingAcquires(1000)
-                                                     .build();
-            } else {
-                ChannelPool h2Pool = new BetterHttp2MultiplexChannelPool(
-                    simpleChannelPool, eventLoop, newChannel.attr(MAX_CONCURRENT_STREAMS).get());
-                protocolImpl = BetterFixedChannelPool.builder()
-                                                     .channelPool(h2Pool)
-                                                     .executor(eventLoop)
-                                                     .acquireTimeoutAction(BetterFixedChannelPool.AcquireTimeoutAction.FAIL)
-                                                     .acquireTimeoutMillis(1000)
-                                                     .maxConnections(maxConcurrency)
-                                                     .maxPendingAcquires(1000)
-                                                     .build();
-            }
-            // Give the channel back so it can be acquired again by protocolImpl
-            simpleChannelPool.release(newChannel);
-
-            protocolImplPromise.setSuccess(protocolImpl);
-        } catch (Exception e) {
-            protocolImplPromise.setFailure(e);
+    private ChannelPool configureProtocol(Channel newChannel, String s) {
+        if (ApplicationProtocolNames.HTTP_1_1.equals(s)) {
+            // TODO more options
+            // For HTTP/1.1 we use a traditional channel pool without multiplexing
+            protocolImpl = BetterFixedChannelPool.builder()
+                                                 .channelPool(simpleChannelPool)
+                                                 .executor(eventLoop)
+                                                 .acquireTimeoutAction(BetterFixedChannelPool.AcquireTimeoutAction.FAIL)
+                                                 .acquireTimeoutMillis(1000)
+                                                 .maxConnections(maxConcurrency)
+                                                 .maxPendingAcquires(1000)
+                                                 .build();
+        } else {
+            ChannelPool h2Pool = new BetterHttp2MultiplexChannelPool(
+                simpleChannelPool, eventLoop, newChannel.attr(MAX_CONCURRENT_STREAMS).get());
+            protocolImpl = BetterFixedChannelPool.builder()
+                                                 .channelPool(h2Pool)
+                                                 .executor(eventLoop)
+                                                 .acquireTimeoutAction(BetterFixedChannelPool.AcquireTimeoutAction.FAIL)
+                                                 .acquireTimeoutMillis(1000)
+                                                 .maxConnections(maxConcurrency)
+                                                 .maxPendingAcquires(1000)
+                                                 .build();
         }
+        // Give the channel back so it can be acquired again by protocolImpl
+        simpleChannelPool.release(newChannel);
+        return protocolImpl;
     }
 
     @Override

@@ -10,15 +10,17 @@
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
  * and limitations under the License.
  */
-package com.example;
+package software.amazon.awssdk.core.flow;
 
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 
 /**
  * Utility methods to help working with Subscriptions and their methods.
  */
+@ReviewBeforeRelease("This was copied from RxJava. Review more carefully")
 public class SubscriptionHelper {
 
     /**

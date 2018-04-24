@@ -16,8 +16,64 @@ import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 public class NettyUtils {
+
+    /**
+     * Creates a {@link BiConsumer} that notifies the promise of any failures either via the {@link Throwable} passed into the
+     * BiConsumer of as a result of running the successFunction.
+     *
+     * @param successFunction Function called to process the successful result and map it into the result to notify the promise with.
+     * @param promise Promise to notify of success or failure.
+     * @param <SuccessT> Success type.
+     * @param <PromiseT> Type being fulfulled by the promise.
+     * @return BiConsumer that can be used in a {@link CompletableFuture#whenComplete(BiConsumer)} method.
+     */
+    public static <SuccessT, PromiseT> BiConsumer<SuccessT, ? super Throwable> promiseNotifyingBiConsumer(
+        Function<SuccessT, PromiseT> successFunction, Promise<PromiseT> promise) {
+        return (success, fail) -> {
+            if (fail != null) {
+                promise.setFailure(fail);
+            } else {
+                try {
+                    promise.setSuccess(successFunction.apply(success));
+                } catch (Exception e) {
+                    promise.setFailure(fail);
+                }
+            }
+        };
+    }
+
+    /**
+     * Creates a {@link BiConsumer} that notifies the promise of any failures either via the throwable passed into the BiConsumer
+     * or as a result of running the successConsumer. This assumes that the successConsumer will notify the promise when it completes
+     * successfully.
+     *
+     * @param successConsumer BiConsumer to call if the result is succesful. Promise is also passed and must be notified on success.
+     * @param promise Promise to notify.
+     * @param <SuccessT> Success type.
+     * @param <PromiseT> Type being fulfilled by the Promise.
+     * @return BiConsumer that can be used in a {@link CompletableFuture#whenComplete(BiConsumer)} method.
+     */
+    public static <SuccessT, PromiseT> BiConsumer<SuccessT, ? super Throwable> asyncPromiseNotifyingBiConsumer(
+        BiConsumer<SuccessT, Promise<PromiseT>> successConsumer, Promise<PromiseT> promise) {
+        return (success, fail) -> {
+            if (fail != null) {
+                promise.setFailure(fail);
+            } else {
+                try {
+                    successConsumer.accept(success, promise);
+                } catch (Exception e) {
+                    // If the successConsumer fails synchronously then we can notify the promise. If it fails asynchronously
+                    // it's up to the successConsumer to notify.
+                    promise.setFailure(fail);
+                }
+            }
+        };
+    }
 
     /**
      * Create a {@link GenericFutureListener} that will notify the provided {@link Promise} on success and failure.
@@ -25,7 +81,7 @@ public class NettyUtils {
      * @param channelPromise Promise to notify.
      * @return GenericFutureListener
      */
-    public static <T> GenericFutureListener<Future<T>> createPromiseNotifyingListener(Promise<T> channelPromise) {
+    public static <T> GenericFutureListener<Future<T>> promiseNotifyingListener(Promise<T> channelPromise) {
         return future -> {
             if (future.isSuccess()) {
                 channelPromise.setSuccess(future.getNow());

@@ -13,12 +13,12 @@
 
 package software.amazon.awssdk.services.kinesis;
 
-import com.example.ResponseIterator;
-import com.example.SdkFlowResponseHandler;
-import com.example.SdkPublisher;
+import java.util.Iterator;
+import software.amazon.awssdk.core.flow.ResponseIterator;
+import software.amazon.awssdk.core.flow.SdkFlowResponseHandler;
+import software.amazon.awssdk.core.flow.SdkPublisher;
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
-import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Generated;
@@ -32,6 +32,7 @@ import software.amazon.awssdk.core.client.ClientExecutionParams;
 import software.amazon.awssdk.core.client.SdkAsyncClientHandler;
 import software.amazon.awssdk.core.config.AsyncClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.flow.SubscriberIterator;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
@@ -1183,41 +1184,40 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
     }
 
     public ResponseIterator<SubscribeToShardResponse, RecordBatchEvent> subscribeToShardBlocking(SubscribeToShardRequest request) {
-        // TODO what is this for?
-        SdkPublisher.SubscriberIterator[] iterator = new SdkPublisher.SubscriberIterator[1];
+        AtomicReference<SubscribeToShardResponse> responseRef = new AtomicReference<>();
+        AtomicReference<SubscriberIterator<RecordBatchEvent>> iteratorRef = new AtomicReference<>();
         CompletableFuture<SdkPublisher<RecordBatchEvent>> publisherFuture = new CompletableFuture<>();
-        CompletableFuture<SubscribeToShardResponse> responseFuture = new CompletableFuture<>();
         subscribeToShard(request, new SdkFlowResponseHandler<SubscribeToShardResponse, RecordBatchEvent, Void>() {
             @Override
-            public void responseReceived(SubscribeToShardResponse response) {
-                responseFuture.complete(response);
+            public void responseReceived(SubscribeToShardResponse r) {
+                responseRef.set(r);
             }
 
             @Override
             public void onStream(SdkPublisher<RecordBatchEvent> publisher) {
+                // TODO don't like the cast here
+                iteratorRef.set((SubscriberIterator<RecordBatchEvent>) publisher.toBlocking());
                 publisherFuture.complete(publisher);
             }
 
             @Override
             public void exceptionOccurred(Throwable throwable) {
                 publisherFuture.completeExceptionally(throwable);
+                if (iteratorRef.get() != null) {
+                    iteratorRef.get().onError(throwable);
+                }
             }
 
             @Override
             public Void complete() {
-                if(iterator[0] != null) {
-                    iterator[0].onComplete();
+                if (iteratorRef.get() != null) {
+                    iteratorRef.get().onComplete();
                 }
                 return null;
             }
         });
-        CompletableFuture.allOf(responseFuture, publisherFuture);
         return publisherFuture
-            .thenApply(p -> {
-                iterator[0] = (SdkPublisher.SubscriberIterator) p.toBlocking();
-                return iterator[0];
-            })
-            .thenApply(i -> new ResponseIterator(i, responseFuture.join()))
+            .thenApply(i -> new ResponseIterator(iteratorRef.get(), responseRef.get()))
             .join();
     }
 

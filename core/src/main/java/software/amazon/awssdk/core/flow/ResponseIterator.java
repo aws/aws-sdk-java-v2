@@ -10,11 +10,17 @@
  * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
  * and limitations under the License.
  */
-package com.example;
+package software.amazon.awssdk.core.flow;
 
 import java.util.Iterator;
 
-public class ResponseIterator<ResponseT, ItemT> implements Iterator<ItemT> {
+/**
+ * Iterator that provides access to a Response object.
+ *
+ * @param <ResponseT> Type of Response object.
+ * @param <ItemT> Type of item being iterated.
+ */
+public final class ResponseIterator<ResponseT, ItemT> implements Iterator<ItemT> {
 
     private final Iterator<ItemT> iterator;
     private final ResponseT response;

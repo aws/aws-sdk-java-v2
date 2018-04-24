@@ -49,6 +49,9 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     public static final SdkHttpConfigurationOption<Integer> MAX_CONNECTIONS =
             new SdkHttpConfigurationOption<>("MaxConnections", Integer.class);
 
+    public static final SdkHttpConfigurationOption<Protocol> PROTOCOL =
+        new SdkHttpConfigurationOption<>("Protocol", Protocol.class);
+
     /**
      * Whether or not to use strict hostname verification when establishing the SSL connection. For almost all services this
      * should be true. S3 however uses wildcard certificates for virtual bucket address (bucketname.s3.amazonaws.com) and
@@ -66,6 +69,8 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
 
     private static final Boolean DEFAULT_USE_STRICT_HOSTNAME_VERIFICATION = Boolean.TRUE;
 
+    private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP1_1;
+
     @ReviewBeforeRelease("Confirm defaults")
     public static final AttributeMap GLOBAL_HTTP_DEFAULTS = AttributeMap
             .builder()
@@ -73,6 +78,7 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             .put(CONNECTION_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT)
             .put(MAX_CONNECTIONS, DEFAULT_MAX_CONNECTIONS)
             .put(USE_STRICT_HOSTNAME_VERIFICATION, DEFAULT_USE_STRICT_HOSTNAME_VERIFICATION)
+            .put(PROTOCOL, DEFAULT_PROTOCOL)
             .build();
 
     private final String name;

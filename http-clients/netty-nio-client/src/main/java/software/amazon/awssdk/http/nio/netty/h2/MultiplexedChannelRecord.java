@@ -14,6 +14,8 @@ package software.amazon.awssdk.http.nio.netty.h2;
 
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.CHANNEL_POOL_RECORD;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.PROTOCOL_FUTURE;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.asyncPromiseNotifyingBiConsumer;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.promiseNotifyingListener;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import io.netty.channel.Channel;
@@ -22,7 +24,7 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
 import java.util.concurrent.atomic.AtomicLong;
-import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
+import java.util.function.BiConsumer;
 
 /**
  * Contains a {@link Future} for the actual socket channel and tracks available
@@ -74,12 +76,19 @@ public final class MultiplexedChannelRecord implements Comparable<MultiplexedCha
         parentChannel.attr(CHANNEL_POOL_RECORD).set(this);
         // Once protocol future is notified then parent pipeline is configured and ready to go
         parentChannel.attr(PROTOCOL_FUTURE).get()
-                     .thenAccept(s -> {
-                         // Open stream child channel and fulfill promise with it.
-                         new Http2StreamChannelBootstrap(parentChannel)
-                             .open()
-                             .addListener(NettyUtils.createPromiseNotifyingListener(channelPromise));
-                     });
+                     .whenComplete(asyncPromiseNotifyingBiConsumer(bootstrapChildChannel(parentChannel), channelPromise));
+    }
+
+    /**
+     * Bootstraps the child stream channel and notifies the Promise on success or failure.
+     *
+     * @param parentChannel Parent socket channel.
+     * @return BiConsumer that will bootstrap the child channel.
+     */
+    private BiConsumer<String, Promise<Channel>> bootstrapChildChannel(Channel parentChannel) {
+        return (s, p) -> new Http2StreamChannelBootstrap(parentChannel)
+            .open()
+            .addListener(promiseNotifyingListener(p));
     }
 
     MultiplexedChannelRecord release() {

@@ -27,6 +27,7 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClientFactory;
+import software.amazon.awssdk.http.nio.netty.h2.NettyH2AsyncHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -126,8 +127,8 @@ public final class NettySdkHttpClientFactory
 
     @Override
     public SdkAsyncHttpClient createHttpClientWithDefaults(AttributeMap serviceDefaults) {
-        return new NettyNioAsyncHttpClient(this, standardOptions.merge(serviceDefaults)
-                                                                .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
+        return new NettyH2AsyncHttpClient(this, standardOptions.merge(serviceDefaults)
+                                                               .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
     }
 
     @Override

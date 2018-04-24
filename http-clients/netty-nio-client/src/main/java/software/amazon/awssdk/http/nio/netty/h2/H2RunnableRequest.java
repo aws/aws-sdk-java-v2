@@ -123,13 +123,18 @@ public final class H2RunnableRequest implements AbortableRunnable {
         log.debug("Writing request: {}", request);
 
         // TODO SSL
-        channel.parent().attr(ChannelAttributeKeys.PROTOCOL_FUTURE).get()
-               .thenAccept(protocol ->
-                               runOrFail(() -> {
-                                             configurePipeline(protocol);
-                                             writeRequest(request);
-                                         },
-                                         () -> "Failed to make request to " + endpoint()));
+        // The future will already be completed by the time we acquire it from the channel
+        String protocol = getProtocol();
+        runOrFail(() -> {
+                      configurePipeline(protocol);
+                      writeRequest(request);
+                  },
+                  () -> "Failed to make request to " + endpoint());
+    }
+
+    private String getProtocol() {
+        return (channel.parent() == null ? channel : channel.parent())
+            .attr(ChannelAttributeKeys.PROTOCOL_FUTURE).get().join();
     }
 
     private void configurePipeline(String protocol) {

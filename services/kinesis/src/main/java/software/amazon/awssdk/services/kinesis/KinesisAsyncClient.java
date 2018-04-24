@@ -13,9 +13,8 @@
 
 package software.amazon.awssdk.services.kinesis;
 
-import com.example.ResponseIterator;
-import com.example.SdkFlowResponseHandler;
-import java.util.Iterator;
+import software.amazon.awssdk.core.flow.ResponseIterator;
+import software.amazon.awssdk.core.flow.SdkFlowResponseHandler;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Generated;
 import software.amazon.awssdk.services.kinesis.model.AddTagsToStreamRequest;
