@@ -13,10 +13,6 @@
 
 package software.amazon.awssdk.services.kinesis;
 
-import java.util.Iterator;
-import software.amazon.awssdk.core.flow.ResponseIterator;
-import software.amazon.awssdk.core.flow.SdkFlowResponseHandler;
-import software.amazon.awssdk.core.flow.SdkPublisher;
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
@@ -26,12 +22,15 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.async.AsyncResponseHandler;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.AsyncClientHandler;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
 import software.amazon.awssdk.core.client.SdkAsyncClientHandler;
 import software.amazon.awssdk.core.config.AsyncClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.flow.FlowPublisher;
+import software.amazon.awssdk.core.flow.ResponseIterator;
+import software.amazon.awssdk.core.flow.FlowResponseTransformer;
 import software.amazon.awssdk.core.flow.SubscriberIterator;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -1094,7 +1093,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
     }
 
     public <ReturnT> CompletableFuture<ReturnT> subscribeToShard(SubscribeToShardRequest subscribeToShardRequest,
-                                                                 SdkFlowResponseHandler<SubscribeToShardResponse, RecordBatchEvent, ReturnT> flowResponseHandler) {
+                                                                 FlowResponseTransformer<SubscribeToShardResponse, RecordBatchEvent, ReturnT> flowResponseHandler) {
         HttpResponseHandler<SubscribeToShardResponse> responseHandler = protocolFactory.createResponseHandler(
             new JsonOperationMetadata()
                 .withPayloadJson(false)
@@ -1104,7 +1103,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
         HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
 
         AtomicReference<Subscriber<? super RecordBatchEvent>> subscriberRef = new AtomicReference<>();
-        flowResponseHandler.onStream(new SdkPublisher<RecordBatchEvent>() {
+        flowResponseHandler.onStream(new FlowPublisher<RecordBatchEvent>() {
             @Override
             public void subscribe(Subscriber<? super RecordBatchEvent> subscriber) {
                 subscriberRef.set(subscriber);
@@ -1125,7 +1124,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
                                          .withMarshaller(new SubscribeToShardRequestMarshaller(protocolFactory))
                                          .withResponseHandler(responseHandler)
                                          .withErrorResponseHandler(errorResponseHandler)
-                                         .withInput(subscribeToShardRequest), new AsyncResponseHandler<SubscribeToShardResponse, ReturnT>() {
+                                         .withInput(subscribeToShardRequest), new AsyncResponseTransformer<SubscribeToShardResponse, ReturnT>() {
             MessageDecoder decoder;
 
             @Override
@@ -1186,15 +1185,15 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
     public ResponseIterator<SubscribeToShardResponse, RecordBatchEvent> subscribeToShardBlocking(SubscribeToShardRequest request) {
         AtomicReference<SubscribeToShardResponse> responseRef = new AtomicReference<>();
         AtomicReference<SubscriberIterator<RecordBatchEvent>> iteratorRef = new AtomicReference<>();
-        CompletableFuture<SdkPublisher<RecordBatchEvent>> publisherFuture = new CompletableFuture<>();
-        subscribeToShard(request, new SdkFlowResponseHandler<SubscribeToShardResponse, RecordBatchEvent, Void>() {
+        CompletableFuture<FlowPublisher<RecordBatchEvent>> publisherFuture = new CompletableFuture<>();
+        subscribeToShard(request, new FlowResponseTransformer<SubscribeToShardResponse, RecordBatchEvent, Void>() {
             @Override
             public void responseReceived(SubscribeToShardResponse r) {
                 responseRef.set(r);
             }
 
             @Override
-            public void onStream(SdkPublisher<RecordBatchEvent> publisher) {
+            public void onStream(FlowPublisher<RecordBatchEvent> publisher) {
                 // TODO don't like the cast here
                 iteratorRef.set((SubscriberIterator<RecordBatchEvent>) publisher.toBlocking());
                 publisherFuture.complete(publisher);

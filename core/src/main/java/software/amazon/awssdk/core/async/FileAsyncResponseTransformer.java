@@ -31,18 +31,18 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * {@link AsyncResponseHandler} that writes the data to the specified file.
+ * {@link AsyncResponseTransformer} that writes the data to the specified file.
  *
  * @param <ResponseT> Response POJO type. Returned on {@link #complete()}.
  */
 @SdkInternalApi
-class FileAsyncResponseHandler<ResponseT> implements AsyncResponseHandler<ResponseT, ResponseT> {
+class FileAsyncResponseTransformer<ResponseT> implements AsyncResponseTransformer<ResponseT, ResponseT> {
 
     private final Path path;
     private AsynchronousFileChannel fileChannel;
     private volatile ResponseT response;
 
-    FileAsyncResponseHandler(Path path) {
+    FileAsyncResponseTransformer(Path path) {
         this.path = path;
     }
 

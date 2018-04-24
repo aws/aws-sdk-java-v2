@@ -13,30 +13,29 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.sync;
+package software.amazon.awssdk.core;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 
 /**
  * An in-memory representation of the service's response from a streaming operation. This usually obtained by calling the "bytes"
  * form of a streaming operation, like S3's {@code getObjectBytes}. Can also be retrieved by passing
- * {@link StreamingResponseHandler#toBytes()} to a streaming output operation.
+ * {@link ResponseTransformer#toBytes()} or {@link AsyncResponseTransformer#toBytes()} to a streaming output operation.
  */
 @SdkPublicApi
 public final class ResponseBytes<ResponseT> {
     private final ResponseT response;
     private final byte[] responseBytes;
 
-    public ResponseBytes(ResponseT response, InputStream responseStream) throws IOException {
+    public ResponseBytes(ResponseT response, byte[] responseBytes) {
         this.response = response;
-        this.responseBytes = IoUtils.toByteArray(responseStream);
+        this.responseBytes = responseBytes;
     }
 
     /**

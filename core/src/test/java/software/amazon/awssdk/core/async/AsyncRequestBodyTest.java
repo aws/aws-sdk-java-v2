@@ -27,11 +27,11 @@ import org.junit.Test;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
 
-public class AsyncRequestProviderTest {
+public class AsyncRequestBodyTest {
 
     @Test
-    public void canCreateAStringProvider() {
-        AsyncRequestProvider provider = AsyncRequestProvider.fromString("Hello!");
+    public void canCreateAStringRequestBody() {
+        AsyncRequestBody provider = AsyncRequestBody.fromString("Hello!");
         StringBuilder sb = new StringBuilder();
         boolean done = false;
 

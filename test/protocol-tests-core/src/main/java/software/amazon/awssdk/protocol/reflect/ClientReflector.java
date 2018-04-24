@@ -25,7 +25,7 @@ import software.amazon.awssdk.core.auth.AwsCredentials;
 import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.builder.ClientBuilder;
 import software.amazon.awssdk.core.regions.Region;
-import software.amazon.awssdk.core.sync.StreamingResponseHandler;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.protocol.model.TestCase;
 import software.amazon.awssdk.protocol.wiremock.WireMockUtils;
 
@@ -76,9 +76,9 @@ public class ClientReflector {
      */
     public Object invokeStreamingMethod(TestCase testCase,
                                         Object requestObject,
-                                        StreamingResponseHandler<?, ?> responseHandler) throws Exception {
+                                        ResponseTransformer<?, ?> responseHandler) throws Exception {
         final String operationName = testCase.getWhen().getOperationName();
-        Method operationMethod = getOperationMethod(operationName, requestObject.getClass(), StreamingResponseHandler.class);
+        Method operationMethod = getOperationMethod(operationName, requestObject.getClass(), ResponseTransformer.class);
         return operationMethod.invoke(client, requestObject, responseHandler);
     }
 

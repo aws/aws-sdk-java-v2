@@ -20,7 +20,7 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.async.AsyncRequestProvider;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
@@ -37,7 +37,7 @@ import software.amazon.awssdk.core.runtime.transform.Marshaller;
 public class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
 
     private InputT input;
-    private AsyncRequestProvider asyncRequestProvider;
+    private AsyncRequestBody asyncRequestBody;
     private Marshaller<Request<InputT>, InputT> marshaller;
     private HttpResponseHandler<OutputT> responseHandler;
     private HttpResponseHandler<? extends SdkException> errorResponseHandler;
@@ -81,12 +81,12 @@ public class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
         return this;
     }
 
-    public AsyncRequestProvider getAsyncRequestProvider() {
-        return asyncRequestProvider;
+    public AsyncRequestBody getAsyncRequestBody() {
+        return asyncRequestBody;
     }
 
-    public ClientExecutionParams<InputT, OutputT> withAsyncRequestProvider(AsyncRequestProvider asyncRequestProvider) {
-        this.asyncRequestProvider = asyncRequestProvider;
+    public ClientExecutionParams<InputT, OutputT> withAsyncRequestBody(AsyncRequestBody asyncRequestBody) {
+        this.asyncRequestBody = asyncRequestBody;
         return this;
     }
 }

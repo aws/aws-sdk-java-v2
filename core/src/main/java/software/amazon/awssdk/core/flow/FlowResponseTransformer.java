@@ -14,8 +14,7 @@ package software.amazon.awssdk.core.flow;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.core.async.BaseAsyncResponseHandler;
+import software.amazon.awssdk.core.async.BaseAsyncResponseTransformer;
 
 /**
  * Response handler for a flow operation.
@@ -24,7 +23,7 @@ import software.amazon.awssdk.core.async.BaseAsyncResponseHandler;
  * @param <EventT> Event type returned by the flow stream.
  * @param <ReturnT> Transformation type returned in {@link #complete()}.
  */
-public interface SdkFlowResponseHandler<ResponseT, EventT, ReturnT> extends BaseAsyncResponseHandler<ResponseT, EventT, ReturnT> {
+public interface FlowResponseTransformer<ResponseT, EventT, ReturnT> extends BaseAsyncResponseTransformer<ResponseT, ReturnT> {
 
     /**
      * Called when events are ready to be streamed. Implementations  must subscribe to the {@link Publisher} and request data via
@@ -44,5 +43,5 @@ public interface SdkFlowResponseHandler<ResponseT, EventT, ReturnT> extends Base
      * automatic retry is performed.
      * </p>
      */
-    void onStream(SdkPublisher<EventT> publisher);
+    void onStream(FlowPublisher<EventT> publisher);
 }

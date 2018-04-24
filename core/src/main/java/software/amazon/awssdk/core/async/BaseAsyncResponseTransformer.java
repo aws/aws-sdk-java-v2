@@ -20,14 +20,13 @@ import org.reactivestreams.Subscription;
  * Callback interface to handle a streaming asynchronous response that produces a certain type of event.
  *
  * @param <ResponseT> POJO response type.
- * @param <EventT> Event type being published. I.E. {@link ByteBuffer} or some modeled object.
  * @param <ReturnT> Type this response handler produces. I.E. the type you are transforming the response into.
  */
-public interface BaseAsyncResponseHandler<ResponseT, EventT, ReturnT> {
+public interface BaseAsyncResponseTransformer<ResponseT, ReturnT> {
 
     /**
      * Called when the initial response has been received and the POJO response has
-     * been unmarshalled. This is guaranteed to be called before {@link #onStream(Publisher)}.
+     * been unmarshalled. This is guaranteed to be called before onStream.
      *
      * <p>In the event of a retryable error, this callback may be called multiple times. It
      * also may never be invoked if the request never succeeds.</p>

@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
-import software.amazon.awssdk.core.async.AsyncResponseHandler;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.config.ClientConfiguration;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
@@ -53,13 +53,13 @@ public abstract class AsyncClientHandler extends BaseClientHandler implements Sd
      * underlying HTTP call(s).
      *
      * @param executionParams      Parameters specific to this invocation of an API.
-     * @param asyncResponseHandler Response handler to consume streaming data in an asynchronous fashion.
+     * @param asyncResponseTransformer Response handler to consume streaming data in an asynchronous fashion.
      * @param <InputT>             Input POJO type
      * @param <OutputT>            Output POJO type
-     * @param <ReturnT>            Transformed result returned by asyncResponseHandler.
-     * @return CompletableFuture containing transformed result type as returned by asyncResponseHandler.
+     * @param <ReturnT>            Transformed result returned by asyncResponseTransformer.
+     * @return CompletableFuture containing transformed result type as returned by asyncResponseTransformer.
      */
     public abstract <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> CompletableFuture<ReturnT> execute(
             ClientExecutionParams<InputT, OutputT> executionParams,
-            AsyncResponseHandler<OutputT, ReturnT> asyncResponseHandler);
+            AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer);
 }

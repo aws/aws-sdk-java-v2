@@ -23,13 +23,15 @@ import java.util.stream.StreamSupport;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 /**
  * Extension of {@link Publisher} with some convenience methods added.
  *
  * @param <T> Type of object being published.
  */
-public interface SdkPublisher<T> extends Publisher<T> {
+@ReviewBeforeRelease("Similiar to SdkPublisher. Consider consolidating.")
+public interface FlowPublisher<T> extends Publisher<T> {
 
     /**
      * Requests items from the publisher serially and delivers them to the provided {@link Consumer}. Consumer
@@ -74,6 +76,7 @@ public interface SdkPublisher<T> extends Publisher<T> {
      *
      * @return Blocking {@link Iterator} that can be used to iterate items in a traditionally manner.
      */
+    @ReviewBeforeRelease("If we are building sync client on top of async these may no longer be necessary.")
     default Iterator<T> toBlocking() {
         // TODO review implementation choice and batch size
         SubscriberIterator<T> subscriberIterator = new SubscriberIterator<>(new LinkedList<>(), 128);

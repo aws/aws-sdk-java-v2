@@ -30,34 +30,34 @@ public class RequestBodyTest {
     public void stringConstructorUsesUTF8ByteLength() {
         // U+03A9 U+03C9
         final String multibyteChars = "Ωω";
-        RequestBody rb = RequestBody.of(multibyteChars);
+        RequestBody rb = RequestBody.fromString(multibyteChars);
         assertThat(rb.contentLength()).isEqualTo(4L);
     }
 
     @Test
     public void stringConstructorHasCorrectContentType() {
-        RequestBody requestBody = RequestBody.of("hello world");
+        RequestBody requestBody = RequestBody.fromString("hello world");
         assertThat(requestBody.contentType()).isEqualTo(Mimetypes.MIMETYPE_TEXT_PLAIN);
     }
 
     @Test
     public void streamConstructorHasCorrectContentType() {
         StringInputStream inputStream = new StringInputStream("hello world");
-        RequestBody requestBody = RequestBody.of(inputStream, 11);
+        RequestBody requestBody = RequestBody.fromInputStream(inputStream, 11);
         assertThat(requestBody.contentType()).isEqualTo(Mimetypes.MIMETYPE_OCTET_STREAM);
         IoUtils.closeQuietly(inputStream, null);
     }
 
     @Test
     public void bytesArrayConstructorHasCorrectContentType() {
-        RequestBody requestBody = RequestBody.of("hello world".getBytes());
+        RequestBody requestBody = RequestBody.fromBytes("hello world".getBytes());
         assertThat(requestBody.contentType()).isEqualTo(Mimetypes.MIMETYPE_OCTET_STREAM);
     }
 
     @Test
     public void bytesBufferConstructorHasCorrectContentType() {
         ByteBuffer byteBuffer = ByteBuffer.wrap("hello world".getBytes());
-        RequestBody requestBody = RequestBody.of(byteBuffer);
+        RequestBody requestBody = RequestBody.fromByteBuffer(byteBuffer);
         assertThat(requestBody.contentType()).isEqualTo(Mimetypes.MIMETYPE_OCTET_STREAM);
     }
 

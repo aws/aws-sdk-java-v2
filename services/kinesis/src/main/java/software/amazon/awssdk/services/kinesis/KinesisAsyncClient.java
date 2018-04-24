@@ -14,7 +14,7 @@
 package software.amazon.awssdk.services.kinesis;
 
 import software.amazon.awssdk.core.flow.ResponseIterator;
-import software.amazon.awssdk.core.flow.SdkFlowResponseHandler;
+import software.amazon.awssdk.core.flow.FlowResponseTransformer;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Generated;
 import software.amazon.awssdk.services.kinesis.model.AddTagsToStreamRequest;
@@ -761,7 +761,7 @@ public interface KinesisAsyncClient extends SdkAutoCloseable {
     }
 
     default  <ReturnT> CompletableFuture<ReturnT> subscribeToShard(SubscribeToShardRequest subscribeToShardRequest,
-                                                                 SdkFlowResponseHandler<SubscribeToShardResponse, RecordBatchEvent, ReturnT> flowResponseHandler) {
+                                                                 FlowResponseTransformer<SubscribeToShardResponse, RecordBatchEvent, ReturnT> flowResponseHandler) {
         throw new UnsupportedOperationException();
     }
 

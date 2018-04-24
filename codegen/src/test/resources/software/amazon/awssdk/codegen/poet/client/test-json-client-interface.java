@@ -3,14 +3,14 @@ package software.amazon.awssdk.services.json;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 import javax.annotation.Generated;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.regions.ServiceMetadata;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.core.sync.ResponseBytes;
-import software.amazon.awssdk.core.sync.ResponseInputStream;
-import software.amazon.awssdk.core.sync.StreamingResponseHandler;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -85,8 +85,14 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      * <p>
      * Performs a post operation to the query service and has no output
      * </p>
+     * <br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link APostOperationRequest.Builder} avoiding the need to
+     * create one manually via {@link APostOperationRequest#builder()}
+     * </p>
      *
      * @param aPostOperationRequest
+     *        A {@link Consumer} that will call methods on {@link APostOperationRequest.Builder} to create a request.
      * @return Result of the APostOperation operation returned by the service.
      * @throws InvalidInputException
      *         The request was rejected because an invalid or out-of-range value was supplied for an input parameter.
@@ -102,7 +108,7 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *      API Documentation</a>
      */
     default APostOperationResponse aPostOperation(Consumer<APostOperationRequest.Builder> aPostOperationRequest)
-        throws InvalidInputException, SdkServiceException, SdkClientException, JsonException {
+            throws InvalidInputException, SdkServiceException, SdkClientException, JsonException {
         return aPostOperation(APostOperationRequest.builder().apply(aPostOperationRequest).build());
     }
 
@@ -127,8 +133,8 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default APostOperationWithOutputResponse aPostOperationWithOutput(
-        APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, SdkServiceException,
-                                                                                SdkClientException, JsonException {
+            APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, SdkServiceException,
+                                                                                    SdkClientException, JsonException {
         throw new UnsupportedOperationException();
     }
 
@@ -136,8 +142,15 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      * <p>
      * Performs a post operation to the query service and has modelled output
      * </p>
+     * <br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link APostOperationWithOutputRequest.Builder} avoiding
+     * the need to create one manually via {@link APostOperationWithOutputRequest#builder()}
+     * </p>
      *
      * @param aPostOperationWithOutputRequest
+     *        A {@link Consumer} that will call methods on {@link APostOperationWithOutputRequest.Builder} to create a
+     *        request.
      * @return Result of the APostOperationWithOutput operation returned by the service.
      * @throws InvalidInputException
      *         The request was rejected because an invalid or out-of-range value was supplied for an input parameter.
@@ -153,8 +166,8 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default APostOperationWithOutputResponse aPostOperationWithOutput(
-        Consumer<APostOperationWithOutputRequest.Builder> aPostOperationWithOutputRequest) throws InvalidInputException,
-                                                                                                  SdkServiceException, SdkClientException, JsonException {
+            Consumer<APostOperationWithOutputRequest.Builder> aPostOperationWithOutputRequest) throws InvalidInputException,
+                                                                                                      SdkServiceException, SdkClientException, JsonException {
         return aPostOperationWithOutput(APostOperationWithOutputRequest.builder().apply(aPostOperationWithOutputRequest).build());
     }
 
@@ -204,8 +217,8 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default GetWithoutRequiredMembersResponse getWithoutRequiredMembers(
-        GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) throws InvalidInputException, SdkServiceException,
-                                                                                  SdkClientException, JsonException {
+            GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) throws InvalidInputException, SdkServiceException,
+                                                                                      SdkClientException, JsonException {
         throw new UnsupportedOperationException();
     }
 
@@ -213,8 +226,15 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      * <p>
      * Performs a post operation to the query service and has no output
      * </p>
+     * <br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link GetWithoutRequiredMembersRequest.Builder} avoiding
+     * the need to create one manually via {@link GetWithoutRequiredMembersRequest#builder()}
+     * </p>
      *
      * @param getWithoutRequiredMembersRequest
+     *        A {@link Consumer} that will call methods on {@link GetWithoutRequiredMembersRequest.Builder} to create a
+     *        request.
      * @return Result of the GetWithoutRequiredMembers operation returned by the service.
      * @throws InvalidInputException
      *         The request was rejected because an invalid or out-of-range value was supplied for an input parameter.
@@ -230,8 +250,8 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default GetWithoutRequiredMembersResponse getWithoutRequiredMembers(
-        Consumer<GetWithoutRequiredMembersRequest.Builder> getWithoutRequiredMembersRequest) throws InvalidInputException,
-                                                                                                    SdkServiceException, SdkClientException, JsonException {
+            Consumer<GetWithoutRequiredMembersRequest.Builder> getWithoutRequiredMembersRequest) throws InvalidInputException,
+                                                                                                        SdkServiceException, SdkClientException, JsonException {
         return getWithoutRequiredMembers(GetWithoutRequiredMembersRequest.builder().apply(getWithoutRequiredMembersRequest)
                                                                          .build());
     }
@@ -274,15 +294,21 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithResultKeyResponse paginatedOperationWithResultKey(
-        PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) throws SdkServiceException,
-                                                                                              SdkClientException, JsonException {
+            PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) throws SdkServiceException,
+                                                                                                  SdkClientException, JsonException {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * Some paginated operation with result_key in paginators.json file
+     * Some paginated operation with result_key in paginators.json file<br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link PaginatedOperationWithResultKeyRequest.Builder}
+     * avoiding the need to create one manually via {@link PaginatedOperationWithResultKeyRequest#builder()}
+     * </p>
      *
      * @param paginatedOperationWithResultKeyRequest
+     *        A {@link Consumer} that will call methods on {@link PaginatedOperationWithResultKeyRequest.Builder} to
+     *        create a request.
      * @return Result of the PaginatedOperationWithResultKey operation returned by the service.
      * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
@@ -296,10 +322,83 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithResultKeyResponse paginatedOperationWithResultKey(
-        Consumer<PaginatedOperationWithResultKeyRequest.Builder> paginatedOperationWithResultKeyRequest)
-        throws SdkServiceException, SdkClientException, JsonException {
+            Consumer<PaginatedOperationWithResultKeyRequest.Builder> paginatedOperationWithResultKeyRequest)
+            throws SdkServiceException, SdkClientException, JsonException {
         return paginatedOperationWithResultKey(PaginatedOperationWithResultKeyRequest.builder()
                                                                                      .apply(paginatedOperationWithResultKeyRequest).build());
+    }
+
+    /**
+     * Some paginated operation with result_key in paginators.json file<br/>
+     * <p>
+     * This is a variant of
+     * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
+     * operation. The return type is a custom iterable that can be used to iterate through all the pages. SDK will
+     * internally handle making service calls for you.
+     * </p>
+     * <p>
+     * When this operation is called, a custom iterable is returned but no service calls are made yet. So there is no
+     * guarantee that the request is valid. As you iterate through the iterable, SDK will start lazily loading response
+     * pages by making service calls until there are no pages left or your iteration stops. If there are errors in your
+     * request, you will see the failures only after you start iterating through the iterable.
+     * </p>
+     *
+     * <p>
+     * The following are few ways to iterate through the response pages:
+     * </p>
+     * 1) Using a Stream
+     *
+     * <pre>
+     * {@code
+     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable responses = client.paginatedOperationWithResultKeyPaginator(request);
+     * responses.stream().forEach(....);
+     * }
+     * </pre>
+     *
+     * 2) Using For loop
+     *
+     * <pre>
+     * {
+     *     &#064;code
+     *     software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable responses = client
+     *             .paginatedOperationWithResultKeyPaginator(request);
+     *     for (software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse response : responses) {
+     *         // do something;
+     *     }
+     * }
+     * </pre>
+     *
+     * 3) Use iterator directly
+     *
+     * <pre>
+     * {@code
+     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable responses = client.paginatedOperationWithResultKeyPaginator(request);
+     * responses.iterator().forEachRemaining(....);
+     * }
+     * </pre>
+     * <p>
+     * <b>Note: If you prefer to have control on service calls, use the
+     * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
+     * operation.</b>
+     * </p>
+     *
+     * @param paginatedOperationWithResultKeyRequest
+     * @return A custom iterable that can be used to iterate through all the response pages.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.PaginatedOperationWithResultKey
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default PaginatedOperationWithResultKeyIterable paginatedOperationWithResultKeyPaginator(
+            PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) throws SdkServiceException,
+                                                                                                  SdkClientException, JsonException {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -375,79 +474,6 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
     }
 
     /**
-     * Some paginated operation with result_key in paginators.json file<br/>
-     * <p>
-     * This is a variant of
-     * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
-     * operation. The return type is a custom iterable that can be used to iterate through all the pages. SDK will
-     * internally handle making service calls for you.
-     * </p>
-     * <p>
-     * When this operation is called, a custom iterable is returned but no service calls are made yet. So there is no
-     * guarantee that the request is valid. As you iterate through the iterable, SDK will start lazily loading response
-     * pages by making service calls until there are no pages left or your iteration stops. If there are errors in your
-     * request, you will see the failures only after you start iterating through the iterable.
-     * </p>
-     *
-     * <p>
-     * The following are few ways to iterate through the response pages:
-     * </p>
-     * 1) Using a Stream
-     *
-     * <pre>
-     * {@code
-     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable responses = client.paginatedOperationWithResultKeyPaginator(request);
-     * responses.stream().forEach(....);
-     * }
-     * </pre>
-     *
-     * 2) Using For loop
-     *
-     * <pre>
-     * {
-     *     &#064;code
-     *     software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable responses = client
-     *             .paginatedOperationWithResultKeyPaginator(request);
-     *     for (software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse response : responses) {
-     *         // do something;
-     *     }
-     * }
-     * </pre>
-     *
-     * 3) Use iterator directly
-     *
-     * <pre>
-     * {@code
-     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable responses = client.paginatedOperationWithResultKeyPaginator(request);
-     * responses.iterator().forEachRemaining(....);
-     * }
-     * </pre>
-     * <p>
-     * <b>Note: If you prefer to have control on service calls, use the
-     * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
-     * operation.</b>
-     * </p>
-     *
-     * @param paginatedOperationWithResultKeyRequest
-     * @return A custom iterable that can be used to iterate through all the response pages.
-     * @throws SdkException
-     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
-     *         catch all scenarios.
-     * @throws SdkClientException
-     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
-     * @throws JsonException
-     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
-     * @sample JsonClient.PaginatedOperationWithResultKey
-     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
-     *      target="_top">AWS API Documentation</a>
-     */
-    default PaginatedOperationWithResultKeyIterable paginatedOperationWithResultKeyPaginator(
-        PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) throws SdkServiceException,
-                                                                                              SdkClientException, JsonException {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
      * Some paginated operation without result_key in paginators.json file
      *
      * @param paginatedOperationWithoutResultKeyRequest
@@ -464,15 +490,21 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithoutResultKeyResponse paginatedOperationWithoutResultKey(
-        PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) throws SdkServiceException,
-                                                                                                    SdkClientException, JsonException {
+            PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) throws SdkServiceException,
+                                                                                                        SdkClientException, JsonException {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * Some paginated operation without result_key in paginators.json file
+     * Some paginated operation without result_key in paginators.json file<br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link PaginatedOperationWithoutResultKeyRequest.Builder}
+     * avoiding the need to create one manually via {@link PaginatedOperationWithoutResultKeyRequest#builder()}
+     * </p>
      *
      * @param paginatedOperationWithoutResultKeyRequest
+     *        A {@link Consumer} that will call methods on {@link PaginatedOperationWithoutResultKeyRequest.Builder} to
+     *        create a request.
      * @return Result of the PaginatedOperationWithoutResultKey operation returned by the service.
      * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
@@ -486,8 +518,8 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithoutResultKeyResponse paginatedOperationWithoutResultKey(
-        Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest)
-        throws SdkServiceException, SdkClientException, JsonException {
+            Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest)
+            throws SdkServiceException, SdkClientException, JsonException {
         return paginatedOperationWithoutResultKey(PaginatedOperationWithoutResultKeyRequest.builder()
                                                                                            .apply(paginatedOperationWithoutResultKeyRequest).build());
     }
@@ -560,9 +592,89 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithoutResultKeyIterable paginatedOperationWithoutResultKeyPaginator(
-        PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) throws SdkServiceException,
-                                                                                                    SdkClientException, JsonException {
+            PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) throws SdkServiceException,
+                                                                                                        SdkClientException, JsonException {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Some paginated operation without result_key in paginators.json file<br/>
+     * <p>
+     * This is a variant of
+     * {@link #paginatedOperationWithoutResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest)}
+     * operation. The return type is a custom iterable that can be used to iterate through all the pages. SDK will
+     * internally handle making service calls for you.
+     * </p>
+     * <p>
+     * When this operation is called, a custom iterable is returned but no service calls are made yet. So there is no
+     * guarantee that the request is valid. As you iterate through the iterable, SDK will start lazily loading response
+     * pages by making service calls until there are no pages left or your iteration stops. If there are errors in your
+     * request, you will see the failures only after you start iterating through the iterable.
+     * </p>
+     *
+     * <p>
+     * The following are few ways to iterate through the response pages:
+     * </p>
+     * 1) Using a Stream
+     *
+     * <pre>
+     * {@code
+     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyIterable responses = client.paginatedOperationWithoutResultKeyPaginator(request);
+     * responses.stream().forEach(....);
+     * }
+     * </pre>
+     *
+     * 2) Using For loop
+     *
+     * <pre>
+     * {
+     *     &#064;code
+     *     software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyIterable responses = client
+     *             .paginatedOperationWithoutResultKeyPaginator(request);
+     *     for (software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse response : responses) {
+     *         // do something;
+     *     }
+     * }
+     * </pre>
+     *
+     * 3) Use iterator directly
+     *
+     * <pre>
+     * {@code
+     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyIterable responses = client.paginatedOperationWithoutResultKeyPaginator(request);
+     * responses.iterator().forEachRemaining(....);
+     * }
+     * </pre>
+     * <p>
+     * <b>Note: If you prefer to have control on service calls, use the
+     * {@link #paginatedOperationWithoutResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest)}
+     * operation.</b>
+     * </p>
+     * <p>
+     * This is a convenience which creates an instance of the {@link PaginatedOperationWithoutResultKeyRequest.Builder}
+     * avoiding the need to create one manually via {@link PaginatedOperationWithoutResultKeyRequest#builder()}
+     * </p>
+     *
+     * @param paginatedOperationWithoutResultKeyRequest
+     *        A {@link Consumer} that will call methods on {@link PaginatedOperationWithoutResultKeyRequest.Builder} to
+     *        create a request.
+     * @return A custom iterable that can be used to iterate through all the response pages.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.PaginatedOperationWithoutResultKey
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithoutResultKey"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default PaginatedOperationWithoutResultKeyIterable paginatedOperationWithoutResultKeyPaginator(
+            Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest)
+            throws SdkServiceException, SdkClientException, JsonException {
+        return paginatedOperationWithoutResultKeyPaginator(PaginatedOperationWithoutResultKeyRequest.builder()
+                                                                                                    .apply(paginatedOperationWithoutResultKeyRequest).build());
     }
 
     /**
@@ -575,7 +687,7 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *        following.
      *
      *        <pre>
-     * {@code RequestBody.of(new File("myfile.txt"))}
+     * {@code RequestBody.fromFile(new File("myfile.txt"))}
      * </pre>
      *
      *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
@@ -593,9 +705,49 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default StreamingInputOperationResponse streamingInputOperation(
-        StreamingInputOperationRequest streamingInputOperationRequest, RequestBody requestBody) throws SdkServiceException,
-                                                                                                       SdkClientException, JsonException {
+            StreamingInputOperationRequest streamingInputOperationRequest, RequestBody requestBody) throws SdkServiceException,
+                                                                                                           SdkClientException, JsonException {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Some operation with a streaming input<br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link StreamingInputOperationRequest.Builder} avoiding
+     * the need to create one manually via {@link StreamingInputOperationRequest#builder()}
+     * </p>
+     *
+     * @param streamingInputOperationRequest
+     *        A {@link Consumer} that will call methods on {@link StructureWithStreamingMember.Builder} to create a
+     *        request.
+     * @param requestBody
+     *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
+     *        methods for various sources of data. For example, to create a request body from a file you can do the
+     *        following.
+     *
+     *        <pre>
+     * {@code RequestBody.fromFile(new File("myfile.txt"))}
+     * </pre>
+     *
+     *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
+     *        The service documentation for the request content is as follows 'This be a stream'
+     * @return Result of the StreamingInputOperation operation returned by the service.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.StreamingInputOperation
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default StreamingInputOperationResponse streamingInputOperation(
+            Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, RequestBody requestBody)
+            throws SdkServiceException, SdkClientException, JsonException {
+        return streamingInputOperation(StreamingInputOperationRequest.builder().apply(streamingInputOperationRequest).build(),
+                                       requestBody);
     }
 
     /**
@@ -621,9 +773,44 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default StreamingInputOperationResponse streamingInputOperation(
-        StreamingInputOperationRequest streamingInputOperationRequest, Path filePath) throws SdkServiceException,
-                                                                                             SdkClientException, JsonException {
-        return streamingInputOperation(streamingInputOperationRequest, RequestBody.of(filePath));
+            StreamingInputOperationRequest streamingInputOperationRequest, Path filePath) throws SdkServiceException,
+                                                                                                 SdkClientException, JsonException {
+        return streamingInputOperation(streamingInputOperationRequest, RequestBody.fromFile(filePath));
+    }
+
+    /**
+     * Some operation with a streaming input<br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link StreamingInputOperationRequest.Builder} avoiding
+     * the need to create one manually via {@link StreamingInputOperationRequest#builder()}
+     * </p>
+     *
+     * @param streamingInputOperationRequest
+     *        A {@link Consumer} that will call methods on {@link StructureWithStreamingMember.Builder} to create a
+     *        request.
+     * @param path
+     *        {@link Path} to file containing data to send to the service. File will be read entirely and may be read
+     *        multiple times in the event of a retry. If the file does not exist or the current user does not have
+     *        access to read it then an exception will be thrown. The service documentation for the request content is
+     *        as follows 'This be a stream'
+     * @return Result of the StreamingInputOperation operation returned by the service.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.StreamingInputOperation
+     * @see #streamingInputOperation(StreamingInputOperationRequest, RequestBody)
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingInputOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default StreamingInputOperationResponse streamingInputOperation(
+            Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, Path filePath)
+            throws SdkServiceException, SdkClientException, JsonException {
+        return streamingInputOperation(StreamingInputOperationRequest.builder().apply(streamingInputOperationRequest).build(),
+                                       filePath);
     }
 
     /**
@@ -634,10 +821,10 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *        Functional interface for processing the streamed response content. The unmarshalled
      *        StreamingInputOperationRequest and an InputStream to the response content are provided as parameters to
      *        the callback. The callback may return a transformed type which will be the return value of this method.
-     *        See {@link software.amazon.awssdk.core.sync.StreamingResponseHandler} for details on implementing this
+     *        See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing this
      *        interface and for links to pre-canned implementations for common scenarios like downloading to a file. The
      *        service documentation for the response content is as follows 'This be a stream'.
-     * @return The transformed result of the StreamingResponseHandler.
+     * @return The transformed result of the ResponseTransformer.
      * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
@@ -650,9 +837,46 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default <ReturnT> ReturnT streamingOutputOperation(StreamingOutputOperationRequest streamingOutputOperationRequest,
-                                                       StreamingResponseHandler<StreamingOutputOperationResponse, ReturnT> streamingResponseHandler)
-        throws SdkServiceException, SdkClientException, JsonException {
+                                                       ResponseTransformer<StreamingOutputOperationResponse, ReturnT> responseTransformer) throws SdkServiceException,
+                                                                                                                                                  SdkClientException, JsonException {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Some operation with a streaming output<br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link StreamingOutputOperationRequest.Builder} avoiding
+     * the need to create one manually via {@link StreamingOutputOperationRequest#builder()}
+     * </p>
+     *
+     * @param streamingOutputOperationRequest
+     *        A {@link Consumer} that will call methods on {@link StreamingOutputOperationRequest.Builder} to create a
+     *        request.
+     * @param streamingHandler
+     *        Functional interface for processing the streamed response content. The unmarshalled
+     *        StreamingInputOperationRequest and an InputStream to the response content are provided as parameters to
+     *        the callback. The callback may return a transformed type which will be the return value of this method.
+     *        See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing this
+     *        interface and for links to pre-canned implementations for common scenarios like downloading to a file. The
+     *        service documentation for the response content is as follows 'This be a stream'.
+     * @return The transformed result of the ResponseTransformer.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.StreamingOutputOperation
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default <ReturnT> ReturnT streamingOutputOperation(
+            Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest,
+            ResponseTransformer<StreamingOutputOperationResponse, ReturnT> responseTransformer) throws SdkServiceException,
+                                                                                                       SdkClientException, JsonException {
+        return streamingOutputOperation(StreamingOutputOperationRequest.builder().apply(streamingOutputOperationRequest).build(),
+                                        responseTransformer);
     }
 
     /**
@@ -663,7 +887,7 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      *        {@link Path} to file that response contents will be written to. The file must not exist or this method
      *        will throw an exception. If the file is not writable by the current user then an exception will be thrown.
      *        The service documentation for the response content is as follows 'This be a stream'.
-     * @return The transformed result of the StreamingResponseHandler.
+     * @return The transformed result of the ResponseTransformer.
      * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
@@ -672,14 +896,48 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingOutputOperation
-     * @see #streamingOutputOperation(StreamingOutputOperationRequest, StreamingResponseHandler)
+     * @see #streamingOutputOperation(StreamingOutputOperationRequest, ResponseTransformer)
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default StreamingOutputOperationResponse streamingOutputOperation(
-        StreamingOutputOperationRequest streamingOutputOperationRequest, Path filePath) throws SdkServiceException,
-                                                                                               SdkClientException, JsonException {
-        return streamingOutputOperation(streamingOutputOperationRequest, StreamingResponseHandler.toFile(filePath));
+            StreamingOutputOperationRequest streamingOutputOperationRequest, Path filePath) throws SdkServiceException,
+                                                                                                   SdkClientException, JsonException {
+        return streamingOutputOperation(streamingOutputOperationRequest, ResponseTransformer.toFile(filePath));
+    }
+
+    /**
+     * Some operation with a streaming output<br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link StreamingOutputOperationRequest.Builder} avoiding
+     * the need to create one manually via {@link StreamingOutputOperationRequest#builder()}
+     * </p>
+     *
+     * @param streamingOutputOperationRequest
+     *        A {@link Consumer} that will call methods on {@link StreamingOutputOperationRequest.Builder} to create a
+     *        request.
+     * @param path
+     *        {@link Path} to file that response contents will be written to. The file must not exist or this method
+     *        will throw an exception. If the file is not writable by the current user then an exception will be thrown.
+     *        The service documentation for the response content is as follows 'This be a stream'.
+     * @return The transformed result of the ResponseTransformer.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.StreamingOutputOperation
+     * @see #streamingOutputOperation(StreamingOutputOperationRequest, ResponseTransformer)
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default StreamingOutputOperationResponse streamingOutputOperation(
+            Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest, Path filePath)
+            throws SdkServiceException, SdkClientException, JsonException {
+        return streamingOutputOperation(StreamingOutputOperationRequest.builder().apply(streamingOutputOperationRequest).build(),
+                                        filePath);
     }
 
     /**
@@ -700,14 +958,48 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingOutputOperation
-     * @see #getObject(streamingOutputOperation, StreamingResponseHandler)
+     * @see #getObject(streamingOutputOperation, ResponseTransformer)
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default ResponseInputStream<StreamingOutputOperationResponse> streamingOutputOperation(
-        StreamingOutputOperationRequest streamingOutputOperationRequest) throws SdkServiceException, SdkClientException,
-                                                                                JsonException {
-        return streamingOutputOperation(streamingOutputOperationRequest, StreamingResponseHandler.toInputStream());
+            StreamingOutputOperationRequest streamingOutputOperationRequest) throws SdkServiceException, SdkClientException,
+                                                                                    JsonException {
+        return streamingOutputOperation(streamingOutputOperationRequest, ResponseTransformer.toInputStream());
+    }
+
+    /**
+     * Some operation with a streaming output<br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link StreamingOutputOperationRequest.Builder} avoiding
+     * the need to create one manually via {@link StreamingOutputOperationRequest#builder()}
+     * </p>
+     *
+     * @param streamingOutputOperationRequest
+     *        A {@link Consumer} that will call methods on {@link StreamingOutputOperationRequest.Builder} to create a
+     *        request.
+     * @return A {@link ResponseInputStream} containing data streamed from service. Note that this is an unmanaged
+     *         reference to the underlying HTTP connection so great care must be taken to ensure all data if fully read
+     *         from the input stream and that it is properly closed. Failure to do so may result in sub-optimal behavior
+     *         and exhausting connections in the connection pool. The unmarshalled response object can be obtained via
+     *         {@link ResponseInputStream#response()}. The service documentation for the response content is as follows
+     *         'This be a stream'.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.StreamingOutputOperation
+     * @see #getObject(streamingOutputOperation, ResponseTransformer)
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default ResponseInputStream<StreamingOutputOperationResponse> streamingOutputOperation(
+            Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest) throws SdkServiceException,
+                                                                                                      SdkClientException, JsonException {
+        return streamingOutputOperation(StreamingOutputOperationRequest.builder().apply(streamingOutputOperationRequest).build());
     }
 
     /**
@@ -726,14 +1018,47 @@ public interface JsonClient extends SdkClient, SdkAutoCloseable {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.StreamingOutputOperation
-     * @see #getObject(streamingOutputOperation, StreamingResponseHandler)
+     * @see #getObject(streamingOutputOperation, ResponseTransformer)
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
      *      target="_top">AWS API Documentation</a>
      */
     default ResponseBytes<StreamingOutputOperationResponse> streamingOutputOperationBytes(
-        StreamingOutputOperationRequest streamingOutputOperationRequest) throws SdkServiceException, SdkClientException,
-                                                                                JsonException {
-        return streamingOutputOperation(streamingOutputOperationRequest, StreamingResponseHandler.toBytes());
+            StreamingOutputOperationRequest streamingOutputOperationRequest) throws SdkServiceException, SdkClientException,
+                                                                                    JsonException {
+        return streamingOutputOperation(streamingOutputOperationRequest, ResponseTransformer.toBytes());
+    }
+
+    /**
+     * Some operation with a streaming output<br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link StreamingOutputOperationRequest.Builder} avoiding
+     * the need to create one manually via {@link StreamingOutputOperationRequest#builder()}
+     * </p>
+     *
+     * @param streamingOutputOperationRequest
+     *        A {@link Consumer} that will call methods on {@link StreamingOutputOperationRequest.Builder} to create a
+     *        request.
+     * @return A {@link ResponseBytes} that loads the data streamed from the service into memory and exposes it in
+     *         convenient in-memory representations like a byte buffer or string. The unmarshalled response object can
+     *         be obtained via {@link ResponseBytes#response()}. The service documentation for the response content is
+     *         as follows 'This be a stream'.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.StreamingOutputOperation
+     * @see #getObject(streamingOutputOperation, ResponseTransformer)
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/StreamingOutputOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default ResponseBytes<StreamingOutputOperationResponse> streamingOutputOperationBytes(
+            Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest) throws SdkServiceException,
+                                                                                                      SdkClientException, JsonException {
+        return streamingOutputOperationBytes(StreamingOutputOperationRequest.builder().apply(streamingOutputOperationRequest)
+                                                                            .build());
     }
 
     static ServiceMetadata serviceMetadata() {

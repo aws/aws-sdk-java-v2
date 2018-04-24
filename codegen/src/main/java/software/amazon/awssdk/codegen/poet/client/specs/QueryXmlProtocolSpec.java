@@ -143,7 +143,7 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
                             .build();
         }
         return codeBlock.add(".withMarshaller(new $T()) $L);", marshaller,
-                             opModel.hasStreamingOutput() ? ", streamingResponseHandler" : "").build();
+                             opModel.hasStreamingOutput() ? ", responseTransformer" : "").build();
     }
 
     @Override
@@ -152,13 +152,13 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
         ClassName marshaller = poetExtensions.getRequestTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
 
-        String asyncRequestProvider = opModel.hasStreamingInput() ? ".withAsyncRequestProvider(requestProvider)"
+        String asyncRequestBody = opModel.hasStreamingInput() ? ".withAsyncRequestBody(requestBody)"
                 : "";
         return CodeBlock.builder().add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n" +
                                        ".withMarshaller(new $T())" +
                                        ".withResponseHandler(responseHandler)" +
                                        ".withErrorResponseHandler($N)\n" +
-                                       asyncRequestProvider +
+                                       asyncRequestBody +
                                        ".withInput($L) $L);",
                                        ClientExecutionParams.class,
                                        requestType,
@@ -166,7 +166,7 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
                                        marshaller,
                                        "errorResponseHandler",
                                        opModel.getInput().getVariableName(),
-                                       opModel.hasStreamingOutput() ? ", asyncResponseHandler" : "")
+                                       opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "")
                         .build();
     }
 

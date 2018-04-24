@@ -15,12 +15,12 @@
 
 package software.amazon.awssdk.core.async;
 
+import java.io.File;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.core.ResponseBytes;
 
 /**
  * Callback interface to handle a streaming asynchronous response.
@@ -28,8 +28,7 @@ import org.reactivestreams.Subscription;
  * @param <ResponseT> POJO response type.
  * @param <ReturnT>   Type this response handler produces. I.E. the type you are transforming the response into.
  */
-public interface AsyncResponseHandler<ResponseT, ReturnT> extends BaseAsyncResponseHandler<ResponseT, ByteBuffer, ReturnT> {
-
+public interface AsyncResponseTransformer<ResponseT, ReturnT> extends BaseAsyncResponseTransformer<ResponseT, ReturnT> {
     /**
      * Called when events are ready to be streamed. Implementations  must subscribe to the {@link Publisher} and request data via
      * a {@link org.reactivestreams.Subscription} as they can handle it.
@@ -51,47 +50,38 @@ public interface AsyncResponseHandler<ResponseT, ReturnT> extends BaseAsyncRespo
     void onStream(Publisher<ByteBuffer> publisher);
 
     /**
-     * Creates an {@link AsyncResponseHandler} that writes all the content to the given file. In the event of an error,
+     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error,
      * the SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an
      * exception will be thrown.
      *
      * @param path        Path to file to write to.
      * @param <ResponseT> Pojo Response type.
-     * @return AsyncResponseHandler instance.
+     * @return AsyncResponseTransformer instance.
      */
-    static <ResponseT> AsyncResponseHandler<ResponseT, ResponseT> toFile(Path path) {
-        return new FileAsyncResponseHandler<>(path);
+    static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseT> toFile(Path path) {
+        return new FileAsyncResponseTransformer<>(path);
     }
 
     /**
-     * Creates an {@link AsyncResponseHandler} that writes all content to a byte array.
+     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error,
+     * the SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an
+     * exception will be thrown.
      *
-     * @param <ResponseT> Pojo response type.
-     * @return AsyncResponseHandler instance.
+     * @param file        File to write to.
+     * @param <ResponseT> Pojo Response type.
+     * @return AsyncResponseTransformer instance.
      */
-    static <ResponseT> AsyncResponseHandler<ResponseT, byte[]> toByteArray() {
-        return new ByteArrayAsyncResponseHandler<>();
+    static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseT> toFile(File file) {
+        return toFile(file.toPath());
     }
 
     /**
-     * Creates an {@link AsyncResponseHandler} that writes all content to a string using the specified encoding.
-     *
-     * @param charset     {@link Charset} to use when constructing the string.
-     * @param <ResponseT> Pojo response type.
-     * @return AsyncResponseHandler instance.
-     */
-    static <ResponseT> AsyncResponseHandler<ResponseT, String> toString(Charset charset) {
-        return new StringAsyncResponseHandler<>(toByteArray(), charset);
-    }
-
-    /**
-     * Creates an {@link AsyncResponseHandler} that writes all content to UTF8 encoded string.
+     * Creates an {@link AsyncResponseTransformer} that writes all content to a byte array.
      *
      * @param <ResponseT> Pojo response type.
-     * @return AsyncResponseHandler instance.
+     * @return AsyncResponseTransformer instance.
      */
-    static <ResponseT> AsyncResponseHandler<ResponseT, String> toUtf8String() {
-        return toString(StandardCharsets.UTF_8);
+    static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>> toBytes() {
+        return new ByteArrayAsyncResponseTransformer<>();
     }
-
 }

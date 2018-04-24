@@ -106,7 +106,7 @@ public class ListObjectsV2PaginatorsIntegrationTest extends S3IntegrationTestBas
                                      .bucket(bucketName)
                                      .key(key)
                                      .build(),
-                     RequestBody.of(file));
+                     RequestBody.fromFile(file));
         keys.add(key);
     }
 
