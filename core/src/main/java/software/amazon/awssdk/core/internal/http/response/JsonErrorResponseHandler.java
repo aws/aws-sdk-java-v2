@@ -26,8 +26,8 @@ import software.amazon.awssdk.core.exception.ErrorType;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.ErrorCodeParser;
 import software.amazon.awssdk.core.protocol.json.JsonContent;
 import software.amazon.awssdk.core.runtime.http.JsonErrorMessageParser;
@@ -74,7 +74,7 @@ public class JsonErrorResponseHandler implements HttpResponseHandler<SdkServiceE
         }
 
         exception.errorCode(errorCode);
-        exception.serviceName(executionAttributes.getAttribute(AwsExecutionAttributes.SERVICE_NAME));
+        exception.serviceName(executionAttributes.getAttribute(SdkExecutionAttributes.SERVICE_NAME));
         exception.statusCode(response.getStatusCode());
         exception.errorType(getErrorType(response.getStatusCode()));
         exception.rawResponse(jsonContent.getRawContent());

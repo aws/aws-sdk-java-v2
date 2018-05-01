@@ -21,7 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.UUID;
 import org.junit.Ignore;
 import org.junit.Test;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.dynamodb.pojos.S3LinksTestClass;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;

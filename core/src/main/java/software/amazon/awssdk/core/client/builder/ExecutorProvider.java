@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 /**
  * A supplier for {@link ScheduledExecutorService} instances that should be used for async processing within the SDK. This
- * supplier is invoked each time {@link ClientBuilder#build()} is invoked, allowing for different executor services to be used
+ * supplier is invoked each time {@link SdkClientBuilder#build()} is invoked, allowing for different executor services to be used
  * with each client instance. Executors produced by the supplier are managed by the SDK and will be shutdown when the service
  * client is closed.
  */

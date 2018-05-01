@@ -34,13 +34,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.awscore.AwsRequest;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfig;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.AwsRequest;
-import software.amazon.awssdk.core.AwsRequestOverrideConfig;
-import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
@@ -786,10 +786,10 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
 
     static <X extends AwsRequest> X applyBatchOperationUserAgent(X request) {
         final AwsRequestOverrideConfig newCfg = request.requestOverrideConfig()
-                .map(c -> c.toBuilder())
-                .orElse(AwsRequestOverrideConfig.builder())
-                .addApiName(apiName -> apiName.name(USER_AGENT_BATCH_OPERATION_NAME).version(VersionInfo.SDK_VERSION))
-                .build();
+                                                       .map(c -> c.toBuilder())
+                                                       .orElse(AwsRequestOverrideConfig.builder())
+                                                       .addApiName(apiName -> apiName.name(USER_AGENT_BATCH_OPERATION_NAME).version(VersionInfo.SDK_VERSION))
+                                                       .build();
 
         return (X) request.toBuilder()
                 .requestOverrideConfig(newCfg)

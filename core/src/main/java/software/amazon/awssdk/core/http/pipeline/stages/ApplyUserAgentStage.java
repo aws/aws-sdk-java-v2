@@ -18,13 +18,12 @@ package software.amazon.awssdk.core.http.pipeline.stages;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import software.amazon.awssdk.core.ApiName;
-import software.amazon.awssdk.core.AwsSystemSetting;
 import software.amazon.awssdk.core.RequestExecutionContext;
-import software.amazon.awssdk.core.config.AdvancedClientOption;
-import software.amazon.awssdk.core.config.ClientConfiguration;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.HttpClientDependencies;
 import software.amazon.awssdk.core.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.util.UserAgentUtils;
@@ -42,7 +41,7 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
 
     private static final String HEADER_USER_AGENT = "User-Agent";
 
-    private final ClientConfiguration clientConfig;
+    private final SdkClientConfiguration clientConfig;
 
     public ApplyUserAgentStage(HttpClientDependencies dependencies) {
         this.clientConfig = dependencies.clientConfiguration();
@@ -55,11 +54,12 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         return request.header(HEADER_USER_AGENT, userAgent);
     }
 
-    private String getUserAgent(ClientConfiguration config, List<ApiName> requestApiNames) {
+    private String getUserAgent(SdkClientConfiguration config, List<ApiName> requestApiNames) {
         ClientOverrideConfiguration overrideConfig = config.overrideConfiguration();
-        String userDefinedPrefix = overrideConfig.advancedOption(AdvancedClientOption.USER_AGENT_PREFIX);
-        String userDefinedSuffix = overrideConfig.advancedOption(AdvancedClientOption.USER_AGENT_SUFFIX);
-        String awsExecutionEnvironment = AwsSystemSetting.AWS_EXECUTION_ENV.getStringValue().orElse(null);
+        String userDefinedPrefix = overrideConfig.advancedOption(SdkAdvancedClientOption.USER_AGENT_PREFIX);
+        String userDefinedSuffix = overrideConfig.advancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX);
+
+        String awsExecutionEnvironment = SdkSystemSetting.AWS_EXECUTION_ENV.getStringValue().orElse(null);
 
         StringBuilder userAgent = new StringBuilder(StringUtils.trimToEmpty(userDefinedPrefix));
 

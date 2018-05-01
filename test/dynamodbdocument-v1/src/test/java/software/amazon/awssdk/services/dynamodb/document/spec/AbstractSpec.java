@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.document.spec;
 
-import software.amazon.awssdk.core.AwsRequest;
+import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.dynamodb.document.internal.InternalUtils;
 
 /**

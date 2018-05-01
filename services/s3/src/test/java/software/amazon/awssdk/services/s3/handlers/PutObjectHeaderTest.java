@@ -32,9 +32,9 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.util.Mimetypes;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -53,9 +53,9 @@ public class PutObjectHeaderTest {
     @Before
     public void setup() {
         s3Client = S3Client.builder()
-                .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
-                .region(Region.US_WEST_2).endpointOverride(URI.create(getEndpoint()))
-                .build();
+                           .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
+                           .region(Region.US_WEST_2).endpointOverride(URI.create(getEndpoint()))
+                           .build();
         putObjectRequest = PutObjectRequest.builder().bucket("test").key("test").build();
     }
 

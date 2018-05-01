@@ -27,7 +27,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.cloudsearch.model.AccessPoliciesStatus;
 import software.amazon.awssdk.services.cloudsearch.model.AnalysisScheme;
 import software.amazon.awssdk.services.cloudsearch.model.AnalysisSchemeLanguage;

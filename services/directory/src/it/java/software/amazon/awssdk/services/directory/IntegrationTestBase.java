@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.directory;
 
 import org.junit.BeforeClass;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.EC2Client;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
