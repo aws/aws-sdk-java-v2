@@ -42,7 +42,9 @@ import software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants;
 import software.amazon.awssdk.core.retry.FixedTimeBackoffStrategy;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.internal.ApacheHttpClientFactory;
 import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
+import software.amazon.awssdk.http.apache.internal.impl.ApacheSdkHttpClientConfig;
 import utils.HttpTestUtils;
 
 public class UnresponsiveServerIntegrationTests extends UnresponsiveMockServerTestBase {
@@ -129,10 +131,13 @@ public class UnresponsiveServerIntegrationTests extends UnresponsiveMockServerTe
     }
 
     private SdkHttpClient createClientWithSocketTimeout(Duration socketTimeout) {
-        return ApacheSdkHttpClientFactory.builder()
+        ApacheSdkHttpClientFactory factory = ApacheSdkHttpClientFactory.builder()
+                .apacheHttpClientFactory(new ApacheHttpClientFactory())
+                .build();
+
+        return factory.createHttpClient(ApacheSdkHttpClientConfig.builder()
                                          .socketTimeout(socketTimeout)
-                                         .build()
-                                         .createHttpClient();
+                                         .build());
     }
 
     @Test(timeout = TEST_TIMEOUT)

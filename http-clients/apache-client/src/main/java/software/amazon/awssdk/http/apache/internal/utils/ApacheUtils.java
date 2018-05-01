@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.apache.internal.utils;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -32,7 +33,6 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import software.amazon.awssdk.http.apache.ProxyConfiguration;
 
 public final class ApacheUtils {
-
     private ApacheUtils() {
     }
 
