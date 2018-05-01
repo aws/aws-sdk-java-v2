@@ -22,7 +22,7 @@ import java.util.UUID;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.services.efs.model.CreateFileSystemRequest;
 import software.amazon.awssdk.services.efs.model.DeleteFileSystemRequest;

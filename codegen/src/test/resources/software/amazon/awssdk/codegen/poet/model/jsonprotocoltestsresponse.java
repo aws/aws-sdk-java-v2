@@ -1,7 +1,7 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.AwsResponse;
+import software.amazon.awssdk.awscore.AwsResponse;
 
 @Generated("software.amazon.awssdk:codegen")
 public abstract class JsonProtocolTestsResponse extends AwsResponse {

@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.s3;
 
 import org.junit.BeforeClass;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.BucketLocationConstraint;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;

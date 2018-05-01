@@ -19,11 +19,11 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.AwsResponse;
 
 public class AwsServiceBaseResponseSpec implements ClassSpec {
     private final IntermediateModel intermediateModel;

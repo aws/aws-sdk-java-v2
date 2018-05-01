@@ -24,10 +24,10 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.client.builder.ClientBuilder;
 
 
 public class BaseClientBuilderInterface implements ClassSpec {
@@ -46,7 +46,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
         TypeSpec.Builder builder = PoetUtils.createInterfaceBuilder(builderInterfaceName)
                         .addTypeVariable(PoetUtils.createBoundedTypeVariableName("B", builderInterfaceName, "B", "C"))
                         .addTypeVariable(TypeVariableName.get("C"))
-                        .addSuperinterface(PoetUtils.createParameterizedTypeName(ClientBuilder.class, "B", "C"))
+                        .addSuperinterface(PoetUtils.createParameterizedTypeName(AwsClientBuilder.class, "B", "C"))
                         .addJavadoc(getJavadoc());
 
         if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {

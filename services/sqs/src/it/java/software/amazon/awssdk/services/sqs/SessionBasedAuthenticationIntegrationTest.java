@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.sqs;
 
 import org.junit.Test;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.model.DeleteQueueRequest;
 import software.amazon.awssdk.services.sts.STSClient;
 import software.amazon.awssdk.services.sts.auth.StsGetSessionTokenCredentialsProvider;

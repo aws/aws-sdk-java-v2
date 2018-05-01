@@ -33,9 +33,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.TestPreConditions;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.config.MutableClientConfiguration;
+import software.amazon.awssdk.core.config.SdkMutableClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.http.AmazonHttpClient;
+import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.http.UnresponsiveMockServerTestBase;
 import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants;
@@ -52,7 +52,7 @@ public class UnresponsiveServerIntegrationTests extends UnresponsiveMockServerTe
     private static final Duration SHORTER_SOCKET_TIMEOUT =
             Duration.ofMillis(CLIENT_EXECUTION_TIMEOUT.toMillis() / PRECISION_MULTIPLIER);
 
-    private AmazonHttpClient httpClient;
+    private AmazonSyncHttpClient httpClient;
 
     @BeforeClass
     public static void preConditions() {
@@ -94,11 +94,11 @@ public class UnresponsiveServerIntegrationTests extends UnresponsiveMockServerTe
                                            .retryPolicy(retryPolicy)
                                            .build();
 
-        MutableClientConfiguration clientConfig = new MutableClientConfiguration()
+        SdkMutableClientConfiguration clientConfig = new SdkMutableClientConfiguration()
                 .httpClient(HttpTestUtils.testSdkHttpClient())
                 .overrideConfiguration(overrideConfiguration);
 
-        httpClient = new AmazonHttpClient(clientConfig);
+        httpClient = new AmazonSyncHttpClient(clientConfig);
 
         // We make sure the first connection has failed due to the socket timeout before
         // interrupting so we know that we are sleeping per the backoff strategy. Apache HTTP

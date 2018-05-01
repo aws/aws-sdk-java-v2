@@ -27,7 +27,7 @@ import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.server.MockServer;
 import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
-import software.amazon.awssdk.core.internal.http.response.EmptyAWSResponseHandler;
+import software.amazon.awssdk.core.internal.http.response.EmptySdkResponseHandler;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
 import utils.HttpTestUtils;
@@ -54,32 +54,32 @@ public class ConnectionPoolMaxConnectionsIntegrationTest {
 
         String localhostEndpoint = "http://localhost:" + server.getPort();
 
-        AmazonHttpClient httpClient = HttpTestUtils.testClientBuilder()
-                                                   .clientExecutionTimeout(null)
-                                                   .retryPolicy(RetryPolicy.NONE)
-                                                   .httpClient(ApacheSdkHttpClientFactory.builder()
+        AmazonSyncHttpClient httpClient = HttpTestUtils.testClientBuilder()
+                                                       .clientExecutionTimeout(null)
+                                                       .retryPolicy(RetryPolicy.NONE)
+                                                       .httpClient(ApacheSdkHttpClientFactory.builder()
                                                                                          .connectionTimeout(
                                                                                                  Duration.ofMillis(100))
                                                                                          .maxConnections(1)
                                                                                          .build()
                                                                                          .createHttpClient())
-                                                   .build();
+                                                       .build();
 
         Request<?> request = new EmptyHttpRequest(localhostEndpoint, HttpMethodName.GET);
 
         // Block the first connection in the pool with this request.
         httpClient.requestExecutionBuilder()
                   .request(request)
-                  .originalRequest(NoopTestAwsRequest.builder().build())
+                  .originalRequest(NoopTestRequest.builder().build())
                   .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
-                  .execute(new EmptyAWSResponseHandler());
+                  .execute(new EmptySdkResponseHandler());
 
         try {
             // A new connection will be leased here which would fail in
             // ConnectionPoolTimeoutException.
             httpClient.requestExecutionBuilder()
                       .request(request)
-                      .originalRequest(NoopTestAwsRequest.builder().build())
+                      .originalRequest(NoopTestRequest.builder().build())
                       .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
                       .execute();
             Assert.fail("Connection pool timeout exception is expected!");

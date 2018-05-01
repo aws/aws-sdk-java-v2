@@ -34,8 +34,8 @@ import org.mockito.MockitoAnnotations;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.JsonErrorCodeParser;
 import software.amazon.awssdk.core.runtime.http.JsonErrorMessageParser;
 import software.amazon.awssdk.core.runtime.transform.JsonErrorUnmarshaller;
@@ -100,7 +100,7 @@ public class JsonErrorResponseHandlerTest {
         httpResponse.setContent(null);
 
         ExecutionAttributes attributes =
-                new ExecutionAttributes().putAttribute(AwsExecutionAttributes.SERVICE_NAME, SERVICE_NAME);
+                new ExecutionAttributes().putAttribute(SdkExecutionAttributes.SERVICE_NAME, SERVICE_NAME);
         SdkServiceException exception = responseHandler.handle(httpResponse, attributes);
 
         // We assert these common properties are set again to make sure that code path is exercised
@@ -151,7 +151,7 @@ public class JsonErrorResponseHandlerTest {
                 .thenReturn(new CustomException("error"));
 
         ExecutionAttributes attributes =
-                new ExecutionAttributes().putAttribute(AwsExecutionAttributes.SERVICE_NAME, SERVICE_NAME);
+                new ExecutionAttributes().putAttribute(SdkExecutionAttributes.SERVICE_NAME, SERVICE_NAME);
         SdkServiceException exception = responseHandler.handle(httpResponse, attributes);
 
         assertEquals(ERROR_CODE, exception.errorCode());

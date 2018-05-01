@@ -22,47 +22,38 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.config.AsyncClientConfiguration;
-import software.amazon.awssdk.core.internal.http.response.AwsErrorResponseHandler;
+import software.amazon.awssdk.core.config.SdkAsyncClientConfiguration;
 
 /**
  * Client handler for SDK clients.
  */
 @ThreadSafe
 @Immutable
-public class SdkAsyncClientHandler extends AsyncClientHandler {
+public class SdkAsyncClientHandler extends BaseClientHandler implements AsyncClientHandler {
 
     private final AsyncClientHandler delegateHandler;
 
-    public SdkAsyncClientHandler(AsyncClientConfiguration asyncClientConfiguration,
+    public SdkAsyncClientHandler(SdkAsyncClientConfiguration asyncClientConfiguration,
                                  ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
         super(asyncClientConfiguration, serviceAdvancedConfiguration);
-        this.delegateHandler = new AsyncClientHandlerImpl(asyncClientConfiguration, serviceAdvancedConfiguration);
+        this.delegateHandler = new SdkAsyncClientHandlerImpl(asyncClientConfiguration, serviceAdvancedConfiguration);
     }
 
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<OutputT> execute(
             ClientExecutionParams<InputT, OutputT> executionParams) {
-        return delegateHandler.execute(addRequestConfig(executionParams));
+        return delegateHandler.execute(addErrorResponseHandler(executionParams));
     }
 
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> CompletableFuture<ReturnT> execute(
             ClientExecutionParams<InputT, OutputT> executionParams,
             AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer) {
-        return delegateHandler.execute(addRequestConfig(executionParams), asyncResponseTransformer);
+        return delegateHandler.execute(addErrorResponseHandler(executionParams), asyncResponseTransformer);
     }
 
     @Override
     public void close() {
         delegateHandler.close();
     }
-
-    private <InputT extends SdkRequest, OutputT> ClientExecutionParams<InputT, OutputT> addRequestConfig(
-            ClientExecutionParams<InputT, OutputT> params) {
-        return params.withErrorResponseHandler(
-                             // TODO this is a hack to get the build working. Also doesn't deal with AwsResponseHandlerAdapter
-                             new AwsErrorResponseHandler(params.getErrorResponseHandler()));
-    }
-
 }

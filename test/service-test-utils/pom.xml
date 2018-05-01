@@ -43,7 +43,7 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>auth</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
