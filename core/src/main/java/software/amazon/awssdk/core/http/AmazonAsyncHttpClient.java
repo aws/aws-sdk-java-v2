@@ -19,11 +19,12 @@ import static software.amazon.awssdk.core.http.pipeline.RequestPipelineBuilder.a
 
 import java.util.concurrent.CompletableFuture;
 
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.config.AsyncClientConfiguration;
+import software.amazon.awssdk.core.config.SdkAsyncClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.pipeline.RequestPipelineBuilder;
@@ -51,10 +52,11 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @ThreadSafe
 @SdkInternalApi
+@ReviewBeforeRelease("come up with better name")
 public class AmazonAsyncHttpClient implements SdkAutoCloseable {
     private final HttpAsyncClientDependencies httpClientDependencies;
 
-    public AmazonAsyncHttpClient(AsyncClientConfiguration configuration) {
+    public AmazonAsyncHttpClient(SdkAsyncClientConfiguration configuration) {
         this.httpClientDependencies = HttpAsyncClientDependencies.builder()
                                                                  .clientExecutionTimer(new ClientExecutionTimer())
                                                                  .asyncClientConfiguration(configuration)
@@ -92,7 +94,7 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
     public interface RequestExecutionBuilder {
 
         /**
-         * Fluent setter for {@link Request}
+         * Fluent setter for {@link SdkHttpRequestProvider}
          *
          * @param requestProvider Request provider object
          * @return This builder for method chaining.
@@ -100,7 +102,7 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
         RequestExecutionBuilder requestProvider(SdkHttpRequestProvider requestProvider);
 
         /**
-         * Fluent setter for {@link Request}
+         * Fluent setter for {@link SdkHttpFullRequest}
          *
          * @param request Request object
          * @return This builder for method chaining.
@@ -125,9 +127,9 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
         RequestExecutionBuilder executionContext(ExecutionContext executionContext);
 
         /**
-         * Fluent setter for {@link RequestConfig}
+         * Fluent setter for {@link SdkRequest}
          *
-         * @param requestConfig Request config object
+         * @param originalRequest Request object
          * @return This builder for method chaining.
          */
         RequestExecutionBuilder originalRequest(SdkRequest originalRequest);

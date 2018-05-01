@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
@@ -43,8 +44,7 @@ import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.auth.DefaultCredentialsProvider;
-import software.amazon.awssdk.core.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public class AsyncClientInterface implements ClassSpec {

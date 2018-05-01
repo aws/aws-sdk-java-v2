@@ -19,7 +19,7 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 
 import org.junit.AfterClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketLocationRequest;
 

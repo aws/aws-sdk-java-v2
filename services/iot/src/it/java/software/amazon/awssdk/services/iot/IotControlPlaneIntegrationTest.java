@@ -22,7 +22,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iot.model.AttributePayload;
 import software.amazon.awssdk.services.iot.model.CertificateStatus;
 import software.amazon.awssdk.services.iot.model.CreateCertificateFromCsrRequest;

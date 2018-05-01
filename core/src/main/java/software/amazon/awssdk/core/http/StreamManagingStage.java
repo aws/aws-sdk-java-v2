@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.http;
 
-import static software.amazon.awssdk.core.http.AmazonHttpClient.unreliableTestConfig;
+import static software.amazon.awssdk.core.http.AmazonSyncHttpClient.unreliableTestConfig;
 import static software.amazon.awssdk.utils.IoUtils.closeQuietly;
 
 import java.io.FileInputStream;

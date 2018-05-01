@@ -28,9 +28,9 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.glacier.model.ListVaultsRequest;
 
 /**
