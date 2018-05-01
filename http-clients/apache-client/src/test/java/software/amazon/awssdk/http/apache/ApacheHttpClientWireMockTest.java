@@ -17,10 +17,18 @@ package software.amazon.awssdk.http.apache;
 
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientTestSuite;
+import software.amazon.awssdk.http.apache.internal.ApacheHttpClientFactory;
+import software.amazon.awssdk.http.apache.internal.impl.ApacheSdkHttpClientConfig;
+
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS;
 
 public class ApacheHttpClientWireMockTest extends SdkHttpClientTestSuite {
     @Override
     protected SdkHttpClient createSdkHttpClient(SdkHttpClientOptions options) {
-        return ApacheSdkHttpClientFactory.builder().build().createHttpClient();
+        return ApacheSdkHttpClientFactory.builder()
+                .apacheHttpClientFactory(new ApacheHttpClientFactory())
+                .defaultConfig(ApacheSdkHttpClientConfig.builder(GLOBAL_HTTP_DEFAULTS).build())
+                .build()
+                .createHttpClient();
     }
 }

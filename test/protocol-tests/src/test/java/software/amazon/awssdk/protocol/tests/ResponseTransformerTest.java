@@ -43,6 +43,8 @@ import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.SdkHttpClientFactory;
 import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
+import software.amazon.awssdk.http.apache.internal.ApacheHttpClientFactory;
+import software.amazon.awssdk.http.apache.internal.impl.ApacheSdkHttpClientConfig;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
@@ -124,8 +126,11 @@ public class ResponseTransformerTest {
     }
 
     private ProtocolRestJsonClient testClient() {
+
         SdkHttpClientFactory httpClientFactory = ApacheSdkHttpClientFactory.builder()
-                                                                           .socketTimeout(Duration.ofSeconds(1))
+                                                                           .apacheHttpClientFactory(new ApacheHttpClientFactory())
+                                                                           .defaultConfig(ApacheSdkHttpClientConfig.builder()
+                                                                                                                   .socketTimeout(Duration.ofSeconds(1)).build())
                                                                            .build();
 
         ClientHttpConfiguration httpConfig = ClientHttpConfiguration.builder()
