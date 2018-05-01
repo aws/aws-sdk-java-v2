@@ -20,9 +20,9 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.awsauth.credentials.AwsCredentials;
+import software.amazon.awssdk.awsauth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awsauth.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 
 @Ignore // FIXME: Setup fails with "region cannot be null"

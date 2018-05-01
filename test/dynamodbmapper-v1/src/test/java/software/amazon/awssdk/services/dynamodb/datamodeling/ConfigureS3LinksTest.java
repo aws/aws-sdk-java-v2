@@ -22,8 +22,8 @@ import static org.junit.Assert.assertSame;
 
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.awsauth.credentials.AwsCredentials;
+import software.amazon.awssdk.awsauth.regions.Region;
 
 public class ConfigureS3LinksTest {
 

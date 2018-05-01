@@ -55,6 +55,8 @@
     <modules>
         <module>services</module>
         <module>aws-sdk-java</module>
+        <module>aws-auth</module>
+        <module>aws-core</module>
         <module>core</module>
         <module>bom</module>
         <module>codegen</module>

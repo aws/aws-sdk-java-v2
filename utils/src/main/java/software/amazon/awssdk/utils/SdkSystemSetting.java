@@ -25,19 +25,38 @@ public enum SdkSystemSetting implements SystemSetting {
      * when there are multiple implementations on the classpath or as a performance optimization
      * since implementation discovery requires classpath scanning.
      */
-    SYNC_HTTP_SERVICE_IMPL("software.amazon.awssdk.http.service.impl"),
+    SYNC_HTTP_SERVICE_IMPL("software.amazon.awssdk.http.service.impl", null),
 
     /**
      * Explicitly identify the default Async HTTP implementation the SDK will use. Useful
      * when there are multiple implementations on the classpath or as a performance optimization
      * since implementation discovery requires classpath scanning.
      */
-    ASYNC_HTTP_SERVICE_IMPL("software.amazon.awssdk.http.async.service.impl");
+    ASYNC_HTTP_SERVICE_IMPL("software.amazon.awssdk.http.async.service.impl", null),
+
+    /**
+     * Whether CBOR optimization should automatically be used if its support is found on the classpath and the service supports
+     * CBOR-formatted JSON.
+     */
+    CBOR_ENABLED("aws.cborEnabled", "true"),
+
+    /**
+     * Whether binary ION representation optimization should automatically be used if the service supports ION.
+     */
+    BINARY_ION_ENABLED("aws.binaryIonEnabled", "true"),
+
+    /**
+     * The execution environment of the SDK user. This is automatically set in certain environments by the underlying AWS service.
+     * For example, AWS Lambda will automatically specify a runtime indicating that the SDK is being used within Lambda.
+     */
+    AWS_EXECUTION_ENV("aws.executionEnvironment", null);
 
     private final String systemProperty;
+    private final String defaultValue;
 
-    SdkSystemSetting(String systemProperty) {
+    SdkSystemSetting(String systemProperty, String defaultValue) {
         this.systemProperty = systemProperty;
+        this.defaultValue = defaultValue;
     }
 
     @Override
@@ -52,6 +71,6 @@ public enum SdkSystemSetting implements SystemSetting {
 
     @Override
     public String defaultValue() {
-        return null;
+        return defaultValue;
     }
 }

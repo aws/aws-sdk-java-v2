@@ -15,56 +15,49 @@
 
 package software.amazon.awssdk.core.client;
 
-import software.amazon.awssdk.core.AwsRequestOverrideConfig;
+import software.amazon.awssdk.core.RequestOverrideConfig;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfig;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
-import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.core.config.AdvancedClientOption;
-import software.amazon.awssdk.core.config.ClientConfiguration;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.config.InternalAdvancedClientOption;
+import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.utils.Validate;
 
-abstract class BaseClientHandler {
-    private final ClientConfiguration clientConfiguration;
+public abstract class BaseClientHandler {
+    private SdkClientConfiguration clientConfiguration;
     private final ServiceAdvancedConfiguration serviceAdvancedConfiguration;
 
-    BaseClientHandler(ClientConfiguration clientConfiguration,
-                      ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
+    protected BaseClientHandler(SdkClientConfiguration clientConfiguration,
+                                ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
         this.clientConfiguration = clientConfiguration;
         this.serviceAdvancedConfiguration = serviceAdvancedConfiguration;
     }
 
-    ExecutionContext createExecutionContext(SdkRequest originalRequest) {
-        AwsCredentialsProvider credentialsProvider = originalRequest.requestOverrideConfig()
-                .filter(c -> c instanceof AwsRequestOverrideConfig)
-                .map(c -> (AwsRequestOverrideConfig) c)
-                .flatMap(AwsRequestOverrideConfig::credentialsProvider)
-                .orElse(clientConfiguration.credentialsProvider());
+    protected ExecutionContext createExecutionContext(SdkRequest originalRequest) {
 
         ClientOverrideConfiguration overrideConfiguration = clientConfiguration.overrideConfiguration();
 
-        AwsCredentials credentials = credentialsProvider.getCredentials();
-
-        Validate.validState(credentials != null, "Credential providers must never return null.");
-
         ExecutionAttributes executionAttributes = new ExecutionAttributes()
-                .putAttribute(AwsExecutionAttributes.SERVICE_ADVANCED_CONFIG, serviceAdvancedConfiguration)
-                .putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, credentials)
-                .putAttribute(AwsExecutionAttributes.REQUEST_CONFIG, originalRequest.requestOverrideConfig()
-                        .map(c -> (SdkRequestOverrideConfig) c)
-                        .orElse(AwsRequestOverrideConfig.builder().build()))
-                .putAttribute(AwsExecutionAttributes.AWS_REGION,
-                              overrideConfiguration.advancedOption(AdvancedClientOption.AWS_REGION));
+            .putAttribute(SdkExecutionAttributes.REQUEST_CONFIG, originalRequest.requestOverrideConfig()
+                                                                                .filter(c -> c instanceof
+                                                                                    SdkRequestOverrideConfig)
+                                                                                .map(c -> (RequestOverrideConfig) c)
+                                                                                .orElse(SdkRequestOverrideConfig.builder()
+                                                                                                                .build()))
+            .putAttribute(SdkExecutionAttributes.SERVICE_ADVANCED_CONFIG, serviceAdvancedConfiguration)
+            .putAttribute(SdkExecutionAttributes.REQUEST_CONFIG, originalRequest.requestOverrideConfig()
+                                                                                .map(c -> (SdkRequestOverrideConfig) c)
+                                                                                .orElse(SdkRequestOverrideConfig.builder()
+                                                                                                                .build()));
 
         return ExecutionContext.builder()
                                .interceptorChain(new ExecutionInterceptorChain(overrideConfiguration.lastExecutionInterceptors()))
@@ -72,7 +65,7 @@ abstract class BaseClientHandler {
                                                                      .request(originalRequest)
                                                                      .build())
                                .executionAttributes(executionAttributes)
-                               .signerProvider(overrideConfiguration.advancedOption(AdvancedClientOption.SIGNER_PROVIDER))
+                               .signerProvider(overrideConfiguration.advancedOption(SdkAdvancedClientOption.SIGNER_PROVIDER))
                                .build();
     }
 
@@ -83,8 +76,8 @@ abstract class BaseClientHandler {
 
     protected <T> T runModifyRequestInterceptors(ExecutionContext executionContext) {
         InterceptorContext interceptorContext =
-                executionContext.interceptorChain().modifyRequest(executionContext.interceptorContext(),
-                                                                  executionContext.executionAttributes());
+            executionContext.interceptorChain().modifyRequest(executionContext.interceptorContext(),
+                                                              executionContext.executionAttributes());
         executionContext.interceptorContext(interceptorContext);
         return (T) interceptorContext.request();
     }
@@ -106,8 +99,8 @@ abstract class BaseClientHandler {
 
     protected SdkHttpFullRequest runModifyHttpRequestInterceptors(ExecutionContext executionContext) {
         InterceptorContext interceptorContext =
-                executionContext.interceptorChain().modifyHttpRequest(executionContext.interceptorContext(),
-                                                                      executionContext.executionAttributes());
+            executionContext.interceptorChain().modifyHttpRequest(executionContext.interceptorContext(),
+                                                                  executionContext.executionAttributes());
         executionContext.interceptorContext(interceptorContext);
         return interceptorContext.httpRequest();
     }
@@ -116,7 +109,7 @@ abstract class BaseClientHandler {
                                                                                            ExecutionContext context) {
         // Update interceptor context to include response
         InterceptorContext interceptorContext =
-                context.interceptorContext().copy(b -> b.response(response));
+            context.interceptorContext().copy(b -> b.response(response));
 
         context.interceptorChain().afterUnmarshalling(interceptorContext, context.executionAttributes());
 
@@ -128,9 +121,15 @@ abstract class BaseClientHandler {
         return (OutputT) interceptorContext.response();
     }
 
-    protected static <OutputT extends SdkResponse>
-        HttpResponseHandler<OutputT> interceptorCalling(HttpResponseHandler<OutputT> delegate, ExecutionContext context) {
+    protected static <OutputT extends SdkResponse> HttpResponseHandler<OutputT> interceptorCalling(
+        HttpResponseHandler<OutputT> delegate, ExecutionContext context) {
         return (response, executionAttributes) ->
-                runAfterUnmarshallingInterceptors(delegate.handle(response, executionAttributes), context);
+            runAfterUnmarshallingInterceptors(delegate.handle(response, executionAttributes), context);
+    }
+
+
+    protected boolean isCalculateCrc32FromCompressedData() {
+        return clientConfiguration.overrideConfiguration()
+                                  .advancedOption(InternalAdvancedClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED);
     }
 }

@@ -16,13 +16,13 @@
 package software.amazon.awssdk.services.json;
 
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.client.builder.AsyncClientBuilder;
+import software.amazon.awssdk.awscore.client.builder.AwsAsyncClientBuilder;
 
 /**
  * A builder for creating an instance of {@link JsonAsyncClient}. This can be created with the static
  * {@link JsonAsyncClient#builder()} method.
  */
 @Generated("software.amazon.awssdk:codegen")
-public interface JsonAsyncClientBuilder extends AsyncClientBuilder<JsonAsyncClientBuilder, JsonAsyncClient>,
+public interface JsonAsyncClientBuilder extends AwsAsyncClientBuilder<JsonAsyncClientBuilder, JsonAsyncClient>,
                                                 JsonBaseClientBuilder<JsonAsyncClientBuilder, JsonAsyncClient> {
 }

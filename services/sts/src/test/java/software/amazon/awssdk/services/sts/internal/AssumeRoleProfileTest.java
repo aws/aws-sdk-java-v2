@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.sts.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
-import software.amazon.awssdk.auth.profile.ProfileFile;
+import software.amazon.awssdk.awsauth.credentials.profile.ProfileFile;
 import software.amazon.awssdk.core.util.StringInputStream;
 import software.amazon.awssdk.services.sts.AssumeRoleIntegrationTest;
 import software.amazon.awssdk.utils.SdkAutoCloseable;

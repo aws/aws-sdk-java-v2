@@ -13,7 +13,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.AwsRequestOverrideConfig;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfig;
 import software.amazon.awssdk.core.runtime.StandardMemberCopier;
 import software.amazon.awssdk.core.runtime.TypeConverter;
 import software.amazon.awssdk.core.runtime.adapters.types.StringToByteBufferAdapter;

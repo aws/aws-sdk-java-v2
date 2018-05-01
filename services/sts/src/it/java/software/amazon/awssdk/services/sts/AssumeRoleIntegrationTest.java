@@ -18,15 +18,13 @@ package software.amazon.awssdk.services.sts;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.auth.profile.ProfileFile;
-import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.awsauth.credentials.AwsCredentials;
+import software.amazon.awssdk.awsauth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awsauth.credentials.profile.ProfileFile;
 import software.amazon.awssdk.core.auth.policy.Action;
 import software.amazon.awssdk.core.auth.policy.Policy;
 import software.amazon.awssdk.core.auth.policy.Principal;

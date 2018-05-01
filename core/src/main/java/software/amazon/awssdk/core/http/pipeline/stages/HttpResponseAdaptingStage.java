@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.http.pipeline.stages;
 
 import static software.amazon.awssdk.core.config.InternalAdvancedClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
 
+import java.util.Optional;
 import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.http.HttpClientDependencies;
 import software.amazon.awssdk.core.http.HttpResponse;
@@ -35,9 +36,12 @@ public class HttpResponseAdaptingStage
     private final boolean calculateCrc32FromCompressedData;
 
     public HttpResponseAdaptingStage(HttpClientDependencies dependencies) {
-        this.calculateCrc32FromCompressedData = dependencies.clientConfiguration()
-                                                            .overrideConfiguration()
-                                                            .advancedOption(CRC32_FROM_COMPRESSED_DATA_ENABLED);
+
+        //TODO: move CRC32_FROM_COMPRESSED_DATA_ENABLED to aws-core once this stage gets removed
+        this.calculateCrc32FromCompressedData = Optional.ofNullable(
+            dependencies.clientConfiguration()
+                        .overrideConfiguration()
+                        .advancedOption(CRC32_FROM_COMPRESSED_DATA_ENABLED)).orElse(false);
     }
 
     @Override

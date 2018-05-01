@@ -68,7 +68,7 @@ public final class ClientHttpConfiguration
      * resolution of the client. Returns an empty {@link Optional} if neither is set.
      */
     @SdkInternalApi
-    Optional<Either<SdkHttpClient, SdkHttpClientFactory>> toEither() {
+    public Optional<Either<SdkHttpClient, SdkHttpClientFactory>> toEither() {
         return Either.fromNullable(httpClient, httpClientFactory);
     }
 

@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.http.AmazonHttpClient;
+import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.response.NullResponseHandler;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -59,10 +59,10 @@ public class MockedClientTests {
 
     @Test
     public void clientExecutionTimeoutEnabled_RequestCompletesWithinTimeout_TaskCanceled() throws Exception {
-        AmazonHttpClient httpClient = HttpTestUtils.testClientBuilder()
-                                                   .httpClient(sdkHttpClient)
-                                                   .retryPolicy(RetryPolicy.NONE)
-                                                   .build();
+        AmazonSyncHttpClient httpClient = HttpTestUtils.testClientBuilder()
+                                                       .httpClient(sdkHttpClient)
+                                                       .retryPolicy(RetryPolicy.NONE)
+                                                       .build();
 
         try {
             ClientExecutionAndRequestTimerTestUtils

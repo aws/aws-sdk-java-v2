@@ -22,22 +22,22 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.config.AsyncClientConfiguration;
-import software.amazon.awssdk.core.internal.http.response.AwsErrorResponseHandler;
+import software.amazon.awssdk.core.config.SdkAsyncClientConfiguration;
+import software.amazon.awssdk.core.internal.http.response.SdkErrorResponseHandler;
 
 /**
  * Client handler for SDK clients.
  */
 @ThreadSafe
 @Immutable
-public class SdkAsyncClientHandler extends AsyncClientHandler {
+public class SdkAsyncClientHandler extends BaseClientHandler implements AsyncClientHandler {
 
     private final AsyncClientHandler delegateHandler;
 
-    public SdkAsyncClientHandler(AsyncClientConfiguration asyncClientConfiguration,
+    public SdkAsyncClientHandler(SdkAsyncClientConfiguration asyncClientConfiguration,
                                  ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
         super(asyncClientConfiguration, serviceAdvancedConfiguration);
-        this.delegateHandler = new AsyncClientHandlerImpl(asyncClientConfiguration, serviceAdvancedConfiguration);
+        this.delegateHandler = new SdkAsyncClientHandlerImpl(asyncClientConfiguration, serviceAdvancedConfiguration);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class SdkAsyncClientHandler extends AsyncClientHandler {
             ClientExecutionParams<InputT, OutputT> params) {
         return params.withErrorResponseHandler(
                              // TODO this is a hack to get the build working. Also doesn't deal with AwsResponseHandlerAdapter
-                             new AwsErrorResponseHandler(params.getErrorResponseHandler()));
+                             new SdkErrorResponseHandler(params.getErrorResponseHandler()));
     }
 
 }

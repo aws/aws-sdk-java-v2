@@ -19,42 +19,39 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.AwsRequest;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
-import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.core.config.SyncClientConfiguration;
+import software.amazon.awssdk.core.config.SdkSyncClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.http.AmazonHttpClient;
+import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
-import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
- * Default implementation of {@link ClientHandler}.
+ * Default implementation of {@link SyncClientHandler}.
  */
 @Immutable
 @ThreadSafe
 @SdkProtectedApi
-@ReviewBeforeRelease("AWS-specific behavior should be broken out?")
-public class SyncClientHandlerImpl extends ClientHandler {
-    private final SyncClientConfiguration syncClientConfiguration;
-    private final AmazonHttpClient client;
+@ReviewBeforeRelease("merge AWS/SDK duplicated code to parent class")
+public class SyncClientHandlerImpl extends BaseClientHandler implements SyncClientHandler {
+    private final SdkSyncClientConfiguration syncClientConfiguration;
+    private final AmazonSyncHttpClient client;
 
     @ReviewBeforeRelease("Should this be migrated to use a builder, particularly because it crosses module boundaries?")
-    public SyncClientHandlerImpl(SyncClientConfiguration syncClientConfiguration,
+    public SyncClientHandlerImpl(SdkSyncClientConfiguration syncClientConfiguration,
                                  ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
         super(syncClientConfiguration, serviceAdvancedConfiguration);
         this.syncClientConfiguration = syncClientConfiguration;
-        this.client = new AmazonHttpClient(syncClientConfiguration);
+        this.client = new AmazonSyncHttpClient(syncClientConfiguration);
     }
 
     @Override
@@ -89,8 +86,6 @@ public class SyncClientHandlerImpl extends ClientHandler {
         request.setEndpoint(syncClientConfiguration.endpoint());
 
         // TODO: Can any of this be merged into the parent class? There's a lot of duplication here.
-        executionContext.executionAttributes().putAttribute(AwsExecutionAttributes.SERVICE_NAME,
-                                                            request.getServiceName());
 
         SdkHttpFullRequest marshalled = SdkHttpFullRequestAdapter.toHttpFullRequest(request);
         addHttpRequest(executionContext, marshalled);
@@ -110,33 +105,10 @@ public class SyncClientHandlerImpl extends ClientHandler {
     }
 
     /**
-     * Normal invoke with authentication. Credentials are required and may be overriden at the
-     * request level.
-     **/
-    private <InputT extends SdkRequest, OutputT> OutputT invoke(SdkHttpFullRequest request,
-                                     InputT originalRequest,
-                                     ExecutionContext executionContext,
-                                     HttpResponseHandler<OutputT> responseHandler,
-                                     HttpResponseHandler<? extends SdkException> errorResponseHandler) {
-
-        if (originalRequest instanceof AwsRequest) {
-            AwsCredentialsProvider provider = ((AwsRequest) originalRequest).requestOverrideConfig()
-                    .flatMap(c -> c.credentialsProvider())
-                    .orElseGet(syncClientConfiguration::credentialsProvider);
-            executionContext.setCredentialsProvider(provider);
-        } else {
-            executionContext.setCredentialsProvider(syncClientConfiguration.credentialsProvider());
-        }
-
-        return doInvoke(request, originalRequest, executionContext, responseHandler,
-                        errorResponseHandler);
-    }
-
-    /**
      * Invoke the request using the http client. Assumes credentials (or lack thereof) have been
      * configured in the OldExecutionContext beforehand.
      **/
-    private <OutputT> OutputT doInvoke(SdkHttpFullRequest request,
+    private <OutputT> OutputT invoke(SdkHttpFullRequest request,
                                        SdkRequest originalRequest,
                                        ExecutionContext executionContext,
                                        HttpResponseHandler<OutputT> responseHandler,

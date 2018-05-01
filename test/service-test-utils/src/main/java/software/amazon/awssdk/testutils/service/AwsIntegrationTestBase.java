@@ -17,13 +17,13 @@ package software.amazon.awssdk.testutils.service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.core.auth.AwsCredentialsProviderChain;
-import software.amazon.awssdk.core.auth.EnvironmentVariableCredentialsProvider;
-import software.amazon.awssdk.core.auth.ProfileCredentialsProvider;
-import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.core.auth.SystemPropertyCredentialsProvider;
+import software.amazon.awssdk.awsauth.credentials.AwsCredentials;
+import software.amazon.awssdk.awsauth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.awsauth.credentials.AwsCredentialsProviderChain;
+import software.amazon.awssdk.awsauth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.awsauth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.awsauth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awsauth.credentials.SystemPropertyCredentialsProvider;
 import software.amazon.awssdk.utils.IoUtils;
 
 public abstract class AwsIntegrationTestBase {
