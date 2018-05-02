@@ -21,6 +21,7 @@ import software.amazon.awssdk.awscore.config.AwsSyncClientConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.client.BaseClientHandler;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
 import software.amazon.awssdk.core.client.SyncClientHandler;
 import software.amazon.awssdk.core.internal.http.response.SdkErrorResponseHandler;
@@ -31,7 +32,7 @@ import software.amazon.awssdk.core.sync.ResponseTransformer;
  */
 @ThreadSafe
 @Immutable
-public class AwsSyncClientHandler extends BaseAwsClientHandler implements SyncClientHandler {
+public class AwsSyncClientHandler extends BaseClientHandler implements SyncClientHandler {
 
     private final SyncClientHandler delegateHandler;
 

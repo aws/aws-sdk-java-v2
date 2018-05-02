@@ -20,21 +20,20 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
-import software.amazon.awssdk.core.config.SdkAsyncClientConfiguration;
-import software.amazon.awssdk.core.http.AmazonAsyncHttpClient;
+import software.amazon.awssdk.core.config.SdkSyncClientConfiguration;
+import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 
 /**
- * Default implementation of {@link AsyncClientHandler}.
+ * Default implementation of {@link SyncClientHandler}.
  */
 @Immutable
 @ThreadSafe
 @SdkProtectedApi
-final class SdkAsyncClientHandlerImpl extends BaseAsyncClientHandler implements AsyncClientHandler {
+final class SdkSyncClientHandlerImpl extends BaseSyncClientHandler {
 
-    @ReviewBeforeRelease("Should this be migrated to use a params object, particularly because it crosses module boundaries?" +
-                         "We might also need to think about how it will work after AWS/SDK are split.")
-    SdkAsyncClientHandlerImpl(SdkAsyncClientConfiguration asyncClientConfiguration,
-                              ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
-        super(asyncClientConfiguration, serviceAdvancedConfiguration, new AmazonAsyncHttpClient(asyncClientConfiguration));
+    @ReviewBeforeRelease("Should this be migrated to use a builder, particularly because it crosses module boundaries?")
+    SdkSyncClientHandlerImpl(SdkSyncClientConfiguration syncClientConfiguration,
+                             ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
+        super(syncClientConfiguration, serviceAdvancedConfiguration, new AmazonSyncHttpClient(syncClientConfiguration));
     }
 }

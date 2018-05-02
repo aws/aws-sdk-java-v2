@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.awscore.client.handler;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awsauth.AwsExecutionAttributes;
 import software.amazon.awssdk.awsauth.credentials.AwsCredentials;
 import software.amazon.awssdk.awsauth.credentials.AwsCredentialsProvider;
@@ -24,7 +25,6 @@ import software.amazon.awssdk.awscore.config.AwsClientConfiguration;
 import software.amazon.awssdk.core.RequestOverrideConfig;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
-import software.amazon.awssdk.core.client.BaseClientHandler;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -32,22 +32,16 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.utils.Validate;
 
-/**
- * Base client handler for AWS clients.
- */
-public abstract class BaseAwsClientHandler extends BaseClientHandler {
+@SdkInternalApi
+class AwsClientHandlerUtils {
 
-    private final AwsClientConfiguration clientConfiguration;
-    private final ServiceAdvancedConfiguration serviceAdvancedConfiguration;
+    private AwsClientHandlerUtils() {
 
-    BaseAwsClientHandler(AwsClientConfiguration clientConfiguration, ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
-        super(clientConfiguration, serviceAdvancedConfiguration);
-        this.clientConfiguration = clientConfiguration;
-        this.serviceAdvancedConfiguration = serviceAdvancedConfiguration;
     }
 
-    @Override
-    protected ExecutionContext createExecutionContext(SdkRequest originalRequest) {
+    static ExecutionContext createExecutionContext(SdkRequest originalRequest,
+                                                   AwsClientConfiguration clientConfiguration,
+                                                   ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
 
         AwsCredentialsProvider credentialsProvider = originalRequest.requestOverrideConfig()
                                                                     .filter(c -> c instanceof AwsRequestOverrideConfig)

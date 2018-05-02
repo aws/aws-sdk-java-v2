@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.client;
 
+import java.util.Optional;
 import software.amazon.awssdk.core.RequestOverrideConfig;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfig;
@@ -69,12 +70,12 @@ public abstract class BaseClientHandler {
                                .build();
     }
 
-    protected void runBeforeExecutionInterceptors(ExecutionContext executionContext) {
+    static void runBeforeExecutionInterceptors(ExecutionContext executionContext) {
         executionContext.interceptorChain().beforeExecution(executionContext.interceptorContext(),
                                                             executionContext.executionAttributes());
     }
 
-    protected <T> T runModifyRequestInterceptors(ExecutionContext executionContext) {
+    static <T> T runModifyRequestInterceptors(ExecutionContext executionContext) {
         InterceptorContext interceptorContext =
             executionContext.interceptorChain().modifyRequest(executionContext.interceptorContext(),
                                                               executionContext.executionAttributes());
@@ -82,22 +83,22 @@ public abstract class BaseClientHandler {
         return (T) interceptorContext.request();
     }
 
-    protected void runBeforeMarshallingInterceptors(ExecutionContext executionContext) {
+    static void runBeforeMarshallingInterceptors(ExecutionContext executionContext) {
         executionContext.interceptorChain().beforeMarshalling(executionContext.interceptorContext(),
                                                               executionContext.executionAttributes());
     }
 
-    protected void addHttpRequest(ExecutionContext executionContext, SdkHttpFullRequest request) {
+    static void addHttpRequest(ExecutionContext executionContext, SdkHttpFullRequest request) {
         InterceptorContext interceptorContext = executionContext.interceptorContext().copy(b -> b.httpRequest(request));
         executionContext.interceptorContext(interceptorContext);
     }
 
-    protected void runAfterMarshallingInterceptors(ExecutionContext executionContext) {
+    static void runAfterMarshallingInterceptors(ExecutionContext executionContext) {
         executionContext.interceptorChain().afterMarshalling(executionContext.interceptorContext(),
                                                              executionContext.executionAttributes());
     }
 
-    protected SdkHttpFullRequest runModifyHttpRequestInterceptors(ExecutionContext executionContext) {
+    static SdkHttpFullRequest runModifyHttpRequestInterceptors(ExecutionContext executionContext) {
         InterceptorContext interceptorContext =
             executionContext.interceptorChain().modifyHttpRequest(executionContext.interceptorContext(),
                                                                   executionContext.executionAttributes());
@@ -121,15 +122,15 @@ public abstract class BaseClientHandler {
         return (OutputT) interceptorContext.response();
     }
 
-    protected static <OutputT extends SdkResponse> HttpResponseHandler<OutputT> interceptorCalling(
+    static <OutputT extends SdkResponse> HttpResponseHandler<OutputT> interceptorCalling(
         HttpResponseHandler<OutputT> delegate, ExecutionContext context) {
         return (response, executionAttributes) ->
             runAfterUnmarshallingInterceptors(delegate.handle(response, executionAttributes), context);
     }
 
-
     protected boolean isCalculateCrc32FromCompressedData() {
-        return clientConfiguration.overrideConfiguration()
-                                  .advancedOption(InternalAdvancedClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED);
+        return Optional.ofNullable(clientConfiguration.overrideConfiguration()
+                                                      .advancedOption(InternalAdvancedClientOption
+                                                                          .CRC32_FROM_COMPRESSED_DATA_ENABLED)).orElse(false);
     }
 }

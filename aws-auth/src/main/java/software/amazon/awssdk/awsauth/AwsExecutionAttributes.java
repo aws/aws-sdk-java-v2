@@ -18,7 +18,6 @@ package software.amazon.awssdk.awsauth;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.awsauth.credentials.AwsCredentials;
 import software.amazon.awssdk.awsauth.regions.Region;
-import software.amazon.awssdk.core.RequestOverrideConfig;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
@@ -40,12 +39,6 @@ public interface AwsExecutionAttributes extends SdkExecutionAttributes {
      * The key under which the request credentials are set.
      */
     ExecutionAttribute<AwsCredentials> AWS_CREDENTIALS = new ExecutionAttribute<>("AwsCredentials");
-
-    /**
-     * The key under which the request config is stored.
-     */
-    @ReviewBeforeRelease("RequestConfig feels pretty internal. Can we just expose parts of it?")
-    ExecutionAttribute<RequestOverrideConfig> REQUEST_CONFIG = new ExecutionAttribute<>("RequestConfig");
 
     /**
      * The AWS {@link Region} the client was configured with.

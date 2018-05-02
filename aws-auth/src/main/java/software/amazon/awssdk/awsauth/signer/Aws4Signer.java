@@ -525,8 +525,7 @@ public class Aws4Signer extends AbstractAwsSigner
             throw new SdkClientException(
                 "Requests that are pre-signed by SigV4 algorithm are valid for at most 7 days. "
                 + "The expiration date set on the current request ["
-                + Aws4SignerUtils.formatTimestamp(expirationDate
-                                                              .getTime()) + "] has exceeded this limit.");
+                + Aws4SignerUtils.formatTimestamp(expirationDate.getTime()) + "] has exceeded this limit.");
         }
         return expirationInSeconds;
     }
@@ -548,7 +547,4 @@ public class Aws4Signer extends AbstractAwsSigner
                                SigningAlgorithm.HmacSHA256);
         return sign(SignerConstants.AWS4_TERMINATOR, kService, SigningAlgorithm.HmacSHA256);
     }
-
-
-
 }

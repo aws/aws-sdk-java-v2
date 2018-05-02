@@ -16,10 +16,11 @@
 package software.amazon.awssdk.awsauth.credentials;
 
 import software.amazon.awssdk.core.SignableRequest;
+import software.amazon.awssdk.core.runtime.auth.Signer;
 
 /**
  * Used to explicitly indicate that a {@link Signer} can gracefully handle
- * credentials being null when calling {@link Signer#sign(SignableRequest, AwsCredentials)}
+ * credentials being null when calling {@link Signer#sign(SignableRequest)}
  */
 public interface CanHandleNullCredentials {
 }

@@ -35,8 +35,7 @@ import software.amazon.awssdk.utils.SystemSetting;
 public enum AwsSystemSetting implements SystemSetting {
     /**
      * Configure the AWS access key ID used in the {@link EnvironmentVariableCredentialsProvider} and
-     * {@link SystemPropertyCredentialsProvider}. This value is checked by the {@link DefaultCredentialsProvider}, which is used
-     * when clients are created with no credential provider specified via
+     * {@link SystemPropertyCredentialsProvider}. This value is checked by the {@link DefaultCredentialsProvider}.
      * .
      *
      * This value will not be ignored if the {@link #AWS_SECRET_ACCESS_KEY} is not specified.
@@ -47,9 +46,7 @@ public enum AwsSystemSetting implements SystemSetting {
 
     /**
      * Configure the AWS secret access key used in the {@link EnvironmentVariableCredentialsProvider} and
-     * {@link SystemPropertyCredentialsProvider}. This value is checked by the {@link DefaultCredentialsProvider}, which is used
-     * when clients are created with no credential provider specified via
-     * .
+     * {@link SystemPropertyCredentialsProvider}. This value is checked by the {@link DefaultCredentialsProvider}.
      *
      * This value will not be ignored if the {@link #AWS_ACCESS_KEY_ID} is not specified.
      *
@@ -59,9 +56,7 @@ public enum AwsSystemSetting implements SystemSetting {
 
     /**
      * Configure the AWS session token used in the {@link EnvironmentVariableCredentialsProvider} and
-     * {@link SystemPropertyCredentialsProvider}. This value is checked by the {@link DefaultCredentialsProvider}, which is used
-     * when clients are created with no credential provider specified via
-     * .
+     * {@link SystemPropertyCredentialsProvider}. This value is checked by the {@link DefaultCredentialsProvider}.
      *
      * This value will not be ignored if the {@link #AWS_ACCESS_KEY_ID} and {@link #AWS_SECRET_ACCESS_KEY} are not specified.
      *
@@ -152,7 +147,7 @@ public enum AwsSystemSetting implements SystemSetting {
     AWS_CONTAINER_CREDENTIALS_FULL_URI("aws.containerCredentialsFullUri", null),
 
     /**
-     * An authorization token to pass to a container metatdata service, only used when {@link #AWS_CONTAINER_CREDENTIALS_FULL_URI}
+     * An authorization token to pass to a container metadata service, only used when {@link #AWS_CONTAINER_CREDENTIALS_FULL_URI}
      * is specified.
      *
      * @see #AWS_CONTAINER_CREDENTIALS_FULL_URI

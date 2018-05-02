@@ -29,7 +29,8 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
  * <p>This class is mutable and not thread safe.</p>
  */
 @SdkInternalApi
-public class SdkMutableClientConfiguration
+@SuppressWarnings("unchecked")
+public class SdkMutableClientConfiguration<T extends SdkMutableClientConfiguration<T>>
     implements SdkSyncClientConfiguration, SdkAsyncClientConfiguration, Cloneable {
 
     // ClientConfiguration
@@ -46,9 +47,9 @@ public class SdkMutableClientConfiguration
         return overrideConfiguration;
     }
 
-    public SdkMutableClientConfiguration overrideConfiguration(ClientOverrideConfiguration overrideConfiguration) {
+    public T overrideConfiguration(ClientOverrideConfiguration overrideConfiguration) {
         this.overrideConfiguration = overrideConfiguration;
-        return this;
+        return (T) this;
     }
 
     @Override
@@ -56,9 +57,9 @@ public class SdkMutableClientConfiguration
         return endpoint;
     }
 
-    public SdkMutableClientConfiguration endpoint(URI endpoint) {
+    public T endpoint(URI endpoint) {
         this.endpoint = endpoint;
-        return this;
+        return (T) this;
     }
 
     @Override
@@ -66,9 +67,9 @@ public class SdkMutableClientConfiguration
         return asyncExecutorService;
     }
 
-    public SdkMutableClientConfiguration asyncExecutorService(ScheduledExecutorService executorService) {
+    public T asyncExecutorService(ScheduledExecutorService executorService) {
         this.asyncExecutorService = executorService;
-        return this;
+        return (T) this;
     }
 
     @Override
@@ -76,9 +77,9 @@ public class SdkMutableClientConfiguration
         return httpClient;
     }
 
-    public SdkMutableClientConfiguration httpClient(SdkHttpClient sdkHttpClient) {
+    public T httpClient(SdkHttpClient sdkHttpClient) {
         this.httpClient = sdkHttpClient;
-        return this;
+        return (T) this;
     }
 
     @Override
@@ -86,9 +87,9 @@ public class SdkMutableClientConfiguration
         return asyncHttpClient;
     }
 
-    public SdkMutableClientConfiguration asyncHttpClient(SdkAsyncHttpClient asyncHttpClient) {
+    public T asyncHttpClient(SdkAsyncHttpClient asyncHttpClient) {
         this.asyncHttpClient = asyncHttpClient;
-        return this;
+        return (T) this;
     }
 
     @Override

@@ -15,15 +15,11 @@
 
 package software.amazon.awssdk.core.client;
 
-import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
-import software.amazon.awssdk.core.config.SdkSyncClientConfiguration;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
@@ -35,57 +31,70 @@ import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
-/**
- * Default implementation of {@link SyncClientHandler}.
- */
-@Immutable
-@ThreadSafe
-@SdkProtectedApi
-@ReviewBeforeRelease("merge AWS/SDK duplicated code to parent class")
-public class SyncClientHandlerImpl extends BaseClientHandler implements SyncClientHandler {
-    private final SdkSyncClientConfiguration syncClientConfiguration;
+public abstract class BaseSyncClientHandler extends BaseClientHandler implements SyncClientHandler {
+    private final SdkClientConfiguration clientConfiguration;
     private final AmazonSyncHttpClient client;
 
-    @ReviewBeforeRelease("Should this be migrated to use a builder, particularly because it crosses module boundaries?")
-    public SyncClientHandlerImpl(SdkSyncClientConfiguration syncClientConfiguration,
-                                 ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
-        super(syncClientConfiguration, serviceAdvancedConfiguration);
-        this.syncClientConfiguration = syncClientConfiguration;
-        this.client = new AmazonSyncHttpClient(syncClientConfiguration);
+    protected BaseSyncClientHandler(SdkClientConfiguration clientConfiguration,
+                                    ServiceAdvancedConfiguration serviceAdvancedConfiguration,
+                                    AmazonSyncHttpClient client) {
+        super(clientConfiguration, serviceAdvancedConfiguration);
+        this.clientConfiguration = clientConfiguration;
+        this.client = client;
     }
 
     @Override
-    public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> ReturnT execute(
-            ClientExecutionParams<InputT, OutputT> executionParams,
-            ResponseTransformer<OutputT, ReturnT> responseTransformer) {
+    public final <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> ReturnT execute(
+        ClientExecutionParams<InputT, OutputT> executionParams,
+        ResponseTransformer<OutputT, ReturnT> responseTransformer) {
         ExecutionContext executionContext = createExecutionContext(executionParams.getInput());
         HttpResponseHandler<OutputT> interceptorCallingResponseHandler =
-                interceptorCalling(executionParams.getResponseHandler(), executionContext);
+            interceptorCalling(executionParams.getResponseHandler(), executionContext);
         HttpResponseHandler<ReturnT> httpResponseHandler =
-                new HttpResponseHandlerAdapter<>(interceptorCallingResponseHandler, responseTransformer);
+            new HttpResponseHandlerAdapter<>(interceptorCallingResponseHandler, responseTransformer);
         return execute(executionParams, executionContext, httpResponseHandler);
     }
 
     @Override
-    public <InputT extends SdkRequest, OutputT extends SdkResponse> OutputT execute(
-            ClientExecutionParams<InputT, OutputT> executionParams) {
+    public final <InputT extends SdkRequest, OutputT extends SdkResponse> OutputT execute(
+        ClientExecutionParams<InputT, OutputT> executionParams) {
         ExecutionContext executionContext = createExecutionContext(executionParams.getInput());
         return execute(executionParams, executionContext, interceptorCalling(executionParams.getResponseHandler(),
                                                                              executionContext));
     }
 
+    @Override
+    public void close() {
+        client.close();
+    }
+
+    /**
+     * Invoke the request using the http client. Assumes credentials (or lack thereof) have been
+     * configured in the OldExecutionContext beforehand.
+     **/
+    protected <OutputT> OutputT invoke(SdkHttpFullRequest request,
+                                       SdkRequest originalRequest,
+                                       ExecutionContext executionContext,
+                                       HttpResponseHandler<OutputT> responseHandler,
+                                       HttpResponseHandler<? extends SdkException> errorResponseHandler) {
+        return client.requestExecutionBuilder()
+                     .request(request)
+                     .originalRequest(originalRequest)
+                     .executionContext(executionContext)
+                     .errorResponseHandler(errorResponseHandler)
+                     .execute(responseHandler);
+    }
+
     private <InputT extends SdkRequest, OutputT, ReturnT> ReturnT execute(
-            ClientExecutionParams<InputT, OutputT> executionParams,
-            ExecutionContext executionContext,
-            HttpResponseHandler<ReturnT> responseHandler) {
+        ClientExecutionParams<InputT, OutputT> executionParams,
+        ExecutionContext executionContext,
+        HttpResponseHandler<ReturnT> responseHandler) {
         runBeforeExecutionInterceptors(executionContext);
         InputT inputT = runModifyRequestInterceptors(executionContext);
 
         runBeforeMarshallingInterceptors(executionContext);
         Request<InputT> request = executionParams.getMarshaller().marshall(inputT);
-        request.setEndpoint(syncClientConfiguration.endpoint());
-
-        // TODO: Can any of this be merged into the parent class? There's a lot of duplication here.
+        request.setEndpoint(clientConfiguration.endpoint());
 
         SdkHttpFullRequest marshalled = SdkHttpFullRequestAdapter.toHttpFullRequest(request);
         addHttpRequest(executionContext, marshalled);
@@ -99,30 +108,8 @@ public class SyncClientHandlerImpl extends BaseClientHandler implements SyncClie
                       executionParams.getErrorResponseHandler());
     }
 
-    @Override
-    public void close() {
-        client.close();
-    }
-
-    /**
-     * Invoke the request using the http client. Assumes credentials (or lack thereof) have been
-     * configured in the OldExecutionContext beforehand.
-     **/
-    private <OutputT> OutputT invoke(SdkHttpFullRequest request,
-                                       SdkRequest originalRequest,
-                                       ExecutionContext executionContext,
-                                       HttpResponseHandler<OutputT> responseHandler,
-                                       HttpResponseHandler<? extends SdkException> errorResponseHandler) {
-        return client.requestExecutionBuilder()
-                     .request(request)
-                     .originalRequest(originalRequest)
-                     .executionContext(executionContext)
-                     .errorResponseHandler(errorResponseHandler)
-                     .execute(responseHandler);
-    }
-
     private static class HttpResponseHandlerAdapter<ReturnT, OutputT extends SdkResponse>
-            implements HttpResponseHandler<ReturnT> {
+        implements HttpResponseHandler<ReturnT> {
 
         private final HttpResponseHandler<OutputT> httpResponseHandler;
         private final ResponseTransformer<OutputT, ReturnT> responseTransformer;

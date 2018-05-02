@@ -49,21 +49,6 @@ public class SdkAdvancedClientOption<T> extends AttributeMap.Key<T> {
     public static final SdkAdvancedClientOption<SignerProvider> SIGNER_PROVIDER = new SdkAdvancedClientOption<>(SignerProvider
                                                                                                                     .class);
 
-    //    /**
-    //     * AWS Region the client was configured with. Note that this is not always the signing region in the case of global
-    //     * services like IAM.
-    //     */
-    //    public static final SdkAdvancedClientOption<Region> AWS_REGION = new SdkAdvancedClientOption<>(Region.class);
-    //
-    //    /**
-    //     * Whether region detection should be enabled. Region detection is used when the {@link ClientBuilder#region(Region)}
-    // is not
-    //     * specified. This is enabled by default.
-    //     */
-    //    @ReviewBeforeRelease("This is AWS-specific and should probably be moved to a separate enum.")
-    //    public static final SdkAdvancedClientOption<Boolean> ENABLE_DEFAULT_REGION_DETECTION =
-    //            new SdkAdvancedClientOption<>(Boolean.class);
-
     protected SdkAdvancedClientOption(Class<T> valueClass) {
         super(valueClass);
     }

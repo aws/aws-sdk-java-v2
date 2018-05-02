@@ -36,7 +36,7 @@ public final class SdkSyncClientHandler extends BaseClientHandler implements Syn
     public SdkSyncClientHandler(SdkSyncClientConfiguration clientConfiguration, ServiceAdvancedConfiguration
         serviceAdvancedConfiguration) {
         super(clientConfiguration, serviceAdvancedConfiguration);
-        this.delegateHandler = new SyncClientHandlerImpl(clientConfiguration, serviceAdvancedConfiguration);
+        this.delegateHandler = new SdkSyncClientHandlerImpl(clientConfiguration, serviceAdvancedConfiguration);
     }
 
     @Override

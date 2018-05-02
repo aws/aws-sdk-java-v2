@@ -17,6 +17,7 @@ package software.amazon.awssdk.awsauth.signer;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import software.amazon.awssdk.core.runtime.auth.NoOpSigner;
 import software.amazon.awssdk.core.runtime.auth.Signer;
 
 /** Signer factory. */

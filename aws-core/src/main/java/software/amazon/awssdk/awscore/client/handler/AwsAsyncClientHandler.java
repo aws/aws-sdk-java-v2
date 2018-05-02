@@ -24,6 +24,7 @@ import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.AsyncClientHandler;
+import software.amazon.awssdk.core.client.BaseClientHandler;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
 import software.amazon.awssdk.core.internal.http.response.SdkErrorResponseHandler;
 
@@ -32,7 +33,7 @@ import software.amazon.awssdk.core.internal.http.response.SdkErrorResponseHandle
  */
 @ThreadSafe
 @Immutable
-public class AwsAsyncClientHandler extends BaseAwsClientHandler implements AsyncClientHandler {
+public final class AwsAsyncClientHandler extends BaseClientHandler implements AsyncClientHandler {
 
     private final AsyncClientHandler delegateHandler;
 

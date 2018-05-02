@@ -154,8 +154,8 @@ public class DefaultErrorResponseHandler implements HttpResponseHandler<SdkServi
      *
      * @see HttpResponseHandler#needsConnectionLeftOpen()
      */
+    @Override
     public boolean needsConnectionLeftOpen() {
         return false;
     }
-
 }

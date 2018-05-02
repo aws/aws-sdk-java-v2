@@ -48,7 +48,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SyncClientHandlerImplTest {
-    private SyncClientHandlerImpl syncClientHandler;
+    private SdkSyncClientHandlerImpl syncClientHandler;
 
     @Mock
     private SdkRequest request;
@@ -75,7 +75,7 @@ public class SyncClientHandlerImplTest {
 
     @Before
     public void setup() {
-        this.syncClientHandler = new SyncClientHandlerImpl(clientConfiguration(), null);
+        this.syncClientHandler = new SdkSyncClientHandlerImpl(clientConfiguration(), null);
         when(request.requestOverrideConfig()).thenReturn(Optional.empty());
     }
 
