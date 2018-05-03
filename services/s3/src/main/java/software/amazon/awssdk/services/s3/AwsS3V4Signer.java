@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.s3;
 
-import static software.amazon.awssdk.awsauth.signer.internal.SignerConstants.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.awsauth.signer.SignerConstants.X_AMZ_CONTENT_SHA256;
 import static software.amazon.awssdk.utils.Validate.validState;
 
 import java.io.IOException;

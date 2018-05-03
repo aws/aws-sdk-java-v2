@@ -23,7 +23,7 @@ import software.amazon.awssdk.annotations.Immutable;
 @Immutable
 public final class SdkRequestOverrideConfig extends RequestOverrideConfig {
 
-    protected SdkRequestOverrideConfig(Builder builder) {
+    private SdkRequestOverrideConfig(Builder builder) {
         super(builder);
     }
 

@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.interceptor;
 
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.RequestOverrideConfig;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.core.runtime.auth.Signer;
@@ -24,27 +23,29 @@ import software.amazon.awssdk.core.runtime.auth.Signer;
  * Contains attributes attached to the execution. This information is available to {@link ExecutionInterceptor}s and
  * {@link Signer}s.
  */
-public interface SdkExecutionAttributes {
+public class SdkExecutionAttributes {
 
     /**
      * The key under which the request config is stored.
      */
-    @ReviewBeforeRelease("RequestConfig feels pretty internal. Can we just expose parts of it?")
-    ExecutionAttribute<RequestOverrideConfig> REQUEST_CONFIG = new ExecutionAttribute<>("RequestConfig");
+    public static final ExecutionAttribute<RequestOverrideConfig> REQUEST_CONFIG = new ExecutionAttribute<>("RequestConfig");
 
     /**
      * Handler context key for advanced configuration.
      */
-    ExecutionAttribute<ServiceAdvancedConfiguration> SERVICE_ADVANCED_CONFIG =
+    public static final ExecutionAttribute<ServiceAdvancedConfiguration> SERVICE_ADVANCED_CONFIG =
         new ExecutionAttribute<>("ServiceAdvancedConfig");
 
     /**
      * The key under which the service name is stored.
      */
-    ExecutionAttribute<String> SERVICE_NAME = new ExecutionAttribute<>("ServiceName");
+    public static final ExecutionAttribute<String> SERVICE_NAME = new ExecutionAttribute<>("ServiceName");
 
     /**
      * The key under which the time offset (for clock skew correction) is stored.
      */
-    ExecutionAttribute<Integer> TIME_OFFSET = new ExecutionAttribute<>("TimeOffset");
+    public static final ExecutionAttribute<Integer> TIME_OFFSET = new ExecutionAttribute<>("TimeOffset");
+
+    protected SdkExecutionAttributes() {
+    }
 }

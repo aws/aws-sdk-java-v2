@@ -27,21 +27,19 @@ import software.amazon.awssdk.core.runtime.auth.Signer;
  * AWS-specific attributes attached to the execution. This information is available to {@link ExecutionInterceptor}s and
  * {@link Signer}s.
  */
-@ReviewBeforeRelease("When we split the AWS/SDK code: "
-                     + "1. The public SDK-specific stuff should be moved to the immutable execution context. "
-                     + "2. The private SDK stuff should be moved to an internal SDK attributes collection. "
-                     + "3. The private AWS stuff should be moved to an internal AWS attributes collection. "
-                     + "4. The remaining public AWS stuff should be moved to the AWS module. "
-                     + "We should also consider making some of the SDK/AWS-owned set of attributes part of the immutable context "
+@ReviewBeforeRelease("We should also consider making some of the SDK/AWS-owned set of attributes part of the immutable context"
                      + "if we don't want the interceptors to modify them.")
-public interface AwsExecutionAttributes extends SdkExecutionAttributes {
+public final class AwsExecutionAttributes extends SdkExecutionAttributes {
     /**
      * The key under which the request credentials are set.
      */
-    ExecutionAttribute<AwsCredentials> AWS_CREDENTIALS = new ExecutionAttribute<>("AwsCredentials");
+    public static final ExecutionAttribute<AwsCredentials> AWS_CREDENTIALS = new ExecutionAttribute<>("AwsCredentials");
 
     /**
      * The AWS {@link Region} the client was configured with.
      */
-    ExecutionAttribute<Region> AWS_REGION = new ExecutionAttribute<>("AwsRegion");
+    public static final ExecutionAttribute<Region> AWS_REGION = new ExecutionAttribute<>("AwsRegion");
+
+    private AwsExecutionAttributes() {
+    }
 }

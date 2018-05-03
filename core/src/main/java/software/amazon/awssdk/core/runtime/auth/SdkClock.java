@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awsauth.signer;
+package software.amazon.awssdk.core.runtime.auth;
 
 import java.util.Date;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -27,12 +27,7 @@ public interface SdkClock {
     /**
      * Standard implementation that calls out to {@link System#currentTimeMillis()}. Used in production code.
      */
-    SdkClock STANDARD = new SdkClock() {
-        @Override
-        public long currentTimeMillis() {
-            return System.currentTimeMillis();
-        }
-    };
+    SdkClock STANDARD = System::currentTimeMillis;
 
     long currentTimeMillis();
 

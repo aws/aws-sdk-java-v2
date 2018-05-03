@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.client;
 
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
@@ -31,8 +30,6 @@ import software.amazon.awssdk.core.http.AmazonAsyncHttpClient;
 @SdkProtectedApi
 final class SdkAsyncClientHandlerImpl extends BaseAsyncClientHandler implements AsyncClientHandler {
 
-    @ReviewBeforeRelease("Should this be migrated to use a params object, particularly because it crosses module boundaries?" +
-                         "We might also need to think about how it will work after AWS/SDK are split.")
     SdkAsyncClientHandlerImpl(SdkAsyncClientConfiguration asyncClientConfiguration,
                               ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
         super(asyncClientConfiguration, serviceAdvancedConfiguration, new AmazonAsyncHttpClient(asyncClientConfiguration));

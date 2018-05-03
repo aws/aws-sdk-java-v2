@@ -16,6 +16,7 @@
 package software.amazon.awssdk.awsauth.signer;
 
 import static software.amazon.awssdk.awsauth.AwsExecutionAttributes.AWS_CREDENTIALS;
+import static software.amazon.awssdk.awsauth.util.CredentialUtils.isAnonymous;
 import static software.amazon.awssdk.core.util.DateUtils.numberOfDaysSinceEpoch;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
@@ -35,11 +36,11 @@ import software.amazon.awssdk.awsauth.credentials.AwsCredentials;
 import software.amazon.awssdk.awsauth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.awsauth.signer.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.awsauth.signer.internal.Aws4SignerUtils;
-import software.amazon.awssdk.awsauth.util.CredentialUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.collections.FifoCache;
+import software.amazon.awssdk.core.runtime.auth.SdkClock;
 import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -222,7 +223,7 @@ public class Aws4Signer extends AbstractAwsSigner
                                       Date userSpecifiedExpirationDate) {
 
         // anonymous credentials, don't sign
-        if (CredentialUtils.isAnonymous(executionAttributes.getAttribute(AWS_CREDENTIALS))) {
+        if (isAnonymous(executionAttributes.getAttribute(AWS_CREDENTIALS))) {
             return execution.httpRequest();
         }
         SdkHttpFullRequest.Builder mutableRequest = execution.httpRequest().toBuilder();
@@ -528,10 +529,6 @@ public class Aws4Signer extends AbstractAwsSigner
                 + Aws4SignerUtils.formatTimestamp(expirationDate.getTime()) + "] has exceeded this limit.");
         }
         return expirationInSeconds;
-    }
-
-    private boolean isAnonymous(AwsCredentials credentials) {
-        return credentials.secretAccessKey() == null && credentials.accessKeyId() == null;
     }
 
     /**

@@ -68,7 +68,7 @@ public final class ClientAsyncHttpConfiguration
      * to ease resolution of the client. Returns an empty {@link Optional} if neither is set.
      */
     @SdkInternalApi
-    public Optional<Either<SdkAsyncHttpClient, SdkAsyncHttpClientFactory>> toEither() {
+    Optional<Either<SdkAsyncHttpClient, SdkAsyncHttpClientFactory>> toEither() {
         return Either.fromNullable(httpClient, httpClientFactory);
     }
 

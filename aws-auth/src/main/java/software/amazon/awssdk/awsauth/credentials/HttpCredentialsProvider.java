@@ -131,9 +131,6 @@ abstract class HttpCredentialsProvider implements AwsCredentialsProvider, SdkAut
         private boolean asyncCredentialUpdateEnabled = false;
         private String asyncThreadName;
 
-        /**
-         * Created using {@link #build()}.
-         */
         protected Builder() {}
 
         /**

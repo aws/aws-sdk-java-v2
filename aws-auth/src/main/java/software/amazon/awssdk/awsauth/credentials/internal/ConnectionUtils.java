@@ -20,9 +20,12 @@ import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URI;
 import java.util.Map;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
+@ReviewBeforeRelease("Refactor to use SDK HTTP client instead of URL connection, also consider putting EC2MetadataClient into "
+                     + "its own module")
 public class ConnectionUtils {
 
     public static ConnectionUtils create() {

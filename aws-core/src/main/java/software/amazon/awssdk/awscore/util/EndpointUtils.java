@@ -13,11 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awsauth.util;
+package software.amazon.awssdk.awscore.util;
 
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awsauth.regions.Region;
+import software.amazon.awssdk.awsauth.util.DefaultServiceEndpointBuilder;
 
 /**
  * A collection of utility methods centered around generating service endpoints from various pieces of information.

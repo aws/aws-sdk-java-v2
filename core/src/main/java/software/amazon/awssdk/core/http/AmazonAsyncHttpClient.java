@@ -19,6 +19,7 @@ import static software.amazon.awssdk.core.http.pipeline.RequestPipelineBuilder.a
 
 import java.util.concurrent.CompletableFuture;
 
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.RequestExecutionContext;
@@ -51,6 +52,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @ThreadSafe
 @SdkInternalApi
+@ReviewBeforeRelease("come up with better name")
 public class AmazonAsyncHttpClient implements SdkAutoCloseable {
     private final HttpAsyncClientDependencies httpClientDependencies;
 

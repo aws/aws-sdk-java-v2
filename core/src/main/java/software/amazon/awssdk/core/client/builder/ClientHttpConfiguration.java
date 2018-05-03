@@ -52,7 +52,7 @@ public final class ClientHttpConfiguration
     /**
      * @return The currently configured {@link SdkHttpClientFactory} or an empty {@link Optional} if not present.
      */
-    public Optional<SdkHttpClientFactory> httpClientFactory() {
+    Optional<SdkHttpClientFactory> httpClientFactory() {
         return Optional.ofNullable(httpClientFactory);
     }
 
