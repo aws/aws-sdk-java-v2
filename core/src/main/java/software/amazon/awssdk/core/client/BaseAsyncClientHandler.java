@@ -20,7 +20,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
@@ -33,7 +32,6 @@ import software.amazon.awssdk.core.http.AmazonAsyncHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.http.SdkHttpResponseAdapter;
 import software.amazon.awssdk.core.http.async.SyncResponseHandlerAdapter;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
@@ -83,18 +81,11 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
         ClientExecutionParams<InputT, OutputT> executionParams,
         ExecutionContext executionContext,
         ResponseHandlerFactory<ReturnT> sdkHttpResponseHandlerFactory) {
-        runBeforeExecutionInterceptors(executionContext);
-        InputT inputT = runModifyRequestInterceptors(executionContext);
 
-        runBeforeMarshallingInterceptors(executionContext);
-        Request<InputT> request = executionParams.getMarshaller().marshall(inputT);
-        request.setEndpoint(clientConfiguration.endpoint());
+        InputT inputT = finalizeSdkRequest(executionContext);
 
-        // TODO: Can any of this be merged into the parent class? There's a lot of duplication here.
-
-        addHttpRequest(executionContext, SdkHttpFullRequestAdapter.toHttpFullRequest(request));
-        runAfterMarshallingInterceptors(executionContext);
-        SdkHttpFullRequest marshalled = runModifyHttpRequestInterceptors(executionContext);
+        SdkHttpFullRequest marshalled = finalizeSdkHttpFullRequest(executionParams, executionContext, inputT,
+                                                                   clientConfiguration);
 
         SdkHttpRequestProvider requestProvider = executionParams.getAsyncRequestBody() == null
                                                  ? null

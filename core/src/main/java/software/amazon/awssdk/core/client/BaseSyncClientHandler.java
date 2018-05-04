@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.client;
 
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
@@ -25,7 +24,6 @@ import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -89,18 +87,11 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
         ClientExecutionParams<InputT, OutputT> executionParams,
         ExecutionContext executionContext,
         HttpResponseHandler<ReturnT> responseHandler) {
-        runBeforeExecutionInterceptors(executionContext);
-        InputT inputT = runModifyRequestInterceptors(executionContext);
 
-        runBeforeMarshallingInterceptors(executionContext);
-        Request<InputT> request = executionParams.getMarshaller().marshall(inputT);
-        request.setEndpoint(clientConfiguration.endpoint());
+        InputT inputT = finalizeSdkRequest(executionContext);
 
-        SdkHttpFullRequest marshalled = SdkHttpFullRequestAdapter.toHttpFullRequest(request);
-        addHttpRequest(executionContext, marshalled);
-        runAfterMarshallingInterceptors(executionContext);
-        marshalled = runModifyHttpRequestInterceptors(executionContext);
-
+        SdkHttpFullRequest marshalled = finalizeSdkHttpFullRequest(executionParams, executionContext, inputT,
+                                                                   clientConfiguration);
         return invoke(marshalled,
                       inputT,
                       executionContext,

@@ -21,7 +21,6 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.core.config.SdkSyncClientConfiguration;
-import software.amazon.awssdk.core.internal.http.response.SdkErrorResponseHandler;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 
 /**
@@ -42,7 +41,7 @@ public final class SdkSyncClientHandler extends BaseClientHandler implements Syn
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse> OutputT execute(
         ClientExecutionParams<InputT, OutputT> executionParams) {
-        return delegateHandler.execute(addRequestConfig(executionParams));
+        return delegateHandler.execute(addErrorResponseHandler(executionParams));
 
     }
 
@@ -50,17 +49,11 @@ public final class SdkSyncClientHandler extends BaseClientHandler implements Syn
     public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> ReturnT execute(
         ClientExecutionParams<InputT, OutputT> executionParams,
         ResponseTransformer<OutputT, ReturnT> responseTransformer) {
-        return delegateHandler.execute(addRequestConfig(executionParams), responseTransformer);
+        return delegateHandler.execute(addErrorResponseHandler(executionParams), responseTransformer);
     }
 
     @Override
     public void close() {
         delegateHandler.close();
-    }
-
-    private <InputT extends SdkRequest, OutputT> ClientExecutionParams<InputT, OutputT> addRequestConfig(
-        ClientExecutionParams<InputT, OutputT> params) {
-        return params.withErrorResponseHandler(
-            new SdkErrorResponseHandler(params.getErrorResponseHandler()));
     }
 }

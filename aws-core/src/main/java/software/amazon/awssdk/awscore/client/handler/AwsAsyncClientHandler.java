@@ -26,7 +26,6 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.AsyncClientHandler;
 import software.amazon.awssdk.core.client.BaseClientHandler;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
-import software.amazon.awssdk.core.internal.http.response.SdkErrorResponseHandler;
 
 /**
  * Async client handler for AWS SDK clients.
@@ -46,26 +45,18 @@ public final class AwsAsyncClientHandler extends BaseClientHandler implements As
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<OutputT> execute(
         ClientExecutionParams<InputT, OutputT> executionParams) {
-        return delegateHandler.execute(addRequestConfig(executionParams));
+        return delegateHandler.execute(addErrorResponseHandler(executionParams));
     }
 
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> CompletableFuture<ReturnT> execute(
         ClientExecutionParams<InputT, OutputT> executionParams,
         AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer) {
-        return delegateHandler.execute(addRequestConfig(executionParams), asyncResponseTransformer);
+        return delegateHandler.execute(addErrorResponseHandler(executionParams), asyncResponseTransformer);
     }
 
     @Override
     public void close() {
         delegateHandler.close();
     }
-
-    private <InputT extends SdkRequest, OutputT> ClientExecutionParams<InputT, OutputT> addRequestConfig(
-        ClientExecutionParams<InputT, OutputT> params) {
-        return params.withErrorResponseHandler(
-            // TODO this is a hack to get the build working. Also doesn't deal with AwsResponseHandlerAdapter
-            new SdkErrorResponseHandler(params.getErrorResponseHandler()));
-    }
-
 }
