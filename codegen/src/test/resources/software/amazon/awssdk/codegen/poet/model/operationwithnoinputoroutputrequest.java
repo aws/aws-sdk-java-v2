@@ -61,6 +61,9 @@ public class OperationWithNoInputOrOutputRequest extends JsonProtocolTestsReques
                                      CopyableBuilder<Builder, OperationWithNoInputOrOutputRequest> {
         @Override
         Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig);
+
+        @Override
+        Builder requestOverrideConfig(Consumer<AwsRequestOverrideConfig.Builder> builderConsumer);
     }
 
     static final class BuilderImpl extends JsonProtocolTestsRequest.BuilderImpl implements Builder {
