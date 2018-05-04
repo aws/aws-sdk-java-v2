@@ -1057,6 +1057,9 @@ public class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         @Override
         Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig);
+
+        @Override
+        Builder requestOverrideConfig(Consumer<AwsRequestOverrideConfig.Builder> builderConsumer);
     }
 
     static final class BuilderImpl extends JsonProtocolTestsRequest.BuilderImpl implements Builder {

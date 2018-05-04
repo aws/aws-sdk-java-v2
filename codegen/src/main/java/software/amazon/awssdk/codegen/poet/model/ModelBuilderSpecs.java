@@ -90,6 +90,14 @@ class ModelBuilderSpecs {
                     .addParameter(AwsRequestOverrideConfig.class, "awsRequestOverrideConfig")
                     .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                     .build());
+
+            builder.addMethod(MethodSpec.methodBuilder("requestOverrideConfig")
+                    .addAnnotation(Override.class)
+                    .returns(builderInterfaceName())
+                    .addParameter(ParameterizedTypeName.get(Consumer.class, AwsRequestOverrideConfig.Builder.class),
+                            "builderConsumer")
+                    .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                    .build());
         }
 
         return builder.build();
