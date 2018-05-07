@@ -29,7 +29,7 @@ import org.junit.Test;
 import software.amazon.awssdk.awsauth.AwsExecutionAttributes;
 import software.amazon.awssdk.awsauth.credentials.AwsCredentials;
 import software.amazon.awssdk.awsauth.regions.Region;
-import software.amazon.awssdk.awsauth.util.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfig;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.Request;

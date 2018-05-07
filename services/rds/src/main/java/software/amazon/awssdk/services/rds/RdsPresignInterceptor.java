@@ -19,7 +19,7 @@ import java.net.URI;
 import java.util.Date;
 import software.amazon.awssdk.awsauth.regions.Region;
 import software.amazon.awssdk.awsauth.signer.Aws4Signer;
-import software.amazon.awssdk.awsauth.util.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;

@@ -13,44 +13,35 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awsauth.credentials.profile;
+package software.amazon.awssdk.awsauth.credentials.internal;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awsauth.credentials.AwsCredentials;
 import software.amazon.awssdk.awsauth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awsauth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.awsauth.credentials.ChildProfileCredentialsProviderFactory;
 import software.amazon.awssdk.awsauth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.awsauth.credentials.profile.internal.ChildProfileCredentialsProviderFactory;
-import software.amazon.awssdk.awsauth.regions.Region;
+import software.amazon.awssdk.profiles.Profile;
+import software.amazon.awssdk.profiles.ProfileProperties;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
-import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
-import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * A named collection of configuration stored in a {@link ProfileFile}.
- *
- * Special access methods are provided for loading the {@link #region()} and {@link #credentialsProvider()} configured in this
- * profile. Raw property access can be made via {@link #property(String)} and {@link #properties()}.
- *
- * @see ProfileFile
+ * Utility class to load {@link #credentialsProvider()} configured in a profile.
  */
-@SdkPublicApi
-public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile> {
+@SdkInternalApi
+public final class ProfileCredentialsUtils {
     private static final String STS_PROFILE_CREDENTIALS_PROVIDER_FACTORY =
-            "software.amazon.awssdk.services.sts.internal.StsProfileCredentialsProviderFactory";
+        "software.amazon.awssdk.services.sts.internal.StsProfileCredentialsProviderFactory";
+
+    private final Profile profile;
 
     /**
      * The name of this profile (minus any profile prefixes).
@@ -70,53 +61,11 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
      */
     private final Function<String, Optional<Profile>> credentialsSourceResolver;
 
-    /**
-     * @see ProfileFile
-     * @see #builder()
-     */
-    private Profile(Builder builder) {
-        this.name = Validate.paramNotNull(builder.name, "name");
-        this.properties = Validate.paramNotNull(builder.properties, "properties");
-        this.credentialsSourceResolver = builder.credentialsSourceResolver;
-    }
-
-    /**
-     * Create a builder for defining a profile with specific attributes. For reading profiles from a file, see
-     * {@link ProfileFile}.
-     */
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    /**
-     * Retrieve the name of this profile.
-     */
-    public String name() {
-        return name;
-    }
-
-    /**
-     * Retrieve a specific raw property from this profile.
-     *
-     * @param propertyKey The name of the property to retrieve.
-     * @return The value of the property, if configured.
-     */
-    public Optional<String> property(String propertyKey) {
-        return Optional.ofNullable(properties.get(propertyKey));
-    }
-
-    /**
-     * Retrieve an unmodifiable view of all of the properties currently in this profile.
-     */
-    public Map<String, String> properties() {
-        return properties;
-    }
-
-    /**
-     * Retrieve the region for which this profile has been configured, if available.
-     */
-    public Optional<Region> region() {
-        return Optional.ofNullable(properties.get(ProfileProperties.REGION)).map(Region::of);
+    public ProfileCredentialsUtils(Profile profile, Function<String, Optional<Profile>> credentialsSourceResolver) {
+        this.profile = Validate.paramNotNull(profile, "profile");
+        this.name = profile.name();
+        this.properties = profile.properties();
+        this.credentialsSourceResolver = credentialsSourceResolver;
     }
 
     /**
@@ -137,7 +86,7 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
      */
     private Optional<AwsCredentialsProvider> credentialsProvider(Set<String> children) {
         if (properties.containsKey(ProfileProperties.ROLE_ARN)) {
-            return Optional.of(roleBasedProfileCredentialsProvider(children));
+            return Optional.ofNullable(roleBasedProfileCredentialsProvider(children));
         }
 
         if (properties.containsKey(ProfileProperties.AWS_SESSION_TOKEN)) {
@@ -191,11 +140,12 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
 
         children.add(name);
         AwsCredentialsProvider sourceCredentialsProvider =
-                credentialsSourceResolver.apply(properties.get(ProfileProperties.SOURCE_PROFILE))
-                                         .flatMap(profile -> profile.credentialsProvider(children))
-                                         .orElseThrow(this::noSourceCredentialsException);
+            credentialsSourceResolver.apply(properties.get(ProfileProperties.SOURCE_PROFILE))
+                                     .flatMap(p -> new ProfileCredentialsUtils(p, credentialsSourceResolver)
+                                         .credentialsProvider(children))
+                                     .orElseThrow(this::noSourceCredentialsException);
 
-        return stsCredentialsProviderFactory().create(sourceCredentialsProvider, this);
+        return stsCredentialsProviderFactory().create(sourceCredentialsProvider, profile);
     }
 
     /**
@@ -226,90 +176,6 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
                                             + "be on the class path.", e);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new IllegalStateException("Failed to create the '" + name + "' profile credentials provider.", e);
-        }
-    }
-
-    @Override
-    public Builder toBuilder() {
-        return builder().name(name)
-                        .properties(properties)
-                        .credentialsSourceResolver(credentialsSourceResolver);
-    }
-
-    @Override
-    public String toString() {
-        return ToString.builder("Profile")
-                       .add("name", name)
-                       .add("properties", properties.keySet())
-                       .build();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        final Profile profile = (Profile) o;
-        return Objects.equals(name, profile.name) &&
-               Objects.equals(properties, profile.properties);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, properties);
-    }
-
-    /**
-     * A builder for a {@link Profile}. See {@link #builder()}.
-     */
-    public static class Builder implements CopyableBuilder<Builder, Profile> {
-        private String name;
-        private Map<String, String> properties;
-        private Function<String, Optional<Profile>> credentialsSourceResolver;
-
-        /**
-         * @see #builder()
-         */
-        private Builder() {}
-
-        /**
-         * Define the name of this profile, without the legacy "profile" prefix.
-         */
-        public Builder name(String name) {
-            this.name = name;
-            return this;
-        }
-
-        /**
-         * Define the properties configured in this profile.
-         */
-        public Builder properties(Map<String, String> properties) {
-            this.properties = Collections.unmodifiableMap(new LinkedHashMap<>(properties));
-            return this;
-        }
-
-        /**
-         * Define a function that can resolve the 'credentials source' of this profile. The source is only required when using
-         * role-based credentials. When credentials are loaded from a profile and role-based credentials are configured, the
-         * source's credential provider is used to authenticate the application with the Amazon service being used to assume
-         * the requested role.
-         *
-         * Currently an internal API. If this needs to be exposed as a public API, it should probably be simplified.
-         */
-        @SdkInternalApi
-        Builder credentialsSourceResolver(Function<String, Optional<Profile>> credentialsSourceResolver) {
-            this.credentialsSourceResolver = credentialsSourceResolver;
-            return this;
-        }
-
-        /**
-         * Create a profile using the current state of this builder.
-         */
-        public Profile build() {
-            return new Profile(this);
         }
     }
 }

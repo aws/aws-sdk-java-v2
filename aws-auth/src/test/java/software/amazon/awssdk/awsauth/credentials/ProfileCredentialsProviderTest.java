@@ -19,9 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.Test;
-import software.amazon.awssdk.awsauth.credentials.profile.ProfileFile;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.StringInputStream;
+import software.amazon.awssdk.profiles.ProfileFile;
 
 /**
  * Verify functionality of {@link ProfileCredentialsProvider}.
@@ -65,8 +65,8 @@ public class ProfileCredentialsProviderTest {
     @Test
     public void presentProfileReturnsCredentials() {
         ProfileFile file = profileFile("[default]\n"
-                                        + "aws_access_key_id = defaultAccessKey\n"
-                                        + "aws_secret_access_key = defaultSecretAccessKey");
+                                       + "aws_access_key_id = defaultAccessKey\n"
+                                       + "aws_secret_access_key = defaultSecretAccessKey");
 
         ProfileCredentialsProvider provider =
                 ProfileCredentialsProvider.builder().profileFile(file).profileName("default").build();

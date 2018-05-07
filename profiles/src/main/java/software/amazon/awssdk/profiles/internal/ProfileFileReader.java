@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awsauth.credentials.profile.internal;
+package software.amazon.awssdk.profiles.internal;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -25,7 +25,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awsauth.credentials.profile.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;

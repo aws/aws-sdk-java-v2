@@ -13,12 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awsauth.regions;
+package software.amazon.awssdk.awsauth.regions.providers;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.awsauth.regions.Region;
+import software.amazon.awssdk.awsauth.regions.RegionMetadata;
+import software.amazon.awssdk.awsauth.regions.ServiceMetadata;
 import software.amazon.awssdk.awsauth.regions.internal.model.CredentialScope;
 import software.amazon.awssdk.awsauth.regions.internal.model.Endpoint;
 import software.amazon.awssdk.awsauth.regions.internal.model.Partition;

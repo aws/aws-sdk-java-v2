@@ -20,9 +20,9 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import software.amazon.awssdk.awsauth.credentials.profile.ProfileFile;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.StringInputStream;
+import software.amazon.awssdk.profiles.ProfileFile;
 
 public class AwsCredentialsProviderChainTest {
 

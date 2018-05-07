@@ -16,10 +16,10 @@
 package software.amazon.awssdk.awsauth.regions.providers;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awsauth.credentials.AwsSystemSetting;
-import software.amazon.awssdk.awsauth.credentials.profile.Profile;
-import software.amazon.awssdk.awsauth.credentials.profile.ProfileFile;
 import software.amazon.awssdk.awsauth.regions.Region;
+import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileProperties;
+import software.amazon.awssdk.profiles.ProfileSystemSettings;
 
 /**
  * Loads region information from the {@link ProfileFile#defaultProfileFile()} using the default profile name.
@@ -27,13 +27,14 @@ import software.amazon.awssdk.awsauth.regions.Region;
 @SdkInternalApi
 class AwsProfileRegionProvider implements AwsRegionProvider {
 
-    private final String profileName = AwsSystemSetting.AWS_PROFILE.getStringValueOrThrow();
+    private final String profileName = ProfileSystemSettings.AWS_PROFILE.getStringValueOrThrow();
 
     @Override
     public Region getRegion() {
         return ProfileFile.defaultProfileFile()
                           .profile(profileName)
-                          .flatMap(Profile::region)
+                          .map(p -> p.properties().get(ProfileProperties.REGION))
+                          .map(Region::of)
                           .orElse(null);
     }
 }

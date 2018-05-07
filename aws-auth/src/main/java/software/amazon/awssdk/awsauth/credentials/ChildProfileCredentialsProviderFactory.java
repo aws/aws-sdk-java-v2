@@ -13,11 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awsauth.credentials.profile.internal;
+package software.amazon.awssdk.awsauth.credentials;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.awsauth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.awsauth.credentials.profile.Profile;
+import software.amazon.awssdk.profiles.Profile;
 
 /**
  * A factory for {@link AwsCredentialsProvider}s that are derived from another set of credentials in a profile file.

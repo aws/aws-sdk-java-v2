@@ -13,9 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awsauth.credentials.profile;
-
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+package software.amazon.awssdk.profiles;
 
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -31,8 +29,9 @@ import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.awsauth.credentials.profile.internal.ProfileFileLocations;
-import software.amazon.awssdk.awsauth.credentials.profile.internal.ProfileFileReader;
+import software.amazon.awssdk.profiles.internal.ProfileFileLocations;
+import software.amazon.awssdk.profiles.internal.ProfileFileReader;
+import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -83,9 +82,8 @@ public class ProfileFile {
     /**
      * Get the default profile file, using the credentials file from "~/.aws/credentials", the config file from "~/.aws/config"
      * and the "default" profile. This default behavior can be customized using the
-     * {@link AwsSystemSetting#AWS_SHARED_CREDENTIALS_FILE}, {@link AwsSystemSetting#AWS_CONFIG_FILE} and
-     * {@link AwsSystemSetting#AWS_PROFILE} settings or by specifying a different profile file and profile name when creating a
-     * {@link ProfileCredentialsProvider}.
+     * {@link ProfileSystemSettings#AWS_SHARED_CREDENTIALS_FILE}, {@link ProfileSystemSettings#AWS_CONFIG_FILE} and
+     * {@link ProfileSystemSettings#AWS_PROFILE} settings or by specifying a different profile file and profile name
      */
     public static ProfileFile defaultProfileFile() {
         return ProfileFile.aggregator()
@@ -161,7 +159,6 @@ public class ProfileFile {
             Profile profile = Profile.builder()
                                      .name(rawProfile.getKey())
                                      .properties(rawProfile.getValue())
-                                     .credentialsSourceResolver(this::profile)
                                      .build();
             result.put(profile.name(), profile);
         }
@@ -229,7 +226,8 @@ public class ProfileFile {
 
         @Override
         public ProfileFile build() {
-            InputStream stream = content != null ? content : invokeSafely(() -> Files.newInputStream(contentLocation));
+            InputStream stream = content != null ? content :
+                                 FunctionalUtils.invokeSafely(() -> Files.newInputStream(contentLocation));
 
             Validate.paramNotNull(type, "type");
             Validate.paramNotNull(stream, "content");

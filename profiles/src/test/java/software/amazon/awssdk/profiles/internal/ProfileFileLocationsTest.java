@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awsauth.credentials.profile.internal;
+package software.amazon.awssdk.profiles.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

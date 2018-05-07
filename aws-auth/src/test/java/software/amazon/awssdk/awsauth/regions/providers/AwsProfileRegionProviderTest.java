@@ -21,8 +21,8 @@ import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.awsauth.credentials.AwsSystemSetting;
 import software.amazon.awssdk.awsauth.regions.Region;
+import software.amazon.awssdk.profiles.ProfileSystemSettings;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 public class AwsProfileRegionProviderTest {
@@ -32,8 +32,8 @@ public class AwsProfileRegionProviderTest {
 
     @Test
     public void nonExistentDefaultConfigFile_ReturnsNull() {
-        settingsHelper.set(AwsSystemSetting.AWS_CONFIG_FILE, "/var/tmp/this/is/invalid.txt");
-        settingsHelper.set(AwsSystemSetting.AWS_SHARED_CREDENTIALS_FILE, "/var/tmp/this/is/also.invalid.txt");
+        settingsHelper.set(ProfileSystemSettings.AWS_CONFIG_FILE, "/var/tmp/this/is/invalid.txt");
+        settingsHelper.set(ProfileSystemSettings.AWS_SHARED_CREDENTIALS_FILE, "/var/tmp/this/is/also.invalid.txt");
         assertThat(new AwsProfileRegionProvider().getRegion()).isNull();
     }
 
@@ -41,8 +41,8 @@ public class AwsProfileRegionProviderTest {
     public void profilePresentAndRegionIsSet_ProvidesCorrectRegion() throws URISyntaxException {
         String testFile = "/resources/profileconfig/test-profiles.tst";
 
-        settingsHelper.set(AwsSystemSetting.AWS_PROFILE, "test");
-        settingsHelper.set(AwsSystemSetting.AWS_CONFIG_FILE, Paths.get(getClass().getResource(testFile).toURI()).toString());
+        settingsHelper.set(ProfileSystemSettings.AWS_PROFILE, "test");
+        settingsHelper.set(ProfileSystemSettings.AWS_CONFIG_FILE, Paths.get(getClass().getResource(testFile).toURI()).toString());
         assertThat(new AwsProfileRegionProvider().getRegion()).isEqualTo(Region.of("saa"));
     }
 }

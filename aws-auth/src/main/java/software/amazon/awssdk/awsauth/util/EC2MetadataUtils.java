@@ -693,8 +693,7 @@ public final class EC2MetadataUtils {
          *         address.
          */
         public List<String> getIPv4Association(String publicIp) {
-            return EC2MetadataUtils.getItems(EC2_METADATA_ROOT + path
-                                             + "ipv4-associations/" + publicIp);
+            return getItems(EC2_METADATA_ROOT + path + "ipv4-associations/" + publicIp);
         }
 
         private String getData(String key) {

@@ -34,7 +34,7 @@ import software.amazon.awssdk.awscore.config.AwsImmutableSyncClientConfiguration
 import software.amazon.awssdk.awscore.config.AwsMutableClientConfiguration;
 import software.amazon.awssdk.awscore.config.defaults.AwsClientConfigurationDefaults;
 import software.amazon.awssdk.awscore.config.defaults.AwsGlobalClientConfigurationDefaults;
-import software.amazon.awssdk.awscore.util.EndpointUtils;
+import software.amazon.awssdk.awscore.endpoint.EndpointUtils;
 import software.amazon.awssdk.core.client.builder.ExecutorProvider;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;

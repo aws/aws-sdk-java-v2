@@ -19,9 +19,10 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
-import software.amazon.awssdk.awsauth.credentials.profile.Profile;
-import software.amazon.awssdk.awsauth.credentials.profile.ProfileFile;
+import software.amazon.awssdk.awsauth.credentials.internal.ProfileCredentialsUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileSystemSettings;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
@@ -38,7 +39,7 @@ import software.amazon.awssdk.utils.ToString;
  * @see ProfileFile
  */
 public final class ProfileCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
-    private final AwsCredentialsProvider profileCredentialsProvider;
+    private final AwsCredentialsProvider credentialsProvider;
     private final RuntimeException loadException;
 
     private final ProfileFile profileFile;
@@ -49,21 +50,22 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
      */
     private ProfileCredentialsProvider(Builder builder) {
         this.profileName = builder.profileName != null ? builder.profileName
-                                                       : AwsSystemSetting.AWS_PROFILE.getStringValueOrThrow();
+                                                       : ProfileSystemSettings.AWS_PROFILE.getStringValueOrThrow();
 
         // Load the profiles file
         this.profileFile = Optional.ofNullable(builder.profileFile)
                                    .orElseGet(builder.defaultProfileFileLoader);
 
         // Load the profile and credentials provider
-        this.profileCredentialsProvider = profileFile.profile(profileName)
-                                                     .flatMap(Profile::credentialsProvider)
-                                                     .orElse(null);
+        this.credentialsProvider = profileFile.profile(profileName)
+                                              .flatMap(p -> new ProfileCredentialsUtils(p, profileFile::profile)
+                                                  .credentialsProvider())
+                                              .orElse(null);
 
         // If we couldn't load the credentials provider for some reason, save an exception describing why. This exception will
         // only be raised on calls to getCredentials. We don't want to raise an exception here because it may be expected (eg. in
         // the default credential chain).
-        if (profileCredentialsProvider == null) {
+        if (credentialsProvider == null) {
             String loadError = String.format("Profile file contained no credentials for profile '%s': %s",
                                              profileName, profileFile);
             this.loadException = new SdkClientException(loadError);
@@ -83,6 +85,7 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
     /**
      * Create a {@link ProfileCredentialsProvider} using the given profile name and {@link ProfileFile#defaultProfileFile()}. Use
      * {@link #builder()} for defining a custom {@link ProfileCredentialsProvider}.
+     *
      * @param profileName the name of the profile to use from the {@link ProfileFile#defaultProfileFile()}
      */
     public static ProfileCredentialsProvider create(String profileName) {
@@ -101,7 +104,7 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
         if (loadException != null) {
             throw loadException;
         }
-        return profileCredentialsProvider.getCredentials();
+        return credentialsProvider.getCredentials();
     }
 
     @Override
@@ -116,7 +119,7 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
     public void close() {
         // The delegate credentials provider may be closeable (eg. if it's an STS credentials provider). In this case, we should
         // clean it up when this credentials provider is closed.
-        IoUtils.closeIfCloseable(profileCredentialsProvider, null);
+        IoUtils.closeIfCloseable(credentialsProvider, null);
     }
 
     /**
@@ -128,7 +131,8 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
 
         private Supplier<ProfileFile> defaultProfileFileLoader = ProfileFile::defaultProfileFile;
 
-        private Builder() {}
+        private Builder() {
+        }
 
         /**
          * Define the profile file that should be used by this credentials provider. By default, the
@@ -149,7 +153,7 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
 
         /**
          * Define the name of the profile that should be used by this credentials provider. By default, the value in
-         * {@link AwsSystemSetting#AWS_PROFILE} is used.
+         * {@link ProfileSystemSettings#AWS_PROFILE} is used.
          */
         public Builder profileName(String profileName) {
             this.profileName = profileName;

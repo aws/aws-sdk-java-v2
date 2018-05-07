@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awsauth.credentials.profile;
+package software.amazon.awssdk.profiles;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 

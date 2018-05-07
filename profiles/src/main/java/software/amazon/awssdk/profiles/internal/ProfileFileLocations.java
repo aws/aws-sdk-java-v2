@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awsauth.credentials.profile.internal;
+package software.amazon.awssdk.profiles.internal;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -22,7 +22,7 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awsauth.credentials.AwsSystemSetting;
+import software.amazon.awssdk.profiles.ProfileSystemSettings;
 import software.amazon.awssdk.utils.JavaSystemSetting;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -41,8 +41,8 @@ public final class ProfileFileLocations {
      * or system property.
      */
     public static Optional<Path> configurationFileLocation() {
-        return AwsSystemSetting.AWS_CONFIG_FILE.getStringValue()
-                                               .flatMap(ProfileFileLocations::resolveProfileFilePath);
+        return ProfileSystemSettings.AWS_CONFIG_FILE.getStringValue()
+                                                    .flatMap(ProfileFileLocations::resolveProfileFilePath);
     }
 
     /**
@@ -50,8 +50,8 @@ public final class ProfileFileLocations {
      * or system property.
      */
     public static Optional<Path> credentialsFileLocation() {
-        return AwsSystemSetting.AWS_SHARED_CREDENTIALS_FILE.getStringValue()
-                                                           .flatMap(ProfileFileLocations::resolveProfileFilePath);
+        return ProfileSystemSettings.AWS_SHARED_CREDENTIALS_FILE.getStringValue()
+                                                                .flatMap(ProfileFileLocations::resolveProfileFilePath);
     }
 
     /**

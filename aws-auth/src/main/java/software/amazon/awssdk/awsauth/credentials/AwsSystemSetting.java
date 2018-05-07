@@ -15,10 +15,7 @@
 
 package software.amazon.awssdk.awsauth.credentials;
 
-import java.nio.file.Paths;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.awsauth.credentials.profile.ProfileFile;
-import software.amazon.awssdk.awsauth.credentials.profile.internal.ProfileFileLocations;
 import software.amazon.awssdk.awsauth.regions.Region;
 import software.amazon.awssdk.awsauth.regions.providers.InstanceProfileRegionProvider;
 import software.amazon.awssdk.awsauth.regions.providers.SystemSettingsRegionProvider;
@@ -70,40 +67,6 @@ public enum AwsSystemSetting implements SystemSetting {
      * @see Region
      */
     AWS_REGION("aws.region", null),
-
-    /**
-     * Configure the default configuration file used in the {@link ProfileFile#defaultProfileFile()}. When not explicitly
-     * overridden in a client (eg. by specifying the region or credentials provider), this will be the location used when an
-     * AWS client is created.
-     *
-     * See http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html for more information on configuring the
-     * SDK via a configuration file.
-     *
-     * @see ProfileCredentialsProvider
-     */
-    AWS_CONFIG_FILE("aws.configFile",
-                    Paths.get(ProfileFileLocations.userHomeDirectory(), ".aws", "config").toString()),
-
-    /**
-     * Configure the default credentials file used in the {@link ProfileFile#defaultProfileFile()}. When not explicitly
-     * overridden in a client (eg. by specifying the region or credentials provider), this will be the location used when an
-     * AWS client is created.
-     *
-     * See http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html for more information on configuring the
-     * SDK via a credentials file.
-     *
-     * @see ProfileCredentialsProvider
-     */
-    AWS_SHARED_CREDENTIALS_FILE("aws.sharedCredentialsFile",
-                                Paths.get(ProfileFileLocations.userHomeDirectory(), ".aws", "credentials").toString()),
-
-    /**
-     * Configure the default profile that should be loaded from the {@link #AWS_CONFIG_FILE} and
-     * {@link #AWS_SHARED_CREDENTIALS_FILE} when using configuration files for configuring the SDK.
-     *
-     * @see #AWS_CONFIG_FILE
-     */
-    AWS_PROFILE("aws.profile", "default"),
 
     /**
      * Whether the default configuration applied to AWS clients should be optimized for services within the same region.
