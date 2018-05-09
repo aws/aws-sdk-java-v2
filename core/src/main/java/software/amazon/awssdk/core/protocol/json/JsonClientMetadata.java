@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.exception.SdkServiceException;
 @SdkProtectedApi
 public class JsonClientMetadata {
 
-    private final List<JsonErrorShapeMetadata> errorsMetadata = new ArrayList<JsonErrorShapeMetadata>();
+    private final List<JsonErrorShapeMetadata> errorsMetadata = new ArrayList<>();
 
     private String protocolVersion;
 

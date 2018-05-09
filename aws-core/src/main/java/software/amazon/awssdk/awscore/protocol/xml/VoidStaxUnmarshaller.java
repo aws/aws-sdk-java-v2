@@ -13,13 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.http;
+package software.amazon.awssdk.awscore.protocol.xml;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.http.HttpResponse;
-import software.amazon.awssdk.core.protocol.json.JsonContent;
+import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
+/**
+ * Simple StAX unmarshaller that iterates through the XML events but always
+ * returns null.
+ */
 @SdkInternalApi
-public interface ErrorCodeParser {
-    String parseErrorCode(HttpResponse response, JsonContent jsonContent);
+public class VoidStaxUnmarshaller<T> implements Unmarshaller<T, StaxUnmarshallerContext> {
+    public T unmarshall(StaxUnmarshallerContext context) throws Exception {
+        while (!context.nextEvent().isEndDocument()) {
+        }
+        return null;
+    }
 }

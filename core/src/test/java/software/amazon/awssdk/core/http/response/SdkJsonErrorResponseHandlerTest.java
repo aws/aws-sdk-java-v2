@@ -13,18 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.http.response;
+package software.amazon.awssdk.core.http.response;
 
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import org.junit.Before;
@@ -36,48 +36,44 @@ import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
-import software.amazon.awssdk.core.internal.http.JsonErrorCodeParser;
-import software.amazon.awssdk.core.runtime.http.JsonErrorMessageParser;
-import software.amazon.awssdk.core.runtime.transform.JsonErrorUnmarshaller;
+import software.amazon.awssdk.core.protocol.json.SdkJsonErrorUnmarshaller;
+import software.amazon.awssdk.core.runtime.http.SdkJsonErrorMessageParser;
+import software.amazon.awssdk.core.runtime.http.response.SdkJsonErrorResponseHandler;
 import software.amazon.awssdk.core.util.StringInputStream;
-import software.amazon.awssdk.utils.StringUtils;
 import utils.ValidSdkObjects;
 
-public class JsonErrorResponseHandlerTest {
+public class SdkJsonErrorResponseHandlerTest {
 
     private static final String SERVICE_NAME = "someService";
-    private static final String ERROR_CODE = "someErrorCode";
-    private JsonErrorResponseHandler responseHandler;
+    private static final String ERROR_MESSAGE = "error";
+    private SdkJsonErrorResponseHandler responseHandler;
     private HttpResponse httpResponse;
 
     @Mock
-    private JsonErrorUnmarshaller unmarshaller;
+    private SdkJsonErrorMessageParser errorMessageParser;
 
     @Mock
-    private JsonErrorCodeParser errorCodeParser;
+    private SdkJsonErrorUnmarshaller unmarshaller;
 
     @Before
-    public void setup() throws UnsupportedEncodingException {
+    public void setup() {
         MockitoAnnotations.initMocks(this);
-        when(errorCodeParser
-                     .parseErrorCode(anyObject(), anyObject()))
-                .thenReturn(ERROR_CODE);
+        when(errorMessageParser.parseErrorMessage(any(), any())).thenReturn(ERROR_MESSAGE);
 
         httpResponse = new HttpResponse(ValidSdkObjects.sdkHttpFullRequest().build());
         httpResponse.setContent(new StringInputStream("{}"));
 
-        responseHandler = new JsonErrorResponseHandler(Collections.singletonList(unmarshaller), errorCodeParser,
-                                                       JsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER,
-                                                       new JsonFactory());
+        responseHandler = new SdkJsonErrorResponseHandler(Collections.singletonList(unmarshaller),
+                                                          SdkJsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER,
+                                                          new JsonFactory());
     }
 
     @Test
     public void handle_NoUnmarshallersAdded_ReturnsGenericSdkServiceException() throws
                                                                                    Exception {
-        responseHandler = new JsonErrorResponseHandler(new ArrayList<>(),
-                                                       new JsonErrorCodeParser(),
-                                                       JsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER,
-                                                       new JsonFactory());
+        responseHandler = new SdkJsonErrorResponseHandler(new ArrayList<>(),
+                                                          SdkJsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER,
+                                                          new JsonFactory());
 
         SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
 
@@ -105,7 +101,6 @@ public class JsonErrorResponseHandlerTest {
 
         // We assert these common properties are set again to make sure that code path is exercised
         // for unknown SdkServiceExceptions as well
-        assertEquals(ERROR_CODE, exception.errorCode());
         assertEquals(500, exception.statusCode());
         assertEquals(SERVICE_NAME, exception.serviceName());
     }
@@ -128,7 +123,6 @@ public class JsonErrorResponseHandlerTest {
         SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
 
         assertNotNull(exception);
-        assertEquals(ERROR_CODE, exception.errorCode());
     }
 
     @Test
@@ -140,7 +134,6 @@ public class JsonErrorResponseHandlerTest {
         SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
 
         assertNotNull(exception);
-        assertEquals(ERROR_CODE, exception.errorCode());
     }
 
     @Test
@@ -148,13 +141,13 @@ public class JsonErrorResponseHandlerTest {
         httpResponse.setStatusCode(400);
         expectUnmarshallerMatches();
         when(unmarshaller.unmarshall(anyObject()))
-                .thenReturn(new CustomException("error"));
+                .thenReturn(new CustomException(ERROR_MESSAGE));
 
         ExecutionAttributes attributes =
                 new ExecutionAttributes().putAttribute(SdkExecutionAttributes.SERVICE_NAME, SERVICE_NAME);
         SdkServiceException exception = responseHandler.handle(httpResponse, attributes);
 
-        assertEquals(ERROR_CODE, exception.errorCode());
+        assertEquals(ERROR_MESSAGE, exception.errorMessage());
         assertEquals(400, exception.statusCode());
         assertEquals(SERVICE_NAME, exception.serviceName());
     }
@@ -165,25 +158,7 @@ public class JsonErrorResponseHandlerTest {
         httpResponse.addHeader(HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER, "1234");
         expectUnmarshallerMatches();
         when(unmarshaller.unmarshall(anyObject()))
-                .thenReturn(new CustomException("error"));
-
-        SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
-
-        assertEquals("1234", exception.requestId());
-    }
-
-    /**
-     * Headers are case insensitive so the request id should still be parsed in this test
-     */
-    @Test
-    public void handle_UnmarshallerReturnsException_WithCaseInsensitiveRequestId() throws
-                                                                                   Exception {
-        httpResponse.setStatusCode(500);
-        httpResponse.addHeader(StringUtils.upperCase(HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER),
-                               "1234");
-        expectUnmarshallerMatches();
-        when(unmarshaller.unmarshall(anyObject()))
-                .thenReturn(new CustomException("error"));
+                .thenReturn(new CustomException(ERROR_MESSAGE));
 
         SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
 
@@ -201,7 +176,7 @@ public class JsonErrorResponseHandlerTest {
         httpResponse.addHeader(HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER, "1234");
         expectUnmarshallerMatches();
         when(unmarshaller.unmarshall(anyObject()))
-                .thenReturn(new CustomException("error"));
+                .thenReturn(new CustomException(ERROR_MESSAGE));
 
         SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
         assertThat(exception.headers(), hasEntry("FooHeader", "FooValue"));
@@ -209,12 +184,12 @@ public class JsonErrorResponseHandlerTest {
                    hasEntry(HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER, "1234"));
     }
 
-    private void expectUnmarshallerMatches() throws Exception {
-        when(unmarshaller.matchErrorCode(anyString())).thenReturn(true);
+    private void expectUnmarshallerMatches() {
+        when(unmarshaller.matches(anyInt())).thenReturn(true);
     }
 
-    private void expectUnmarshallerDoesNotMatch() throws Exception {
-        when(unmarshaller.matchErrorCode(anyString())).thenReturn(false);
+    private void expectUnmarshallerDoesNotMatch() {
+        when(unmarshaller.matches(anyInt())).thenReturn(false);
     }
 
     private static class CustomException extends SdkServiceException {

@@ -31,7 +31,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 @FunctionalInterface
 public interface HttpResponseHandler<T> {
 
-    //TODO: move this to aws-core module once HttpResponse is replaced with SdkHttpResponse
     String X_AMZN_REQUEST_ID_HEADER = "x-amzn-RequestId";
 
     /**

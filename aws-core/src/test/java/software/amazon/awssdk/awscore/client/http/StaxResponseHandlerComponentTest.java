@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.http;
+package software.amazon.awssdk.awscore.client.http;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -34,8 +34,10 @@ import java.nio.file.Files;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import software.amazon.awssdk.awscore.http.response.StaxResponseHandler;
+import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.runtime.transform.StaxUnmarshallerContext;
+import software.amazon.awssdk.awscore.protocol.xml.StaxUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
 public class StaxResponseHandlerComponentTest {

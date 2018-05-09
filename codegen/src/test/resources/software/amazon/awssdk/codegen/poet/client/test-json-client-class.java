@@ -4,6 +4,7 @@ import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.config.AwsSyncClientConfiguration;
+import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
 import software.amazon.awssdk.core.client.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -13,7 +14,6 @@ import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorShapeMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
-import software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -60,7 +60,7 @@ import software.amazon.awssdk.services.json.transform.StreamingOutputOperationRe
 final class DefaultJsonClient implements JsonClient {
     private final SyncClientHandler clientHandler;
 
-    private final SdkJsonProtocolFactory protocolFactory;
+    private final AwsJsonProtocolFactory protocolFactory;
 
     private final AwsSyncClientConfiguration clientConfiguration;
 
@@ -493,8 +493,8 @@ final class DefaultJsonClient implements JsonClient {
         return protocolFactory.createErrorResponseHandler(new JsonErrorResponseMetadata());
     }
 
-    private software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory init() {
-        return new SdkJsonProtocolFactory(new JsonClientMetadata()
+    private software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory init() {
+        return new AwsJsonProtocolFactory(new JsonClientMetadata()
                                               .withProtocolVersion("1.1")
                                               .withSupportsCbor(false)
                                               .withSupportsIon(false)

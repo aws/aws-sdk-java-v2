@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.runtime.transform;
+package software.amazon.awssdk.awscore.protocol.xml;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,13 +37,13 @@ import javax.xml.stream.events.XMLEvent;
  */
 public class StaxUnmarshallerContext {
 
-    public final Stack<String> stack = new Stack<String>();
+    public final Stack<String> stack = new Stack<>();
     private final XMLEventReader eventReader;
     private final Map<String, String> headers;
     private XMLEvent currentEvent;
     private String stackString = "";
-    private Map<String, String> metadata = new HashMap<String, String>();
-    private List<MetadataExpression> metadataExpressions = new ArrayList<MetadataExpression>();
+    private Map<String, String> metadata = new HashMap<>();
+    private List<MetadataExpression> metadataExpressions = new ArrayList<>();
     private Iterator<?> attributeIterator;
     private String currentHeader;
 

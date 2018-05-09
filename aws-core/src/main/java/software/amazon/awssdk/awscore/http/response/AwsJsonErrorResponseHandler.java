@@ -13,42 +13,37 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.http.response;
+package software.amazon.awssdk.awscore.http.response;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.exception.ErrorType;
+import software.amazon.awssdk.awscore.protocol.json.AwsJsonErrorUnmarshaller;
+import software.amazon.awssdk.awscore.protocol.json.ErrorCodeParser;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponse;
-import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
-import software.amazon.awssdk.core.internal.http.ErrorCodeParser;
 import software.amazon.awssdk.core.protocol.json.JsonContent;
 import software.amazon.awssdk.core.runtime.http.JsonErrorMessageParser;
-import software.amazon.awssdk.core.runtime.transform.JsonErrorUnmarshaller;
-import software.amazon.awssdk.http.HttpStatusFamily;
+import software.amazon.awssdk.core.runtime.http.response.JsonErrorResponseHandler;
 
+/**
+ * Implementation of HttpResponseHandler that handles a error response from AWS
+ * services and unmarshalls the result using a JSON unmarshaller.
+ */
 @SdkInternalApi
-public class JsonErrorResponseHandler implements HttpResponseHandler<SdkServiceException> {
+public class AwsJsonErrorResponseHandler extends JsonErrorResponseHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(JsonErrorResponseHandler.class);
-
-    private final List<JsonErrorUnmarshaller> unmarshallers;
+    private final List<AwsJsonErrorUnmarshaller> unmarshallers;
     private final ErrorCodeParser errorCodeParser;
     private final JsonErrorMessageParser errorMessageParser;
     private final JsonFactory jsonFactory;
 
-    public JsonErrorResponseHandler(
-            List<JsonErrorUnmarshaller> errorUnmarshallers,
-            ErrorCodeParser errorCodeParser,
-            JsonErrorMessageParser errorMessageParser,
-            JsonFactory jsonFactory) {
+    public AwsJsonErrorResponseHandler(List<AwsJsonErrorUnmarshaller> errorUnmarshallers,
+                                       ErrorCodeParser errorCodeParser,
+                                       JsonErrorMessageParser errorMessageParser,
+                                       JsonFactory jsonFactory) {
         this.unmarshallers = errorUnmarshallers;
         this.errorCodeParser = errorCodeParser;
         this.errorMessageParser = errorMessageParser;
@@ -88,44 +83,15 @@ public class JsonErrorResponseHandler implements HttpResponseHandler<SdkServiceE
      * Create an SdkServiceException using the chain of unmarshallers. This method will never
      * return null, it will always return a valid SdkServiceException
      *
-     * @param errorCode   Error code to find an appropriate unmarshaller
+     * @param errorCode Error code to find an appropriate unmarshaller
      * @param jsonContent JsonContent of HTTP response
      * @return SdkServiceException
      */
     private SdkServiceException createException(String errorCode, JsonContent jsonContent) {
-        SdkServiceException exception = unmarshallException(errorCode, jsonContent);
-        if (exception == null) {
-            exception = new SdkServiceException(
-                    "Unable to unmarshall exception response with the unmarshallers provided");
-        }
-        return exception;
+        return unmarshallers.stream()
+                            .filter(u -> u.matchErrorCode(errorCode))
+                            .findFirst()
+                            .map(u -> safeUnmarshall(jsonContent, u))
+                            .orElseGet(this::createUnknownException);
     }
-
-    private SdkServiceException unmarshallException(String errorCode, JsonContent jsonContent) {
-        for (JsonErrorUnmarshaller unmarshaller : unmarshallers) {
-            if (unmarshaller.matchErrorCode(errorCode)) {
-                try {
-                    return unmarshaller.unmarshall(jsonContent.getJsonNode());
-                } catch (Exception e) {
-                    log.debug("Unable to unmarshall exception content", e);
-                    return null;
-                }
-            }
-        }
-        return null;
-    }
-
-    private ErrorType getErrorType(int statusCode) {
-        return HttpStatusFamily.of(statusCode) == HttpStatusFamily.SERVER_ERROR ? ErrorType.SERVICE : ErrorType.CLIENT;
-    }
-
-    private String getRequestIdFromHeaders(Map<String, String> headers) {
-        for (Entry<String, String> headerEntry : headers.entrySet()) {
-            if (headerEntry.getKey().equalsIgnoreCase(X_AMZN_REQUEST_ID_HEADER)) {
-                return headerEntry.getValue();
-            }
-        }
-        return null;
-    }
-
 }

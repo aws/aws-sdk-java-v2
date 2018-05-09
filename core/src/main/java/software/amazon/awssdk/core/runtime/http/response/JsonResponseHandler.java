@@ -35,7 +35,7 @@ import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 
 /**
- * Default implementation of HttpResponseHandler that handles a successful response from an AWS
+ * Default implementation of HttpResponseHandler that handles a successful response from a
  * service and unmarshalls the result using a JSON unmarshaller.
  *
  * @param <T> Indicates the type being unmarshalled by this response handler.

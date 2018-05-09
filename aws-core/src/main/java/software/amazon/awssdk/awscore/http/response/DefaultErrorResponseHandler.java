@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awscore.http;
+package software.amazon.awssdk.awscore.http.response;
 
 import java.io.IOException;
 import java.io.InputStream;

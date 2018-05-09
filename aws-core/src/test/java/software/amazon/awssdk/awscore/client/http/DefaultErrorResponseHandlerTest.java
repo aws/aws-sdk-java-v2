@@ -32,7 +32,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.client.utils.HttpTestUtils;
 import software.amazon.awssdk.awscore.client.utils.WireMockTestBase;
-import software.amazon.awssdk.awscore.http.DefaultErrorResponseHandler;
+import software.amazon.awssdk.awscore.http.response.DefaultErrorResponseHandler;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;

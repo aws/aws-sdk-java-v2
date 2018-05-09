@@ -32,16 +32,16 @@ import software.amazon.awssdk.core.util.ImmutableMapParameter;
  * Creates generators and protocol handlers for plain text JSON wire format.
  */
 @SdkProtectedApi
-public final class SdkStructuredPlainJsonFactory {
+public abstract class SdkStructuredPlainJsonFactory {
 
     /**
      * Recommended to share JsonFactory instances per http://wiki.fasterxml
      * .com/JacksonBestPracticesPerformance
      */
-    public static final JsonFactory JSON_FACTORY = new JsonFactory();
+    protected static final JsonFactory JSON_FACTORY = new JsonFactory();
 
     @SdkTestInternalApi
-    public static final Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> JSON_SCALAR_UNMARSHALLERS =
+    protected static final Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> JSON_SCALAR_UNMARSHALLERS =
             new ImmutableMapParameter.Builder<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>>()
             .put(String.class, SimpleTypeJsonUnmarshallers.StringJsonUnmarshaller.getInstance())
             .put(Double.class, SimpleTypeJsonUnmarshallers.DoubleJsonUnmarshaller.getInstance())
@@ -57,7 +57,7 @@ public final class SdkStructuredPlainJsonFactory {
             .put(Character.class, SimpleTypeJsonUnmarshallers.CharacterJsonUnmarshaller.getInstance())
             .put(Short.class, SimpleTypeJsonUnmarshallers.ShortJsonUnmarshaller.getInstance()).build();
 
-    public static final SdkStructuredJsonFactory SDK_JSON_FACTORY = new SdkStructuredJsonFactoryImpl(
+    static final SdkStructuredJsonFactory SDK_JSON_FACTORY = new BaseSdkStructuredJsonFactory(
             JSON_FACTORY, JSON_SCALAR_UNMARSHALLERS) {
         @Override
         protected StructuredJsonGenerator createWriter(JsonFactory jsonFactory,
@@ -66,6 +66,6 @@ public final class SdkStructuredPlainJsonFactory {
         }
     };
 
-    private SdkStructuredPlainJsonFactory() {
+    protected SdkStructuredPlainJsonFactory() {
     }
 }

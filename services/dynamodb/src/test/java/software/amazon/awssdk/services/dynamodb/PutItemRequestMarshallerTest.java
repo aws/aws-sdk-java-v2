@@ -24,7 +24,7 @@ import java.nio.ByteBuffer;
 import org.junit.Test;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
-import software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory;
+import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.core.util.ImmutableMapParameter;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
@@ -35,7 +35,7 @@ public class PutItemRequestMarshallerTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private final PutItemRequestMarshaller marshaller = new PutItemRequestMarshaller(
-            new SdkJsonProtocolFactory(new JsonClientMetadata().withProtocolVersion("1.0")));
+            new AwsJsonProtocolFactory(new JsonClientMetadata().withProtocolVersion("1.0")));
 
     /**l
      * Regression test for TT0075355961

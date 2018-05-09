@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.runtime.transform;
+package software.amazon.awssdk.awscore.protocol.xml;
 
 import static software.amazon.awssdk.core.util.XpathUtils.asString;
 import static software.amazon.awssdk.core.util.XpathUtils.xpath;
@@ -23,6 +23,8 @@ import org.w3c.dom.Node;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.ErrorType;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.runtime.transform.AbstractErrorUnmarshaller;
+import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
 /**
  * Error unmarshaller that knows how to interpret a standard AWS error message
