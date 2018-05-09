@@ -70,8 +70,8 @@ public class ServiceBuilderConfigurationDefaults extends ClientConfigurationDefa
         // Add service interceptors before the ones currently configured.
         List<ExecutionInterceptor> serviceInterceptors = new ArrayList<>();
         requestHandlerPaths.forEach(p -> serviceInterceptors.addAll(chainFactory.getInterceptors(p)));
-        serviceInterceptors.addAll(config.lastExecutionInterceptors());
-        builder.lastExecutionInterceptors(serviceInterceptors);
+        serviceInterceptors.addAll(config.executionInterceptors());
+        builder.executionInterceptors(serviceInterceptors);
     }
 
     @Override
