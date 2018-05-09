@@ -58,7 +58,7 @@ public final class GlobalClientConfigurationDefaults extends ClientConfiguration
 
         // Put global interceptors before the ones currently configured.
         List<ExecutionInterceptor> globalInterceptors = new ClasspathInterceptorChainFactory().getGlobalInterceptors();
-        builder.lastExecutionInterceptors(mergeLists(globalInterceptors, configuration.lastExecutionInterceptors()));
+        builder.executionInterceptors(mergeLists(globalInterceptors, configuration.executionInterceptors()));
     }
 
     @Override
