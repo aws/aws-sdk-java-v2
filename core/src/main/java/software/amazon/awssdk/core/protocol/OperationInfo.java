@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.protocol;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.http.HttpMethodName;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
 
 /**
  * Static information about an API operation used to marshall it correctly.
@@ -24,7 +25,6 @@ import software.amazon.awssdk.core.http.HttpMethodName;
 @SdkProtectedApi
 public class OperationInfo {
 
-    private final Protocol protocol;
     private final String requestUri;
     private final HttpMethodName httpMethodName;
     private final String operationIdentifier;
@@ -33,20 +33,12 @@ public class OperationInfo {
     private final boolean hasPayloadMembers;
 
     private OperationInfo(Builder builder) {
-        this.protocol = builder.protocol;
         this.requestUri = builder.requestUri;
         this.httpMethodName = builder.httpMethodName;
         this.operationIdentifier = builder.operationIdentifier;
         this.serviceName = builder.serviceName;
         this.hasExplicitPayloadMember = builder.hasExplicitPayloadMember;
         this.hasPayloadMembers = builder.hasPayloadMembers;
-    }
-
-    /**
-     * @return The protocol of the client. Gives hints to the marshaller on how things should be transformed.
-     */
-    public Protocol protocol() {
-        return protocol;
     }
 
     /**
@@ -73,7 +65,7 @@ public class OperationInfo {
     }
 
     /**
-     * @return Display name for the service. Available in the {@link ExecutionAttributes} object. This is usually the service
+     * @return Display name for the service. Available in the {@link SdkExecutionAttributes} object. This is usually the service
      * interface name but may be customized at generation time ('AmazonDynamoDBv2' for example).
      */
     public String serviceName() {
@@ -108,7 +100,6 @@ public class OperationInfo {
      */
     public static final class Builder {
 
-        private Protocol protocol;
         private String requestUri;
         private HttpMethodName httpMethodName;
         private String operationIdentifier;
@@ -117,11 +108,6 @@ public class OperationInfo {
         private boolean hasPayloadMembers;
 
         private Builder() {
-        }
-
-        public Builder protocol(Protocol protocol) {
-            this.protocol = protocol;
-            return this;
         }
 
         public Builder requestUri(String requestUri) {

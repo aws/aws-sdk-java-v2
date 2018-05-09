@@ -24,11 +24,11 @@ import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.http.HttpResponse;
-import software.amazon.awssdk.core.runtime.http.JsonErrorMessageParser;
+import software.amazon.awssdk.core.protocol.json.SdkJsonErrorMessageParser;
 
 public class JsonErrorMessageParserTest {
 
-    private static final JsonErrorMessageParser parser = JsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER;
+    private static final SdkJsonErrorMessageParser parser = SdkJsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER;
 
     private static final String MESSAGE_CONTENT = "boom";
 
@@ -40,13 +40,6 @@ public class JsonErrorMessageParserTest {
     public void setup() {
         jsonNode = JsonNodeFactory.instance.objectNode();
         response = new HttpResponse(null);
-    }
-
-    @Test
-    public void deprecatedOverload_ParsesMessageSuccessfully() {
-        jsonNode.put("message", MESSAGE_CONTENT);
-        String parsed = parser.parseErrorMessage(jsonNode);
-        assertEquals(MESSAGE_CONTENT, parsed);
     }
 
     @Test
@@ -99,27 +92,4 @@ public class JsonErrorMessageParserTest {
         String parsed = parser.parseErrorMessage(response, jsonNode);
         assertEquals(MESSAGE_CONTENT, parsed);
     }
-
-    @Test
-    public void errorMessageInHeader_ReturnsHeaderValue() {
-        response.addHeader(JsonErrorMessageParser.X_AMZN_ERROR_MESSAGE, MESSAGE_CONTENT);
-        String parsed = parser.parseErrorMessage(response, jsonNode);
-        assertEquals(MESSAGE_CONTENT, parsed);
-    }
-
-    @Test
-    public void errorMessageInHeader_ReturnsHeaderValue_CaseInsensitive() {
-        response.addHeader("x-AMZN-error-message", MESSAGE_CONTENT);
-        String parsed = parser.parseErrorMessage(response, jsonNode);
-        assertEquals(MESSAGE_CONTENT, parsed);
-    }
-
-    @Test
-    public void errorMessageInHeader_TakesPrecedenceOverMessageInBody() {
-        response.addHeader(JsonErrorMessageParser.X_AMZN_ERROR_MESSAGE, MESSAGE_CONTENT);
-        jsonNode.put("message", "other message in body");
-        String parsed = parser.parseErrorMessage(response, jsonNode);
-        assertEquals(MESSAGE_CONTENT, parsed);
-    }
-
 }
