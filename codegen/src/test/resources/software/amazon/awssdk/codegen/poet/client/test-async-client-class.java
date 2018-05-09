@@ -5,6 +5,9 @@ import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.config.AwsAsyncClientConfiguration;
+import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocol;
+import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
+import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.AsyncClientHandler;
@@ -15,7 +18,6 @@ import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorShapeMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
-import software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -58,7 +60,7 @@ import software.amazon.awssdk.services.json.transform.StreamingOutputOperationRe
 final class DefaultJsonAsyncClient implements JsonAsyncClient {
     private final AsyncClientHandler clientHandler;
 
-    private final SdkJsonProtocolFactory protocolFactory;
+    private final AwsJsonProtocolFactory protocolFactory;
 
     protected DefaultJsonAsyncClient(AwsAsyncClientConfiguration clientConfiguration, AdvancedConfiguration serviceConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration, serviceConfiguration);
@@ -494,15 +496,17 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         clientHandler.close();
     }
 
-    private software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory init() {
-        return new SdkJsonProtocolFactory(new JsonClientMetadata()
-                                              .withProtocolVersion("1.1")
-                                              .withSupportsCbor(false)
-                                              .withSupportsIon(false)
-                                              .withBaseServiceExceptionClass(software.amazon.awssdk.services.json.model.JsonException.class)
-                                              .withContentTypeOverride("")
-                                              .addErrorMetadata(
-                                                  new JsonErrorShapeMetadata().withErrorCode("InvalidInput").withModeledClass(InvalidInputException.class)));
+    private software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory init() {
+        return new AwsJsonProtocolFactory(
+            new JsonClientMetadata()
+                .withSupportsCbor(false)
+                .withSupportsIon(false)
+                .withBaseServiceExceptionClass(software.amazon.awssdk.services.json.model.JsonException.class)
+                .withContentTypeOverride("")
+                .addErrorMetadata(
+                    new JsonErrorShapeMetadata().withErrorCode("InvalidInput").withModeledClass(
+                        InvalidInputException.class)), AwsJsonProtocolMetadata.builder().protocolVersion("1.1")
+                                                                              .protocol(AwsJsonProtocol.REST_JSON).build());
     }
 
     private HttpResponseHandler<SdkServiceException> createErrorResponseHandler() {
