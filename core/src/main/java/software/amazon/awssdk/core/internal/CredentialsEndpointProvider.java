@@ -17,10 +17,11 @@ package software.amazon.awssdk.core.internal;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryPolicy;
+import software.amazon.awssdk.core.util.VersionInfo;
 
 /**
  * <p>
@@ -56,7 +57,12 @@ public interface CredentialsEndpointProvider {
      * Allows passing additional headers to the request
      */
     default Map<String, String> headers() {
-        return Collections.emptyMap();
+        Map<String, String> requestHeaders = new HashMap<>();
+        requestHeaders.put("User-Agent", String.format("aws-sdk-java/%s", VersionInfo.SDK_VERSION));
+        requestHeaders.put("Accept", "*/*");
+        requestHeaders.put("Connection", "keep-alive");
+
+        return requestHeaders;
     }
 
 }

@@ -29,7 +29,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -43,6 +43,7 @@ import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.internal.net.ConnectionUtils;
 import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryParameters;
 import software.amazon.awssdk.core.retry.internal.CredentialsEndpointRetryPolicy;
+import software.amazon.awssdk.core.util.VersionInfo;
 import utils.http.SocketUtils;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -54,7 +55,14 @@ public class HttpCredentialsUtilsTest {
     private static final String SUCCESS_BODY = "{\"AccessKeyId\":\"ACCESS_KEY_ID\",\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
                                                + "\"Token\":\"TOKEN_TOKEN_TOKEN\",\"Expiration\":\"3000-05-03T04:55:54Z\"}";
     private static URI endpoint;
-    private final Map<String, String> emptyHeaders = Collections.emptyMap();
+    private static Map<String, String> headers = new HashMap<String, String>()
+    {
+        {
+            put("User-Agent", String.format("aws-sdk-java/%s", VersionInfo.SDK_VERSION));
+            put("Accept", "*/*");
+            put("Connection", "keep-alive");
+        }
+    };
 
     private static CustomRetryPolicy customRetryPolicy;
 
@@ -153,13 +161,13 @@ public class HttpCredentialsUtilsTest {
      */
     @Test
     public void readResouceWithDefaultRetryPolicy_DoesNotRetry_ForIoException() throws IOException {
-        Mockito.when(mockConnection.connectToEndpoint(endpoint, emptyHeaders)).thenThrow(new IOException());
+        Mockito.when(mockConnection.connectToEndpoint(endpoint, headers)).thenThrow(new IOException());
 
         try {
             new HttpCredentialsUtils(mockConnection).readResource(endpoint);
             fail("Expected an IOexception");
         } catch (IOException exception) {
-            Mockito.verify(mockConnection, Mockito.times(1)).connectToEndpoint(endpoint, emptyHeaders);
+            Mockito.verify(mockConnection, Mockito.times(1)).connectToEndpoint(endpoint, headers);
         }
     }
 
@@ -170,13 +178,13 @@ public class HttpCredentialsUtilsTest {
      */
     @Test
     public void readResouceWithCustomRetryPolicy_DoesRetry_ForIoException() throws IOException {
-        Mockito.when(mockConnection.connectToEndpoint(endpoint, emptyHeaders)).thenThrow(new IOException());
+        Mockito.when(mockConnection.connectToEndpoint(endpoint, headers)).thenThrow(new IOException());
 
         try {
             new HttpCredentialsUtils(mockConnection).readResource(endpointProvider(endpoint, customRetryPolicy));
             fail("Expected an IOexception");
         } catch (IOException exception) {
-            Mockito.verify(mockConnection, Mockito.times(CustomRetryPolicy.MAX_RETRIES + 1)).connectToEndpoint(endpoint, emptyHeaders);
+            Mockito.verify(mockConnection, Mockito.times(CustomRetryPolicy.MAX_RETRIES + 1)).connectToEndpoint(endpoint, headers);
         }
     }
 
@@ -188,13 +196,13 @@ public class HttpCredentialsUtilsTest {
     @Test
     public void readResouceWithCustomRetryPolicy_DoesNotRetry_ForNonIoException() throws IOException {
         generateStub(500, "Non Json error body");
-        Mockito.when(mockConnection.connectToEndpoint(endpoint, emptyHeaders)).thenCallRealMethod();
+        Mockito.when(mockConnection.connectToEndpoint(endpoint, headers)).thenCallRealMethod();
 
         try {
             new HttpCredentialsUtils(mockConnection).readResource(endpointProvider(endpoint, customRetryPolicy));
             fail("Expected an SdkServiceException");
         } catch (SdkServiceException exception) {
-            Mockito.verify(mockConnection, Mockito.times(1)).connectToEndpoint(endpoint, emptyHeaders);
+            Mockito.verify(mockConnection, Mockito.times(1)).connectToEndpoint(endpoint, headers);
         }
     }
 
