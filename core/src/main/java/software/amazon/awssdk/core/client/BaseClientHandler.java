@@ -67,7 +67,7 @@ abstract class BaseClientHandler {
                               overrideConfiguration.advancedOption(AdvancedClientOption.AWS_REGION));
 
         return ExecutionContext.builder()
-                               .interceptorChain(new ExecutionInterceptorChain(overrideConfiguration.lastExecutionInterceptors()))
+                               .interceptorChain(new ExecutionInterceptorChain(overrideConfiguration.executionInterceptors()))
                                .interceptorContext(InterceptorContext.builder()
                                                                      .request(originalRequest)
                                                                      .build())
