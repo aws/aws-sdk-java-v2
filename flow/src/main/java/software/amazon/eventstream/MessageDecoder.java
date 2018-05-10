@@ -15,7 +15,7 @@ public final class MessageDecoder {
 
     public MessageDecoder(Consumer<Message> messageConsumer) {
         this.messageConsumer = messageConsumer;
-        this.buf = ByteBuffer.allocate(128 * 1024);
+        this.buf = ByteBuffer.allocate(16 * 128 * 1024);
     }
 
     public void feed(byte[] bytes) {
@@ -23,10 +23,15 @@ public final class MessageDecoder {
     }
 
     public void feed(byte[] bytes, int offset, int length) {
+        // TODO instead of blindly putting bytes can we first calculate the prelude if available then cache, then
+        // put all bytes up to the length of the frame then decode then clear and reset for next prelude
+        // Also we can detect the length of the payload and grow if needed
         buf.put(bytes, offset, length);
         ByteBuffer readView = (ByteBuffer) buf.duplicate().flip();
         int bytesConsumed = 0;
         while (readView.remaining() >= 15) {
+            // TODO seems wasteful to decode the prelude multiple times. Can we cache until we've read all the data for
+            // this frame?
             int totalMessageLength = toIntExact(Prelude.decode(readView.duplicate()).getTotalLength());
 
             if (readView.remaining() >= totalMessageLength) {

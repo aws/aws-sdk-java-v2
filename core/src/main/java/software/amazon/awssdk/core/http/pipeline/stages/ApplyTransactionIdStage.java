@@ -39,9 +39,6 @@ public class ApplyTransactionIdStage implements MutableRequestToRequestPipeline 
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
         throws Exception {
         InterruptMonitor.checkInterrupted();
-        //        for (int i = 1; i < 50; i++) {
-        //            request.header("x-amz-shorea-" + i, UUID.randomUUID().toString());
-        //        }
         return request.header(HEADER_SDK_TRANSACTION_ID, new UUID(random.nextLong(), random.nextLong()).toString());
     }
 }

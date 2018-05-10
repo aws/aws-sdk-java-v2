@@ -74,6 +74,7 @@
                             <include>commons-codec:commons-codec</include>
                             <include>software.amazon.awssdk.ion:ion-java</include>
                             <include>software.amazon.awssdk:*</include>
+                            <include>software.amazon:*</include>
                             <include>commons-logging:*</include>
                         </includes>
                     </artifactSet>
