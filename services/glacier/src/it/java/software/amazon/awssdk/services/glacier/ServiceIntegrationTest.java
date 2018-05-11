@@ -40,7 +40,7 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
                               .credentialsProvider(getCredentialsProvider())
                               .overrideConfiguration(ClientOverrideConfiguration
                                                              .builder()
-                                                             .addLastExecutionInterceptor(capturingExecutionInterceptor)
+                                                             .addExecutionInterceptor(capturingExecutionInterceptor)
                                                              .build())
                               .build();
     }
