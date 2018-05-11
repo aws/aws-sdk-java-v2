@@ -26,8 +26,9 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.runtime.transform.AbstractErrorUnmarshaller;
 
+
 @SdkInternalApi
-public abstract class JsonErrorUnmarshaller extends AbstractErrorUnmarshaller<JsonNode> {
+public abstract class JsonErrorUnmarshaller<T extends SdkServiceException> extends AbstractErrorUnmarshaller<T, JsonNode> {
 
     private static final ObjectMapper MAPPER = new ObjectMapper().configure(
         DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setPropertyNamingStrategy(UPPER_CAMEL_CASE);
@@ -39,7 +40,8 @@ public abstract class JsonErrorUnmarshaller extends AbstractErrorUnmarshaller<Js
     @Override
     @ReviewBeforeRelease("Figure out a better way to go from exception class to it's builder class in order to perform the " +
                          "deserialization")
-    public SdkServiceException unmarshall(JsonNode jsonContent) throws Exception {
+    @SuppressWarnings("unchecked")
+    public T unmarshall(JsonNode jsonContent) throws Exception {
         // FIXME: dirty hack below
         try {
             Method builderClassGetter = exceptionClass.getDeclaredMethod("serializableBuilderClass");
@@ -48,11 +50,11 @@ public abstract class JsonErrorUnmarshaller extends AbstractErrorUnmarshaller<Js
             Method buildMethod = builderClass.getMethod("build");
             makeAccessible(buildMethod);
             Object o = MAPPER.treeToValue(jsonContent, builderClass);
-            return (SdkServiceException) buildMethod.invoke(o);
+            return (T) buildMethod.invoke(o);
         } catch (NoSuchMethodException e) {
             // This exception is not the new style with a builder, assume it's still the old
             // style that we can directly map from JSON
-            return MAPPER.treeToValue(jsonContent, exceptionClass);
+            return  (T) MAPPER.treeToValue(jsonContent, exceptionClass);
         }
     }
 }

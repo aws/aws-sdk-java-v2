@@ -174,7 +174,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
              * for every service exception.
              */
 
-            if (RetryUtils.isClockSkewError(exception)) {
+            if (RetryUtils.isClockSkewException(exception)) {
                 int clockSkew = ClockSkewUtil.parseClockSkewOffset(response.httpResponse());
                 dependencies.updateTimeOffset(clockSkew);
             }

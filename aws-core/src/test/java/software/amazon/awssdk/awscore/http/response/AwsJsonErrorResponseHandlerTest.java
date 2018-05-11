@@ -31,8 +31,9 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import software.amazon.awssdk.awscore.client.utils.ValidSdkObjects;
-import software.amazon.awssdk.awscore.protocol.json.JsonErrorCodeParser;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonErrorUnmarshaller;
+import software.amazon.awssdk.awscore.protocol.json.JsonErrorCodeParser;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -216,7 +217,7 @@ public class AwsJsonErrorResponseHandlerTest {
         when(unmarshaller.matchErrorCode(anyString())).thenReturn(false);
     }
 
-    private static class CustomException extends SdkServiceException {
+    private static class CustomException extends AwsServiceException {
 
         private static final long serialVersionUID = 1305027296023640779L;
 

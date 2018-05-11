@@ -148,7 +148,7 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
              * Checking for clock skew error again because we don't want to set the global time offset
              * for every service exception.
              */
-            if (RetryUtils.isClockSkewError(exception)) {
+            if (RetryUtils.isClockSkewException(exception)) {
                 int clockSkew = ClockSkewUtil.parseClockSkewOffset(response.httpResponse());
                 dependencies.updateTimeOffset(clockSkew);
             }

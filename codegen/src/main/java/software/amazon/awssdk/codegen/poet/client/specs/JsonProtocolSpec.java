@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocol;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolMetadata;
@@ -37,7 +38,6 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
@@ -123,7 +123,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
         return CodeBlock
                 .builder()
                 .add("\n\n$T<$T> errorResponseHandler = createErrorResponseHandler();",
-                     HttpResponseHandler.class, SdkServiceException.class)
+                     HttpResponseHandler.class, AwsServiceException.class)
                 .build();
     }
 
@@ -184,7 +184,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
     @Override
     public Optional<MethodSpec> createErrorResponseHandler() {
         ClassName httpResponseHandler = ClassName.get(HttpResponseHandler.class);
-        ClassName sdkBaseException = ClassName.get(SdkServiceException.class);
+        ClassName sdkBaseException = ClassName.get(AwsServiceException.class);
         TypeName responseHandlerOfException = ParameterizedTypeName.get(httpResponseHandler, sdkBaseException);
 
         return Optional.of(MethodSpec.methodBuilder("createErrorResponseHandler")

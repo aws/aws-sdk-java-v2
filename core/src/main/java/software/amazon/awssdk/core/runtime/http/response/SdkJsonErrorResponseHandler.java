@@ -27,11 +27,11 @@ import software.amazon.awssdk.core.protocol.json.JsonContent;
 import software.amazon.awssdk.core.protocol.json.SdkJsonErrorUnmarshaller;
 
 /**
- * Default implementation of HttpResponseHandler that handles a successful response from a
- * service and unmarshalls the result using a JSON unmarshaller.
+ * Default implementation of {@link JsonErrorResponseHandler} that handles an error response from a
+ * service and unmarshalls the result using an JSON error unmarshaller.
  */
 @SdkInternalApi
-public class SdkJsonErrorResponseHandler extends JsonErrorResponseHandler {
+public class SdkJsonErrorResponseHandler extends JsonErrorResponseHandler<SdkServiceException> {
 
     private final List<SdkJsonErrorUnmarshaller> unmarshallers;
     private final ErrorMessageParser errorMessageParser;
@@ -89,4 +89,9 @@ public class SdkJsonErrorResponseHandler extends JsonErrorResponseHandler {
                             .orElseGet(this::createUnknownException);
     }
 
+    @Override
+    protected SdkServiceException createUnknownException() {
+        return new SdkServiceException(
+            "Unable to unmarshall exception response with the unmarshallers provided");
+    }
 }

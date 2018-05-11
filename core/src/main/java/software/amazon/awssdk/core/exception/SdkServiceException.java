@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.Map;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.HttpStatusCodes;
 
 /**
  * Extension of SdkException that represents an error response returned by
@@ -224,5 +225,28 @@ public class SdkServiceException extends SdkException {
                + " (Service: " + serviceName()
                + "; Status Code: " + statusCode()
                + "; Request ID: " + requestId() + ")";
+    }
+
+    /**
+     * Specifies whether or not an exception is caused by clock skew.
+     */
+    public boolean isClockSkewException() {
+        return false;
+    }
+
+    /**
+     * Specifies whether or not an exception is caused by throttling.
+     *
+     * @return true if the status code is 429, otherwise false.
+     */
+    public final boolean isThrottlingException() {
+        return statusCode() == HttpStatusCodes.THROTTLING || additionalThrottlingCondition();
+    }
+
+    /**
+     * Can be overridden by subclasses to provide additional throttling conditions.
+     */
+    protected boolean additionalThrottlingCondition() {
+        return false;
     }
 }
