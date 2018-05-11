@@ -21,8 +21,8 @@ import static software.amazon.awssdk.core.util.XpathUtils.xpath;
 import javax.xml.xpath.XPath;
 import org.w3c.dom.Node;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.ErrorType;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.runtime.transform.AbstractErrorUnmarshaller;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
@@ -34,13 +34,14 @@ import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
  * @see LegacyErrorUnmarshaller
  */
 @SdkProtectedApi
-public class StandardErrorUnmarshaller extends AbstractErrorUnmarshaller<Node> {
+public class StandardErrorUnmarshaller extends AbstractErrorUnmarshaller<AwsServiceException, Node> {
 
     /**
      * Constructs a new unmarshaller that will unmarshall a standard AWS error
      * message as a generic SdkServiceException object.
      */
     public StandardErrorUnmarshaller() {
+        super(AwsServiceException.class);
     }
 
     /**
@@ -52,14 +53,15 @@ public class StandardErrorUnmarshaller extends AbstractErrorUnmarshaller<Node> {
      *            The class of SdkServiceException to create and populate
      *            when unmarshalling the error message.
      */
-    public StandardErrorUnmarshaller(Class<? extends SdkServiceException> exceptionClass) {
+    public StandardErrorUnmarshaller(Class<? extends AwsServiceException> exceptionClass) {
         super(exceptionClass);
     }
 
     /**
      * @see Unmarshaller#unmarshall(java.lang.Object)
      */
-    public SdkServiceException unmarshall(Node in) throws Exception {
+    @Override
+    public AwsServiceException unmarshall(Node in) throws Exception {
         XPath xpath = xpath();
         String errorCode = parseErrorCode(in, xpath);
 
@@ -98,13 +100,13 @@ public class StandardErrorUnmarshaller extends AbstractErrorUnmarshaller<Node> {
         return "ErrorResponse/Error/" + property;
     }
 
-    public SdkServiceException standardErrorPathException(String errorCode, Node in, XPath xpath) throws Exception {
+    public AwsServiceException standardErrorPathException(String errorCode, Node in, XPath xpath) throws Exception {
 
         String errorType = asString("ErrorResponse/Error/Type", in, xpath);
         String requestId = asString("ErrorResponse/RequestId", in, xpath);
         String message = asString("ErrorResponse/Error/Message", in, xpath);
 
-        SdkServiceException exception = newException(message);
+        AwsServiceException exception = newException(message);
         exception.errorCode(errorCode);
         exception.requestId(requestId);
         exception.errorType(getErrorType(errorType));

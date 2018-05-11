@@ -15,13 +15,9 @@
 
 package software.amazon.awssdk.awscore.protocol.json;
 
-import static com.fasterxml.jackson.databind.PropertyNamingStrategy.UPPER_CAMEL_CASE;
-
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.protocol.json.JsonErrorUnmarshaller;
 
 /**
@@ -29,13 +25,10 @@ import software.amazon.awssdk.core.protocol.json.JsonErrorUnmarshaller;
  */
 @SdkInternalApi
 @ThreadSafe
-public class AwsJsonErrorUnmarshaller extends JsonErrorUnmarshaller {
+public class AwsJsonErrorUnmarshaller extends JsonErrorUnmarshaller<AwsServiceException> {
 
     public static final AwsJsonErrorUnmarshaller DEFAULT_UNMARSHALLER = new AwsJsonErrorUnmarshaller(
-        SdkServiceException.class, null);
-
-    private static final ObjectMapper MAPPER = new ObjectMapper().configure(
-            DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setPropertyNamingStrategy(UPPER_CAMEL_CASE);
+        AwsServiceException.class, null);
 
     private final String handledErrorCode;
 
@@ -43,7 +36,7 @@ public class AwsJsonErrorUnmarshaller extends JsonErrorUnmarshaller {
      * @param exceptionClass   Exception class this unmarshaller will attempt to deserialize error response into
      * @param handledErrorCode AWS error code that this unmarshaller handles. Pass null to handle all exceptions
      */
-    public AwsJsonErrorUnmarshaller(Class<? extends SdkServiceException> exceptionClass, String handledErrorCode) {
+    public AwsJsonErrorUnmarshaller(Class<? extends AwsServiceException> exceptionClass, String handledErrorCode) {
         super(exceptionClass);
         this.handledErrorCode = handledErrorCode;
     }

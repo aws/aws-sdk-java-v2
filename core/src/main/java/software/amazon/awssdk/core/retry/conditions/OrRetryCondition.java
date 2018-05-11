@@ -27,7 +27,7 @@ import software.amazon.awssdk.core.retry.RetryPolicyContext;
 @SdkPublicApi
 public class OrRetryCondition implements RetryCondition {
 
-    private List<RetryCondition> conditions = new ArrayList<RetryCondition>();
+    private List<RetryCondition> conditions = new ArrayList<>();
 
     public OrRetryCondition(RetryCondition... conditions) {
         Collections.addAll(this.conditions, conditions);
@@ -38,11 +38,6 @@ public class OrRetryCondition implements RetryCondition {
      */
     @Override
     public boolean shouldRetry(RetryPolicyContext context) {
-        for (RetryCondition retryCondition : conditions) {
-            if (retryCondition.shouldRetry(context)) {
-                return true;
-            }
-        }
-        return false;
+        return conditions.stream().anyMatch(r -> r.shouldRetry(context));
     }
 }

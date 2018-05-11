@@ -15,9 +15,7 @@
 
 package software.amazon.awssdk.protocol.tests.exception;
 
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static util.exception.ExceptionTestUtils.stub404Response;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -56,40 +54,28 @@ public class AwsJsonExceptionTest {
     @Test
     public void unmodeledException_UnmarshalledIntoBaseServiceException() {
         stub404Response(PATH, "{\"__type\": \"SomeUnknownType\"}");
-        assertThrowsServiceBaseException(this::callAllTypes);
+        assertThatThrownBy(() -> client.allTypes(AllTypesRequest.builder().build()))
+            .isExactlyInstanceOf(ProtocolJsonRpcException.class);
     }
 
     @Test
     public void modeledException_UnmarshalledIntoModeledException() {
         stub404Response(PATH, "{\"__type\": \"EmptyModeledException\"}");
-        try {
-            callAllTypes();
-        } catch (EmptyModeledException e) {
-            assertThat(e, instanceOf(ProtocolJsonRpcException.class));
-        }
+        assertThatThrownBy(() -> client.allTypes(AllTypesRequest.builder().build()))
+            .isExactlyInstanceOf(EmptyModeledException.class);
     }
 
     @Test
     public void emptyErrorResponse_UnmarshalledIntoBaseServiceException() {
         stub404Response(PATH, "");
-        assertThrowsServiceBaseException(this::callAllTypes);
+        assertThatThrownBy(() -> client.allTypes(AllTypesRequest.builder().build()))
+            .isExactlyInstanceOf(ProtocolJsonRpcException.class);
     }
 
     @Test
     public void malformedErrorResponse_UnmarshalledIntoBaseServiceException() {
         stub404Response(PATH, "THIS ISN'T JSON");
-        assertThrowsServiceBaseException(this::callAllTypes);
-    }
-
-    private void callAllTypes() {
-        client.allTypes(AllTypesRequest.builder().build());
-    }
-
-    private void assertThrowsServiceBaseException(Runnable runnable) {
-        try {
-            runnable.run();
-        } catch (ProtocolJsonRpcException e) {
-            assertEquals(ProtocolJsonRpcException.class, e.getClass());
-        }
+        assertThatThrownBy(() -> client.allTypes(AllTypesRequest.builder().build()))
+            .isExactlyInstanceOf(ProtocolJsonRpcException.class);
     }
 }

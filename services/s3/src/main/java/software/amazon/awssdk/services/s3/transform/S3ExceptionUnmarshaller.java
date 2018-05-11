@@ -20,24 +20,24 @@ import static software.amazon.awssdk.core.util.XpathUtils.xpath;
 
 import javax.xml.xpath.XPath;
 import org.w3c.dom.Node;
-import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.runtime.transform.AbstractErrorUnmarshaller;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Base exception unmarshaller for S3.
  */
-public abstract class S3ExceptionUnmarshaller extends AbstractErrorUnmarshaller<Node> {
+public abstract class S3ExceptionUnmarshaller extends AbstractErrorUnmarshaller<AwsServiceException, Node> {
 
     private final String errorCode;
 
-    public S3ExceptionUnmarshaller(Class<? extends SdkServiceException> exceptionClass, String errorCode) {
+    S3ExceptionUnmarshaller(Class<? extends AwsServiceException> exceptionClass, String errorCode) {
         super(exceptionClass);
         this.errorCode = errorCode;
     }
 
     @Override
-    public SdkServiceException unmarshall(Node in) throws Exception {
+    public AwsServiceException unmarshall(Node in) throws Exception {
 
         XPath xpath = xpath();
 
@@ -49,7 +49,7 @@ public abstract class S3ExceptionUnmarshaller extends AbstractErrorUnmarshaller<
             return null;
         }
 
-        SdkServiceException exception = newException(message);
+        AwsServiceException exception = newException(message);
         exception.errorCode(errorCode);
         exception.requestId(requestId);
 

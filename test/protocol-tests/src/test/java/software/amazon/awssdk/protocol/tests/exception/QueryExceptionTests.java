@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.protocol.tests.exception;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -57,7 +58,8 @@ public class QueryExceptionTests {
     public void unmodeledException_UnmarshalledIntoBaseServiceException() {
         stub404Response(PATH,
                 "<ErrorResponse><Error><Code>UnmodeledException</Code></Error></ErrorResponse>");
-        assertThrowsServiceBaseException(this::callAllTypes);
+        assertThatThrownBy(() -> client.allTypes(AllTypesRequest.builder().build()))
+            .isExactlyInstanceOf(ProtocolQueryException.class);
     }
 
     @Test

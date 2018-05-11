@@ -35,5 +35,4 @@ public interface AwsStructuredJsonFactory extends StructuredJsonFactory {
      */
     AwsJsonErrorResponseHandler createErrorResponseHandler(
         List<AwsJsonErrorUnmarshaller> errorUnmarshallers, String customErrorCodeFieldName);
-
 }

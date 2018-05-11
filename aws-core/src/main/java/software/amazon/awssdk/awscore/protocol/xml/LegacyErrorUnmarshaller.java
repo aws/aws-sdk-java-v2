@@ -18,8 +18,8 @@ package software.amazon.awssdk.awscore.protocol.xml;
 import javax.xml.xpath.XPath;
 import org.w3c.dom.Node;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.ErrorType;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.runtime.transform.AbstractErrorUnmarshaller;
 import software.amazon.awssdk.core.util.XpathUtils;
 
@@ -28,14 +28,14 @@ import software.amazon.awssdk.core.util.XpathUtils;
  * optionally, a subclass of SdkServiceException if this class is extended.
  */
 @SdkProtectedApi
-public class LegacyErrorUnmarshaller extends AbstractErrorUnmarshaller<Node> {
+public class LegacyErrorUnmarshaller extends AbstractErrorUnmarshaller<AwsServiceException, Node> {
 
     /**
      * Constructs a new unmarshaller that will unmarshall AWS error responses as
      * a generic SdkServiceException object.
      */
     public LegacyErrorUnmarshaller() {
-        this(SdkServiceException.class);
+        this(AwsServiceException.class);
     }
 
     /**
@@ -44,21 +44,21 @@ public class LegacyErrorUnmarshaller extends AbstractErrorUnmarshaller<Node> {
      * object with data from the AWS error response.
      *
      * @param exceptionClass The class of SdkServiceException to create and populate
-     *                       when unmarshalling the AWS error response.
+     * when unmarshalling the AWS error response.
      */
-    public LegacyErrorUnmarshaller(Class<? extends SdkServiceException> exceptionClass) {
+    public LegacyErrorUnmarshaller(Class<? extends AwsServiceException> exceptionClass) {
         super(exceptionClass);
     }
 
     @Override
-    public SdkServiceException unmarshall(Node in) throws Exception {
+    public AwsServiceException unmarshall(Node in) throws Exception {
         XPath xpath = XpathUtils.xpath();
         String errorCode = parseErrorCode(in, xpath);
         String message = XpathUtils.asString("Response/Errors/Error/Message", in, xpath);
         String requestId = XpathUtils.asString("Response/RequestID", in, xpath);
         String errorType = XpathUtils.asString("Response/Errors/Error/Type", in, xpath);
 
-        SdkServiceException exception = newException(message);
+        AwsServiceException exception = newException(message);
         exception.errorCode(errorCode);
         exception.requestId(requestId);
 
@@ -79,7 +79,7 @@ public class LegacyErrorUnmarshaller extends AbstractErrorUnmarshaller<Node> {
      * @param in The DOM tree node containing the error response.
      * @return The AWS error code contained in the specified error response.
      * @throws Exception If any problems were encountered pulling out the AWS error
-     *                   code.
+     * code.
      */
     public String parseErrorCode(Node in) throws Exception {
         return XpathUtils.asString("Response/Errors/Error/Code", in);
