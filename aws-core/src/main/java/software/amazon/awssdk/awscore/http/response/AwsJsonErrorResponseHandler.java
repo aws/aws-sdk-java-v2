@@ -18,9 +18,9 @@ package software.amazon.awssdk.awscore.http.response;
 import com.fasterxml.jackson.core.JsonFactory;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonErrorUnmarshaller;
 import software.amazon.awssdk.awscore.protocol.json.ErrorCodeParser;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
@@ -33,7 +33,7 @@ import software.amazon.awssdk.core.runtime.http.response.JsonErrorResponseHandle
  * services and unmarshalls the result using a JSON unmarshaller.
  */
 @SdkInternalApi
-public class AwsJsonErrorResponseHandler extends JsonErrorResponseHandler {
+public class AwsJsonErrorResponseHandler extends JsonErrorResponseHandler<AwsServiceException> {
 
     private final List<AwsJsonErrorUnmarshaller> unmarshallers;
     private final ErrorCodeParser errorCodeParser;
@@ -56,13 +56,12 @@ public class AwsJsonErrorResponseHandler extends JsonErrorResponseHandler {
     }
 
     @Override
-    public SdkServiceException handle(HttpResponse response,
+    public AwsServiceException handle(HttpResponse response,
                                       ExecutionAttributes executionAttributes) throws Exception {
 
         JsonContent jsonContent = JsonContent.createJsonContent(response, jsonFactory);
         String errorCode = errorCodeParser.parseErrorCode(response, jsonContent);
-
-        SdkServiceException exception = createException(errorCode, jsonContent);
+        AwsServiceException exception = createException(errorCode, jsonContent);
 
         if (exception.errorMessage() == null) {
             exception.errorMessage(errorMessageParser.parseErrorMessage(response, jsonContent.getJsonNode()));
@@ -80,18 +79,24 @@ public class AwsJsonErrorResponseHandler extends JsonErrorResponseHandler {
     }
 
     /**
-     * Create an SdkServiceException using the chain of unmarshallers. This method will never
+     * Create an {@link AwsServiceException} using the chain of unmarshallers. This method will never
      * return null, it will always return a valid SdkServiceException
      *
      * @param errorCode Error code to find an appropriate unmarshaller
      * @param jsonContent JsonContent of HTTP response
      * @return SdkServiceException
      */
-    private SdkServiceException createException(String errorCode, JsonContent jsonContent) {
+    private AwsServiceException createException(String errorCode, JsonContent jsonContent) {
         return unmarshallers.stream()
                             .filter(u -> u.matchErrorCode(errorCode))
                             .findFirst()
                             .map(u -> safeUnmarshall(jsonContent, u))
                             .orElseGet(this::createUnknownException);
+    }
+
+    @Override
+    protected AwsServiceException createUnknownException() {
+        return new AwsServiceException(
+            "Unable to unmarshall exception response with the unmarshallers provided");
     }
 }

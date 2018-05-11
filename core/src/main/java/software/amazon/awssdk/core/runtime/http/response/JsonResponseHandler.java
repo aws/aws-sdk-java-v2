@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.Map;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.SdkStandardLoggers;
 import software.amazon.awssdk.core.exception.Crc32MismatchException;
 import software.amazon.awssdk.core.http.HttpResponse;
@@ -43,7 +42,7 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkProtectedApi
 @ReviewBeforeRelease("Metadata in base result has been broken. Fix this and deal with AwsResponseHandlerAdapter")
-public class JsonResponseHandler<T extends SdkResponse> implements HttpResponseHandler<T> {
+public class JsonResponseHandler<T> implements HttpResponseHandler<T> {
     private static final Logger log = Logger.loggerFor(JsonResponseHandler.class);
 
     private final JsonFactory jsonFactory;

@@ -21,14 +21,11 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 
 /**
- * Unmarshaller for JSON error responses from upstream services.
+ * Unmarshaller for JSON error responses from upstream services to unmarshall to a {@link SdkServiceException}.
  */
 @SdkInternalApi
 @ThreadSafe
-public class SdkJsonErrorUnmarshaller extends JsonErrorUnmarshaller {
-
-    public static final SdkJsonErrorUnmarshaller DEFAULT_UNMARSHALLER = new SdkJsonErrorUnmarshaller(
-        SdkServiceException.class, null);
+public class SdkJsonErrorUnmarshaller extends JsonErrorUnmarshaller<SdkServiceException> {
 
     private final Optional<Integer> httpStatusCode;
 

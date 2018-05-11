@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
@@ -45,7 +46,6 @@ import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.regions.ServiceMetadata;
@@ -390,7 +390,7 @@ public final class SyncClientInterface implements ClassSpec {
                                             .map(e -> ClassName.get(model.getMetadata().getFullModelPackageName(),
                                                                     e.getExceptionName()))
                                             .collect(toCollection(ArrayList::new));
-        Collections.addAll(exceptions, ClassName.get(SdkServiceException.class),
+        Collections.addAll(exceptions, ClassName.get(AwsServiceException.class),
                            ClassName.get(SdkClientException.class),
                            ClassName.get(model.getMetadata().getFullModelPackageName(),
                                          model.getSdkModeledExceptionBaseClassName()));

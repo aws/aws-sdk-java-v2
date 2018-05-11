@@ -26,6 +26,7 @@ import java.util.List;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.client.utils.ValidSdkObjects;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.http.response.AwsJsonErrorResponseHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
@@ -139,7 +140,7 @@ public class AwsStructuredIonFactoryTest {
         return handler.handle(error, new ExecutionAttributes());
     }
 
-    private static class InvalidParameterException extends SdkServiceException {
+    private static class InvalidParameterException extends AwsServiceException {
         private static final long serialVersionUID = 0;
 
         public InvalidParameterException(BeanStyleBuilder builder) {

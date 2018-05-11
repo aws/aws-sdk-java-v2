@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.retry.conditions;
 import static software.amazon.awssdk.core.util.ValidationUtils.assertNotNull;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
@@ -42,13 +43,7 @@ public class RetryOnStatusCodeCondition implements RetryCondition {
      */
     @Override
     public boolean shouldRetry(RetryPolicyContext context) {
-        if (context.httpStatusCode() != null) {
-            for (Integer statusCode : statusCodesToRetryOn) {
-                if (statusCode.equals(context.httpStatusCode())) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return Optional.ofNullable(context.httpStatusCode()).map(s ->
+            statusCodesToRetryOn.stream().anyMatch(code -> code.equals(s))).orElse(false);
     }
 }
