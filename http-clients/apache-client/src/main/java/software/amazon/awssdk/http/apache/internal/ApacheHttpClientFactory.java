@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.apache;
+package software.amazon.awssdk.http.apache.internal;
 
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -23,38 +23,32 @@ import org.apache.http.protocol.HttpRequestExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
-import software.amazon.awssdk.http.apache.internal.Defaults;
-import software.amazon.awssdk.http.apache.internal.SdkProxyRoutePlanner;
+import software.amazon.awssdk.http.apache.ProxyConfiguration;
 import software.amazon.awssdk.http.apache.internal.conn.ClientConnectionManagerFactory;
 import software.amazon.awssdk.http.apache.internal.conn.SdkConnectionKeepAliveStrategy;
 import software.amazon.awssdk.http.apache.internal.impl.ApacheConnectionManagerFactory;
 import software.amazon.awssdk.http.apache.internal.impl.ApacheSdkHttpClient;
+import software.amazon.awssdk.http.apache.internal.impl.ApacheSdkHttpClientConfig;
 import software.amazon.awssdk.http.apache.internal.impl.ConnectionManagerAwareHttpClient;
 import software.amazon.awssdk.http.apache.internal.utils.ApacheUtils;
-import software.amazon.awssdk.utils.AttributeMap;
 
 @SdkInternalApi
-class ApacheHttpClientFactory {
+public class ApacheHttpClientFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(ApacheHttpClientFactory.class);
 
     private final ApacheConnectionManagerFactory cmFactory = new ApacheConnectionManagerFactory();
 
-    public SdkHttpClient create(ApacheSdkHttpClientFactory configuration,
-                                AttributeMap resolvedOptions,
-                                ApacheHttpRequestConfig requestConfig) {
-        return new ApacheHttpClient(createClient(configuration, resolvedOptions), requestConfig, resolvedOptions);
+    public ConnectionManagerAwareHttpClient create(ApacheSdkHttpClientConfig configuration) {
+        return createClient(configuration);
     }
 
-    private ConnectionManagerAwareHttpClient createClient(ApacheSdkHttpClientFactory configuration,
-                                                          AttributeMap standardOptions) {
+    private ConnectionManagerAwareHttpClient createClient(ApacheSdkHttpClientConfig configuration) {
         final HttpClientBuilder builder = HttpClients.custom();
         // Note that it is important we register the original connection manager with the
         // IdleConnectionReaper as it's required for the successful deregistration of managers
         // from the reaper. See https://github.com/aws/aws-sdk-java/issues/722.
-        final HttpClientConnectionManager cm = cmFactory.create(configuration, standardOptions);
+        final HttpClientConnectionManager cm = cmFactory.create(configuration);
 
         builder.setRequestExecutor(new HttpRequestExecutor())
                // SDK handles decompression
@@ -91,7 +85,7 @@ class ApacheHttpClientFactory {
         }
     }
 
-    private ConnectionKeepAliveStrategy buildKeepAliveStrategy(ApacheSdkHttpClientFactory configuration) {
+    private ConnectionKeepAliveStrategy buildKeepAliveStrategy(ApacheSdkHttpClientConfig configuration) {
         final long maxIdle = configuration.connectionMaxIdleTime().orElse(Defaults.MAX_IDLE_CONNECTION_TIME).toMillis();
         return maxIdle > 0 ? new SdkConnectionKeepAliveStrategy(maxIdle) : null;
     }

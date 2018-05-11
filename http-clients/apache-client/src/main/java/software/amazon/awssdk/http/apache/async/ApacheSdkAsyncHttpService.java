@@ -13,19 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.apache;
+package software.amazon.awssdk.http.apache.async;
 
-import software.amazon.awssdk.http.SdkHttpClientFactory;
-import software.amazon.awssdk.http.SdkHttpService;
+import software.amazon.awssdk.http.apache.async.internal.ApacheAsyncHttpClientFactory;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpClientFactory;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClientFactory;
+import software.amazon.awssdk.http.async.SdkAsyncHttpService;
 
-/**
- * Service binding for the Apache implementation.
- */
-public class ApacheSdkHttpService implements SdkHttpService {
-
+public class ApacheSdkAsyncHttpService implements SdkAsyncHttpService {
     @Override
-    public SdkHttpClientFactory createHttpClientFactory() {
-        return ApacheSdkHttpClientFactory.builder().apacheHttpClientFactory(new ApacheHttpClientFactory()).build();
+    public SdkAsyncHttpClientFactory createAsyncHttpClientFactory() {
+        return ApacheAsyncHttpClientFactory.builder()
+                .apacheHttpClientFactory(new ApacheHttpClientFactory())
+                .build();
     }
 }

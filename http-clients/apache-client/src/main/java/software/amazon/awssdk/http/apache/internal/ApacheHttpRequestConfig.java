@@ -19,6 +19,7 @@ import java.net.InetAddress;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.apache.ProxyConfiguration;
+import software.amazon.awssdk.http.apache.internal.impl.ApacheSdkHttpClientConfig;
 
 /**
  * Configuration needed when building an Apache request. Note that at this time, we only support client level configuration so
@@ -66,6 +67,16 @@ public final class ApacheHttpRequestConfig {
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+    public static Builder fromApacheSdkHttpClientConfig(ApacheSdkHttpClientConfig clientConfiguration) {
+        Builder b = new Builder();
+        clientConfiguration.socketTimeout().ifPresent(b::socketTimeout);
+        clientConfiguration.connectionTimeout().ifPresent(b::connectionTimeout);
+        clientConfiguration.localAddress().ifPresent(b::localAddress);
+        b.expectContinueEnabled(clientConfiguration.expectContinueEnabled());
+        b.proxyConfiguration(clientConfiguration.proxyConfiguration());
+        return b;
     }
 
     /**

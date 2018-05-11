@@ -39,24 +39,23 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
 import software.amazon.awssdk.http.apache.internal.impl.ApacheHttpRequestFactory;
+import software.amazon.awssdk.http.apache.internal.impl.ApacheSdkHttpClientConfig;
 import software.amazon.awssdk.http.apache.internal.impl.ConnectionManagerAwareHttpClient;
 import software.amazon.awssdk.http.apache.internal.utils.ApacheUtils;
-import software.amazon.awssdk.utils.AttributeMap;
 
 @SdkInternalApi
 class ApacheHttpClient implements SdkHttpClient {
 
     private final ApacheHttpRequestFactory apacheHttpRequestFactory = new ApacheHttpRequestFactory();
     private final ConnectionManagerAwareHttpClient httpClient;
+    private final ApacheSdkHttpClientConfig configuration;
     private final ApacheHttpRequestConfig requestConfig;
-    private final AttributeMap resolvedOptions;
 
     ApacheHttpClient(ConnectionManagerAwareHttpClient httpClient,
-                     ApacheHttpRequestConfig requestConfig,
-                     AttributeMap resolvedOptions) {
+                     ApacheSdkHttpClientConfig configuration) {
         this.httpClient = notNull(httpClient, "httpClient must not be null.");
-        this.requestConfig = notNull(requestConfig, "requestConfig must not be null.");
-        this.resolvedOptions = notNull(resolvedOptions, "resolvedOptions must not be null");
+        this.configuration = notNull(configuration, "configuration must not be null.");
+        this.requestConfig = ApacheHttpRequestConfig.fromApacheSdkHttpClientConfig(configuration).build();
     }
 
     @Override
@@ -77,7 +76,7 @@ class ApacheHttpClient implements SdkHttpClient {
 
     @Override
     public <T> Optional<T> getConfigurationValue(SdkHttpConfigurationOption<T> key) {
-        return Optional.ofNullable(resolvedOptions.get(key));
+        return configuration.getOption(key);
     }
 
     @Override
@@ -86,7 +85,7 @@ class ApacheHttpClient implements SdkHttpClient {
     }
 
     private SdkHttpFullResponse execute(HttpRequestBase apacheRequest) throws IOException {
-        HttpClientContext localRequestContext = ApacheUtils.newClientContext(requestConfig.proxyConfiguration());
+        HttpClientContext localRequestContext = ApacheUtils.newClientContext(configuration.proxyConfiguration());
         HttpResponse httpResponse = httpClient.execute(apacheRequest, localRequestContext);
         return createResponse(httpResponse, apacheRequest);
     }
