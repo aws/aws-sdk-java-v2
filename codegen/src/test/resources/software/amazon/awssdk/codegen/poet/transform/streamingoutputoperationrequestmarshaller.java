@@ -2,13 +2,13 @@ package software.amazon.awssdk.services.jsonprotocoltests.transform;
 
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.protocol.OperationInfo;
 import software.amazon.awssdk.core.protocol.Protocol;
 import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
-import software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.services.jsonprotocoltests.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.utils.Validate;
@@ -24,9 +24,9 @@ public class StreamingOutputOperationRequestMarshaller implements
                                                                             .requestUri("/2016-03-11/streamingOutputOperation").httpMethodName(HttpMethodName.POST)
                                                                             .hasExplicitPayloadMember(false).hasPayloadMembers(false).build();
 
-    private final SdkJsonProtocolFactory protocolFactory;
+    private final AwsJsonProtocolFactory protocolFactory;
 
-    public StreamingOutputOperationRequestMarshaller(SdkJsonProtocolFactory protocolFactory) {
+    public StreamingOutputOperationRequestMarshaller(AwsJsonProtocolFactory protocolFactory) {
         this.protocolFactory = protocolFactory;
     }
 

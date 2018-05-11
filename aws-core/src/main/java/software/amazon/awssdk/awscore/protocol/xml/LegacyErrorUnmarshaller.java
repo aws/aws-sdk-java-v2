@@ -13,13 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.runtime.transform;
+package software.amazon.awssdk.awscore.protocol.xml;
 
 import javax.xml.xpath.XPath;
 import org.w3c.dom.Node;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.ErrorType;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.runtime.transform.AbstractErrorUnmarshaller;
 import software.amazon.awssdk.core.util.XpathUtils;
 
 /**

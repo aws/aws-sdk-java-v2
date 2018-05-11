@@ -13,11 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.protocol.json;
+package software.amazon.awssdk.awscore.protocol.json;
 
-import static org.hamcrest.Matchers.instanceOf;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.ByteArrayInputStream;
@@ -26,20 +25,19 @@ import java.util.LinkedList;
 import java.util.List;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.awscore.client.utils.ValidSdkObjects;
+import software.amazon.awssdk.awscore.http.response.AwsJsonErrorResponseHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.internal.http.response.JsonErrorResponseHandler;
-import software.amazon.awssdk.core.runtime.transform.JsonErrorUnmarshaller;
 import software.amazon.ion.IonStruct;
 import software.amazon.ion.IonSystem;
 import software.amazon.ion.IonWriter;
 import software.amazon.ion.Timestamp;
 import software.amazon.ion.system.IonSystemBuilder;
-import utils.ValidSdkObjects;
 
-public class SdkStructuredIonFactoryTest {
+public class AwsStructuredIonFactoryTest {
     private static final String ERROR_PREFIX = "aws-type:";
     private static final String ERROR_TYPE = "InvalidParameterException";
     private static final String ERROR_MESSAGE = "foo";
@@ -79,7 +77,7 @@ public class SdkStructuredIonFactoryTest {
         error.addHeader("x-amzn-ErrorType", ERROR_TYPE);
 
         SdkServiceException exception = handleError(error);
-        assertThat(exception, instanceOf(InvalidParameterException.class));
+        assertThat(exception).isInstanceOf(InvalidParameterException.class);
         assertEquals(ERROR_MESSAGE, exception.errorMessage());
     }
 
@@ -91,7 +89,7 @@ public class SdkStructuredIonFactoryTest {
         HttpResponse error = createResponse(payload);
 
         SdkServiceException exception = handleError(error);
-        assertThat(exception, instanceOf(InvalidParameterException.class));
+        assertThat(exception).isInstanceOf(InvalidParameterException.class);
         assertEquals(ERROR_MESSAGE, exception.errorMessage());
     }
 
@@ -103,7 +101,7 @@ public class SdkStructuredIonFactoryTest {
         HttpResponse error = createResponse(payload);
 
         SdkServiceException exception = handleError(error);
-        assertThat(exception, instanceOf(InvalidParameterException.class));
+        assertThat(exception).isInstanceOf(InvalidParameterException.class);
         assertEquals(ERROR_MESSAGE, exception.errorMessage());
     }
 
@@ -128,15 +126,15 @@ public class SdkStructuredIonFactoryTest {
         HttpResponse error = createResponse(payload);
 
         SdkServiceException exception = handleError(error);
-        assertThat(exception, instanceOf(InvalidParameterException.class));
+        assertThat(exception).isInstanceOf(InvalidParameterException.class);
         assertEquals(ERROR_MESSAGE, exception.errorMessage());
     }
 
     private SdkServiceException handleError(HttpResponse error) throws Exception {
-        List<JsonErrorUnmarshaller> unmarshallers = new LinkedList<>();
-        unmarshallers.add(new JsonErrorUnmarshaller(InvalidParameterException.class, ERROR_TYPE));
+        List<AwsJsonErrorUnmarshaller> unmarshallers = new LinkedList<>();
+        unmarshallers.add(new AwsJsonErrorUnmarshaller(InvalidParameterException.class, ERROR_TYPE));
 
-        JsonErrorResponseHandler handler = SdkStructuredIonFactory.SDK_ION_BINARY_FACTORY
+        AwsJsonErrorResponseHandler handler = AwsStructuredIonFactory.SDK_ION_BINARY_FACTORY
                 .createErrorResponseHandler(unmarshallers, NO_CUSTOM_ERROR_CODE_FIELD_NAME);
         return handler.handle(error, new ExecutionAttributes());
     }

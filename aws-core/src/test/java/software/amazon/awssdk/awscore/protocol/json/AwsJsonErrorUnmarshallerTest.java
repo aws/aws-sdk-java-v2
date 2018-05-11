@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.runtime.transform;
+package software.amazon.awssdk.awscore.protocol.json;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -27,7 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 
-public class JsonErrorUnmarshallerTest {
+public class AwsJsonErrorUnmarshallerTest {
 
     private static final String ERROR_TYPE = "CustomException";
 
@@ -38,11 +38,11 @@ public class JsonErrorUnmarshallerTest {
                                                                         .put("message", "Some error message").put("__type", "apiVersion#" + ERROR_TYPE)
                                                                         .put("customField", "This is a customField").put("customInt", 42);
 
-    private JsonErrorUnmarshaller unmarshaller;
+    private AwsJsonErrorUnmarshaller unmarshaller;
 
     @Before
     public void setup() {
-        unmarshaller = new JsonErrorUnmarshaller(CustomException.class, ERROR_TYPE);
+        unmarshaller = new AwsJsonErrorUnmarshaller(CustomException.class, ERROR_TYPE);
     }
 
     @Test
@@ -63,7 +63,7 @@ public class JsonErrorUnmarshallerTest {
 
     @Test
     public void match_DefaultUnmarshaller_MatchesEverything() {
-        unmarshaller = JsonErrorUnmarshaller.DEFAULT_UNMARSHALLER;
+        unmarshaller = AwsJsonErrorUnmarshaller.DEFAULT_UNMARSHALLER;
         assertTrue(unmarshaller.matchErrorCode(null));
         assertTrue(unmarshaller.matchErrorCode(""));
         assertTrue(unmarshaller.matchErrorCode("someErrorCode"));

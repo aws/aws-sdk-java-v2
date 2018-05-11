@@ -13,32 +13,30 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.protocol.json;
+package software.amazon.awssdk.awscore.protocol.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.core.internal.http.ErrorCodeParser;
-import software.amazon.awssdk.core.internal.http.JsonErrorCodeParser;
-import software.amazon.awssdk.core.internal.http.response.JsonErrorResponseHandler;
-import software.amazon.awssdk.core.runtime.http.JsonErrorMessageParser;
+import software.amazon.awssdk.awscore.http.response.AwsJsonErrorResponseHandler;
+import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
+import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 import software.amazon.awssdk.core.runtime.http.response.JsonResponseHandler;
-import software.amazon.awssdk.core.runtime.transform.JsonErrorUnmarshaller;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
 /**
  * Generic implementation of a structured JSON factory that is pluggable for different variants of
- * JSON. See {@link SdkStructuredPlainJsonFactory#SDK_JSON_FACTORY} and {@link
- * SdkStructuredCborFactory#SDK_CBOR_FACTORY}.
+ * JSON. See {@link AwsStructuredPlainJsonFactory#SDK_JSON_FACTORY} and {@link
+ * AwsStructuredCborFactory#SDK_CBOR_FACTORY}.
  */
-public abstract class SdkStructuredJsonFactoryImpl implements SdkStructuredJsonFactory {
+abstract class BaseAwsStructuredJsonFactory implements AwsStructuredJsonFactory {
 
     private final JsonFactory jsonFactory;
     private final Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> unmarshallers;
 
-    public SdkStructuredJsonFactoryImpl(JsonFactory jsonFactory,
-                                        Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> unmarshallers) {
+    BaseAwsStructuredJsonFactory(JsonFactory jsonFactory,
+                                 Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> unmarshallers) {
         this.jsonFactory = jsonFactory;
         this.unmarshallers = unmarshallers;
     }
@@ -47,9 +45,6 @@ public abstract class SdkStructuredJsonFactoryImpl implements SdkStructuredJsonF
     public StructuredJsonGenerator createWriter(String contentType) {
         return createWriter(jsonFactory, contentType);
     }
-
-    protected abstract StructuredJsonGenerator createWriter(JsonFactory jsonFactory,
-                                                            String contentType);
 
     @Override
     public <T> JsonResponseHandler<T> createResponseHandler(
@@ -61,13 +56,16 @@ public abstract class SdkStructuredJsonFactoryImpl implements SdkStructuredJsonF
     }
 
     @Override
-    public JsonErrorResponseHandler createErrorResponseHandler(
-        final List<JsonErrorUnmarshaller> errorUnmarshallers, String customErrorCodeFieldName) {
-        return new JsonErrorResponseHandler(errorUnmarshallers,
-                                            getErrorCodeParser(customErrorCodeFieldName),
-                                            JsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER,
-                                            jsonFactory);
+    public AwsJsonErrorResponseHandler createErrorResponseHandler(
+        final List<AwsJsonErrorUnmarshaller> errorUnmarshallers, String customErrorCodeFieldName) {
+        return new AwsJsonErrorResponseHandler(errorUnmarshallers,
+                                               getErrorCodeParser(customErrorCodeFieldName),
+                                               AwsJsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER,
+                                               jsonFactory);
     }
+
+    protected abstract StructuredJsonGenerator createWriter(JsonFactory jsonFactory,
+                                                            String contentType);
 
     protected ErrorCodeParser getErrorCodeParser(String customErrorCodeFieldName) {
         return new JsonErrorCodeParser(customErrorCodeFieldName);

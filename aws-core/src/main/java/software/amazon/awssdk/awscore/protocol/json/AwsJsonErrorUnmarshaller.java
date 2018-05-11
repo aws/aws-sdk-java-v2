@@ -13,31 +13,29 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.runtime.transform;
+package software.amazon.awssdk.awscore.protocol.json;
+
+import static com.fasterxml.jackson.databind.PropertyNamingStrategy.UPPER_CAMEL_CASE;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy.PascalCaseStrategy;
-import java.lang.reflect.Method;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.protocol.json.JsonErrorUnmarshaller;
 
 /**
  * Unmarshaller for JSON error responses from AWS services.
  */
 @SdkInternalApi
 @ThreadSafe
-public class JsonErrorUnmarshaller extends AbstractErrorUnmarshaller<JsonNode> {
+public class AwsJsonErrorUnmarshaller extends JsonErrorUnmarshaller {
 
-    public static final JsonErrorUnmarshaller DEFAULT_UNMARSHALLER = new JsonErrorUnmarshaller(
+    public static final AwsJsonErrorUnmarshaller DEFAULT_UNMARSHALLER = new AwsJsonErrorUnmarshaller(
         SdkServiceException.class, null);
 
     private static final ObjectMapper MAPPER = new ObjectMapper().configure(
-            DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setPropertyNamingStrategy(
-            new PascalCaseStrategy());
+            DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setPropertyNamingStrategy(UPPER_CAMEL_CASE);
 
     private final String handledErrorCode;
 
@@ -45,29 +43,9 @@ public class JsonErrorUnmarshaller extends AbstractErrorUnmarshaller<JsonNode> {
      * @param exceptionClass   Exception class this unmarshaller will attempt to deserialize error response into
      * @param handledErrorCode AWS error code that this unmarshaller handles. Pass null to handle all exceptions
      */
-    public JsonErrorUnmarshaller(Class<? extends SdkServiceException> exceptionClass, String handledErrorCode) {
+    public AwsJsonErrorUnmarshaller(Class<? extends SdkServiceException> exceptionClass, String handledErrorCode) {
         super(exceptionClass);
         this.handledErrorCode = handledErrorCode;
-    }
-
-    @Override
-    @ReviewBeforeRelease("Figure out a better way to go from exception class to it's builder class in order to perform the " +
-            "deserialization")
-    public SdkServiceException unmarshall(JsonNode jsonContent) throws Exception {
-        // FIXME: dirty hack below
-        try {
-            Method builderClassGetter = exceptionClass.getDeclaredMethod("serializableBuilderClass");
-            makeAccessible(builderClassGetter);
-            Class<?> builderClass = (Class<?>) builderClassGetter.invoke(null);
-            Method buildMethod = builderClass.getMethod("build");
-            makeAccessible(buildMethod);
-            Object o = MAPPER.treeToValue(jsonContent, builderClass);
-            return (SdkServiceException) buildMethod.invoke(o);
-        } catch (NoSuchMethodException e) {
-            // This exception is not the new style with a builder, assume it's still the old
-            // style that we can directly map from JSON
-            return MAPPER.treeToValue(jsonContent, exceptionClass);
-        }
     }
 
     /**

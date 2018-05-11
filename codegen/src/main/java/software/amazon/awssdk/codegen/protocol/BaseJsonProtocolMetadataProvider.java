@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.protocol;
 
-import software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory;
+import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.core.protocol.json.internal.JsonMarshallerContext;
 
 /**
@@ -43,6 +43,6 @@ public abstract class BaseJsonProtocolMetadataProvider extends BaseProtocolMetad
 
     @Override
     public String getProtocolFactoryImplFqcn() {
-        return SdkJsonProtocolFactory.class.getName();
+        return AwsJsonProtocolFactory.class.getName();
     }
 }

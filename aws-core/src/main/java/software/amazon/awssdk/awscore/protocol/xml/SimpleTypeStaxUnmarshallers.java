@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.runtime.transform;
+package software.amazon.awssdk.awscore.protocol.xml;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -22,6 +22,7 @@ import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.core.util.DateUtils;
 import software.amazon.awssdk.utils.Base64Utils;
 
@@ -31,6 +32,10 @@ import software.amazon.awssdk.utils.Base64Utils;
 public class SimpleTypeStaxUnmarshallers {
     /** Shared logger. */
     private static Logger log = LoggerFactory.getLogger(SimpleTypeStaxUnmarshallers.class);
+
+
+    private SimpleTypeStaxUnmarshallers() {
+    }
 
     /**
      * Unmarshaller for String values.

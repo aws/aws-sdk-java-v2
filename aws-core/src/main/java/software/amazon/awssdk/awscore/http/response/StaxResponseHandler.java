@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.http;
+package software.amazon.awssdk.awscore.http.response;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -22,12 +22,16 @@ import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLStreamException;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.awscore.protocol.xml.StaxUnmarshallerContext;
+import software.amazon.awssdk.awscore.protocol.xml.VoidStaxUnmarshaller;
 import software.amazon.awssdk.core.ResponseMetadata;
 import software.amazon.awssdk.core.SdkStandardLoggers;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.runtime.transform.StaxUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.core.runtime.transform.VoidStaxUnmarshaller;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeFunction;
 import software.amazon.awssdk.utils.Logger;
@@ -137,7 +141,7 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
 
     /**
      * Creates an synchronous {@link HttpResponseHandler} that unmarshalls into the response POJO while leaving the
-     * connection open for further processing (by a {@link StreamingResponseHandler} or {@link AsyncResponseHandler}
+     * connection open for further processing (by a {@link ResponseTransformer} or {@link AsyncResponseTransformer}
      * for example).
      *
      * @param unmarshaller Unmarshaller for response POJO.
@@ -161,7 +165,7 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
 
     /**
      * Unmarshalls a streaming HTTP response into a POJO. Does not touch the content since that's consumed by the response
-     * handler (either {@link StreamingResponseHandler} or {@link AsyncResponseHandler}).
+     * handler (either {@link ResponseTransformer} or {@link AsyncResponseTransformer}).
      *
      * @param unmarshaller Unmarshaller for resposne type.
      * @param response HTTP response

@@ -22,11 +22,11 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * on the wire format used and the version of the protocol.
  */
 @SdkInternalApi
-class JsonContentTypeResolverImpl implements JsonContentTypeResolver {
+public class JsonContentTypeResolverImpl implements JsonContentTypeResolver {
 
     private final String prefix;
 
-    JsonContentTypeResolverImpl(String prefix) {
+    public JsonContentTypeResolverImpl(String prefix) {
         this.prefix = prefix;
     }
 

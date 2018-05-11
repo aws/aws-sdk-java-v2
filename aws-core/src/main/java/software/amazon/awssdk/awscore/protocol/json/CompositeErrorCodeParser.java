@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.http;
+package software.amazon.awssdk.awscore.protocol.json;
 
 import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkInternalApi;

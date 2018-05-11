@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
@@ -37,7 +38,6 @@ import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorShapeMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
-import software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 
 public class JsonProtocolSpec implements ProtocolSpec {
@@ -50,7 +50,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     @Override
     public FieldSpec protocolFactory(IntermediateModel model) {
-        return FieldSpec.builder(SdkJsonProtocolFactory.class, "protocolFactory")
+        return FieldSpec.builder(AwsJsonProtocolFactory.class, "protocolFactory")
                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL).build();
     }
 
@@ -72,7 +72,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                                                           ".withSupportsCbor($L)\n" +
                                                           ".withSupportsIon($L)" +
                                                           ".withBaseServiceExceptionClass($L.class)",
-                                                          SdkJsonProtocolFactory.class,
+                                                          AwsJsonProtocolFactory.class,
                                                           JsonClientMetadata.class,
                                                           model.getMetadata().getJsonVersion(),
                                                           model.getMetadata().isCborProtocol(),
