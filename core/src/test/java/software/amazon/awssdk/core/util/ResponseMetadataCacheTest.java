@@ -21,9 +21,9 @@ import static org.junit.Assert.assertNull;
 import java.util.HashMap;
 import java.util.Random;
 import org.junit.Test;
-import software.amazon.awssdk.core.AwsRequest;
 import software.amazon.awssdk.core.ResponseMetadata;
-import software.amazon.awssdk.core.http.NoopTestAwsRequest;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.http.NoopTestRequest;
 
 /** Tests for the response metadata cache class. */
 public class ResponseMetadataCacheTest {
@@ -33,10 +33,10 @@ public class ResponseMetadataCacheTest {
     public void testEviction() {
         ResponseMetadataCache cache = new ResponseMetadataCache(3);
 
-        AwsRequest key1 = NoopTestAwsRequest.builder().build();
-        AwsRequest key2 = NoopTestAwsRequest.builder().build();
-        AwsRequest key3 = NoopTestAwsRequest.builder().build();
-        AwsRequest key4 = NoopTestAwsRequest.builder().build();
+        SdkRequest key1 = NoopTestRequest.builder().build();
+        SdkRequest key2 = NoopTestRequest.builder().build();
+        SdkRequest key3 = NoopTestRequest.builder().build();
+        SdkRequest key4 = NoopTestRequest.builder().build();
         ResponseMetadata metadata1 = newResponseMetadata();
         ResponseMetadata metadata2 = newResponseMetadata();
         ResponseMetadata metadata3 = newResponseMetadata();
@@ -65,7 +65,7 @@ public class ResponseMetadataCacheTest {
     public void TestEmpty() {
         ResponseMetadataCache cache = new ResponseMetadataCache(0);
 
-        AwsRequest key = NoopTestAwsRequest.builder().build();
+        SdkRequest key = NoopTestRequest.builder().build();
         ResponseMetadata metadata = newResponseMetadata();
         // Add item to the cache, it should be immediately evicted.
         cache.add(key, metadata);

@@ -16,16 +16,14 @@
 package software.amazon.awssdk.core.config.defaults;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.core.config.AdvancedClientOption.SIGNER_PROVIDER;
+import static software.amazon.awssdk.core.config.SdkAdvancedClientOption.SIGNER_PROVIDER;
 
 import java.net.URI;
 import org.junit.Test;
-import software.amazon.awssdk.core.auth.AnonymousCredentialsProvider;
-import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.config.ImmutableAsyncClientConfiguration;
-import software.amazon.awssdk.core.config.ImmutableSyncClientConfiguration;
-import software.amazon.awssdk.core.config.MutableClientConfiguration;
+import software.amazon.awssdk.core.config.SdkImmutableAsyncClientConfiguration;
+import software.amazon.awssdk.core.config.SdkImmutableSyncClientConfiguration;
+import software.amazon.awssdk.core.config.SdkMutableClientConfiguration;
 import software.amazon.awssdk.core.internal.auth.NoOpSignerProvider;
 
 /**
@@ -40,16 +38,11 @@ public class GlobalClientConfigurationDefaultsTest {
         GlobalClientConfigurationDefaults globalDefaults = new GlobalClientConfigurationDefaults();
 
         // Add the required values not expected to be included in the global configuration.
-        ClientConfigurationDefaults configCompleter = new ClientConfigurationDefaults() {
+        SdkClientConfigurationDefaults configCompleter = new SdkClientConfigurationDefaults() {
             @Override
             protected void applyOverrideDefaults(ClientOverrideConfiguration.Builder builder) {
                 assertThat(builder.build().advancedOption(SIGNER_PROVIDER)).isNull();
                 builder.advancedOption(SIGNER_PROVIDER, new NoOpSignerProvider());
-            }
-
-            @Override
-            protected AwsCredentialsProvider getCredentialsDefault() {
-                return AnonymousCredentialsProvider.create();
             }
 
             @Override
@@ -58,8 +51,8 @@ public class GlobalClientConfigurationDefaultsTest {
             }
         };
 
-        MutableClientConfiguration mockAsyncCustomerConfig = new MutableClientConfiguration();
-        MutableClientConfiguration mockSyncCustomerConfig = new MutableClientConfiguration();
+        SdkMutableClientConfiguration mockAsyncCustomerConfig = new SdkMutableClientConfiguration();
+        SdkMutableClientConfiguration mockSyncCustomerConfig = new SdkMutableClientConfiguration();
 
         globalDefaults.applyAsyncDefaults(mockAsyncCustomerConfig);
         configCompleter.applyAsyncDefaults(mockAsyncCustomerConfig);
@@ -69,7 +62,7 @@ public class GlobalClientConfigurationDefaultsTest {
 
         // Make sure we can create an Immutable*ClientConfiguration with the result. Otherwise, it will throw an exception that a
         // required field is missing.
-        new ImmutableAsyncClientConfiguration(mockAsyncCustomerConfig);
-        new ImmutableSyncClientConfiguration(mockSyncCustomerConfig);
+        new SdkImmutableAsyncClientConfiguration(mockAsyncCustomerConfig);
+        new SdkImmutableSyncClientConfiguration(mockSyncCustomerConfig);
     }
 }

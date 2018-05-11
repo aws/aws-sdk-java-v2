@@ -42,14 +42,14 @@ public class AmazonHttpClientSslHandshakeTimeoutIntegrationTest extends Unrespon
 
     @Test(timeout = 60 * 1000)
     public void testSslHandshakeTimeout() {
-        AmazonHttpClient httpClient = HttpTestUtils.testClientBuilder()
-                                                   .clientExecutionTimeout(null)
-                                                   .retryPolicy(RetryPolicy.NONE)
-                                                   .httpClient(ApacheSdkHttpClientFactory.builder()
+        AmazonSyncHttpClient httpClient = HttpTestUtils.testClientBuilder()
+                                                       .clientExecutionTimeout(null)
+                                                       .retryPolicy(RetryPolicy.NONE)
+                                                       .httpClient(ApacheSdkHttpClientFactory.builder()
                                                                                          .socketTimeout(CLIENT_SOCKET_TO)
                                                                                          .build()
                                                                                          .createHttpClient())
-                                                   .build();
+                                                       .build();
 
         System.out.println("Sending request to localhost...");
 
@@ -57,7 +57,7 @@ public class AmazonHttpClientSslHandshakeTimeoutIntegrationTest extends Unrespon
             EmptyHttpRequest request = new EmptyHttpRequest(server.getHttpsEndpoint(), HttpMethodName.GET);
             httpClient.requestExecutionBuilder()
                       .request(request)
-                      .originalRequest(NoopTestAwsRequest.builder().build())
+                      .originalRequest(NoopTestRequest.builder().build())
                       .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
                       .errorResponseHandler(new NullErrorResponseHandler())
                       .execute();

@@ -154,9 +154,9 @@ public class ClientOverrideConfiguration
      * Load the requested advanced option that was configured on the client builder. This will return null if the value was not
      * configured.
      *
-     * @see Builder#advancedOption(AdvancedClientOption, Object)
+     * @see Builder#advancedOption(SdkAdvancedClientOption, Object)
      */
-    public <T> T advancedOption(AdvancedClientOption<T> option) {
+    public <T> T advancedOption(SdkAdvancedClientOption<T> option) {
         return advancedOptions.get(option);
     }
 
@@ -309,13 +309,13 @@ public class ClientOverrideConfiguration
          * @param value The value of the option.
          * @param <T> The type of the option.
          */
-        <T> Builder advancedOption(AdvancedClientOption<T> option, T value);
+        <T> Builder advancedOption(SdkAdvancedClientOption<T> option, T value);
 
         /**
          * Configure the map of advanced override options. This will override all values currently configured. The values in the
          * map must match the key type of the map, or a runtime exception will be raised.
          */
-        Builder advancedOptions(Map<AdvancedClientOption<?>, ?> advancedOptions);
+        Builder advancedOptions(Map<SdkAdvancedClientOption<?>, ?> advancedOptions);
     }
 
     /**
@@ -405,13 +405,13 @@ public class ClientOverrideConfiguration
         }
 
         @Override
-        public <T> Builder advancedOption(AdvancedClientOption<T> option, T value) {
+        public <T> Builder advancedOption(SdkAdvancedClientOption<T> option, T value) {
             this.advancedOptions.put(option, value);
             return this;
         }
 
         @Override
-        public Builder advancedOptions(Map<AdvancedClientOption<?>, ?> advancedOptions) {
+        public Builder advancedOptions(Map<SdkAdvancedClientOption<?>, ?> advancedOptions) {
             this.advancedOptions.putAll(advancedOptions);
             return this;
         }
@@ -421,7 +421,7 @@ public class ClientOverrideConfiguration
             return this;
         }
 
-        public void setAdvancedOptions(Map<AdvancedClientOption<?>, Object> advancedOptions) {
+        public void setAdvancedOptions(Map<SdkAdvancedClientOption<?>, Object> advancedOptions) {
             advancedOptions(advancedOptions);
         }
 

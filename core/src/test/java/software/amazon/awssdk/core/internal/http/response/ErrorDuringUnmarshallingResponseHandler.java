@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.core.internal.http.response;
 
-import software.amazon.awssdk.core.AwsResponse;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 
 public class ErrorDuringUnmarshallingResponseHandler extends NullResponseHandler {
     @Override
-    public AwsResponse handle(HttpResponse response,
+    public SdkResponse handle(HttpResponse response,
                               ExecutionAttributes executionAttributes) throws Exception {
         throw new RuntimeException("Unable to unmarshall response");
     }

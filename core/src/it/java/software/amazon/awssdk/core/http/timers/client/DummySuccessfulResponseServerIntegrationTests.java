@@ -20,7 +20,7 @@ import static software.amazon.awssdk.core.internal.http.timers.TimeoutTestConsta
 
 import java.util.Arrays;
 import org.junit.Test;
-import software.amazon.awssdk.core.http.AmazonHttpClient;
+import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.MockServerTestBase;
 import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
@@ -36,7 +36,7 @@ public class DummySuccessfulResponseServerIntegrationTests extends MockServerTes
 
     private static final int STATUS_CODE = 200;
 
-    private AmazonHttpClient httpClient;
+    private AmazonSyncHttpClient httpClient;
 
     @Override
     protected MockServer buildMockServer() {
@@ -70,7 +70,7 @@ public class DummySuccessfulResponseServerIntegrationTests extends MockServerTes
         requestBuilder().executionContext(withInterceptors(interceptor)).execute(new DummyResponseHandler());
     }
 
-    private AmazonHttpClient.RequestExecutionBuilder requestBuilder() {
+    private AmazonSyncHttpClient.RequestExecutionBuilder requestBuilder() {
         return httpClient.requestExecutionBuilder().request(newGetRequest());
     }
 

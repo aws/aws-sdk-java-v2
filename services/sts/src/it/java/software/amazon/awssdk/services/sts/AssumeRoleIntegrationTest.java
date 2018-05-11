@@ -18,15 +18,13 @@ package software.amazon.awssdk.services.sts;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.auth.profile.ProfileFile;
-import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.internal.ProfileCredentialsUtils;
 import software.amazon.awssdk.core.auth.policy.Action;
 import software.amazon.awssdk.core.auth.policy.Policy;
 import software.amazon.awssdk.core.auth.policy.Principal;
@@ -34,6 +32,7 @@ import software.amazon.awssdk.core.auth.policy.Resource;
 import software.amazon.awssdk.core.auth.policy.Statement;
 import software.amazon.awssdk.core.auth.policy.Statement.Effect;
 import software.amazon.awssdk.core.util.StringInputStream;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.services.iam.model.AccessKeyMetadata;
 import software.amazon.awssdk.services.iam.model.CreateAccessKeyRequest;
 import software.amazon.awssdk.services.iam.model.CreateAccessKeyResponse;
@@ -190,7 +189,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
                                           .build();
 
         assertThat(profiles.profile("test")).hasValueSatisfying(profile -> {
-            assertThat(profile.credentialsProvider()).hasValueSatisfying(credentialsProvider -> {
+            assertThat(new ProfileCredentialsUtils(profile, profiles::profile).credentialsProvider()).hasValueSatisfying(credentialsProvider -> {
                 assertThat(credentialsProvider.getCredentials()).satisfies(credentials -> {
                     assertThat(credentials.accessKeyId()).isNotBlank();
                     assertThat(credentials.secretAccessKey()).isNotBlank();

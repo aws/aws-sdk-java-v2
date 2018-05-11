@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.runtime.auth;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.SdkRequestOverrideConfig;
+import software.amazon.awssdk.core.RequestOverrideConfig;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 @SdkProtectedApi
@@ -24,7 +24,7 @@ public class SignerProviderContext {
 
     private final boolean isRedirect;
     private final SdkHttpFullRequest request;
-    private final SdkRequestOverrideConfig requestConfig;
+    private final RequestOverrideConfig requestConfig;
 
     private SignerProviderContext(Builder builder) {
         this.isRedirect = builder.isRedirect;
@@ -44,14 +44,14 @@ public class SignerProviderContext {
         return request;
     }
 
-    public SdkRequestOverrideConfig getRequestConfig() {
+    public RequestOverrideConfig getRequestConfig() {
         return requestConfig;
     }
 
     public static class Builder {
         private boolean isRedirect;
         private SdkHttpFullRequest request;
-        private SdkRequestOverrideConfig requestConfig;
+        private RequestOverrideConfig requestConfig;
 
         private Builder() {
         }
@@ -66,7 +66,7 @@ public class SignerProviderContext {
             return this;
         }
 
-        public Builder withRequestConfig(final SdkRequestOverrideConfig requestConfig) {
+        public Builder withRequestConfig(final RequestOverrideConfig requestConfig) {
             this.requestConfig = requestConfig;
             return this;
         }

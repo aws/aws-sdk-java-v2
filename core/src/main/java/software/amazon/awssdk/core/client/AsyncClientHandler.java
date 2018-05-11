@@ -16,26 +16,17 @@
 package software.amazon.awssdk.core.client;
 
 import java.util.concurrent.CompletableFuture;
-
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.config.ClientConfiguration;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * Client interface to invoke an API.
  */
 @SdkProtectedApi
-public abstract class AsyncClientHandler extends BaseClientHandler implements SdkAutoCloseable {
-
-    AsyncClientHandler(ClientConfiguration clientConfiguration,
-                       ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
-        super(clientConfiguration, serviceAdvancedConfiguration);
-    }
-
+public interface AsyncClientHandler extends SdkAutoCloseable {
     /**
      * Execute's a web service request. Handles marshalling and unmarshalling of data and making the
      * underlying HTTP call(s).
@@ -45,8 +36,8 @@ public abstract class AsyncClientHandler extends BaseClientHandler implements Sd
      * @param <OutputT>       Output POJO type
      * @return Unmarshalled output POJO type.
      */
-    public abstract <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<OutputT> execute(
-            ClientExecutionParams<InputT, OutputT> executionParams);
+    <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<OutputT> execute(
+        ClientExecutionParams<InputT, OutputT> executionParams);
 
     /**
      * Execute's a streaming web service request. Handles marshalling and unmarshalling of data and making the
@@ -59,7 +50,7 @@ public abstract class AsyncClientHandler extends BaseClientHandler implements Sd
      * @param <ReturnT>            Transformed result returned by asyncResponseTransformer.
      * @return CompletableFuture containing transformed result type as returned by asyncResponseTransformer.
      */
-    public abstract <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> CompletableFuture<ReturnT> execute(
-            ClientExecutionParams<InputT, OutputT> executionParams,
-            AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer);
+    <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> CompletableFuture<ReturnT> execute(
+        ClientExecutionParams<InputT, OutputT> executionParams,
+        AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer);
 }

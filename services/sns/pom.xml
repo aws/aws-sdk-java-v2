@@ -35,6 +35,7 @@
             <artifactId>sqs</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
