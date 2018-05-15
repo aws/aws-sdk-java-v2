@@ -15,19 +15,22 @@
 
 package software.amazon.awssdk.core.http;
 
-import software.amazon.awssdk.core.SdkRequestOverrideConfig;
-import software.amazon.awssdk.core.SdkRequest;
-
 import java.util.Optional;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkRequestOverrideConfig;
 
 public class NoopTestRequest extends SdkRequest {
-    private NoopTestRequest() {
+
+    private final SdkRequestOverrideConfig requestOverrideConfig;
+
+    private NoopTestRequest(Builder builder) {
+        this.requestOverrideConfig = builder.requestOverrideConfig();
 
     }
 
     @Override
-    public Optional<? extends SdkRequestOverrideConfig> requestOverrideConfig() {
-        return Optional.empty();
+    public Optional<SdkRequestOverrideConfig> requestOverrideConfig() {
+        return Optional.ofNullable(requestOverrideConfig);
     }
 
     @Override
@@ -42,18 +45,29 @@ public class NoopTestRequest extends SdkRequest {
     public interface Builder extends SdkRequest.Builder {
         @Override
         NoopTestRequest build();
+
+        @Override
+        SdkRequestOverrideConfig requestOverrideConfig();
+
+        Builder requestOverrideConfig(SdkRequestOverrideConfig requestOverrideConfig);
     }
 
-    private static class BuilderImpl implements SdkRequest.Builder, Builder {
+    private static class BuilderImpl implements Builder {
+        private SdkRequestOverrideConfig requestOverrideConfig;
 
         @Override
         public SdkRequestOverrideConfig requestOverrideConfig() {
-            return null;
+            return requestOverrideConfig;
+        }
+
+        public Builder requestOverrideConfig(SdkRequestOverrideConfig requestOverrideConfig) {
+            this.requestOverrideConfig = requestOverrideConfig;
+            return this;
         }
 
         @Override
         public NoopTestRequest build() {
-            return new NoopTestRequest();
+            return new NoopTestRequest(this);
         }
     }
 }

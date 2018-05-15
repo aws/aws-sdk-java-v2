@@ -156,7 +156,7 @@
 
     <dependencies>
         <dependency>
-            <artifactId>core</artifactId>
+            <artifactId>aws-core</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
         </dependency>

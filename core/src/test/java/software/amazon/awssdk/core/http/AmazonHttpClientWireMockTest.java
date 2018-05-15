@@ -47,7 +47,7 @@ public class AmazonHttpClientWireMockTest extends WireMockTestBase {
     public void headersSpecifiedInClientConfigurationArePutOnRequest() throws Exception {
         Request<?> request = newGetRequest(OPERATION);
 
-        AmazonHttpClient sut = createClient(HEADER, CONFIG_HEADER_VALUE);
+        AmazonSyncHttpClient sut = createClient(HEADER, CONFIG_HEADER_VALUE);
         sendRequest(request, sut);
 
         verify(getRequestedFor(urlPathEqualTo(OPERATION)).withHeader(HEADER, matching(CONFIG_HEADER_VALUE)));
@@ -59,7 +59,7 @@ public class AmazonHttpClientWireMockTest extends WireMockTestBase {
 
         request.addHeader(HEADER, REQUEST_HEADER_VALUE);
 
-        AmazonHttpClient sut = createClient(HEADER, CONFIG_HEADER_VALUE);
+        AmazonSyncHttpClient sut = createClient(HEADER, CONFIG_HEADER_VALUE);
         sendRequest(request, sut);
 
         verify(getRequestedFor(urlPathEqualTo(OPERATION)).withHeader(HEADER, matching(REQUEST_HEADER_VALUE)));
@@ -70,22 +70,22 @@ public class AmazonHttpClientWireMockTest extends WireMockTestBase {
         Request<?> request = newRequest(OPERATION);
         request.setHttpMethod(HttpMethodName.OPTIONS);
 
-        AmazonHttpClient sut = HttpTestUtils.testAmazonHttpClient();
+        AmazonSyncHttpClient sut = HttpTestUtils.testAmazonHttpClient();
         sendRequest(request, sut);
 
         verify(optionsRequestedFor(urlPathEqualTo(OPERATION)));
     }
 
-    private void sendRequest(Request<?> request, AmazonHttpClient sut) {
+    private void sendRequest(Request<?> request, AmazonSyncHttpClient sut) {
         sut.requestExecutionBuilder()
            .request(request)
-           .originalRequest(NoopTestAwsRequest.builder().build())
+           .originalRequest(NoopTestRequest.builder().build())
            .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
            .errorResponseHandler(new NullErrorResponseHandler())
            .execute();
     }
 
-    private AmazonHttpClient createClient(String headerName, String headerValue) {
+    private AmazonSyncHttpClient createClient(String headerName, String headerValue) {
         return HttpTestUtils.testClientBuilder().additionalHeader(headerName, headerValue).build();
     }
 }

@@ -15,19 +15,21 @@
 
 package software.amazon.awssdk.core.config;
 
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Client options that are internal to the SDK. Customers should not rely on these settings, and they are subject to change
  * without notice.
  */
+@ReviewBeforeRelease("Move this to aws-core module once HttpResponseAdaptingStage is removed")
 @SdkInternalApi
-public class InternalAdvancedClientOption<T> extends AdvancedClientOption<T> {
+public class InternalAdvancedClientOption<T> extends SdkAdvancedClientOption<T> {
     /**
      * Whether to calculate the CRC 32 checksum of a message based on the uncompressed data. By default, this is false.
      */
     public static final InternalAdvancedClientOption<Boolean> CRC32_FROM_COMPRESSED_DATA_ENABLED =
-            new InternalAdvancedClientOption<>(Boolean.class);
+        new InternalAdvancedClientOption<>(Boolean.class);
 
     private InternalAdvancedClientOption(Class<T> valueClass) {
         super(valueClass);

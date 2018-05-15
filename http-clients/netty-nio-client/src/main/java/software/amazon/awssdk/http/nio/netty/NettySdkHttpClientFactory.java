@@ -47,6 +47,7 @@ public final class NettySdkHttpClientFactory
     private final Duration readTimeout;
     private final Duration writeTimeout;
     private final Duration connectionAcquisitionTimeout;
+    private final Integer maxPendingAcquires;
 
     private NettySdkHttpClientFactory(DefaultBuilder builder) {
         this.standardOptions = builder.standardOptions.build();
@@ -55,6 +56,7 @@ public final class NettySdkHttpClientFactory
         this.readTimeout = validateIsWholeSecond(builder.readTimeout, "readTimeout");
         this.writeTimeout = validateIsWholeSecond(builder.writeTimeout, "writeTimeout");
         this.connectionAcquisitionTimeout = builder.connectionAcquisitionTimeout;
+        this.maxPendingAcquires = builder.maxPendingAcquires;
     }
 
     /**
@@ -63,6 +65,14 @@ public final class NettySdkHttpClientFactory
      */
     public Optional<Integer> maxConnectionsPerEndpoint() {
         return Optional.ofNullable(standardOptions.get(MAX_CONNECTIONS));
+    }
+
+    /**
+     * @return Optional of the maxPendingAcquires setting.
+     * @see Builder#maxPendingAcquires(Integer)
+     */
+    public Optional<Integer> maxPendingAcquires() {
+        return Optional.ofNullable(maxPendingAcquires);
     }
 
     /**
@@ -179,6 +189,14 @@ public final class NettySdkHttpClientFactory
         Builder maxConnectionsPerEndpoint(Integer maxConnectionsPerEndpoint);
 
         /**
+         * The maximum number of pending acquires allowed. Once this exceeds, acquire tries will be failed.
+         *
+         * @param maxPendingAcquires Max number of pending acquires
+         * @return This builder for method chaining.
+         */
+        Builder maxPendingAcquires(Integer maxPendingAcquires);
+
+        /**
          * The amount of time to wait for a read on a socket before an exception is thrown.
          * <br/>
          * <strong>note: minimum supported granularity is seconds, if {@link Duration} cannot be converted
@@ -260,6 +278,7 @@ public final class NettySdkHttpClientFactory
         private Duration readTimeout;
         private Duration writeTimeout;
         private Duration connectionAcquisitionTimeout;
+        private Integer maxPendingAcquires;
 
         private DefaultBuilder(AttributeMap.Builder standardOptions) {
             this.standardOptions = standardOptions;
@@ -268,6 +287,12 @@ public final class NettySdkHttpClientFactory
         @Override
         public Builder maxConnectionsPerEndpoint(Integer maxConnectionsPerEndpoint) {
             standardOptions.put(MAX_CONNECTIONS, maxConnectionsPerEndpoint);
+            return this;
+        }
+
+        @Override
+        public Builder maxPendingAcquires(Integer maxPendingAcquires) {
+            this.maxPendingAcquires = maxPendingAcquires;
             return this;
         }
 

@@ -85,10 +85,9 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                                                                                 ChannelHealthChecker.ACTIVE))
                                              .executor(bootstrap.config().group().next())
                                              .acquireTimeoutAction(BetterFixedChannelPool.AcquireTimeoutAction.FAIL)
-                                             // TODO expose better options for this
                                              .acquireTimeoutMillis(configuration.connectionAcquisitionTimeout())
                                              .maxConnections(configuration.maxConnectionsPerEndpoint())
-                                             .maxPendingAcquires(1000)
+                                             .maxPendingAcquires(configuration.maxPendingAcquires())
                                              .build();
             }
         };

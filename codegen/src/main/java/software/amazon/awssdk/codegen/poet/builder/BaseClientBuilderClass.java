@@ -23,17 +23,17 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.signer.QueryStringSigner;
+import software.amazon.awssdk.auth.signer.StaticSignerProvider;
+import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
+import software.amazon.awssdk.awscore.config.defaults.AwsClientConfigurationDefaults;
+import software.amazon.awssdk.awscore.config.defaults.ServiceBuilderConfigurationDefaults;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.auth.Aws4Signer;
-import software.amazon.awssdk.core.auth.QueryStringSigner;
-import software.amazon.awssdk.core.auth.StaticSignerProvider;
-import software.amazon.awssdk.core.client.builder.DefaultClientBuilder;
-import software.amazon.awssdk.core.config.defaults.ClientConfigurationDefaults;
-import software.amazon.awssdk.core.config.defaults.ServiceBuilderConfigurationDefaults;
 import software.amazon.awssdk.core.runtime.auth.SignerProvider;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -58,7 +58,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addAnnotation(SdkInternalApi.class)
                          .addTypeVariable(PoetUtils.createBoundedTypeVariableName("B", builderInterfaceName, "B", "C"))
                          .addTypeVariable(TypeVariableName.get("C"))
-                         .superclass(PoetUtils.createParameterizedTypeName(DefaultClientBuilder.class, "B", "C"))
+                         .superclass(PoetUtils.createParameterizedTypeName(AwsDefaultClientBuilder.class, "B", "C"))
                          .addJavadoc("Internal base class for {@link $T} and {@link $T}.",
                                      ClassName.get(basePackage, model.getMetadata().getSyncBuilder()),
                                      ClassName.get(basePackage, model.getMetadata().getAsyncBuilder()));
@@ -106,7 +106,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         return MethodSpec.methodBuilder("serviceDefaults")
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
-                         .returns(ClientConfigurationDefaults.class)
+                         .returns(AwsClientConfigurationDefaults.class)
                          .addCode("return $T.builder()\n", ServiceBuilderConfigurationDefaults.class)
                          .addCode("         .defaultSignerProvider(this::defaultSignerProvider)\n")
                          .addCode("         .addRequestHandlerPath($S)\n", requestHandlerPath)

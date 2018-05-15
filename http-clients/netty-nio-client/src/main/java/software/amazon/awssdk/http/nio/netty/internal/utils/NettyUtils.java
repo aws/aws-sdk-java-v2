@@ -23,7 +23,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-public class NettyUtils {
+public final class NettyUtils {
 
     private NettyUtils() {
     }

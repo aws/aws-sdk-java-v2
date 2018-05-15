@@ -106,7 +106,7 @@ public class GetObjectIntegrationTest extends S3IntegrationTestBase {
 
     private S3Client createClientWithInterceptor(ExecutionInterceptor interceptor) {
         return s3ClientBuilder().overrideConfiguration(ClientOverrideConfiguration.builder()
-                                                                                  .addLastExecutionInterceptor(interceptor)
+                                                                                  .addExecutionInterceptor(interceptor)
                                                                                   .build())
                                 .build();
     }

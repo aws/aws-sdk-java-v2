@@ -32,9 +32,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.config.AdvancedClientOption;
+import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.config.MutableClientConfiguration;
+import software.amazon.awssdk.core.config.SdkMutableClientConfiguration;
 import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
@@ -54,7 +54,7 @@ public class AmazonHttpClientTest {
     @Mock
     private AbortableCallable<SdkHttpFullResponse> abortableCallable;
 
-    private AmazonHttpClient client;
+    private AmazonSyncHttpClient client;
 
     @Before
     public void setUp() throws Exception {
@@ -75,7 +75,7 @@ public class AmazonHttpClientTest {
         try {
             client.requestExecutionBuilder()
                     .request(ValidSdkObjects.legacyRequest())
-                    .originalRequest(NoopTestAwsRequest.builder().build())
+                    .originalRequest(NoopTestRequest.builder().build())
                     .executionContext(context)
                     .execute();
             Assert.fail("No exception when request repeatedly fails!");
@@ -101,7 +101,7 @@ public class AmazonHttpClientTest {
         try {
             client.requestExecutionBuilder()
                     .request(ValidSdkObjects.legacyRequest())
-                    .originalRequest(NoopTestAwsRequest.builder().build())
+                    .originalRequest(NoopTestRequest.builder().build())
                     .executionContext(context)
                     .execute(mockHandler);
             Assert.fail("No exception when request repeatedly fails!");
@@ -124,20 +124,20 @@ public class AmazonHttpClientTest {
         HttpResponseHandler<?> handler = mock(HttpResponseHandler.class);
         ClientOverrideConfiguration overrideConfig =
                 ClientOverrideConfiguration.builder()
-                                           .advancedOption(AdvancedClientOption.USER_AGENT_PREFIX, prefix)
-                                           .advancedOption(AdvancedClientOption.USER_AGENT_SUFFIX, suffix)
+                                           .advancedOption(SdkAdvancedClientOption.USER_AGENT_PREFIX, prefix)
+                                           .advancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX, suffix)
                                            .build();
-        MutableClientConfiguration config = new MutableClientConfiguration().overrideConfiguration(overrideConfig)
-                                                                            .httpClient(sdkHttpClient)
-                                                                            .endpoint(URI.create("http://example.com"));
+        SdkMutableClientConfiguration config = new SdkMutableClientConfiguration().overrideConfiguration(overrideConfig)
+                                                                                  .httpClient(sdkHttpClient)
+                                                                                  .endpoint(URI.create("http://example.com"));
 
         new GlobalClientConfigurationDefaults().applySyncDefaults(config);
 
-        AmazonHttpClient client = new AmazonHttpClient(config);
+        AmazonSyncHttpClient client = new AmazonSyncHttpClient(config);
 
         client.requestExecutionBuilder()
               .request(request)
-              .originalRequest(NoopTestAwsRequest.builder().build())
+              .originalRequest(NoopTestRequest.builder().build())
               .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(null))
               .execute(handler);
 

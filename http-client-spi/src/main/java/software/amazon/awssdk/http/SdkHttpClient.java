@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
@@ -22,7 +23,10 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * HTTP response.
  *
  * <p>Implementations MUST be thread safe.</p>
+ *
+ * <p><b><i>Note: This interface will change between SDK versions and should not be implemented by SDK users.</i></b></p>
  */
+@SdkInternalApi
 public interface SdkHttpClient extends SdkAutoCloseable, ConfigurationProvider {
 
     /**

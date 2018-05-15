@@ -15,11 +15,11 @@ package software.amazon.awssdk.services.kinesis;
 
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.auth.Aws4Signer;
-import software.amazon.awssdk.core.auth.StaticSignerProvider;
-import software.amazon.awssdk.core.client.builder.DefaultClientBuilder;
-import software.amazon.awssdk.core.config.defaults.ClientConfigurationDefaults;
-import software.amazon.awssdk.core.config.defaults.ServiceBuilderConfigurationDefaults;
+import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.signer.StaticSignerProvider;
+import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
+import software.amazon.awssdk.awscore.config.defaults.AwsClientConfigurationDefaults;
+import software.amazon.awssdk.awscore.config.defaults.ServiceBuilderConfigurationDefaults;
 import software.amazon.awssdk.core.runtime.auth.SignerProvider;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
@@ -30,7 +30,7 @@ import software.amazon.awssdk.utils.AttributeMap;
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-abstract class DefaultKinesisBaseClientBuilder<B extends KinesisBaseClientBuilder<B, C>, C> extends DefaultClientBuilder<B, C> {
+abstract class DefaultKinesisBaseClientBuilder<B extends KinesisBaseClientBuilder<B, C>, C> extends AwsDefaultClientBuilder<B, C> {
 
     @Override
     protected final String serviceEndpointPrefix() {
@@ -38,10 +38,10 @@ abstract class DefaultKinesisBaseClientBuilder<B extends KinesisBaseClientBuilde
     }
 
     @Override
-    protected final ClientConfigurationDefaults serviceDefaults() {
+    protected final AwsClientConfigurationDefaults serviceDefaults() {
         return ServiceBuilderConfigurationDefaults.builder().defaultSignerProvider(this::defaultSignerProvider)
-                .addRequestHandlerPath("software/amazon/awssdk/services/kinesis/execution.interceptors")
-                .crc32FromCompressedDataEnabled(false).build();
+                                                  .addRequestHandlerPath("software/amazon/awssdk/services/kinesis/execution.interceptors")
+                                                  .crc32FromCompressedDataEnabled(false).build();
     }
 
     @Override

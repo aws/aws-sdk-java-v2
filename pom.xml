@@ -55,7 +55,11 @@
     <modules>
         <module>services</module>
         <module>aws-sdk-java</module>
+        <module>auth</module>
+        <module>aws-core</module>
         <module>core</module>
+        <module>regions</module>
+        <module>profiles</module>
         <module>bom</module>
         <module>codegen</module>
         <module>http-client-spi</module>
