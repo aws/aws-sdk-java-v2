@@ -16,10 +16,10 @@
 package software.amazon.awssdk.core.http.loader;
 
 import java.util.Optional;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpService;
 import software.amazon.awssdk.http.async.SdkAsyncHttpService;
-import software.amazon.awssdk.utils.SdkSystemSetting;
 import software.amazon.awssdk.utils.SystemSetting;
 
 /**

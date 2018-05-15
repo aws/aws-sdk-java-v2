@@ -16,20 +16,26 @@
 package software.amazon.awssdk.core;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.core.http.AmazonAsyncHttpClient;
+import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionAbortTrackerTask;
+import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
+import software.amazon.awssdk.core.runtime.auth.Signer;
 import software.amazon.awssdk.core.runtime.auth.SignerProvider;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Request scoped dependencies and context for an execution of a request by {@link AmazonHttpClient}. Provided to the
- * {@link software.amazon.awssdk.http.pipeline.RequestPipeline#execute(Object, RequestExecutionContext)} method.
+ * Request scoped dependencies and context for an execution of a request by {@link AmazonSyncHttpClient} or
+ * {@link AmazonAsyncHttpClient}.
+ * Provided to the {@link RequestPipeline#execute(Object, RequestExecutionContext)} method.
  */
 public final class RequestExecutionContext {
-    private static final SdkRequestOverrideConfig EMPTY_CONFIG = AwsRequestOverrideConfig.builder().build();
+    private static final RequestOverrideConfig EMPTY_CONFIG = SdkRequestOverrideConfig.builder().build();
     private final SdkHttpRequestProvider requestProvider;
     private final SdkRequest originalRequest;
     private final ExecutionContext executionContext;
@@ -74,29 +80,29 @@ public final class RequestExecutionContext {
         return originalRequest;
     }
 
-    public SdkRequestOverrideConfig requestConfig() {
+    public RequestOverrideConfig requestConfig() {
         return originalRequest.requestOverrideConfig()
-                // ugly but needed to avoid capture of capture and creating a type mismatch
-                .map(c -> (SdkRequestOverrideConfig) c)
-                .orElse(EMPTY_CONFIG);
+                              // ugly but needed to avoid capture of capture and creating a type mismatch
+                              .map(c -> (RequestOverrideConfig) c)
+                              .orElse(EMPTY_CONFIG);
     }
 
     /**
-     * @return SignerProvider used to obtain an instance of a {@link software.amazon.awssdk.core.auth.Signer}.
+     * @return SignerProvider used to obtain an instance of a {@link Signer}.
      */
     public SignerProvider signerProvider() {
         return executionContext.signerProvider();
     }
 
     /**
-     * @return Tracker task for the {@link software.amazon.awssdk.internal.http.timers.client.ClientExecutionTimer}.
+     * @return Tracker task for the {@link ClientExecutionTimer}.
      */
     public ClientExecutionAbortTrackerTask clientExecutionTrackerTask() {
         return clientExecutionTrackerTask;
     }
 
     /**
-     * Sets the tracker task for the {@link software.amazon.awssdk.internal.http.timers.client.ClientExecutionTimer}. Should
+     * Sets the tracker task for the {@link ClientExecutionTimer}. Should
      * be called once per request lifecycle.
      */
     public void clientExecutionTrackerTask(ClientExecutionAbortTrackerTask clientExecutionTrackerTask) {

@@ -34,6 +34,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 public final class NettyConfiguration {
     private static final Duration DEFAULT_READ_TIMEOUT = Duration.ofSeconds(60);
     private static final Duration DEFAULT_WRITE_TIMEOUT = Duration.ofSeconds(60);
+    private static final Integer MAX_PENDING_ACQUIRE = 10_000;
     private final AttributeMap serviceDefaults;
     private final NettySdkHttpClientFactory factory;
 
@@ -55,6 +56,13 @@ public final class NettyConfiguration {
      */
     public int maxConnectionsPerEndpoint() {
         return serviceDefaults.get(MAX_CONNECTIONS);
+    }
+
+    /**
+     * @see NettySdkHttpClientFactory.Builder#maxPendingAcquires(Integer)
+     */
+    public int maxPendingAcquires() {
+        return factory.maxPendingAcquires().orElse(MAX_PENDING_ACQUIRE);
     }
 
     @ReviewBeforeRelease("Support disabling strict hostname verification")

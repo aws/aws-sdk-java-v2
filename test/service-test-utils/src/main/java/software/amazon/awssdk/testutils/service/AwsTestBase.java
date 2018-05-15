@@ -23,10 +23,10 @@ import java.io.InputStream;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
-import software.amazon.awssdk.core.auth.AwsCredentialsProviderChain;
-import software.amazon.awssdk.core.auth.EnvironmentVariableCredentialsProvider;
-import software.amazon.awssdk.core.auth.ProfileCredentialsProvider;
-import software.amazon.awssdk.core.auth.SystemPropertyCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
+import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.SystemPropertyCredentialsProvider;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.utils.IoUtils;
 

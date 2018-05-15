@@ -19,15 +19,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.stream.Stream;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
-import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.core.client.builder.ClientBuilder;
-import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.protocol.model.TestCase;
 import software.amazon.awssdk.protocol.wiremock.WireMockUtils;
+import software.amazon.awssdk.regions.Region;
 
 /**
  * Reflection utils to create the client class and invoke operation methods.
@@ -89,7 +89,7 @@ public class ClientReflector {
         try {
             // Reflectively create a builder, configure it, and then create the client.
             Object untypedBuilder = interfaceClass.getMethod("builder").invoke(null);
-            ClientBuilder<?, ?> builder = (ClientBuilder<?, ?>) untypedBuilder;
+            AwsClientBuilder<?, ?> builder = (AwsClientBuilder<?, ?>) untypedBuilder;
             return builder.credentialsProvider(getMockCredentials())
                           .region(Region.US_EAST_1)
                           .endpointOverride(URI.create(getEndpoint()))

@@ -13,7 +13,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.AwsRequestOverrideConfig;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfig;
 import software.amazon.awssdk.core.runtime.StandardMemberCopier;
 import software.amazon.awssdk.core.runtime.TypeConverter;
 import software.amazon.awssdk.core.runtime.adapters.types.StringToByteBufferAdapter;
@@ -1057,6 +1057,9 @@ public class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         @Override
         Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig);
+
+        @Override
+        Builder requestOverrideConfig(Consumer<AwsRequestOverrideConfig.Builder> builderConsumer);
     }
 
     static final class BuilderImpl extends JsonProtocolTestsRequest.BuilderImpl implements Builder {

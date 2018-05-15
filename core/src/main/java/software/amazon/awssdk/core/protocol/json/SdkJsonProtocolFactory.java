@@ -20,10 +20,10 @@ import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.AwsSystemSetting;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.OperationInfo;
 import software.amazon.awssdk.core.protocol.Protocol;
@@ -51,14 +51,14 @@ public class SdkJsonProtocolFactory {
     }
 
     public <T extends SdkRequest> ProtocolRequestMarshaller<T> createProtocolMarshaller(
-            OperationInfo operationInfo, T origRequest) {
+        OperationInfo operationInfo, T origRequest) {
         return JsonProtocolMarshallerBuilder.<T>standard()
-                .jsonGenerator(createGenerator(operationInfo))
-                .contentType(getContentType())
-                .operationInfo(operationInfo)
-                .originalRequest(origRequest)
-                .sendExplicitNullForPayload(false)
-                .build();
+            .jsonGenerator(createGenerator(operationInfo))
+            .contentType(getContentType())
+            .operationInfo(operationInfo)
+            .originalRequest(origRequest)
+            .sendExplicitNullForPayload(false)
+            .build();
     }
 
     private StructuredJsonGenerator createGenerator(OperationInfo operationInfo) {
@@ -85,8 +85,8 @@ public class SdkJsonProtocolFactory {
      * @param operationMetadata Additional context information about an operation to create the appropriate response handler.
      */
     public <T> JsonResponseHandler<T> createResponseHandler(
-            JsonOperationMetadata operationMetadata,
-            Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller) {
+        JsonOperationMetadata operationMetadata,
+        Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller) {
         return getSdkFactory().createResponseHandler(operationMetadata, responseUnmarshaller);
     }
 
@@ -98,22 +98,22 @@ public class SdkJsonProtocolFactory {
      * Creates a response handler for handling a error response (non 2xx response).
      */
     public HttpResponseHandler<SdkServiceException> createErrorResponseHandler(
-            JsonErrorResponseMetadata errorResponseMetadata) {
+        JsonErrorResponseMetadata errorResponseMetadata) {
         return getSdkFactory().createErrorResponseHandler(errorUnmarshallers, errorResponseMetadata
-                .getCustomErrorCodeFieldName());
+            .getCustomErrorCodeFieldName());
     }
 
     @SuppressWarnings("unchecked")
     private void createErrorUnmarshallers() {
         for (JsonErrorShapeMetadata errorMetadata : metadata.getErrorShapeMetadata()) {
             errorUnmarshallers.add(new JsonErrorUnmarshaller(
-                    (Class<? extends SdkServiceException>) errorMetadata.getModeledClass(),
-                    errorMetadata.getErrorCode()));
+                (Class<? extends SdkServiceException>) errorMetadata.getModeledClass(),
+                errorMetadata.getErrorCode()));
 
         }
         errorUnmarshallers.add(new JsonErrorUnmarshaller(
-                (Class<? extends SdkServiceException>) metadata.getBaseServiceExceptionClass(),
-                null));
+            (Class<? extends SdkServiceException>) metadata.getBaseServiceExceptionClass(),
+            null));
     }
 
     /**
@@ -124,8 +124,8 @@ public class SdkJsonProtocolFactory {
             return SdkStructuredCborFactory.SDK_CBOR_FACTORY;
         } else if (isIonEnabled()) {
             return isIonBinaryEnabled()
-                    ? SdkStructuredIonFactory.SDK_ION_BINARY_FACTORY
-                    : SdkStructuredIonFactory.SDK_ION_TEXT_FACTORY;
+                   ? SdkStructuredIonFactory.SDK_ION_BINARY_FACTORY
+                   : SdkStructuredIonFactory.SDK_ION_TEXT_FACTORY;
         } else {
             return SdkStructuredPlainJsonFactory.SDK_JSON_FACTORY;
         }
@@ -139,15 +139,15 @@ public class SdkJsonProtocolFactory {
             return JsonContentTypeResolver.CBOR;
         } else if (isIonEnabled()) {
             return isIonBinaryEnabled()
-                    ? JsonContentTypeResolver.ION_BINARY
-                    : JsonContentTypeResolver.ION_TEXT;
+                   ? JsonContentTypeResolver.ION_BINARY
+                   : JsonContentTypeResolver.ION_TEXT;
         } else {
             return JsonContentTypeResolver.JSON;
         }
     }
 
     private boolean isCborEnabled() {
-        return metadata.isSupportsCbor() && AwsSystemSetting.AWS_CBOR_ENABLED.getBooleanValueOrThrow();
+        return metadata.isSupportsCbor() && SdkSystemSetting.CBOR_ENABLED.getBooleanValueOrThrow();
     }
 
     private boolean isIonEnabled() {
@@ -155,6 +155,6 @@ public class SdkJsonProtocolFactory {
     }
 
     boolean isIonBinaryEnabled() {
-        return AwsSystemSetting.AWS_BINARY_ION_ENABLED.getBooleanValueOrThrow();
+        return SdkSystemSetting.BINARY_ION_ENABLED.getBooleanValueOrThrow();
     }
 }

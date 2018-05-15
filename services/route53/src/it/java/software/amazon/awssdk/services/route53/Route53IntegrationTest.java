@@ -26,7 +26,7 @@ import org.junit.AfterClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.SdkGlobalTime;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.route53.model.Change;
 import software.amazon.awssdk.services.route53.model.ChangeAction;
 import software.amazon.awssdk.services.route53.model.ChangeBatch;

@@ -1,3 +1,18 @@
+/*
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
 package software.amazon.awssdk.http.nio.netty.h2;
 
 import static software.amazon.awssdk.http.nio.netty.internal.utils.SocketChannelResolver.resolveSocketChannelClass;
@@ -18,6 +33,7 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.net.URI;
 import java.util.Optional;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.TrustManagerFactory;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -85,15 +101,17 @@ public class NettyH2AsyncHttpClient implements SdkAsyncHttpClient {
         try {
             return SslContextBuilder.forClient()
                                     .sslProvider(provider)
-                    /* NOTE: the cipher filter may not include all ciphers required by the HTTP/2 specification.
-                     * Please refer to the HTTP/2 specification for cipher requirements. */
                                     .ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
-                                    .trustManager(configuration.trustAllCertificates() ? InsecureTrustManagerFactory.INSTANCE : null)
+                                    .trustManager(getTrustManager())
                                     .build();
         } catch (SSLException e) {
             // TODO is throwing the right thing here or should we notify the handler?
             throw new RuntimeException(e);
         }
+    }
+
+    private TrustManagerFactory getTrustManager() {
+        return configuration.trustAllCertificates() ? InsecureTrustManagerFactory.INSTANCE : null;
     }
 
     private ChannelPoolMap<URI, ChannelPool> createChannelPoolMap(int maxConnectionsPerEndpoint) {
@@ -110,7 +128,7 @@ public class NettyH2AsyncHttpClient implements SdkAsyncHttpClient {
                         .option(ChannelOption.TCP_NODELAY, true)
                         .remoteAddress(key.getHost(), key.getPort());
                 return new HttpOrHttp2ChannelPool(bootstrap,
-                                                  new Http2MultiplexInitializer(protocol, metricsCollector, sslContext, maxStreams),
+                                                  new Http2MultiplexInitializer(protocol, sslContext, maxStreams),
                                                   maxConnectionsPerEndpoint);
             }
         };

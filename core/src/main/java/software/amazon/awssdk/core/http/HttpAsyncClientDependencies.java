@@ -15,11 +15,11 @@
 
 package software.amazon.awssdk.core.http;
 
-import software.amazon.awssdk.core.config.AsyncClientConfiguration;
+import software.amazon.awssdk.core.config.SdkAsyncClientConfiguration;
 import software.amazon.awssdk.utils.IoUtils;
 
 public class HttpAsyncClientDependencies extends HttpClientDependencies {
-    private final AsyncClientConfiguration asyncClientConfiguration;
+    private final SdkAsyncClientConfiguration asyncClientConfiguration;
 
     private HttpAsyncClientDependencies(Builder builder) {
         super(builder.asyncClientConfiguration, builder);
@@ -33,7 +33,7 @@ public class HttpAsyncClientDependencies extends HttpClientDependencies {
         return new Builder();
     }
 
-    public AsyncClientConfiguration asyncClientConfiguration() {
+    public SdkAsyncClientConfiguration asyncClientConfiguration() {
         return asyncClientConfiguration;
     }
 
@@ -44,9 +44,9 @@ public class HttpAsyncClientDependencies extends HttpClientDependencies {
     }
 
     public static final class Builder extends HttpClientDependencies.Builder<Builder> {
-        private AsyncClientConfiguration asyncClientConfiguration;
+        private SdkAsyncClientConfiguration asyncClientConfiguration;
 
-        public Builder asyncClientConfiguration(AsyncClientConfiguration asyncClientConfiguration) {
+        public Builder asyncClientConfiguration(SdkAsyncClientConfiguration asyncClientConfiguration) {
             this.asyncClientConfiguration = asyncClientConfiguration;
             return this;
         }

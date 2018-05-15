@@ -5,14 +5,13 @@ import java.util.List;
 import javax.annotation.Generated;
 import org.w3c.dom.Node;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
+import software.amazon.awssdk.awscore.config.AwsSyncClientConfiguration;
+import software.amazon.awssdk.awscore.http.DefaultErrorResponseHandler;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
-import software.amazon.awssdk.core.client.ClientHandler;
-import software.amazon.awssdk.core.client.SdkClientHandler;
-import software.amazon.awssdk.core.config.ClientConfiguration;
-import software.amazon.awssdk.core.config.SyncClientConfiguration;
+import software.amazon.awssdk.core.client.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.http.DefaultErrorResponseHandler;
 import software.amazon.awssdk.core.http.StaxResponseHandler;
 import software.amazon.awssdk.core.runtime.transform.StandardErrorUnmarshaller;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
@@ -36,14 +35,14 @@ import software.amazon.awssdk.services.query.transform.InvalidInputExceptionUnma
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 final class DefaultQueryClient implements QueryClient {
-    private final ClientHandler clientHandler;
+    private final SyncClientHandler clientHandler;
 
     private final List<Unmarshaller<SdkServiceException, Node>> exceptionUnmarshallers;
 
-    private final ClientConfiguration clientConfiguration;
+    private final AwsSyncClientConfiguration clientConfiguration;
 
-    protected DefaultQueryClient(SyncClientConfiguration clientConfiguration) {
-        this.clientHandler = new SdkClientHandler(clientConfiguration, null);
+    protected DefaultQueryClient(AwsSyncClientConfiguration clientConfiguration) {
+        this.clientHandler = new AwsSyncClientHandler(clientConfiguration, null);
         this.exceptionUnmarshallers = init();
         this.clientConfiguration = clientConfiguration;
     }
@@ -75,16 +74,16 @@ final class DefaultQueryClient implements QueryClient {
      */
     @Override
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
-            SdkServiceException, SdkClientException, QueryException {
+                                                                                                     SdkServiceException, SdkClientException, QueryException {
 
         StaxResponseHandler<APostOperationResponse> responseHandler = new StaxResponseHandler<APostOperationResponse>(
-                new APostOperationResponseUnmarshaller());
+            new APostOperationResponseUnmarshaller());
 
         DefaultErrorResponseHandler errorResponseHandler = new DefaultErrorResponseHandler(exceptionUnmarshallers);
 
         return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                .withInput(aPostOperationRequest).withMarshaller(new APostOperationRequestMarshaller()));
+                                         .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                         .withInput(aPostOperationRequest).withMarshaller(new APostOperationRequestMarshaller()));
     }
 
     /**
@@ -109,19 +108,19 @@ final class DefaultQueryClient implements QueryClient {
      */
     @Override
     public APostOperationWithOutputResponse aPostOperationWithOutput(
-            APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, SdkServiceException,
-            SdkClientException, QueryException {
+        APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, SdkServiceException,
+                                                                                SdkClientException, QueryException {
 
         StaxResponseHandler<APostOperationWithOutputResponse> responseHandler = new StaxResponseHandler<APostOperationWithOutputResponse>(
-                new APostOperationWithOutputResponseUnmarshaller());
+            new APostOperationWithOutputResponseUnmarshaller());
 
         DefaultErrorResponseHandler errorResponseHandler = new DefaultErrorResponseHandler(exceptionUnmarshallers);
 
         return clientHandler
-                .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                        .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                        .withInput(aPostOperationWithOutputRequest)
-                        .withMarshaller(new APostOperationWithOutputRequestMarshaller()));
+            .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
+                         .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                         .withInput(aPostOperationWithOutputRequest)
+                         .withMarshaller(new APostOperationWithOutputRequestMarshaller()));
     }
 
     private List<Unmarshaller<SdkServiceException, Node>> init() {

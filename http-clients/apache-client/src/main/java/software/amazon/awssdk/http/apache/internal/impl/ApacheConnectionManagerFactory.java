@@ -20,7 +20,6 @@ import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -77,10 +76,9 @@ public class ApacheConnectionManagerFactory {
     }
 
     private ConnectionSocketFactory getPreferredSocketFactory(AttributeMap standardOptions) {
-        return new TrustingSocketFactory();
         // TODO v2 custom socket factory
-        //        return new SdkTlsSocketFactory(getPreferredSslContext(),
-        //                                       getHostNameVerifier(standardOptions));
+        return new SdkTlsSocketFactory(getPreferredSslContext(),
+                                       getHostNameVerifier(standardOptions));
     }
 
     private static SSLContext getPreferredSslContext() {
@@ -132,7 +130,7 @@ public class ApacheConnectionManagerFactory {
 
         private SSLContext sslcontext = null;
 
-        private static SSLContext createSSLContext() throws IOException {
+        private static SSLContext createSslContext() throws IOException {
             try {
                 SSLContext context = SSLContext.getInstance("TLS");
                 context.init(null, new TrustManager[] {new TrustingX509TrustManager()}, null);
@@ -143,18 +141,19 @@ public class ApacheConnectionManagerFactory {
         }
 
         @Override
-        public Socket createLayeredSocket(Socket socket, String target, int port, HttpContext context) throws IOException, UnknownHostException {
-            return getSSLContext().getSocketFactory().createSocket(socket,
+        public Socket createLayeredSocket(Socket socket, String target, int port, HttpContext context) throws IOException {
+            return getSslContext().getSocketFactory().createSocket(socket,
                                                                    target, port, true);
         }
 
         @Override
         public Socket createSocket(HttpContext context) throws IOException {
-            return getSSLContext().getSocketFactory().createSocket();
+            return getSslContext().getSocketFactory().createSocket();
         }
 
         @Override
-        public Socket connectSocket(int connectTimeout, Socket sock, HttpHost host, InetSocketAddress remoteAddress, InetSocketAddress localAddress, HttpContext context) throws IOException {
+        public Socket connectSocket(int connectTimeout, Socket sock, HttpHost host, InetSocketAddress remoteAddress,
+                                    InetSocketAddress localAddress, HttpContext context) throws IOException {
 
             SSLSocket sslsock = (SSLSocket) ((sock != null) ? sock :
                                              createSocket(context));
@@ -169,9 +168,9 @@ public class ApacheConnectionManagerFactory {
             return sslsock;
         }
 
-        private SSLContext getSSLContext() throws IOException {
+        private SSLContext getSslContext() throws IOException {
             if (this.sslcontext == null) {
-                this.sslcontext = createSSLContext();
+                this.sslcontext = createSslContext();
             }
             return this.sslcontext;
         }
@@ -190,14 +189,12 @@ public class ApacheConnectionManagerFactory {
         }
 
         @Override
-        public void checkServerTrusted(X509Certificate[] chain, String authType)
-            throws CertificateException {
+        public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
             // No-op, to trust all certs
         }
 
         @Override
-        public void checkClientTrusted(X509Certificate[] chain, String authType)
-            throws CertificateException {
+        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
             // No-op, to trust all certs
         }
     }

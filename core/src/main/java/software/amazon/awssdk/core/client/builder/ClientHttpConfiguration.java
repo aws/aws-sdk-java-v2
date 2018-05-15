@@ -52,7 +52,7 @@ public final class ClientHttpConfiguration
     /**
      * @return The currently configured {@link SdkHttpClientFactory} or an empty {@link Optional} if not present.
      */
-    public Optional<SdkHttpClientFactory> httpClientFactory() {
+    Optional<SdkHttpClientFactory> httpClientFactory() {
         return Optional.ofNullable(httpClientFactory);
     }
 
@@ -68,7 +68,7 @@ public final class ClientHttpConfiguration
      * resolution of the client. Returns an empty {@link Optional} if neither is set.
      */
     @SdkInternalApi
-    Optional<Either<SdkHttpClient, SdkHttpClientFactory>> toEither() {
+    public Optional<Either<SdkHttpClient, SdkHttpClientFactory>> toEither() {
         return Either.fromNullable(httpClient, httpClientFactory);
     }
 

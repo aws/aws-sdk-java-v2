@@ -25,8 +25,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.retry.SdkDefaultRetrySettings;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
@@ -83,14 +83,14 @@ public class TT0035900619IntegrationTest {
     @AfterClass
     public static void bye() throws Exception {
         // Disable error injection or else the deletion would fail!
-        AmazonHttpClient.configUnreliableTestConditions(null);
+        AmazonSyncHttpClient.configUnreliableTestConditions(null);
         client.deleteTable(DeleteTableRequest.builder().tableName(TABLE_NAME).build());
         client.close();
     }
 
     @Test(expected = RuntimeException.class)
     public void testFakeRuntimeException_Once() {
-        AmazonHttpClient.configUnreliableTestConditions(
+        AmazonSyncHttpClient.configUnreliableTestConditions(
             new UnreliableTestConfig()
                 .withMaxNumErrors(1)
                 .withBytesReadBeforeException(10)
@@ -102,7 +102,7 @@ public class TT0035900619IntegrationTest {
 
     @Test
     public void testFakeIOException_Once() {
-        AmazonHttpClient.configUnreliableTestConditions(
+        AmazonSyncHttpClient.configUnreliableTestConditions(
                 new UnreliableTestConfig()
                 .withMaxNumErrors(1)
                 .withBytesReadBeforeException(10)
@@ -116,7 +116,7 @@ public class TT0035900619IntegrationTest {
     @ReviewBeforeRelease("Custom retry policy not yet implemented in code generator")
     @Ignore // TODO
     public void testFakeIOException_MaxRetries() {
-        AmazonHttpClient.configUnreliableTestConditions(
+        AmazonSyncHttpClient.configUnreliableTestConditions(
                 new UnreliableTestConfig()
                 .withMaxNumErrors(SdkDefaultRetrySettings.DEFAULT_MAX_RETRIES)
                 .withBytesReadBeforeException(10)
@@ -128,7 +128,7 @@ public class TT0035900619IntegrationTest {
 
     @Test
     public void testFakeIOException_OneTooMany() {
-        AmazonHttpClient.configUnreliableTestConditions(
+        AmazonSyncHttpClient.configUnreliableTestConditions(
                 new UnreliableTestConfig()
                 .withMaxNumErrors(SdkDefaultRetrySettings.DEFAULT_MAX_RETRIES + 1)
                 .withBytesReadBeforeException(10)

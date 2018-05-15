@@ -3,7 +3,7 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 import java.util.Optional;
 import java.util.function.Consumer;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.AwsRequestOverrideConfig;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfig;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -60,6 +60,9 @@ public class StreamingOutputOperationRequest extends JsonProtocolTestsRequest im
     public interface Builder extends JsonProtocolTestsRequest.Builder, CopyableBuilder<Builder, StreamingOutputOperationRequest> {
         @Override
         Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig);
+
+        @Override
+        Builder requestOverrideConfig(Consumer<AwsRequestOverrideConfig.Builder> builderConsumer);
     }
 
     static final class BuilderImpl extends JsonProtocolTestsRequest.BuilderImpl implements Builder {

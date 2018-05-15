@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http2.Http2Frame;
-import io.netty.handler.codec.http2.Http2SettingsFrame;
 import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
@@ -63,7 +62,7 @@ public final class H2RunnableRequest implements AbortableRunnable {
     private volatile Channel channel;
     private H2MetricsCollector metricsCollector;
 
-    public H2RunnableRequest(RequestContext context, H2MetricsCollector metricsCollector) {
+    H2RunnableRequest(RequestContext context, H2MetricsCollector metricsCollector) {
         this.context = context;
         this.metricsCollector = metricsCollector;
     }
@@ -126,10 +125,10 @@ public final class H2RunnableRequest implements AbortableRunnable {
         // The future will already be completed by the time we acquire it from the channel
         String protocol = getProtocol();
         runOrFail(() -> {
-                      configurePipeline(protocol);
-                      writeRequest(request);
-                  },
-                  () -> "Failed to make request to " + endpoint());
+            configurePipeline(protocol);
+            writeRequest(request);
+        },
+            () -> "Failed to make request to " + endpoint());
     }
 
     private String getProtocol() {
@@ -190,10 +189,10 @@ public final class H2RunnableRequest implements AbortableRunnable {
     private void handleFailure(Supplier<String> msg, Throwable cause) {
         log.error(msg.get(), cause);
         runAndLogError("Exception thrown from AsyncResponseHandler",
-                       () -> context.handler().exceptionOccurred(cause));
+            () -> context.handler().exceptionOccurred(cause));
         if (channel != null) {
             runAndLogError("Unable to release channel back to the pool.",
-                           () -> closeAndRelease(channel));
+                () -> closeAndRelease(channel));
         }
     }
 
@@ -226,18 +225,21 @@ public final class H2RunnableRequest implements AbortableRunnable {
             this.request = request;
         }
 
+        @Override
         public HttpRequest setMethod(HttpMethod method) {
             this.request.setMethod(method);
             return this;
         }
 
+        @Override
         public HttpRequest setUri(String uri) {
             this.request.setUri(uri);
             return this;
         }
 
+        @Override
         public HttpMethod getMethod() {
-            return this.request.getMethod();
+            return this.request.method();
         }
 
         @Override
@@ -245,8 +247,9 @@ public final class H2RunnableRequest implements AbortableRunnable {
             return request.method();
         }
 
+        @Override
         public String getUri() {
-            return this.request.getUri();
+            return this.request.uri();
         }
 
         @Override
@@ -254,9 +257,9 @@ public final class H2RunnableRequest implements AbortableRunnable {
             return request.uri();
         }
 
-
+        @Override
         public HttpVersion getProtocolVersion() {
-            return this.request.getProtocolVersion();
+            return this.request.protocolVersion();
         }
 
         @Override
@@ -264,17 +267,20 @@ public final class H2RunnableRequest implements AbortableRunnable {
             return request.protocolVersion();
         }
 
+        @Override
         public HttpRequest setProtocolVersion(HttpVersion version) {
             this.request.setProtocolVersion(version);
             return this;
         }
 
+        @Override
         public HttpHeaders headers() {
             return this.request.headers();
         }
 
+        @Override
         public DecoderResult getDecoderResult() {
-            return this.request.getDecoderResult();
+            return this.request.decoderResult();
         }
 
         @Override
@@ -282,10 +288,12 @@ public final class H2RunnableRequest implements AbortableRunnable {
             return request.decoderResult();
         }
 
+        @Override
         public void setDecoderResult(DecoderResult result) {
             this.request.setDecoderResult(result);
         }
 
+        @Override
         public String toString() {
             return this.getClass().getName() + "(" + this.request.toString() + ")";
         }

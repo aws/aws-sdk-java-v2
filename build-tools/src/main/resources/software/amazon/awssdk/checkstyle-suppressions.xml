@@ -26,6 +26,14 @@
     <suppress checks=".*"
               files=".*[\\/]generated-sources[\\/].+\.java$"/>
 
+    <!-- TODO want to contribute this back to Netty -->
+    <suppress checks=".*"
+              files=".*BetterFixedChannelPool\.java$"/>
+
+    <!-- Kinesis has some generated code in source for H2 which fails checkstyle -->
+    <suppress checks=".*"
+              files=".*[\\/]software/amazon/awssdk/services/kinesis[\\/].+\.java$"/>
+
     <!-- Assumes getter/setter match JSON property -->
     <suppress checks="AbbreviationAsWordInName"
               files=".*[\\/]software[\\/]amazon[\\/]awssdk[\\/]services[\\/]s3[\\/]event[\\/]S3EventNotification.java$"/>

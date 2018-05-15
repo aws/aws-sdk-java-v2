@@ -27,7 +27,7 @@ import static software.amazon.awssdk.core.retry.RetryHandler.HEADER_SDK_RETRY_IN
 
 import org.junit.Test;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.config.MutableClientConfiguration;
+import software.amazon.awssdk.core.config.SdkMutableClientConfiguration;
 import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
@@ -72,18 +72,18 @@ public class RetryCountInUserAgentTest extends WireMockTestBase {
 
         ClientOverrideConfiguration overrideConfig =
             ClientOverrideConfiguration.builder().retryPolicy(policy).build();
-        MutableClientConfiguration clientConfiguration = new MutableClientConfiguration()
+        SdkMutableClientConfiguration clientConfiguration = new SdkMutableClientConfiguration()
             .overrideConfiguration(overrideConfig)
             .httpClient(HttpTestUtils.testSdkHttpClient());
 
         new GlobalClientConfigurationDefaults().applySyncDefaults(clientConfiguration);
 
-        AmazonHttpClient httpClient = new AmazonHttpClient(clientConfiguration);
+        AmazonSyncHttpClient httpClient = new AmazonSyncHttpClient(clientConfiguration);
         try {
             SdkHttpFullRequest request = SdkHttpFullRequestAdapter.toHttpFullRequest(newGetRequest(RESOURCE_PATH));
             httpClient.requestExecutionBuilder()
                       .request(request)
-                      .originalRequest(NoopTestAwsRequest.builder().build())
+                      .originalRequest(NoopTestRequest.builder().build())
                       .executionContext(ClientExecutionAndRequestTimerTestUtils.executionContext(request))
                       .errorResponseHandler(stubErrorHandler())
                       .execute();

@@ -18,34 +18,34 @@ package software.amazon.awssdk.core.http;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import software.amazon.awssdk.core.SdkGlobalTime;
-import software.amazon.awssdk.core.config.ClientConfiguration;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.http.pipeline.RequestPipelineBuilder;
 import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
 import software.amazon.awssdk.core.util.CapacityManager;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
- * Client scoped dependencies of {@link AmazonHttpClient}. May be injected into constructors of {@link
- * software.amazon.awssdk.http.pipeline.RequestPipeline} implementations by
- * {@link software.amazon.awssdk.http.pipeline.RequestPipelineBuilder}.
+ * Client scoped dependencies of {@link AmazonSyncHttpClient}. May be injected into constructors of {@link
+ * RequestPipeline} implementations by {@link RequestPipelineBuilder}.
  */
 public abstract class HttpClientDependencies implements SdkAutoCloseable {
-    private final ClientConfiguration clientConfiguration;
+    private final SdkClientConfiguration clientConfiguration;
     private final CapacityManager capacityManager;
     private final ClientExecutionTimer clientExecutionTimer;
 
     /**
-     * Time offset may be mutated by {@link software.amazon.awssdk.http.pipeline.RequestPipeline} implementations
-     * if a clock skew is detected.
+     * Time offset may be mutated by {@link RequestPipeline} implementations if a clock skew is detected.
      */
     private volatile int timeOffset = SdkGlobalTime.getGlobalTimeOffset();
 
-    protected HttpClientDependencies(ClientConfiguration clientConfiguration, Builder<?> builder) {
+    protected HttpClientDependencies(SdkClientConfiguration clientConfiguration, Builder<?> builder) {
         this.clientConfiguration = paramNotNull(clientConfiguration, "ClientConfiguration");
         this.capacityManager = paramNotNull(builder.capacityManager, "CapacityManager");
         this.clientExecutionTimer = paramNotNull(builder.clientExecutionTimer, "ClientExecutionTimer");
     }
 
-    public ClientConfiguration clientConfiguration() {
+    public SdkClientConfiguration clientConfiguration() {
         return clientConfiguration;
     }
 
@@ -83,7 +83,6 @@ public abstract class HttpClientDependencies implements SdkAutoCloseable {
     public final void close() {
         doClose();
         this.clientExecutionTimer.close();
-        doClose();
     }
 
     /**

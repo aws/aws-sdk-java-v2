@@ -37,7 +37,7 @@ public class ApplyTransactionIdStage implements MutableRequestToRequestPipeline 
 
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
-        throws Exception {
+            throws Exception {
         InterruptMonitor.checkInterrupted();
         return request.header(HEADER_SDK_TRANSACTION_ID, new UUID(random.nextLong(), random.nextLong()).toString());
     }

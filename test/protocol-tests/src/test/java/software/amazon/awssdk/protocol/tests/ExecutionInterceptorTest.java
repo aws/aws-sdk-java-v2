@@ -48,19 +48,19 @@ import org.mockito.Mockito;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.core.client.builder.ClientBuilder;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -465,12 +465,12 @@ public class ExecutionInterceptorTest {
         return initializeAndBuild(ProtocolRestJsonAsyncClient.builder(), interceptor);
     }
 
-    private <T extends ClientBuilder<?, U>, U> U initializeAndBuild(T builder, ExecutionInterceptor interceptor) {
+    private <T extends AwsClientBuilder<?, U>, U> U initializeAndBuild(T builder, ExecutionInterceptor interceptor) {
         return builder.region(Region.US_WEST_1)
                       .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                       .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
                       .overrideConfiguration(ClientOverrideConfiguration.builder()
-                                                                        .addLastExecutionInterceptor(interceptor)
+                                                                        .addExecutionInterceptor(interceptor)
                                                                         .build())
                       .build();
     }

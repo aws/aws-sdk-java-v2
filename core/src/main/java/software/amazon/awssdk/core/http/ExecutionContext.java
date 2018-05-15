@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.http;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
@@ -38,12 +37,6 @@ public class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Buil
     private InterceptorContext interceptorContext;
     private final ExecutionInterceptorChain interceptorChain;
     private final ExecutionAttributes executionAttributes;
-
-    /**
-     * Optional credentials to enable the runtime layer to handle signing requests (and resigning on
-     * retries).
-     */
-    private AwsCredentialsProvider credentialsProvider;
 
     private ExecutionContext(final Builder builder) {
         this.signerProvider = Validate.paramNotNull(builder.signerProvider, "signerProvider");
@@ -73,29 +66,6 @@ public class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Buil
 
     public ExecutionAttributes executionAttributes() {
         return executionAttributes;
-    }
-
-    /**
-     * Returns the credentials provider used for fetching the credentials. The credentials fetched
-     * is used for signing the request. If there is no credential provider, then the runtime will
-     * not attempt to sign (or resign on retries) requests.
-     *
-     * @return the credentials provider to fetch {@link AwsCredentials}
-     */
-    public AwsCredentialsProvider getCredentialsProvider() {
-        return this.credentialsProvider;
-    }
-
-    /**
-     * Sets the credentials provider used for fetching the credentials. The credentials fetched is
-     * used for signing the request. If there is no credential provider, then the runtime will not
-     * attempt to sign (or resign on retries) requests.
-     *
-     * @param credentialsProvider
-     *            the credentials provider to fetch {@link AwsCredentials}
-     */
-    public void setCredentialsProvider(AwsCredentialsProvider credentialsProvider) {
-        this.credentialsProvider = credentialsProvider;
     }
 
     public SignerProvider signerProvider() {

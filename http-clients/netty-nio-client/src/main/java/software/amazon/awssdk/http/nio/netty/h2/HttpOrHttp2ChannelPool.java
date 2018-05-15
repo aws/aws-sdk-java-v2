@@ -1,15 +1,18 @@
 /*
- * Copyright 2012-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with
- * the License. A copy of the License is located at
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
  *
- * http://aws.amazon.com/apache2.0
+ *  http://aws.amazon.com/apache2.0
  *
- * or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
- * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
- * and limitations under the License.
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  */
+
 package software.amazon.awssdk.http.nio.netty.h2;
 
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.MAX_CONCURRENT_STREAMS;
@@ -43,9 +46,9 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
     private Promise<ChannelPool> protocolImplPromise;
     private ChannelPool protocolImpl;
 
-    public HttpOrHttp2ChannelPool(Bootstrap bootstrap,
-                                  ChannelPoolHandler handler,
-                                  int maxConcurrency) {
+    HttpOrHttp2ChannelPool(Bootstrap bootstrap,
+                           ChannelPoolHandler handler,
+                           int maxConcurrency) {
         this.simpleChannelPool = new SimpleChannelPool(bootstrap, handler);
         this.maxConcurrency = maxConcurrency;
         this.eventLoop = bootstrap.config().group().next();
@@ -58,8 +61,7 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
 
     @Override
     public Future<Channel> acquire(Promise<Channel> promise) {
-        Runnable runnable = () -> acquire0(promise);
-        doInEventLoop(eventLoop, runnable);
+        doInEventLoop(eventLoop, () -> acquire0(promise), promise);
         return promise;
     }
 
@@ -91,7 +93,6 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
                          .addListener((GenericFutureListener<Future<Channel>>) future -> {
                              if (future.isSuccess()) {
                                  Channel newChannel = future.getNow();
-                                 // TODO protocol future failure?
                                  newChannel.attr(PROTOCOL_FUTURE).get()
                                            .whenComplete(promiseNotifyingBiConsumer(s -> configureProtocol(newChannel, s),
                                                                                     protocolImplPromise));
@@ -116,7 +117,7 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
                                                  .maxPendingAcquires(1000)
                                                  .build();
         } else {
-            ChannelPool h2Pool = new BetterHttp2MultiplexChannelPool(
+            ChannelPool h2Pool = new Http2MultiplexedChannelPool(
                 simpleChannelPool, eventLoop, newChannel.attr(MAX_CONCURRENT_STREAMS).get());
             protocolImpl = BetterFixedChannelPool.builder()
                                                  .channelPool(h2Pool)
@@ -139,8 +140,7 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
 
     @Override
     public Future<Void> release(Channel channel, Promise<Void> promise) {
-        Runnable runnable = () -> protocolImpl.release(channel, promise);
-        doInEventLoop(eventLoop, runnable);
+        doInEventLoop(eventLoop, () -> protocolImpl.release(channel, promise), promise);
         return promise;
     }
 
