@@ -23,6 +23,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.config.AwsAsyncClientConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.AsyncClientHandler;
@@ -189,7 +190,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
     private final SdkJsonProtocolFactory protocolFactory;
 
     protected DefaultKinesisAsyncClient(AwsAsyncClientConfiguration clientConfiguration) {
-        this.clientHandler = new SdkAsyncClientHandler(clientConfiguration, null);
+        this.clientHandler = new AwsAsyncClientHandler(clientConfiguration, null);
         this.protocolFactory = init();
     }
 
