@@ -13,14 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3;
+package software.amazon.awssdk.services.s3.internal;
 
 import java.util.regex.Pattern;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Utilities for working with Amazon S3 bucket names, such as validation and
  * checked to see if they are compatible with DNS addressing.
  */
+@SdkProtectedApi
 public class BucketUtils {
 
     private static final int MIN_BUCKET_NAME_LENGTH = 3;
@@ -140,6 +142,18 @@ public class BucketUtils {
         }
 
         return true;
+    }
+
+    /**
+     * Validates if the given bucket name follows naming guidelines that are acceptable for using
+     * virtual host style addressing.
+     *
+     * @param bucketName The bucket name to validate.
+     * @param throwOnError boolean to decide if an error should be thrown if the bucket name doesn't follow the naming convention
+     */
+    public static boolean isVirtualAddressingCompatibleBucketName(final String bucketName,
+                                                                  final boolean throwOnError) {
+        return isValidDnsBucketName(bucketName, throwOnError) && !bucketName.contains(".");
     }
 
     /**

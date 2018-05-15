@@ -21,7 +21,7 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.BucketUtils;
+import software.amazon.awssdk.services.s3.internal.BucketUtils;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
