@@ -52,7 +52,8 @@ public final class ChannelAttributeKeys {
     /**
      * Reference to {@link MultiplexedChannelRecord} which stores information about leased streams for a multiplexed connection.
      */
-    public static final AttributeKey<MultiplexedChannelRecord> CHANNEL_POOL_RECORD = AttributeKey.newInstance("channelPoolRecord");
+    public static final AttributeKey<MultiplexedChannelRecord> CHANNEL_POOL_RECORD =
+        AttributeKey.newInstance("channelPoolRecord");
 
     /**
      * Value of the MAX_CONCURRENT_STREAMS from the server's SETTING frame.

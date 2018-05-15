@@ -1,15 +1,18 @@
 /*
- * Copyright 2012-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with
- * the License. A copy of the License is located at
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
  *
- * http://aws.amazon.com/apache2.0
+ *  http://aws.amazon.com/apache2.0
  *
- * or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
- * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
- * and limitations under the License.
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  */
+
 package software.amazon.awssdk.http.nio.netty.h2;
 
 import io.netty.buffer.ByteBuf;
@@ -69,7 +72,7 @@ public class HttpToHttp2Adapter extends ChannelOutboundHandlerAdapter {
                 ctx.write(new DefaultHttp2HeadersFrame(http2Headers), promiseAggregator);
             }
 
-            if (!endStream && msg instanceof HttpContent && !(msg instanceof LastHttpContent)) {
+            if (!endStream && msg instanceof HttpContent) {
                 boolean isLastContent = false;
                 HttpHeaders trailers = EmptyHttpHeaders.INSTANCE;
                 Http2Headers http2Trailers = EmptyHttp2Headers.INSTANCE;
@@ -86,7 +89,7 @@ public class HttpToHttp2Adapter extends ChannelOutboundHandlerAdapter {
                 final ByteBuf content = ((HttpContent) msg).content();
                 endStream = isLastContent && trailers.isEmpty();
                 release = false;
-                ctx.write(new DefaultHttp2DataFrame(content, true), promiseAggregator);
+                ctx.write(new DefaultHttp2DataFrame(content, endStream), promiseAggregator);
 
                 if (!trailers.isEmpty()) {
                     // Write trailing headers.

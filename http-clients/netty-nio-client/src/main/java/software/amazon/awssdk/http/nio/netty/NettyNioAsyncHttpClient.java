@@ -78,9 +78,10 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, configuration.connectionTimeout())
                                 .option(ChannelOption.TCP_NODELAY, true)
                                 .remoteAddress(key.getHost(), key.getPort());
+                ChannelPipelineInitializer pipelineInitializer = new ChannelPipelineInitializer(sslContext(key.getScheme()));
                 return BetterFixedChannelPool.builder()
                                              .channelPool(new SimpleChannelPool(bootstrap,
-                                                                                new ChannelPipelineInitializer(sslContext(key.getScheme())),
+                                                                                pipelineInitializer,
                                                                                 ChannelHealthChecker.ACTIVE))
                                              .executor(bootstrap.config().group().next())
                                              .acquireTimeoutAction(BetterFixedChannelPool.AcquireTimeoutAction.FAIL)

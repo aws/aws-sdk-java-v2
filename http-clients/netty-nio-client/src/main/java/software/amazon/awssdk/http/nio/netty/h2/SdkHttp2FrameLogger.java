@@ -1,3 +1,18 @@
+/*
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
 package software.amazon.awssdk.http.nio.netty.h2;
 
 import io.netty.buffer.ByteBuf;
@@ -54,8 +69,10 @@ class SdkHttp2FrameLogger extends Http2FrameLogger {
     }
 
     @Override
-    public void logPriority(Direction direction, ChannelHandlerContext ctx, int streamId, int streamDependency, short weight, boolean exclusive) {
-        log("{} PRIORITY: streamId={} streamDependency={} weight={} exclusive={}", direction.name(), streamId, streamDependency, weight, exclusive);
+    public void logPriority(Direction direction, ChannelHandlerContext ctx, int streamId,
+                            int streamDependency, short weight, boolean exclusive) {
+        log("{} PRIORITY: streamId={} streamDependency={} weight={} exclusive={}",
+            direction.name(), streamId, streamDependency, weight, exclusive);
     }
 
     @Override
@@ -64,13 +81,15 @@ class SdkHttp2FrameLogger extends Http2FrameLogger {
     }
 
     @Override
-    public void logUnknownFrame(Direction direction, ChannelHandlerContext ctx, byte frameType, int streamId, Http2Flags flags, ByteBuf data) {
+    public void logUnknownFrame(Direction direction, ChannelHandlerContext ctx, byte frameType,
+                                int streamId, Http2Flags flags, ByteBuf data) {
         log("{} UNKNOWN: frameType={} streamId={} flags={} length={}\n{}",
             direction.name(), frameType & 255, streamId, flags.value(), data.readableBytes(), dataToString(direction, data));
     }
 
     @Override
-    public void logPushPromise(Direction direction, ChannelHandlerContext ctx, int streamId, int promisedStreamId, Http2Headers headers, int padding) {
+    public void logPushPromise(Direction direction, ChannelHandlerContext ctx, int streamId,
+                               int promisedStreamId, Http2Headers headers, int padding) {
         log("{} PUSH_PROMISE: streamId={} promisedStreamId={} padding={}\n{}",
             direction.name(), streamId, promisedStreamId, padding, formatHeaders(direction, headers));
     }
@@ -81,14 +100,16 @@ class SdkHttp2FrameLogger extends Http2FrameLogger {
     }
 
     @Override
-    public void logHeaders(Direction direction, ChannelHandlerContext ctx, int streamId, Http2Headers headers, int padding, boolean endStream) {
+    public void logHeaders(Direction direction, ChannelHandlerContext ctx, int streamId,
+                           Http2Headers headers, int padding, boolean endStream) {
         log("{} HEADERS: streamId={} padding={} endStream={}\n{}",
             direction.name(), streamId, padding, endStream,
             formatHeaders(direction, headers));
     }
 
     @Override
-    public void logHeaders(Direction direction, ChannelHandlerContext ctx, int streamId, Http2Headers headers, int streamDependency, short weight, boolean exclusive, int padding, boolean endStream) {
+    public void logHeaders(Direction direction, ChannelHandlerContext ctx, int streamId, Http2Headers headers,
+                           int streamDependency, short weight, boolean exclusive, int padding, boolean endStream) {
         log("{} HEADERS: streamId={} streamDependency={} weight={} exclusive={} padding={} endStream={}\n{}",
             direction.name(), streamId, streamDependency, weight, exclusive, padding, endStream,
             formatHeaders(direction, headers));
@@ -110,7 +131,8 @@ class SdkHttp2FrameLogger extends Http2FrameLogger {
     }
 
     @Override
-    public void logData(Direction direction, ChannelHandlerContext ctx, int streamId, ByteBuf data, int padding, boolean endStream) {
+    public void logData(Direction direction, ChannelHandlerContext ctx, int streamId,
+                        ByteBuf data, int padding, boolean endStream) {
         log("REMOTE = " + ctx.channel().remoteAddress().toString());
         log("{} DATA: streamId={} padding={} endStream={} length={}\n{}",
             direction, streamId, padding, endStream, data.nioBuffer().remaining(),
@@ -122,14 +144,14 @@ class SdkHttp2FrameLogger extends Http2FrameLogger {
     }
 
     private String dataToString(Direction direction, ByteBuf data) {
-//        StringBuilder builder = new StringBuilder(indentArrow(direction));
-//        for (byte b : BinaryUtils.copyBytesFrom(data.nioBuffer())) {
-//            builder.append(String.format("0x%02X", b))
-//                   .append(" ");
-//        }
-//        return builder.toString();
+        // StringBuilder builder = new StringBuilder(indentArrow(direction));
+        // for (byte b : BinaryUtils.copyBytesFrom(data.nioBuffer())) {
+        //     builder.append(String.format("0x%02X", b))
+        //            .append(" ");
+        // }
+        // return builder.toString();
         // TODO ?
-                return indentArrow(direction) + " " +
-                       new String(BinaryUtils.copyBytesFrom(data.nioBuffer()), StandardCharsets.UTF_8);
+        return indentArrow(direction) + " " +
+               new String(BinaryUtils.copyBytesFrom(data.nioBuffer()), StandardCharsets.UTF_8);
     }
 }

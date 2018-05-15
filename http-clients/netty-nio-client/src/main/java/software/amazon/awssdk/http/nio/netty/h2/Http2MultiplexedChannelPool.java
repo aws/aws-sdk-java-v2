@@ -1,15 +1,18 @@
 /*
- * Copyright 2012-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with
- * the License. A copy of the License is located at
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
  *
- * http://aws.amazon.com/apache2.0
+ *  http://aws.amazon.com/apache2.0
  *
- * or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
- * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
- * and limitations under the License.
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  */
+
 package software.amazon.awssdk.http.nio.netty.h2;
 
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.CHANNEL_POOL_RECORD;
@@ -23,7 +26,6 @@ import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import java.util.ArrayList;
-import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 
 /**
  * {@link ChannelPool} implementation that handles multiplexed streams. Child channels are created
@@ -37,7 +39,7 @@ import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
  * to enforce max concurrency which gives a bunch of other good features like timeouts, max pending acquires, etc.
  * </p>
  */
-public class BetterHttp2MultiplexChannelPool implements ChannelPool {
+public class Http2MultiplexedChannelPool implements ChannelPool {
 
     private final EventLoop eventLoop;
     private final ChannelPool connectionPool;
@@ -49,9 +51,9 @@ public class BetterHttp2MultiplexChannelPool implements ChannelPool {
      * @param eventLoop Event loop to run all tasks in.
      * @param maxConcurrencyPerConnection Max concurrent streams per HTTP/2 connection.
      */
-    BetterHttp2MultiplexChannelPool(ChannelPool connectionPool,
-                                    EventLoop eventLoop,
-                                    long maxConcurrencyPerConnection) {
+    Http2MultiplexedChannelPool(ChannelPool connectionPool,
+                                EventLoop eventLoop,
+                                long maxConcurrencyPerConnection) {
         this.connectionPool = connectionPool;
         this.eventLoop = eventLoop;
         this.maxConcurrencyPerConnection = maxConcurrencyPerConnection;
@@ -67,11 +69,7 @@ public class BetterHttp2MultiplexChannelPool implements ChannelPool {
 
     @Override
     public Future<Channel> acquire(Promise<Channel> promise) {
-        try {
-            doInEventLoop(eventLoop, () -> acquire0(promise));
-        } catch (Exception e) {
-            promise.setFailure(e);
-        }
+        doInEventLoop(eventLoop, () -> acquire0(promise), promise);
         return promise;
     }
 
@@ -95,11 +93,7 @@ public class BetterHttp2MultiplexChannelPool implements ChannelPool {
 
     @Override
     public Future<Void> release(Channel childChannel, Promise<Void> promise) {
-        try {
-            doInEventLoop(eventLoop, () -> release0(childChannel, promise));
-        } catch (Exception e) {
-            promise.setFailure(e);
-        }
+        doInEventLoop(eventLoop, () -> release0(childChannel, promise), promise);
         return promise;
     }
 

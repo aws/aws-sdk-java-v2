@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -58,13 +58,13 @@ public class SdkHttp2FrameListener implements Http2FrameListener {
     private static final Logger log = LoggerFactory.getLogger(SdkHttp2FrameListener.class);
     private final H2MetricsCollector metricsCollector;
 
-    public SdkHttp2FrameListener(H2MetricsCollector metricsCollector) {
+    SdkHttp2FrameListener(H2MetricsCollector metricsCollector) {
         this.metricsCollector = metricsCollector;
     }
 
     @Override
     public int onDataRead(ChannelHandlerContext ctx, int streamId, ByteBuf data, int padding, boolean endOfStream)
-        throws Http2Exception {
+            throws Http2Exception {
         int numBytes = data.nioBuffer().remaining();
         try {
             RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
@@ -92,7 +92,7 @@ public class SdkHttp2FrameListener implements Http2FrameListener {
                 } finally {
                     subscriberAttr.set(null);
                     runAndLogError("Could not release channel",
-                                   () -> requestContext.channelPool().release(ctx.channel()));
+                        () -> requestContext.channelPool().release(ctx.channel()));
                 }
             }
         } catch (Exception e) {
@@ -136,7 +136,7 @@ public class SdkHttp2FrameListener implements Http2FrameListener {
         deliverHeaders(ctx, streamId, headers);
     }
 
-    public void deliverHeaders(ChannelHandlerContext ctx, int streamId, Http2Headers headers) throws Http2Exception {
+    private void deliverHeaders(ChannelHandlerContext ctx, int streamId, Http2Headers headers) throws Http2Exception {
         metricsCollector.putMetric("H2JavaSDK", "TimeToHeaders",
                                    System.nanoTime() - ctx.channel().attr(REQUEST_FINISH).get());
         HttpResponse response = HttpConversionUtil.toHttpResponse(streamId, headers, true);
@@ -165,12 +165,11 @@ public class SdkHttp2FrameListener implements Http2FrameListener {
 
     @Override
     public void onRstStreamRead(ChannelHandlerContext ctx, int streamId, long errorCode) throws Http2Exception {
-        System.out.println("onRstStreamRead");
         RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
         requestContext.handler().exceptionOccurred(new Http2ResetException(errorCode));
 
         runAndLogError("Could not release channel",
-                       () -> requestContext.channelPool().release(ctx.channel()));
+            () -> requestContext.channelPool().release(ctx.channel()));
     }
 
     @Override
@@ -200,7 +199,6 @@ public class SdkHttp2FrameListener implements Http2FrameListener {
     @Override
     public void onGoAwayRead(ChannelHandlerContext ctx, int lastStreamId, long errorCode, ByteBuf debugData) throws
                                                                                                              Http2Exception {
-        System.out.println("onGoAwayRead: errorCode = " + errorCode);
         RequestContext requestContext = ctx.channel().attr(REQUEST_CONTEXT_KEY).get();
         SdkHttpResponseHandler<?> responseHandler = requestContext.handler();
         if (responseHandler != null) {
@@ -211,22 +209,22 @@ public class SdkHttp2FrameListener implements Http2FrameListener {
         // should kill any streams that happened to be created after that.
     }
 
+    /**
+     * TODO Do we need to handle this or will Netty return false for {@link Channel#isWritable()} and the reactive streams
+     * handler can just stop pushing data?
+     */
     @Override
     public void onWindowUpdateRead(ChannelHandlerContext ctx, int streamId, int windowSizeIncrement) throws Http2Exception {
-        /**
-         * TODO Do we need to handle this or will Netty return false for {@link Channel#isWritable()} and the reactive streams
-         * handler can just stop pushing data?
-         */
     }
 
     @Override
     public void onUnknownFrame(ChannelHandlerContext ctx, byte frameType, int streamId, Http2Flags flags, ByteBuf payload)
-        throws Http2Exception {
+            throws Http2Exception {
     }
 
     public static class Http2ResetException extends IOException {
 
-        public Http2ResetException(long errorCode) {
+        Http2ResetException(long errorCode) {
             super(String.format("Connection reset. Error - %s(%d)", Http2Error.valueOf(errorCode).name(), errorCode));
         }
 
@@ -240,7 +238,7 @@ public class SdkHttp2FrameListener implements Http2FrameListener {
         private final long errorCode;
         private final byte[] debugData;
 
-        public GoawayException(long errorCode, ByteBuf debugData) {
+        GoawayException(long errorCode, ByteBuf debugData) {
             this.errorCode = errorCode;
             this.debugData = BinaryUtils.copyBytesFrom(debugData.nioBuffer());
         }
@@ -255,7 +253,7 @@ public class SdkHttp2FrameListener implements Http2FrameListener {
     private static class H2Publisher implements Publisher<ByteBuffer> {
         private final Attribute<Subscriber<? super ByteBuffer>> subscriberAttr;
 
-        public H2Publisher(Attribute<Subscriber<? super ByteBuffer>> subscriberAttr) {
+        H2Publisher(Attribute<Subscriber<? super ByteBuffer>> subscriberAttr) {
             this.subscriberAttr = subscriberAttr;
         }
 
