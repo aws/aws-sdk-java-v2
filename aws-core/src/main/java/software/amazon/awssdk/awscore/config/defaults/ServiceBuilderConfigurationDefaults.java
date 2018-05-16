@@ -26,7 +26,7 @@ import software.amazon.awssdk.core.config.InternalAdvancedClientOption;
 import software.amazon.awssdk.core.config.defaults.SdkClientConfigurationDefaults;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.runtime.auth.SignerProvider;
+import software.amazon.awssdk.core.signer.Signer;
 
 /**
  * An implementation of {@link SdkClientConfigurationDefaults} that can be used by client builders to define their service
@@ -35,13 +35,13 @@ import software.amazon.awssdk.core.runtime.auth.SignerProvider;
 @SdkProtectedApi
 public class ServiceBuilderConfigurationDefaults extends AwsClientConfigurationDefaults {
 
-    private final Supplier<SignerProvider> defaultSignerProvider;
+    private final Supplier<Signer> defaultSigner;
     private final Supplier<URI> defaultEndpoint;
     private final List<String> requestHandlerPaths;
     private final Boolean crc32FromCompressedDataEnabled;
 
     private ServiceBuilderConfigurationDefaults(Builder builder) {
-        this.defaultSignerProvider = builder.defaultSignerProvider;
+        this.defaultSigner = builder.defaultSigner;
         this.defaultEndpoint = builder.defaultEndpoint;
         this.requestHandlerPaths = new ArrayList<>(builder.requestHandlerPaths);
         this.crc32FromCompressedDataEnabled = builder.crc32FromCompressedDataEnabled;
@@ -55,10 +55,10 @@ public class ServiceBuilderConfigurationDefaults extends AwsClientConfigurationD
     protected void applyOverrideDefaults(ClientOverrideConfiguration.Builder builder) {
         ClientOverrideConfiguration config = builder.build();
 
-        if (defaultSignerProvider != null) {
-            builder.advancedOption(AwsAdvancedClientOption.SIGNER_PROVIDER,
-                                   applyDefault(config.advancedOption(AwsAdvancedClientOption.SIGNER_PROVIDER),
-                                                defaultSignerProvider));
+        if (defaultSigner != null) {
+            builder.advancedOption(AwsAdvancedClientOption.SIGNER,
+                                   applyDefault(config.advancedOption(AwsAdvancedClientOption.SIGNER),
+                                                defaultSigner));
         }
 
         if (crc32FromCompressedDataEnabled != null) {
@@ -83,7 +83,7 @@ public class ServiceBuilderConfigurationDefaults extends AwsClientConfigurationD
 
     public static final class Builder {
 
-        private Supplier<SignerProvider> defaultSignerProvider;
+        private Supplier<Signer> defaultSigner;
         private Supplier<URI> defaultEndpoint;
         private List<String> requestHandlerPaths = new ArrayList<>();
         private Boolean crc32FromCompressedDataEnabled = false;
@@ -91,8 +91,8 @@ public class ServiceBuilderConfigurationDefaults extends AwsClientConfigurationD
         private Builder() {
         }
 
-        public Builder defaultSignerProvider(Supplier<SignerProvider> defaultSignerProvider) {
-            this.defaultSignerProvider = defaultSignerProvider;
+        public Builder defaultSigner(Supplier<Signer> defaultSigner) {
+            this.defaultSigner = defaultSigner;
             return this;
         }
 

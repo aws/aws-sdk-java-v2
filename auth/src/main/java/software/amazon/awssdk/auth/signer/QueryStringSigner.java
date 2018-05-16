@@ -15,18 +15,15 @@
 
 package software.amazon.awssdk.auth.signer;
 
-import static software.amazon.awssdk.auth.AwsExecutionAttributes.AWS_CREDENTIALS;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
+import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.util.CredentialUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -34,7 +31,7 @@ import software.amazon.awssdk.utils.StringUtils;
  * Signer implementation responsible for signing an AWS query string request
  * according to the various signature versions and hashing algorithms.
  */
-public class QueryStringSigner extends AbstractAwsSigner {
+public final class QueryStringSigner extends AbstractAwsSigner {
     /**
      * Date override for testing only.
      */
@@ -47,21 +44,23 @@ public class QueryStringSigner extends AbstractAwsSigner {
      * AWSAccessKeyId SignatureVersion SignatureMethod Timestamp Signature
      *
      */
-    public SdkHttpFullRequest sign(Context.BeforeTransmission execution, ExecutionAttributes executionAttributes)
-            throws SdkClientException {
+    @Override
+    public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
+        final AwsCredentials awsCredentials = executionAttributes.getAttribute(AwsExecutionAttributes.AWS_CREDENTIALS);
+        final Integer offset = executionAttributes.getAttribute(AwsExecutionAttributes.TIME_OFFSET);
+
         // anonymous credentials, don't sign
-        if (CredentialUtils.isAnonymous(executionAttributes.getAttribute(AWS_CREDENTIALS))) {
-            return execution.httpRequest();
+        if (CredentialUtils.isAnonymous(awsCredentials)) {
+            return request;
         }
 
-        SdkHttpFullRequest.Builder mutableRequest = execution.httpRequest().toBuilder();
+        SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
 
-        AwsCredentials sanitizedCredentials = sanitizeCredentials(executionAttributes.getAttribute(AWS_CREDENTIALS));
+        AwsCredentials sanitizedCredentials = sanitizeCredentials(awsCredentials);
         mutableRequest.rawQueryParameter("AWSAccessKeyId", sanitizedCredentials.accessKeyId());
         mutableRequest.rawQueryParameter("SignatureVersion", "2");
 
-        int timeOffset = executionAttributes.getAttribute(SdkExecutionAttributes.TIME_OFFSET) == null ? 0 :
-                         executionAttributes.getAttribute(SdkExecutionAttributes.TIME_OFFSET);
+        int timeOffset = offset == null ? 0 : offset;
         mutableRequest.rawQueryParameter("Timestamp", getFormattedTimestamp(timeOffset));
 
         if (sanitizedCredentials instanceof AwsSessionCredentials) {

@@ -28,10 +28,10 @@ import javax.crypto.spec.SecretKeySpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.signer.AbstractAwsSigner;
-import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.SigningAlgorithm;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.io.SdkInputStream;
+import software.amazon.awssdk.services.s3.AwsS3V4Signer;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
@@ -55,7 +55,7 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
     private final String keyPath;
     private final String headerSignature;
     private String priorChunkSignature;
-    private final Aws4Signer aws4Signer;
+    private final AwsS3V4Signer aws4Signer;
 
     private final MessageDigest sha256;
     private final Mac hmacSha256;
@@ -77,7 +77,7 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
 
     public AwsChunkedEncodingInputStream(InputStream in, byte[] kSigning,
                                          String datetime, String keyPath, String headerSignature,
-                                         Aws4Signer aws4Signer) {
+                                         AwsS3V4Signer aws4Signer) {
         this(in, DEFAULT_BUFFER_SIZE, kSigning, datetime, keyPath, headerSignature, aws4Signer);
     }
 
@@ -102,7 +102,7 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
      */
     public AwsChunkedEncodingInputStream(InputStream in, int maxBufferSize,
                                          byte[] kSigning, String datetime, String keyPath,
-                                         String headerSignature, Aws4Signer aws4Signer) {
+                                         String headerSignature, AwsS3V4Signer aws4Signer) {
         if (in instanceof AwsChunkedEncodingInputStream) {
             // This could happen when the request is retried, and we need to re-calculate the signatures.
             AwsChunkedEncodingInputStream originalChunkedStream = (AwsChunkedEncodingInputStream) in;
