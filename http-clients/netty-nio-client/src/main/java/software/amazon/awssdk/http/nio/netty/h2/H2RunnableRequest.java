@@ -43,6 +43,7 @@ import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.Future;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -167,7 +168,7 @@ public final class H2RunnableRequest implements AbortableRunnable {
                    if (wireCall.isSuccess()) {
                        // Auto-read is turned off so trigger an explicit read to give control to HttpStreamsClientHandler
                        // TODO is this appropriate for H2?
-                       //                       channel.read();
+                       channel.read();
                    } else {
                        handleFailure(() -> "Failed to make request to " + endpoint(), wireCall.cause());
                    }
@@ -189,11 +190,66 @@ public final class H2RunnableRequest implements AbortableRunnable {
     private void handleFailure(Supplier<String> msg, Throwable cause) {
         log.error(msg.get(), cause);
         runAndLogError("Exception thrown from AsyncResponseHandler",
-            () -> context.handler().exceptionOccurred(cause));
+            () -> context.handler().exceptionOccurred(modifyHighBurstTrafficException(cause)));
         if (channel != null) {
             runAndLogError("Unable to release channel back to the pool.",
                 () -> closeAndRelease(channel));
         }
+    }
+
+    private Throwable modifyHighBurstTrafficException(Throwable originalCause) {
+        if (isAcquireTimeoutException(originalCause)) {
+            return new Throwable(getMessageForAcquireTimeoutException(), originalCause);
+        } else if (isTooManyPendingAcquiresException(originalCause)) {
+            return new Throwable(getMessageForTooManyAcquireOperationsError(), originalCause);
+        } else {
+            return originalCause;
+        }
+
+    }
+
+    private boolean isAcquireTimeoutException(Throwable originalCause) {
+        return originalCause instanceof TimeoutException && originalCause.getMessage().contains("Acquire operation took longer");
+    }
+
+    private boolean isTooManyPendingAcquiresException(Throwable originalCause) {
+        return originalCause instanceof IllegalStateException &&
+               originalCause.getMessage().contains("Too many outstanding acquire operations");
+    }
+
+    private String getMessageForAcquireTimeoutException() {
+        return "Acquire operation took longer than the configured maximum time. This indicates that a request cannot get a "
+               + "connection from the pool within the specified maximum time. This can be due to high request rate.\n" +
+               "Consider taking any of the following actions to mitigate the issue: increase max connections, "
+               + "increase acquire timeout, or slowing the request rate.\n" +
+               "Increasing the max connections can increase client throughput (unless the network interface is already "
+               + "fully utilized), but can eventually start to hit operation system limitations on the number of file "
+               + "descriptors used by the process. If you already are fully utilizing your network interface or cannot "
+               + "further increase your connection count, increasing the acquire timeout gives extra time for requests to "
+               + "acquire a connection before timing out. If the connections doesn't free up, the subsequent requests "
+               + "will still timeout.\n" +
+               "If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
+               + "traffic bursts cannot overload the client, being more efficient with the number of times you need to "
+               + "call AWS, or by increasing the number of hosts sending requests.";
+
+    }
+
+    private String getMessageForTooManyAcquireOperationsError() {
+        return "Maximum pending connection acquisitions exceeded. The request rate is too high for the client to keep up.\n" +
+               "Consider taking any of the following actions to mitigate the issue: increase max connections, "
+               + "increase max pending acquire count, decrease pool lease timeout, or slowing the request rate.\n" +
+               "Increasing the max connections can increase client throughput (unless the network interface is already "
+               + "fully utilized), but can eventually start to hit operation system limitations on the number of file "
+               + "descriptors used by the process. If you already are fully utilizing your network interface or cannot "
+               + "further increase your connection count, increasing the pending acquire count allows extra requests to be "
+               + "buffered by the client, but can cause additional request latency and higher memory usage. If your request"
+               + " latency or memory usage is already too high, decreasing the lease timeout will allow requests to fail "
+               + "more quickly, reducing the number of pending connection acquisitions, but likely won't decrease the total "
+               + "number of failed requests.\n" +
+               "If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
+               + "traffic bursts cannot overload the client, being more efficient with the number of times you need to call "
+               + "AWS, or by increasing the number of hosts sending requests.";
+
     }
 
     private static void closeAndRelease(Channel channel) {

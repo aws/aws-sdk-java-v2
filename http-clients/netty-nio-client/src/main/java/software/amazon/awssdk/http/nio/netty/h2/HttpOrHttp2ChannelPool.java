@@ -31,6 +31,7 @@ import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
+import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
 
 /**
  * Channel pool that establishes an initial connection to determine protocol. Delegates
@@ -42,16 +43,19 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
     private final ChannelPool simpleChannelPool;
     private final int maxConcurrency;
     private final EventLoop eventLoop;
+    private final NettyConfiguration configuration;
 
     private Promise<ChannelPool> protocolImplPromise;
     private ChannelPool protocolImpl;
 
     HttpOrHttp2ChannelPool(Bootstrap bootstrap,
                            ChannelPoolHandler handler,
-                           int maxConcurrency) {
+                           int maxConcurrency,
+                           NettyConfiguration configuration) {
         this.simpleChannelPool = new SimpleChannelPool(bootstrap, handler);
         this.maxConcurrency = maxConcurrency;
         this.eventLoop = bootstrap.config().group().next();
+        this.configuration = configuration;
     }
 
     @Override
@@ -106,15 +110,14 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
 
     private ChannelPool configureProtocol(Channel newChannel, String s) {
         if (ApplicationProtocolNames.HTTP_1_1.equals(s)) {
-            // TODO more options
             // For HTTP/1.1 we use a traditional channel pool without multiplexing
             protocolImpl = BetterFixedChannelPool.builder()
                                                  .channelPool(simpleChannelPool)
                                                  .executor(eventLoop)
                                                  .acquireTimeoutAction(BetterFixedChannelPool.AcquireTimeoutAction.FAIL)
-                                                 .acquireTimeoutMillis(1000)
+                                                 .acquireTimeoutMillis(configuration.connectionAcquisitionTimeout())
                                                  .maxConnections(maxConcurrency)
-                                                 .maxPendingAcquires(1000)
+                                                 .maxPendingAcquires(configuration.maxPendingAcquires())
                                                  .build();
         } else {
             ChannelPool h2Pool = new Http2MultiplexedChannelPool(
@@ -123,9 +126,9 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
                                                  .channelPool(h2Pool)
                                                  .executor(eventLoop)
                                                  .acquireTimeoutAction(BetterFixedChannelPool.AcquireTimeoutAction.FAIL)
-                                                 .acquireTimeoutMillis(1000)
+                                                 .acquireTimeoutMillis(configuration.connectionAcquisitionTimeout())
                                                  .maxConnections(maxConcurrency)
-                                                 .maxPendingAcquires(1000)
+                                                 .maxPendingAcquires(configuration.maxPendingAcquires())
                                                  .build();
         }
         // Give the channel back so it can be acquired again by protocolImpl
