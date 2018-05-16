@@ -165,8 +165,8 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
         }
 
         private SdkException handleSdkException(Response<OutputT> response) {
-            SdkException exception = response.getException();
-            if (!retryHandler.shouldRetry(response.getHttpResponse(), request, context, exception, requestCount)) {
+            SdkException exception = response.exception();
+            if (!retryHandler.shouldRetry(response.httpResponse(), request, context, exception, requestCount)) {
                 throw exception;
             }
             /**
@@ -175,7 +175,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
              */
 
             if (RetryUtils.isClockSkewError(exception)) {
-                int clockSkew = ClockSkewUtil.parseClockSkewOffset(response.getHttpResponse());
+                int clockSkew = ClockSkewUtil.parseClockSkewOffset(response.httpResponse());
                 dependencies.updateTimeOffset(clockSkew);
             }
             return exception;

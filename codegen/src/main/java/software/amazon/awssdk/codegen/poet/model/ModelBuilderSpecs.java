@@ -151,6 +151,10 @@ class ModelBuilderSpecs {
                 .addModifiers(Modifier.PRIVATE)
                 .addParameter(classToBuild(), "model");
 
+        if (isRequest() || isResponse()) {
+            copyBuilderCtor.addCode("super(model);");
+        }
+
         shapeModel.getNonStreamingMembers().forEach(m -> {
             String name = m.getVariable().getVariableName();
             copyBuilderCtor.addStatement("$N(model.$N)", m.getFluentSetterMethodName(), name);

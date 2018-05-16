@@ -24,7 +24,8 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.protocol.xml.StaxUnmarshallerContext;
 import software.amazon.awssdk.awscore.protocol.xml.VoidStaxUnmarshaller;
-import software.amazon.awssdk.core.ResponseMetadata;
+import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.SdkResponseMetadata;
 import software.amazon.awssdk.core.SdkStandardLoggers;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.http.HttpResponse;
@@ -45,8 +46,8 @@ import software.amazon.awssdk.utils.XmlUtils;
  * @param <T> Indicates the type being unmarshalled by this response handler.
  */
 @SdkProtectedApi
-@ReviewBeforeRelease("Metadata is currently broken. Revisit when base result types are refactored")
-public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
+@ReviewBeforeRelease("ResponseMetadata is currently broken. Revisit when base result types are refactored")
+public class StaxResponseHandler<T extends SdkResponse> implements HttpResponseHandler<T> {
     private static final Logger log = Logger.loggerFor(StaxResponseHandler.class);
 
     /**
@@ -73,7 +74,7 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
          * don't have to do this check here.
          */
         if (this.responseUnmarshaller == null) {
-            this.responseUnmarshaller = new VoidStaxUnmarshaller<T>();
+            this.responseUnmarshaller = new VoidStaxUnmarshaller<>();
         }
     }
 
@@ -92,8 +93,8 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
 
         try {
             StaxUnmarshallerContext unmarshallerContext = new StaxUnmarshallerContext(eventReader, response.getHeaders());
-            unmarshallerContext.registerMetadataExpression("ResponseMetadata/RequestId", 2, ResponseMetadata.AWS_REQUEST_ID);
-            unmarshallerContext.registerMetadataExpression("requestId", 2, ResponseMetadata.AWS_REQUEST_ID);
+            unmarshallerContext.registerMetadataExpression("ResponseMetadata/RequestId", 2, SdkResponseMetadata.AWS_REQUEST_ID);
+            unmarshallerContext.registerMetadataExpression("requestId", 2, SdkResponseMetadata.AWS_REQUEST_ID);
             registerAdditionalMetadataExpressions(unmarshallerContext);
 
             T result = responseUnmarshaller.unmarshall(unmarshallerContext);
@@ -111,11 +112,11 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
     }
 
     /**
-     * Create the default {@link ResponseMetadata}. Subclasses may override this to create a
-     * subclass of {@link ResponseMetadata}. Currently only SimpleDB does this.
+     * Create the default {@link SdkResponseMetadata}. Subclasses may override this to create a
+     * subclass of {@link SdkResponseMetadata}. Currently only SimpleDB does this.
      */
-    protected ResponseMetadata getResponseMetadata(Map<String, String> metadata) {
-        return new ResponseMetadata(metadata);
+    protected SdkResponseMetadata getResponseMetadata(Map<String, String> metadata) {
+        return new SdkResponseMetadata(metadata);
     }
 
     /**
@@ -147,7 +148,7 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
      * @param unmarshaller Unmarshaller for response POJO.
      * @param <ResponseT> Response POJO type.
      */
-    public static <ResponseT> HttpResponseHandler<ResponseT> createStreamingResponseHandler(
+    public static <ResponseT extends SdkResponse> HttpResponseHandler<ResponseT> createStreamingResponseHandler(
         Unmarshaller<ResponseT, StaxUnmarshallerContext> unmarshaller) {
         UnsafeFunction<HttpResponse, ResponseT> unmarshallFunction = response -> unmarshallStreaming(unmarshaller, response);
         return new HttpResponseHandler<ResponseT>() {
@@ -173,16 +174,16 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
      * @return Unmarshalled response type.
      * @throws Exception if error occurs during unmarshalling.
      */
-    private static <ResponseT> ResponseT unmarshallStreaming(Unmarshaller<ResponseT, StaxUnmarshallerContext> unmarshaller,
-                                                             HttpResponse response) throws Exception {
+    private static <ResponseT extends SdkResponse> ResponseT unmarshallStreaming(Unmarshaller<ResponseT,
+        StaxUnmarshallerContext> unmarshaller, HttpResponse response) throws Exception {
         // Create a dummy event reader to make unmarshallers happy
         XMLEventReader eventReader = XmlUtils.xmlInputFactory().createXMLEventReader(
             new ByteArrayInputStream("<eof/>".getBytes(StringUtils.UTF8)));
 
         StaxUnmarshallerContext unmarshallerContext = new StaxUnmarshallerContext(eventReader, response.getHeaders());
-        unmarshallerContext.registerMetadataExpression("ResponseMetadata/RequestId", 2, ResponseMetadata.AWS_REQUEST_ID);
-        unmarshallerContext.registerMetadataExpression("requestId", 2, ResponseMetadata.AWS_REQUEST_ID);
+        unmarshallerContext.registerMetadataExpression("ResponseMetadata/RequestId", 2, SdkResponseMetadata.AWS_REQUEST_ID);
+        unmarshallerContext.registerMetadataExpression("requestId", 2, SdkResponseMetadata.AWS_REQUEST_ID);
+
         return unmarshaller.unmarshall(unmarshallerContext);
     }
-
 }

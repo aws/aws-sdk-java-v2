@@ -45,21 +45,29 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
     public final <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> ReturnT execute(
         ClientExecutionParams<InputT, OutputT> executionParams,
         ResponseTransformer<OutputT, ReturnT> responseTransformer) {
+
         ExecutionContext executionContext = createExecutionContext(executionParams.getInput());
-        HttpResponseHandler<OutputT> interceptorCallingResponseHandler =
-            interceptorCalling(executionParams.getResponseHandler(), executionContext);
+
+        HttpResponseHandler<OutputT> decoratedResponseHandlers =
+            decorateResponseHandlers(executionParams.getResponseHandler(), executionContext);
+
         HttpResponseHandler<ReturnT> httpResponseHandler =
-            new HttpResponseHandlerAdapter<>(interceptorCallingResponseHandler, responseTransformer);
+            new HttpResponseHandlerAdapter<>(decoratedResponseHandlers, responseTransformer);
         return execute(executionParams, executionContext, httpResponseHandler);
     }
 
     @Override
     public final <InputT extends SdkRequest, OutputT extends SdkResponse> OutputT execute(
         ClientExecutionParams<InputT, OutputT> executionParams) {
+
         ExecutionContext executionContext = createExecutionContext(executionParams.getInput());
-        return execute(executionParams, executionContext, interceptorCalling(executionParams.getResponseHandler(),
-                                                                             executionContext));
+
+        HttpResponseHandler<OutputT> decoratedResponseHandlers =
+            decorateResponseHandlers(executionParams.getResponseHandler(), executionContext);
+
+        return execute(executionParams, executionContext, decoratedResponseHandlers);
     }
+
 
     @Override
     public void close() {

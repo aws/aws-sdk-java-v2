@@ -20,7 +20,8 @@ import software.amazon.awssdk.core.SdkResponse;
 
 public class EmptySdkResponse extends SdkResponse {
 
-    public EmptySdkResponse(Builder builder) {
+    private EmptySdkResponse(Builder builder) {
+        super(builder);
     }
 
     @Override
@@ -37,7 +38,7 @@ public class EmptySdkResponse extends SdkResponse {
         EmptySdkResponse build();
     }
 
-    private static class BuilderImpl implements Builder {
+    private static class BuilderImpl extends SdkResponse.BuilderImpl implements Builder {
 
         @Override
         public EmptySdkResponse build() {
