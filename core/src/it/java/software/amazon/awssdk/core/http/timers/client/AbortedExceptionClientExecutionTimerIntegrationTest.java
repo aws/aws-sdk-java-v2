@@ -45,7 +45,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
-import software.amazon.awssdk.core.internal.auth.NoOpSignerProvider;
 import software.amazon.awssdk.core.internal.http.request.SlowExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.response.DummyResponseHandler;
 import software.amazon.awssdk.http.AbortableCallable;
@@ -130,7 +129,6 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockSer
 
     private ExecutionContext withInterceptors(ExecutionInterceptor... requestHandlers) {
         return ExecutionContext.builder()
-                               .signerProvider(new NoOpSignerProvider())
                                .executionAttributes(new ExecutionAttributes())
                                .interceptorContext(InterceptorContext.builder().request(NoopTestRequest.builder().build()).build())
                                .interceptorChain(new ExecutionInterceptorChain(Arrays.asList(requestHandlers)))

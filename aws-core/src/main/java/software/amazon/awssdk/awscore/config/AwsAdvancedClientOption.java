@@ -43,8 +43,9 @@ public class AwsAdvancedClientOption<T> extends SdkAdvancedClientOption<T> {
      * Whether region detection should be enabled. Region detection is used when the {@link AwsClientBuilder#region(Region)} is
      * not specified. This is enabled by default.
      */
-    public static final AwsAdvancedClientOption<Boolean> ENABLE_DEFAULT_REGION_DETECTION =
-        new AwsAdvancedClientOption<>(Boolean.class);
+    public static final AwsAdvancedClientOption<Boolean> ENABLE_DEFAULT_REGION_DETECTION = new AwsAdvancedClientOption<>(Boolean.class);
+
+    public static final AwsAdvancedClientOption<String> SIGNING_NAME = new AwsAdvancedClientOption<>(String.class);
 
     protected AwsAdvancedClientOption(Class<T> valueClass) {
         super(valueClass);

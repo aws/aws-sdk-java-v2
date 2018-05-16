@@ -33,12 +33,11 @@ import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.auth.signer.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.core.RequestClientOptions;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.runtime.auth.Signer;
 import software.amazon.awssdk.core.runtime.io.SdkDigestInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.core.signerspi.Signer;
 import software.amazon.awssdk.utils.Base64Utils;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.StringUtils;
@@ -62,8 +61,8 @@ public abstract class AbstractAwsSigner implements Signer {
                 return MessageDigest.getInstance("SHA-256");
             } catch (NoSuchAlgorithmException e) {
                 throw new SdkClientException(
-                        "Unable to get SHA256 Function"
-                        + e.getMessage(), e);
+                    "Unable to get SHA256 Function"
+                    + e.getMessage(), e);
             }
         });
         EMPTY_STRING_SHA256_HEX = BinaryUtils.toHex(doHash(""));
@@ -76,8 +75,8 @@ public abstract class AbstractAwsSigner implements Signer {
             return md.digest();
         } catch (Exception e) {
             throw new SdkClientException(
-                    "Unable to compute hash while signing request: "
-                    + e.getMessage(), e);
+                "Unable to compute hash while signing request: "
+                + e.getMessage(), e);
         }
     }
 
@@ -110,8 +109,8 @@ public abstract class AbstractAwsSigner implements Signer {
             return Base64Utils.encodeAsString(signature);
         } catch (Exception e) {
             throw new SdkClientException(
-                    "Unable to calculate a request signature: "
-                    + e.getMessage(), e);
+                "Unable to calculate a request signature: "
+                + e.getMessage(), e);
         }
     }
 
@@ -120,8 +119,8 @@ public abstract class AbstractAwsSigner implements Signer {
             return mac.doFinal(stringData.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             throw new SdkClientException(
-                    "Unable to calculate a request signature: "
-                    + e.getMessage(), e);
+                "Unable to calculate a request signature: "
+                + e.getMessage(), e);
         }
     }
 
@@ -132,8 +131,8 @@ public abstract class AbstractAwsSigner implements Signer {
             return sign(data, key, algorithm);
         } catch (Exception e) {
             throw new SdkClientException(
-                    "Unable to calculate a request signature: "
-                    + e.getMessage(), e);
+                "Unable to calculate a request signature: "
+                + e.getMessage(), e);
         }
     }
 
@@ -144,8 +143,8 @@ public abstract class AbstractAwsSigner implements Signer {
             return mac.doFinal(data);
         } catch (Exception e) {
             throw new SdkClientException(
-                    "Unable to calculate a request signature: "
-                    + e.getMessage(), e);
+                "Unable to calculate a request signature: "
+                + e.getMessage(), e);
         }
     }
 
@@ -166,7 +165,7 @@ public abstract class AbstractAwsSigner implements Signer {
             MessageDigest md = getMessageDigestInstance();
             @SuppressWarnings("resource")
             DigestInputStream digestInputStream = new SdkDigestInputStream(
-                    input, md);
+                input, md);
             byte[] buffer = new byte[1024];
             while (digestInputStream.read(buffer) > -1) {
                 ;
@@ -174,8 +173,8 @@ public abstract class AbstractAwsSigner implements Signer {
             return digestInputStream.getMessageDigest().digest();
         } catch (Exception e) {
             throw new SdkClientException(
-                    "Unable to compute hash while signing request: "
-                    + e.getMessage(), e);
+                "Unable to compute hash while signing request: "
+                + e.getMessage(), e);
         }
     }
 
@@ -193,8 +192,8 @@ public abstract class AbstractAwsSigner implements Signer {
             return md.digest();
         } catch (Exception e) {
             throw new SdkClientException(
-                    "Unable to compute hash while signing request: "
-                    + e.getMessage(), e);
+                "Unable to compute hash while signing request: "
+                + e.getMessage(), e);
         }
     }
 
@@ -239,7 +238,7 @@ public abstract class AbstractAwsSigner implements Signer {
     }
 
     @ReviewBeforeRelease("Do we still want to make read limit user-configurable as in V1?")
-    protected static int getReadLimit(Aws4SignerRequestParams signerRequestParams) {
+    protected static int getReadLimit() {
         return RequestClientOptions.DEFAULT_STREAM_BUFFER_SIZE;
 
     }
@@ -273,18 +272,6 @@ public abstract class AbstractAwsSigner implements Signer {
         }
     }
 
-    protected String getCanonicalizedEndpoint(SdkHttpFullRequest request) {
-        String endpointForStringToSign = StringUtils.lowerCase(request.host());
-
-        // Omit the port from the endpoint if we're using the default port for the protocol. Some HTTP clients (ie. Apache) don't
-        // allow you to specify it in the request, so we're standardizing around not including it. See SdkHttpRequest#port().
-        if (!SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())) {
-            endpointForStringToSign += ":" + request.port();
-        }
-
-        return endpointForStringToSign;
-    }
-
     /**
      * Loads the individual access key ID and secret key from the specified credentials, trimming any extra whitespace from the
      * credentials.
@@ -305,6 +292,18 @@ public abstract class AbstractAwsSigner implements Signer {
         }
 
         return AwsCredentials.create(accessKeyId, secretKey);
+    }
+
+    protected String getCanonicalizedEndpoint(SdkHttpFullRequest.Builder request) {
+        String endpointForStringToSign = StringUtils.lowerCase(request.host());
+
+        // Omit the port from the endpoint if we're using the default port for the protocol. Some HTTP clients (ie. Apache) don't
+        // allow you to specify it in the request, so we're standardizing around not including it. See SdkHttpRequest#port().
+        if (!SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())) {
+            endpointForStringToSign += ":" + request.port();
+        }
+
+        return endpointForStringToSign;
     }
 
     /**

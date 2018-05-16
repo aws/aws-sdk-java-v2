@@ -81,15 +81,14 @@ public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
                     .build();
 
             Aws4Signer signer = new Aws4Signer();
-            signer.setServiceName(serviceName);
 
             InterceptorContext newExecutionContext = InterceptorContext.builder()
                                                                        .request(originalRequest)
                                                                        .httpRequest(requestForPresigning)
                                                                        .build();
 
-            final SdkHttpFullRequest presignedRequest =
-                    signer.presign(newExecutionContext, executionAttributes, null);
+            //SignerContext signerContext = AwsClientHandlerUtils
+            final SdkHttpFullRequest presignedRequest = signer.presign(null, null);
 
             return request.toBuilder()
                           .rawQueryParameter("DestinationRegion", destinationRegion)

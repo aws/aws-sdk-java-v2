@@ -61,8 +61,8 @@ public class Aws4SignerTest {
         calendar.set(1981, 1, 16, 6, 30, 0);
         calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        signer.setOverrideDate(calendar.getTime());
-        signer.setServiceName("demo");
+//        signer.setOverrideDate(calendar.getTime());
+//        signer.setServiceName("demo");
 
         SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.build(), credentials);
         assertThat(signed.firstMatchingHeader("Authorization"))
@@ -92,8 +92,8 @@ public class Aws4SignerTest {
         calendar.set(1981, 1, 16, 6, 30, 0);
         calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        signer.setOverrideDate(calendar.getTime());
-        signer.setServiceName("demo");
+//        signer.setOverrideDate(calendar.getTime());
+//        signer.setServiceName("demo");
 
         SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.build(), credentials);
         assertThat(signed.firstMatchingHeader("Authorization"))
@@ -115,9 +115,9 @@ public class Aws4SignerTest {
         Calendar calendar = new GregorianCalendar();
         calendar.set(1981, 1, 16, 6, 30, 0);
         calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-        signer.setOverrideDate(calendar.getTime());
-        signer.setServiceName("demo");
+//
+//        signer.setOverrideDate(calendar.getTime());
+//        signer.setServiceName("demo");
 
         SdkHttpFullRequest signed = SignerTestUtils.presignRequest(signer, request, credentials, null);
         assertEquals(expectedAmzSignature, signed.rawQueryParameters().get("X-Amz-Signature").get(0));
@@ -137,8 +137,7 @@ public class Aws4SignerTest {
         Calendar c = new GregorianCalendar();
         c.set(1981, 1, 16, 6, 30, 0);
         c.setTimeZone(TimeZone.getTimeZone("UTC"));
-        signer.setServiceName("demo");
-        signer.setOverrideDate(c.getTime());
+
 
         SignerTestUtils.signRequest(signer, request, credentials);
 
@@ -156,9 +155,7 @@ public class Aws4SignerTest {
 
         Calendar c = new GregorianCalendar();
         c.set(1981, 1, 16, 6, 30, 0);
-        c.setTimeZone(TimeZone.getTimeZone("UTC"));
-        signer.setServiceName("demo");
-        signer.setOverrideDate(c.getTime());
+
 
         SdkHttpFullRequest actual = SignerTestUtils.signRequest(signer, request.build(), credentials);
 

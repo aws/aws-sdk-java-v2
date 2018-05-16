@@ -24,7 +24,6 @@ import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.config.InternalAdvancedClientOption;
-import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -155,7 +154,6 @@ public abstract class BaseClientHandler {
                                                                      .request(originalRequest)
                                                                      .build())
                                .executionAttributes(executionAttributes)
-                               .signerProvider(overrideConfiguration.advancedOption(SdkAdvancedClientOption.SIGNER_PROVIDER))
                                .build();
     }
 

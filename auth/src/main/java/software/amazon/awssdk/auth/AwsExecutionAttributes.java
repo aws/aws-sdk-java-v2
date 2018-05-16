@@ -17,10 +17,11 @@ package software.amazon.awssdk.auth;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.signer.internal.AwsSignerParams;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
-import software.amazon.awssdk.core.runtime.auth.Signer;
+import software.amazon.awssdk.core.signerspi.Signer;
 import software.amazon.awssdk.regions.Region;
 
 /**
@@ -39,6 +40,13 @@ public final class AwsExecutionAttributes extends SdkExecutionAttributes {
      * The AWS {@link Region} the client was configured with.
      */
     public static final ExecutionAttribute<Region> AWS_REGION = new ExecutionAttribute<>("AwsRegion");
+
+    public static final ExecutionAttribute<AwsSignerParams> AWS_SIGNER_PARAMS = new ExecutionAttribute<>("AwsSignerParams");
+
+    /**
+     * The signing name of the service to be using in SigV4 signing
+     */
+    public static final ExecutionAttribute<String> SIGNING_NAME = new ExecutionAttribute<>("SigningName");
 
     private AwsExecutionAttributes() {
     }

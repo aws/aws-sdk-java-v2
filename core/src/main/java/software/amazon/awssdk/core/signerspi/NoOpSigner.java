@@ -13,19 +13,23 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.signer;
+package software.amazon.awssdk.core.signerspi;
 
-import software.amazon.awssdk.core.runtime.auth.Signer;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
- * A signer that needs to know which service it is talking to.
+ * A No op implementation of Signer and Presigner interfaces that returns the
+ * input {@link SdkHttpFullRequest} without modifications.
  */
-public interface ServiceAwareSigner extends Signer {
-    /**
-     * Configure this signer with the name of the service it will be used
-     * to sign requests for.
-     *
-     * @param value The name of the service.
-     */
-    void setServiceName(String value);
+public class NoOpSigner implements Signer, Presigner {
+
+    @Override
+    public SdkHttpFullRequest presign(SdkHttpFullRequest request, SignerContext signerContext) {
+        return request;
+    }
+
+    @Override
+    public SdkHttpFullRequest sign(SdkHttpFullRequest request, SignerContext signerContext) {
+        return request;
+    }
 }

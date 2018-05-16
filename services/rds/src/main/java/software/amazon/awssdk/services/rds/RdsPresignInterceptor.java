@@ -129,14 +129,14 @@ abstract class RdsPresignInterceptor<T extends RDSRequest> implements ExecutionI
                                               ExecutionAttributes attributes,
                                               String signingRegion) {
         Aws4Signer signer = createNewSignerWithRegion(signingRegion);
-        return signer.presign(context, attributes, null);
+        return signer.presign(null, null);
     }
 
     private Aws4Signer createNewSignerWithRegion(String signingRegion) {
         Aws4Signer signer = new Aws4Signer(true);
-        signer.setRegionName(signingRegion);
-        signer.setServiceName(SERVICE_NAME);
-        signer.setOverrideDate(signingOverrideDate);
+//        signer.setRegionName(signingRegion);
+//        signer.setServiceName(SERVICE_NAME);
+//        signer.setOverrideDate(signingOverrideDate);
         return signer;
     }
 

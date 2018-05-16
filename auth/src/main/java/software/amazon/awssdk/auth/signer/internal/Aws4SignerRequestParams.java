@@ -15,23 +15,23 @@
 
 package software.amazon.awssdk.auth.signer.internal;
 
-import java.util.Date;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.signer.SignerConstants;
-import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
-import software.amazon.awssdk.core.util.AwsHostNameUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
  * Parameters that are used for computing a AWS 4 signature for a request.
  */
 public final class Aws4SignerRequestParams {
+
     /**
-     * Mutable attributes attached to the current execution.
+     * The signing algorithm to be used for computing the signature.
      */
-    private final ExecutionAttributes executionAttributes;
+    private final String signingAlgorithm = SignerConstants.AWS4_SIGNING_ALGORITHM;
+
+    /**
+     * The HTTP request to be signed.
+     */
+    private final SdkHttpFullRequest.Builder httpRequest;
 
     /**
      * The datetime in milliseconds for which the signature needs to be
@@ -65,50 +65,17 @@ public final class Aws4SignerRequestParams {
     private final String formattedSigningDate;
 
     /**
-     * The signing algorithm to be used for computing the signature.
-     */
-    private final String signingAlgorithm;
-
-    /**
-     * The original modeled request given to the SDK.
-     */
-    private final SdkRequest originalRequest;
-
-    /**
-     * The HTTP request to be signed.
-     */
-    private final SdkHttpFullRequest.Builder httpRequest;
-
-    /**
      * Generates an instance of AWS4signerRequestParams that holds the parameters used for computing a AWS 4 signature
      * for a request.
      */
-    @ReviewBeforeRelease("This should be simplified with the signer refactor.")
-    public Aws4SignerRequestParams(SdkRequest originalRequest, SdkHttpFullRequest.Builder httpRequest,
-                                   ExecutionAttributes executionAttributes,
-                                   Date signingDateOverride, String regionNameOverride,
-                                   String serviceName, String signingAlgorithm) {
-        if (signingAlgorithm == null) {
-            throw new IllegalArgumentException("Signing Algorithm cannot be null");
-        }
-        this.originalRequest = originalRequest;
+    public Aws4SignerRequestParams(SdkHttpFullRequest.Builder httpRequest, AwsSignerParams signerParams) {
         this.httpRequest = httpRequest;
-        this.executionAttributes = executionAttributes;
-        this.signingDateTimeMilli = signingDateOverride != null ? signingDateOverride
-                .getTime() : getSigningDate(executionAttributes.getAttribute(SdkExecutionAttributes.TIME_OFFSET));
-        this.formattedSigningDate = Aws4SignerUtils
-                .formatDateStamp(signingDateTimeMilli);
-        this.serviceName = serviceName;
-        this.regionName = parseRegion(httpRequest, regionNameOverride);
+        this.signingDateTimeMilli = getSigningDate(signerParams.getTimeOffset());
+        this.formattedSigningDate = Aws4SignerUtils.formatDateStamp(signingDateTimeMilli);
+        this.serviceName = signerParams.getSigningName();
+        this.regionName = signerParams.getRegion().value();
         this.scope = generateScope(formattedSigningDate, this.serviceName, regionName);
         this.formattedSigningDateTime = Aws4SignerUtils.formatTimestamp(signingDateTimeMilli);
-        this.signingAlgorithm = signingAlgorithm;
-    }
-
-    @ReviewBeforeRelease("Specify region when creating signer rather then parsing from endpoint.")
-    private String parseRegion(SdkHttpFullRequest.Builder request, String regionNameOverride) {
-        return regionNameOverride != null ? regionNameOverride
-                                          : AwsHostNameUtils.parseRegionName(request.host(), this.serviceName);
     }
 
     /**
@@ -130,24 +97,10 @@ public final class Aws4SignerRequestParams {
     }
 
     /**
-     * Returns the original modeled request given to the SDK.
-     */
-    public SdkRequest originalRequest() {
-        return originalRequest;
-    }
-
-    /**
      * Returns the HTTP request to be signed.
      */
     public SdkHttpFullRequest.Builder httpRequest() {
         return httpRequest;
-    }
-
-    /**
-     * Returns the mutable attributes attached to the execution.
-     */
-    public ExecutionAttributes executionAttributes() {
-        return executionAttributes;
     }
 
     /**

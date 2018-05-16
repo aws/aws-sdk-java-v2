@@ -3,11 +3,9 @@ package software.amazon.awssdk.services.json;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
-import software.amazon.awssdk.auth.signer.StaticSignerProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.config.defaults.AwsClientConfigurationDefaults;
 import software.amazon.awssdk.awscore.config.defaults.ServiceBuilderConfigurationDefaults;
-import software.amazon.awssdk.core.runtime.auth.SignerProvider;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**

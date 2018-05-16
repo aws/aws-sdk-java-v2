@@ -19,6 +19,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.signer.internal.AwsSignerParams;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfig;
 import software.amazon.awssdk.awscore.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.config.AwsClientConfiguration;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.signerspi.SignerContext;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
@@ -62,6 +64,8 @@ final class AwsClientHandlerUtils {
                                                                                 .map(c -> (RequestOverrideConfig) c)
                                                                                 .orElse(AwsRequestOverrideConfig.builder()
                                                                                                                 .build()))
+            .putAttribute(AwsExecutionAttributes.SIGNING_NAME,
+                          overrideConfiguration.advancedOption(AwsAdvancedClientOption.SIGNING_NAME))
             .putAttribute(AwsExecutionAttributes.AWS_REGION,
                           overrideConfiguration.advancedOption(AwsAdvancedClientOption.AWS_REGION));
 
@@ -71,7 +75,29 @@ final class AwsClientHandlerUtils {
                                                                      .request(originalRequest)
                                                                      .build())
                                .executionAttributes(executionAttributes)
-                               .signerProvider(overrideConfiguration.advancedOption(AwsAdvancedClientOption.SIGNER_PROVIDER))
+                               .signer(overrideConfiguration.advancedOption(AwsAdvancedClientOption.SIGNER))
+                               .signerContext(createSignerContext(overrideConfiguration.advancedOption(AwsAdvancedClientOption
+                                                                                                        .SIGNER_CONTEXT),
+                                                               executionAttributes))
                                .build();
+    }
+
+    public static SignerContext createSignerContext(SignerContext userProvidedContext,
+                                                  ExecutionAttributes executionAttributes) {
+        // If SignerContext is set on the client by user, we will use it
+        if (userProvidedContext != null) {
+            return userProvidedContext;
+        }
+
+        // TODO How to set doubleUrlEncoding and chunkedBodySigning options?
+        final AwsSignerParams signerParams = new AwsSignerParams();
+        signerParams.setAwsCredentials(executionAttributes.getAttribute(AwsExecutionAttributes.AWS_CREDENTIALS));
+        signerParams.setSigningName(executionAttributes.getAttribute(AwsExecutionAttributes.SIGNING_NAME));
+        signerParams.setRegion(executionAttributes.getAttribute(AwsExecutionAttributes.AWS_REGION));
+        signerParams.setTimeOffset(executionAttributes.getAttribute(AwsExecutionAttributes.TIME_OFFSET));
+
+        final SignerContext signerContext = new SignerContext();
+        signerContext.putAttribute(AwsExecutionAttributes.AWS_SIGNER_PARAMS, signerParams);
+        return signerContext;
     }
 }
