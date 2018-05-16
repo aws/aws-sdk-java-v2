@@ -129,7 +129,7 @@ public class NettyH2AsyncHttpClient implements SdkAsyncHttpClient {
                         .remoteAddress(key.getHost(), key.getPort());
                 return new HttpOrHttp2ChannelPool(bootstrap,
                                                   new Http2MultiplexInitializer(protocol, sslContext, maxStreams),
-                                                  maxConnectionsPerEndpoint);
+                                                  maxConnectionsPerEndpoint, configuration);
             }
         };
     }
