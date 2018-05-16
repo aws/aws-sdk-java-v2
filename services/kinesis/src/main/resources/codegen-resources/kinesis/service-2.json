@@ -1082,25 +1082,6 @@
         "EncryptionType":{"shape":"EncryptionType"}
       }
     },
-    "RecordBatch":{
-      "type":"structure",
-      "required":[
-        "Records",
-        "ContinuationSequenceNumber",
-        "MillisBehindLatest"
-      ],
-      "members":{
-        "Records":{"shape":"RecordList"},
-        "ContinuationSequenceNumber":{"shape":"SequenceNumber"},
-        "MillisBehindLatest":{"shape":"MillisBehindLatest"}
-      }
-    },
-    "RecordBatchEvent":{
-      "type":"structure",
-      "members":{
-      },
-      "event":true
-    },
     "RecordList":{
       "type":"list",
       "member":{"shape":"Record"}
@@ -1216,9 +1197,9 @@
     },
     "ShardSubscriptionEventStream":{
       "type":"structure",
-      "required":["RecordBatchEvent"],
+      "required":["SubscribeToShardEvent"],
       "members":{
-        "RecordBatchEvent":{"shape":"RecordBatchEvent"}
+        "SubscribeToShardEvent":{"shape":"SubscribeToShardEvent"}
       },
       "eventstream":true
     },
@@ -1335,17 +1316,31 @@
         "UPDATING"
       ]
     },
+    "SubscribeToShardEvent":{
+      "type":"structure",
+      "required":[
+        "Records",
+        "ContinuationSequenceNumber",
+        "MillisBehindLatest"
+      ],
+      "members":{
+        "Records":{"shape":"RecordList"},
+        "ContinuationSequenceNumber":{"shape":"SequenceNumber"},
+        "MillisBehindLatest":{"shape":"MillisBehindLatest"}
+      },
+      "event":true
+    },
     "SubscribeToShardInput":{
       "type":"structure",
       "required":[
         "ConsumerARN",
         "ShardId",
-        "ShardIteratorType"
+        "StartingPosition"
       ],
       "members":{
         "ConsumerARN":{"shape":"ConsumerARN"},
         "ShardId":{"shape":"ShardId"},
-        "ShardIteratorType":{"shape":"ShardIteratorType"},
+        "StartingPosition":{"shape":"ShardIteratorType"},
         "StartingSequenceNumber":{"shape":"SequenceNumber"},
         "Timestamp":{"shape":"Timestamp"}
       }

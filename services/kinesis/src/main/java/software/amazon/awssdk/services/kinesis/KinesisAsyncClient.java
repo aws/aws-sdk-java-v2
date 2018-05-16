@@ -62,7 +62,7 @@ import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
 import software.amazon.awssdk.services.kinesis.model.PutRecordResponse;
 import software.amazon.awssdk.services.kinesis.model.PutRecordsRequest;
 import software.amazon.awssdk.services.kinesis.model.PutRecordsResponse;
-import software.amazon.awssdk.services.kinesis.model.RecordBatchEvent;
+import software.amazon.awssdk.services.kinesis.model.SubscribeToShardEvent;
 import software.amazon.awssdk.services.kinesis.model.RegisterStreamConsumerRequest;
 import software.amazon.awssdk.services.kinesis.model.RegisterStreamConsumerResponse;
 import software.amazon.awssdk.services.kinesis.model.RemoveTagsFromStreamRequest;
@@ -116,11 +116,11 @@ public interface KinesisAsyncClient extends SdkAutoCloseable {
     }
 
     default  <ReturnT> CompletableFuture<ReturnT> subscribeToShard(SubscribeToShardRequest subscribeToShardRequest,
-                                                                   FlowResponseTransformer<SubscribeToShardResponse, RecordBatchEvent, ReturnT> flowResponseHandler) {
+                                                                   FlowResponseTransformer<SubscribeToShardResponse, SubscribeToShardEvent, ReturnT> flowResponseHandler) {
         throw new UnsupportedOperationException();
     }
 
-    default ResponseIterator<SubscribeToShardResponse, RecordBatchEvent> subscribeToShardBlocking(SubscribeToShardRequest request) {
+    default ResponseIterator<SubscribeToShardResponse, SubscribeToShardEvent> subscribeToShardBlocking(SubscribeToShardRequest request) {
         throw new UnsupportedOperationException();
     }
 
