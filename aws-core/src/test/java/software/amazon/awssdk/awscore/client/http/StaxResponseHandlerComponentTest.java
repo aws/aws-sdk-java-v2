@@ -35,9 +35,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import software.amazon.awssdk.awscore.http.response.StaxResponseHandler;
+import software.amazon.awssdk.awscore.protocol.xml.StaxUnmarshallerContext;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.awscore.protocol.xml.StaxUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
 public class StaxResponseHandlerComponentTest {
@@ -67,7 +67,7 @@ public class StaxResponseHandlerComponentTest {
         stubFor(get(urlPathEqualTo("/payload.dtd")).willReturn(aResponse().withBody(entityString)));
         stubFor(get(urlPathEqualTo("/?hello-world")).willReturn(aResponse()));
 
-        StaxResponseHandler<String> responseHandler = new StaxResponseHandler<>(dummyUnmarshaller());
+        StaxResponseHandler<EmptyAwsResponse> responseHandler = new StaxResponseHandler<>(dummyUnmarshaller());
 
         HttpResponse response = mock(HttpResponse.class);
         when(response.getContent()).thenReturn(new ByteArrayInputStream(payload.getBytes(Charset.forName("UTF-8"))));
@@ -81,12 +81,12 @@ public class StaxResponseHandlerComponentTest {
         WireMock.verify(getRequestedFor(urlPathEqualTo("/?hello-world"))); //We expect this to fail, this call should not be made
     }
 
-    private Unmarshaller<String, StaxUnmarshallerContext> dummyUnmarshaller() {
+    private Unmarshaller<EmptyAwsResponse, StaxUnmarshallerContext> dummyUnmarshaller() {
         return staxContext -> {
             while(!staxContext.nextEvent().isEndDocument()) {
                 //read the whole document
             }
-            return "Success";
+            return EmptyAwsResponse.builder().build();
         };
     }
 

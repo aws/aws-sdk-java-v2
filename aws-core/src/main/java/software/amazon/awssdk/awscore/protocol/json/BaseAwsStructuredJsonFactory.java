@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.awscore.http.response.AwsJsonErrorResponseHandler;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 import software.amazon.awssdk.core.runtime.http.response.JsonResponseHandler;
@@ -47,7 +48,7 @@ abstract class BaseAwsStructuredJsonFactory implements AwsStructuredJsonFactory 
     }
 
     @Override
-    public <T> JsonResponseHandler<T> createResponseHandler(
+    public <T extends SdkResponse> JsonResponseHandler<T> createResponseHandler(
             JsonOperationMetadata operationMetadata,
             Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller) {
         return new JsonResponseHandler(responseUnmarshaller, unmarshallers, jsonFactory,

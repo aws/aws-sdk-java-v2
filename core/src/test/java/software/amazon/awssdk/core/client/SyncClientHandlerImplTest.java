@@ -22,6 +22,10 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.net.URI;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,6 +42,7 @@ import software.amazon.awssdk.core.config.SdkMutableClientConfiguration;
 import software.amazon.awssdk.core.config.SdkSyncClientConfiguration;
 import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.http.EmptySdkResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.internal.auth.NoOpSignerProvider;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -70,9 +75,6 @@ public class SyncClientHandlerImplTest {
     @Mock
     private HttpResponseHandler<SdkServiceException> errorResponseHandler;
 
-    @Mock
-    private SdkResponse response;
-
     @Before
     public void setup() {
         this.syncClientHandler = new SdkSyncClientHandlerImpl(clientConfiguration(), null);
@@ -81,26 +83,36 @@ public class SyncClientHandlerImplTest {
 
     @Test
     public void successfulExecutionCallsResponseHandler() throws Exception {
+
+        SdkResponse expected = EmptySdkResponse.builder().build();
+        Map<String, List<String>> headers = new HashMap<>();
+        headers.put("foo", Arrays.asList("bar"));
+
         // Given
         expectRetrievalFromMocks();
-        when(httpClientCall.call()).thenReturn(SdkHttpFullResponse.builder().statusCode(200).build()); // Successful HTTP call
-        when(responseHandler.handle(any(), any())).thenReturn(response); // Response handler call
+        when(httpClientCall.call()).thenReturn(SdkHttpFullResponse.builder().statusCode(200)
+                                                                  .headers(headers).build()); // Successful HTTP call
+        when(responseHandler.handle(any(), any())).thenReturn(expected); // Response handler call
 
         // When
-        SdkResponse response = syncClientHandler.execute(clientExecutionParams());
+        SdkResponse actual = syncClientHandler.execute(clientExecutionParams());
 
         // Then
         verifyNoMoreInteractions(errorResponseHandler); // No error handler calls
-        assertThat(response).isEqualTo(this.response); // Response handler result returned
+        assertThat(actual.sdkHttpResponse().statusCode()).isEqualTo(200);
+        assertThat(actual.sdkHttpResponse().headers()).isEqualTo(headers);
     }
 
     @Test
     public void failedExecutionCallsErrorResponseHandler() throws Exception {
         SdkServiceException exception = new SdkServiceException("Uh oh!");
 
+        Map<String, List<String>> headers = new HashMap<>();
+        headers.put("foo", Arrays.asList("bar"));
+
         // Given
         expectRetrievalFromMocks();
-        when(httpClientCall.call()).thenReturn(SdkHttpFullResponse.builder().statusCode(500).build()); // Failed HTTP call
+        when(httpClientCall.call()).thenReturn(SdkHttpFullResponse.builder().statusCode(500).headers(headers).build()); // Failed HTTP call
         when(errorResponseHandler.handle(any(), any())).thenReturn(exception); // Error response handler call
 
         // When

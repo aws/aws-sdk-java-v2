@@ -80,8 +80,8 @@ public class AwsServiceBaseResponseSpec implements ClassSpec {
 
                 .addMethod(MethodSpec.constructorBuilder()
                         .addModifiers(Modifier.PROTECTED)
-                        .addParameter(className(), "request")
-                        .addStatement("super(request)")
+                        .addParameter(className(), "response")
+                        .addStatement("super(response)")
                         .build())
 
                 .build();

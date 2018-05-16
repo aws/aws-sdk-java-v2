@@ -21,7 +21,7 @@ import static org.junit.Assert.assertNull;
 import java.util.HashMap;
 import java.util.Random;
 import org.junit.Test;
-import software.amazon.awssdk.core.ResponseMetadata;
+import software.amazon.awssdk.core.SdkResponseMetadata;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 
@@ -37,10 +37,10 @@ public class ResponseMetadataCacheTest {
         SdkRequest key2 = NoopTestRequest.builder().build();
         SdkRequest key3 = NoopTestRequest.builder().build();
         SdkRequest key4 = NoopTestRequest.builder().build();
-        ResponseMetadata metadata1 = newResponseMetadata();
-        ResponseMetadata metadata2 = newResponseMetadata();
-        ResponseMetadata metadata3 = newResponseMetadata();
-        ResponseMetadata metadata4 = newResponseMetadata();
+        SdkResponseMetadata metadata1 = newResponseMetadata();
+        SdkResponseMetadata metadata2 = newResponseMetadata();
+        SdkResponseMetadata metadata3 = newResponseMetadata();
+        SdkResponseMetadata metadata4 = newResponseMetadata();
 
         // Fill the cache
         cache.add(key1, metadata1);
@@ -66,7 +66,7 @@ public class ResponseMetadataCacheTest {
         ResponseMetadataCache cache = new ResponseMetadataCache(0);
 
         SdkRequest key = NoopTestRequest.builder().build();
-        ResponseMetadata metadata = newResponseMetadata();
+        SdkResponseMetadata metadata = newResponseMetadata();
         // Add item to the cache, it should be immediately evicted.
         cache.add(key, metadata);
 
@@ -74,9 +74,9 @@ public class ResponseMetadataCacheTest {
         assertNull(cache.get(key));
     }
 
-    private ResponseMetadata newResponseMetadata() {
+    private SdkResponseMetadata newResponseMetadata() {
         HashMap<String, String> metadata = new HashMap<String, String>();
         metadata.put("foo", "bar-" + new Random().nextLong());
-        return new ResponseMetadata(metadata);
+        return new SdkResponseMetadata(metadata);
     }
 }

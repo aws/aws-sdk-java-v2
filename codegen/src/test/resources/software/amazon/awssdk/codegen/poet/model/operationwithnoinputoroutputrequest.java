@@ -71,6 +71,7 @@ public class OperationWithNoInputOrOutputRequest extends JsonProtocolTestsReques
         }
 
         private BuilderImpl(OperationWithNoInputOrOutputRequest model) {
+            super(model);
         }
 
         @Override

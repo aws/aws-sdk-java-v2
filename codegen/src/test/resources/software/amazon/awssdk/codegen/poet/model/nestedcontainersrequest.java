@@ -171,7 +171,7 @@ public class NestedContainersRequest extends JsonProtocolTestsRequest implements
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder mapOfStringToListOfListOfStrings(
-                Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings);
+            Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings);
 
         @Override
         Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig);
@@ -191,6 +191,7 @@ public class NestedContainersRequest extends JsonProtocolTestsRequest implements
         }
 
         private BuilderImpl(NestedContainersRequest model) {
+            super(model);
             listOfListOfStrings(model.listOfListOfStrings);
             listOfListOfListOfStrings(model.listOfListOfListOfStrings);
             mapOfStringToListOfListOfStrings(model.mapOfStringToListOfListOfStrings);
@@ -223,7 +224,7 @@ public class NestedContainersRequest extends JsonProtocolTestsRequest implements
 
         @Override
         public final Builder listOfListOfListOfStrings(
-                Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStrings) {
+            Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStrings) {
             this.listOfListOfListOfStrings = ListOfListOfListOfStringsCopier.copy(listOfListOfListOfStrings);
             return this;
         }
@@ -236,7 +237,7 @@ public class NestedContainersRequest extends JsonProtocolTestsRequest implements
         }
 
         public final void setListOfListOfListOfStrings(
-                Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStrings) {
+            Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStrings) {
             this.listOfListOfListOfStrings = ListOfListOfListOfStringsCopier.copy(listOfListOfListOfStrings);
         }
 
@@ -246,13 +247,13 @@ public class NestedContainersRequest extends JsonProtocolTestsRequest implements
 
         @Override
         public final Builder mapOfStringToListOfListOfStrings(
-                Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings) {
+            Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings) {
             this.mapOfStringToListOfListOfStrings = MapOfStringToListOfListOfStringsCopier.copy(mapOfStringToListOfListOfStrings);
             return this;
         }
 
         public final void setMapOfStringToListOfListOfStrings(
-                Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings) {
+            Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings) {
             this.mapOfStringToListOfListOfStrings = MapOfStringToListOfListOfStringsCopier.copy(mapOfStringToListOfListOfStrings);
         }
 
