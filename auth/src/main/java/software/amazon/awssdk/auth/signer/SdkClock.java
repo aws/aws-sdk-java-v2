@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.runtime.auth;
+package software.amazon.awssdk.auth.signer;
 
 import java.util.Date;
 import software.amazon.awssdk.annotations.SdkProtectedApi;

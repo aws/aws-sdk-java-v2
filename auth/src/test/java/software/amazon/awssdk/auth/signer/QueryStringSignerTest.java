@@ -25,8 +25,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import org.junit.Test;
+import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 
@@ -55,7 +57,8 @@ public class QueryStringSignerTest {
                                                        .rawQueryParameter("foo", "bar")
                                                        .build();
 
-        request = SignerTestUtils.signRequest(signer, request, credentials);
+
+        request = signer.sign(request, constructAttributes(credentials));
 
         assertSignature(EXPECTED_SIGNATURE, request.rawQueryParameters());
     }
@@ -70,7 +73,7 @@ public class QueryStringSignerTest {
                                                        .rawQueryParameter("foo", "bar")
                                                        .build();
 
-        request = SignerTestUtils.signRequest(signer, request, AnonymousCredentialsProvider.create().getCredentials());
+        request = signer.sign(request, constructAttributes(AnonymousCredentialsProvider.create().getCredentials()));
 
         assertNull(request.rawQueryParameters().get("Signature"));
     }
@@ -87,4 +90,7 @@ public class QueryStringSignerTest {
         assertEquals(expected, signature.iterator().next());
     }
 
+    private ExecutionAttributes constructAttributes(AwsCredentials awsCredentials) {
+        return new ExecutionAttributes().putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, awsCredentials);
+    }
 }

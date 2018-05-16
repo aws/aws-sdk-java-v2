@@ -13,25 +13,21 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.signer;
+package software.amazon.awssdk.services.s3.handlers;
 
-import java.util.Date;
+import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 
 /**
- * A request signer that has special-case logic to presign requests, generating
- * a URL which embeds the signature suitable for hyperlinking.
+ * Don't double-url-encode path elements for S3. S3 expects path elements to be encoded only once in
+ * the canonical URI.
  */
-public interface Presigner {
-    /**
-     * Signs the request by adding the signature to the URL rather than as a
-     * header. This method is expected to modify the passed-in request to
-     * add the signature.
-     *
-     */
-    SdkHttpFullRequest presign(Context.BeforeTransmission execution,
-                               ExecutionAttributes executionAttributes,
-                               Date expiration);
+public class DisableDoubleUrlEncodingInterceptor implements ExecutionInterceptor {
+
+    @Override
+    public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
+        executionAttributes.putAttribute(AwsExecutionAttributes.SIGNER_DOUBLE_URL_ENCODE, Boolean.FALSE);
+    }
 }

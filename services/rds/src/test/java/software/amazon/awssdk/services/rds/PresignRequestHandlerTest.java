@@ -12,6 +12,7 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
+
 package software.amazon.awssdk.services.rds;
 
 import static junit.framework.Assert.assertEquals;
@@ -19,17 +20,19 @@ import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Clock;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import org.junit.Test;
+import org.mockito.Mockito;
 import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.Request;
@@ -38,6 +41,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.model.CopyDBSnapshotRequest;
 import software.amazon.awssdk.services.rds.model.RDSRequest;
 import software.amazon.awssdk.services.rds.transform.CopyDBSnapshotRequestMarshaller;
@@ -80,7 +84,10 @@ public class PresignRequestHandlerTest {
         // Note: month is 0-based
         c.set(2016, 11, 21, 18, 7, 35);
 
-        RdsPresignInterceptor<CopyDBSnapshotRequest> interceptor = new CopyDbSnapshotPresignInterceptor(c.getTime());
+        Clock signingDateOverride = Mockito.mock(Clock.class);
+        when(signingDateOverride.millis()).thenReturn(c.getTimeInMillis());
+
+        RdsPresignInterceptor<CopyDBSnapshotRequest> interceptor = new CopyDbSnapshotPresignInterceptor(signingDateOverride);
 
         SdkHttpFullRequest presignedRequest = modifyHttpRequest(interceptor, request, marshallRequest(request));
 
