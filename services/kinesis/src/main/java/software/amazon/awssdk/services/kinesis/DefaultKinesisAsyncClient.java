@@ -28,7 +28,6 @@ import software.amazon.awssdk.awscore.config.AwsAsyncClientConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.AsyncClientHandler;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
-import software.amazon.awssdk.core.client.SdkAsyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.flow.FlowPublisher;
@@ -97,7 +96,7 @@ import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
 import software.amazon.awssdk.services.kinesis.model.PutRecordResponse;
 import software.amazon.awssdk.services.kinesis.model.PutRecordsRequest;
 import software.amazon.awssdk.services.kinesis.model.PutRecordsResponse;
-import software.amazon.awssdk.services.kinesis.model.RecordBatchEvent;
+import software.amazon.awssdk.services.kinesis.model.SubscribeToShardEvent;
 import software.amazon.awssdk.services.kinesis.model.RegisterStreamConsumerRequest;
 import software.amazon.awssdk.services.kinesis.model.RegisterStreamConsumerResponse;
 import software.amazon.awssdk.services.kinesis.model.RemoveTagsFromStreamRequest;
@@ -158,7 +157,7 @@ import software.amazon.awssdk.services.kinesis.transform.PutRecordRequestMarshal
 import software.amazon.awssdk.services.kinesis.transform.PutRecordResponseUnmarshaller;
 import software.amazon.awssdk.services.kinesis.transform.PutRecordsRequestMarshaller;
 import software.amazon.awssdk.services.kinesis.transform.PutRecordsResponseUnmarshaller;
-import software.amazon.awssdk.services.kinesis.transform.RecordBatchEventUnmarshaller;
+import software.amazon.awssdk.services.kinesis.transform.SubscribeToShardEventUnmarshaller;
 import software.amazon.awssdk.services.kinesis.transform.RegisterStreamConsumerRequestMarshaller;
 import software.amazon.awssdk.services.kinesis.transform.RegisterStreamConsumerResponseUnmarshaller;
 import software.amazon.awssdk.services.kinesis.transform.RemoveTagsFromStreamRequestMarshaller;
@@ -231,7 +230,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
     }
 
     public <ReturnT> CompletableFuture<ReturnT> subscribeToShard(SubscribeToShardRequest subscribeToShardRequest,
-                                                                 FlowResponseTransformer<SubscribeToShardResponse, RecordBatchEvent, ReturnT> flowResponseHandler) {
+                                                                 FlowResponseTransformer<SubscribeToShardResponse, SubscribeToShardEvent, ReturnT> flowResponseHandler) {
         HttpResponseHandler<SubscribeToShardResponse> responseHandler = protocolFactory.createResponseHandler(
             new JsonOperationMetadata()
                 .withPayloadJson(false)
@@ -240,10 +239,10 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
 
         HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
 
-        AtomicReference<Subscriber<? super RecordBatchEvent>> subscriberRef = new AtomicReference<>();
-        flowResponseHandler.onStream(new FlowPublisher<RecordBatchEvent>() {
+        AtomicReference<Subscriber<? super SubscribeToShardEvent>> subscriberRef = new AtomicReference<>();
+        flowResponseHandler.onStream(new FlowPublisher<SubscribeToShardEvent>() {
             @Override
-            public void subscribe(Subscriber<? super RecordBatchEvent> subscriber) {
+            public void subscribe(Subscriber<? super SubscribeToShardEvent> subscriber) {
                 subscriberRef.set(subscriber);
                 subscriber.onSubscribe(new Subscription() {
                     @Override
@@ -274,7 +273,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
                     } else {
                         // TODO unmarshall
                         try {
-                            subscriberRef.get().onNext(new RecordBatchEventUnmarshaller().unmarshall(
+                            subscriberRef.get().onNext(new SubscribeToShardEventUnmarshaller().unmarshall(
                                 protocolFactory.createJsonUnmarshallerContext(adaptMessageToResponse(m))));
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -321,7 +320,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
     }
 
     public <ReturnT> CompletableFuture<ReturnT> subscribeToShard2(SubscribeToShardRequest subscribeToShardRequest,
-                                                                  FlowResponseTransformer<SubscribeToShardResponse, RecordBatchEvent, ReturnT> flowResponseHandler) {
+                                                                  FlowResponseTransformer<SubscribeToShardResponse, SubscribeToShardEvent, ReturnT> flowResponseHandler) {
         HttpResponseHandler<SubscribeToShardResponse> responseHandler = protocolFactory.createResponseHandler(
             new JsonOperationMetadata()
                 .withPayloadJson(false)
@@ -346,12 +345,12 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             @Override
             public void onStream(Publisher<ByteBuffer> publisher) {
                 AtomicReference<Subscription> dataSubscription = new AtomicReference<>();
-                AtomicReference<Subscriber<? super RecordBatchEvent>> subscriberRef = new AtomicReference<>();
+                AtomicReference<Subscriber<? super SubscribeToShardEvent>> subscriberRef = new AtomicReference<>();
                 AtomicLong remainingDemand = new AtomicLong(0);
                 AtomicLong remainingDataDemand = new AtomicLong(0);
-                flowResponseHandler.onStream(new FlowPublisher<RecordBatchEvent>() {
+                flowResponseHandler.onStream(new FlowPublisher<SubscribeToShardEvent>() {
                     @Override
-                    public void subscribe(Subscriber<? super RecordBatchEvent> subscriber) {
+                    public void subscribe(Subscriber<? super SubscribeToShardEvent> subscriber) {
                         subscriberRef.set(subscriber);
                         subscriber.onSubscribe(new Subscription() {
                             @Override
@@ -376,7 +375,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
                     } else {
                         try {
                             remainingDemand.decrementAndGet();
-                            subscriberRef.get().onNext(new RecordBatchEventUnmarshaller().unmarshall(
+                            subscriberRef.get().onNext(new SubscribeToShardEventUnmarshaller().unmarshall(
                                 protocolFactory.createJsonUnmarshallerContext(adaptMessageToResponse(m))));
                         } catch (Exception e) {
                             throw new SdkClientException(e);
@@ -424,20 +423,20 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
         });
     }
 
-    public ResponseIterator<SubscribeToShardResponse, RecordBatchEvent> subscribeToShardBlocking(SubscribeToShardRequest request) {
+    public ResponseIterator<SubscribeToShardResponse, SubscribeToShardEvent> subscribeToShardBlocking(SubscribeToShardRequest request) {
         AtomicReference<SubscribeToShardResponse> responseRef = new AtomicReference<>();
-        AtomicReference<SubscriberIterator<RecordBatchEvent>> iteratorRef = new AtomicReference<>();
-        CompletableFuture<FlowPublisher<RecordBatchEvent>> publisherFuture = new CompletableFuture<>();
-        subscribeToShard(request, new FlowResponseTransformer<SubscribeToShardResponse, RecordBatchEvent, Void>() {
+        AtomicReference<SubscriberIterator<SubscribeToShardEvent>> iteratorRef = new AtomicReference<>();
+        CompletableFuture<FlowPublisher<SubscribeToShardEvent>> publisherFuture = new CompletableFuture<>();
+        subscribeToShard(request, new FlowResponseTransformer<SubscribeToShardResponse, SubscribeToShardEvent, Void>() {
             @Override
             public void responseReceived(SubscribeToShardResponse r) {
                 responseRef.set(r);
             }
 
             @Override
-            public void onStream(FlowPublisher<RecordBatchEvent> publisher) {
+            public void onStream(FlowPublisher<SubscribeToShardEvent> publisher) {
                 // TODO don't like the cast here
-                iteratorRef.set((SubscriberIterator<RecordBatchEvent>) publisher.toBlocking());
+                iteratorRef.set((SubscriberIterator<SubscribeToShardEvent>) publisher.toBlocking());
                 publisherFuture.complete(publisher);
             }
 

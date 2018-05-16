@@ -287,8 +287,6 @@
                             <exclude>software/amazon/awssdk/services/kinesis/KinesisAsyncClient.java</exclude>
                             <exclude>software/amazon/awssdk/services/kinesis/DefaultKinesisAsyncClient.java</exclude>
                             <exclude>software/amazon/awssdk/services/kinesis/DefaultKinesisBaseClientBuilder.java</exclude>
-                            <exclude>software/amazon/awssdk/services/kinesis/model/RecordBatchEvent.java</exclude>
-                            <exclude>software/amazon/awssdk/services/kinesis/transform/RecordBatchEventUnmarshaller.java</exclude>
                             <exclude>software/amazon/awssdk/services/sms/model/InternalError.java</exclude>
                             <exclude>software/amazon/awssdk/services/kinesis/transform/SubscribeToShardResponseUnmarshaller.java</exclude>
                         </excludes>
