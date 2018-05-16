@@ -62,8 +62,12 @@ final class AwsClientHandlerUtils {
                                                                                 .map(c -> (RequestOverrideConfiguration) c)
                                                                                 .orElse(AwsRequestOverrideConfiguration.builder()
                                                                                                                        .build()))
+            .putAttribute(AwsExecutionAttributes.SERVICE_SIGNING_NAME,
+                          overrideConfiguration.advancedOption(AwsAdvancedClientOption.SERVICE_SIGNING_NAME))
             .putAttribute(AwsExecutionAttributes.AWS_REGION,
-                          overrideConfiguration.advancedOption(AwsAdvancedClientOption.AWS_REGION));
+                          overrideConfiguration.advancedOption(AwsAdvancedClientOption.AWS_REGION))
+            .putAttribute(AwsExecutionAttributes.SIGNING_REGION,
+                          overrideConfiguration.advancedOption(AwsAdvancedClientOption.SIGNING_REGION));
 
         return ExecutionContext.builder()
                                .interceptorChain(new ExecutionInterceptorChain(overrideConfiguration.executionInterceptors()))
@@ -71,7 +75,7 @@ final class AwsClientHandlerUtils {
                                                                      .request(originalRequest)
                                                                      .build())
                                .executionAttributes(executionAttributes)
-                               .signerProvider(overrideConfiguration.advancedOption(AwsAdvancedClientOption.SIGNER_PROVIDER))
+                               .signer(overrideConfiguration.advancedOption(AwsAdvancedClientOption.SIGNER))
                                .build();
     }
 }

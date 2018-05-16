@@ -15,23 +15,19 @@
 
 package software.amazon.awssdk.auth.signer.internal;
 
-import java.util.Date;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.signer.SignerConstants;
-import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
-import software.amazon.awssdk.core.util.AwsHostNameUtils;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
+import software.amazon.awssdk.regions.Region;
 
 /**
  * Parameters that are used for computing a AWS 4 signature for a request.
  */
 public final class Aws4SignerRequestParams {
+
     /**
-     * Mutable attributes attached to the current execution.
+     * The signing algorithm to be used for computing the signature.
      */
-    private final ExecutionAttributes executionAttributes;
+    private final String signingAlgorithm = SignerConstants.AWS4_SIGNING_ALGORITHM;
 
     /**
      * The datetime in milliseconds for which the signature needs to be
@@ -52,7 +48,7 @@ public final class Aws4SignerRequestParams {
     /**
      * The name of the AWS service.
      */
-    private final String serviceName;
+    private final String serviceSigningName;
 
     /**
      * UTC formatted version of the signing time stamp.
@@ -65,50 +61,18 @@ public final class Aws4SignerRequestParams {
     private final String formattedSigningDate;
 
     /**
-     * The signing algorithm to be used for computing the signature.
-     */
-    private final String signingAlgorithm;
-
-    /**
-     * The original modeled request given to the SDK.
-     */
-    private final SdkRequest originalRequest;
-
-    /**
-     * The HTTP request to be signed.
-     */
-    private final SdkHttpFullRequest.Builder httpRequest;
-
-    /**
      * Generates an instance of AWS4signerRequestParams that holds the parameters used for computing a AWS 4 signature
-     * for a request.
+     * for a request based on the given {@link Aws4SignerParams} for that request.
      */
-    @ReviewBeforeRelease("This should be simplified with the signer refactor.")
-    public Aws4SignerRequestParams(SdkRequest originalRequest, SdkHttpFullRequest.Builder httpRequest,
-                                   ExecutionAttributes executionAttributes,
-                                   Date signingDateOverride, String regionNameOverride,
-                                   String serviceName, String signingAlgorithm) {
-        if (signingAlgorithm == null) {
-            throw new IllegalArgumentException("Signing Algorithm cannot be null");
-        }
-        this.originalRequest = originalRequest;
-        this.httpRequest = httpRequest;
-        this.executionAttributes = executionAttributes;
-        this.signingDateTimeMilli = signingDateOverride != null ? signingDateOverride
-                .getTime() : getSigningDate(executionAttributes.getAttribute(SdkExecutionAttributes.TIME_OFFSET));
-        this.formattedSigningDate = Aws4SignerUtils
-                .formatDateStamp(signingDateTimeMilli);
-        this.serviceName = serviceName;
-        this.regionName = parseRegion(httpRequest, regionNameOverride);
-        this.scope = generateScope(formattedSigningDate, this.serviceName, regionName);
+    public Aws4SignerRequestParams(Aws4SignerParams signerParams) {
+        this.signingDateTimeMilli = signerParams.signingClockOverride() != null
+                                    ? signerParams.signingClockOverride().millis()
+                                    : getSigningDate(signerParams.timeOffset());
+        this.formattedSigningDate = Aws4SignerUtils.formatDateStamp(signingDateTimeMilli);
+        this.serviceSigningName = signerParams.signingName();
+        this.regionName = getRegion(signerParams.signingRegion());
+        this.scope = generateScope(formattedSigningDate, this.serviceSigningName, regionName);
         this.formattedSigningDateTime = Aws4SignerUtils.formatTimestamp(signingDateTimeMilli);
-        this.signingAlgorithm = signingAlgorithm;
-    }
-
-    @ReviewBeforeRelease("Specify region when creating signer rather then parsing from endpoint.")
-    private String parseRegion(SdkHttpFullRequest.Builder request, String regionNameOverride) {
-        return regionNameOverride != null ? regionNameOverride
-                                          : AwsHostNameUtils.parseRegionName(request.host(), this.serviceName);
     }
 
     /**
@@ -122,32 +86,15 @@ public final class Aws4SignerRequestParams {
         }
     }
 
+    private String getRegion(Region region) {
+        return region != null ? region.value() : null;
+    }
+
     /**
      * Returns the scope to be used for the signing.
      */
     private String generateScope(String dateStamp, String serviceName, String regionName) {
         return dateStamp + "/" + regionName + "/" + serviceName + "/" + SignerConstants.AWS4_TERMINATOR;
-    }
-
-    /**
-     * Returns the original modeled request given to the SDK.
-     */
-    public SdkRequest originalRequest() {
-        return originalRequest;
-    }
-
-    /**
-     * Returns the HTTP request to be signed.
-     */
-    public SdkHttpFullRequest.Builder httpRequest() {
-        return httpRequest;
-    }
-
-    /**
-     * Returns the mutable attributes attached to the execution.
-     */
-    public ExecutionAttributes executionAttributes() {
-        return executionAttributes;
     }
 
     /**
@@ -182,8 +129,8 @@ public final class Aws4SignerRequestParams {
     /**
      * Returns the AWS Service name to be used while computing the signature.
      */
-    public String getServiceName() {
-        return serviceName;
+    public String getServiceSigningName() {
+        return serviceSigningName;
     }
 
     /**

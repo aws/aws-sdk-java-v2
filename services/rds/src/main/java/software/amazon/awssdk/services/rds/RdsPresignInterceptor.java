@@ -15,9 +15,12 @@
 
 package software.amazon.awssdk.services.rds;
 
+import static software.amazon.awssdk.auth.AwsExecutionAttributes.AWS_CREDENTIALS;
+
 import java.net.URI;
-import java.util.Date;
+import java.time.Clock;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.Request;
@@ -27,14 +30,12 @@ import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.util.AwsHostNameUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.model.RDSRequest;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
-
 
 /**
  * Abstract pre-sign handler that follows the pre-signing scheme outlined in the 'RDS Presigned URL for Cross-Region Copying'
@@ -58,19 +59,15 @@ abstract class RdsPresignInterceptor<T extends RDSRequest> implements ExecutionI
 
     private final Class<T> requestClassToPreSign;
 
-    private final Date signingOverrideDate;
+    private final Clock signingOverrideClock;
 
     RdsPresignInterceptor(Class<T> requestClassToPreSign) {
         this(requestClassToPreSign, null);
     }
 
-    RdsPresignInterceptor(Class<T> requestClassToPreSign, Date signingOverrideDate) {
+    RdsPresignInterceptor(Class<T> requestClassToPreSign, Clock signingOverrideClock) {
         this.requestClassToPreSign = requestClassToPreSign;
-        if (signingOverrideDate != null) {
-            this.signingOverrideDate = new Date(signingOverrideDate.getTime());
-        } else {
-            this.signingOverrideDate = null;
-        }
+        this.signingOverrideClock = signingOverrideClock;
     }
 
     @Override
@@ -105,12 +102,7 @@ abstract class RdsPresignInterceptor<T extends RDSRequest> implements ExecutionI
                                  .removeQueryParameter(PARAM_SOURCE_REGION)
                                  .build();
 
-        Context.BeforeTransmission contextToSign = InterceptorContext.builder()
-                                                                     .request(context.request())
-                                                                     .httpRequest(requestToPresign)
-                                                                     .build();
-
-        requestToPresign = presignRequest(contextToSign, executionAttributes, sourceRegion);
+        requestToPresign = presignRequest(requestToPresign, executionAttributes, sourceRegion);
 
         final String presignedUrl = requestToPresign.getUri().toString();
 
@@ -125,19 +117,19 @@ abstract class RdsPresignInterceptor<T extends RDSRequest> implements ExecutionI
 
     protected abstract PresignableRequest adaptRequest(T originalRequest);
 
-    private SdkHttpFullRequest presignRequest(Context.BeforeTransmission context,
+    private SdkHttpFullRequest presignRequest(SdkHttpFullRequest request,
                                               ExecutionAttributes attributes,
                                               String signingRegion) {
-        Aws4Signer signer = createNewSignerWithRegion(signingRegion);
-        return signer.presign(context, attributes, null);
-    }
 
-    private Aws4Signer createNewSignerWithRegion(String signingRegion) {
-        Aws4Signer signer = new Aws4Signer(true);
-        signer.setRegionName(signingRegion);
-        signer.setServiceName(SERVICE_NAME);
-        signer.setOverrideDate(signingOverrideDate);
-        return signer;
+        Aws4Signer signer = Aws4Signer.create();
+        Aws4PresignerParams presignerParams = Aws4PresignerParams.builder()
+                                                                 .signingRegion(Region.of(signingRegion))
+                                                                 .signingName(SERVICE_NAME)
+                                                                 .signingClockOverride(signingOverrideClock)
+                                                                 .awsCredentials(attributes.getAttribute(AWS_CREDENTIALS))
+                                                                 .build();
+
+        return signer.presign(request, presignerParams);
     }
 
     private URI createEndpoint(String regionName, String serviceName) {

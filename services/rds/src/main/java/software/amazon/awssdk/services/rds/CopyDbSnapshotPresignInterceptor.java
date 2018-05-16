@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.rds;
 
-import java.util.Date;
+import java.time.Clock;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.util.ImmutableObjectUtils;
@@ -32,8 +32,8 @@ public class CopyDbSnapshotPresignInterceptor extends RdsPresignInterceptor<Copy
     }
 
     @SdkTestInternalApi
-    CopyDbSnapshotPresignInterceptor(Date signingOverrideDate) {
-        super(CopyDBSnapshotRequest.class, signingOverrideDate);
+    CopyDbSnapshotPresignInterceptor(Clock signingOverrideClock) {
+        super(CopyDBSnapshotRequest.class, signingOverrideClock);
     }
 
     @Override

@@ -23,8 +23,7 @@ import software.amazon.awssdk.core.http.InterruptMonitor;
 import software.amazon.awssdk.core.http.pipeline.RequestToRequestPipeline;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
-import software.amazon.awssdk.core.runtime.auth.Signer;
-import software.amazon.awssdk.core.runtime.auth.SignerProviderContext;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
@@ -52,11 +51,12 @@ public class SigningStage implements RequestToRequestPipeline {
      */
     private SdkHttpFullRequest signRequest(SdkHttpFullRequest request, RequestExecutionContext context) {
         updateInterceptorContext(request, context.executionContext());
-        Signer signer = newSigner(request, context);
+
+        Signer signer = context.signer();
 
         if (shouldSign(signer)) {
             adjustForClockSkew(context.executionAttributes());
-            return signer.sign(context.executionContext().interceptorContext(), context.executionAttributes());
+            return signer.sign(request, context.executionAttributes());
         }
 
         return request;
@@ -67,17 +67,6 @@ public class SigningStage implements RequestToRequestPipeline {
      */
     private void updateInterceptorContext(SdkHttpFullRequest request, ExecutionContext executionContext) {
         executionContext.interceptorContext(executionContext.interceptorContext().copy(b -> b.httpRequest(request)));
-    }
-
-    /**
-     * Obtain a signer from the {@link software.amazon.awssdk.core.runtime.auth.SignerProvider}.
-     */
-    private Signer newSigner(final SdkHttpFullRequest request, RequestExecutionContext context) {
-        final SignerProviderContext.Builder signerProviderContext = SignerProviderContext
-                .builder()
-                .withRequest(request)
-                .withRequestConfig(context.requestConfig());
-        return context.signerProvider().getSigner(signerProviderContext.build());
     }
 
     /**
