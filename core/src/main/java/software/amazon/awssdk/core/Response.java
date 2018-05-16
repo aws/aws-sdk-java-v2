@@ -19,7 +19,7 @@ import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponse;
 
 /**
- * Response wrapper to provide access to not only the original AWS response
+ * Response wrapper to provide access to not only the original SDK response
  * but also the associated http response.
  *
  * @param <T> the underlying AWS response type.
@@ -30,14 +30,6 @@ public final class Response<T> {
     private final SdkException exception;
     private final HttpResponse httpResponse;
 
-    /**
-     * @deprecated Use {@link #Response(boolean, Object, SdkException, HttpResponse)}
-     */
-    @Deprecated
-    public Response(T response, HttpResponse httpResponse) {
-        this(true, response, null, httpResponse);
-    }
-
     private Response(boolean isSuccess, T response, SdkException exception, HttpResponse httpResponse) {
         this.isSuccess = isSuccess;
         this.response = response;
@@ -45,15 +37,15 @@ public final class Response<T> {
         this.httpResponse = httpResponse;
     }
 
-    public T getAwsResponse() {
+    public T response() {
         return response;
     }
 
-    public SdkException getException() {
+    public SdkException exception() {
         return exception;
     }
 
-    public HttpResponse getHttpResponse() {
+    public HttpResponse httpResponse() {
         return httpResponse;
     }
 

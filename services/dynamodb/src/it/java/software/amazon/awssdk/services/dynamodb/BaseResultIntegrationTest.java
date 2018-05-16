@@ -15,8 +15,9 @@
 
 package software.amazon.awssdk.services.dynamodb;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.regions.Region;
@@ -37,20 +38,18 @@ public class BaseResultIntegrationTest extends AwsIntegrationTestBase {
     }
 
     @Test
-    @Ignore
     @ReviewBeforeRelease("Response metadata has been broken by client/interface refactoring. Fix before release")
     public void responseMetadataInBaseResultIsSameAsMetadataCache() {
         ListTablesRequest request = ListTablesRequest.builder().build();
         ListTablesResponse result = dynamoDB.listTables(request);
-        //assertNotNull(result.getSdkHttpMetadata());
+        assertThat(result.sdkHttpResponse().headers()).isNotNull();
     }
 
     @Test
-    @Ignore
     @ReviewBeforeRelease("Response metadata has been broken by client/interface refactoring. Fix before release")
     public void httpMetadataInBaseResultIsValid() {
         ListTablesResponse result = dynamoDB.listTables(ListTablesRequest.builder().build());
-        //assertEquals(200, result.getSdkHttpMetadata().getHttpStatusCode());
-        //assertThat(result.getSdkHttpMetadata().headers(), hasKey("x-amz-crc32"));
+        assertThat(result.sdkHttpResponse().statusCode()).isEqualTo(200);
+        assertThat(result.sdkHttpResponse().headers()).containsKey("x-amz-crc32");
     }
 }

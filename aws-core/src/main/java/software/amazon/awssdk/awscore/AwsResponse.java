@@ -23,22 +23,25 @@ import software.amazon.awssdk.core.SdkResponse;
 public abstract class AwsResponse extends SdkResponse {
 
     protected AwsResponse(Builder builder) {
+        super(builder);
     }
 
     @Override
     public abstract Builder toBuilder();
 
     protected interface Builder extends SdkResponse.Builder {
+
         @Override
         AwsResponse build();
     }
 
-    protected abstract static class BuilderImpl implements Builder {
+    protected abstract static class BuilderImpl extends SdkResponse.BuilderImpl implements Builder {
 
         protected BuilderImpl() {
         }
 
         protected BuilderImpl(AwsResponse response) {
+            super(response);
         }
     }
 }

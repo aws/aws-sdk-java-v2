@@ -15,10 +15,13 @@
 
 package software.amazon.awssdk.core;
 
+import java.util.Collections;
 import java.util.Map;
+import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * Represents additional metadata included with a response from AWS. Response
+ * Represents additional metadata included with a response from a service. Response
  * metadata varies by service, but all services return an AWS request ID that
  * can be used in the event a service call isn't working as expected and you
  * need to work with AWS support to debug an issue.
@@ -26,7 +29,9 @@ import java.util.Map;
  * Access to AWS request IDs is also available through the com.amazonaws.request
  * logger in the AWS SDK for Java.
  */
-public class ResponseMetadata {
+@Immutable
+@SdkPublicApi
+public class SdkResponseMetadata {
     public static final String AWS_REQUEST_ID = "AWS_REQUEST_ID";
 
     protected final Map<String, String> metadata;
@@ -38,8 +43,8 @@ public class ResponseMetadata {
      * @param metadata
      *            The raw metadata for the new ResponseMetadata object.
      */
-    public ResponseMetadata(Map<String, String> metadata) {
-        this.metadata = metadata;
+    public SdkResponseMetadata(Map<String, String> metadata) {
+        this.metadata = Collections.unmodifiableMap(metadata);
     }
 
     /**
@@ -50,7 +55,7 @@ public class ResponseMetadata {
      *            The ResponseMetadata object from which to create the new
      *            object.
      */
-    public ResponseMetadata(ResponseMetadata originalResponseMetadata) {
+    public SdkResponseMetadata(SdkResponseMetadata originalResponseMetadata) {
         this(originalResponseMetadata.metadata);
     }
 
@@ -61,8 +66,12 @@ public class ResponseMetadata {
      *
      * @return The AWS request ID contained in this response metadata object.
      */
-    public String getRequestId() {
+    public String requestId() {
         return metadata.get(AWS_REQUEST_ID);
+    }
+
+    public String metadata(String key) {
+        return metadata.get(key);
     }
 
     @Override
