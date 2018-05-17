@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.nio.netty.h2;
+package software.amazon.awssdk.http.nio.netty.internal.http2;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -33,11 +33,11 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 @SdkInternalApi
-class SdkHttp2FrameLogger extends Http2FrameLogger {
+public class SdkHttp2FrameLogger extends Http2FrameLogger {
 
     private static final Logger log = LoggerFactory.getLogger(SdkHttp2FrameLogger.class);
 
-    SdkHttp2FrameLogger(LogLevel level) {
+    public SdkHttp2FrameLogger(LogLevel level) {
         super(level);
     }
 
@@ -133,7 +133,6 @@ class SdkHttp2FrameLogger extends Http2FrameLogger {
     @Override
     public void logData(Direction direction, ChannelHandlerContext ctx, int streamId,
                         ByteBuf data, int padding, boolean endStream) {
-        log("REMOTE = " + ctx.channel().remoteAddress().toString());
         log("{} DATA: streamId={} padding={} endStream={} length={}\n{}",
             direction, streamId, padding, endStream, data.nioBuffer().remaining(),
             dataToString(direction, data));

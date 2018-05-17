@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.nio.netty.h2;
+package software.amazon.awssdk.http.nio.netty.internal.http2;
 
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.MAX_CONCURRENT_STREAMS;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.PROTOCOL_FUTURE;
@@ -32,6 +32,7 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
+import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPool;
 
 /**
  * Channel pool that establishes an initial connection to determine protocol. Delegates
@@ -48,7 +49,7 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
     private Promise<ChannelPool> protocolImplPromise;
     private ChannelPool protocolImpl;
 
-    HttpOrHttp2ChannelPool(Bootstrap bootstrap,
+    public HttpOrHttp2ChannelPool(Bootstrap bootstrap,
                            ChannelPoolHandler handler,
                            int maxConcurrency,
                            NettyConfiguration configuration) {

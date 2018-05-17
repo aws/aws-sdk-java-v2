@@ -38,7 +38,7 @@ public final class NettyConfiguration {
     private final AttributeMap serviceDefaults;
     private final NettySdkHttpClientFactory factory;
 
-    public NettyConfiguration(AttributeMap serviceDefaults, NettySdkHttpClientFactory factory) {
+    NettyConfiguration(AttributeMap serviceDefaults, NettySdkHttpClientFactory factory) {
         this.serviceDefaults = serviceDefaults;
         this.factory = factory;
     }

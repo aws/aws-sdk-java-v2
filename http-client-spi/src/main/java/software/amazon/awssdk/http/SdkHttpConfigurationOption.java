@@ -49,6 +49,9 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     public static final SdkHttpConfigurationOption<Integer> MAX_CONNECTIONS =
             new SdkHttpConfigurationOption<>("MaxConnections", Integer.class);
 
+    /**
+     * HTTP protocol to use.
+     */
     public static final SdkHttpConfigurationOption<Protocol> PROTOCOL =
         new SdkHttpConfigurationOption<>("Protocol", Protocol.class);
 

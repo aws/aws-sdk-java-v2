@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.nio.netty.h2;
+package software.amazon.awssdk.http.nio.netty.internal.http2;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -42,9 +42,9 @@ import io.netty.util.concurrent.EventExecutor;
  * {@link HttpToHttp2ConnectionHandler} but since that actually encodes to the raw bytes it doesn't play nice with
  * {@link Http2MultiplexCodec} which expects the frame objects.
  */
-public class HttpToHttp2Adapter extends ChannelOutboundHandlerAdapter {
+public class HttpToHttp2OutboundAdapter extends ChannelOutboundHandlerAdapter {
 
-    HttpToHttp2Adapter() {
+    public HttpToHttp2OutboundAdapter() {
     }
 
     /**

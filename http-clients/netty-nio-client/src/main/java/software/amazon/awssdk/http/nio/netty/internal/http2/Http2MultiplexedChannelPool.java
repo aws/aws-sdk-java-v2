@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.nio.netty.h2;
+package software.amazon.awssdk.http.nio.netty.internal.http2;
 
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.CHANNEL_POOL_RECORD;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.doInEventLoop;
@@ -26,6 +26,7 @@ import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import java.util.ArrayList;
+import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPool;
 
 /**
  * {@link ChannelPool} implementation that handles multiplexed streams. Child channels are created
@@ -98,9 +99,14 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
     }
 
     private void release0(Channel childChannel, Promise<Void> promise) {
-        // TODO check parent channel validity
         Channel parentChannel = childChannel.parent();
-        parentChannel.attr(CHANNEL_POOL_RECORD).get().release();
+        MultiplexedChannelRecord channelRecord = parentChannel.attr(CHANNEL_POOL_RECORD).get();
+        // TODO check parent channel validity
+        if (!parentChannel.isActive()) {
+            connections.remove(channelRecord);
+            connectionPool.release(parentChannel);
+        }
+        channelRecord.release();
         childChannel.close();
         promise.setSuccess(null);
     }

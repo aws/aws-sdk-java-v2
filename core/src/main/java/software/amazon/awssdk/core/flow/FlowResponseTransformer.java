@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.core.flow;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.BaseAsyncResponseTransformer;
 
 /**
@@ -26,25 +24,7 @@ import software.amazon.awssdk.core.async.BaseAsyncResponseTransformer;
  * @param <EventT> Event type returned by the flow stream.
  * @param <ReturnT> Transformation type returned in {@link #complete()}.
  */
-public interface FlowResponseTransformer<ResponseT, EventT, ReturnT> extends BaseAsyncResponseTransformer<ResponseT, ReturnT> {
+public interface FlowResponseTransformer<ResponseT, EventT, ReturnT>
+    extends BaseAsyncResponseTransformer<ResponseT, EventT, ReturnT> {
 
-    /**
-     * Called when events are ready to be streamed. Implementations  must subscribe to the {@link Publisher} and request data via
-     * a {@link org.reactivestreams.Subscription} as they can handle it.
-     *
-     * <p>
-     * If at any time the subscriber wishes to stop receiving data, it may call {@link Subscription#cancel()}. This
-     * will be treated as a failure of the response and the {@link #exceptionOccurred(Throwable)} callback will be invoked.
-     * </p>
-     *
-     * <p>This callback may never be called if the response has no content or if an error occurs.</p>
-     *
-     * <p>
-     * In the event of a retryable error, this callback may be called multiple times with different Publishers.
-     * If this method is called more than once, implementation must either reset any state to prepare for another
-     * stream of data or must throw an exception indicating they cannot reset. If any exception is thrown then no
-     * automatic retry is performed.
-     * </p>
-     */
-    void onStream(FlowPublisher<EventT> publisher);
 }

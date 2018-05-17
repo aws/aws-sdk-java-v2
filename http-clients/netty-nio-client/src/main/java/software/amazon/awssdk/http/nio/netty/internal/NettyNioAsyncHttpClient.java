@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.nio.netty.h2;
+package software.amazon.awssdk.http.nio.netty.internal;
 
 import static software.amazon.awssdk.http.nio.netty.internal.utils.SocketChannelResolver.resolveSocketChannelClass;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
@@ -24,10 +24,8 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolMap;
 import io.netty.handler.codec.http2.Http2SecurityUtil;
-import io.netty.handler.ssl.OpenSsl;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.net.URI;
@@ -44,32 +42,24 @@ import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.http.nio.netty.EventLoopGroupFactory;
 import software.amazon.awssdk.http.nio.netty.NettySdkHttpClientFactory;
-import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
-import software.amazon.awssdk.http.nio.netty.internal.NonManagedEventLoopGroup;
-import software.amazon.awssdk.http.nio.netty.internal.RequestAdapter;
-import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
-import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
-import software.amazon.awssdk.http.nio.netty.internal.SharedEventLoopGroup;
+import software.amazon.awssdk.http.nio.netty.internal.http2.HttpOrHttp2ChannelPool;
 import software.amazon.awssdk.utils.AttributeMap;
 
-public class NettyH2AsyncHttpClient implements SdkAsyncHttpClient {
+public class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
     private final RequestAdapter requestAdapter = new RequestAdapter();
     private final EventLoopGroup group;
     private final ChannelPoolMap<URI, ChannelPool> pools;
     private final NettyConfiguration configuration;
     private final long maxStreams;
-    private H2MetricsCollector metricsCollector;
     private Protocol protocol;
 
-    public NettyH2AsyncHttpClient(NettySdkHttpClientFactory factory, AttributeMap serviceDefaultsMap) {
+    public NettyNioAsyncHttpClient(NettySdkHttpClientFactory factory, AttributeMap serviceDefaultsMap) {
         this.configuration = new NettyConfiguration(serviceDefaultsMap, factory);
         this.pools = createChannelPoolMap(configuration.maxConnectionsPerEndpoint());
         // TODO make configurable
         this.maxStreams = 200;
         this.protocol = serviceDefaultsMap.get(SdkHttpConfigurationOption.PROTOCOL);
-        this.metricsCollector = (methodName, metricName, metric) -> {
-        };
         this.group = factory.eventLoopGroupConfiguration().toEither()
                             .map(e -> e.map(NonManagedEventLoopGroup::new,
                                             EventLoopGroupFactory::create))
@@ -85,7 +75,7 @@ public class NettyH2AsyncHttpClient implements SdkAsyncHttpClient {
                                                     sdkRequest, requestProvider,
                                                     requestAdapter.adapt(sdkRequest),
                                                     handler, configuration);
-        return new H2RunnableRequest(context, metricsCollector);
+        return new RunnableRequest(context);
     }
 
     private static URI poolKey(SdkHttpRequest sdkRequest) {
@@ -97,10 +87,10 @@ public class NettyH2AsyncHttpClient implements SdkAsyncHttpClient {
         if (!protocol.equalsIgnoreCase("https")) {
             return null;
         }
-        SslProvider provider = OpenSsl.isAlpnSupported() ? SslProvider.OPENSSL : SslProvider.JDK;
         try {
             return SslContextBuilder.forClient()
-                                    .sslProvider(provider)
+                                    .sslProvider(SslContext.defaultClientProvider())
+                                    // TODO this seems to work fine with H1 too but confirm
                                     .ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
                                     .trustManager(getTrustManager())
                                     .build();
@@ -127,9 +117,11 @@ public class NettyH2AsyncHttpClient implements SdkAsyncHttpClient {
                         // TODO run some performance tests with and without this.
                         .option(ChannelOption.TCP_NODELAY, true)
                         .remoteAddress(key.getHost(), key.getPort());
-                return new HttpOrHttp2ChannelPool(bootstrap,
-                                                  new Http2MultiplexInitializer(protocol, sslContext, maxStreams),
-                                                  maxConnectionsPerEndpoint, configuration);
+                return new HandlerRemovingChannelPool(
+                    new HttpOrHttp2ChannelPool(bootstrap,
+                                               new ChannelPipelineInitializer(protocol, sslContext, maxStreams),
+                                               maxConnectionsPerEndpoint,
+                                               configuration));
             }
         };
     }

@@ -68,7 +68,6 @@ public final class EventLoopGroupConfiguration
      * ease resolution of the Netty event loop group. Returns an empty {@link Optional} if neither is set.
      */
     @SdkInternalApi
-    @ReviewBeforeRelease("Make package private when H2 impl is put into this package")
     public Optional<Either<EventLoopGroup, EventLoopGroupFactory>> toEither() {
         return Either.fromNullable(eventLoopGroup, eventLoopGroupFactory);
     }

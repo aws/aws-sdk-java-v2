@@ -16,11 +16,8 @@
 package software.amazon.awssdk.core.protocol.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.internal.http.ErrorCodeParser;
 import software.amazon.awssdk.core.internal.http.JsonErrorCodeParser;
 import software.amazon.awssdk.core.internal.http.response.JsonErrorResponseHandler;
@@ -28,7 +25,6 @@ import software.amazon.awssdk.core.runtime.http.JsonErrorMessageParser;
 import software.amazon.awssdk.core.runtime.http.response.JsonResponseHandler;
 import software.amazon.awssdk.core.runtime.transform.JsonErrorUnmarshaller;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
-import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContextImpl;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
 /**
@@ -62,17 +58,6 @@ public abstract class SdkStructuredJsonFactoryImpl implements SdkStructuredJsonF
         return new JsonResponseHandler(responseUnmarshaller, unmarshallers, jsonFactory,
                                        operationMetadata.isHasStreamingSuccessResponse(),
                                        operationMetadata.isPayloadJson());
-    }
-
-    @Override
-    public JsonUnmarshallerContext createJsonUnmarshallerContext(HttpResponse response) {
-        try {
-            return new JsonUnmarshallerContextImpl(jsonFactory.createParser(response.getContent()),
-                                                   unmarshallers,
-                                                   response);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 
     @Override

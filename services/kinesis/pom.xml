@@ -44,10 +44,5 @@
             <artifactId>netty-nio-client</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
-        <dependency>
-            <groupId>software.amazon</groupId>
-            <artifactId>flow</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 </project>

@@ -29,13 +29,13 @@ import java.nio.file.Path;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.reactivestreams.Publisher;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.pagination.async.SdkPublisher;
 import software.amazon.awssdk.core.util.ImmutableMapParameter;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -109,7 +109,7 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
                         }
 
                         @Override
-                        public void onStream(Publisher<ByteBuffer> publisher) {
+                        public void onStream(SdkPublisher<ByteBuffer> publisher) {
                             publisher.subscribe(new SimpleSubscriber(b -> {
                             }));
                         }

@@ -25,10 +25,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.atomic.AtomicLong;
-import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.pagination.async.SdkPublisher;
 
 /**
  * {@link AsyncResponseTransformer} that writes the data to the specified file.
@@ -56,7 +56,7 @@ class FileAsyncResponseTransformer<ResponseT> implements AsyncResponseTransforme
     }
 
     @Override
-    public void onStream(Publisher<ByteBuffer> publisher) {
+    public void onStream(SdkPublisher<ByteBuffer> publisher) {
         // onStream may be called multiple times so reset the file channel every time
         this.fileChannel = invokeSafely(() -> createChannel(path));
         publisher.subscribe(new FileSubscriber());

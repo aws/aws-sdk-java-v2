@@ -35,6 +35,7 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.http.SdkHttpResponseAdapter;
 import software.amazon.awssdk.core.http.async.SyncResponseHandlerAdapter;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.pagination.async.SdkPublisher;
 import software.amazon.awssdk.core.util.Throwables;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -256,7 +257,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
 
         @Override
         public void onStream(Publisher<ByteBuffer> publisher) {
-            asyncResponseTransformer.onStream(publisher);
+            asyncResponseTransformer.onStream(SdkPublisher.adapt(publisher));
         }
 
         @Override

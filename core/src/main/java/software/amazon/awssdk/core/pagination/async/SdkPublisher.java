@@ -30,4 +30,15 @@ public interface SdkPublisher<T> extends Publisher<T> {
         subscribe(new SequentialSubscriber<>(consumer, future));
         return future;
     }
+
+    /**
+     * Adapts a {@link Publisher} to {@link SdkPublisher}.
+     *
+     * @param toAdapt {@link Publisher} to adapt.
+     * @param <T> Type of object being published.
+     * @return SdkPublisher
+     */
+    static <T> SdkPublisher<T> adapt(Publisher<T> toAdapt) {
+        return toAdapt::subscribe;
+    }
 }
