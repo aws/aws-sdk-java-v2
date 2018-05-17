@@ -21,10 +21,9 @@ import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpClientDependencies;
 import software.amazon.awssdk.core.http.InterruptMonitor;
 import software.amazon.awssdk.core.http.pipeline.RequestToRequestPipeline;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
-import software.amazon.awssdk.core.signerspi.Signer;
-import software.amazon.awssdk.core.signerspi.SignerContext;
+import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.core.signer.SignerContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
@@ -50,15 +49,14 @@ public class SigningStage implements RequestToRequestPipeline {
     /**
      * Sign the request if the signer if provided and credentials are present.
      */
-    //TODO
     private SdkHttpFullRequest signRequest(SdkHttpFullRequest request, RequestExecutionContext context) {
         updateInterceptorContext(request, context.executionContext());
 
-        final Signer signer = context.signer();
-        final SignerContext signerContext = context.executionContext().getSignerContext();
+        Signer signer = context.signer();
+        SignerContext signerContext = context.executionContext().getSignerContext();
 
-        if (shouldSign(signer)) {
-            adjustForClockSkew(context.executionAttributes());
+        if (shouldSign(signer, signerContext)) {
+            signerContext = adjustForClockSkew(signerContext);
             return signer.sign(request, signerContext);
         }
 
@@ -79,14 +77,16 @@ public class SigningStage implements RequestToRequestPipeline {
      */
     @ReviewBeforeRelease("add back credential check (credentials != null || signer instanceof CanHandleNullCredentials) when "
                          + "refactoring signer")
-    private boolean shouldSign(Signer signer) {
-        return signer != null;
+    private boolean shouldSign(Signer signer, SignerContext signerContext) {
+        return signer != null && signerContext != null;
     }
 
     /**
      * Always use the client level timeOffset.
      */
-    private void adjustForClockSkew(ExecutionAttributes attributes) {
-        attributes.putAttribute(SdkExecutionAttributes.TIME_OFFSET, dependencies.timeOffset());
+    private SignerContext adjustForClockSkew(SignerContext signerContext) {
+        return signerContext.toBuilder()
+                            .putAttribute(SdkExecutionAttributes.TIME_OFFSET, dependencies.timeOffset())
+                            .build();
     }
 }

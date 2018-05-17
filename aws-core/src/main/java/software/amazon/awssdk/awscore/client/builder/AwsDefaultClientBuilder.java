@@ -183,7 +183,7 @@ public abstract class AwsDefaultClientBuilder<B extends AwsClientBuilder<B, C>, 
             protected void applyOverrideDefaults(ClientOverrideConfiguration.Builder builder) {
                 builder.advancedOption(AwsAdvancedClientOption.AWS_REGION,
                                        resolveRegion().orElseThrow(() -> new SdkClientException("AWS region not provided")));
-                builder.advancedOption(AwsAdvancedClientOption.SIGNING_NAME, signingName());
+                builder.advancedOption(AwsAdvancedClientOption.SERVICE_SIGNING_NAME, signingName());
             }
         };
     }

@@ -142,14 +142,14 @@ public class S3EndpointResolutionTest {
      */
     @Test
     public void customHttpEndpoint_PreservesSchemeWhenSwitchingToVirtualAddressing() throws Exception {
-//        URI customEndpoint = URI.create("http://s3-external-1.amazonaws.com");
-//        mockHttpClient.stubNextResponse(mockListObjectsResponse());
-//        S3Client s3Client = clientBuilder().endpointOverride(customEndpoint).build();
-//
-//        s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
-//
-//        assertEndpointMatches(mockHttpClient.getLastRequest(),
-//                              String.format("http://%s.s3-external-1.amazonaws.com", BUCKET));
+        URI customEndpoint = URI.create("http://s3-external-1.amazonaws.com");
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().endpointOverride(customEndpoint).build();
+
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
+
+        assertEndpointMatches(mockHttpClient.getLastRequest(),
+                              String.format("http://%s.s3-external-1.amazonaws.com", BUCKET));
     }
 
     /**

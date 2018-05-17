@@ -38,7 +38,7 @@ import software.amazon.awssdk.http.SdkHttpMethod;
  */
 public class Aws4SignerTest {
 
-    private Aws4Signer signer = new Aws4Signer();
+    private Aws4Signer signer = Aws4Signer.create();
 
     @Test
     public void testSigning() throws Exception {
@@ -112,7 +112,7 @@ public class Aws4SignerTest {
         calendar.set(1981, 1, 16, 6, 30, 0);
         calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        SdkHttpFullRequest signed = SignerTestUtils.presignRequest(signer, request, credentials, null,"demo", calendar.getTime(), "us-east-1");
+        SdkHttpFullRequest signed = SignerTestUtils.presignRequest(signer, request, credentials, null, "demo", calendar.getTime(), "us-east-1");
         assertEquals(expectedAmzSignature, signed.rawQueryParameters().get("X-Amz-Signature").get(0));
         assertEquals(expectedAmzCredentials, signed.rawQueryParameters().get("X-Amz-Credential").get(0));
         assertEquals(expectedAmzHeader, signed.rawQueryParameters().get("X-Amz-Date").get(0));
@@ -149,7 +149,7 @@ public class Aws4SignerTest {
         c.set(1981, 1, 16, 6, 30, 0);
         c.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        SdkHttpFullRequest actual = SignerTestUtils.signRequest(signer, request.build(), credentials,"demo", c.getTime(), "us-east-1");
+        SdkHttpFullRequest actual = SignerTestUtils.signRequest(signer, request.build(), credentials, "demo", c.getTime(), "us-east-1");
 
         assertThat(actual.firstMatchingHeader("Authorization"))
                 .hasValue("AWS4-HMAC-SHA256 Credential=akid/19810216/us-east-1/demo/aws4_request, " +

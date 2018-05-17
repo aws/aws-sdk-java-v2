@@ -34,8 +34,8 @@ import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
 import software.amazon.awssdk.core.internal.http.response.ErrorDuringUnmarshallingResponseHandler;
 import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
 import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
-import software.amazon.awssdk.core.signerspi.NoOpSigner;
-import software.amazon.awssdk.core.signerspi.SignerContext;
+import software.amazon.awssdk.core.signer.NoOpSigner;
+import software.amazon.awssdk.core.signer.SignerContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
@@ -127,7 +127,7 @@ public class ClientExecutionAndRequestTimerTestUtils {
                                   .build();
         return ExecutionContext.builder()
                                .signer(new NoOpSigner())
-                               .signerContext(new SignerContext())
+                               .signerContext(SignerContext.builder().build())
                                .interceptorChain(new ExecutionInterceptorChain(Collections.emptyList()))
                                .executionAttributes(new ExecutionAttributes())
                                .interceptorContext(incerceptorContext)

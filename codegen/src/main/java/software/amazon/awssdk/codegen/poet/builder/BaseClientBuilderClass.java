@@ -33,7 +33,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.signerspi.Signer;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.utils.AttributeMap;
 
 public class BaseClientBuilderClass implements ClassSpec {
@@ -188,7 +188,7 @@ public class BaseClientBuilderClass implements ClassSpec {
     }
 
     private CodeBlock v4SignerDefinitionMethodBody() {
-        return CodeBlock.of("return new $T();", Aws4Signer.class);
+        return CodeBlock.of("return $T.create();", Aws4Signer.class);
     }
 
     private CodeBlock v2SignerDefinitionMethodBody() {
@@ -196,7 +196,7 @@ public class BaseClientBuilderClass implements ClassSpec {
     }
 
     private CodeBlock s3SignerDefinitionMethodBody() {
-        return CodeBlock.of("return $T.builder().build();\n",
+        return CodeBlock.of("return $T.create();\n",
                             ClassName.get("software.amazon.awssdk.services.s3", "AwsS3V4Signer"));
     }
 

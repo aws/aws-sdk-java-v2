@@ -24,7 +24,7 @@ import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.signer.internal.AwsSignerParams;
 import software.amazon.awssdk.auth.util.CredentialUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.signerspi.SignerContext;
+import software.amazon.awssdk.core.signer.SignerContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -50,17 +50,17 @@ public class QueryStringSigner extends AbstractAwsSigner {
         AwsSignerParams signerParams = signerContext.getAttribute(AwsExecutionAttributes.AWS_SIGNER_PARAMS);
 
         // anonymous credentials, don't sign
-        if (CredentialUtils.isAnonymous(signerParams.getAwsCredentials())) {
+        if (CredentialUtils.isAnonymous(signerParams.awsCredentials())) {
             return request;
         }
 
         SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
 
-        AwsCredentials sanitizedCredentials = sanitizeCredentials(signerParams.getAwsCredentials());
+        AwsCredentials sanitizedCredentials = sanitizeCredentials(signerParams.awsCredentials());
         mutableRequest.rawQueryParameter("AWSAccessKeyId", sanitizedCredentials.accessKeyId());
         mutableRequest.rawQueryParameter("SignatureVersion", "2");
 
-        int timeOffset = signerParams.getTimeOffset() == null ? 0 : signerParams.getTimeOffset();
+        int timeOffset = signerParams.timeOffset() == null ? 0 : signerParams.timeOffset();
         mutableRequest.rawQueryParameter("Timestamp", getFormattedTimestamp(timeOffset));
 
         if (sanitizedCredentials instanceof AwsSessionCredentials) {

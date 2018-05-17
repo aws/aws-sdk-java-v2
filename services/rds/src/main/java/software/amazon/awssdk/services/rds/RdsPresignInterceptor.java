@@ -31,7 +31,7 @@ import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.signerspi.SignerContext;
+import software.amazon.awssdk.core.signer.SignerContext;
 import software.amazon.awssdk.core.util.AwsHostNameUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -127,20 +127,24 @@ abstract class RdsPresignInterceptor<T extends RDSRequest> implements ExecutionI
     private SdkHttpFullRequest presignRequest(SdkHttpFullRequest request,
                                               ExecutionAttributes attributes,
                                               String signingRegion) {
-        Aws4Signer signer = new Aws4Signer(true);
+
+        Aws4Signer signer = Aws4Signer.create();
         SignerContext signerContext = createSignerContext(attributes, signingRegion);
 
         return signer.presign(request, signerContext);
     }
 
     private SignerContext createSignerContext(ExecutionAttributes attributes, String signingRegion) {
-        AwsPresignerParams presignerParams = new AwsPresignerParams();
-        presignerParams.setRegion(Region.of(signingRegion));
-        presignerParams.setSigningName(SERVICE_NAME);
-        presignerParams.setSigningDateOverride(signingOverrideDate);
-        presignerParams.setAwsCredentials(attributes.getAttribute(AWS_CREDENTIALS));
+        AwsPresignerParams presignerParams = AwsPresignerParams.builder()
+                                                               .region(Region.of(signingRegion))
+                                                               .signingName(SERVICE_NAME)
+                                                               .signingDateOverride(signingOverrideDate)
+                                                               .awsCredentials(attributes.getAttribute(AWS_CREDENTIALS))
+                                                               .build();
 
-        return new SignerContext().putAttribute(AwsExecutionAttributes.AWS_SIGNER_PARAMS, presignerParams);
+        return SignerContext.builder()
+                            .putAttribute(AwsExecutionAttributes.AWS_SIGNER_PARAMS, presignerParams)
+                            .build();
     }
 
     private URI createEndpoint(String regionName, String serviceName) {

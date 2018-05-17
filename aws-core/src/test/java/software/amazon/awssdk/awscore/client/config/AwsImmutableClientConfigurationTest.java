@@ -37,7 +37,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.core.signerspi.NoOpSigner;
+import software.amazon.awssdk.core.signer.NoOpSigner;
 
 /**
  * Validate the functionality of {@link SdkImmutableClientConfiguration}.

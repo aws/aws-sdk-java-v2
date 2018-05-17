@@ -13,13 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.credentials;
+package software.amazon.awssdk.core.signer;
 
-import software.amazon.awssdk.core.SignableRequest;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 
-/**
- * Used to explicitly indicate that a {@link Signer} can gracefully handle
- * credentials being null when calling {@link Signer#sign(SignableRequest)}
- */
-public interface CanHandleNullCredentials {
+public interface Presigner {
+
+    SdkHttpFullRequest presign(SdkHttpFullRequest request, SignerContext signerContext);
 }

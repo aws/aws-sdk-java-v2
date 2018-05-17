@@ -25,7 +25,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import org.junit.Test;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.core.signerspi.NoOpSigner;
+import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 

@@ -26,7 +26,7 @@ import software.amazon.awssdk.core.config.InternalAdvancedClientOption;
 import software.amazon.awssdk.core.config.defaults.SdkClientConfigurationDefaults;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.signerspi.Signer;
+import software.amazon.awssdk.core.signer.Signer;
 
 /**
  * An implementation of {@link SdkClientConfigurationDefaults} that can be used by client builders to define their service

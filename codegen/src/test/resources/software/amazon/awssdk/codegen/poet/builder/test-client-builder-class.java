@@ -6,7 +6,7 @@ import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.config.defaults.AwsClientConfigurationDefaults;
 import software.amazon.awssdk.awscore.config.defaults.ServiceBuilderConfigurationDefaults;
-import software.amazon.awssdk.core.signerspi.Signer;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
@@ -30,7 +30,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     }
 
     private Signer defaultSigner() {
-        return new Aws4Signer();
+        return Aws4Signer.create();
     }
 
     @Override

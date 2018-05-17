@@ -46,7 +46,7 @@ public class AwsAdvancedClientOption<T> extends SdkAdvancedClientOption<T> {
     public static final AwsAdvancedClientOption<Boolean> ENABLE_DEFAULT_REGION_DETECTION =
         new AwsAdvancedClientOption<>(Boolean.class);
 
-    public static final AwsAdvancedClientOption<String> SIGNING_NAME = new AwsAdvancedClientOption<>(String.class);
+    public static final AwsAdvancedClientOption<String> SERVICE_SIGNING_NAME = new AwsAdvancedClientOption<>(String.class);
 
     protected AwsAdvancedClientOption(Class<T> valueClass) {
         super(valueClass);

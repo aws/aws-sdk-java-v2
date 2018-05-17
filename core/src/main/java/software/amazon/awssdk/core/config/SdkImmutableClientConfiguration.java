@@ -49,7 +49,6 @@ public abstract class SdkImmutableClientConfiguration implements SdkClientConfig
      */
     private void validate() {
         // Ensure they have configured something that allows us to derive the endpoint
-        //TODO
         requireField("overrideConfiguration.advancedOption[SIGNER]",
                      overrideConfiguration().advancedOption(SdkAdvancedClientOption.SIGNER));
         requireField("overrideConfiguration.gzipEnabled", overrideConfiguration().gzipEnabled());

@@ -20,7 +20,6 @@ import static software.amazon.awssdk.utils.Validate.validState;
 
 import java.io.IOException;
 import java.io.InputStream;
-import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.core.exception.ResetException;
@@ -52,20 +51,28 @@ public final class AwsS3V4Signer extends Aws4Signer implements
      * Don't double-url-encode path elements; S3 expects path elements to be encoded only once in
      * the canonical URI.
      */
-    private AwsS3V4Signer(DefaultAwsS3V4SignerBuilder builder) {
-        super(false);
+    private AwsS3V4Signer(Builder builder) {
+        super(builder);
         this.disableChunkedEncoding = builder.disableChunkedEncoding;
         this.enablePayloadSigning = builder.enablePayloadSigning;
     }
 
     public static Builder builder() {
-        return new DefaultAwsS3V4SignerBuilder();
+        return new Builder();
     }
 
     @Override
     public Builder toBuilder() {
         return builder().disableChunkedEncoding(disableChunkedEncoding)
                         .enablePayloadSigning(enablePayloadSigning);
+    }
+
+    public Boolean disableChunkedEncoding() {
+        return disableChunkedEncoding;
+    }
+
+    public Boolean enablePayloadSigning() {
+        return enablePayloadSigning;
     }
 
     /**
@@ -78,7 +85,7 @@ public final class AwsS3V4Signer extends Aws4Signer implements
                                          Aws4SignerRequestParams signerRequestParams) {
         if (useChunkEncoding(requestBuilder)) {
             AwsChunkedEncodingInputStream chunkEncodededStream = new AwsChunkedEncodingInputStream(
-                signerRequestParams.httpRequest().content(),
+                requestBuilder.content(),
                 signingKey,
                 signerRequestParams.getFormattedSigningDateTime(),
                 signerRequestParams.getScope(),
@@ -146,9 +153,9 @@ public final class AwsS3V4Signer extends Aws4Signer implements
      */
     // TODO Chunked encoding should be used for PutObject and UploadPart APIs if not explicitly disabled by user
     // Where to set that value?
-    private boolean useChunkEncoding(SdkHttpFullRequest.Builder request) {
+    private boolean useChunkEncoding(SdkHttpFullRequest.Builder mutableRequest) {
         // Chunked encoding only makes sense to do when the payload is signed
-        return isPayloadSigningEnabled(request) && !isChunkedEncodingDisabled();
+        return isPayloadSigningEnabled(mutableRequest) && !isChunkedEncodingDisabled();
     }
 
     /**
@@ -197,28 +204,16 @@ public final class AwsS3V4Signer extends Aws4Signer implements
         return contentLength;
     }
 
-
-    @NotThreadSafe
-    public interface Builder extends CopyableBuilder<Builder, AwsS3V4Signer> {
-
-        Builder disableChunkedEncoding(Boolean disableChunkedEncoding);
-
-
-        Builder enablePayloadSigning(Boolean enablePayloadSigning);
-    }
-
-    private static final class DefaultAwsS3V4SignerBuilder implements Builder {
+    public static final class Builder extends Aws4Signer.Builder<Builder> implements CopyableBuilder<Builder, AwsS3V4Signer> {
 
         private Boolean disableChunkedEncoding;
         private Boolean enablePayloadSigning;
 
-        @Override
         public Builder disableChunkedEncoding(Boolean disableChunkedEncoding) {
             this.disableChunkedEncoding = disableChunkedEncoding;
             return this;
         }
 
-        @Override
         public Builder enablePayloadSigning(Boolean enablePayloadSigning) {
             this.enablePayloadSigning = enablePayloadSigning;
             return this;
@@ -226,6 +221,7 @@ public final class AwsS3V4Signer extends Aws4Signer implements
 
         @Override
         public AwsS3V4Signer build() {
+            super.doubleUrlEncode(false);
             return new AwsS3V4Signer(this);
         }
     }

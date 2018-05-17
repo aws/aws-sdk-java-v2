@@ -28,7 +28,7 @@ import software.amazon.awssdk.awscore.config.defaults.AwsClientConfigurationDefa
 import software.amazon.awssdk.awscore.config.defaults.AwsGlobalClientConfigurationDefaults;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
-import software.amazon.awssdk.core.signerspi.NoOpSigner;
+import software.amazon.awssdk.core.signer.NoOpSigner;
 
 /**
  * Validate functionality of {@link AwsGlobalClientConfigurationDefaults}.

@@ -19,14 +19,31 @@ import java.util.Date;
 
 public class AwsPresignerParams extends AwsSignerParams {
 
-    private Date expirationDate;
+    private final Date expirationDate;
 
-    public Date getExpirationDate() {
+    private AwsPresignerParams(Builder builder) {
+        super(builder);
+        this.expirationDate = builder.expirationDate;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public Date expirationDate() {
         return expirationDate;
     }
 
-    public AwsPresignerParams setExpirationDate(Date expirationDate) {
-        this.expirationDate = expirationDate;
-        return this;
+    public static final class Builder extends AwsSignerParams.Builder<Builder> {
+        private Date expirationDate;
+
+        public Builder expirationDate(Date expirationDate) {
+            this.expirationDate = expirationDate;
+            return this;
+        }
+
+        public AwsPresignerParams build() {
+            return new AwsPresignerParams(this);
+        }
     }
 }
