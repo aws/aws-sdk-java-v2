@@ -20,8 +20,8 @@ import static software.amazon.awssdk.utils.Validate.validState;
 
 import java.io.IOException;
 import java.io.InputStream;
-import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.signer.SdkClock;
 import software.amazon.awssdk.auth.signer.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.core.exception.ResetException;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -52,20 +52,28 @@ public final class AwsS3V4Signer extends Aws4Signer implements
      * Don't double-url-encode path elements; S3 expects path elements to be encoded only once in
      * the canonical URI.
      */
-    private AwsS3V4Signer(DefaultAwsS3V4SignerBuilder builder) {
-        super(false);
+    private AwsS3V4Signer(Builder builder) {
+        super(builder);
         this.disableChunkedEncoding = builder.disableChunkedEncoding;
         this.enablePayloadSigning = builder.enablePayloadSigning;
     }
 
     public static Builder builder() {
-        return new DefaultAwsS3V4SignerBuilder();
+        return new Builder();
     }
 
     @Override
     public Builder toBuilder() {
         return builder().disableChunkedEncoding(disableChunkedEncoding)
                         .enablePayloadSigning(enablePayloadSigning);
+    }
+
+    public Boolean disableChunkedEncoding() {
+        return disableChunkedEncoding;
+    }
+
+    public Boolean enablePayloadSigning() {
+        return enablePayloadSigning;
     }
 
     /**
@@ -78,7 +86,7 @@ public final class AwsS3V4Signer extends Aws4Signer implements
                                          Aws4SignerRequestParams signerRequestParams) {
         if (useChunkEncoding(requestBuilder)) {
             AwsChunkedEncodingInputStream chunkEncodededStream = new AwsChunkedEncodingInputStream(
-                signerRequestParams.httpRequest().content(),
+                requestBuilder.content(),
                 signingKey,
                 signerRequestParams.getFormattedSigningDateTime(),
                 signerRequestParams.getScope(),
@@ -197,32 +205,31 @@ public final class AwsS3V4Signer extends Aws4Signer implements
         return contentLength;
     }
 
-
-    @NotThreadSafe
-    public interface Builder extends CopyableBuilder<Builder, AwsS3V4Signer> {
-
-        Builder disableChunkedEncoding(Boolean disableChunkedEncoding);
-
-
-        Builder enablePayloadSigning(Boolean enablePayloadSigning);
-    }
-
-    private static final class DefaultAwsS3V4SignerBuilder implements Builder {
+    public static final class Builder extends Aws4Signer.Builder implements CopyableBuilder<Builder, AwsS3V4Signer> {
 
         private Boolean disableChunkedEncoding;
         private Boolean enablePayloadSigning;
 
-        @Override
         public Builder disableChunkedEncoding(Boolean disableChunkedEncoding) {
             this.disableChunkedEncoding = disableChunkedEncoding;
             return this;
         }
 
-        @Override
         public Builder enablePayloadSigning(Boolean enablePayloadSigning) {
             this.enablePayloadSigning = enablePayloadSigning;
             return this;
         }
+
+        public Builder doubleUrlEncode(Boolean doubleUrlEncode) {
+            super.doubleUrlEncode(doubleUrlEncode);
+            return this;
+        }
+
+        public Builder clock(SdkClock clock) {
+            super.clock(clock);
+            return this;
+        }
+
 
         @Override
         public AwsS3V4Signer build() {

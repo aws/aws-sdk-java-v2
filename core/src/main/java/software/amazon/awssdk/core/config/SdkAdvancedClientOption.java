@@ -16,8 +16,8 @@
 package software.amazon.awssdk.core.config;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.core.signerspi.Signer;
-import software.amazon.awssdk.core.signerspi.SignerContext;
+import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.core.signer.SignerContext;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**

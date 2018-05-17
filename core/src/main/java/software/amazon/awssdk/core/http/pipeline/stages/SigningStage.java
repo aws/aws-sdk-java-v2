@@ -23,8 +23,8 @@ import software.amazon.awssdk.core.http.InterruptMonitor;
 import software.amazon.awssdk.core.http.pipeline.RequestToRequestPipeline;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
-import software.amazon.awssdk.core.signerspi.Signer;
-import software.amazon.awssdk.core.signerspi.SignerContext;
+import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.core.signer.SignerContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**

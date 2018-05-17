@@ -38,7 +38,7 @@ import software.amazon.awssdk.http.SdkHttpMethod;
  */
 public class Aws4SignerTest {
 
-    private Aws4Signer signer = new Aws4Signer();
+    private Aws4Signer signer = Aws4Signer.create();
 
     @Test
     public void testSigning() throws Exception {

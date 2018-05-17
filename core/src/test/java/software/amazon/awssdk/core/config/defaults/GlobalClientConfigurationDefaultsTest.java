@@ -24,7 +24,7 @@ import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.config.SdkImmutableAsyncClientConfiguration;
 import software.amazon.awssdk.core.config.SdkImmutableSyncClientConfiguration;
 import software.amazon.awssdk.core.config.SdkMutableClientConfiguration;
-import software.amazon.awssdk.core.signerspi.NoOpSigner;
+import software.amazon.awssdk.core.signer.NoOpSigner;
 
 /**
  * Validate functionality of {@link GlobalClientConfigurationDefaults}.

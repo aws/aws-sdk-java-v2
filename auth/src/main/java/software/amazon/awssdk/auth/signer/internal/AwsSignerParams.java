@@ -27,66 +27,92 @@ import software.amazon.awssdk.regions.Region;
  */
 public class AwsSignerParams {
 
-    private static final boolean DEFAULT_DOUBLE_URL_ENCODE = true;
+    private final Boolean doubleUrlEncode;
+    private final AwsCredentials awsCredentials;
+    private final String signingName;
+    private final Region region;
+    private final Integer timeOffset;
+    private final Date signingDateOverride;
 
-    private boolean doubleUrlEncode = DEFAULT_DOUBLE_URL_ENCODE;
+    protected AwsSignerParams(BuilderImpl builder) {
+        this.doubleUrlEncode = builder.doubleUrlEncode;
+        this.awsCredentials = builder.awsCredentials;
+        this.signingName = builder.signingName;
+        this.region = builder.region;
+        this.timeOffset = builder.timeOffset;
+        this.signingDateOverride = builder.signingDateOverride;
+    }
 
-    private AwsCredentials awsCredentials;
+    public static BuilderImpl builder() {
+        return new BuilderImpl();
+    }
 
-    private String signingName;
+    public Boolean doubleUrlEncode() {
+        return doubleUrlEncode;
+    }
 
-    private Region region;
+    public AwsCredentials awsCredentials() {
+        return awsCredentials;
+    }
 
-    private Integer timeOffset;
+    public String signingName() {
+        return signingName;
+    }
 
-    private Date signingDateOverride;
+    public Region region() {
+        return region;
+    }
+
+    public Integer timeOffset() {
+        return timeOffset;
+    }
 
     public Date getSigningDateOverride() {
         return signingDateOverride;
     }
 
-    public void setSigningDateOverride(Date signingDateOverride) {
-        this.signingDateOverride = signingDateOverride;
-    }
+    public static class BuilderImpl {
+        private static final Boolean DEFAULT_DOUBLE_URL_ENCODE = Boolean.TRUE;
 
-    public boolean isDoubleUrlEncode() {
-        return doubleUrlEncode;
-    }
+        private Boolean doubleUrlEncode = DEFAULT_DOUBLE_URL_ENCODE;
+        private AwsCredentials awsCredentials;
+        private String signingName;
+        private Region region;
+        private Integer timeOffset;
+        private Date signingDateOverride;
 
-    public void setDoubleUrlEncode(boolean doubleUrlEncode) {
-        this.doubleUrlEncode = doubleUrlEncode;
-    }
+        public BuilderImpl awsCredentials(AwsCredentials awsCredentials) {
+            this.awsCredentials = awsCredentials;
+            return this;
+        }
 
+        public BuilderImpl signingName(String signingName) {
+            this.signingName = signingName;
+            return this;
+        }
 
-    public AwsCredentials getAwsCredentials() {
-        return awsCredentials;
-    }
+        public BuilderImpl region(Region region) {
+            this.region = region;
+            return this;
+        }
 
-    public void setAwsCredentials(AwsCredentials awsCredentials) {
-        this.awsCredentials = awsCredentials;
-    }
+        public BuilderImpl timeOffset(Integer timeOffset) {
+            this.timeOffset = timeOffset;
+            return this;
+        }
 
-    public String getSigningName() {
-        return signingName;
-    }
+        public BuilderImpl doubleUrlEncode(Boolean doubleUrlEncode) {
+            this.doubleUrlEncode = doubleUrlEncode;
+            return this;
+        }
 
-    public void setSigningName(String signingName) {
-        this.signingName = signingName;
-    }
+        public BuilderImpl signingDateOverride(Date signingDateOverride) {
+            this.signingDateOverride = signingDateOverride;
+            return this;
+        }
 
-    public Region getRegion() {
-        return region;
-    }
-
-    public void setRegion(Region region) {
-        this.region = region;
-    }
-
-    public Integer getTimeOffset() {
-        return timeOffset;
-    }
-
-    public void setTimeOffset(Integer timeOffset) {
-        this.timeOffset = timeOffset;
+        public AwsSignerParams build() {
+            return new AwsSignerParams(this);
+        }
     }
 }

@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.signerspi;
+package software.amazon.awssdk.core.signer;
 
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
-public interface Signer {
+public interface Presigner {
 
-    SdkHttpFullRequest sign(SdkHttpFullRequest request, SignerContext signerContext);
+    SdkHttpFullRequest presign(SdkHttpFullRequest request, SignerContext signerContext);
 }

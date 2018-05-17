@@ -21,7 +21,7 @@ import software.amazon.awssdk.auth.signer.internal.AwsSignerParams;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
-import software.amazon.awssdk.core.signerspi.Signer;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.regions.Region;
 
 /**
@@ -49,7 +49,7 @@ public final class AwsExecutionAttributes extends SdkExecutionAttributes {
     /**
      * The signing name of the service to be using in SigV4 signing
      */
-    public static final ExecutionAttribute<String> SIGNING_NAME = new ExecutionAttribute<>("SigningName");
+    public static final ExecutionAttribute<String> SERVICE_SIGNING_NAME = new ExecutionAttribute<>("ServiceSigningName");
 
     private AwsExecutionAttributes() {
     }

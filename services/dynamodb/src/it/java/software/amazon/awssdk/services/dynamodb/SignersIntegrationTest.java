@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.core.config.SdkAdvancedClientOption.SIGNER;
 import static software.amazon.awssdk.core.config.SdkAdvancedClientOption.SIGNER_CONTEXT;
 
@@ -22,15 +23,19 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.internal.AwsSignerParams;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.signerspi.SignerContext;
+import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.signer.SignerContext;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -38,72 +43,115 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.DynamoDBException;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.utils.IoUtils;
+import utils.resources.tables.BasicTempTable;
+import utils.test.util.TableUtils;
 
-// TODO Clean up test. Using hard coded values for initial testing
 public class SignersIntegrationTest {
 
-    private static final String EXPECTED_RESULT = "{\"Item\":{\"value\":{\"N\":\"5\"},\"UID\":{\"S\":\"varunkn\"},\"foo\":{\"S\":\"bar\"}}}";
+    private static final Region REGION = Region.US_WEST_1;
+    private static final String TABLE_NAME = BasicTempTable.TEMP_TABLE_NAME;
+    private static final String HASH_KEY_NAME = "UID";
+    private static final String HASH_KEY_VALUE = "123789";
+    private static final String ATTRIBUTE_FOO = "foo";
+    private static final String ATTRIBUTE_FOO_VALUE = "bar";
+
+    private static DynamoDBClient dynamo;
+
+    @BeforeClass
+    public static void setUpFixture() throws Exception {
+        dynamo = DynamoDBClient.builder().region(REGION).build();
+
+        dynamo.createTable(CreateTableRequest.builder().tableName(TABLE_NAME)
+                                             .keySchema(KeySchemaElement.builder().keyType(KeyType.HASH)
+                                                                        .attributeName(HASH_KEY_NAME)
+                                                                        .build())
+                                             .attributeDefinitions(AttributeDefinition.builder()
+                                                                                      .attributeType(ScalarAttributeType.S)
+                                                                                      .attributeName(HASH_KEY_NAME)
+                                                                                      .build())
+                                             .provisionedThroughput(ProvisionedThroughput.builder()
+                                                                                         .readCapacityUnits(5L)
+                                                                                         .writeCapacityUnits(5L)
+                                                                                         .build())
+                                             .build());
+
+        TableUtils.waitUntilActive(dynamo, TABLE_NAME);
+
+        putTestData();
+    }
+
+    private static void putTestData() {
+        Map<String, AttributeValue> item = new HashMap();
+        item.put(HASH_KEY_NAME, AttributeValue.builder().s(HASH_KEY_VALUE).build());
+        item.put(ATTRIBUTE_FOO, AttributeValue.builder().s(ATTRIBUTE_FOO_VALUE).build());
+        dynamo.putItem(PutItemRequest.builder().tableName(TABLE_NAME).item(item).build());
+    }
+
+    @AfterClass
+    public static void cleanUpFixture() {
+        dynamo.deleteTable(DeleteTableRequest.builder().tableName(TABLE_NAME).build());
+    }
 
     @Test
-    public void test_UsingSdkDefaultSigners() throws JsonProcessingException {
-
-        Region region = Region.US_WEST_1;
-
-        DynamoDBClient client = DynamoDBClient.builder()
-                                              .region(region)
-                                              .build();
-
-        Map<String, AttributeValue> item =
-            client.getItem(GetItemRequest.builder()
-                                         .tableName("VoxTests1")
-                                         .key(Collections.singletonMap("UID", AttributeValue.builder()
-                                                                                            .s("varunkn")
-                                                                                            .build()))
-                                         .build())
-                  .item();
-
-        Assert.assertEquals("varunkn", item.get("UID").s());
-        Assert.assertEquals("bar", item.get("foo").s());
+    public void test_UsingSdkDefaultClient() throws JsonProcessingException {
+        getItemAndAssertValues(dynamo);
     }
 
 
     @Test
-    public void test_PassingSignerConfig() {
-
-        Region region = Region.US_WEST_1;
-
+    public void test_UsingSdkClient_WithCustomSigner_And_CorrectContext() {
         DynamoDBClient client = DynamoDBClient.builder()
-                                              .region(region)
+                                              .region(REGION)
                                               .overrideConfiguration(
                                                   ClientOverrideConfiguration.builder()
-                                                                             .advancedOption(SIGNER, new Aws4Signer())
+                                                                             .advancedOption(SIGNER, Aws4Signer.create())
                                                                              .advancedOption(SIGNER_CONTEXT,
-                                                                                             createSignerContext())
+                                                                                             createProperSignerContext())
                                                                              .build())
                                               .build();
 
-        Map<String, AttributeValue> item =
-            client.getItem(GetItemRequest.builder()
-                                         .tableName("VoxTests1")
-                                         .key(Collections.singletonMap("UID", AttributeValue.builder()
-                                                                                            .s("varunkn")
-                                                                                            .build()))
-                                         .build())
-                  .item();
+        getItemAndAssertValues(client);
+    }
 
-        Assert.assertEquals("varunkn", item.get("UID").s());
-        Assert.assertEquals("bar", item.get("foo").s());
+    @Test
+    public void test_UsingSdkClient_WithCustomSigner_And_InCorrectContext() {
+        DynamoDBClient client = DynamoDBClient.builder()
+                                              .region(REGION)
+                                              .overrideConfiguration(
+                                                  ClientOverrideConfiguration.builder()
+                                                                             .retryPolicy(RetryPolicy.NONE)
+                                                                             .advancedOption(SIGNER, Aws4Signer.create())
+                                                                             .advancedOption(SIGNER_CONTEXT,
+                                                                                             createIncorrectSignerContext())
+                                                                             .build())
+                                              .build();
+
+
+        assertThatThrownBy(() -> {
+            getItemAndAssertValues(client);
+        }).isInstanceOf(DynamoDBException.class)
+          .hasMessageContaining("Credential should be scoped to correct service: 'dynamodb'");
     }
 
     @Test
     public void test_WithoutUsingSdkClient() throws Exception {
-        Aws4Signer signer = new Aws4Signer();
+        Aws4Signer signer = Aws4Signer.create();
         SdkHttpFullRequest httpFullRequest = generateBasicRequest();
 
-        SdkHttpFullRequest signedRequest = signer.sign(httpFullRequest, createSignerContext());
+        // sign the request
+        SdkHttpFullRequest signedRequest = signer.sign(httpFullRequest, createProperSignerContext());
 
         ApacheSdkHttpClientFactory httpClientFactory = ApacheSdkHttpClientFactory.builder().build();
         SdkHttpClient httpClient = httpClientFactory.createHttpClient();
@@ -111,29 +159,16 @@ public class SignersIntegrationTest {
         SdkHttpFullResponse response = httpClient.prepareRequest(signedRequest, SdkRequestContext.builder().build())
                                                  .call();
 
-        String str = IoUtils.toString(response.content().get());
-        System.out.println(str);
-
         if (response.statusCode() != 200) {
             Assert.fail("Call did not succeed");
         }
 
-        Assert.assertEquals(EXPECTED_RESULT, str);
-    }
-
-    private SignerContext createSignerContext() {
-        AwsSignerParams signerParams = new AwsSignerParams();
-        signerParams.setAwsCredentials(DefaultCredentialsProvider.create().getCredentials());
-        signerParams.setSigningName("dynamodb");
-        signerParams.setRegion(Region.US_WEST_1);
-
-        SignerContext signerContext = new SignerContext();
-        signerContext.putAttribute(AwsExecutionAttributes.AWS_SIGNER_PARAMS, signerParams);
-        return signerContext;
+        String actualResult = IoUtils.toString(response.content().get());
+        Assert.assertEquals(getExpectedResult(), actualResult);
     }
 
     private SdkHttpFullRequest generateBasicRequest() {
-        final String content = "{\"TableName\":\"VoxTests1\",\"Key\":{\"UID\":{\"S\":\"varunkn\"}}}";
+        final String content = getInputContent();
         final InputStream contentStream = new ByteArrayInputStream(content.getBytes());
 
         return SdkHttpFullRequest.builder()
@@ -146,5 +181,73 @@ public class SignersIntegrationTest {
                                  .protocol("https")
                                  .host("dynamodb.us-west-1.amazonaws.com")
                                  .build();
+    }
+
+    private String getInputContent() {
+        return "{  \n"
+               + "   \"TableName\":\"" + TABLE_NAME + "\",\n"
+               + "   \"Key\":{  \n"
+               + "      \"" + HASH_KEY_NAME + "\":{  \n"
+               + "         \"S\":\"" + HASH_KEY_VALUE + "\"\n"
+               + "      }\n"
+               + "   }\n"
+               + "}".trim();
+    }
+
+    private String getExpectedResult() {
+        String result =
+                 "{"
+               + "   \"Item\":{"
+               + "      \"" + HASH_KEY_NAME + "\":{"
+               + "         \"S\":\"" + HASH_KEY_VALUE + "\""
+               + "      },"
+               + "      \"" + ATTRIBUTE_FOO + "\":{"
+               + "         \"S\":\"" + ATTRIBUTE_FOO_VALUE + "\""
+               + "      }"
+               + "   }"
+               + "}";
+
+        return result.replaceAll("\\s", "");
+    }
+
+    private void getItemAndAssertValues(DynamoDBClient client) {
+        Map<String, AttributeValue> item =
+            client.getItem(GetItemRequest.builder()
+                                         .tableName(TABLE_NAME)
+                                         .key(Collections.singletonMap(HASH_KEY_NAME, AttributeValue.builder()
+                                                                                                    .s(HASH_KEY_VALUE)
+                                                                                                    .build()))
+                                         .build())
+                  .item();
+
+        Assert.assertEquals(HASH_KEY_VALUE, item.get(HASH_KEY_NAME).s());
+        Assert.assertEquals(ATTRIBUTE_FOO_VALUE, item.get(ATTRIBUTE_FOO).s());
+    }
+
+    private SignerContext createProperSignerContext() {
+        AwsSignerParams signerParams = AwsSignerParams.builder()
+                                                      .awsCredentials(DefaultCredentialsProvider.create().getCredentials())
+                                                      .signingName("dynamodb")
+                                                      .region(REGION)
+                                                      .build();
+
+        return SignerContext.builder()
+                            .putAttribute(AwsExecutionAttributes.AWS_SIGNER_PARAMS, signerParams)
+                            .build();
+    }
+
+    /**
+     * Uses "demo" as signing name which will make all service calls fail with auth error
+     */
+    private SignerContext createIncorrectSignerContext() {
+        AwsSignerParams signerParams = AwsSignerParams.builder()
+                                                      .awsCredentials(DefaultCredentialsProvider.create().getCredentials())
+                                                      .signingName("demo")
+                                                      .region(REGION)
+                                                      .build();
+
+        return SignerContext.builder()
+                            .putAttribute(AwsExecutionAttributes.AWS_SIGNER_PARAMS, signerParams)
+                            .build();
     }
 }

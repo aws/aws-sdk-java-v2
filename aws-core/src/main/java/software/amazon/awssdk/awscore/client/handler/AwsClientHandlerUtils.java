@@ -31,7 +31,7 @@ import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
-import software.amazon.awssdk.core.signerspi.SignerContext;
+import software.amazon.awssdk.core.signer.SignerContext;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
@@ -64,8 +64,8 @@ final class AwsClientHandlerUtils {
                                                                                 .map(c -> (RequestOverrideConfig) c)
                                                                                 .orElse(AwsRequestOverrideConfig.builder()
                                                                                                                 .build()))
-            .putAttribute(AwsExecutionAttributes.SIGNING_NAME,
-                          overrideConfiguration.advancedOption(AwsAdvancedClientOption.SIGNING_NAME))
+            .putAttribute(AwsExecutionAttributes.SERVICE_SIGNING_NAME,
+                          overrideConfiguration.advancedOption(AwsAdvancedClientOption.SERVICE_SIGNING_NAME))
             .putAttribute(AwsExecutionAttributes.AWS_REGION,
                           overrideConfiguration.advancedOption(AwsAdvancedClientOption.AWS_REGION));
 
@@ -90,14 +90,19 @@ final class AwsClientHandlerUtils {
         }
 
         // TODO How to set doubleUrlEncoding and chunkedBodySigning options?
-        final AwsSignerParams signerParams = new AwsSignerParams();
-        signerParams.setAwsCredentials(executionAttributes.getAttribute(AwsExecutionAttributes.AWS_CREDENTIALS));
-        signerParams.setSigningName(executionAttributes.getAttribute(AwsExecutionAttributes.SIGNING_NAME));
-        signerParams.setRegion(executionAttributes.getAttribute(AwsExecutionAttributes.AWS_REGION));
-        signerParams.setTimeOffset(executionAttributes.getAttribute(AwsExecutionAttributes.TIME_OFFSET));
+        final AwsSignerParams signerParams = AwsSignerParams.builder()
+                                                            .awsCredentials(executionAttributes.getAttribute(
+                                                                AwsExecutionAttributes.AWS_CREDENTIALS))
+                                                            .signingName(executionAttributes.getAttribute(
+                                                                AwsExecutionAttributes.SERVICE_SIGNING_NAME))
+                                                            .region(executionAttributes.getAttribute(
+                                                                AwsExecutionAttributes.AWS_REGION))
+                                                            .timeOffset(executionAttributes.getAttribute(
+                                                                AwsExecutionAttributes.TIME_OFFSET))
+                                                            .build();
 
-        final SignerContext signerContext = new SignerContext();
-        signerContext.putAttribute(AwsExecutionAttributes.AWS_SIGNER_PARAMS, signerParams);
-        return signerContext;
+        return SignerContext.builder()
+                            .putAttribute(AwsExecutionAttributes.AWS_SIGNER_PARAMS, signerParams)
+                            .build();
     }
 }

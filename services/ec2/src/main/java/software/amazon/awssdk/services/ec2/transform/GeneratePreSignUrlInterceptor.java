@@ -27,7 +27,7 @@ import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.signerspi.SignerContext;
+import software.amazon.awssdk.core.signer.SignerContext;
 import software.amazon.awssdk.core.util.AwsHostNameUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -101,12 +101,15 @@ public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
     }
 
     private SignerContext createSignerContext(ExecutionAttributes attributes, String signingRegion, String signingName) {
-        AwsPresignerParams presignerParams = new AwsPresignerParams();
-        presignerParams.setRegion(Region.of(signingRegion));
-        presignerParams.setSigningName(signingName);
-        presignerParams.setAwsCredentials(attributes.getAttribute(AWS_CREDENTIALS));
+        AwsPresignerParams presignerParams = AwsPresignerParams.builder()
+                                                               .region(Region.of(signingRegion))
+                                                               .signingName(signingName)
+                                                               .awsCredentials(attributes.getAttribute(AWS_CREDENTIALS))
+                                                               .build();
 
-        return new SignerContext().putAttribute(AwsExecutionAttributes.AWS_SIGNER_PARAMS, presignerParams);
+        return SignerContext.builder()
+                            .putAttribute(AwsExecutionAttributes.AWS_SIGNER_PARAMS, presignerParams)
+                            .build();
     }
 
     /**

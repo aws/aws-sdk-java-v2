@@ -13,15 +13,19 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.signerspi;
+package software.amazon.awssdk.core.signer;
 
 import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 
-public class SignerContext {
+public final class SignerContext {
 
-    private final Map<ExecutionAttribute<?>, Object> attributes = new HashMap<>();
+    private final Map<ExecutionAttribute<?>, Object> attributes;
+
+    private SignerContext(BuilderImpl builder) {
+        this.attributes = builder.attributes;
+    }
 
     /**
      * Retrieve the current value of the provided attribute in this collection of attributes. This will return null if the value
@@ -32,11 +36,24 @@ public class SignerContext {
         return (U) attributes.get(attribute);
     }
 
-    /**
-     * Update or set the provided attribute in this collection of attributes.
-     */
-    public <U> SignerContext putAttribute(ExecutionAttribute<U> attribute, U value) {
-        this.attributes.put(attribute, value);
-        return this;
+    public static BuilderImpl builder() {
+        return new BuilderImpl();
+    }
+
+    public static final class BuilderImpl {
+
+        private final Map<ExecutionAttribute<?>, Object> attributes = new HashMap<>();
+
+        /**
+         * Update or set the provided attribute in this collection of attributes.
+         */
+        public <U> BuilderImpl putAttribute(ExecutionAttribute<U> attribute, U value) {
+            this.attributes.put(attribute, value);
+            return this;
+        }
+
+        public SignerContext build() {
+            return new SignerContext(this);
+        }
     }
 }

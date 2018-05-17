@@ -16,7 +16,6 @@
 package software.amazon.awssdk.auth.signer.internal;
 
 import software.amazon.awssdk.auth.signer.SignerConstants;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.regions.Region;
 
 /**
@@ -28,11 +27,6 @@ public final class Aws4SignerRequestParams {
      * The signing algorithm to be used for computing the signature.
      */
     private final String signingAlgorithm = SignerConstants.AWS4_SIGNING_ALGORITHM;
-
-    /**
-     * The HTTP request to be signed.
-     */
-    private final SdkHttpFullRequest.Builder httpRequest;
 
     /**
      * The datetime in milliseconds for which the signature needs to be
@@ -53,7 +47,7 @@ public final class Aws4SignerRequestParams {
     /**
      * The name of the AWS service.
      */
-    private final String serviceName;
+    private final String serviceSigningName;
 
     /**
      * UTC formatted version of the signing time stamp.
@@ -67,17 +61,16 @@ public final class Aws4SignerRequestParams {
 
     /**
      * Generates an instance of AWS4signerRequestParams that holds the parameters used for computing a AWS 4 signature
-     * for a request.
+     * for a request based on the given {@link AwsSignerParams} for that request.
      */
-    public Aws4SignerRequestParams(SdkHttpFullRequest.Builder httpRequest, AwsSignerParams signerParams) {
-        this.httpRequest = httpRequest;
+    public Aws4SignerRequestParams(AwsSignerParams signerParams) {
         this.signingDateTimeMilli = signerParams.getSigningDateOverride() != null
                                     ? signerParams.getSigningDateOverride().getTime()
-                                    : getSigningDate(signerParams.getTimeOffset());
+                                    : getSigningDate(signerParams.timeOffset());
         this.formattedSigningDate = Aws4SignerUtils.formatDateStamp(signingDateTimeMilli);
-        this.serviceName = signerParams.getSigningName();
-        this.regionName = getRegion(signerParams.getRegion());
-        this.scope = generateScope(formattedSigningDate, this.serviceName, regionName);
+        this.serviceSigningName = signerParams.signingName();
+        this.regionName = getRegion(signerParams.region());
+        this.scope = generateScope(formattedSigningDate, this.serviceSigningName, regionName);
         this.formattedSigningDateTime = Aws4SignerUtils.formatTimestamp(signingDateTimeMilli);
     }
 
@@ -101,13 +94,6 @@ public final class Aws4SignerRequestParams {
      */
     private String generateScope(String dateStamp, String serviceName, String regionName) {
         return dateStamp + "/" + regionName + "/" + serviceName + "/" + SignerConstants.AWS4_TERMINATOR;
-    }
-
-    /**
-     * Returns the HTTP request to be signed.
-     */
-    public SdkHttpFullRequest.Builder httpRequest() {
-        return httpRequest;
     }
 
     /**
@@ -142,8 +128,8 @@ public final class Aws4SignerRequestParams {
     /**
      * Returns the AWS Service name to be used while computing the signature.
      */
-    public String getServiceName() {
-        return serviceName;
+    public String getServiceSigningName() {
+        return serviceSigningName;
     }
 
     /**
