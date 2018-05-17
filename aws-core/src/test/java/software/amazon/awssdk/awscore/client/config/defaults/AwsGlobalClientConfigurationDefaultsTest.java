@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.awscore.client.config.defaults;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.net.URI;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
@@ -25,6 +27,8 @@ import software.amazon.awssdk.awscore.config.AwsMutableClientConfiguration;
 import software.amazon.awssdk.awscore.config.defaults.AwsClientConfigurationDefaults;
 import software.amazon.awssdk.awscore.config.defaults.AwsGlobalClientConfigurationDefaults;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.signerspi.NoOpSigner;
 
 /**
  * Validate functionality of {@link AwsGlobalClientConfigurationDefaults}.
@@ -41,8 +45,8 @@ public class AwsGlobalClientConfigurationDefaultsTest {
         AwsClientConfigurationDefaults configCompleter = new AwsClientConfigurationDefaults() {
             @Override
             protected void applyOverrideDefaults(ClientOverrideConfiguration.Builder builder) {
-//                assertThat(builder.build().advancedOption(SIGNER_PROVIDER)).isNull();
-//                builder.advancedOption(SIGNER_PROVIDER, new NoOpSignerProvider());
+                assertThat(builder.build().advancedOption(SdkAdvancedClientOption.SIGNER)).isNull();
+                builder.advancedOption(SdkAdvancedClientOption.SIGNER, new NoOpSigner());
             }
 
             @Override

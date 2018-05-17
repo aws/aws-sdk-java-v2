@@ -61,10 +61,8 @@ public class Aws4SignerTest {
         calendar.set(1981, 1, 16, 6, 30, 0);
         calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-//        signer.setOverrideDate(calendar.getTime());
-//        signer.setServiceName("demo");
-
-        SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.build(), credentials);
+        SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.build(), credentials,
+                                                                "demo", calendar.getTime(), "us-east-1");
         assertThat(signed.firstMatchingHeader("Authorization"))
                 .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
 
@@ -73,7 +71,7 @@ public class Aws4SignerTest {
         request = generateBasicRequest();
         request.header("x-amz-sha256", "required");
 
-        signed = SignerTestUtils.signRequest(signer, request.build(), credentials);
+        signed = SignerTestUtils.signRequest(signer, request.build(), credentials, "demo", calendar.getTime(), "us-east-1");
         assertThat(signed.firstMatchingHeader("Authorization")).hasValue(expectedAuthorizationHeaderWithSha256Header);
     }
 
@@ -92,10 +90,8 @@ public class Aws4SignerTest {
         calendar.set(1981, 1, 16, 6, 30, 0);
         calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-//        signer.setOverrideDate(calendar.getTime());
-//        signer.setServiceName("demo");
-
-        SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.build(), credentials);
+        SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.build(), credentials,
+                                                                "demo", calendar.getTime(), "us-east-1");
         assertThat(signed.firstMatchingHeader("Authorization"))
                 .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
     }
@@ -115,11 +111,8 @@ public class Aws4SignerTest {
         Calendar calendar = new GregorianCalendar();
         calendar.set(1981, 1, 16, 6, 30, 0);
         calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
-//
-//        signer.setOverrideDate(calendar.getTime());
-//        signer.setServiceName("demo");
 
-        SdkHttpFullRequest signed = SignerTestUtils.presignRequest(signer, request, credentials, null);
+        SdkHttpFullRequest signed = SignerTestUtils.presignRequest(signer, request, credentials, null,"demo", calendar.getTime(), "us-east-1");
         assertEquals(expectedAmzSignature, signed.rawQueryParameters().get("X-Amz-Signature").get(0));
         assertEquals(expectedAmzCredentials, signed.rawQueryParameters().get("X-Amz-Credential").get(0));
         assertEquals(expectedAmzHeader, signed.rawQueryParameters().get("X-Amz-Date").get(0));
@@ -138,8 +131,7 @@ public class Aws4SignerTest {
         c.set(1981, 1, 16, 6, 30, 0);
         c.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-
-        SignerTestUtils.signRequest(signer, request, credentials);
+        SignerTestUtils.signRequest(signer, request, credentials, "demo", c.getTime(), "us-east-1");
 
         assertNull(request.headers().get("Authorization"));
     }
@@ -155,9 +147,9 @@ public class Aws4SignerTest {
 
         Calendar c = new GregorianCalendar();
         c.set(1981, 1, 16, 6, 30, 0);
+        c.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-
-        SdkHttpFullRequest actual = SignerTestUtils.signRequest(signer, request.build(), credentials);
+        SdkHttpFullRequest actual = SignerTestUtils.signRequest(signer, request.build(), credentials,"demo", c.getTime(), "us-east-1");
 
         assertThat(actual.firstMatchingHeader("Authorization"))
                 .hasValue("AWS4-HMAC-SHA256 Credential=akid/19810216/us-east-1/demo/aws4_request, " +

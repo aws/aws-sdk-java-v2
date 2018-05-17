@@ -78,12 +78,12 @@ final class AwsClientHandlerUtils {
                                .signer(overrideConfiguration.advancedOption(AwsAdvancedClientOption.SIGNER))
                                .signerContext(createSignerContext(overrideConfiguration.advancedOption(AwsAdvancedClientOption
                                                                                                         .SIGNER_CONTEXT),
-                                                               executionAttributes))
+                                                                  executionAttributes))
                                .build();
     }
 
-    public static SignerContext createSignerContext(SignerContext userProvidedContext,
-                                                  ExecutionAttributes executionAttributes) {
+    private static SignerContext createSignerContext(SignerContext userProvidedContext,
+                                                     ExecutionAttributes executionAttributes) {
         // If SignerContext is set on the client by user, we will use it
         if (userProvidedContext != null) {
             return userProvidedContext;

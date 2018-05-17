@@ -44,6 +44,7 @@ import software.amazon.awssdk.core.signerspi.NoOpSigner;
  */
 @SuppressWarnings("deprecation") // Intentional use of deprecated class
 public class AwsImmutableClientConfigurationTest {
+    private static final NoOpSigner TEST_SIGNER = new NoOpSigner();
     private static final AwsCredentialsProvider CREDENTIALS_PROVIDER = DefaultCredentialsProvider.create();
     private static final URI ENDPOINT = URI.create("https://www.example.com");
     private static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
@@ -92,7 +93,7 @@ public class AwsImmutableClientConfigurationTest {
                                           .addAdditionalHttpHeader("header", "value")
                                           .advancedOption(AwsAdvancedClientOption.USER_AGENT_PREFIX, "userAgentPrefix")
                                           .advancedOption(AwsAdvancedClientOption.USER_AGENT_SUFFIX, "userAgentSuffix")
-                                          .advancedOption(AwsAdvancedClientOption.SIGNER, new NoOpSigner())
+                                          .advancedOption(AwsAdvancedClientOption.SIGNER, TEST_SIGNER)
                                           .advancedOption(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION, false)
                                           .retryPolicy(RETRY_POLICY)
                                           .addExecutionInterceptor(EXECUTION_INTERCEPTOR)

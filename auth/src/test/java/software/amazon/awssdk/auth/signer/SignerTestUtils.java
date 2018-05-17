@@ -24,24 +24,39 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.core.signerspi.Presigner;
 import software.amazon.awssdk.core.signerspi.Signer;
 import software.amazon.awssdk.core.signerspi.SignerContext;
+import software.amazon.awssdk.regions.Region;
 
 public class SignerTestUtils {
     public static SdkHttpFullRequest signRequest(Signer signer,
                                                  SdkHttpFullRequest request,
-                                                 AwsCredentials credentials) {
+                                                 AwsCredentials credentials,
+                                                 String signingName,
+                                                 Date overrideDate,
+                                                 String region) {
         AwsSignerParams signerParams = new AwsSignerParams();
         signerParams.setAwsCredentials(credentials);
+        signerParams.setSigningName(signingName);
+        signerParams.setSigningDateOverride(overrideDate);
+        signerParams.setRegion(Region.of(region));
+
         return signer.sign(request, new SignerContext().putAttribute(AwsExecutionAttributes.AWS_SIGNER_PARAMS, signerParams));
     }
 
     public static SdkHttpFullRequest presignRequest(Presigner presigner,
                                                     SdkHttpFullRequest request,
                                                     AwsCredentials credentials,
-                                                    Date expiration) {
+                                                    Date expiration,
+                                                    String signingName,
+                                                    Date overrideDate,
+                                                    String region) {
         AwsPresignerParams signerParams = new AwsPresignerParams();
         signerParams.setAwsCredentials(credentials);
         signerParams.setExpirationDate(expiration);
+        signerParams.setSigningName(signingName);
+        signerParams.setSigningDateOverride(overrideDate);
+        signerParams.setRegion(Region.of(region));
 
-        return presigner.presign(request, new SignerContext().putAttribute(AwsExecutionAttributes.AWS_SIGNER_PARAMS, signerParams));
+        return presigner.presign(request, new SignerContext().putAttribute(AwsExecutionAttributes.AWS_SIGNER_PARAMS,
+                                                                           signerParams));
     }
 }

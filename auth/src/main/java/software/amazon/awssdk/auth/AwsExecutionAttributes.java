@@ -41,6 +41,9 @@ public final class AwsExecutionAttributes extends SdkExecutionAttributes {
      */
     public static final ExecutionAttribute<Region> AWS_REGION = new ExecutionAttribute<>("AwsRegion");
 
+    /**
+     * Class that contains all parameters required for SDK signer implementations
+     */
     public static final ExecutionAttribute<AwsSignerParams> AWS_SIGNER_PARAMS = new ExecutionAttribute<>("AwsSignerParams");
 
     /**

@@ -17,6 +17,7 @@ package software.amazon.awssdk.auth.signer.internal;
 
 import software.amazon.awssdk.auth.signer.SignerConstants;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.regions.Region;
 
 /**
  * Parameters that are used for computing a AWS 4 signature for a request.
@@ -70,10 +71,12 @@ public final class Aws4SignerRequestParams {
      */
     public Aws4SignerRequestParams(SdkHttpFullRequest.Builder httpRequest, AwsSignerParams signerParams) {
         this.httpRequest = httpRequest;
-        this.signingDateTimeMilli = getSigningDate(signerParams.getTimeOffset());
+        this.signingDateTimeMilli = signerParams.getSigningDateOverride() != null
+                                    ? signerParams.getSigningDateOverride().getTime()
+                                    : getSigningDate(signerParams.getTimeOffset());
         this.formattedSigningDate = Aws4SignerUtils.formatDateStamp(signingDateTimeMilli);
         this.serviceName = signerParams.getSigningName();
-        this.regionName = signerParams.getRegion().value();
+        this.regionName = getRegion(signerParams.getRegion());
         this.scope = generateScope(formattedSigningDate, this.serviceName, regionName);
         this.formattedSigningDateTime = Aws4SignerUtils.formatTimestamp(signingDateTimeMilli);
     }
@@ -87,6 +90,10 @@ public final class Aws4SignerRequestParams {
         } else {
             return System.currentTimeMillis() - timeOffset * 1000L;
         }
+    }
+
+    private String getRegion(Region region) {
+        return region != null ? region.value() : null;
     }
 
     /**

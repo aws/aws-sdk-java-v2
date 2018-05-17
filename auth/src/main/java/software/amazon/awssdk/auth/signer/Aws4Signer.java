@@ -40,10 +40,10 @@ import software.amazon.awssdk.auth.signer.internal.AwsSignerParams;
 import software.amazon.awssdk.auth.util.CredentialUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.collections.FifoCache;
-import software.amazon.awssdk.core.util.StringUtils;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.core.signerspi.Presigner;
 import software.amazon.awssdk.core.signerspi.SignerContext;
+import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
@@ -476,6 +476,4 @@ public class Aws4Signer extends AbstractAwsSigner
                                SigningAlgorithm.HmacSHA256);
         return sign(SignerConstants.AWS4_TERMINATOR, kService, SigningAlgorithm.HmacSHA256);
     }
-
-
 }

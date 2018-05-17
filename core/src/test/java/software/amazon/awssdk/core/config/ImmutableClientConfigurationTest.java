@@ -25,6 +25,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import org.junit.Test;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.signerspi.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 
@@ -33,6 +34,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
  */
 @SuppressWarnings("deprecation") // Intentional use of deprecated class
 public class ImmutableClientConfigurationTest {
+    private static final NoOpSigner SIGNER = new NoOpSigner();
     private static final URI ENDPOINT = URI.create("https://www.example.com");
     private static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
     private static final SdkHttpClient SYNC_HTTP_CLIENT = mock(SdkHttpClient.class);
@@ -78,6 +80,7 @@ public class ImmutableClientConfigurationTest {
                                           .addAdditionalHttpHeader("header", "value")
                                           .advancedOption(SdkAdvancedClientOption.USER_AGENT_PREFIX, "userAgentPrefix")
                                           .advancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX, "userAgentSuffix")
+                                          .advancedOption(SdkAdvancedClientOption.SIGNER, SIGNER)
                                           .retryPolicy(RETRY_POLICY)
                                           .addExecutionInterceptor(EXECUTION_INTERCEPTOR)
                                           .build();

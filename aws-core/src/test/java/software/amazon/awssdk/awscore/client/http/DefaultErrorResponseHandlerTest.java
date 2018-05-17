@@ -40,6 +40,7 @@ import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.signerspi.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.testutils.LogCaptor;
 
@@ -144,6 +145,7 @@ public class DefaultErrorResponseHandlerTest extends WireMockTestBase {
                               .httpRequest(request)
                               .build();
         return ExecutionContext.builder()
+                               .signer(new NoOpSigner())
                                .interceptorChain(new ExecutionInterceptorChain(Collections.emptyList()))
                                .executionAttributes(new ExecutionAttributes())
                                .interceptorContext(incerceptorContext)

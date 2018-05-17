@@ -45,7 +45,7 @@ public class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Buil
         this.interceptorContext = Validate.paramNotNull(builder.interceptorContext, "interceptorContext");
         this.interceptorChain = Validate.paramNotNull(builder.interceptorChain, "interceptorChain");
         this.executionAttributes = Validate.paramNotNull(builder.executionAttributes, "executionAttributes");
-        this.signerContext = Validate.paramNotNull(builder.signerContext, "signerContext");
+        this.signerContext = builder.signerContext;
     }
 
     public static ExecutionContext.Builder builder() {

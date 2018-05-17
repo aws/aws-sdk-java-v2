@@ -15,9 +15,13 @@
 
 package software.amazon.awssdk.services.rds;
 
+import static software.amazon.awssdk.auth.AwsExecutionAttributes.AWS_CREDENTIALS;
+
 import java.net.URI;
 import java.util.Date;
+import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.signer.internal.AwsPresignerParams;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.Request;
@@ -27,7 +31,7 @@ import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.signerspi.SignerContext;
 import software.amazon.awssdk.core.util.AwsHostNameUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -105,12 +109,7 @@ abstract class RdsPresignInterceptor<T extends RDSRequest> implements ExecutionI
                                  .removeQueryParameter(PARAM_SOURCE_REGION)
                                  .build();
 
-        Context.BeforeTransmission contextToSign = InterceptorContext.builder()
-                                                                     .request(context.request())
-                                                                     .httpRequest(requestToPresign)
-                                                                     .build();
-
-        requestToPresign = presignRequest(contextToSign, executionAttributes, sourceRegion);
+        requestToPresign = presignRequest(requestToPresign, executionAttributes, sourceRegion);
 
         final String presignedUrl = requestToPresign.getUri().toString();
 
@@ -125,19 +124,23 @@ abstract class RdsPresignInterceptor<T extends RDSRequest> implements ExecutionI
 
     protected abstract PresignableRequest adaptRequest(T originalRequest);
 
-    private SdkHttpFullRequest presignRequest(Context.BeforeTransmission context,
+    private SdkHttpFullRequest presignRequest(SdkHttpFullRequest request,
                                               ExecutionAttributes attributes,
                                               String signingRegion) {
-        Aws4Signer signer = createNewSignerWithRegion(signingRegion);
-        return signer.presign(null, null);
+        Aws4Signer signer = new Aws4Signer(true);
+        SignerContext signerContext = createSignerContext(attributes, signingRegion);
+
+        return signer.presign(request, signerContext);
     }
 
-    private Aws4Signer createNewSignerWithRegion(String signingRegion) {
-        Aws4Signer signer = new Aws4Signer(true);
-//        signer.setRegionName(signingRegion);
-//        signer.setServiceName(SERVICE_NAME);
-//        signer.setOverrideDate(signingOverrideDate);
-        return signer;
+    private SignerContext createSignerContext(ExecutionAttributes attributes, String signingRegion) {
+        AwsPresignerParams presignerParams = new AwsPresignerParams();
+        presignerParams.setRegion(Region.of(signingRegion));
+        presignerParams.setSigningName(SERVICE_NAME);
+        presignerParams.setSigningDateOverride(signingOverrideDate);
+        presignerParams.setAwsCredentials(attributes.getAttribute(AWS_CREDENTIALS));
+
+        return new SignerContext().putAttribute(AwsExecutionAttributes.AWS_SIGNER_PARAMS, presignerParams);
     }
 
     private URI createEndpoint(String regionName, String serviceName) {

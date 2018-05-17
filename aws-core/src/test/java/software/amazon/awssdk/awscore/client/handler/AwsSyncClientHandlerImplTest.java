@@ -39,10 +39,12 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
+import software.amazon.awssdk.core.signerspi.NoOpSigner;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -143,6 +145,7 @@ public class AwsSyncClientHandlerImplTest {
 
         mutableClientConfiguration.overrideConfiguration(
             ClientOverrideConfiguration.builder()
+                                       .advancedOption(SdkAdvancedClientOption.SIGNER, new NoOpSigner())
                                        .retryPolicy(RetryPolicy.NONE)
                                        .build());
 

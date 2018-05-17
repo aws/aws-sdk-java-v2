@@ -98,10 +98,6 @@ public abstract class AwsDefaultClientBuilder<B extends AwsClientBuilder<B, C>, 
     @Override
     protected AwsClientConfigurationDefaults serviceDefaults() {
         return new AwsClientConfigurationDefaults() {
-            @Override
-            protected void applyOverrideDefaults(ClientOverrideConfiguration.Builder builder) {
-                builder.advancedOption(AwsAdvancedClientOption.SIGNING_NAME, signingName());
-            }
         };
     }
 

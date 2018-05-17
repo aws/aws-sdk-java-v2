@@ -15,12 +15,16 @@
 
 package software.amazon.awssdk.core.config.defaults;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.net.URI;
 import org.junit.Test;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.config.SdkImmutableAsyncClientConfiguration;
 import software.amazon.awssdk.core.config.SdkImmutableSyncClientConfiguration;
 import software.amazon.awssdk.core.config.SdkMutableClientConfiguration;
+import software.amazon.awssdk.core.signerspi.NoOpSigner;
 
 /**
  * Validate functionality of {@link GlobalClientConfigurationDefaults}.
@@ -37,9 +41,8 @@ public class GlobalClientConfigurationDefaultsTest {
         SdkClientConfigurationDefaults configCompleter = new SdkClientConfigurationDefaults() {
             @Override
             protected void applyOverrideDefaults(ClientOverrideConfiguration.Builder builder) {
-                //TODO
-//                assertThat(builder.build().advancedOption(SIGNER)).isNull();
-//                builder.advancedOption(SIGNER, new NoOpSignerProvider());
+                assertThat(builder.build().advancedOption(SdkAdvancedClientOption.SIGNER)).isNull();
+                builder.advancedOption(SdkAdvancedClientOption.SIGNER, new NoOpSigner());
             }
 
             @Override
