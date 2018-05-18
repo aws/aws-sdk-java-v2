@@ -16,7 +16,8 @@
 package software.amazon.awssdk.core.config;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.core.runtime.auth.SignerProvider;
+import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.core.signer.SignerContext;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
@@ -42,12 +43,10 @@ public class SdkAdvancedClientOption<T> extends AttributeMap.Key<T> {
     @ReviewBeforeRelease("This should either be changed when we refactor metrics, or the comment should be expanded upon.")
     public static final SdkAdvancedClientOption<String> USER_AGENT_SUFFIX = new SdkAdvancedClientOption<>(String.class);
 
-    /**
-     * Configure the signer factory that should be used when generating signers in communication with AWS.
-     */
-    @ReviewBeforeRelease("This should either be changed when we refactor signers, or the comment should be expanded upon.")
-    public static final SdkAdvancedClientOption<SignerProvider> SIGNER_PROVIDER = new SdkAdvancedClientOption<>(SignerProvider
-                                                                                                                    .class);
+    public static final SdkAdvancedClientOption<Signer> SIGNER = new SdkAdvancedClientOption<>(Signer.class);
+
+    public static final SdkAdvancedClientOption<SignerContext> SIGNER_CONTEXT =
+        new SdkAdvancedClientOption<>(SignerContext.class);
 
     protected SdkAdvancedClientOption(Class<T> valueClass) {
         super(valueClass);

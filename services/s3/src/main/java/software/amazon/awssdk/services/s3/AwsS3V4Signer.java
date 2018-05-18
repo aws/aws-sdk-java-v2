@@ -20,40 +20,60 @@ import static software.amazon.awssdk.utils.Validate.validState;
 
 import java.io.IOException;
 import java.io.InputStream;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.signer.SdkClock;
 import software.amazon.awssdk.auth.signer.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.core.exception.ResetException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.services.s3.auth.AwsChunkedEncodingInputStream;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * AWS4 signer implementation for AWS S3
  */
-public class AwsS3V4Signer extends Aws4Signer {
+public final class AwsS3V4Signer extends Aws4Signer implements
+                                                    ToCopyableBuilder<AwsS3V4Signer.Builder, AwsS3V4Signer> {
+
     private static final String CONTENT_SHA_256 = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD";
 
     /**
      * Sent to S3 in lieu of a payload hash when unsigned payloads are enabled
      */
     private static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
-
     private static final String CONTENT_LENGTH = "Content-Length";
 
-    private Boolean disableChunkedEncoding;
-
-    private Boolean enablePayloadSigning;
+    private final Boolean disableChunkedEncoding;
+    private final  Boolean enablePayloadSigning;
 
     /**
      * Don't double-url-encode path elements; S3 expects path elements to be encoded only once in
      * the canonical URI.
      */
-    public AwsS3V4Signer() {
-        super(false);
+    private AwsS3V4Signer(Builder builder) {
+        super(builder);
+        this.disableChunkedEncoding = builder.disableChunkedEncoding;
+        this.enablePayloadSigning = builder.enablePayloadSigning;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    @Override
+    public Builder toBuilder() {
+        return builder().disableChunkedEncoding(disableChunkedEncoding)
+                        .enablePayloadSigning(enablePayloadSigning);
+    }
+
+    public Boolean disableChunkedEncoding() {
+        return disableChunkedEncoding;
+    }
+
+    public Boolean enablePayloadSigning() {
+        return enablePayloadSigning;
     }
 
     /**
@@ -61,21 +81,22 @@ public class AwsS3V4Signer extends Aws4Signer {
      */
     @Override
     protected void processRequestPayload(SdkHttpFullRequest.Builder requestBuilder,
-                                         byte[] signature, byte[] signingKey,
+                                         byte[] signature,
+                                         byte[] signingKey,
                                          Aws4SignerRequestParams signerRequestParams) {
-        if (useChunkEncoding(signerRequestParams)) {
+        if (useChunkEncoding(requestBuilder)) {
             AwsChunkedEncodingInputStream chunkEncodededStream = new AwsChunkedEncodingInputStream(
-                    signerRequestParams.httpRequest().content(), signingKey,
-                    signerRequestParams.getFormattedSigningDateTime(),
-                    signerRequestParams.getScope(),
-                    BinaryUtils.toHex(signature), this);
+                requestBuilder.content(),
+                signingKey,
+                signerRequestParams.getFormattedSigningDateTime(),
+                signerRequestParams.getScope(),
+                BinaryUtils.toHex(signature), this);
             requestBuilder.content(chunkEncodededStream);
         }
     }
 
     @Override
-    protected String calculateContentHashPresign(Aws4SignerRequestParams signerRequestParams,
-                                                 SdkHttpFullRequest.Builder mutableRequest) {
+    protected String calculateContentHashPresign(SdkHttpFullRequest.Builder mutableRequest) {
         return "UNSIGNED-PAYLOAD";
     }
 
@@ -85,19 +106,16 @@ public class AwsS3V4Signer extends Aws4Signer {
      * method which calculates the hash of the whole content for signing.
      */
     @Override
-    protected String calculateContentHash(Aws4SignerRequestParams signerRequestParams,
-                                          SdkHttpFullRequest.Builder mutableRequest) {
+    protected String calculateContentHash(SdkHttpFullRequest.Builder mutableRequest) {
         // To be consistent with other service clients using sig-v4,
         // we just set the header as "required", and AWS4Signer.sign() will be
         // notified to pick up the header value returned by this method.
         mutableRequest.header(X_AMZ_CONTENT_SHA256, "required");
 
-        SdkHttpFullRequest.Builder requestToSign = signerRequestParams.httpRequest();
-
-        if (isPayloadSigningEnabled(requestToSign)) {
-            if (useChunkEncoding(signerRequestParams)) {
-                final String contentLength = requestToSign.firstMatchingHeader(CONTENT_LENGTH)
-                                                          .orElse(null);
+        if (isPayloadSigningEnabled(mutableRequest)) {
+            if (useChunkEncoding(mutableRequest)) {
+                final String contentLength = mutableRequest.firstMatchingHeader(CONTENT_LENGTH)
+                                                           .orElse(null);
                 final long originalContentLength;
                 if (contentLength != null) {
                     originalContentLength = Long.parseLong(contentLength);
@@ -112,7 +130,7 @@ public class AwsS3V4Signer extends Aws4Signer {
                      * stream here.
                      */
                     try {
-                        originalContentLength = getContentLength(signerRequestParams);
+                        originalContentLength = getContentLength(mutableRequest);
                     } catch (IOException e) {
                         throw new SdkClientException("Cannot get the content-length of the request content.", e);
                     }
@@ -121,10 +139,10 @@ public class AwsS3V4Signer extends Aws4Signer {
                 // Make sure "Content-Length" header is not empty so that HttpClient
                 // won't cache the stream again to recover Content-Length
                 mutableRequest.header(CONTENT_LENGTH, Long.toString(
-                        AwsChunkedEncodingInputStream.calculateStreamContentLength(originalContentLength)));
+                    AwsChunkedEncodingInputStream.calculateStreamContentLength(originalContentLength)));
                 return CONTENT_SHA_256;
             } else {
-                return super.calculateContentHash(signerRequestParams, mutableRequest);
+                return super.calculateContentHash(mutableRequest);
             }
         }
 
@@ -134,16 +152,11 @@ public class AwsS3V4Signer extends Aws4Signer {
     /**
      * Determine whether to use aws-chunked for signing
      */
-    private boolean useChunkEncoding(Aws4SignerRequestParams signerRequestParams) {
-        // If chunked encoding is explicitly disabled through client options return right here.
+    // TODO Chunked encoding should be used for PutObject and UploadPart APIs if not explicitly disabled by user
+    // Where to set that value?
+    private boolean useChunkEncoding(SdkHttpFullRequest.Builder request) {
         // Chunked encoding only makes sense to do when the payload is signed
-        if (!isPayloadSigningEnabled(signerRequestParams.httpRequest()) ||
-            isChunkedEncodingDisabled()) {
-            return false;
-        }
-
-        return signerRequestParams.originalRequest() instanceof PutObjectRequest ||
-               signerRequestParams.originalRequest() instanceof UploadPartRequest;
+        return isPayloadSigningEnabled(request) && !isChunkedEncodingDisabled();
     }
 
     /**
@@ -173,14 +186,14 @@ public class AwsS3V4Signer extends Aws4Signer {
      * method will wrap the stream by SdkBufferedInputStream if it is not
      * mark-supported.
      */
-    private static long getContentLength(Aws4SignerRequestParams signerParams) throws IOException {
-        final InputStream content = signerParams.httpRequest().content();
+    private static long getContentLength(SdkHttpFullRequest.Builder requestBuilder) throws IOException {
+        final InputStream content = requestBuilder.content();
         validState(content.markSupported(), "Request input stream must have been made mark-and-resettable");
 
         long contentLength = 0;
         byte[] tmp = new byte[4096];
         int read;
-        content.mark(getReadLimit(signerParams));
+        content.mark(getReadLimit());
         while ((read = content.read(tmp)) != -1) {
             contentLength += read;
         }
@@ -192,13 +205,35 @@ public class AwsS3V4Signer extends Aws4Signer {
         return contentLength;
     }
 
-    @ReviewBeforeRelease("Create a builder for signers and set this in it. Also currently unexercised")
-    public void setDisableChunkedEncoding(boolean disableChunkedEncoding) {
-        this.disableChunkedEncoding = disableChunkedEncoding;
-    }
+    public static final class Builder extends Aws4Signer.Builder implements CopyableBuilder<Builder, AwsS3V4Signer> {
 
-    @ReviewBeforeRelease("Create a builder for signers and set this in it. Also currently unexercised.")
-    public void setEnablePayloadSigning(boolean enablePayloadSigning) {
-        this.enablePayloadSigning = enablePayloadSigning;
+        private Boolean disableChunkedEncoding;
+        private Boolean enablePayloadSigning;
+
+        public Builder disableChunkedEncoding(Boolean disableChunkedEncoding) {
+            this.disableChunkedEncoding = disableChunkedEncoding;
+            return this;
+        }
+
+        public Builder enablePayloadSigning(Boolean enablePayloadSigning) {
+            this.enablePayloadSigning = enablePayloadSigning;
+            return this;
+        }
+
+        public Builder doubleUrlEncode(Boolean doubleUrlEncode) {
+            super.doubleUrlEncode(doubleUrlEncode);
+            return this;
+        }
+
+        public Builder clock(SdkClock clock) {
+            super.clock(clock);
+            return this;
+        }
+
+
+        @Override
+        public AwsS3V4Signer build() {
+            return new AwsS3V4Signer(this);
+        }
     }
 }

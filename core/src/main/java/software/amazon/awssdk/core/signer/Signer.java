@@ -13,13 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.runtime.auth;
+package software.amazon.awssdk.core.signer;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 
-@SdkProtectedApi
-public abstract class SignerProvider {
+public interface Signer {
 
-    public abstract Signer getSigner(SignerProviderContext context);
-
+    SdkHttpFullRequest sign(SdkHttpFullRequest request, SignerContext signerContext);
 }

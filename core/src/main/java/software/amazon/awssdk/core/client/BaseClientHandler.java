@@ -155,7 +155,8 @@ public abstract class BaseClientHandler {
                                                                      .request(originalRequest)
                                                                      .build())
                                .executionAttributes(executionAttributes)
-                               .signerProvider(overrideConfiguration.advancedOption(SdkAdvancedClientOption.SIGNER_PROVIDER))
+                               .signer(overrideConfiguration.advancedOption(SdkAdvancedClientOption.SIGNER))
+                               .signerContext(overrideConfiguration.advancedOption(SdkAdvancedClientOption.SIGNER_CONTEXT))
                                .build();
     }
 

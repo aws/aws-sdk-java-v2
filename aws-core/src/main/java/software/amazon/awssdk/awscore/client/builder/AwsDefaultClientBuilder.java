@@ -88,6 +88,7 @@ public abstract class AwsDefaultClientBuilder<B extends AwsClientBuilder<B, C>, 
      */
     protected abstract String serviceEndpointPrefix();
 
+    protected abstract String signingName();
 
     /**
      * An optional hook that can be overridden by service client builders to set service-specific defaults.
@@ -182,6 +183,7 @@ public abstract class AwsDefaultClientBuilder<B extends AwsClientBuilder<B, C>, 
             protected void applyOverrideDefaults(ClientOverrideConfiguration.Builder builder) {
                 builder.advancedOption(AwsAdvancedClientOption.AWS_REGION,
                                        resolveRegion().orElseThrow(() -> new SdkClientException("AWS region not provided")));
+                builder.advancedOption(AwsAdvancedClientOption.SERVICE_SIGNING_NAME, signingName());
             }
         };
     }

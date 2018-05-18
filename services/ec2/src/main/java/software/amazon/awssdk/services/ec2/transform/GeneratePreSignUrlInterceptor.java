@@ -15,15 +15,19 @@
 
 package software.amazon.awssdk.services.ec2.transform;
 
+import static software.amazon.awssdk.auth.AwsExecutionAttributes.AWS_CREDENTIALS;
+
 import java.net.URI;
+import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.signer.internal.AwsPresignerParams;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.signer.SignerContext;
 import software.amazon.awssdk.core.util.AwsHostNameUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -80,16 +84,11 @@ public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
                     .method(SdkHttpMethod.GET)
                     .build();
 
-            Aws4Signer signer = new Aws4Signer();
-            signer.setServiceName(serviceName);
+            final Aws4Signer signer = new Aws4Signer();
+            // TODO which region (source/destination) to use for signing
+            final SignerContext signerContext = createSignerContext(executionAttributes, sourceRegion, serviceName);
 
-            InterceptorContext newExecutionContext = InterceptorContext.builder()
-                                                                       .request(originalRequest)
-                                                                       .httpRequest(requestForPresigning)
-                                                                       .build();
-
-            final SdkHttpFullRequest presignedRequest =
-                    signer.presign(newExecutionContext, executionAttributes, null);
+            final SdkHttpFullRequest presignedRequest = signer.presign(requestForPresigning, signerContext);
 
             return request.toBuilder()
                           .rawQueryParameter("DestinationRegion", destinationRegion)
@@ -99,6 +98,18 @@ public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
 
         return request;
 
+    }
+
+    private SignerContext createSignerContext(ExecutionAttributes attributes, String signingRegion, String signingName) {
+        AwsPresignerParams presignerParams = AwsPresignerParams.builder()
+                                                               .region(Region.of(signingRegion))
+                                                               .signingName(signingName)
+                                                               .awsCredentials(attributes.getAttribute(AWS_CREDENTIALS))
+                                                               .build();
+
+        return SignerContext.builder()
+                            .putAttribute(AwsExecutionAttributes.AWS_SIGNER_PARAMS, presignerParams)
+                            .build();
     }
 
     /**

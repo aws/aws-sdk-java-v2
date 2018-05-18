@@ -55,7 +55,7 @@ public class QueryStringSignerTest {
                                                        .rawQueryParameter("foo", "bar")
                                                        .build();
 
-        request = SignerTestUtils.signRequest(signer, request, credentials);
+        request = SignerTestUtils.signRequest(signer, request, credentials, null, null, "us-east-1");
 
         assertSignature(EXPECTED_SIGNATURE, request.rawQueryParameters());
     }
@@ -70,7 +70,7 @@ public class QueryStringSignerTest {
                                                        .rawQueryParameter("foo", "bar")
                                                        .build();
 
-        request = SignerTestUtils.signRequest(signer, request, AnonymousCredentialsProvider.create().getCredentials());
+        request = SignerTestUtils.signRequest(signer, request, AnonymousCredentialsProvider.create().getCredentials(), null, null, "us-east-1");
 
         assertNull(request.rawQueryParameters().get("Signature"));
     }
