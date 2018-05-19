@@ -17,11 +17,11 @@ package software.amazon.awssdk.core.http.pipeline.stages;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
-import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.RequestOverrideConfig;
 import software.amazon.awssdk.core.Response;
-import software.amazon.awssdk.core.SdkRequestOverrideConfig;
-import software.amazon.awssdk.core.config.ClientConfiguration;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpClientDependencies;
@@ -40,7 +40,7 @@ public class ClientExecutionTimedStage<OutputT> implements RequestToResponsePipe
 
     private final RequestPipeline<SdkHttpFullRequest, Response<OutputT>> wrapped;
     private final ClientExecutionTimer clientExecutionTimer;
-    private final ClientConfiguration clientConfig;
+    private final SdkClientConfiguration clientConfig;
 
     public ClientExecutionTimedStage(HttpClientDependencies dependencies,
                                      RequestPipeline<SdkHttpFullRequest, Response<OutputT>> wrapped) {
@@ -61,7 +61,7 @@ public class ClientExecutionTimedStage<OutputT> implements RequestToResponsePipe
     /**
      * Start and end client execution timer around the execution of the request. It's important
      * that the client execution task is canceled before the InterruptedException is handled by
-     * {@link #wrapped#execute(Request)} so the interrupt status doesn't leak out to the callers code
+     * {@link #wrapped#execute(SdkHttpFullRequest)} so the interrupt status doesn't leak out to the callers code
      */
     private Response<OutputT> executeWithTimer(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         ClientExecutionAbortTrackerTask task =
@@ -121,12 +121,12 @@ public class ClientExecutionTimedStage<OutputT> implements RequestToResponsePipe
 
     /**
      * Gets the correct client execution timeout taking into account precedence of the
-     * configuration in {@link AmazonWebServiceRequest} versus {@link ClientConfiguration}.
+     * configuration in {@link SdkRequest} versus {@link SdkClientConfiguration}.
      *
      * @param requestConfig Current request configuration
      * @return Client Execution timeout value or 0 if none is set
      */
-    private long getClientExecutionTimeoutInMillis(SdkRequestOverrideConfig requestConfig) {
+    private long getClientExecutionTimeoutInMillis(RequestOverrideConfig requestConfig) {
         if (requestConfig.requestExecutionTimeout().isPresent()) {
             return requestConfig.requestExecutionTimeout().get().toMillis();
         } else if (clientConfig.overrideConfiguration().totalExecutionTimeout() != null) {

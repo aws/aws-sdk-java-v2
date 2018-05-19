@@ -29,7 +29,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpService;
-import software.amazon.awssdk.utils.SdkSystemSetting;
+import software.amazon.awssdk.core.SdkSystemSetting;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ClasspathSdkHttpServiceProviderTest {

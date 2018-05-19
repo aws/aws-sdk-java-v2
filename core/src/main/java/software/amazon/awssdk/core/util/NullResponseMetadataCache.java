@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.util;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.ResponseMetadata;
+import software.amazon.awssdk.core.SdkResponseMetadata;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
 /**
@@ -27,12 +27,12 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 public class NullResponseMetadataCache implements MetadataCache {
 
     @Override
-    public void add(Object obj, ResponseMetadata metadata) {
+    public void add(Object obj, SdkResponseMetadata metadata) {
         // deliberately left blank
     }
 
     @Override
-    public ResponseMetadata get(Object obj) {
+    public SdkResponseMetadata get(Object obj) {
         throw new SdkClientException("Response metadata caching is not enabled");
     }
 

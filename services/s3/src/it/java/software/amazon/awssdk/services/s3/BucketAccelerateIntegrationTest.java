@@ -25,7 +25,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.AccelerateConfiguration;
 import software.amazon.awssdk.services.s3.model.BucketAccelerateStatus;
@@ -171,7 +171,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
                                                    .bucket(US_BUCKET_NAME)
                                                    .key(KEY_NAME)
                                                    .build(),
-                                   RequestBody.of(uploadFile));
+                                   RequestBody.fromFile(uploadFile));
     }
 
     private void enableAccelerateOnBucket() throws InterruptedException {

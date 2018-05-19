@@ -29,9 +29,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import software.amazon.awssdk.core.AwsRequest;
-import software.amazon.awssdk.core.AwsRequestOverrideConfig;
+import software.amazon.awssdk.awscore.AwsRequest;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfig;
 import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.services.dynamodb.document.AttributeUpdate;
 import software.amazon.awssdk.services.dynamodb.document.Expected;
@@ -610,10 +609,10 @@ public final class InternalUtils {
      */
     public static <X extends AwsRequest> X applyUserAgent(X request) {
         final AwsRequestOverrideConfig newCfg = request.requestOverrideConfig()
-                .map(AwsRequestOverrideConfig::toBuilder)
-                .orElse(AwsRequestOverrideConfig.builder())
-                .addApiName(apiName -> apiName.name("dynamodb-table-api").version(VersionInfo.SDK_VERSION))
-                .build();
+                                                       .map(AwsRequestOverrideConfig::toBuilder)
+                                                       .orElse(AwsRequestOverrideConfig.builder())
+                                                       .addApiName(apiName -> apiName.name("dynamodb-table-api").version(VersionInfo.SDK_VERSION))
+                                                       .build();
 
         return (X) request.toBuilder()
                 .requestOverrideConfig(newCfg)

@@ -16,8 +16,9 @@
 package software.amazon.awssdk.core;
 
 import java.util.Optional;
-
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.SdkHttpResponse;
 
 /**
  * The base class for all SDK responses.
@@ -25,7 +26,24 @@ import software.amazon.awssdk.annotations.Immutable;
  * @see SdkRequest
  */
 @Immutable
+@SdkPublicApi
 public abstract class SdkResponse {
+
+    private final SdkHttpResponse sdkHttpResponse;
+
+    protected SdkResponse(Builder builder) {
+        this.sdkHttpResponse = builder.sdkHttpResponse();
+    }
+
+    /**
+     * @return HTTP response data returned from the service.
+     *
+     * @see SdkHttpResponse
+     */
+    public SdkHttpResponse sdkHttpResponse() {
+        return sdkHttpResponse;
+    }
+
     /**
      * Used to retrieve the value of a field from any class that extends {@link SdkResponse}. The field name
      * specified should match the member name from the corresponding service-2.json model specified in the
@@ -44,6 +62,34 @@ public abstract class SdkResponse {
     public abstract Builder toBuilder();
 
     public interface Builder {
+
+        Builder sdkHttpResponse(SdkHttpResponse sdkHttpResponse);
+
+        SdkHttpResponse sdkHttpResponse();
+
         SdkResponse build();
+    }
+
+    protected abstract static class BuilderImpl implements Builder {
+
+        private SdkHttpResponse sdkHttpResponse;
+
+        protected BuilderImpl() {
+        }
+
+        protected BuilderImpl(SdkResponse response) {
+            this.sdkHttpResponse = response.sdkHttpResponse();
+        }
+
+        @Override
+        public Builder sdkHttpResponse(SdkHttpResponse sdkHttpResponse) {
+            this.sdkHttpResponse = sdkHttpResponse;
+            return this;
+        }
+
+        @Override
+        public SdkHttpResponse sdkHttpResponse() {
+            return sdkHttpResponse;
+        }
     }
 }

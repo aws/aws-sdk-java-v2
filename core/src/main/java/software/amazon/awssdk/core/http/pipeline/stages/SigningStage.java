@@ -15,16 +15,15 @@
 
 package software.amazon.awssdk.core.http.pipeline.stages;
 
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.RequestExecutionContext;
-import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.auth.CanHandleNullCredentials;
-import software.amazon.awssdk.core.auth.Signer;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpClientDependencies;
 import software.amazon.awssdk.core.http.InterruptMonitor;
 import software.amazon.awssdk.core.http.pipeline.RequestToRequestPipeline;
-import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
+import software.amazon.awssdk.core.runtime.auth.Signer;
 import software.amazon.awssdk.core.runtime.auth.SignerProviderContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
@@ -52,13 +51,14 @@ public class SigningStage implements RequestToRequestPipeline {
      * Sign the request if the signer if provided and credentials are present.
      */
     private SdkHttpFullRequest signRequest(SdkHttpFullRequest request, RequestExecutionContext context) {
-        final AwsCredentials credentials = context.executionAttributes().getAttribute(AwsExecutionAttributes.AWS_CREDENTIALS);
         updateInterceptorContext(request, context.executionContext());
         Signer signer = newSigner(request, context);
-        if (shouldSign(signer, credentials)) {
+
+        if (shouldSign(signer)) {
             adjustForClockSkew(context.executionAttributes());
             return signer.sign(context.executionContext().interceptorContext(), context.executionAttributes());
         }
+
         return request;
     }
 
@@ -81,21 +81,20 @@ public class SigningStage implements RequestToRequestPipeline {
     }
 
     /**
-     * We sign if a signer is provided and the credentials are non-null (unless the signer implements the marker interface,
-     * {@link
-     * CanHandleNullCredentials}).
+     * We sign if a signer is provided is not null.
      *
      * @return True if request should be signed, false if not.
      */
-    private boolean shouldSign(Signer signer, AwsCredentials credentials) {
-        return signer != null && (credentials != null || signer instanceof CanHandleNullCredentials);
+    @ReviewBeforeRelease("add back credential check (credentials != null || signer instanceof CanHandleNullCredentials) when "
+                         + "refactoring signer")
+    private boolean shouldSign(Signer signer) {
+        return signer != null;
     }
 
     /**
      * Always use the client level timeOffset.
      */
     private void adjustForClockSkew(ExecutionAttributes attributes) {
-        attributes.putAttribute(AwsExecutionAttributes.TIME_OFFSET, dependencies.timeOffset());
+        attributes.putAttribute(SdkExecutionAttributes.TIME_OFFSET, dependencies.timeOffset());
     }
-
 }

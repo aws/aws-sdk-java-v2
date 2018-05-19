@@ -49,7 +49,7 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>aws-core</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>

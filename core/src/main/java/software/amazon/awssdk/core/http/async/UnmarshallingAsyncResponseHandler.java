@@ -17,14 +17,14 @@ package software.amazon.awssdk.core.http.async;
 
 import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
-import software.amazon.awssdk.core.async.AsyncResponseHandler;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.util.Throwables;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeFunction;
 
 /**
- * Adapts an {@link AsyncResponseHandler} to a {@link SdkHttpResponseHandler} by first performing unmarshalling
+ * Adapts an {@link AsyncResponseTransformer} to a {@link SdkHttpResponseHandler} by first performing unmarshalling
  * on the initial response (headers/status code).
  *
  * @param <ResponseT> Response POJO type.
@@ -32,23 +32,23 @@ import software.amazon.awssdk.utils.FunctionalUtils.UnsafeFunction;
  */
 public class UnmarshallingAsyncResponseHandler<ResponseT, ReturnT> implements SdkHttpResponseHandler<ReturnT> {
 
-    private final AsyncResponseHandler<ResponseT, ReturnT> asyncResponseHandler;
+    private final AsyncResponseTransformer<ResponseT, ReturnT> asyncResponseTransformer;
     private final UnsafeFunction<SdkHttpResponse, ResponseT> unmarshaller;
 
     /**
-     * @param asyncResponseHandler Response handler being adapted.
+     * @param asyncResponseTransformer Response handler being adapted.
      * @param unmarshaller         Unmarshaller that takes an {@link SdkHttpResponse} and returns the unmarshalled POJO.
      */
-    public UnmarshallingAsyncResponseHandler(AsyncResponseHandler<ResponseT, ReturnT> asyncResponseHandler,
+    public UnmarshallingAsyncResponseHandler(AsyncResponseTransformer<ResponseT, ReturnT> asyncResponseTransformer,
                                              UnsafeFunction<SdkHttpResponse, ResponseT> unmarshaller) {
-        this.asyncResponseHandler = asyncResponseHandler;
+        this.asyncResponseTransformer = asyncResponseTransformer;
         this.unmarshaller = unmarshaller;
     }
 
     @Override
     public void headersReceived(SdkHttpResponse response) {
         try {
-            asyncResponseHandler.responseReceived(unmarshaller.apply(response));
+            asyncResponseTransformer.responseReceived(unmarshaller.apply(response));
         } catch (Exception e) {
             throw Throwables.failure(e);
         }
@@ -56,16 +56,16 @@ public class UnmarshallingAsyncResponseHandler<ResponseT, ReturnT> implements Sd
 
     @Override
     public void onStream(Publisher<ByteBuffer> publisher) {
-        asyncResponseHandler.onStream(publisher);
+        asyncResponseTransformer.onStream(publisher);
     }
 
     @Override
     public void exceptionOccurred(Throwable throwable) {
-        asyncResponseHandler.exceptionOccurred(throwable);
+        asyncResponseTransformer.exceptionOccurred(throwable);
     }
 
     @Override
     public ReturnT complete() {
-        return asyncResponseHandler.complete();
+        return asyncResponseTransformer.complete();
     }
 }

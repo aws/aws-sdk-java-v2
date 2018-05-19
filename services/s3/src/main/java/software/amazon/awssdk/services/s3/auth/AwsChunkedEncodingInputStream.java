@@ -27,9 +27,9 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.auth.AbstractAwsSigner;
-import software.amazon.awssdk.core.auth.Aws4Signer;
-import software.amazon.awssdk.core.auth.SigningAlgorithm;
+import software.amazon.awssdk.auth.signer.AbstractAwsSigner;
+import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.signer.SigningAlgorithm;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.io.SdkInputStream;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -329,12 +329,12 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
         chunkHeader.append(Integer.toHexString(chunkData.length));
         // sig-extension
         final String chunkStringToSign =
-                CHUNK_STRING_TO_SIGN_PREFIX + "\n" +
-                        dateTime + "\n" +
-                        keyPath + "\n" +
-                        priorChunkSignature + "\n" +
-                        AbstractAwsSigner.EMPTY_STRING_SHA256_HEX + "\n" +
-                        BinaryUtils.toHex(sha256.digest(chunkData));
+            CHUNK_STRING_TO_SIGN_PREFIX + "\n" +
+            dateTime + "\n" +
+            keyPath + "\n" +
+            priorChunkSignature + "\n" +
+            AbstractAwsSigner.EMPTY_STRING_SHA256_HEX + "\n" +
+            BinaryUtils.toHex(sha256.digest(chunkData));
         final String chunkSignature =
                 BinaryUtils.toHex(aws4Signer.signWithMac(chunkStringToSign, hmacSha256));
         priorChunkSignature = chunkSignature;

@@ -35,7 +35,7 @@ import java.util.TreeSet;
 import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
-import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.pojos.SubClass;
 import software.amazon.awssdk.services.dynamodb.pojos.TestClass;

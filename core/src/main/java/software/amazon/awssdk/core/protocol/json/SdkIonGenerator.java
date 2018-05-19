@@ -40,7 +40,7 @@ abstract class SdkIonGenerator implements StructuredJsonGenerator {
         this.contentType = contentType;
     }
 
-    public static SdkIonGenerator create(IonWriterBuilder builder, String contentType) {
+    static SdkIonGenerator create(IonWriterBuilder builder, String contentType) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         IonWriter writer = builder.build(bytes);
         return new ByteArraySdkIonGenerator(bytes, writer, contentType);

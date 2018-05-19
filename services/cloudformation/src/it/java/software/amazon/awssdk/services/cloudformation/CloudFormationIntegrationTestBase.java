@@ -21,7 +21,7 @@ import java.io.File;
 import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -68,13 +68,13 @@ public class CloudFormationIntegrationTestBase extends AwsTestBase {
                                      .bucket(bucketName)
                                      .key(templateForCloudFormationIntegrationTests)
                                      .build(),
-                     RequestBody.of(new File("tst/" + templateForCloudFormationIntegrationTests)));
+                     RequestBody.fromFile(new File("tst/" + templateForCloudFormationIntegrationTests)));
 
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(bucketName)
                                      .key(templateForStackIntegrationTests)
                                      .build(),
-                     RequestBody.of(new File("tst/" + templateForStackIntegrationTests)));
+                     RequestBody.fromFile(new File("tst/" + templateForStackIntegrationTests)));
     }
 
     @AfterClass

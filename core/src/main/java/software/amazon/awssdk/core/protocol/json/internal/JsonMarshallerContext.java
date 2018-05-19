@@ -22,7 +22,7 @@ import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 
 /**
- * Dependencies needed by implemenatations of {@link JsonMarshaller}.
+ * Dependencies needed by implementations of {@link JsonMarshaller}.
  */
 @SdkInternalApi
 public class JsonMarshallerContext {

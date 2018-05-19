@@ -11,8 +11,9 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.AwsRequestOverrideConfig;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfig;
 import software.amazon.awssdk.core.runtime.StandardMemberCopier;
 import software.amazon.awssdk.core.runtime.TypeConverter;
 import software.amazon.awssdk.core.runtime.adapters.types.StringToByteBufferAdapter;
@@ -564,10 +565,10 @@ public class AllTypesRequest extends JsonProtocolTestsRequest implements
 
     @Override
     public String toString() {
-        return ToString.builder("AllTypesRequest").add("StringMember", stringMember())
-                       .add("IntegerMember", integerMember()).add("BooleanMember", booleanMember()).add("FloatMember", floatMember())
-                       .add("DoubleMember", doubleMember()).add("LongMember", longMember()).add("SimpleList", simpleList())
-                       .add("ListOfEnums", listOfEnumsStrings()).add("ListOfMaps", listOfMaps()).add("ListOfStructs", listOfStructs())
+        return ToString.builder("AllTypesRequest").add("StringMember", stringMember()).add("IntegerMember", integerMember())
+                       .add("BooleanMember", booleanMember()).add("FloatMember", floatMember()).add("DoubleMember", doubleMember())
+                       .add("LongMember", longMember()).add("SimpleList", simpleList()).add("ListOfEnums", listOfEnumsStrings())
+                       .add("ListOfMaps", listOfMaps()).add("ListOfStructs", listOfStructs())
                        .add("MapOfStringToIntegerList", mapOfStringToIntegerList()).add("MapOfStringToString", mapOfStringToString())
                        .add("MapOfStringToSimpleStruct", mapOfStringToSimpleStruct()).add("MapOfEnumToEnum", mapOfEnumToEnumStrings())
                        .add("MapOfEnumToString", mapOfEnumToStringStrings()).add("MapOfStringToEnum", mapOfStringToEnumStrings())
@@ -766,6 +767,22 @@ public class AllTypesRequest extends JsonProtocolTestsRequest implements
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder listOfStructs(SimpleStruct... listOfStructs);
+
+        /**
+         * Sets the value of the ListOfStructs property for this object.
+         *
+         * This is a convenience that creates an instance of the {@link List<SimpleStruct>.Builder} avoiding the need to
+         * create one manually via {@link List<SimpleStruct>#builder()}.
+         *
+         * When the {@link Consumer} completes, {@link List<SimpleStruct>.Builder#build()} is called immediately and its
+         * result is passed to {@link #listOfStructs(List<SimpleStruct>)}.
+         *
+         * @param listOfStructs
+         *        a consumer that will call methods on {@link List<SimpleStruct>.Builder}
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #listOfStructs(List<SimpleStruct>)
+         */
+        Builder listOfStructs(Consumer<SimpleStruct.Builder>... listOfStructs);
 
         /**
          * Sets the value of the MapOfStringToIntegerList property for this object.
@@ -1040,6 +1057,9 @@ public class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         @Override
         Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig);
+
+        @Override
+        Builder requestOverrideConfig(Consumer<AwsRequestOverrideConfig.Builder> builderConsumer);
     }
 
     static final class BuilderImpl extends JsonProtocolTestsRequest.BuilderImpl implements Builder {
@@ -1101,6 +1121,7 @@ public class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         private BuilderImpl(AllTypesRequest model) {
+            super(model);
             stringMember(model.stringMember);
             integerMember(model.integerMember);
             booleanMember(model.booleanMember);
@@ -1295,6 +1316,13 @@ public class AllTypesRequest extends JsonProtocolTestsRequest implements
             return this;
         }
 
+        @Override
+        @SafeVarargs
+        public final Builder listOfStructs(Consumer<SimpleStruct.Builder>... listOfStructs) {
+            listOfStructs(Stream.of(listOfStructs).map(c -> SimpleStruct.builder().apply(c).build()).collect(Collectors.toList()));
+            return this;
+        }
+
         public final void setListOfStructs(Collection<SimpleStruct.BuilderImpl> listOfStructs) {
             this.listOfStructs = ListOfSimpleStructsCopier.copyFromBuilder(listOfStructs);
         }
@@ -1425,7 +1453,7 @@ public class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         public final void setStructWithNestedTimestampMember(StructWithTimestamp.BuilderImpl structWithNestedTimestampMember) {
             this.structWithNestedTimestampMember = structWithNestedTimestampMember != null ? structWithNestedTimestampMember
-                    .build() : null;
+                .build() : null;
         }
 
         public final ByteBuffer getBlobArg() {

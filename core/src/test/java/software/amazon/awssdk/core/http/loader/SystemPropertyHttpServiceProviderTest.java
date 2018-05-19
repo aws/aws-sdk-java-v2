@@ -23,7 +23,7 @@ import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpClientFactory;
 import software.amazon.awssdk.http.SdkHttpService;
-import software.amazon.awssdk.utils.SdkSystemSetting;
+import software.amazon.awssdk.core.SdkSystemSetting;
 
 public class SystemPropertyHttpServiceProviderTest {
 

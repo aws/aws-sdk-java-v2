@@ -63,6 +63,7 @@ public class StreamingInputOperationResponse extends JsonProtocolTestsResponse i
         }
 
         private BuilderImpl(StreamingInputOperationResponse model) {
+            super(model);
         }
 
         @Override

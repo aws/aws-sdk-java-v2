@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -44,7 +45,7 @@ public class ClientOverrideConfiguration
     private final Map<String, List<String>> additionalHttpHeaders;
     private final Boolean gzipEnabled;
     private final RetryPolicy retryPolicy;
-    private final List<ExecutionInterceptor> lastExecutionInterceptors;
+    private final List<ExecutionInterceptor> executionInterceptors;
     private final AttributeMap advancedOptions;
 
     /**
@@ -56,7 +57,7 @@ public class ClientOverrideConfiguration
         this.additionalHttpHeaders = CollectionUtils.deepUnmodifiableMap(builder.additionalHttpHeaders);
         this.gzipEnabled = builder.gzipEnabled;
         this.retryPolicy = builder.retryPolicy;
-        this.lastExecutionInterceptors = Collections.unmodifiableList(new ArrayList<>(builder.lastExecutionInterceptors));
+        this.executionInterceptors = Collections.unmodifiableList(new ArrayList<>(builder.executionInterceptors));
         this.advancedOptions = builder.advancedOptions.build();
     }
 
@@ -68,7 +69,7 @@ public class ClientOverrideConfiguration
                                                               .additionalHttpHeaders(additionalHttpHeaders)
                                                               .gzipEnabled(gzipEnabled)
                                                               .retryPolicy(retryPolicy)
-                                                              .lastExecutionInterceptors(lastExecutionInterceptors);
+                                                              .executionInterceptors(executionInterceptors);
     }
 
     /**
@@ -153,9 +154,9 @@ public class ClientOverrideConfiguration
      * Load the requested advanced option that was configured on the client builder. This will return null if the value was not
      * configured.
      *
-     * @see Builder#advancedOption(AdvancedClientOption, Object)
+     * @see Builder#advancedOption(SdkAdvancedClientOption, Object)
      */
-    public <T> T advancedOption(AdvancedClientOption<T> option) {
+    public <T> T advancedOption(SdkAdvancedClientOption<T> option) {
         return advancedOptions.get(option);
     }
 
@@ -163,10 +164,10 @@ public class ClientOverrideConfiguration
      * An immutable collection of {@link ExecutionInterceptor}s that should be hooked into the execution of each request, in the
      * order that they should be applied.
      *
-     * @see Builder#lastExecutionInterceptors(List)
+     * @see Builder#executionInterceptors(List)
      */
-    public List<ExecutionInterceptor> lastExecutionInterceptors() {
-        return lastExecutionInterceptors;
+    public List<ExecutionInterceptor> executionInterceptors() {
+        return executionInterceptors;
     }
 
     @Override
@@ -177,7 +178,7 @@ public class ClientOverrideConfiguration
                        .add("additionalHttpHeaders", additionalHttpHeaders)
                        .add("gzipEnabled", gzipEnabled)
                        .add("retryPolicy", retryPolicy)
-                       .add("lastExecutionInterceptors", lastExecutionInterceptors)
+                       .add("executionInterceptors", executionInterceptors)
                        .add("advancedOptions", advancedOptions)
                        .build();
     }
@@ -273,14 +274,17 @@ public class ClientOverrideConfiguration
         /**
          * Configure a list of execution interceptors that will have access to read and modify the request and response objcets as
          * they are processed by the SDK. These will replace any interceptors configured previously with this method or
-         * {@link #addLastExecutionInterceptor(ExecutionInterceptor)}.
+         * {@link #addExecutionInterceptor(ExecutionInterceptor)}.
          *
          * The provided interceptors are executed in the order they are configured and are always later in the order than the ones
          * automatically added by the SDK. See {@link ExecutionInterceptor} for a more detailed explanation of interceptor order.
          *
-         * @see ClientOverrideConfiguration#lastExecutionInterceptors()
+         * <b><i>This is currently an INTERNAL api, which means it is subject to change and should not be used.</i></b>
+         *
+         * @see ClientOverrideConfiguration#executionInterceptors()
          */
-        Builder lastExecutionInterceptors(List<ExecutionInterceptor> executionInterceptors);
+        @SdkInternalApi
+        Builder executionInterceptors(List<ExecutionInterceptor> executionInterceptors);
 
         /**
          * Add an execution interceptor that will have access to read and modify the request and response objects as they are
@@ -290,9 +294,12 @@ public class ClientOverrideConfiguration
          * than the ones automatically added by the SDK. See {@link ExecutionInterceptor} for a more detailed explanation of
          * interceptor order.
          *
-         * @see ClientOverrideConfiguration#lastExecutionInterceptors()
+         * <b><i>This is currently an INTERNAL api, which means it is subject to change and should not be used.</i></b>
+         *
+         * @see ClientOverrideConfiguration#executionInterceptors()
          */
-        Builder addLastExecutionInterceptor(ExecutionInterceptor executionInterceptor);
+        @SdkInternalApi
+        Builder addExecutionInterceptor(ExecutionInterceptor executionInterceptor);
 
         /**
          * Configure an advanced override option. These values are used very rarely, and the majority of SDK customers can ignore
@@ -302,13 +309,13 @@ public class ClientOverrideConfiguration
          * @param value The value of the option.
          * @param <T> The type of the option.
          */
-        <T> Builder advancedOption(AdvancedClientOption<T> option, T value);
+        <T> Builder advancedOption(SdkAdvancedClientOption<T> option, T value);
 
         /**
          * Configure the map of advanced override options. This will override all values currently configured. The values in the
          * map must match the key type of the map, or a runtime exception will be raised.
          */
-        Builder advancedOptions(Map<AdvancedClientOption<?>, ?> advancedOptions);
+        Builder advancedOptions(Map<SdkAdvancedClientOption<?>, ?> advancedOptions);
     }
 
     /**
@@ -320,7 +327,7 @@ public class ClientOverrideConfiguration
         private Map<String, List<String>> additionalHttpHeaders = new HashMap<>();
         private Boolean gzipEnabled;
         private RetryPolicy retryPolicy;
-        private List<ExecutionInterceptor> lastExecutionInterceptors = new ArrayList<>();
+        private List<ExecutionInterceptor> executionInterceptors = new ArrayList<>();
         private AttributeMap.Builder advancedOptions = AttributeMap.builder();
 
         @Override
@@ -381,30 +388,30 @@ public class ClientOverrideConfiguration
         }
 
         @Override
-        public Builder lastExecutionInterceptors(List<ExecutionInterceptor> executionInterceptors) {
-            this.lastExecutionInterceptors.clear();
-            this.lastExecutionInterceptors.addAll(executionInterceptors);
+        public Builder executionInterceptors(List<ExecutionInterceptor> executionInterceptors) {
+            this.executionInterceptors.clear();
+            this.executionInterceptors.addAll(executionInterceptors);
             return this;
         }
 
         @Override
-        public Builder addLastExecutionInterceptor(ExecutionInterceptor executionInterceptors) {
-            this.lastExecutionInterceptors.add(executionInterceptors);
+        public Builder addExecutionInterceptor(ExecutionInterceptor executionInterceptors) {
+            this.executionInterceptors.add(executionInterceptors);
             return this;
         }
 
-        public void setLastExecutionInterceptors(List<ExecutionInterceptor> executionInterceptors) {
-            lastExecutionInterceptors(executionInterceptors);
+        public void setExecutionInterceptors(List<ExecutionInterceptor> executionInterceptors) {
+            executionInterceptors(executionInterceptors);
         }
 
         @Override
-        public <T> Builder advancedOption(AdvancedClientOption<T> option, T value) {
+        public <T> Builder advancedOption(SdkAdvancedClientOption<T> option, T value) {
             this.advancedOptions.put(option, value);
             return this;
         }
 
         @Override
-        public Builder advancedOptions(Map<AdvancedClientOption<?>, ?> advancedOptions) {
+        public Builder advancedOptions(Map<SdkAdvancedClientOption<?>, ?> advancedOptions) {
             this.advancedOptions.putAll(advancedOptions);
             return this;
         }
@@ -414,7 +421,7 @@ public class ClientOverrideConfiguration
             return this;
         }
 
-        public void setAdvancedOptions(Map<AdvancedClientOption<?>, Object> advancedOptions) {
+        public void setAdvancedOptions(Map<SdkAdvancedClientOption<?>, Object> advancedOptions) {
             advancedOptions(advancedOptions);
         }
 
