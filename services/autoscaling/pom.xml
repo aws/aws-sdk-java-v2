@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.0.0-preview-9-SNAPSHOT</version>
+        <version>2.0.0-preview-10-SNAPSHOT</version>
     </parent>
     <artifactId>autoscaling</artifactId>
     <name>AWS Java SDK :: Services :: Auto Scaling</name>
@@ -36,6 +36,7 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sns</artifactId>
             <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

@@ -25,7 +25,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import java.lang.reflect.Method;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
-import software.amazon.awssdk.core.sync.StreamingResponseHandler;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.protocol.asserts.unmarshalling.UnmarshallingTestContext;
 import software.amazon.awssdk.protocol.model.GivenResponse;
@@ -55,7 +55,7 @@ class UnmarshallingTestRunner {
             Object actualResult = clientReflector.invokeMethod(testCase, createRequestObject(operationName));
             testCase.getThen().getUnmarshallingAssertion().assertMatches(createContext(operationName), actualResult);
         } else {
-            CapturingResponseHandler responseHandler = new CapturingResponseHandler();
+            CapturingResponseTransformer responseHandler = new CapturingResponseTransformer();
             Object actualResult = clientReflector
                     .invokeStreamingMethod(testCase, createRequestObject(operationName), responseHandler);
             testCase.getThen().getUnmarshallingAssertion()
@@ -64,11 +64,11 @@ class UnmarshallingTestRunner {
     }
 
     /**
-     * {@link StreamingResponseHandler} that simply captures all the content as a String so we
+     * {@link ResponseTransformer} that simply captures all the content as a String so we
      * can compare it with the expected in
      * {@link software.amazon.awssdk.protocol.asserts.unmarshalling.UnmarshalledResultAssertion}.
      */
-    private static class CapturingResponseHandler implements StreamingResponseHandler<Object, Void> {
+    private static class CapturingResponseTransformer implements ResponseTransformer<Object, Void> {
 
         private String captured;
 

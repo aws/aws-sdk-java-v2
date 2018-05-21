@@ -15,7 +15,8 @@
 
 package software.amazon.awssdk.services.dynamodb.document.spec;
 
-import software.amazon.awssdk.core.AwsRequest;
+
+import software.amazon.awssdk.awscore.AwsRequest;
 
 /**
  * Abstract implementation class for parameter specification that involves

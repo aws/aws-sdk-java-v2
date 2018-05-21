@@ -64,6 +64,7 @@ public class OperationWithNoInputOrOutputResponse extends JsonProtocolTestsRespo
         }
 
         private BuilderImpl(OperationWithNoInputOrOutputResponse model) {
+            super(model);
         }
 
         @Override

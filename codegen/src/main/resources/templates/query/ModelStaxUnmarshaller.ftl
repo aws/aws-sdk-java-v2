@@ -10,11 +10,10 @@ import javax.xml.stream.events.XMLEvent;
 import javax.annotation.Generated;
 
 import ${metadata.fullModelPackageName}.*;
+import software.amazon.awssdk.awscore.protocol.xml.StaxUnmarshallerContext;
+import software.amazon.awssdk.awscore.protocol.xml.SimpleTypeStaxUnmarshallers.*;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.core.runtime.transform.MapEntry;
-import software.amazon.awssdk.core.runtime.transform.StaxUnmarshallerContext;
-import software.amazon.awssdk.core.runtime.transform.SimpleTypeStaxUnmarshallers.*;
-
 
 /**
  * ${shape.shapeName} StAX Unmarshaller

@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.protocol;
 
-import software.amazon.awssdk.core.runtime.transform.StandardErrorUnmarshaller;
+import software.amazon.awssdk.awscore.protocol.xml.StandardErrorUnmarshaller;
 
 /**
  * Base class for all XML based protocols.

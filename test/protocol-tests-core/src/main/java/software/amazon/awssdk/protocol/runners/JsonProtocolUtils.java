@@ -15,10 +15,11 @@
 
 package software.amazon.awssdk.protocol.runners;
 
+import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
+import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
-import software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory;
 
 
 public final class JsonProtocolUtils {
@@ -31,12 +32,12 @@ public final class JsonProtocolUtils {
      * tests.
      *
      * @param model Intermediate model of service
-     * @return Configured {@link SdkJsonProtocolFactory}
+     * @return Configured {@link AwsJsonProtocolFactory}
      */
-    public static SdkJsonProtocolFactory createProtocolFactory(IntermediateModel model) {
+    public static AwsJsonProtocolFactory createProtocolFactory(IntermediateModel model) {
         final Metadata metadata = model.getMetadata();
-        return new SdkJsonProtocolFactory(
-                new JsonClientMetadata().withProtocolVersion(metadata.getJsonVersion())
-                                        .withSupportsCbor(metadata.isCborProtocol()));
+        return new AwsJsonProtocolFactory(
+            new JsonClientMetadata().withSupportsCbor(metadata.isCborProtocol()),
+            AwsJsonProtocolMetadata.builder().protocolVersion(metadata.getJsonVersion()).build());
     }
 }

@@ -73,7 +73,7 @@ public class MessageAttributesIntegrationTest extends IntegrationTestBase {
                                                   .credentialsProvider(getCredentialsProvider())
                                                   .overrideConfiguration(ClientOverrideConfiguration
                                                                                  .builder()
-                                                                                 .addLastExecutionInterceptor(
+                                                                                 .addExecutionInterceptor(
                                                                                          new TamperingInterceptor())
                                                                                  .build())
                                                   .build()) {

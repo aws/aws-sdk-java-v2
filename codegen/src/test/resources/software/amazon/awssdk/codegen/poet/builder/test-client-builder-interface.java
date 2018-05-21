@@ -17,14 +17,14 @@ package software.amazon.awssdk.services.json;
 
 import java.util.function.Consumer;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.client.builder.ClientBuilder;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 
 /**
  * This includes configuration specific to Json Service that is supported by both {@link JsonClientBuilder} and
  * {@link JsonAsyncClientBuilder}.
  */
 @Generated("software.amazon.awssdk:codegen")
-public interface JsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C> extends ClientBuilder<B, C> {
+public interface JsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C> extends AwsClientBuilder<B, C> {
     B advancedConfiguration(AdvancedConfiguration advancedConfiguration);
 
     default B advancedConfiguration(Consumer<AdvancedConfiguration.Builder> advancedConfiguration) {

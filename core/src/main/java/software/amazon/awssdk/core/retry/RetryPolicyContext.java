@@ -21,13 +21,15 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Contains useful information about a failed request that can be used to make retry and backoff decisions. See {@link
  * RetryPolicy}.
  */
 @Immutable
-public final class RetryPolicyContext {
+public final class RetryPolicyContext implements ToCopyableBuilder<RetryPolicyContext.Builder, RetryPolicyContext> {
 
     private final SdkRequest originalRequest;
     private final SdkHttpFullRequest request;
@@ -104,8 +106,13 @@ public final class RetryPolicyContext {
         return this.httpStatusCode;
     }
 
+    @Override
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     @SdkInternalApi
-    public static class Builder {
+    public static class Builder implements CopyableBuilder<Builder, RetryPolicyContext> {
 
         private SdkRequest originalRequest;
         private SdkHttpFullRequest request;
@@ -115,6 +122,15 @@ public final class RetryPolicyContext {
         private Integer httpStatusCode;
 
         private Builder() {
+        }
+
+        private Builder(RetryPolicyContext copy) {
+            this.originalRequest = copy.originalRequest;
+            this.request = copy.request;
+            this.exception = copy.exception;
+            this.executionAttributes = copy.executionAttributes;
+            this.retriesAttempted = copy.retriesAttempted;
+            this.httpStatusCode = copy.httpStatusCode;
         }
 
         public Builder originalRequest(SdkRequest originalRequest) {
@@ -157,4 +173,5 @@ public final class RetryPolicyContext {
         }
 
     }
+
 }

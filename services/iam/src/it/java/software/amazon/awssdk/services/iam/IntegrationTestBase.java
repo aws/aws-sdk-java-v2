@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.Before;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.services.iam.model.IAMException;
 import software.amazon.awssdk.services.iam.model.User;

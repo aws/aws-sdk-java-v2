@@ -15,8 +15,10 @@
 
 package software.amazon.awssdk.core.interceptor;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 
@@ -59,7 +61,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
  * <ol>
  *     <li><i>Override Configuration Interceptors</i> are the most common method for SDK users to register an interceptor. These
  *     interceptors are explicitly added to the client builder's override configuration when a client is created using the {@link
- *     software.amazon.awssdk.core.config.ClientOverrideConfiguration.Builder#addLastExecutionInterceptor(ExecutionInterceptor)}
+ *     software.amazon.awssdk.core.config.ClientOverrideConfiguration.Builder#addExecutionInterceptor(ExecutionInterceptor)}
  *     method.</li>
  *
  *     <li><i>Global Interceptors</i> are interceptors loaded from the classpath for all clients. When any service client is
@@ -90,7 +92,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
  *     the order than interceptors later in the file.</li>
  *
  *     <li><i>Override Configuration Interceptors</i>. Any interceptors registered using {@link
- *     software.amazon.awssdk.core.config.ClientOverrideConfiguration.Builder#addLastExecutionInterceptor(ExecutionInterceptor)}
+ *     software.amazon.awssdk.core.config.ClientOverrideConfiguration.Builder#addExecutionInterceptor(ExecutionInterceptor)}
  *     in the order they were added.</li>
  * </ol>
  * When a request is being processed (up to and including {@link #beforeTransmission}, interceptors are applied in forward-order,
@@ -104,9 +106,14 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
  * {@link ExecutionAttributes} are unique to an execution (the process of an SDK processing a {@link SdkRequest}). This mutable
  * collection of attributes is created when a call to a service client is made and can be mutated throughout the course of the
  * client call. These attributes are made available to every interceptor hook and is available for storing data between method
- * calls. The SDK provides some attributes automatically, available via {@link AwsExecutionAttributes}.
+ * calls. The SDK provides some attributes automatically, available via {@link SdkExecutionAttributes}.
+ * </p>
+ *
+ * <p>
+ * <b><i>Note: This interface will change between SDK versions and should not be implemented by SDK users.</i></b>
  * </p>
  */
+@SdkInternalApi
 public interface ExecutionInterceptor {
     /**
      * Read a request that has been given to a service client before it is modified by other interceptors.

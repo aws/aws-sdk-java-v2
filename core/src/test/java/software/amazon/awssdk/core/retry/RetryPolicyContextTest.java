@@ -19,9 +19,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.AwsRequest;
-import software.amazon.awssdk.core.http.NoopTestAwsRequest;
+import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import utils.ValidSdkObjects;
 
@@ -44,7 +44,7 @@ public class RetryPolicyContextTest {
 
     @Test
     public void buildFully() {
-        final AwsRequest origRequest = NoopTestAwsRequest.builder().build();
+        final SdkRequest origRequest = NoopTestRequest.builder().build();
         final SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
         final SdkClientException exception = new SdkClientException("boom");
         final RetryPolicyContext context = RetryPolicyContext.builder()

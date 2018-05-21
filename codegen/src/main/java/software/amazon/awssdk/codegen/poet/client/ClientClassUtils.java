@@ -17,16 +17,23 @@ package software.amazon.awssdk.codegen.poet.client;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import java.util.Optional;
+import java.util.function.Consumer;
+import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.utils.Validate;
 
-public final class ClientClassUtils {
+final class ClientClassUtils {
     private ClientClassUtils() {
     }
 
-    protected static Optional<CodeBlock> getCustomResponseHandler(OperationModel operationModel, ClassName returnType) {
+    static Optional<CodeBlock> getCustomResponseHandler(OperationModel operationModel, ClassName returnType) {
         Optional<String> customUnmarshaller = Optional.ofNullable(operationModel.getOutputShape())
                                                       .map(ShapeModel::getCustomization)
                                                       .flatMap(c -> Optional.ofNullable(c.getCustomUnmarshallerFqcn()));
@@ -40,5 +47,36 @@ public final class ClientClassUtils {
                                            returnType,
                                            ClassName.bestGuess(unmarshaller)).build();
         });
+    }
+
+    static MethodSpec consumerBuilderVariant(MethodSpec spec, String javadoc) {
+        Validate.validState(spec.parameters.size() > 0, "A first parameter is required to generate a consumer-builder method.");
+        Validate.validState(spec.parameters.get(0).type instanceof ClassName, "The first parameter must be a class.");
+
+        ParameterSpec firstParameter = spec.parameters.get(0);
+        ClassName firstParameterClass = (ClassName) firstParameter.type;
+        TypeName consumer = ParameterizedTypeName.get(ClassName.get(Consumer.class), firstParameterClass.nestedClass("Builder"));
+
+        MethodSpec.Builder result = MethodSpec.methodBuilder(spec.name)
+                                              .returns(spec.returnType)
+                                              .addExceptions(spec.exceptions)
+                                              .addJavadoc(javadoc)
+                                              .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                                              .addTypeVariables(spec.typeVariables)
+                                              .addParameter(ParameterSpec.builder(consumer, firstParameter.name).build());
+
+
+        // Parameters
+        StringBuilder methodBody = new StringBuilder("return $L($T.builder().apply($L).build()");
+        for (int i = 1; i < spec.parameters.size(); i++) {
+            ParameterSpec parameter = spec.parameters.get(i);
+            methodBody.append(", ").append(parameter.name);
+            result.addParameter(parameter);
+        }
+        methodBody.append(")");
+
+        result.addStatement(methodBody.toString(), spec.name, firstParameterClass, firstParameter.name);
+
+        return result.build();
     }
 }

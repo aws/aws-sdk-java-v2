@@ -15,13 +15,8 @@
 
 package software.amazon.awssdk.codegen.docs;
 
-import static software.amazon.awssdk.codegen.docs.AsyncOperationDocProvider.asyncFactories;
-import static software.amazon.awssdk.codegen.docs.SyncOperationDocProvider.syncFactories;
-
-import java.util.Map;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
 
 /**
  * Provides documentation for an operation method on the client interface. Use
@@ -31,11 +26,6 @@ import software.amazon.awssdk.core.util.ImmutableMapParameter;
  * convenience overload as defined in {@link SimpleMethodOverload}.
  */
 public final class OperationDocs {
-
-    private static final Map<ClientType, Map<SimpleMethodOverload, Factory>> FACTORIES =
-            ImmutableMapParameter.of(ClientType.SYNC, syncFactories(),
-                                     ClientType.ASYNC, asyncFactories());
-
     private OperationDocs() {
     }
 
@@ -53,6 +43,17 @@ public final class OperationDocs {
     }
 
     /**
+     * Equivalent to calling
+     * {@link #getDocs(IntermediateModel, OperationModel, ClientType, SimpleMethodOverload, DocConfiguration)} with a default
+     * {@link DocConfiguration}
+     */
+    public static String getDocs(IntermediateModel model, OperationModel opModel, ClientType clientType,
+                                 SimpleMethodOverload simpleMethodOverload) {
+        return getDocs(model, opModel, clientType, simpleMethodOverload, new DocConfiguration());
+    }
+
+
+    /**
      * Get documentation for a specific {@link SimpleMethodOverload}.
      *
      * @param model                {@link IntermediateModel}
@@ -62,7 +63,11 @@ public final class OperationDocs {
      * @return Formatted Javadocs for operation method.
      */
     public static String getDocs(IntermediateModel model, OperationModel opModel, ClientType clientType,
-                                 SimpleMethodOverload simpleMethodOverload) {
-        return FACTORIES.get(clientType).get(simpleMethodOverload).apply(model, opModel).getDocs();
+                                 SimpleMethodOverload simpleMethodOverload, DocConfiguration docConfig) {
+        switch (clientType) {
+            case SYNC: return simpleMethodOverload.syncDocsProvider(model, opModel, docConfig).getDocs();
+            case ASYNC: return simpleMethodOverload.asyncDocsProvider(model, opModel, docConfig).getDocs();
+            default: throw new UnsupportedOperationException("Unknown client type: " + clientType);
+        }
     }
 }

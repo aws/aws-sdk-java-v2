@@ -23,22 +23,18 @@ import java.time.Duration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import org.junit.Test;
-import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.core.auth.DefaultCredentialsProvider;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.auth.NoOpSignerProvider;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 
 /**
- * Validate the functionality of {@link ImmutableClientConfiguration}.
+ * Validate the functionality of {@link SdkImmutableClientConfiguration}.
  */
 @SuppressWarnings("deprecation") // Intentional use of deprecated class
 public class ImmutableClientConfigurationTest {
     private static final NoOpSignerProvider SIGNER_PROVIDER = new NoOpSignerProvider();
-    private static final AwsCredentialsProvider CREDENTIALS_PROVIDER = DefaultCredentialsProvider.create();
     private static final URI ENDPOINT = URI.create("https://www.example.com");
     private static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
     private static final SdkHttpClient SYNC_HTTP_CLIENT = mock(SdkHttpClient.class);
@@ -53,29 +49,27 @@ public class ImmutableClientConfigurationTest {
 
     @Test
     public void immutableSyncConfigurationMatchesMutableConfiguration() {
-        assertThat(new ImmutableSyncClientConfiguration(initializedSyncConfiguration()))
+        assertThat(new SdkImmutableSyncClientConfiguration(initializedSyncConfiguration()))
                 .isEqualToComparingFieldByFieldRecursively(initializedSyncConfiguration());
     }
 
     @Test
     public void immutableAsyncConfigurationMatchesMutableConfiguration() {
-        assertThat(new ImmutableAsyncClientConfiguration(initializedAsyncConfiguration()))
+        assertThat(new SdkImmutableAsyncClientConfiguration(initializedAsyncConfiguration()))
                 .isEqualToComparingFieldByFieldRecursively(initializedAsyncConfiguration());
     }
 
-    private AsyncClientConfiguration initializedAsyncConfiguration() {
-        return new MutableClientConfiguration().overrideConfiguration(initializedOverrideConfiguration())
-                                               .credentialsProvider(CREDENTIALS_PROVIDER)
-                                               .endpoint(ENDPOINT)
-                                               .asyncExecutorService(EXECUTOR_SERVICE)
-                                               .asyncHttpClient(ASYNC_HTTP_CLIENT);
+    private SdkAsyncClientConfiguration initializedAsyncConfiguration() {
+        return new SdkMutableClientConfiguration().overrideConfiguration(initializedOverrideConfiguration())
+                                                  .endpoint(ENDPOINT)
+                                                  .asyncExecutorService(EXECUTOR_SERVICE)
+                                                  .asyncHttpClient(ASYNC_HTTP_CLIENT);
     }
 
-    private SyncClientConfiguration initializedSyncConfiguration() {
-        return new MutableClientConfiguration().overrideConfiguration(initializedOverrideConfiguration())
-                                               .credentialsProvider(CREDENTIALS_PROVIDER)
-                                               .endpoint(ENDPOINT)
-                                               .httpClient(SYNC_HTTP_CLIENT);
+    private SdkSyncClientConfiguration initializedSyncConfiguration() {
+        return new SdkMutableClientConfiguration().overrideConfiguration(initializedOverrideConfiguration())
+                                                  .endpoint(ENDPOINT)
+                                                  .httpClient(SYNC_HTTP_CLIENT);
     }
 
     private ClientOverrideConfiguration initializedOverrideConfiguration() {
@@ -84,12 +78,11 @@ public class ImmutableClientConfigurationTest {
                                           .totalExecutionTimeout(Duration.ofSeconds(4))
                                           .gzipEnabled(true)
                                           .addAdditionalHttpHeader("header", "value")
-                                          .advancedOption(AdvancedClientOption.USER_AGENT_PREFIX, "userAgentPrefix")
-                                          .advancedOption(AdvancedClientOption.USER_AGENT_SUFFIX, "userAgentSuffix")
-                                          .advancedOption(AdvancedClientOption.SIGNER_PROVIDER, SIGNER_PROVIDER)
-                                          .advancedOption(AdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION, false)
+                                          .advancedOption(SdkAdvancedClientOption.USER_AGENT_PREFIX, "userAgentPrefix")
+                                          .advancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX, "userAgentSuffix")
+                                          .advancedOption(SdkAdvancedClientOption.SIGNER_PROVIDER, SIGNER_PROVIDER)
                                           .retryPolicy(RETRY_POLICY)
-                                          .addLastExecutionInterceptor(EXECUTION_INTERCEPTOR)
+                                          .addExecutionInterceptor(EXECUTION_INTERCEPTOR)
                                           .build();
     }
 }
