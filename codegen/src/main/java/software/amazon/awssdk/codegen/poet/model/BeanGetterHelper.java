@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.poet.model;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
@@ -49,15 +50,16 @@ public final class BeanGetterHelper {
     private MethodSpec regularGetter(MemberModel memberModel) {
         return basicGetter(memberModel,
                            typeProvider.parameterType(memberModel),
-                           "return $N",
-                           memberModel.getVariable().getVariableName());
+                           CodeBlock.builder().add("return $N", memberModel.getVariable().getVariableName())
+                                    .build());
     }
 
     private MethodSpec builderGetter(MemberModel memberModel) {
         return basicGetter(memberModel,
                            poetExtensions.getModelClass(memberModel.getC2jShape()).nestedClass("Builder"),
-                           "return $1N != null ? $1N.toBuilder() : null",
-                           memberModel.getVariable().getVariableName());
+                           CodeBlock.builder().add("return $1N != null ? $1N.toBuilder() : null",
+                                                   memberModel.getVariable().getVariableName())
+                                    .build());
     }
 
     private MethodSpec mapOfBuildersGetter(MemberModel memberModel) {
@@ -68,10 +70,11 @@ public final class BeanGetterHelper {
 
         return basicGetter(memberModel,
                            returnType,
-                           "return $1N != null ? $2T.mapValues($1N, $3T::toBuilder) : null",
-                           memberModel.getVariable().getVariableName(),
-                           CollectionUtils.class,
-                           valueType);
+                           CodeBlock.builder().add("return $1N != null ? $2T.mapValues($1N, $3T::toBuilder) : null",
+                                                   memberModel.getVariable().getVariableName(),
+                                                   CollectionUtils.class,
+                                                   valueType)
+                                    .build());
     }
 
     private MethodSpec listOfBuildersGetter(MemberModel memberModel) {
@@ -80,17 +83,19 @@ public final class BeanGetterHelper {
 
         return basicGetter(memberModel,
                            returnType,
-                           "return $1N != null ? $1N.stream().map($2T::toBuilder).collect($3T.toList()) : null",
-                           memberModel.getVariable().getVariableName(),
-                           memberType,
-                           Collectors.class);
+                           CodeBlock.builder().add(
+                               "return $1N != null ? $1N.stream().map($2T::toBuilder).collect($3T.toList()) : null",
+                               memberModel.getVariable().getVariableName(),
+                               memberType,
+                               Collectors.class)
+                               .build());
     }
 
-    private MethodSpec basicGetter(MemberModel memberModel, TypeName returnType, String statementCode, Object...statementArgs) {
+    private MethodSpec basicGetter(MemberModel memberModel, TypeName returnType, CodeBlock statement) {
         return MethodSpec.methodBuilder(memberModel.getBeanStyleGetterMethodName())
                          .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                          .returns(returnType)
-                         .addStatement(statementCode, statementArgs)
+                         .addStatement(statement)
                          .build();
     }
 }

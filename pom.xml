@@ -74,6 +74,7 @@
         <module>test/protocol-tests-core</module>
         <module>test/service-test-utils</module>
         <module>test/test-utils</module>
+        <module>test/codegen-generated-classes-test</module>
         <module>annotations</module>
         <module>utils</module>
     </modules>
