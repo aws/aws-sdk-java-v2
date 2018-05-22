@@ -30,9 +30,12 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.timeout.ReadTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutException;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.Future;
+import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeoutException;
@@ -138,23 +141,28 @@ final class RunnableRequest implements AbortableRunnable {
 
     private void handleFailure(Supplier<String> msg, Throwable cause) {
         log.error(msg.get(), cause);
+        Throwable throwable = decorateException(cause);
         runAndLogError("Exception thrown from AsyncResponseHandler",
-            () -> context.handler().exceptionOccurred(modifyHighBurstTrafficException(cause)));
+            () -> context.handler().exceptionOccurred(throwable));
         if (channel != null) {
             runAndLogError("Unable to release channel back to the pool.",
                 () -> closeAndRelease(channel));
         }
     }
 
-    private Throwable modifyHighBurstTrafficException(Throwable originalCause) {
+    private Throwable decorateException(Throwable originalCause) {
         if (isAcquireTimeoutException(originalCause)) {
             return new Throwable(getMessageForAcquireTimeoutException(), originalCause);
         } else if (isTooManyPendingAcquiresException(originalCause)) {
             return new Throwable(getMessageForTooManyAcquireOperationsError(), originalCause);
-        } else {
-            return originalCause;
+        } else if (originalCause instanceof ReadTimeoutException) {
+            // wrap it with IOException to be retried by SDK
+            return new IOException("Read timed out", originalCause);
+        } else if (originalCause instanceof WriteTimeoutException) {
+            return new IOException("Write timed out", originalCause);
         }
 
+        return originalCause;
     }
 
     private boolean isAcquireTimeoutException(Throwable originalCause) {
