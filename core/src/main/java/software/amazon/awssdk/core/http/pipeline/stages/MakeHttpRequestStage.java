@@ -52,7 +52,6 @@ public class MakeHttpRequestStage
         final AbortableCallable<SdkHttpFullResponse> requestCallable = sdkHttpClient
                 .prepareRequest(request, SdkRequestContext.builder().build());
 
-        context.clientExecutionTrackerTask().setCurrentHttpRequest(requestCallable);
         return requestCallable.call();
     }
 }

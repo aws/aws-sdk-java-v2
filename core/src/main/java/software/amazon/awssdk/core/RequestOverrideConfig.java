@@ -37,14 +37,11 @@ public abstract class RequestOverrideConfig {
 
     private final Map<String, List<String>> rawQueryParameters;
 
-    private final Duration requestExecutionTimeout;
-
     private final List<ApiName> apiNames;
 
     protected RequestOverrideConfig(Builder<?> builder) {
         this.headers = builder.headers();
         this.rawQueryParameters = builder.rawQueryParameters();
-        this.requestExecutionTimeout = builder.requestExecutionTimeout();
         this.apiNames = builder.apiNames();
     }
 
@@ -64,15 +61,6 @@ public abstract class RequestOverrideConfig {
      */
     public Optional<Map<String, List<String>>> rawQueryParameters() {
         return Optional.ofNullable(rawQueryParameters);
-    }
-
-    /**
-     * Optional execution timeout for the request.
-     *
-     * @return The optional execution timeout.
-     */
-    public Optional<Duration> requestExecutionTimeout() {
-        return Optional.ofNullable(requestExecutionTimeout);
     }
 
     /**
@@ -171,22 +159,6 @@ public abstract class RequestOverrideConfig {
         B rawQueryParameters(Map<String, List<String>> rawQueryParameters);
 
         /**
-         * Optional execution timeout for the request.
-         *
-         * @return The optional execution timeout.
-         */
-        Duration requestExecutionTimeout();
-
-        /**
-         * Set an optional execution timeout for the request.
-         *
-         * @param requestExecutionTimeout The optional execution timeout for the request.
-         *
-         * @return This object for method chaining.
-         */
-        B requestExecutionTimeout(Duration requestExecutionTimeout);
-
-        /**
          * The optional names of the higher level libraries that constructed the request.
          *
          * @return The names of the libraries.
@@ -234,7 +206,6 @@ public abstract class RequestOverrideConfig {
         protected BuilderImpl(RequestOverrideConfig sdkRequestOverrideConfig) {
             sdkRequestOverrideConfig.headers().ifPresent(this::headers);
             sdkRequestOverrideConfig.rawQueryParameters().ifPresent(this::rawQueryParameters);
-            sdkRequestOverrideConfig.requestExecutionTimeout().ifPresent(this::requestExecutionTimeout);
             sdkRequestOverrideConfig.apiNames().ifPresent(apiNames -> apiNames.forEach(this::addApiName));
         }
 
@@ -285,18 +256,6 @@ public abstract class RequestOverrideConfig {
             } else {
                 rawQueryParameters.forEach(this::rawQueryParameter);
             }
-            return (B) this;
-        }
-
-        @Override
-        public Duration requestExecutionTimeout() {
-            return requestExecutionTimeout;
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public B requestExecutionTimeout(Duration requestExecutionTimeout) {
-            this.requestExecutionTimeout = requestExecutionTimeout;
             return (B) this;
         }
 
