@@ -74,8 +74,6 @@ public class ImmutableClientConfigurationTest {
 
     private ClientOverrideConfiguration initializedOverrideConfiguration() {
         return ClientOverrideConfiguration.builder()
-                                          .httpRequestTimeout(Duration.ofSeconds(2))
-                                          .totalExecutionTimeout(Duration.ofSeconds(4))
                                           .gzipEnabled(true)
                                           .addAdditionalHttpHeader("header", "value")
                                           .advancedOption(SdkAdvancedClientOption.USER_AGENT_PREFIX, "userAgentPrefix")

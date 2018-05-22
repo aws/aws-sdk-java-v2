@@ -127,12 +127,6 @@ public class ClientExecutionTimedStage<OutputT> implements RequestToResponsePipe
      * @return Client Execution timeout value or 0 if none is set
      */
     private long getClientExecutionTimeoutInMillis(RequestOverrideConfig requestConfig) {
-        if (requestConfig.requestExecutionTimeout().isPresent()) {
-            return requestConfig.requestExecutionTimeout().get().toMillis();
-        } else if (clientConfig.overrideConfiguration().totalExecutionTimeout() != null) {
-            return clientConfig.overrideConfiguration().totalExecutionTimeout().toMillis();
-        } else {
-            return 0;
-        }
+        return 0;
     }
 }

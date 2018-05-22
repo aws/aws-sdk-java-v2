@@ -72,7 +72,6 @@ public class HttpTestUtils {
             SdkHttpClient sdkHttpClient = this.httpClient != null ? this.httpClient : testSdkHttpClient();
             ClientOverrideConfiguration overrideConfiguration =
                     ClientOverrideConfiguration.builder()
-                                               .totalExecutionTimeout(clientExecutionTimeout)
                                                .apply(this::configureRetryPolicy)
                                                .apply(this::configureAdditionalHeaders)
                                                .build();

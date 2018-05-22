@@ -87,8 +87,6 @@ public class AwsImmutableClientConfigurationTest {
 
     private ClientOverrideConfiguration initializedOverrideConfiguration() {
         return ClientOverrideConfiguration.builder()
-                                          .httpRequestTimeout(Duration.ofSeconds(2))
-                                          .totalExecutionTimeout(Duration.ofSeconds(4))
                                           .gzipEnabled(true)
                                           .addAdditionalHttpHeader("header", "value")
                                           .advancedOption(AwsAdvancedClientOption.USER_AGENT_PREFIX, "userAgentPrefix")
