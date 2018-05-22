@@ -1,0 +1,139 @@
+/*
+ * Copyright 2010-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
+package software.amazon.awssdk.http.nio.netty.internal;
+
+import static software.amazon.awssdk.http.nio.netty.internal.utils.SocketChannelResolver.resolveSocketChannelClass;
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.pool.ChannelPool;
+import io.netty.channel.pool.ChannelPoolMap;
+import io.netty.handler.codec.http2.Http2SecurityUtil;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SupportedCipherSuiteFilter;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import java.net.URI;
+import java.util.Optional;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.TrustManagerFactory;
+import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.SdkRequestContext;
+import software.amazon.awssdk.http.async.AbortableRunnable;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
+import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
+import software.amazon.awssdk.http.nio.netty.EventLoopGroupFactory;
+import software.amazon.awssdk.http.nio.netty.NettySdkHttpClientFactory;
+import software.amazon.awssdk.http.nio.netty.internal.http2.HttpOrHttp2ChannelPool;
+import software.amazon.awssdk.utils.AttributeMap;
+
+public class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
+
+    private final RequestAdapter requestAdapter = new RequestAdapter();
+    private final EventLoopGroup group;
+    private final ChannelPoolMap<URI, ChannelPool> pools;
+    private final NettyConfiguration configuration;
+    private final long maxStreams;
+    private Protocol protocol;
+
+    public NettyNioAsyncHttpClient(NettySdkHttpClientFactory factory, AttributeMap serviceDefaultsMap) {
+        this.configuration = new NettyConfiguration(serviceDefaultsMap, factory);
+        this.pools = createChannelPoolMap(configuration.maxConnectionsPerEndpoint());
+        // TODO make configurable
+        this.maxStreams = 200;
+        this.protocol = serviceDefaultsMap.get(SdkHttpConfigurationOption.PROTOCOL);
+        this.group = factory.eventLoopGroupConfiguration().toEither()
+                            .map(e -> e.map(NonManagedEventLoopGroup::new,
+                                            EventLoopGroupFactory::create))
+                            .orElseGet(SharedEventLoopGroup::get);
+    }
+
+    @Override
+    public AbortableRunnable prepareRequest(SdkHttpRequest sdkRequest,
+                                            SdkRequestContext sdkRequestContext,
+                                            SdkHttpRequestProvider requestProvider,
+                                            SdkHttpResponseHandler handler) {
+        RequestContext context = new RequestContext(pools.get(poolKey(sdkRequest)),
+                                                    sdkRequest, requestProvider,
+                                                    requestAdapter.adapt(sdkRequest),
+                                                    handler, configuration);
+        return new RunnableRequest(context);
+    }
+
+    private static URI poolKey(SdkHttpRequest sdkRequest) {
+        return invokeSafely(() -> new URI(sdkRequest.protocol(), null, sdkRequest.host(),
+                                          sdkRequest.port(), null, null, null));
+    }
+
+    private SslContext sslContext(String protocol) {
+        if (!protocol.equalsIgnoreCase("https")) {
+            return null;
+        }
+        try {
+            return SslContextBuilder.forClient()
+                                    .sslProvider(SslContext.defaultClientProvider())
+                                    // TODO this seems to work fine with H1 too but confirm
+                                    .ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
+                                    .trustManager(getTrustManager())
+                                    .build();
+        } catch (SSLException e) {
+            // TODO is throwing the right thing here or should we notify the handler?
+            throw new RuntimeException(e);
+        }
+    }
+
+    private TrustManagerFactory getTrustManager() {
+        return configuration.trustAllCertificates() ? InsecureTrustManagerFactory.INSTANCE : null;
+    }
+
+    private ChannelPoolMap<URI, ChannelPool> createChannelPoolMap(int maxConnectionsPerEndpoint) {
+        return new SdkChannelPoolMap<URI, ChannelPool>() {
+            @Override
+            protected ChannelPool newPool(URI key) {
+                SslContext sslContext = sslContext(key.getScheme());
+                Bootstrap bootstrap =
+                    new Bootstrap()
+                        .group(group)
+                        .channel(resolveSocketChannelClass(group))
+                        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, configuration.connectionTimeout())
+                        // TODO run some performance tests with and without this.
+                        .option(ChannelOption.TCP_NODELAY, true)
+                        .remoteAddress(key.getHost(), key.getPort());
+                return new HandlerRemovingChannelPool(
+                    new HttpOrHttp2ChannelPool(bootstrap,
+                                               new ChannelPipelineInitializer(protocol, sslContext, maxStreams),
+                                               maxConnectionsPerEndpoint,
+                                               configuration));
+            }
+        };
+    }
+
+    @Override
+    public <T> Optional<T> getConfigurationValue(SdkHttpConfigurationOption<T> key) {
+        return configuration.getConfigurationValue(key);
+    }
+
+    @Override
+    public void close() {
+        group.shutdownGracefully();
+    }
+
+}

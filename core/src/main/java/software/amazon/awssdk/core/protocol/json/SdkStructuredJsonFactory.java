@@ -17,12 +17,7 @@ package software.amazon.awssdk.core.protocol.json;
 
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.http.HttpResponse;
-import software.amazon.awssdk.core.internal.http.response.JsonErrorResponseHandler;
-import software.amazon.awssdk.core.runtime.http.response.JsonResponseHandler;
-import software.amazon.awssdk.core.runtime.transform.JsonErrorUnmarshaller;
-import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
-import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
+import software.amazon.awssdk.core.runtime.http.response.SdkJsonErrorResponseHandler;
 
 /**
  * Common interface for creating generators (writers) and protocol handlers for JSON like protocols.
@@ -30,39 +25,14 @@ import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
  * SdkStructuredCborFactory}
  */
 @SdkProtectedApi
-public interface SdkStructuredJsonFactory {
-
-    /**
-     * Returns the {@link StructuredJsonGenerator} to be used for marshalling the request.
-     *
-     * @param contentType Content type to send for requests.
-     */
-    StructuredJsonGenerator createWriter(String contentType);
-
-    /**
-     * Returns the response handler to be used for handling a successfull response.
-     *
-     * @param operationMetadata Additional context information about an operation to create the
-     * appropriate response handler.
-     */
-    <T> JsonResponseHandler<T> createResponseHandler(
-        JsonOperationMetadata operationMetadata,
-        Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller);
-
-    /**
-     * Returns the response handler to be used for handling a successfull response.
-     *
-     * @param operationMetadata Additional context information about an operation to create the
-     * appropriate response handler.
-     */
-    JsonUnmarshallerContext createJsonUnmarshallerContext(HttpResponse httpResponse);
+public interface SdkStructuredJsonFactory extends StructuredJsonFactory {
 
     /**
      * Returns the error response handler for handling a error response.
      *
      * @param errorUnmarshallers Response unmarshallers to unamrshall the error responses.
      */
-    JsonErrorResponseHandler createErrorResponseHandler(
-        List<JsonErrorUnmarshaller> errorUnmarshallers, String customErrorCodeFieldName);
+    SdkJsonErrorResponseHandler createErrorResponseHandler(
+        List<SdkJsonErrorUnmarshaller> errorUnmarshallers);
 
 }

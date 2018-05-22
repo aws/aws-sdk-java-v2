@@ -18,8 +18,8 @@ public abstract class JsonProtocolTestsResponse extends AwsResponse {
         protected BuilderImpl() {
         }
 
-        protected BuilderImpl(JsonProtocolTestsResponse request) {
-            super(request);
+        protected BuilderImpl(JsonProtocolTestsResponse response) {
+            super(response);
         }
     }
 }

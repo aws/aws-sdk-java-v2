@@ -13,28 +13,16 @@
 
 package software.amazon.awssdk.services.kinesis;
 
-import java.io.ByteArrayInputStream;
-import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Generated;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.config.AwsAsyncClientConfiguration;
-import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.AsyncClientHandler;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.flow.FlowPublisher;
 import software.amazon.awssdk.core.flow.FlowResponseTransformer;
-import software.amazon.awssdk.core.flow.ResponseIterator;
-import software.amazon.awssdk.core.flow.SubscriberIterator;
-import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.flow.UnmarshallingFlowAsyncResponseTransformer;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
@@ -96,7 +84,6 @@ import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
 import software.amazon.awssdk.services.kinesis.model.PutRecordResponse;
 import software.amazon.awssdk.services.kinesis.model.PutRecordsRequest;
 import software.amazon.awssdk.services.kinesis.model.PutRecordsResponse;
-import software.amazon.awssdk.services.kinesis.model.SubscribeToShardEvent;
 import software.amazon.awssdk.services.kinesis.model.RegisterStreamConsumerRequest;
 import software.amazon.awssdk.services.kinesis.model.RegisterStreamConsumerResponse;
 import software.amazon.awssdk.services.kinesis.model.RemoveTagsFromStreamRequest;
@@ -109,6 +96,7 @@ import software.amazon.awssdk.services.kinesis.model.StartStreamEncryptionReques
 import software.amazon.awssdk.services.kinesis.model.StartStreamEncryptionResponse;
 import software.amazon.awssdk.services.kinesis.model.StopStreamEncryptionRequest;
 import software.amazon.awssdk.services.kinesis.model.StopStreamEncryptionResponse;
+import software.amazon.awssdk.services.kinesis.model.SubscribeToShardEvent;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardRequest;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardResponse;
 import software.amazon.awssdk.services.kinesis.model.UpdateShardCountRequest;
@@ -157,7 +145,6 @@ import software.amazon.awssdk.services.kinesis.transform.PutRecordRequestMarshal
 import software.amazon.awssdk.services.kinesis.transform.PutRecordResponseUnmarshaller;
 import software.amazon.awssdk.services.kinesis.transform.PutRecordsRequestMarshaller;
 import software.amazon.awssdk.services.kinesis.transform.PutRecordsResponseUnmarshaller;
-import software.amazon.awssdk.services.kinesis.transform.SubscribeToShardEventUnmarshaller;
 import software.amazon.awssdk.services.kinesis.transform.RegisterStreamConsumerRequestMarshaller;
 import software.amazon.awssdk.services.kinesis.transform.RegisterStreamConsumerResponseUnmarshaller;
 import software.amazon.awssdk.services.kinesis.transform.RemoveTagsFromStreamRequestMarshaller;
@@ -168,13 +155,11 @@ import software.amazon.awssdk.services.kinesis.transform.StartStreamEncryptionRe
 import software.amazon.awssdk.services.kinesis.transform.StartStreamEncryptionResponseUnmarshaller;
 import software.amazon.awssdk.services.kinesis.transform.StopStreamEncryptionRequestMarshaller;
 import software.amazon.awssdk.services.kinesis.transform.StopStreamEncryptionResponseUnmarshaller;
+import software.amazon.awssdk.services.kinesis.transform.SubscribeToShardEventUnmarshaller;
 import software.amazon.awssdk.services.kinesis.transform.SubscribeToShardRequestMarshaller;
 import software.amazon.awssdk.services.kinesis.transform.SubscribeToShardResponseUnmarshaller;
 import software.amazon.awssdk.services.kinesis.transform.UpdateShardCountRequestMarshaller;
 import software.amazon.awssdk.services.kinesis.transform.UpdateShardCountResponseUnmarshaller;
-import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.eventstream.Message;
-import software.amazon.eventstream.MessageDecoder;
 
 /**
  * Internal implementation of {@link KinesisAsyncClient}.
@@ -231,101 +216,18 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
 
     public <ReturnT> CompletableFuture<ReturnT> subscribeToShard(SubscribeToShardRequest subscribeToShardRequest,
                                                                  FlowResponseTransformer<SubscribeToShardResponse, SubscribeToShardEvent, ReturnT> flowResponseHandler) {
+
         HttpResponseHandler<SubscribeToShardResponse> responseHandler = protocolFactory.createResponseHandler(
             new JsonOperationMetadata()
                 .withPayloadJson(false)
                 .withHasStreamingSuccessResponse(true),
             new SubscribeToShardResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
-
-        AtomicReference<Subscriber<? super SubscribeToShardEvent>> subscriberRef = new AtomicReference<>();
-        flowResponseHandler.onStream(new FlowPublisher<SubscribeToShardEvent>() {
-            @Override
-            public void subscribe(Subscriber<? super SubscribeToShardEvent> subscriber) {
-                subscriberRef.set(subscriber);
-                subscriber.onSubscribe(new Subscription() {
-                    @Override
-                    public void request(long l) {
-                        // TODO backpressure
-                    }
-
-                    @Override
-                    public void cancel() {
-                        // TODO cancel;
-                    }
-                });
-            }
-        });
-        return clientHandler.execute(new ClientExecutionParams<SubscribeToShardRequest, SubscribeToShardResponse>()
-                                         .withMarshaller(new SubscribeToShardRequestMarshaller(protocolFactory))
-                                         .withResponseHandler(responseHandler)
-                                         .withErrorResponseHandler(errorResponseHandler)
-                                         .withInput(subscribeToShardRequest), new AsyncResponseTransformer<SubscribeToShardResponse, ReturnT>() {
-            MessageDecoder decoder;
-
-            @Override
-            public void responseReceived(SubscribeToShardResponse response) {
-                decoder = new MessageDecoder(m -> {
-                    if (m.getHeaders().get(":event-type").getString().equals("initial-response")) {
-                        // TODO unmarshall initial response and call responseRecieved.
-                        flowResponseHandler.responseReceived(response);
-                    } else {
-                        // TODO unmarshall
-                        try {
-                            subscriberRef.get().onNext(new SubscribeToShardEventUnmarshaller().unmarshall(
-                                protocolFactory.createJsonUnmarshallerContext(adaptMessageToResponse(m))));
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-            }
-
-            @Override
-            public void onStream(Publisher<ByteBuffer> publisher) {
-                publisher.subscribe(new Subscriber<ByteBuffer>() {
-                    @Override
-                    public void onSubscribe(Subscription subscription) {
-                        subscription.request(Long.MAX_VALUE);
-                    }
-
-                    @Override
-                    public void onNext(ByteBuffer buffer) {
-                        decoder.feed(BinaryUtils.copyBytesFrom(buffer));
-                    }
-
-                    @Override
-                    public void onError(Throwable throwable) {
-                        // TODO do we need to do anything here?
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        // TODO do we need to do anything here?
-                    }
-                });
-            }
-
-            @Override
-            public void exceptionOccurred(Throwable throwable) {
-                flowResponseHandler.exceptionOccurred(throwable);
-            }
-
-            @Override
-            public ReturnT complete() {
-                return flowResponseHandler.complete();
-            }
-        });
-    }
-
-    public <ReturnT> CompletableFuture<ReturnT> subscribeToShard2(SubscribeToShardRequest subscribeToShardRequest,
-                                                                  FlowResponseTransformer<SubscribeToShardResponse, SubscribeToShardEvent, ReturnT> flowResponseHandler) {
-        HttpResponseHandler<SubscribeToShardResponse> responseHandler = protocolFactory.createResponseHandler(
+        HttpResponseHandler<SubscribeToShardEvent> eventResponseHandler = protocolFactory.createResponseHandler(
             new JsonOperationMetadata()
-                .withPayloadJson(false)
-                .withHasStreamingSuccessResponse(true),
-            new SubscribeToShardResponseUnmarshaller());
+                .withPayloadJson(true)
+                .withHasStreamingSuccessResponse(false),
+            new SubscribeToShardEventUnmarshaller());
 
         HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
 
@@ -333,141 +235,8 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
                                          .withMarshaller(new SubscribeToShardRequestMarshaller(protocolFactory))
                                          .withResponseHandler(responseHandler)
                                          .withErrorResponseHandler(errorResponseHandler)
-                                         .withInput(subscribeToShardRequest), new AsyncResponseTransformer<SubscribeToShardResponse, ReturnT>() {
-            MessageDecoder decoder;
-            SubscribeToShardResponse response;
-
-            @Override
-            public void responseReceived(SubscribeToShardResponse response) {
-                this.response = response;
-            }
-
-            @Override
-            public void onStream(Publisher<ByteBuffer> publisher) {
-                AtomicReference<Subscription> dataSubscription = new AtomicReference<>();
-                AtomicReference<Subscriber<? super SubscribeToShardEvent>> subscriberRef = new AtomicReference<>();
-                AtomicLong remainingDemand = new AtomicLong(0);
-                AtomicLong remainingDataDemand = new AtomicLong(0);
-                flowResponseHandler.onStream(new FlowPublisher<SubscribeToShardEvent>() {
-                    @Override
-                    public void subscribe(Subscriber<? super SubscribeToShardEvent> subscriber) {
-                        subscriberRef.set(subscriber);
-                        subscriber.onSubscribe(new Subscription() {
-                            @Override
-                            public void request(long l) {
-                                // TODO backpressure
-                                dataSubscription.get().request(l);
-                                remainingDataDemand.addAndGet(l);
-                                remainingDemand.addAndGet(l);
-                            }
-
-                            @Override
-                            public void cancel() {
-                                dataSubscription.get().cancel();
-                            }
-                        });
-                    }
-                });
-                decoder = new MessageDecoder(m -> {
-                    if (m.getHeaders().get(":event-type").getString().equals("initial-response")) {
-                        // TODO unmarshall initial response and call responseRecieved.
-                        flowResponseHandler.responseReceived(response);
-                    } else {
-                        try {
-                            remainingDemand.decrementAndGet();
-                            subscriberRef.get().onNext(new SubscribeToShardEventUnmarshaller().unmarshall(
-                                protocolFactory.createJsonUnmarshallerContext(adaptMessageToResponse(m))));
-                        } catch (Exception e) {
-                            throw new SdkClientException(e);
-                        }
-                    }
-                });
-                publisher.subscribe(new Subscriber<ByteBuffer>() {
-                    private Subscription subscription;
-                    @Override
-                    public void onSubscribe(Subscription subscription) {
-                        this.subscription = subscription;
-                        this.subscription.request(Long.MAX_VALUE);
-                    }
-
-                    @Override
-                    public void onNext(ByteBuffer buffer) {
-                        decoder.feed(BinaryUtils.copyBytesFrom(buffer));
-                        if (remainingDataDemand.decrementAndGet() == 0 && remainingDataDemand.get() > 0) {
-                            // TODO should we request more?
-                            this.subscription.request(1);
-                        }
-                    }
-
-                    @Override
-                    public void onError(Throwable throwable) {
-                        // TODO do we need to do anything here?
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        // TODO do we need to do anything here?
-                    }
-                });
-            }
-
-            @Override
-            public void exceptionOccurred(Throwable throwable) {
-                flowResponseHandler.exceptionOccurred(throwable);
-            }
-
-            @Override
-            public ReturnT complete() {
-                return flowResponseHandler.complete();
-            }
-        });
-    }
-
-    public ResponseIterator<SubscribeToShardResponse, SubscribeToShardEvent> subscribeToShardBlocking(SubscribeToShardRequest request) {
-        AtomicReference<SubscribeToShardResponse> responseRef = new AtomicReference<>();
-        AtomicReference<SubscriberIterator<SubscribeToShardEvent>> iteratorRef = new AtomicReference<>();
-        CompletableFuture<FlowPublisher<SubscribeToShardEvent>> publisherFuture = new CompletableFuture<>();
-        subscribeToShard(request, new FlowResponseTransformer<SubscribeToShardResponse, SubscribeToShardEvent, Void>() {
-            @Override
-            public void responseReceived(SubscribeToShardResponse r) {
-                responseRef.set(r);
-            }
-
-            @Override
-            public void onStream(FlowPublisher<SubscribeToShardEvent> publisher) {
-                // TODO don't like the cast here
-                iteratorRef.set((SubscriberIterator<SubscribeToShardEvent>) publisher.toBlocking());
-                publisherFuture.complete(publisher);
-            }
-
-            @Override
-            public void exceptionOccurred(Throwable throwable) {
-                publisherFuture.completeExceptionally(throwable);
-                if (iteratorRef.get() != null) {
-                    iteratorRef.get().onError(throwable);
-                }
-            }
-
-            @Override
-            public Void complete() {
-                if (iteratorRef.get() != null) {
-                    iteratorRef.get().onComplete();
-                }
-                return null;
-            }
-        });
-        return publisherFuture
-            .thenApply(i -> new ResponseIterator(iteratorRef.get(), responseRef.get()))
-            .join();
-    }
-
-    private HttpResponse adaptMessageToResponse(Message m) {
-        HttpResponse response = new HttpResponse(null);
-        response.setContent(new ByteArrayInputStream(m.getPayload()));
-        m.getHeaders().forEach((k, v) -> {
-            response.addHeader(k, v.getString());
-        });
-        return response;
+                                         .withInput(subscribeToShardRequest),
+                                     new UnmarshallingFlowAsyncResponseTransformer<>(flowResponseHandler, eventResponseHandler));
     }
 
     /**

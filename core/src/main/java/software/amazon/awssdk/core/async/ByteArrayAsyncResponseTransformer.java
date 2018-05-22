@@ -19,11 +19,11 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
-import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.pagination.async.SdkPublisher;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
@@ -43,7 +43,7 @@ class ByteArrayAsyncResponseTransformer<ResponseT> implements AsyncResponseTrans
     }
 
     @Override
-    public void onStream(Publisher<ByteBuffer> publisher) {
+    public void onStream(SdkPublisher<ByteBuffer> publisher) {
         baos = new ByteArrayOutputStream();
         publisher.subscribe(new BaosSubscriber());
     }

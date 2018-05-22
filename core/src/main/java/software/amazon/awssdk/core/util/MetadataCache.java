@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.util;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.ResponseMetadata;
+import software.amazon.awssdk.core.SdkResponseMetadata;
 
 /**
  * Interface for caches interacting with response metadata.
@@ -33,7 +33,7 @@ public interface MetadataCache {
      * @param metadata
      *            The metadata for this entry.
      */
-    void add(Object obj, ResponseMetadata metadata);
+    void add(Object obj, SdkResponseMetadata metadata);
 
     /**
      * Returns the response metadata associated with the specified object, or
@@ -45,5 +45,5 @@ public interface MetadataCache {
      * @return The response metadata associated with the given object key,
      *         otherwise null if no metadata is associated with that object.
      */
-    ResponseMetadata get(Object obj);
+    SdkResponseMetadata get(Object obj);
 }

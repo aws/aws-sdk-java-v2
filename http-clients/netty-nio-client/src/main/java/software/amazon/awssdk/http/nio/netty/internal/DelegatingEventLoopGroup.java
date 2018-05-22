@@ -38,7 +38,7 @@ public abstract class DelegatingEventLoopGroup implements EventLoopGroup {
 
     private final EventLoopGroup delegate;
 
-    public DelegatingEventLoopGroup(EventLoopGroup delegate) {
+    protected DelegatingEventLoopGroup(EventLoopGroup delegate) {
         this.delegate = delegate;
     }
 

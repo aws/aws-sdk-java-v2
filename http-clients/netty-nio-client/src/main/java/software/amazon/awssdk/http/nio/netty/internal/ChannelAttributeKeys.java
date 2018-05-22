@@ -19,30 +19,12 @@ import io.netty.util.AttributeKey;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Subscriber;
-import software.amazon.awssdk.http.nio.netty.h2.MultiplexedChannelRecord;
-import software.amazon.awssdk.http.nio.netty.h2.SdkHttp2FrameVisitor;
+import software.amazon.awssdk.http.nio.netty.internal.http2.MultiplexedChannelRecord;
 
 /**
  * Keys for attributes attached via {@link io.netty.channel.Channel#attr(AttributeKey)}.
  */
 public final class ChannelAttributeKeys {
-
-    public static final AttributeKey<Boolean> FIRST_BYTE_RECEIVED = AttributeKey.newInstance("firstByteReceived");
-
-    public static final AttributeKey<Long> REQUEST_START = AttributeKey.newInstance("requestStart");
-
-    public static final AttributeKey<Long> REQUEST_FINISH = AttributeKey.newInstance("requestFinish");
-
-    /**
-     * Attribute key for {@link RequestContext}.
-     */
-    // TODO public
-    public static final AttributeKey<RequestContext> REQUEST_CONTEXT_KEY = AttributeKey.newInstance("requestContext");
-
-    public static final AttributeKey<Subscriber<? super ByteBuffer>> SUBSCRIBER_KEY = AttributeKey.newInstance("subscriber");
-
-    // TODO public
-    public static final AttributeKey<Boolean> RESPONSE_COMPLETE_KEY = AttributeKey.newInstance("responseComplete");
 
     /**
      * Future that when a protocol (http/1.1 or h2) has been selected.
@@ -60,7 +42,14 @@ public final class ChannelAttributeKeys {
      */
     public static final AttributeKey<Long> MAX_CONCURRENT_STREAMS = AttributeKey.newInstance("maxConcurrentStreams");
 
-    public static final AttributeKey<SdkHttp2FrameVisitor> FRAME_VISITOR = AttributeKey.newInstance("frameVisitor");
+    /**
+     * Attribute key for {@link RequestContext}.
+     */
+    static final AttributeKey<RequestContext> REQUEST_CONTEXT_KEY = AttributeKey.newInstance("requestContext");
+
+    static final AttributeKey<Subscriber<? super ByteBuffer>> SUBSCRIBER_KEY = AttributeKey.newInstance("subscriber");
+
+    static final AttributeKey<Boolean> RESPONSE_COMPLETE_KEY = AttributeKey.newInstance("responseComplete");
 
     private ChannelAttributeKeys() {
     }

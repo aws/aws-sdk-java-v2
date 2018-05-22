@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.protocol.json;
 
 import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
@@ -24,6 +25,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  */
 @NotThreadSafe
 @SdkProtectedApi
+@ReviewBeforeRelease("separating errorCode and httpStatusCode")
 public class JsonErrorShapeMetadata {
 
     private String errorCode;

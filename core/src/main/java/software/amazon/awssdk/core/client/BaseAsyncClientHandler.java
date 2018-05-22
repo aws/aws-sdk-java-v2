@@ -35,6 +35,7 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.http.SdkHttpResponseAdapter;
 import software.amazon.awssdk.core.http.async.SyncResponseHandlerAdapter;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.pagination.async.SdkPublisher;
 import software.amazon.awssdk.core.util.Throwables;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -58,8 +59,12 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
     public <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<OutputT> execute(
         ClientExecutionParams<InputT, OutputT> executionParams) {
         ExecutionContext executionContext = createExecutionContext(executionParams.getInput());
+
+        HttpResponseHandler<OutputT> decoratedResponseHandlers =
+            decorateResponseHandlers(executionParams.getResponseHandler(), executionContext);
+
         return execute(executionParams, executionContext, responseAdapter -> new SyncResponseHandlerAdapter<>(
-            interceptorCalling(executionParams.getResponseHandler(), executionContext),
+            decoratedResponseHandlers,
             responseAdapter,
             executionContext.executionAttributes()));
     }
@@ -247,7 +252,8 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
             try {
                 // TODO would be better to pass in AwsExecutionAttributes to the async response handler so we can
                 // provide them to HttpResponseHandler
-                OutputT resp = interceptorCalling(responseHandler, executionContext).handle(httpResponse, null);
+                OutputT resp = decorateResponseHandlers(responseHandler, executionContext).handle(httpResponse, null);
+
                 asyncResponseTransformer.responseReceived(resp);
             } catch (Exception e) {
                 throw Throwables.failure(e);
@@ -256,7 +262,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
 
         @Override
         public void onStream(Publisher<ByteBuffer> publisher) {
-            asyncResponseTransformer.onStream(publisher);
+            asyncResponseTransformer.onStream(SdkPublisher.adapt(publisher));
         }
 
         @Override

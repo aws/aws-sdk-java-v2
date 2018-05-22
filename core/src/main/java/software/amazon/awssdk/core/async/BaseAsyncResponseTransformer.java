@@ -15,13 +15,18 @@
 
 package software.amazon.awssdk.core.async;
 
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscription;
+import software.amazon.awssdk.core.pagination.async.SdkPublisher;
+
 /**
  * Callback interface to handle a streaming asynchronous response that produces a certain type of event.
  *
  * @param <ResponseT> POJO response type.
+ * @param <PublishedT> Type of object being published.
  * @param <ReturnT> Type this response handler produces. I.E. the type you are transforming the response into.
  */
-public interface BaseAsyncResponseTransformer<ResponseT, ReturnT> {
+public interface BaseAsyncResponseTransformer<ResponseT, PublishedT, ReturnT> {
 
     /**
      * Called when the initial response has been received and the POJO response has
@@ -33,6 +38,26 @@ public interface BaseAsyncResponseTransformer<ResponseT, ReturnT> {
      * @param response Unmarshalled POJO containing metadata about the streamed data.
      */
     void responseReceived(ResponseT response);
+
+    /**
+     * Called when events are ready to be streamed. Implementations  must subscribe to the {@link Publisher} and request data via
+     * a {@link org.reactivestreams.Subscription} as they can handle it.
+     *
+     * <p>
+     * If at any time the subscriber wishes to stop receiving data, it may call {@link Subscription#cancel()}. This
+     * will be treated as a failure of the response and the {@link #exceptionOccurred(Throwable)} callback will be invoked.
+     * </p>
+     *
+     * <p>This callback may never be called if the response has no content or if an error occurs.</p>
+     *
+     * <p>
+     * In the event of a retryable error, this callback may be called multiple times with different Publishers.
+     * If this method is called more than once, implementation must either reset any state to prepare for another
+     * stream of data or must throw an exception indicating they cannot reset. If any exception is thrown then no
+     * automatic retry is performed.
+     * </p>
+     */
+    void onStream(SdkPublisher<PublishedT> publisher);
 
     /**
      * Called when an exception occurs while establishing the connection or streaming the response. Implementations
