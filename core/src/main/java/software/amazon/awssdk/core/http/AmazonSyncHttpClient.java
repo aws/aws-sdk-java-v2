@@ -32,7 +32,6 @@ import software.amazon.awssdk.core.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.http.pipeline.stages.ApplyUserAgentStage;
 import software.amazon.awssdk.core.http.pipeline.stages.BeforeTransmissionExecutionInterceptorsStage;
 import software.amazon.awssdk.core.http.pipeline.stages.BeforeUnmarshallingExecutionInterceptorsStage;
-import software.amazon.awssdk.core.http.pipeline.stages.ClientExecutionTimedStage;
 import software.amazon.awssdk.core.http.pipeline.stages.ExecutionFailureExceptionReportingStage;
 import software.amazon.awssdk.core.http.pipeline.stages.HandleResponseStage;
 import software.amazon.awssdk.core.http.pipeline.stages.HttpResponseAdaptingStage;
@@ -44,7 +43,6 @@ import software.amazon.awssdk.core.http.pipeline.stages.MergeCustomQueryParamsSt
 import software.amazon.awssdk.core.http.pipeline.stages.MoveParametersToBodyStage;
 import software.amazon.awssdk.core.http.pipeline.stages.RetryableStage;
 import software.amazon.awssdk.core.http.pipeline.stages.SigningStage;
-import software.amazon.awssdk.core.http.pipeline.stages.TimerExceptionHandlingStage;
 import software.amazon.awssdk.core.http.pipeline.stages.UnwrapResponseContainer;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
@@ -272,10 +270,8 @@ public class AmazonSyncHttpClient implements SdkAutoCloseable {
                                              .then(() -> new HandleResponseStage<>(
                                                  getNonNullResponseHandler(responseHandler),
                                                  getNonNullResponseHandler(errorResponseHandler)))
-                                             .wrap(TimerExceptionHandlingStage::new)
                                              .wrap(RetryableStage::new)::build)
-                                   .wrap(StreamManagingStage::new)
-                                   .wrap(ClientExecutionTimedStage::new)::build)
+                                   .wrap(StreamManagingStage::new)::build)
                     .then(() -> new UnwrapResponseContainer<>())
                     .then(() -> new AfterExecutionInterceptorsStage<>())
                     .wrap(ExecutionFailureExceptionReportingStage::new)
