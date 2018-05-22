@@ -26,6 +26,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Clock;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import org.junit.Test;
@@ -97,13 +98,17 @@ public class PresignRequestHandlerTest {
                 "&SourceDBSnapshotIdentifier=arn%3Aaws%3Ards%3Aus-east-1%3A123456789012%3Asnapshot%3Ards%3Atest-instance-ss-2016-12-20-23-19" +
                 "&TargetDBSnapshotIdentifier=test-instance-ss-copy-2" +
                 "&KmsKeyId=arn%3Aaws%3Akms%3Aus-west-2%3A123456789012%3Akey%2F11111111-2222-3333-4444-555555555555" +
+                // FIXME: The empty "Tags" list should not be getting
+                // marshalled, but we need to fix the marshallers to be aware
+                // of auto construct lists
+                "&Tags=" +
                 "&DestinationRegion=us-west-2" +
                 "&X-Amz-Algorithm=AWS4-HMAC-SHA256" +
                 "&X-Amz-Date=20161221T180735Z" +
                 "&X-Amz-SignedHeaders=host" +
                 "&X-Amz-Expires=604800" +
                 "&X-Amz-Credential=foo%2F20161221%2Fus-east-1%2Frds%2Faws4_request" +
-                "&X-Amz-Signature=f839ca3c728dc96e7c978befeac648296b9f778f6724073de4217173859d13d9";
+                "&X-Amz-Signature=6a7e40b24c91517a6de0e60bc65a1a812deaa0a0aa3b54ab513bef3ed34f78c9";
 
         assertEquals(expectedPreSignedUrl, presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
     }

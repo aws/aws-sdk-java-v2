@@ -129,6 +129,8 @@ public class CustomizationConfig {
 
     private Map<String, String> modelMarshallerDefaultValueSupplier;
 
+    private boolean useAutoConstructList = true;
+
     private CustomizationConfig() {
     }
 
@@ -335,5 +337,13 @@ public class CustomizationConfig {
 
     public void setModelMarshallerDefaultValueSupplier(Map<String, String> modelMarshallerDefaultValueSupplier) {
         this.modelMarshallerDefaultValueSupplier = modelMarshallerDefaultValueSupplier;
+    }
+
+    public boolean isUseAutoConstructList() {
+        return useAutoConstructList;
+    }
+
+    public void setUseAutoConstructList(boolean useAutoConstructList) {
+        this.useAutoConstructList = useAutoConstructList;
     }
 }

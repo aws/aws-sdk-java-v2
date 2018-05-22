@@ -8,15 +8,17 @@ import java.util.Collections;
 import java.util.List;
 import javax.annotation.Generated;
 import software.amazon.awssdk.core.runtime.StandardMemberCopier;
+import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
 
 @Generated("software.amazon.awssdk:codegen")
 final class ListOfBlobsTypeCopier {
     static List<ByteBuffer> copy(Collection<ByteBuffer> listOfBlobsTypeParam) {
-        if (listOfBlobsTypeParam == null) {
-            return null;
+        if (listOfBlobsTypeParam == null || listOfBlobsTypeParam instanceof SdkAutoConstructList) {
+            return DefaultSdkAutoConstructList.getInstance();
         }
         List<ByteBuffer> listOfBlobsTypeParamCopy = listOfBlobsTypeParam.stream().map(StandardMemberCopier::copy)
-                                                                        .collect(toList());
+                .collect(toList());
         return Collections.unmodifiableList(listOfBlobsTypeParamCopy);
     }
 }
