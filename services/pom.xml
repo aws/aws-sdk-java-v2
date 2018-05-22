@@ -148,6 +148,7 @@
         <module>servicediscovery</module>
         <module>translate</module>
         <module>workmail</module>
+        <module>secretsmanager</module>
     </modules>
 
     <description>The AWS Java SDK services</description>
