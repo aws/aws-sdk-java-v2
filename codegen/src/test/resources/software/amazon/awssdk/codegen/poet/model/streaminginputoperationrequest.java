@@ -72,6 +72,7 @@ public class StreamingInputOperationRequest extends JsonProtocolTestsRequest imp
         }
 
         private BuilderImpl(StreamingInputOperationRequest model) {
+            super(model);
         }
 
         @Override

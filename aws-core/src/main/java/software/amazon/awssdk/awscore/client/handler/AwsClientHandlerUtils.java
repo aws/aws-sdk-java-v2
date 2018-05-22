@@ -33,7 +33,7 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
-class AwsClientHandlerUtils {
+final class AwsClientHandlerUtils {
 
     private AwsClientHandlerUtils() {
 

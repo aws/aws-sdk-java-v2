@@ -15,53 +15,37 @@
 
 package software.amazon.awssdk.core.protocol.json;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.Protocol;
-import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
 import software.amazon.awssdk.core.runtime.http.response.JsonResponseHandler;
-import software.amazon.awssdk.core.runtime.transform.JsonErrorUnmarshaller;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
 /**
- * Factory to generate the various JSON protocol handlers and generators depending on the wire protocol to be used for
- * communicating with the AWS service.
+ * Factory to generate the JSON protocol handlers and generators to be used for
+ * communicating with the service.
  */
 @ThreadSafe
 @SdkProtectedApi
-public class SdkJsonProtocolFactory {
+public class SdkJsonProtocolFactory extends BaseJsonProtocolFactory {
 
-    private final JsonClientMetadata metadata;
+    private static final SdkStructuredJsonFactory JSON_FACTORY = SdkStructuredPlainJsonFactory.SDK_JSON_FACTORY;
+    private static final String CONTENT_TYPE =  "application/json";
 
-    private final List<JsonErrorUnmarshaller> errorUnmarshallers = new ArrayList<>();
-
-    public SdkJsonProtocolFactory(JsonClientMetadata metadata) {
-        this.metadata = metadata;
-        createErrorUnmarshallers();
+    SdkJsonProtocolFactory(JsonClientMetadata metadata) {
+        super(metadata);
     }
 
-    public <T extends SdkRequest> ProtocolRequestMarshaller<T> createProtocolMarshaller(
-        OperationInfo operationInfo, T origRequest) {
-        return JsonProtocolMarshallerBuilder.<T>standard()
-            .jsonGenerator(createGenerator(operationInfo))
-            .contentType(getContentType())
-            .operationInfo(operationInfo)
-            .originalRequest(origRequest)
-            .sendExplicitNullForPayload(false)
-            .build();
-    }
-
-    private StructuredJsonGenerator createGenerator(OperationInfo operationInfo) {
-        if (operationInfo.hasPayloadMembers() || operationInfo.protocol() == Protocol.AWS_JSON) {
+    protected StructuredJsonGenerator createGenerator(OperationInfo operationInfo) {
+        if (operationInfo.hasPayloadMembers()) {
             return createGenerator();
         } else {
             return StructuredJsonGenerator.NO_OP;
@@ -70,12 +54,12 @@ public class SdkJsonProtocolFactory {
 
     @SdkTestInternalApi
     StructuredJsonGenerator createGenerator() {
-        return getSdkFactory().createWriter(getContentType());
+        return JSON_FACTORY.createWriter(CONTENT_TYPE);
     }
 
     @SdkTestInternalApi
-    String getContentType() {
-        return getContentTypeResolver().resolveContentType(metadata);
+    protected String getContentType() {
+        return CONTENT_TYPE;
     }
 
     /**
@@ -83,10 +67,10 @@ public class SdkJsonProtocolFactory {
      *
      * @param operationMetadata Additional context information about an operation to create the appropriate response handler.
      */
-    public <T> JsonResponseHandler<T> createResponseHandler(
+    public <T extends SdkResponse> JsonResponseHandler<T> createResponseHandler(
         JsonOperationMetadata operationMetadata,
         Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller) {
-        return getSdkFactory().createResponseHandler(operationMetadata, responseUnmarshaller);
+        return JSON_FACTORY.createResponseHandler(operationMetadata, responseUnmarshaller);
     }
 
     /**
@@ -94,62 +78,27 @@ public class SdkJsonProtocolFactory {
      */
     public HttpResponseHandler<SdkServiceException> createErrorResponseHandler(
         JsonErrorResponseMetadata errorResponseMetadata) {
-        return getSdkFactory().createErrorResponseHandler(errorUnmarshallers, errorResponseMetadata
-            .getCustomErrorCodeFieldName());
+        return JSON_FACTORY.createErrorResponseHandler(createErrorUnmarshallers());
     }
 
     @SuppressWarnings("unchecked")
-    private void createErrorUnmarshallers() {
-        for (JsonErrorShapeMetadata errorMetadata : metadata.getErrorShapeMetadata()) {
-            errorUnmarshallers.add(new JsonErrorUnmarshaller(
-                (Class<? extends SdkServiceException>) errorMetadata.getModeledClass(),
-                errorMetadata.getErrorCode()));
+    private List<SdkJsonErrorUnmarshaller> createErrorUnmarshallers() {
 
-        }
-        errorUnmarshallers.add(new JsonErrorUnmarshaller(
-            (Class<? extends SdkServiceException>) metadata.getBaseServiceExceptionClass(),
-            null));
+        List<SdkJsonErrorUnmarshaller> errorUnmarshallers = jsonClientMetadata.getErrorShapeMetadata().stream()
+                                                                                    .map(this::createErrorUnmarshaller)
+                                                                                    .collect(Collectors.toList());
+        // All unmodeled/unknown exceptions are unmarshalled into the service specific base
+        // exception class.
+        errorUnmarshallers.add(new SdkJsonErrorUnmarshaller(
+            (Class<? extends SdkServiceException>) jsonClientMetadata.getBaseServiceExceptionClass(),
+            Optional.empty()));
+        return errorUnmarshallers;
     }
 
-    /**
-     * @return Instance of {@link SdkStructuredJsonFactory} to use in creating handlers.
-     */
-    private SdkStructuredJsonFactory getSdkFactory() {
-        if (isCborEnabled()) {
-            return SdkStructuredCborFactory.SDK_CBOR_FACTORY;
-        } else if (isIonEnabled()) {
-            return isIonBinaryEnabled()
-                   ? SdkStructuredIonFactory.SDK_ION_BINARY_FACTORY
-                   : SdkStructuredIonFactory.SDK_ION_TEXT_FACTORY;
-        } else {
-            return SdkStructuredPlainJsonFactory.SDK_JSON_FACTORY;
-        }
-    }
-
-    /**
-     * @return Content type resolver implementation to use.
-     */
-    private JsonContentTypeResolver getContentTypeResolver() {
-        if (isCborEnabled()) {
-            return JsonContentTypeResolver.CBOR;
-        } else if (isIonEnabled()) {
-            return isIonBinaryEnabled()
-                   ? JsonContentTypeResolver.ION_BINARY
-                   : JsonContentTypeResolver.ION_TEXT;
-        } else {
-            return JsonContentTypeResolver.JSON;
-        }
-    }
-
-    private boolean isCborEnabled() {
-        return metadata.isSupportsCbor() && SdkSystemSetting.CBOR_ENABLED.getBooleanValueOrThrow();
-    }
-
-    private boolean isIonEnabled() {
-        return metadata.isSupportsIon();
-    }
-
-    boolean isIonBinaryEnabled() {
-        return SdkSystemSetting.BINARY_ION_ENABLED.getBooleanValueOrThrow();
+    @SuppressWarnings("unchecked")
+    private SdkJsonErrorUnmarshaller createErrorUnmarshaller(JsonErrorShapeMetadata errorShape) {
+        return new SdkJsonErrorUnmarshaller(
+            (Class<? extends SdkServiceException>) errorShape.getModeledClass(),
+            Optional.of(errorShape.getHttpStatusCode()));
     }
 }

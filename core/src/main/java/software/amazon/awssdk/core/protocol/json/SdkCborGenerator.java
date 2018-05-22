@@ -22,7 +22,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * Thin wrapper around Jackson's JSON generator for CBOR.
  */
 @SdkInternalApi
-class SdkCborGenerator extends SdkJsonGenerator {
+final class SdkCborGenerator extends SdkJsonGenerator {
 
     private static final int CBOR_TAG_TIMESTAP = 1;
 

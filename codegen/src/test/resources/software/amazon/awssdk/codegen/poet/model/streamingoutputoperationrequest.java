@@ -70,6 +70,7 @@ public class StreamingOutputOperationRequest extends JsonProtocolTestsRequest im
         }
 
         private BuilderImpl(StreamingOutputOperationRequest model) {
+            super(model);
         }
 
         @Override

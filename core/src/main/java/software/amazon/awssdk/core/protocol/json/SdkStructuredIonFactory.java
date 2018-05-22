@@ -21,27 +21,27 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.Map;
+import java.util.function.BiFunction;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.internal.http.CompositeErrorCodeParser;
-import software.amazon.awssdk.core.internal.http.ErrorCodeParser;
-import software.amazon.awssdk.core.internal.http.IonErrorCodeParser;
-import software.amazon.awssdk.core.internal.http.JsonErrorCodeParser;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.SimpleTypeIonUnmarshallers;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.core.util.ImmutableMapParameter;
 import software.amazon.ion.IonSystem;
-import software.amazon.ion.system.IonBinaryWriterBuilder;
 import software.amazon.ion.system.IonSystemBuilder;
-import software.amazon.ion.system.IonTextWriterBuilder;
 import software.amazon.ion.system.IonWriterBuilder;
 
 @SdkInternalApi
-class SdkStructuredIonFactory extends SdkStructuredJsonFactoryImpl {
-    private static final IonSystem ION_SYSTEM = IonSystemBuilder.standard().build();
-    private static final JsonFactory JSON_FACTORY = new IonFactory(ION_SYSTEM);
-    private static final Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> UNMARSHALLERS =
-            new ImmutableMapParameter.Builder<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>>()
+public abstract class SdkStructuredIonFactory {
+
+    protected static final IonSystem ION_SYSTEM = IonSystemBuilder.standard().build();
+
+    protected static final JsonFactory JSON_FACTORY = new IonFactory(ION_SYSTEM);
+
+    protected static final IonGeneratorSupplier ION_GENERATOR_SUPPLIER = SdkIonGenerator::create;
+
+    protected static final Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> UNMARSHALLERS =
+        new ImmutableMapParameter.Builder<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>>()
             .put(BigDecimal.class, SimpleTypeIonUnmarshallers.BigDecimalIonUnmarshaller.getInstance())
             .put(BigInteger.class, SimpleTypeIonUnmarshallers.BigIntegerIonUnmarshaller.getInstance())
             .put(Boolean.class, SimpleTypeIonUnmarshallers.BooleanIonUnmarshaller.getInstance())
@@ -55,27 +55,12 @@ class SdkStructuredIonFactory extends SdkStructuredJsonFactoryImpl {
             .put(Short.class, SimpleTypeIonUnmarshallers.ShortIonUnmarshaller.getInstance())
             .put(String.class, SimpleTypeIonUnmarshallers.StringIonUnmarshaller.getInstance())
             .build();
-    private static final IonBinaryWriterBuilder BINARY_WRITER_BUILDER = IonBinaryWriterBuilder.standard().immutable();
-    public static final SdkStructuredIonFactory SDK_ION_BINARY_FACTORY = new SdkStructuredIonFactory(BINARY_WRITER_BUILDER);
-    private static final IonTextWriterBuilder TEXT_WRITER_BUILDER = IonTextWriterBuilder.standard().immutable();
-    public static final SdkStructuredIonFactory SDK_ION_TEXT_FACTORY = new SdkStructuredIonFactory(TEXT_WRITER_BUILDER);
 
-    private final IonWriterBuilder builder;
-
-    private SdkStructuredIonFactory(IonWriterBuilder builder) {
-        super(JSON_FACTORY, UNMARSHALLERS);
-        this.builder = builder;
+    protected SdkStructuredIonFactory() {
     }
 
-    @Override
-    protected StructuredJsonGenerator createWriter(JsonFactory jsonFactory, String contentType) {
-        return SdkIonGenerator.create(builder, contentType);
-    }
-
-    @Override
-    protected ErrorCodeParser getErrorCodeParser(String customErrorCodeFieldName) {
-        return new CompositeErrorCodeParser(
-                new IonErrorCodeParser(ION_SYSTEM),
-                new JsonErrorCodeParser(customErrorCodeFieldName));
+    @FunctionalInterface
+    protected interface IonGeneratorSupplier extends BiFunction<IonWriterBuilder, String, StructuredJsonGenerator> {
+        StructuredJsonGenerator apply(IonWriterBuilder writerBuilder, String contentType);
     }
 }

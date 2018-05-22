@@ -18,7 +18,6 @@ package utils;
 import java.net.URI;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 

@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.services.s3.transform;
 
+import software.amazon.awssdk.awscore.protocol.xml.StandardErrorUnmarshaller;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.runtime.transform.StandardErrorUnmarshaller;
 
 /**
  * The unmarshaller used to read S3 exceptions when no more-specific exception unmarshaller is found. This is the S3 equivalent

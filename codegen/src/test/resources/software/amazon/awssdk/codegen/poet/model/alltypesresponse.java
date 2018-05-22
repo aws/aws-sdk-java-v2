@@ -1114,6 +1114,7 @@ public class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         private BuilderImpl(AllTypesResponse model) {
+            super(model);
             stringMember(model.stringMember);
             integerMember(model.integerMember);
             booleanMember(model.booleanMember);
@@ -1445,7 +1446,7 @@ public class AllTypesResponse extends JsonProtocolTestsResponse implements
 
         public final void setStructWithNestedTimestampMember(StructWithTimestamp.BuilderImpl structWithNestedTimestampMember) {
             this.structWithNestedTimestampMember = structWithNestedTimestampMember != null ? structWithNestedTimestampMember
-                    .build() : null;
+                .build() : null;
         }
 
         public final ByteBuffer getBlobArg() {

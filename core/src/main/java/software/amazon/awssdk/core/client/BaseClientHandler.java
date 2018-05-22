@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.config.InternalAdvancedClientOption;
 import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.http.DefaultSdkHttpResponse;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
@@ -35,6 +36,7 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.response.SdkErrorResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpResponse;
 
 public abstract class BaseClientHandler {
     private final ServiceAdvancedConfiguration serviceAdvancedConfiguration;
@@ -120,6 +122,21 @@ public abstract class BaseClientHandler {
         return (OutputT) interceptorContext.response();
     }
 
+    /**
+     * Add {@link SdkHttpResponse} to SdkResponse.
+     */
+    @SuppressWarnings("unchecked")
+    private static <OutputT extends SdkResponse> HttpResponseHandler<OutputT> addHttpResponseMetadataResponseHandler(
+        HttpResponseHandler<OutputT> delegate) {
+        return (response, executionAttributes) -> {
+            OutputT sdkResponse = delegate.handle(response, executionAttributes);
+
+            return (OutputT) sdkResponse.toBuilder()
+                                        .sdkHttpResponse(DefaultSdkHttpResponse.from(response))
+                                        .build();
+        };
+    }
+
     static <OutputT extends SdkResponse> HttpResponseHandler<OutputT> interceptorCalling(
         HttpResponseHandler<OutputT> delegate, ExecutionContext context) {
         return (response, executionAttributes) ->
@@ -163,5 +180,14 @@ public abstract class BaseClientHandler {
         return Optional.ofNullable(clientConfiguration.overrideConfiguration()
                                                       .advancedOption(InternalAdvancedClientOption
                                                                           .CRC32_FROM_COMPRESSED_DATA_ENABLED)).orElse(false);
+    }
+
+    /**
+     * Decorate response handlers by running after unmarshalling Interceptors and adding http response metadata.
+     */
+    static <InputT extends SdkRequest, OutputT extends SdkResponse> HttpResponseHandler<OutputT> decorateResponseHandlers(
+        HttpResponseHandler<OutputT> delegate, ExecutionContext executionContext) {
+        HttpResponseHandler<OutputT> interceptorCallingResponseHandler = interceptorCalling(delegate, executionContext);
+        return addHttpResponseMetadataResponseHandler(interceptorCallingResponseHandler);
     }
 }

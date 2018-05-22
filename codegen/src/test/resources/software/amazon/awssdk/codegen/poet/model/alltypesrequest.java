@@ -1121,6 +1121,7 @@ public class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         private BuilderImpl(AllTypesRequest model) {
+            super(model);
             stringMember(model.stringMember);
             integerMember(model.integerMember);
             booleanMember(model.booleanMember);
@@ -1452,7 +1453,7 @@ public class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         public final void setStructWithNestedTimestampMember(StructWithTimestamp.BuilderImpl structWithNestedTimestampMember) {
             this.structWithNestedTimestampMember = structWithNestedTimestampMember != null ? structWithNestedTimestampMember
-                    .build() : null;
+                .build() : null;
         }
 
         public final ByteBuffer getBlobArg() {
