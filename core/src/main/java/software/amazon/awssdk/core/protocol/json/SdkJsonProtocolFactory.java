@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.OperationInfo;
@@ -52,8 +51,7 @@ public class SdkJsonProtocolFactory extends BaseJsonProtocolFactory {
         }
     }
 
-    @SdkTestInternalApi
-    StructuredJsonGenerator createGenerator() {
+    private StructuredJsonGenerator createGenerator() {
         return JSON_FACTORY.createWriter(CONTENT_TYPE);
     }
 
@@ -67,7 +65,7 @@ public class SdkJsonProtocolFactory extends BaseJsonProtocolFactory {
      *
      * @param operationMetadata Additional context information about an operation to create the appropriate response handler.
      */
-    public <T extends SdkResponse> JsonResponseHandler<T> createResponseHandler(
+    public <T> JsonResponseHandler<T> createResponseHandler(
         JsonOperationMetadata operationMetadata,
         Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller) {
         return JSON_FACTORY.createResponseHandler(operationMetadata, responseUnmarshaller);

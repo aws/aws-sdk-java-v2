@@ -18,6 +18,9 @@ import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.config.AwsAsyncClientConfiguration;
+import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocol;
+import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
+import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.core.client.AsyncClientHandler;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
 import software.amazon.awssdk.core.exception.SdkServiceException;
@@ -171,7 +174,7 @@ import software.amazon.awssdk.services.kinesis.transform.UpdateShardCountRespons
 final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
     private final AsyncClientHandler clientHandler;
 
-    private final SdkJsonProtocolFactory protocolFactory;
+    private final AwsJsonProtocolFactory protocolFactory;
 
     protected DefaultKinesisAsyncClient(AwsAsyncClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration, null);
@@ -1313,9 +1316,8 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
         clientHandler.close();
     }
 
-    private software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory init() {
-        return new SdkJsonProtocolFactory(new JsonClientMetadata()
-                                              .withProtocolVersion("1.1")
+    private AwsJsonProtocolFactory init() {
+        return new AwsJsonProtocolFactory(new JsonClientMetadata()
                                               .withSupportsCbor(false)
                                               .withSupportsIon(false)
                                               .withBaseServiceExceptionClass(software.amazon.awssdk.services.kinesis.model.KinesisException.class)
@@ -1357,7 +1359,11 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
                                                       ExpiredNextTokenException.class))
                                               .addErrorMetadata(
                                                   new JsonErrorShapeMetadata().withErrorCode("LimitExceededException").withModeledClass(
-                                                      LimitExceededException.class)));
+                                                      LimitExceededException.class)),
+                                          AwsJsonProtocolMetadata.builder()
+                                                                 .protocol(AwsJsonProtocol.AWS_JSON)
+                                                                 .protocolVersion("1.1")
+                                                                 .build());
     }
 
     private HttpResponseHandler<SdkServiceException> createErrorResponseHandler() {
