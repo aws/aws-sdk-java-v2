@@ -61,8 +61,8 @@ public abstract class AbstractAwsSigner implements Signer {
                 return MessageDigest.getInstance("SHA-256");
             } catch (NoSuchAlgorithmException e) {
                 throw new SdkClientException(
-                    "Unable to get SHA256 Function"
-                    + e.getMessage(), e);
+                        "Unable to get SHA256 Function"
+                        + e.getMessage(), e);
             }
         });
         EMPTY_STRING_SHA256_HEX = BinaryUtils.toHex(doHash(""));
@@ -75,8 +75,8 @@ public abstract class AbstractAwsSigner implements Signer {
             return md.digest();
         } catch (Exception e) {
             throw new SdkClientException(
-                "Unable to compute hash while signing request: "
-                + e.getMessage(), e);
+                    "Unable to compute hash while signing request: "
+                    + e.getMessage(), e);
         }
     }
 
@@ -109,8 +109,8 @@ public abstract class AbstractAwsSigner implements Signer {
             return Base64Utils.encodeAsString(signature);
         } catch (Exception e) {
             throw new SdkClientException(
-                "Unable to calculate a request signature: "
-                + e.getMessage(), e);
+                    "Unable to calculate a request signature: "
+                    + e.getMessage(), e);
         }
     }
 
@@ -119,8 +119,8 @@ public abstract class AbstractAwsSigner implements Signer {
             return mac.doFinal(stringData.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             throw new SdkClientException(
-                "Unable to calculate a request signature: "
-                + e.getMessage(), e);
+                    "Unable to calculate a request signature: "
+                    + e.getMessage(), e);
         }
     }
 
@@ -131,8 +131,8 @@ public abstract class AbstractAwsSigner implements Signer {
             return sign(data, key, algorithm);
         } catch (Exception e) {
             throw new SdkClientException(
-                "Unable to calculate a request signature: "
-                + e.getMessage(), e);
+                    "Unable to calculate a request signature: "
+                    + e.getMessage(), e);
         }
     }
 
@@ -143,8 +143,8 @@ public abstract class AbstractAwsSigner implements Signer {
             return mac.doFinal(data);
         } catch (Exception e) {
             throw new SdkClientException(
-                "Unable to calculate a request signature: "
-                + e.getMessage(), e);
+                    "Unable to calculate a request signature: "
+                    + e.getMessage(), e);
         }
     }
 
@@ -165,7 +165,7 @@ public abstract class AbstractAwsSigner implements Signer {
             MessageDigest md = getMessageDigestInstance();
             @SuppressWarnings("resource")
             DigestInputStream digestInputStream = new SdkDigestInputStream(
-                input, md);
+                    input, md);
             byte[] buffer = new byte[1024];
             while (digestInputStream.read(buffer) > -1) {
                 ;
@@ -173,8 +173,8 @@ public abstract class AbstractAwsSigner implements Signer {
             return digestInputStream.getMessageDigest().digest();
         } catch (Exception e) {
             throw new SdkClientException(
-                "Unable to compute hash while signing request: "
-                + e.getMessage(), e);
+                    "Unable to compute hash while signing request: "
+                    + e.getMessage(), e);
         }
     }
 
@@ -192,8 +192,8 @@ public abstract class AbstractAwsSigner implements Signer {
             return md.digest();
         } catch (Exception e) {
             throw new SdkClientException(
-                "Unable to compute hash while signing request: "
-                + e.getMessage(), e);
+                    "Unable to compute hash while signing request: "
+                    + e.getMessage(), e);
         }
     }
 
@@ -272,6 +272,18 @@ public abstract class AbstractAwsSigner implements Signer {
         }
     }
 
+    protected String getCanonicalizedEndpoint(SdkHttpFullRequest.Builder request) {
+        String endpointForStringToSign = StringUtils.lowerCase(request.host());
+
+        // Omit the port from the endpoint if we're using the default port for the protocol. Some HTTP clients (ie. Apache) don't
+        // allow you to specify it in the request, so we're standardizing around not including it. See SdkHttpRequest#port().
+        if (!SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())) {
+            endpointForStringToSign += ":" + request.port();
+        }
+
+        return endpointForStringToSign;
+    }
+
     /**
      * Loads the individual access key ID and secret key from the specified credentials, trimming any extra whitespace from the
      * credentials.
@@ -292,18 +304,6 @@ public abstract class AbstractAwsSigner implements Signer {
         }
 
         return AwsCredentials.create(accessKeyId, secretKey);
-    }
-
-    protected String getCanonicalizedEndpoint(SdkHttpFullRequest.Builder request) {
-        String endpointForStringToSign = StringUtils.lowerCase(request.host());
-
-        // Omit the port from the endpoint if we're using the default port for the protocol. Some HTTP clients (ie. Apache) don't
-        // allow you to specify it in the request, so we're standardizing around not including it. See SdkHttpRequest#port().
-        if (!SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())) {
-            endpointForStringToSign += ":" + request.port();
-        }
-
-        return endpointForStringToSign;
     }
 
     /**

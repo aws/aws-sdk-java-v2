@@ -44,14 +44,28 @@ public final class S3AdvancedConfiguration implements
      */
     private static final boolean DEFAULT_DUALSTACK_ENABLED = false;
 
+    /**
+     * The default setting for use of chunked encoding
+     */
+    public static final boolean DEFAULT_CHUNKED_ENCODING_ENABLED = false;
+
+    /**
+     * The default setting for use of payload signing
+     */
+    public static final boolean DEFAULT_PAYLOAD_SIGNING_ENABLED = false;
+
     private final Boolean pathStyleAccessEnabled;
     private final Boolean accelerateModeEnabled;
     private final Boolean dualstackEnabled;
+    private final Boolean chunkedEncodingEnabled;
+    private final Boolean payloadSigningEnabled;
 
     private S3AdvancedConfiguration(DefaultS3AdvancedConfigurationBuilder builder) {
         this.dualstackEnabled = resolveBoolean(builder.dualstackEnabled, DEFAULT_DUALSTACK_ENABLED);
         this.accelerateModeEnabled = resolveBoolean(builder.accelerateModeEnabled, DEFAULT_ACCELERATE_MODE_ENABLED);
         this.pathStyleAccessEnabled = resolveBoolean(builder.pathStyleAccessEnabled, DEFAULT_PATH_STYLE_ACCESS_ENABLED);
+        this.chunkedEncodingEnabled = resolveBoolean(builder.chunkedEncodingEnabled, DEFAULT_CHUNKED_ENCODING_ENABLED);
+        this.payloadSigningEnabled = resolveBoolean(builder.payloadSigningEnabled, DEFAULT_PAYLOAD_SIGNING_ENABLED);
         if (accelerateModeEnabled && pathStyleAccessEnabled) {
             throw new IllegalArgumentException("Accelerate mode cannot be used with path style addressing");
         }
@@ -120,6 +134,14 @@ public final class S3AdvancedConfiguration implements
         return dualstackEnabled;
     }
 
+    public boolean chunkedEncodingEnabled() {
+        return chunkedEncodingEnabled;
+    }
+
+    public boolean payloadSigningEnabled() {
+        return payloadSigningEnabled;
+    }
+
     private boolean resolveBoolean(Boolean customerSuppliedValue, boolean defaultValue) {
         return customerSuppliedValue == null ? defaultValue : customerSuppliedValue;
     }
@@ -129,7 +151,9 @@ public final class S3AdvancedConfiguration implements
         return builder()
                 .dualstackEnabled(dualstackEnabled)
                 .accelerateModeEnabled(accelerateModeEnabled)
-                .pathStyleAccessEnabled(pathStyleAccessEnabled);
+                .pathStyleAccessEnabled(pathStyleAccessEnabled)
+                .chunkedEncodingEnabled(chunkedEncodingEnabled)
+                .payloadSigningEnabled(payloadSigningEnabled);
     }
 
     @NotThreadSafe
@@ -172,6 +196,37 @@ public final class S3AdvancedConfiguration implements
          * @see S3AdvancedConfiguration#pathStyleAccessEnabled().
          */
         Builder pathStyleAccessEnabled(Boolean pathStyleAccessEnabled);
+
+        /**
+         * Option to enable chunked encoding when signing requests.
+         *
+         * The default behavior is to enable chunked encoding automatically for PutObjectRequest and
+         * UploadPartRequest and disable for all other requests.
+         *
+         * <p>
+         * <b>Note:</b> Disabling chunked encoding has performance implications since the checksum for the
+         * payload will have to be pre-calculated before sending the data. If your payload is large this
+         * will affect the overall time required to upload an object.
+         * </p>
+         */
+        Builder chunkedEncodingEnabled(Boolean chunkedEncodingEnabled);
+
+        /**
+         * Option to enable signing payloads for all requests. Payload signing is disabled by default.
+         *
+         * <p>
+         * Payload signing is optional when chunked encoding is not used and requests are made
+         * against an HTTPS endpoint.  Under these conditions the client will by default
+         * opt to not sign payloads to optimize performance.  If this flag is set to true the
+         * client will instead always sign payloads.
+         * </p>
+         * <p>
+         * <b>Note:</b> Payload signing can be expensive, particularly if transferring
+         * large payloads in a single chunk.  Enabling this option will result in a performance
+         * penalty.
+         * </p>
+         */
+        Builder payloadSigningEnabled(Boolean payloadSigningEnabled);
     }
 
     private static final class DefaultS3AdvancedConfigurationBuilder implements Builder {
@@ -179,14 +234,12 @@ public final class S3AdvancedConfiguration implements
         private Boolean dualstackEnabled;
         private Boolean accelerateModeEnabled;
         private Boolean pathStyleAccessEnabled;
+        private Boolean chunkedEncodingEnabled;
+        private Boolean payloadSigningEnabled;
 
         public Builder dualstackEnabled(Boolean dualstackEnabled) {
             this.dualstackEnabled = dualstackEnabled;
             return this;
-        }
-
-        public void setDualstackEnabled(Boolean dualstackEnabled) {
-            dualstackEnabled(dualstackEnabled);
         }
 
         public Builder accelerateModeEnabled(Boolean accelerateModeEnabled) {
@@ -194,17 +247,19 @@ public final class S3AdvancedConfiguration implements
             return this;
         }
 
-        public void setAccelerateModeEnabled(Boolean accelerateModeEnabled) {
-            accelerateModeEnabled(accelerateModeEnabled);
-        }
-
         public Builder pathStyleAccessEnabled(Boolean pathStyleAccessEnabled) {
             this.pathStyleAccessEnabled = pathStyleAccessEnabled;
             return this;
         }
 
-        public void setPathStyleAccessEnabled(Boolean pathStyleAccessEnabled) {
-            pathStyleAccessEnabled(pathStyleAccessEnabled);
+        public Builder chunkedEncodingEnabled(Boolean chunkedEncodingEnabled) {
+            this.chunkedEncodingEnabled = chunkedEncodingEnabled;
+            return this;
+        }
+
+        public Builder payloadSigningEnabled(Boolean payloadSigningEnabled) {
+            this.payloadSigningEnabled = payloadSigningEnabled;
+            return this;
         }
 
         public S3AdvancedConfiguration build() {

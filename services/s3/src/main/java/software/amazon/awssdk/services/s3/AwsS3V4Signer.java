@@ -24,8 +24,10 @@ import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.core.exception.ResetException;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.signer.SignerContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.services.s3.auth.AwsChunkedEncodingInputStream;
+import software.amazon.awssdk.services.s3.auth.S3ExecutionAttributes;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -44,8 +46,8 @@ public final class AwsS3V4Signer extends Aws4Signer implements
     private static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
     private static final String CONTENT_LENGTH = "Content-Length";
 
-    private final Boolean disableChunkedEncoding;
-    private final  Boolean enablePayloadSigning;
+//    private final Boolean disableChunkedEncoding;
+//    private final  Boolean enablePayloadSigning;
 
     /**
      * Don't double-url-encode path elements; S3 expects path elements to be encoded only once in
@@ -53,37 +55,41 @@ public final class AwsS3V4Signer extends Aws4Signer implements
      */
     private AwsS3V4Signer(Builder builder) {
         super(builder);
-        this.disableChunkedEncoding = builder.disableChunkedEncoding;
-        this.enablePayloadSigning = builder.enablePayloadSigning;
+//        this.disableChunkedEncoding = builder.disableChunkedEncoding;
+//        this.enablePayloadSigning = builder.enablePayloadSigning;
+    }
+
+    public static Aws4Signer create() {
+        return builder().build();
     }
 
     public static Builder builder() {
         return new Builder();
     }
 
-    @Override
+
     public Builder toBuilder() {
-        return builder().disableChunkedEncoding(disableChunkedEncoding)
-                        .enablePayloadSigning(enablePayloadSigning);
+        return builder().doubleUrlEncode(doubleUrlEncode());
     }
 
-    public Boolean disableChunkedEncoding() {
-        return disableChunkedEncoding;
-    }
-
-    public Boolean enablePayloadSigning() {
-        return enablePayloadSigning;
-    }
+//    public Boolean disableChunkedEncoding() {
+//        return disableChunkedEncoding;
+//    }
+//
+//    public Boolean enablePayloadSigning() {
+//        return enablePayloadSigning;
+//    }
 
     /**
      * If necessary, creates a chunk-encoding wrapper on the request payload.
      */
     @Override
-    protected void processRequestPayload(SdkHttpFullRequest.Builder requestBuilder,
+    protected void processRequestPayload(SignerContext signerContext,
+                                         SdkHttpFullRequest.Builder requestBuilder,
                                          byte[] signature,
                                          byte[] signingKey,
                                          Aws4SignerRequestParams signerRequestParams) {
-        if (useChunkEncoding(requestBuilder)) {
+        if (useChunkEncoding(requestBuilder, signerContext)) {
             AwsChunkedEncodingInputStream chunkEncodededStream = new AwsChunkedEncodingInputStream(
                 requestBuilder.content(),
                 signingKey,
@@ -95,7 +101,7 @@ public final class AwsS3V4Signer extends Aws4Signer implements
     }
 
     @Override
-    protected String calculateContentHashPresign(SdkHttpFullRequest.Builder mutableRequest) {
+    protected String calculateContentHashPresign(SignerContext signerContext, SdkHttpFullRequest.Builder mutableRequest) {
         return "UNSIGNED-PAYLOAD";
     }
 
@@ -105,14 +111,14 @@ public final class AwsS3V4Signer extends Aws4Signer implements
      * method which calculates the hash of the whole content for signing.
      */
     @Override
-    protected String calculateContentHash(SdkHttpFullRequest.Builder mutableRequest) {
+    protected String calculateContentHash(SignerContext signerContext, SdkHttpFullRequest.Builder mutableRequest) {
         // To be consistent with other service clients using sig-v4,
         // we just set the header as "required", and AWS4Signer.sign() will be
         // notified to pick up the header value returned by this method.
         mutableRequest.header(X_AMZ_CONTENT_SHA256, "required");
 
-        if (isPayloadSigningEnabled(mutableRequest)) {
-            if (useChunkEncoding(mutableRequest)) {
+        if (isPayloadSigningEnabled(mutableRequest, signerContext)) {
+            if (useChunkEncoding(mutableRequest, signerContext)) {
                 final String contentLength = mutableRequest.firstMatchingHeader(CONTENT_LENGTH)
                                                            .orElse(null);
                 final long originalContentLength;
@@ -141,7 +147,7 @@ public final class AwsS3V4Signer extends Aws4Signer implements
                     AwsChunkedEncodingInputStream.calculateStreamContentLength(originalContentLength)));
                 return CONTENT_SHA_256;
             } else {
-                return super.calculateContentHash(mutableRequest);
+                return super.calculateContentHash(signerContext, mutableRequest);
             }
         }
 
@@ -153,23 +159,24 @@ public final class AwsS3V4Signer extends Aws4Signer implements
      */
     // TODO Chunked encoding should be used for PutObject and UploadPart APIs if not explicitly disabled by user
     // Where to set that value?
-    private boolean useChunkEncoding(SdkHttpFullRequest.Builder mutableRequest) {
+    private boolean useChunkEncoding(SdkHttpFullRequest.Builder mutableRequest, SignerContext signerContext) {
         // Chunked encoding only makes sense to do when the payload is signed
-        return isPayloadSigningEnabled(mutableRequest) && !isChunkedEncodingDisabled();
+        return isPayloadSigningEnabled(mutableRequest, signerContext) && isChunkedEncodingEnabled(signerContext);
     }
 
     /**
      * @return True if chunked encoding has been explicitly disabled per the request. False
      * otherwise.
      */
-    private boolean isChunkedEncodingDisabled() {
-        return disableChunkedEncoding != null && disableChunkedEncoding;
+    private boolean isChunkedEncodingEnabled(SignerContext signerContext) {
+        Boolean isChunkedEncodingEnabled = signerContext.getAttribute(S3ExecutionAttributes.ENABLE_CHUNKED_ENCODING);
+        return isChunkedEncodingEnabled != null && isChunkedEncodingEnabled;
     }
 
     /**
      * @return True if payload signing is explicitly enabled.
      */
-    private boolean isPayloadSigningEnabled(SdkHttpFullRequest.Builder request) {
+    private boolean isPayloadSigningEnabled(SdkHttpFullRequest.Builder request, SignerContext signerContext) {
         /**
          * If we aren't using https we should always sign the payload.
          */
@@ -177,7 +184,8 @@ public final class AwsS3V4Signer extends Aws4Signer implements
             return true;
         }
 
-        return enablePayloadSigning != null && enablePayloadSigning;
+        Boolean isPayloadSigningEnabled = signerContext.getAttribute(S3ExecutionAttributes.ENABLE_PAYLOAD_SIGNING);
+        return isPayloadSigningEnabled != null && isPayloadSigningEnabled;
     }
 
     /**
@@ -206,18 +214,18 @@ public final class AwsS3V4Signer extends Aws4Signer implements
 
     public static final class Builder extends Aws4Signer.Builder<Builder> implements CopyableBuilder<Builder, AwsS3V4Signer> {
 
-        private Boolean disableChunkedEncoding;
-        private Boolean enablePayloadSigning;
-
-        public Builder disableChunkedEncoding(Boolean disableChunkedEncoding) {
-            this.disableChunkedEncoding = disableChunkedEncoding;
-            return this;
-        }
-
-        public Builder enablePayloadSigning(Boolean enablePayloadSigning) {
-            this.enablePayloadSigning = enablePayloadSigning;
-            return this;
-        }
+//        private Boolean disableChunkedEncoding;
+//        private Boolean enablePayloadSigning;
+//
+//        public Builder disableChunkedEncoding(Boolean disableChunkedEncoding) {
+//            this.disableChunkedEncoding = disableChunkedEncoding;
+//            return this;
+//        }
+//
+//        public Builder enablePayloadSigning(Boolean enablePayloadSigning) {
+//            this.enablePayloadSigning = enablePayloadSigning;
+//            return this;
+//        }
 
         @Override
         public AwsS3V4Signer build() {

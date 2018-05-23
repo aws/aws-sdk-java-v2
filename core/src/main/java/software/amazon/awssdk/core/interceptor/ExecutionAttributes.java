@@ -47,4 +47,11 @@ public class ExecutionAttributes {
         this.attributes.put(attribute, value);
         return this;
     }
+
+    /**
+     * Return the collection of all attributes set in the {@link ExecutionAttributes}.
+     */
+    public Map<ExecutionAttribute<?>, Object> getAttributes() {
+        return attributes;
+    }
 }

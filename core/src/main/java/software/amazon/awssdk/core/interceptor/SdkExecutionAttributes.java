@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.interceptor;
 
 import software.amazon.awssdk.core.RequestOverrideConfig;
 import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.signer.Signer;
 
 /**
  * Contains attributes attached to the execution. This information is available to {@link ExecutionInterceptor}s and

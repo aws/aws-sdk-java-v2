@@ -89,7 +89,7 @@ final class AwsClientHandlerUtils {
             return userProvidedContext;
         }
 
-        // TODO How to set doubleUrlEncoding and chunkedBodySigning options?
+        // TODO This is called before the execution interceptors, So I can't add the s3 execution attributes to SignerContext.
         final AwsSignerParams signerParams = AwsSignerParams.builder()
                                                             .awsCredentials(executionAttributes.getAttribute(
                                                                 AwsExecutionAttributes.AWS_CREDENTIALS))
@@ -103,6 +103,7 @@ final class AwsClientHandlerUtils {
 
         return SignerContext.builder()
                             .putAttribute(AwsExecutionAttributes.AWS_SIGNER_PARAMS, signerParams)
+                            .putAllAttributes(executionAttributes.getAttributes())
                             .build();
     }
 }

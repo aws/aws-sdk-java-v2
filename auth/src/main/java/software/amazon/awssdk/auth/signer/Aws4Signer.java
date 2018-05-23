@@ -95,10 +95,12 @@ public class Aws4Signer extends AbstractAwsSigner implements Presigner {
             return request;
         }
 
-        return doSign(request, signerParams).build();
+        return doSign(request, signerContext, signerParams).build();
     }
 
-    private SdkHttpFullRequest.Builder doSign(SdkHttpFullRequest requestToSign, AwsSignerParams signerParams) {
+    private SdkHttpFullRequest.Builder doSign(SdkHttpFullRequest requestToSign,
+                                              SignerContext signerContext,
+                                              AwsSignerParams signerParams) {
         final Aws4SignerRequestParams requestParams = new Aws4SignerRequestParams(signerParams);
         final SdkHttpFullRequest.Builder mutableRequest = requestToSign.toBuilder();
 
@@ -110,7 +112,7 @@ public class Aws4Signer extends AbstractAwsSigner implements Presigner {
         addHostHeader(mutableRequest);
         addDateHeader(mutableRequest, requestParams.getFormattedSigningDateTime());
 
-        String contentSha256 = calculateContentHash(mutableRequest);
+        String contentSha256 = calculateContentHash(signerContext, mutableRequest);
         mutableRequest.firstMatchingHeader(SignerConstants.X_AMZ_CONTENT_SHA256)
                       .filter(h -> h.equals("required"))
                       .ifPresent(h -> mutableRequest.header(SignerConstants.X_AMZ_CONTENT_SHA256, contentSha256));
@@ -126,7 +128,7 @@ public class Aws4Signer extends AbstractAwsSigner implements Presigner {
         mutableRequest.header(SignerConstants.AUTHORIZATION,
                               buildAuthorizationHeader(signature, sanitizedCredentials, requestParams, mutableRequest));
 
-        processRequestPayload(mutableRequest, signature, signingKey, requestParams);
+        processRequestPayload(signerContext, mutableRequest, signature, signingKey, requestParams);
         return mutableRequest;
     }
 
@@ -159,7 +161,7 @@ public class Aws4Signer extends AbstractAwsSigner implements Presigner {
 
         addPreSignInformationToRequest(mutableRequest, sanitizedCredentials, requestParams, timeStamp, expirationInSeconds);
 
-        final String contentSha256 = calculateContentHashPresign(mutableRequest);
+        final String contentSha256 = calculateContentHashPresign(signerContext, mutableRequest);
 
         final String canonicalRequest = createCanonicalRequest(mutableRequest, contentSha256);
 
@@ -399,7 +401,7 @@ public class Aws4Signer extends AbstractAwsSigner implements Presigner {
      * uses a pre-defined header value, and needs to change some headers
      * relating to content-encoding and content-length.)
      */
-    protected String calculateContentHash(SdkHttpFullRequest.Builder mutableRequest) {
+    protected String calculateContentHash(SignerContext signerContext, SdkHttpFullRequest.Builder mutableRequest) {
         InputStream payloadStream = getBinaryRequestPayloadStream(mutableRequest.content());
         payloadStream.mark(getReadLimit());
         String contentSha256 = BinaryUtils.toHex(hash(payloadStream));
@@ -417,8 +419,10 @@ public class Aws4Signer extends AbstractAwsSigner implements Presigner {
      * header. (e.g. Signing the payload by chunk-encoding). The default
      * implementation doesn't need to do anything.
      */
-    protected void processRequestPayload(SdkHttpFullRequest.Builder mutableRequest,
-                                         byte[] signature, byte[] signingKey,
+    protected void processRequestPayload(SignerContext signerContext,
+                                         SdkHttpFullRequest.Builder mutableRequest,
+                                         byte[] signature,
+                                         byte[] signingKey,
                                          Aws4SignerRequestParams signerRequestParams) {
     }
 
@@ -429,8 +433,8 @@ public class Aws4Signer extends AbstractAwsSigner implements Presigner {
      * values (e.g) For S3 pre-signing, the content hash calculation is
      * different from the general implementation.
      */
-    protected String calculateContentHashPresign(SdkHttpFullRequest.Builder mutableRequest) {
-        return calculateContentHash(mutableRequest);
+    protected String calculateContentHashPresign(SignerContext signerContext, SdkHttpFullRequest.Builder mutableRequest) {
+        return calculateContentHash(signerContext, mutableRequest);
     }
 
     /**
