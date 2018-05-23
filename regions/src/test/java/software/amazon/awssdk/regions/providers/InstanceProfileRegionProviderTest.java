@@ -70,6 +70,15 @@ public class InstanceProfileRegionProviderTest {
             assertEquals(Region.US_EAST_1, regionProvider.getRegion());
         }
 
+        @Test(expected = SdkClientException.class)
+        public void ec2MetadataDisabled_shouldReturnNull() {
+            try {
+                System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.property(), "true");
+                regionProvider.getRegion();
+            } finally {
+                System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.property());
+            }
+        }
     }
 
     /**

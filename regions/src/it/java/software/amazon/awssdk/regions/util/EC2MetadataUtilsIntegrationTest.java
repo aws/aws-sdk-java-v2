@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.regions.util;
 
+
 import java.io.IOException;
 import java.util.Map;
 import org.junit.AfterClass;
@@ -22,6 +23,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 public class EC2MetadataUtilsIntegrationTest {
 
@@ -75,6 +77,16 @@ public class EC2MetadataUtilsIntegrationTest {
             Assert.assertEquals("moobily", entry.getValue().secretAccessKey);
             Assert.assertEquals("beebop", entry.getValue().token);
             Assert.assertNotNull(entry.getValue().expiration);
+        }
+    }
+
+    @Test(expected = SdkClientException.class)
+    public void ec2MetadataDisabled_shouldThrowException() {
+        try {
+            System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.property(), "true");
+            EC2MetadataUtils.getInstanceId();
+        } finally {
+            System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.property());
         }
     }
 

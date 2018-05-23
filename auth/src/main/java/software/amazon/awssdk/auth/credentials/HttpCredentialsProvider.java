@@ -40,21 +40,34 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  */
 @SdkInternalApi
 abstract class HttpCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
-    private final CachedSupplier<AwsCredentials> credentialsCache;
+    private final Optional<CachedSupplier<AwsCredentials>> credentialsCache;
 
     HttpCredentialsProvider(Builder<?, ?> builder) {
         this(builder.asyncCredentialUpdateEnabled, builder.asyncThreadName);
     }
 
     HttpCredentialsProvider(boolean asyncCredentialUpdateEnabled, String asyncThreadName) {
-        CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials);
-        if (asyncCredentialUpdateEnabled) {
-            cacheBuilder.prefetchStrategy(new NonBlocking(asyncThreadName));
+        if (isLocalCredentialLoadingDisabled()) {
+            this.credentialsCache = Optional.empty();
+        } else {
+            CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials);
+            if (asyncCredentialUpdateEnabled) {
+                cacheBuilder.prefetchStrategy(new NonBlocking(asyncThreadName));
+            }
+            this.credentialsCache = Optional.of(cacheBuilder.build());
         }
-        this.credentialsCache = cacheBuilder.build();
     }
 
     protected abstract ResourcesEndpointProvider getCredentialsEndpointProvider();
+
+    /**
+     * Can be overridden by subclass to decide whether loading credential is disabled or not.
+     *
+     * @return whether loading credential from local endpoint is disabled.
+     */
+    protected boolean isLocalCredentialLoadingDisabled() {
+        return false;
+    }
 
     private RefreshResult<AwsCredentials> refreshCredentials() {
         try {
@@ -70,8 +83,8 @@ abstract class HttpCredentialsProvider implements AwsCredentialsProvider, SdkAut
             Validate.notNull(secretKey, "Failed to load secret key.");
 
             AwsCredentials credentials =
-                    token == null ? new AwsCredentials(accessKey.asText(), secretKey.asText())
-                                  : AwsSessionCredentials.create(accessKey.asText(), secretKey.asText(), token.asText());
+                token == null ? new AwsCredentials(accessKey.asText(), secretKey.asText())
+                              : AwsSessionCredentials.create(accessKey.asText(), secretKey.asText(), token.asText());
 
             Instant expiration = getExpiration(expirationNode).orElse(null);
             if (expiration != null && Instant.now().isAfter(expiration)) {
@@ -116,12 +129,17 @@ abstract class HttpCredentialsProvider implements AwsCredentialsProvider, SdkAut
 
     @Override
     public AwsCredentials getCredentials() {
-        return credentialsCache.get();
+        if (isLocalCredentialLoadingDisabled()) {
+            throw new SdkClientException("Loading credentials from local endpoint is disabled. Unable to load credentials from "
+                                         + "service endpoint.");
+        }
+        return credentialsCache.map(CachedSupplier::get).orElseThrow(() -> new SdkClientException("Unable to load credentials "
+                                                                                                  + "from service endpoint"));
     }
 
     @Override
     public void close() {
-        credentialsCache.close();
+        credentialsCache.ifPresent(CachedSupplier::close);
     }
 
     /**
@@ -131,7 +149,8 @@ abstract class HttpCredentialsProvider implements AwsCredentialsProvider, SdkAut
         private boolean asyncCredentialUpdateEnabled = false;
         private String asyncThreadName;
 
-        protected Builder() {}
+        protected Builder() {
+        }
 
         /**
          * Configure whether this provider should fetch credentials asynchronously in the background. If this is true, threads are
