@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.flow;
 
+import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
+
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
@@ -22,6 +24,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -44,6 +48,8 @@ import software.amazon.eventstream.MessageDecoder;
 @SdkProtectedApi
 public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, ReturnT>
     implements AsyncResponseTransformer<ResponseT, ReturnT> {
+
+    private static final Logger log = LoggerFactory.getLogger(UnmarshallingFlowAsyncResponseTransformer.class);
 
     private static final ExecutionAttributes EMPTY_EXECUTION_ATTRIBUTES = new ExecutionAttributes();
 
@@ -114,19 +120,44 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
      */
     private MessageDecoder createDecoder() {
         return new MessageDecoder(m -> {
-            if (m.getHeaders().get(":event-type").getString().equals("initial-response")) {
-                // TODO unmarshall initial response and call responseRecieved.
-                flowResponseTransformer.responseReceived(response);
-            } else {
-                try {
-                    remainingDemand.decrementAndGet();
-                    subscriberRef.get().onNext(eventUnmarshaller.handle(adaptMessageToResponse(m), EMPTY_EXECUTION_ATTRIBUTES));
-                } catch (Exception e) {
-                    throw new SdkClientException(e);
+            if (isEvent(m)) {
+                if (m.getHeaders().get(":event-type").getString().equals("initial-response")) {
+                    // TODO unmarshall initial response and call responseRecieved.
+                    flowResponseTransformer.responseReceived(response);
+                } else {
+                    try {
+                        remainingDemand.decrementAndGet();
+                        subscriberRef.get().onNext(eventUnmarshaller.handle(adaptMessageToResponse(m), EMPTY_EXECUTION_ATTRIBUTES));
+                    } catch (Exception e) {
+                        throw new SdkClientException(e);
+                    }
                 }
-                // TODO error events
+            } else if (isError(m)) {
+                FlowException flowException = FlowException.create(m.getHeaders().get(":error-message").getString(),
+                                                                   m.getHeaders().get(":error-code").getString());
+                // TODO prevent connection reset exception from propagating
+                runAndLogError(log, "Error thrown from Subscriber#onError, ignoring.",
+                               () -> subscriberRef.get().onError(flowException));
+                runAndLogError(log, "Error thrown from FlowResponseTransformer#exceptionOccurred, ignoring.",
+                               () -> flowResponseTransformer.exceptionOccurred(flowException));
             }
         });
+    }
+
+    /**
+     * @param m Message frame.
+     * @return True if frame is an event frame, false if not.
+     */
+    private boolean isEvent(Message m) {
+        return "event".equals(m.getHeaders().get(":message-type").getString());
+    }
+
+    /**
+     * @param m Message frame.
+     * @return True if frame is an error frame, false if not.
+     */
+    private boolean isError(Message m) {
+        return "error".equals(m.getHeaders().get(":message-type").getString());
     }
 
     /**

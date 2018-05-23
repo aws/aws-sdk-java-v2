@@ -86,6 +86,7 @@ class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
             @Override
             public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
                 ch.attr(PROTOCOL_FUTURE).get().completeExceptionally(cause);
+                ch.close();
             }
         });
     }

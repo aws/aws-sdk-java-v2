@@ -101,9 +101,9 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
     private void release0(Channel childChannel, Promise<Void> promise) {
         Channel parentChannel = childChannel.parent();
         MultiplexedChannelRecord channelRecord = parentChannel.attr(CHANNEL_POOL_RECORD).get();
-        // TODO check parent channel validity
         if (!parentChannel.isActive()) {
             connections.remove(channelRecord);
+            parentChannel.close();
             connectionPool.release(parentChannel);
         }
         channelRecord.release();
