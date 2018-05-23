@@ -22,6 +22,7 @@ import static org.junit.Assert.fail;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.testutils.LogCaptor;
 
@@ -96,6 +97,19 @@ public class InstanceProfileCredentialsProviderIntegrationTest extends LogCaptor
             } catch (SdkClientException ace) {
                 assertNotNull(ace.getMessage());
             }
+        }
+    }
+
+    @Test(expected = SdkClientException.class)
+    public void ec2MetadataDisabled_shouldReturnNull() {
+        mockServer.setResponseFileName("sessionResponse");
+        mockServer.setAvailableSecurityCredentials("test-credentials");
+
+        try (InstanceProfileCredentialsProvider credentialsProvider = InstanceProfileCredentialsProvider.create()) {
+            System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.property(), "true");
+            credentialsProvider.getCredentials();
+        } finally {
+            System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.property());
         }
     }
 }
