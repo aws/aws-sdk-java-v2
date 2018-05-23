@@ -25,6 +25,11 @@ import software.amazon.awssdk.utils.ToString;
 
 /**
  * Credentials provider implementation that loads credentials from the Amazon EC2 Instance Metadata Service.
+ *
+ * <P>
+ * If {@link SdkSystemSetting#AWS_EC2_METADATA_DISABLED} is set to true, it will not try to load
+ * credentials from EC2 metadata service and will return null.
+ *
  */
 public final class InstanceProfileCredentialsProvider extends HttpCredentialsProvider {
 
@@ -57,6 +62,11 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
     @Override
     protected ResourcesEndpointProvider getCredentialsEndpointProvider() {
         return credentialsEndpointProvider;
+    }
+
+    @Override
+    protected boolean isLocalCredentialLoadingDisabled() {
+        return SdkSystemSetting.AWS_EC2_METADATA_DISABLED.getBooleanValueOrThrow();
     }
 
     @Override

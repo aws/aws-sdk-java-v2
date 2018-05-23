@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.regions.providers;
 
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.util.EC2MetadataUtils;
@@ -22,6 +23,10 @@ import software.amazon.awssdk.regions.util.EC2MetadataUtils;
 /**
  * Attempts to load region information from the EC2 Metadata service. If the application is not
  * running on EC2 this provider will thrown an exception.
+ *
+ * <P>
+ * If {@link SdkSystemSetting#AWS_EC2_METADATA_DISABLED} is set to true, it will not try to load
+ * region from EC2 metadata service and will return null.
  */
 public class InstanceProfileRegionProvider implements AwsRegionProvider {
 
@@ -32,6 +37,11 @@ public class InstanceProfileRegionProvider implements AwsRegionProvider {
 
     @Override
     public Region getRegion() throws SdkClientException {
+        if (SdkSystemSetting.AWS_EC2_METADATA_DISABLED.getBooleanValueOrThrow()) {
+            throw new SdkClientException("EC2 Metadata is disabled. Unable to retrieve region information from EC2 Metadata "
+                                         + "service.");
+        }
+
         if (region == null) {
             synchronized (this) {
                 if (region == null) {
