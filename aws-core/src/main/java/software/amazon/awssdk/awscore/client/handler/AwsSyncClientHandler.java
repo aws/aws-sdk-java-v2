@@ -20,7 +20,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.config.AwsSyncClientConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.client.BaseClientHandler;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
 import software.amazon.awssdk.core.client.SyncClientHandler;
@@ -35,10 +35,10 @@ public class AwsSyncClientHandler extends BaseClientHandler implements SyncClien
 
     private final SyncClientHandler delegateHandler;
 
-    public AwsSyncClientHandler(AwsSyncClientConfiguration clientConfiguration, ServiceAdvancedConfiguration
-        serviceAdvancedConfiguration) {
-        super(clientConfiguration, serviceAdvancedConfiguration);
-        this.delegateHandler = new AwsSyncClientHandlerImpl(clientConfiguration, serviceAdvancedConfiguration);
+    public AwsSyncClientHandler(AwsSyncClientConfiguration clientConfiguration, ServiceConfiguration
+            serviceConfiguration) {
+        super(clientConfiguration, serviceConfiguration);
+        this.delegateHandler = new AwsSyncClientHandlerImpl(clientConfiguration, serviceConfiguration);
     }
 
     @Override

@@ -68,9 +68,9 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
         accelerateClient = S3Client.builder()
                                    .region(Region.US_WEST_2)
                                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                   .advancedConfiguration(S3AdvancedConfiguration.builder()
-                                                                                 .accelerateModeEnabled(true)
-                                                                                 .build())
+                                   .serviceConfiguration(S3Configuration.builder()
+                                                                         .accelerateModeEnabled(true)
+                                                                         .build())
                                    .build();
 
         setUpBuckets();

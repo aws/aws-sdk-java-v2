@@ -22,7 +22,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.config.SdkAsyncClientConfiguration;
@@ -47,9 +47,9 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
     private final AmazonAsyncHttpClient client;
 
     protected BaseAsyncClientHandler(SdkAsyncClientConfiguration clientConfiguration,
-                                     ServiceAdvancedConfiguration serviceAdvancedConfiguration,
+                                     ServiceConfiguration serviceConfiguration,
                                      AmazonAsyncHttpClient client) {
-        super(clientConfiguration, serviceAdvancedConfiguration);
+        super(clientConfiguration, serviceConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.client = client;
     }

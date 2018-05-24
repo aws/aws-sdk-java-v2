@@ -20,7 +20,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.config.AwsSyncClientConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.client.BaseSyncClientHandler;
 import software.amazon.awssdk.core.client.SyncClientHandler;
 import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
@@ -34,17 +34,17 @@ import software.amazon.awssdk.core.http.ExecutionContext;
 @SdkProtectedApi
 final class AwsSyncClientHandlerImpl extends BaseSyncClientHandler {
     private final AwsSyncClientConfiguration clientConfiguration;
-    private final ServiceAdvancedConfiguration serviceAdvancedConfiguration;
+    private final ServiceConfiguration serviceConfiguration;
 
-    AwsSyncClientHandlerImpl(AwsSyncClientConfiguration clientConfiguration, ServiceAdvancedConfiguration
-        serviceAdvancedConfiguration) {
-        super(clientConfiguration, serviceAdvancedConfiguration, new AmazonSyncHttpClient(clientConfiguration));
+    AwsSyncClientHandlerImpl(AwsSyncClientConfiguration clientConfiguration, ServiceConfiguration
+            serviceConfiguration) {
+        super(clientConfiguration, serviceConfiguration, new AmazonSyncHttpClient(clientConfiguration));
         this.clientConfiguration = clientConfiguration;
-        this.serviceAdvancedConfiguration = serviceAdvancedConfiguration;
+        this.serviceConfiguration = serviceConfiguration;
     }
 
     @Override
     protected ExecutionContext createExecutionContext(SdkRequest originalRequest) {
-        return AwsClientHandlerUtils.createExecutionContext(originalRequest, clientConfiguration, serviceAdvancedConfiguration);
+        return AwsClientHandlerUtils.createExecutionContext(originalRequest, clientConfiguration, serviceConfiguration);
     }
 }

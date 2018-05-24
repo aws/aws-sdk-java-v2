@@ -15,5 +15,5 @@
 
 package software.amazon.awssdk.core;
 
-public interface ServiceAdvancedConfiguration {
+public interface ServiceConfiguration {
 }

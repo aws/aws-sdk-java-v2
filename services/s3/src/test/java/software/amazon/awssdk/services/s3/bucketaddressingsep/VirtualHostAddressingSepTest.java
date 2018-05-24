@@ -34,7 +34,6 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.builder.ClientHttpConfiguration;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3AdvancedConfiguration;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.testutils.service.http.MockHttpClient;
@@ -85,11 +84,9 @@ public class VirtualHostAddressingSepTest {
                        .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
                        .httpConfiguration(httpConfiguration)
                        .region(Region.of(testCaseModel.getRegion()))
-                       .advancedConfiguration(S3AdvancedConfiguration.builder()
-                                                                     .pathStyleAccessEnabled(testCaseModel.isPathStyle())
-                                                                     .accelerateModeEnabled(testCaseModel.isUseS3Accelerate())
-                                                                     .dualstackEnabled(testCaseModel.isUseDualstack())
-                                                                     .build())
+                       .serviceConfiguration(o -> o.pathStyleAccessEnabled(testCaseModel.isPathStyle())
+                                                   .accelerateModeEnabled(testCaseModel.isUseS3Accelerate())
+                                                   .dualstackEnabled(testCaseModel.isUseDualstack()))
                        .build();
     }
 

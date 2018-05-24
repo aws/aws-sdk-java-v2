@@ -62,7 +62,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
     private final AwsJsonProtocolFactory protocolFactory;
 
-    protected DefaultJsonAsyncClient(AwsAsyncClientConfiguration clientConfiguration, AdvancedConfiguration serviceConfiguration) {
+    protected DefaultJsonAsyncClient(AwsAsyncClientConfiguration clientConfiguration, ServiceConfiguration serviceConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration, serviceConfiguration);
         this.protocolFactory = init();
     }

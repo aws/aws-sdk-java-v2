@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.client;
 
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
@@ -34,9 +34,9 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
     private final AmazonSyncHttpClient client;
 
     protected BaseSyncClientHandler(SdkClientConfiguration clientConfiguration,
-                                    ServiceAdvancedConfiguration serviceAdvancedConfiguration,
+                                    ServiceConfiguration serviceConfiguration,
                                     AmazonSyncHttpClient client) {
-        super(clientConfiguration, serviceAdvancedConfiguration);
+        super(clientConfiguration, serviceConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.client = client;
     }
