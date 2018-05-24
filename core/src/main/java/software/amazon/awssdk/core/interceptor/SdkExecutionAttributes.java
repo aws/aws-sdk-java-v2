@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.interceptor;
 
 import software.amazon.awssdk.core.RequestOverrideConfig;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.runtime.auth.Signer;
 
 /**
@@ -33,8 +33,7 @@ public class SdkExecutionAttributes {
     /**
      * Handler context key for advanced configuration.
      */
-    public static final ExecutionAttribute<ServiceAdvancedConfiguration> SERVICE_ADVANCED_CONFIG =
-        new ExecutionAttribute<>("ServiceAdvancedConfig");
+    public static final ExecutionAttribute<ServiceConfiguration> SERVICE_CONFIG = new ExecutionAttribute<>("ServiceConfig");
 
     /**
      * The key under which the service name is stored.

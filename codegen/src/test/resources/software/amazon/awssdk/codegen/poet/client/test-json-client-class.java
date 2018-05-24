@@ -66,7 +66,7 @@ final class DefaultJsonClient implements JsonClient {
 
     private final AwsSyncClientConfiguration clientConfiguration;
 
-    protected DefaultJsonClient(AwsSyncClientConfiguration clientConfiguration, AdvancedConfiguration serviceConfiguration) {
+    protected DefaultJsonClient(AwsSyncClientConfiguration clientConfiguration, ServiceConfiguration serviceConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration, serviceConfiguration);
         this.protocolFactory = init();
         this.clientConfiguration = clientConfiguration;

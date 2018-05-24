@@ -68,7 +68,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                         .addMethod(protocolSpec.initProtocolFactory(model));
 
         if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
-            classBuilder.addMethod(constructorWithAdvancedConfiguration());
+            classBuilder.addMethod(constructorWithServiceConfiguration());
         } else {
             classBuilder.addMethod(constructor());
         }
@@ -97,13 +97,13 @@ public final class AsyncClientClass extends AsyncClientInterface {
                          .build();
     }
 
-    private MethodSpec constructorWithAdvancedConfiguration() {
-        ClassName advancedConfiguration = ClassName.get(basePackage,
+    private MethodSpec constructorWithServiceConfiguration() {
+        ClassName serviceConfiguration = ClassName.get(basePackage,
                                                         model.getCustomizationConfig().getServiceSpecificClientConfigClass());
         return MethodSpec.constructorBuilder()
                          .addModifiers(Modifier.PROTECTED)
                          .addParameter(AwsAsyncClientConfiguration.class, "clientConfiguration")
-                         .addParameter(advancedConfiguration, "serviceConfiguration")
+                         .addParameter(serviceConfiguration, "serviceConfiguration")
                          .addStatement("this.clientHandler = new $T(clientConfiguration, serviceConfiguration)",
                                        AwsAsyncClientHandler.class) // TODO this will likely differ for APIG clients
                          .addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name)

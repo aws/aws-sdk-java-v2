@@ -25,9 +25,9 @@ import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public interface JsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C> extends AwsClientBuilder<B, C> {
-    B advancedConfiguration(AdvancedConfiguration advancedConfiguration);
+    B serviceConfiguration(ServiceConfiguration serviceConfiguration);
 
-    default B advancedConfiguration(Consumer<AdvancedConfiguration.Builder> advancedConfiguration) {
-        return advancedConfiguration(AdvancedConfiguration.builder().apply(advancedConfiguration).build());
+    default B serviceConfiguration(Consumer<ServiceConfiguration.Builder> serviceConfiguration) {
+        return serviceConfiguration(ServiceConfiguration.builder().apply(serviceConfiguration).build());
     }
 }

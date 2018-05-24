@@ -77,7 +77,7 @@ public class SyncClientClass implements ClassSpec {
                                         .addMethods(operations());
 
         if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
-            classBuilder.addMethod(constructorWithAdvancedConfiguration());
+            classBuilder.addMethod(constructorWithServiceConfiguration());
         } else {
             classBuilder.addMethod(constructor());
         }
@@ -118,13 +118,13 @@ public class SyncClientClass implements ClassSpec {
                          .build();
     }
 
-    private MethodSpec constructorWithAdvancedConfiguration() {
-        ClassName advancedConfiguration = ClassName.get(basePackage,
+    private MethodSpec constructorWithServiceConfiguration() {
+        ClassName serviceConfiguration = ClassName.get(basePackage,
                                                         model.getCustomizationConfig().getServiceSpecificClientConfigClass());
         return MethodSpec.constructorBuilder()
                          .addModifiers(Modifier.PROTECTED)
                          .addParameter(AwsSyncClientConfiguration.class, "clientConfiguration")
-                         .addParameter(advancedConfiguration, "serviceConfiguration")
+                         .addParameter(serviceConfiguration, "serviceConfiguration")
                          .addStatement("this.clientHandler = new $T(clientConfiguration, serviceConfiguration)",
                                        protocolSpec.getClientHandlerClass())
                          .addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name)

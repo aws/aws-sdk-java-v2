@@ -1,0 +1,5 @@
+{
+    "category": "Amazon S3", 
+    "type": "feature", 
+    "description": "Renamed `S3AdvancedConfiguration` to `S3Configuration`"
+}
