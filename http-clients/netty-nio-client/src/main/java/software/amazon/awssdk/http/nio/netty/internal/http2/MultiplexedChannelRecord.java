@@ -28,6 +28,7 @@ import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
+import software.amazon.awssdk.http.Protocol;
 
 /**
  * Contains a {@link Future} for the actual socket channel and tracks available
@@ -88,7 +89,7 @@ public final class MultiplexedChannelRecord implements Comparable<MultiplexedCha
      * @param parentChannel Parent socket channel.
      * @return BiConsumer that will bootstrap the child channel.
      */
-    private BiConsumer<String, Promise<Channel>> bootstrapChildChannel(Channel parentChannel) {
+    private BiConsumer<Protocol, Promise<Channel>> bootstrapChildChannel(Channel parentChannel) {
         return (s, p) -> new Http2StreamChannelBootstrap(parentChannel)
             .open()
             .addListener(promiseNotifyingListener(p));

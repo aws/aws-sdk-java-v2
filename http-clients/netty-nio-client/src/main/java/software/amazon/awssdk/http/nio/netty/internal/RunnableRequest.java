@@ -30,7 +30,6 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.Future;
@@ -43,6 +42,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.async.AbortableRunnable;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ToHttpInboundAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpToHttp2OutboundAdapter;
@@ -87,25 +87,19 @@ final class RunnableRequest implements AbortableRunnable {
     private void makeRequest(HttpRequest request) {
         log.debug("Writing request: {}", request);
 
-        // The future will already be completed by the time we acquire it from the channel
-        String protocol = getProtocol();
         runOrFail(() -> {
-            configurePipeline(protocol);
+            configurePipeline();
             writeRequest(request);
         },
             () -> "Failed to make request to " + endpoint());
     }
 
-    private String getProtocol() {
-        return (channel.parent() == null ? channel : channel.parent())
-            .attr(ChannelAttributeKeys.PROTOCOL_FUTURE).get().join();
-    }
-
-    private void configurePipeline(String protocol) {
-        if (ApplicationProtocolNames.HTTP_2.equals(protocol)) {
+    private void configurePipeline() {
+        Protocol protocol = ChannelAttributeKeys.getProtocolNow(channel);
+        if (Protocol.HTTP2.equals(protocol)) {
             channel.pipeline().addLast(new Http2ToHttpInboundAdapter());
             channel.pipeline().addLast(new HttpToHttp2OutboundAdapter());
-        } else if (!ApplicationProtocolNames.HTTP_1_1.equals(protocol)) {
+        } else if (!Protocol.HTTP1_1.equals(protocol)) {
             throw new RuntimeException("Unknown protocol: " + protocol);
         }
         channel.config().setOption(ChannelOption.AUTO_READ, false);

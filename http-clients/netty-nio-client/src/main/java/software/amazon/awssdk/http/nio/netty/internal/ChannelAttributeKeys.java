@@ -15,10 +15,12 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import io.netty.channel.Channel;
 import io.netty.util.AttributeKey;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Subscriber;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.http2.MultiplexedChannelRecord;
 
 /**
@@ -29,7 +31,7 @@ public final class ChannelAttributeKeys {
     /**
      * Future that when a protocol (http/1.1 or h2) has been selected.
      */
-    public static final AttributeKey<CompletableFuture<String>> PROTOCOL_FUTURE = AttributeKey.newInstance("protocolFuture");
+    public static final AttributeKey<CompletableFuture<Protocol>> PROTOCOL_FUTURE = AttributeKey.newInstance("protocolFuture");
 
     /**
      * Reference to {@link MultiplexedChannelRecord} which stores information about leased streams for a multiplexed connection.
@@ -52,5 +54,17 @@ public final class ChannelAttributeKeys {
     static final AttributeKey<Boolean> RESPONSE_COMPLETE_KEY = AttributeKey.newInstance("responseComplete");
 
     private ChannelAttributeKeys() {
+    }
+
+    /**
+     * Gets the protocol of the channel assuming that it has already been negotiated.
+     *
+     * @param channel Channel to get protocol for.
+     * @return Protocol of channel.
+     */
+    static Protocol getProtocolNow(Channel channel) {
+        // For HTTP/2 the protocol future will be on the parent socket channel
+        return (channel.parent() == null ? channel : channel.parent())
+            .attr(ChannelAttributeKeys.PROTOCOL_FUTURE).get().join();
     }
 }

@@ -44,8 +44,10 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ResetSendingSubscription;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 
 @Sharable
@@ -185,7 +187,14 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
             response.subscribe(new Subscriber<HttpContent>() {
                 @Override
                 public void onSubscribe(Subscription subscription) {
-                    subscriber.onSubscribe(subscription);
+                    // For HTTP2 we send a RST_STREAM frame on cancel to stop the service from sending more data
+                    if (Protocol.HTTP2.equals(ChannelAttributeKeys.getProtocolNow(channelContext.channel()))) {
+                        subscriber.onSubscribe(new Http2ResetSendingSubscription(channelContext, subscription));
+                    } else {
+                        // TODO I believe the behavior for H1 is to finish reading the data. Do we want to do this
+                        // or abort the connection?
+                        subscriber.onSubscribe(subscription);
+                    }
                 }
 
                 @Override

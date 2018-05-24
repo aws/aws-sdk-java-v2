@@ -27,11 +27,13 @@ import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http2.Http2MultiplexCodecBuilder;
 import io.netty.handler.codec.http2.Http2SettingsFrame;
+import io.netty.handler.logging.LogLevel;
 import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.SslContext;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.nio.netty.internal.http2.SdkHttp2FrameLogger;
 
 /**
  * Configures the client pipeline to support HTTP/2 frames with multiplexed streams.
@@ -80,7 +82,7 @@ class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
             protected void channelRead0(ChannelHandlerContext ctx, Http2SettingsFrame msg) throws Exception {
                 Long serverMaxStreams = Optional.ofNullable(msg.settings().maxConcurrentStreams()).orElse(Long.MAX_VALUE);
                 ch.attr(MAX_CONCURRENT_STREAMS).set(Math.min(clientMaxStreams, serverMaxStreams));
-                ch.attr(PROTOCOL_FUTURE).get().complete(ApplicationProtocolNames.HTTP_2);
+                ch.attr(PROTOCOL_FUTURE).get().complete(Protocol.HTTP2);
             }
 
             @Override
@@ -93,7 +95,7 @@ class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
 
     private void configureHttp11(Channel ch, ChannelPipeline pipeline) {
         pipeline.addLast(new HttpClientCodec());
-        ch.attr(PROTOCOL_FUTURE).get().complete(ApplicationProtocolNames.HTTP_1_1);
+        ch.attr(PROTOCOL_FUTURE).get().complete(Protocol.HTTP1_1);
     }
 
     private static class NoOpChannelInitializer extends ChannelInitializer<Channel> {

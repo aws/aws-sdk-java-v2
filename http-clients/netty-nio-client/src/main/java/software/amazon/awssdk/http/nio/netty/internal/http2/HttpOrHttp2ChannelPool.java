@@ -26,11 +26,11 @@ import io.netty.channel.EventLoop;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.pool.ChannelPoolHandler;
 import io.netty.channel.pool.SimpleChannelPool;
-import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
 import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPool;
 
@@ -109,8 +109,8 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
                          });
     }
 
-    private ChannelPool configureProtocol(Channel newChannel, String s) {
-        if (ApplicationProtocolNames.HTTP_1_1.equals(s)) {
+    private ChannelPool configureProtocol(Channel newChannel, Protocol protocol) {
+        if (Protocol.HTTP1_1 == protocol) {
             // For HTTP/1.1 we use a traditional channel pool without multiplexing
             protocolImpl = BetterFixedChannelPool.builder()
                                                  .channelPool(simpleChannelPool)
