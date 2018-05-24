@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.client;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.config.SdkSyncClientConfiguration;
 import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 
@@ -31,7 +31,7 @@ import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 final class SdkSyncClientHandlerImpl extends BaseSyncClientHandler {
 
     SdkSyncClientHandlerImpl(SdkSyncClientConfiguration syncClientConfiguration,
-                             ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
-        super(syncClientConfiguration, serviceAdvancedConfiguration, new AmazonSyncHttpClient(syncClientConfiguration));
+                             ServiceConfiguration serviceConfiguration) {
+        super(syncClientConfiguration, serviceConfiguration, new AmazonSyncHttpClient(syncClientConfiguration));
     }
 }

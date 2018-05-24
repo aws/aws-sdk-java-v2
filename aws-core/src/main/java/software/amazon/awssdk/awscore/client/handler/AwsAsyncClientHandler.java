@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.config.AwsAsyncClientConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.AsyncClientHandler;
 import software.amazon.awssdk.core.client.BaseClientHandler;
@@ -36,7 +36,7 @@ public final class AwsAsyncClientHandler extends BaseClientHandler implements As
 
     private final AsyncClientHandler delegateHandler;
 
-    public AwsAsyncClientHandler(AwsAsyncClientConfiguration clientConfiguration, ServiceAdvancedConfiguration
+    public AwsAsyncClientHandler(AwsAsyncClientConfiguration clientConfiguration, ServiceConfiguration
         advancedClientOption) {
         super(clientConfiguration, advancedClientOption);
         this.delegateHandler = new AwsAsyncClientHandlerImpl(clientConfiguration, advancedClientOption);

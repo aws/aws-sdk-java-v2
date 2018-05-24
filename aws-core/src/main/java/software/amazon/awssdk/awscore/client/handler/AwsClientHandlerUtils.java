@@ -24,7 +24,7 @@ import software.amazon.awssdk.awscore.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.config.AwsClientConfiguration;
 import software.amazon.awssdk.core.RequestOverrideConfig;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -41,7 +41,7 @@ final class AwsClientHandlerUtils {
 
     static ExecutionContext createExecutionContext(SdkRequest originalRequest,
                                                    AwsClientConfiguration clientConfiguration,
-                                                   ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
+                                                   ServiceConfiguration serviceConfiguration) {
 
         AwsCredentialsProvider credentialsProvider = originalRequest.requestOverrideConfig()
                                                                     .filter(c -> c instanceof AwsRequestOverrideConfig)
@@ -56,7 +56,7 @@ final class AwsClientHandlerUtils {
         Validate.validState(credentials != null, "Credential providers must never return null.");
 
         ExecutionAttributes executionAttributes = new ExecutionAttributes()
-            .putAttribute(AwsExecutionAttributes.SERVICE_ADVANCED_CONFIG, serviceAdvancedConfiguration)
+            .putAttribute(AwsExecutionAttributes.SERVICE_CONFIG, serviceConfiguration)
             .putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, credentials)
             .putAttribute(AwsExecutionAttributes.REQUEST_CONFIG, originalRequest.requestOverrideConfig()
                                                                                 .map(c -> (RequestOverrideConfig) c)

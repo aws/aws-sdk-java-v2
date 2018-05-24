@@ -20,7 +20,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.config.SdkAsyncClientConfiguration;
 
@@ -34,9 +34,9 @@ public class SdkAsyncClientHandler extends BaseClientHandler implements AsyncCli
     private final AsyncClientHandler delegateHandler;
 
     public SdkAsyncClientHandler(SdkAsyncClientConfiguration asyncClientConfiguration,
-                                 ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
-        super(asyncClientConfiguration, serviceAdvancedConfiguration);
-        this.delegateHandler = new SdkAsyncClientHandlerImpl(asyncClientConfiguration, serviceAdvancedConfiguration);
+                                 ServiceConfiguration serviceConfiguration) {
+        super(asyncClientConfiguration, serviceConfiguration);
+        this.delegateHandler = new SdkAsyncClientHandlerImpl(asyncClientConfiguration, serviceConfiguration);
     }
 
     @Override

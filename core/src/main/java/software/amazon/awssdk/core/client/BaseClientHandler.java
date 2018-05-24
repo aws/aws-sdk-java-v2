@@ -21,7 +21,7 @@ import software.amazon.awssdk.core.RequestOverrideConfig;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfig;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.config.InternalAdvancedClientOption;
 import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
@@ -39,13 +39,13 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 
 public abstract class BaseClientHandler {
-    private final ServiceAdvancedConfiguration serviceAdvancedConfiguration;
+    private final ServiceConfiguration serviceConfiguration;
     private SdkClientConfiguration clientConfiguration;
 
     protected BaseClientHandler(SdkClientConfiguration clientConfiguration,
-                                ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
+                                ServiceConfiguration serviceConfiguration) {
         this.clientConfiguration = clientConfiguration;
-        this.serviceAdvancedConfiguration = serviceAdvancedConfiguration;
+        this.serviceConfiguration = serviceConfiguration;
     }
 
     static <InputT extends SdkRequest> InputT finalizeSdkRequest(ExecutionContext executionContext) {
@@ -160,7 +160,7 @@ public abstract class BaseClientHandler {
                                                                                 .map(c -> (RequestOverrideConfig) c)
                                                                                 .orElse(SdkRequestOverrideConfig.builder()
                                                                                                                 .build()))
-            .putAttribute(SdkExecutionAttributes.SERVICE_ADVANCED_CONFIG, serviceAdvancedConfiguration)
+            .putAttribute(SdkExecutionAttributes.SERVICE_CONFIG, serviceConfiguration)
             .putAttribute(SdkExecutionAttributes.REQUEST_CONFIG, originalRequest.requestOverrideConfig()
                                                                                 .map(c -> (SdkRequestOverrideConfig) c)
                                                                                 .orElse(SdkRequestOverrideConfig.builder()

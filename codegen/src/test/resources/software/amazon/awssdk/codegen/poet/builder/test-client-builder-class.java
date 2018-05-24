@@ -16,7 +16,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C> extends AwsDefaultClientBuilder<B, C> {
-    private AdvancedConfiguration advancedConfiguration;
+    private ServiceConfiguration serviceConfiguration;
 
     @Override
     protected final String serviceEndpointPrefix() {
@@ -37,17 +37,17 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         return StaticSignerProvider.create(signer);
     }
 
-    public B advancedConfiguration(AdvancedConfiguration advancedConfiguration) {
-        this.advancedConfiguration = advancedConfiguration;
+    public B serviceConfiguration(ServiceConfiguration serviceConfiguration) {
+        this.serviceConfiguration = serviceConfiguration;
         return thisBuilder();
     }
 
-    protected AdvancedConfiguration advancedConfiguration() {
-        return advancedConfiguration;
+    protected ServiceConfiguration serviceConfiguration() {
+        return serviceConfiguration;
     }
 
-    public void setAdvancedConfiguration(AdvancedConfiguration advancedConfiguration) {
-        advancedConfiguration(advancedConfiguration);
+    public void setServiceConfiguration(ServiceConfiguration serviceConfiguration) {
+        serviceConfiguration(serviceConfiguration);
     }
 
     @Override
