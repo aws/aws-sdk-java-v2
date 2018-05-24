@@ -68,19 +68,25 @@ public final class SyncClientInterface implements ClassSpec {
 
     @Override
     public TypeSpec poetSpec() {
-        return PoetUtils.createInterfaceBuilder(className)
-                        .addSuperinterface(SdkClient.class)
-                        .addSuperinterface(SdkAutoCloseable.class)
-                        .addJavadoc(getJavadoc())
-                        .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
-                                                           .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                                                           .initializer("$S", model.getMetadata().getSigningName())
-                                                           .build())
-                        .addMethod(create())
-                        .addMethod(builder())
-                        .addMethods(operations())
-                        .addMethod(serviceMetadata())
-                        .build();
+        TypeSpec.Builder result = PoetUtils.createInterfaceBuilder(className);
+
+        result.addSuperinterface(SdkClient.class)
+              .addSuperinterface(SdkAutoCloseable.class)
+              .addJavadoc(getJavadoc())
+              .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
+                                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                                 .initializer("$S", model.getMetadata().getSigningName())
+                                 .build());
+
+        if (!model.getCustomizationConfig().isExcludeClientCreateMethod()) {
+            result.addMethod(create());
+        }
+
+        result.addMethod(builder())
+              .addMethods(operations())
+              .addMethod(serviceMetadata());
+
+        return result.build();
     }
 
     @Override
