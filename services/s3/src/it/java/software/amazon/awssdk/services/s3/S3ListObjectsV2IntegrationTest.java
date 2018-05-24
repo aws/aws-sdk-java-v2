@@ -245,7 +245,7 @@ public class S3ListObjectsV2IntegrationTest extends S3IntegrationTestBase {
         List<S3Object> objects = result.contents();
 
         // EncodingType should be returned in the response.
-        assertEquals(encodingType, result.encodingTypeString());
+        assertEquals(encodingType, result.encodingTypeAsString());
 
         System.out.println(result.contents().get(0).key());
 
@@ -331,7 +331,7 @@ public class S3ListObjectsV2IntegrationTest extends S3IntegrationTestBase {
             long offset = obj.lastModified().toEpochMilli() - Instant.now().toEpochMilli();
             assertTrue(offset < ONE_HOUR_IN_MILLISECONDS);
 
-            assertTrue(obj.storageClassString().length() > 1);
+            assertTrue(obj.storageClassAsString().length() > 1);
 
             if (shouldIncludeOwner) {
                 assertNotNull(obj.owner());
