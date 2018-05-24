@@ -2271,7 +2271,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
             for (Entry<String, AttributeValueUpdate> entry : putValues.entrySet()) {
                 String attributeName = entry.getKey();
                 AttributeValue attributeValue = entry.getValue().value();
-                String attributeAction = entry.getValue().actionString();
+                String attributeAction = entry.getValue().actionAsString();
 
                 /*
                  * AttributeValueUpdate allows nulls for its values, since they are

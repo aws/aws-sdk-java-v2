@@ -183,7 +183,7 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
         assertEquals(accountId, s3BucketDestination.accountId());
         assertEquals(prefix, s3BucketDestination.prefix());
         assertEquals(prefix, config.filter().prefix());
-        assertTrue(config.optionalFieldsStrings().containsAll(optionalFields));
+        assertTrue(config.optionalFieldsAsStrings().containsAll(optionalFields));
 
         s3.deleteBucketInventoryConfiguration(DeleteBucketInventoryConfigurationRequest.builder()
                                                                                        .bucket(BUCKET_NAME)

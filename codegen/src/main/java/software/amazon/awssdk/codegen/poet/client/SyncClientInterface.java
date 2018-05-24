@@ -355,7 +355,7 @@ public final class SyncClientInterface implements ClassSpec {
      */
     private MethodSpec bytesSimpleMethod(OperationModel opModel, TypeName responseType, ClassName requestType) {
         TypeName returnType = ParameterizedTypeName.get(ClassName.get(ResponseBytes.class), responseType);
-        return MethodSpec.methodBuilder(opModel.getMethodName() + "Bytes")
+        return MethodSpec.methodBuilder(opModel.getMethodName() + "AsBytes")
                          .returns(returnType)
                          .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
                          .addParameter(requestType, opModel.getInput().getVariableName())

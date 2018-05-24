@@ -281,7 +281,7 @@ public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
             assertNotNull(summary);
             assertNotNull(summary.stackStatus());
             assertNotNull(summary.creationTime());
-            if (summary.stackStatusString().contains("DELETE")) {
+            if (summary.stackStatusAsString().contains("DELETE")) {
                 assertNotNull(summary.deletionTime());
             }
             assertNotNull(summary.stackId());
@@ -300,7 +300,7 @@ public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
             assertNotNull(summary);
             assertNotNull(summary.stackStatus());
             assertNotNull(summary.creationTime());
-            if (summary.stackStatusString().contains("DELETE")) {
+            if (summary.stackStatusAsString().contains("DELETE")) {
                 assertNotNull(summary.deletionTime());
             }
             assertNotNull(summary.stackId());
@@ -321,10 +321,10 @@ public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
         for (StackSummary summary : listStacksResult.stackSummaries()) {
             assertNotNull(summary);
             assertNotNull(summary.stackStatus());
-            assertTrue(summary.stackStatus().equals("CREATE_COMPLETE")
-                       || summary.stackStatus().equals("DELETE_COMPLETE"));
+            assertTrue(summary.stackStatusAsString().equals("CREATE_COMPLETE")
+                       || summary.stackStatusAsString().equals("DELETE_COMPLETE"));
             assertNotNull(summary.creationTime());
-            if (summary.stackStatusString().contains("DELETE")) {
+            if (summary.stackStatusAsString().contains("DELETE")) {
                 assertNotNull(summary.deletionTime());
             }
             assertNotNull(summary.stackId());
