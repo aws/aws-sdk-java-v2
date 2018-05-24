@@ -107,7 +107,7 @@ public class TableUtilsIntegrationTest extends AwsIntegrationTestBase {
      */
     private String tableStatus() {
         try {
-            return ddb.describeTable(DescribeTableRequest.builder().tableName(tableName).build()).table().tableStatusString();
+            return ddb.describeTable(DescribeTableRequest.builder().tableName(tableName).build()).table().tableStatusAsString();
         } catch (ResourceNotFoundException e) {
             return null;
         }

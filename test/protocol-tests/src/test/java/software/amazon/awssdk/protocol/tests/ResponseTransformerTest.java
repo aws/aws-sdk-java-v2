@@ -62,7 +62,7 @@ public class ResponseTransformerTest {
         stubFor(post(urlPathEqualTo(STREAMING_OUTPUT_PATH)).willReturn(aResponse().withStatus(200).withBody("test \uD83D\uDE02")));
 
         ResponseBytes<StreamingOutputOperationResponse> response =
-                testClient().streamingOutputOperationBytes(StreamingOutputOperationRequest.builder().build());
+                testClient().streamingOutputOperationAsBytes(StreamingOutputOperationRequest.builder().build());
 
         byte[] arrayCopy = response.asByteArray();
         assertThat(arrayCopy).containsExactly('t', 'e', 's', 't', ' ', -16, -97, -104, -126);
@@ -81,7 +81,7 @@ public class ResponseTransformerTest {
         stubForRetries();
 
         ResponseBytes<StreamingOutputOperationResponse> response =
-                testClient().streamingOutputOperationBytes(StreamingOutputOperationRequest.builder().build());
+                testClient().streamingOutputOperationAsBytes(StreamingOutputOperationRequest.builder().build());
 
         assertThat(response.asUtf8String()).isEqualTo("retried");
     }

@@ -42,7 +42,7 @@ public class CreateBucketInterceptorTest {
                 .putAttribute(AwsExecutionAttributes.AWS_REGION, Region.US_EAST_1);
 
         SdkRequest modifiedRequest = new CreateBucketInterceptor().modifyRequest(context, attributes);
-        String locationConstraint = ((CreateBucketRequest) modifiedRequest).createBucketConfiguration().locationConstraintString();
+        String locationConstraint = ((CreateBucketRequest) modifiedRequest).createBucketConfiguration().locationConstraintAsString();
 
         assertThat(locationConstraint).isEqualToIgnoringCase("us-west-2");
     }
@@ -58,7 +58,7 @@ public class CreateBucketInterceptorTest {
                 .putAttribute(AwsExecutionAttributes.AWS_REGION, Region.US_EAST_2);
 
         SdkRequest modifiedRequest = new CreateBucketInterceptor().modifyRequest(context, attributes);
-        String locationConstraint = ((CreateBucketRequest) modifiedRequest).createBucketConfiguration().locationConstraintString();
+        String locationConstraint = ((CreateBucketRequest) modifiedRequest).createBucketConfiguration().locationConstraintAsString();
 
         assertThat(locationConstraint).isEqualToIgnoringCase("us-east-2");
     }
@@ -76,7 +76,7 @@ public class CreateBucketInterceptorTest {
                 .putAttribute(AwsExecutionAttributes.AWS_REGION, Region.US_WEST_2);
 
         SdkRequest modifiedRequest = new CreateBucketInterceptor().modifyRequest(context, attributes);
-        String locationConstraint = ((CreateBucketRequest) modifiedRequest).createBucketConfiguration().locationConstraintString();
+        String locationConstraint = ((CreateBucketRequest) modifiedRequest).createBucketConfiguration().locationConstraintAsString();
 
         assertThat(locationConstraint).isEqualToIgnoringCase("us-west-2");
     }
