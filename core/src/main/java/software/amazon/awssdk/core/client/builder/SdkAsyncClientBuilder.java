@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.client.builder;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.Consumer;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 
 /**
  * This includes required and optional override configuration required by every async client builder. An instance can be acquired
@@ -33,7 +33,7 @@ public interface SdkAsyncClientBuilder<B extends SdkAsyncClientBuilder<B, C>, C>
      * Configure the executor service provider that generates {@link ScheduledExecutorService} instances to queue
      * up async tasks in the client. This executor is used for various processes within the async client like queueing up
      * retries, it is not used to make or process the actual HTTP request (that's handled by the Async HTTP implementation
-     * and can be configured via {@link #asyncHttpConfiguration(ClientAsyncHttpConfiguration)} as the implementation allows).
+     * and can be configured via {@link #asyncHttpClientBuilder(SdkAsyncHttpClient.Builder)} as the implementation allows).
      *
      * <p>
      * A new {@link ExecutorService} will be created from this provider each time {@link SdkClientBuilder#build()} is invoked.
@@ -42,27 +42,32 @@ public interface SdkAsyncClientBuilder<B extends SdkAsyncClientBuilder<B, C>, C>
     B asyncExecutorProvider(ExecutorProvider asyncExecutorProvider);
 
     /**
-     * Configures the HTTP client used by the service client. Either a client factory may be provided (in which case
-     * the SDK will merge any service specific configuration on top of customer supplied configuration) or provide an already
-     * constructed instance of {@link software.amazon.awssdk.http.async.SdkAsyncHttpClient}. Note that if an {@link
-     * software.amazon.awssdk.http.async.SdkAsyncHttpClient} is provided then it is up to the caller to close it when they are
-     * finished with it, the SDK will only close HTTP clients that it creates.
+     * Sets the {@link SdkAsyncHttpClient} that the SDK service client will use to make HTTP calls. This HTTP client may be
+     * shared between multiple SDK service clients to share a common connection pool. To create a client you must use an
+     * implementation specific builder. Note that this method is only recommended when you wish to share an HTTP client across
+     * multiple SDK service clients. If you do not wish to share HTTP clients, it is recommended to use
+     * {@link #asyncHttpClientBuilder(SdkAsyncHttpClient.Builder)} so that service specific default configuration may be applied.
+     *
+     * <p>
+     * <b>This client must be closed by the caller when it is ready to be disposed. The SDK will not close the HTTP client
+     * when the service client is closed.</b>
+     * </p>
+     *
+     * @return This builder for method chaining.
      */
-    B asyncHttpConfiguration(ClientAsyncHttpConfiguration asyncHttpConfiguration);
+    B asyncHttpClient(SdkAsyncHttpClient httpClient);
 
     /**
-     * Configures the HTTP client used by the service client.
+     * Sets a custom HTTP client builder that will be used to obtain a configured instance of {@link SdkAsyncHttpClient}. Any
+     * service specific HTTP configuration will be merged with the builder's configuration prior to creating the client. When
+     * there is no desire to share HTTP clients across multiple service clients, the client builder is the preferred way to
+     * customize the HTTP client as it benefits from service specific defaults.
      *
-     * Allows just specifying the builder parameters without having to instantiate a builder and call <code>build</code> on it.
-     * For example
+     * <p>
+     * <b>Clients created by the builder are managed by the SDK and will be closed when the service client is closed.</b>
+     * </p>
      *
-     * <pre><code>
-     *     builder().asyncHttpConfiguration(b -> b.httpClient(client));
-     * </code></pre>
-     *
-     * @see #asyncHttpConfiguration(ClientAsyncHttpConfiguration)
+     * @return This builder for method chaining.
      */
-    default B asyncHttpConfiguration(Consumer<ClientAsyncHttpConfiguration.Builder> asyncHttpConfiguration) {
-        return asyncHttpConfiguration(ClientAsyncHttpConfiguration.builder().apply(asyncHttpConfiguration).build());
-    }
+    B asyncHttpClientBuilder(SdkAsyncHttpClient.Builder httpClientBuilder);
 }

@@ -45,6 +45,7 @@ import software.amazon.awssdk.utils.BinaryUtils;
  * </p>
  *
  * @see FileAsyncRequestBody
+ * @see ByteArrayAsyncRequestBody
  */
 @ReviewBeforeRelease("This is exactly the same of SdkHttpRequestProvider. Can we just have one?")
 public interface AsyncRequestBody extends Publisher<ByteBuffer> {

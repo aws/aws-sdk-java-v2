@@ -64,9 +64,9 @@ public class BaseClientBuilderClass implements ClassSpec {
                                      ClassName.get(basePackage, model.getMetadata().getAsyncBuilder()));
 
         if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
-            ClassName advancedConfiguration = ClassName.get(basePackage,
-                                                            model.getCustomizationConfig().getServiceSpecificClientConfigClass());
-            builder.addField(FieldSpec.builder(advancedConfiguration, "advancedConfiguration")
+            ClassName serviceConfiguration = ClassName.get(basePackage,
+                                                           model.getCustomizationConfig().getServiceSpecificClientConfigClass());
+            builder.addField(FieldSpec.builder(serviceConfiguration, "serviceConfiguration")
                                       .addModifiers(Modifier.PRIVATE)
                                       .build());
         }
@@ -76,9 +76,9 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addMethod(defaultSignerProviderMethod());
 
         if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
-            builder.addMethod(setAdvancedConfigurationMethod())
-                   .addMethod(getAdvancedConfigurationMethod())
-                   .addMethod(beanStyleSetAdvancedConfigurationMethod());
+            builder.addMethod(setServiceConfigurationMethod())
+                   .addMethod(getServiceConfigurationMethod())
+                   .addMethod(beanStyleSetServiceConfigurationMethod());
         }
 
         if (model.getCustomizationConfig().getServiceSpecificHttpConfig() != null) {
@@ -115,35 +115,35 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .build();
     }
 
-    private MethodSpec setAdvancedConfigurationMethod() {
-        ClassName advancedConfiguration = ClassName.get(basePackage,
+    private MethodSpec setServiceConfigurationMethod() {
+        ClassName serviceConfiguration = ClassName.get(basePackage,
                                                         model.getCustomizationConfig().getServiceSpecificClientConfigClass());
-        return MethodSpec.methodBuilder("advancedConfiguration")
+        return MethodSpec.methodBuilder("serviceConfiguration")
                          .addModifiers(Modifier.PUBLIC)
                          .returns(TypeVariableName.get("B"))
-                         .addParameter(advancedConfiguration, "advancedConfiguration")
-                         .addStatement("this.advancedConfiguration = advancedConfiguration")
+                         .addParameter(serviceConfiguration, "serviceConfiguration")
+                         .addStatement("this.serviceConfiguration = serviceConfiguration")
                          .addStatement("return thisBuilder()")
                          .build();
     }
 
-    private MethodSpec getAdvancedConfigurationMethod() {
-        ClassName advancedConfiguration = ClassName.get(basePackage,
+    private MethodSpec getServiceConfigurationMethod() {
+        ClassName serviceConfiguration = ClassName.get(basePackage,
                                                         model.getCustomizationConfig().getServiceSpecificClientConfigClass());
-        return MethodSpec.methodBuilder("advancedConfiguration")
+        return MethodSpec.methodBuilder("serviceConfiguration")
                          .addModifiers(Modifier.PROTECTED)
-                         .returns(advancedConfiguration)
-                         .addStatement("return advancedConfiguration")
+                         .returns(serviceConfiguration)
+                         .addStatement("return serviceConfiguration")
                          .build();
     }
 
-    private MethodSpec beanStyleSetAdvancedConfigurationMethod() {
-        ClassName advancedConfiguration = ClassName.get(basePackage,
+    private MethodSpec beanStyleSetServiceConfigurationMethod() {
+        ClassName serviceConfiguration = ClassName.get(basePackage,
                                                         model.getCustomizationConfig().getServiceSpecificClientConfigClass());
-        return MethodSpec.methodBuilder("setAdvancedConfiguration")
+        return MethodSpec.methodBuilder("setServiceConfiguration")
                          .addModifiers(Modifier.PUBLIC)
-                         .addParameter(advancedConfiguration, "advancedConfiguration")
-                         .addStatement("advancedConfiguration(advancedConfiguration)")
+                         .addParameter(serviceConfiguration, "serviceConfiguration")
+                         .addStatement("serviceConfiguration(serviceConfiguration)")
                          .build();
     }
 

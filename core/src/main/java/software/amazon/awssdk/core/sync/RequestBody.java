@@ -36,7 +36,7 @@ import software.amazon.awssdk.utils.BinaryUtils;
  * Offers various convenience factory methods from common sources of data (File, String, byte[], etc). Body contents
  * are made reproducible where possible to facilitate automatic retries.
  */
-public class RequestBody {
+public final class RequestBody {
 
     // TODO reproducible content
     // TODO Handle stream management (progress listener, orig input stream tracking, etc

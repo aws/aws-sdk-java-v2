@@ -20,7 +20,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.config.AwsAsyncClientConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.client.AsyncClientHandler;
 import software.amazon.awssdk.core.client.BaseAsyncClientHandler;
 import software.amazon.awssdk.core.http.AmazonAsyncHttpClient;
@@ -34,17 +34,17 @@ import software.amazon.awssdk.core.http.ExecutionContext;
 @SdkProtectedApi
 final class AwsAsyncClientHandlerImpl extends BaseAsyncClientHandler {
     private final AwsAsyncClientConfiguration clientConfiguration;
-    private final ServiceAdvancedConfiguration serviceAdvancedConfiguration;
+    private final ServiceConfiguration serviceConfiguration;
 
-    AwsAsyncClientHandlerImpl(AwsAsyncClientConfiguration clientConfiguration, ServiceAdvancedConfiguration
-        serviceAdvancedConfiguration) {
-        super(clientConfiguration, serviceAdvancedConfiguration, new AmazonAsyncHttpClient(clientConfiguration));
+    AwsAsyncClientHandlerImpl(AwsAsyncClientConfiguration clientConfiguration, ServiceConfiguration
+            serviceConfiguration) {
+        super(clientConfiguration, serviceConfiguration, new AmazonAsyncHttpClient(clientConfiguration));
         this.clientConfiguration = clientConfiguration;
-        this.serviceAdvancedConfiguration = serviceAdvancedConfiguration;
+        this.serviceConfiguration = serviceConfiguration;
     }
 
     @Override
     protected ExecutionContext createExecutionContext(SdkRequest originalRequest) {
-        return AwsClientHandlerUtils.createExecutionContext(originalRequest, clientConfiguration, serviceAdvancedConfiguration);
+        return AwsClientHandlerUtils.createExecutionContext(originalRequest, clientConfiguration, serviceConfiguration);
     }
 }

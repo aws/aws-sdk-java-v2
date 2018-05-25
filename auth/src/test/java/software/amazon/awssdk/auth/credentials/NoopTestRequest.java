@@ -17,7 +17,7 @@ package software.amazon.awssdk.auth.credentials;
 
 import java.util.Optional;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.RequestOverrideConfig;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 
 public class NoopTestRequest extends SdkRequest {
     private NoopTestRequest() {
@@ -25,7 +25,7 @@ public class NoopTestRequest extends SdkRequest {
     }
 
     @Override
-    public Optional<? extends RequestOverrideConfig> requestOverrideConfig() {
+    public Optional<? extends RequestOverrideConfiguration> overrideConfiguration() {
         return Optional.empty();
     }
 
@@ -46,7 +46,7 @@ public class NoopTestRequest extends SdkRequest {
     private static class BuilderImpl implements SdkRequest.Builder, Builder {
 
         @Override
-        public RequestOverrideConfig requestOverrideConfig() {
+        public RequestOverrideConfiguration overrideConfiguration() {
             return null;
         }
 

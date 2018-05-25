@@ -18,17 +18,14 @@ package software.amazon.awssdk.services.s3;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.services.s3.model.PutBucketAccelerateConfigurationRequest;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @Immutable
 @ThreadSafe
-public final class S3AdvancedConfiguration implements
-                                           ServiceAdvancedConfiguration,
-                                           ToCopyableBuilder<S3AdvancedConfiguration.Builder, S3AdvancedConfiguration> {
-
+public final class S3Configuration implements ServiceConfiguration, ToCopyableBuilder<S3Configuration.Builder, S3Configuration> {
     /**
      * The default setting for use of path style addressing.
      */
@@ -48,7 +45,7 @@ public final class S3AdvancedConfiguration implements
     private final Boolean accelerateModeEnabled;
     private final Boolean dualstackEnabled;
 
-    private S3AdvancedConfiguration(DefaultS3AdvancedConfigurationBuilder builder) {
+    private S3Configuration(DefaultS3ServiceConfigurationBuilder builder) {
         this.dualstackEnabled = resolveBoolean(builder.dualstackEnabled, DEFAULT_DUALSTACK_ENABLED);
         this.accelerateModeEnabled = resolveBoolean(builder.accelerateModeEnabled, DEFAULT_ACCELERATE_MODE_ENABLED);
         this.pathStyleAccessEnabled = resolveBoolean(builder.pathStyleAccessEnabled, DEFAULT_PATH_STYLE_ACCESS_ENABLED);
@@ -58,10 +55,10 @@ public final class S3AdvancedConfiguration implements
     }
 
     /**
-     * Create a {@link Builder}, used to create a {@link S3AdvancedConfiguration}.
+     * Create a {@link Builder}, used to create a {@link S3Configuration}.
      */
     public static Builder builder() {
-        return new DefaultS3AdvancedConfigurationBuilder();
+        return new DefaultS3ServiceConfigurationBuilder();
     }
 
     /**
@@ -133,7 +130,7 @@ public final class S3AdvancedConfiguration implements
     }
 
     @NotThreadSafe
-    public interface Builder extends CopyableBuilder<Builder, S3AdvancedConfiguration> { // (8)
+    public interface Builder extends CopyableBuilder<Builder, S3Configuration> { // (8)
         /**
          * Option to enable using the dualstack endpoints when accessing S3. Dualstack
          * should be enabled if you want to use IPv6.
@@ -142,7 +139,7 @@ public final class S3AdvancedConfiguration implements
          * Dualstack endpoints are disabled by default.
          * </p>
          *
-         * @see S3AdvancedConfiguration#dualstackEnabled().
+         * @see S3Configuration#dualstackEnabled().
          */
         Builder dualstackEnabled(Boolean dualstackEnabled);
 
@@ -155,7 +152,7 @@ public final class S3AdvancedConfiguration implements
          * Accelerate mode is disabled by default.
          * </p>
          *
-         * @see S3AdvancedConfiguration#accelerateModeEnabled().
+         * @see S3Configuration#accelerateModeEnabled().
          */
         Builder accelerateModeEnabled(Boolean accelerateModeEnabled);
 
@@ -169,12 +166,12 @@ public final class S3AdvancedConfiguration implements
          * buckets that are not DNS compatible.
          * </p>
          *
-         * @see S3AdvancedConfiguration#pathStyleAccessEnabled().
+         * @see S3Configuration#pathStyleAccessEnabled().
          */
         Builder pathStyleAccessEnabled(Boolean pathStyleAccessEnabled);
     }
 
-    private static final class DefaultS3AdvancedConfigurationBuilder implements Builder {
+    private static final class DefaultS3ServiceConfigurationBuilder implements Builder {
 
         private Boolean dualstackEnabled;
         private Boolean accelerateModeEnabled;
@@ -207,8 +204,8 @@ public final class S3AdvancedConfiguration implements
             pathStyleAccessEnabled(pathStyleAccessEnabled);
         }
 
-        public S3AdvancedConfiguration build() {
-            return new S3AdvancedConfiguration(this);
+        public S3Configuration build() {
+            return new S3Configuration(this);
         }
     }
 }

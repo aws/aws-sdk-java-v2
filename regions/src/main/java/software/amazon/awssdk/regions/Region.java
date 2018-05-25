@@ -62,20 +62,20 @@ public class Region extends AbstractEnum {
     public static final Region US_WEST_1 = Region.of("us-west-1");
     public static final Region US_WEST_2 = Region.of("us-west-2");
 
-    public static final Region AWS_GLOBAL = Region.of("aws-global");
+    public static final Region AWS_GLOBAL = Region.of("aws-global", true);
 
     // AWS CN Partition Regions
 
     public static final Region CN_NORTH_1 = Region.of("cn-north-1");
     public static final Region CN_NORTHWEST_1 = Region.of("cn-northwest-1");
-    public static final Region AWS_CN_GLOBAL = Region.of("aws-cn-global");
+    public static final Region AWS_CN_GLOBAL = Region.of("aws-cn-global", true);
 
     /**
      * AWS Gov Cloud Partition Regions.
      */
     public static final class GovCloud {
         public static final Region US_GOV_WEST_1 = Region.of("us-gov-west-1");
-        public static final Region AWS_US_GOV_GLOBAL = Region.of("aws-us-gov-global");
+        public static final Region AWS_US_GOV_GLOBAL = Region.of("aws-us-gov-global", true);
 
         public static final List<Region> REGIONS = Collections.unmodifiableList(Arrays.asList(
                 US_GOV_WEST_1,
@@ -110,8 +110,11 @@ public class Region extends AbstractEnum {
             CN_NORTHWEST_1,
             AWS_CN_GLOBAL));
 
-    private Region(String value) {
+    private final boolean isGlobalRegion;
+
+    private Region(String value, boolean isGlobalRegion) {
         super(value);
+        this.isGlobalRegion = isGlobalRegion;
     }
 
     /**
@@ -125,8 +128,12 @@ public class Region extends AbstractEnum {
      * @return The region associated with the provided name.
      */
     public static Region of(String value) {
+        return of(value, false);
+    }
+
+    private static Region of(String value, boolean isGlobalRegion) {
         Validate.paramNotBlank(value, "region");
-        return AbstractEnum.value(value, Region.class, Region::new);
+        return AbstractEnum.value(value, Region.class, v -> new Region(v, isGlobalRegion));
     }
 
     /**
@@ -136,4 +143,7 @@ public class Region extends AbstractEnum {
         return REGIONS;
     }
 
+    public boolean isGlobalRegion() {
+        return isGlobalRegion;
+    }
 }

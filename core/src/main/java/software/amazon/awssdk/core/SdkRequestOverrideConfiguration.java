@@ -21,9 +21,9 @@ import software.amazon.awssdk.annotations.Immutable;
  * Base per-request override configuration for all SDK requests.
  */
 @Immutable
-public final class SdkRequestOverrideConfig extends RequestOverrideConfig {
+public final class SdkRequestOverrideConfiguration extends RequestOverrideConfiguration {
 
-    private SdkRequestOverrideConfig(Builder builder) {
+    private SdkRequestOverrideConfiguration(Builder builder) {
         super(builder);
     }
 
@@ -36,23 +36,23 @@ public final class SdkRequestOverrideConfig extends RequestOverrideConfig {
         return new BuilderImpl();
     }
 
-    public interface Builder extends RequestOverrideConfig.Builder<Builder> {
+    public interface Builder extends RequestOverrideConfiguration.Builder<Builder> {
         @Override
-        SdkRequestOverrideConfig build();
+        SdkRequestOverrideConfiguration build();
     }
 
-    private static final class BuilderImpl extends RequestOverrideConfig.BuilderImpl<Builder> implements Builder {
+    private static final class BuilderImpl extends RequestOverrideConfiguration.BuilderImpl<Builder> implements Builder {
 
         private BuilderImpl() {
         }
 
-        private BuilderImpl(SdkRequestOverrideConfig sdkRequestOverrideConfig) {
+        private BuilderImpl(SdkRequestOverrideConfiguration sdkRequestOverrideConfig) {
             super(sdkRequestOverrideConfig);
         }
 
         @Override
-        public SdkRequestOverrideConfig build() {
-            return new SdkRequestOverrideConfig(this);
+        public SdkRequestOverrideConfiguration build() {
+            return new SdkRequestOverrideConfiguration(this);
         }
     }
 }

@@ -59,14 +59,14 @@ public class SyncClientBuilderClass implements ClassSpec {
     }
 
     private MethodSpec buildClientMethod() {
-        String advancedConfigParam = model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null ?
-                ", advancedConfiguration()" : "";
+        String serviceConfigParam = model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null ?
+                ", serviceConfiguration()" : "";
         return MethodSpec.methodBuilder("buildClient")
                              .addAnnotation(Override.class)
                              .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                              .returns(clientInterfaceName)
                              .addCode("return new $T(super.syncClientConfiguration() $L);",
-                                      clientClassName, advancedConfigParam)
+                                      clientClassName, serviceConfigParam)
                              .build();
     }
 

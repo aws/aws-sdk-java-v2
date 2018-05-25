@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.config.SdkSyncClientConfiguration;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 
@@ -32,10 +32,10 @@ public final class SdkSyncClientHandler extends BaseClientHandler implements Syn
 
     private final SyncClientHandler delegateHandler;
 
-    public SdkSyncClientHandler(SdkSyncClientConfiguration clientConfiguration, ServiceAdvancedConfiguration
-        serviceAdvancedConfiguration) {
-        super(clientConfiguration, serviceAdvancedConfiguration);
-        this.delegateHandler = new SdkSyncClientHandlerImpl(clientConfiguration, serviceAdvancedConfiguration);
+    public SdkSyncClientHandler(SdkSyncClientConfiguration clientConfiguration, ServiceConfiguration
+            serviceConfiguration) {
+        super(clientConfiguration, serviceConfiguration);
+        this.delegateHandler = new SdkSyncClientHandlerImpl(clientConfiguration, serviceConfiguration);
     }
 
     @Override

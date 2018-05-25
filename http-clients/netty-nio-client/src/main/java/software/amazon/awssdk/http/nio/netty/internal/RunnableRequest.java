@@ -34,6 +34,7 @@ import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.Future;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
@@ -91,12 +92,14 @@ public final class RunnableRequest implements AbortableRunnable {
 
     private void makeRequest(HttpRequest request) {
         log.debug("Writing request: {}", request);
-        channel.pipeline().addFirst(new WriteTimeoutHandler(context.configuration().writeTimeout()));
+        channel.pipeline().addFirst(new WriteTimeoutHandler(context.configuration().writeTimeoutMillis(),
+                                                            TimeUnit.MILLISECONDS));
         channel.writeAndFlush(new StreamedRequest(request, context.sdkRequestProvider(), channel))
                .addListener(wireCall -> {
                    ChannelUtils.removeIfExists(channel.pipeline(), WriteTimeoutHandler.class);
                    if (wireCall.isSuccess()) {
-                       channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeout()));
+                       channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
+                                                                          TimeUnit.MILLISECONDS));
                        // Auto-read is turned off so trigger an explicit read to give control to HttpStreamsClientHandler
                        channel.read();
                    } else {

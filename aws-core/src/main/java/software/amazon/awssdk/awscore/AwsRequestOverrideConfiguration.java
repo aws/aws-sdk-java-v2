@@ -18,15 +18,15 @@ package software.amazon.awssdk.awscore;
 import java.util.Optional;
 
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.core.RequestOverrideConfig;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 
 /**
  * Request-specific configuration overrides for AWS service clients.
  */
-public final class AwsRequestOverrideConfig extends RequestOverrideConfig {
+public final class AwsRequestOverrideConfiguration extends RequestOverrideConfiguration {
     private final AwsCredentialsProvider credentialsProvider;
 
-    private AwsRequestOverrideConfig(Builder builder) {
+    private AwsRequestOverrideConfiguration(Builder builder) {
         super(builder);
         this.credentialsProvider = builder.credentialsProvider();
     }
@@ -49,7 +49,7 @@ public final class AwsRequestOverrideConfig extends RequestOverrideConfig {
         return new BuilderImpl();
     }
 
-    public interface Builder extends RequestOverrideConfig.Builder<Builder> {
+    public interface Builder extends RequestOverrideConfiguration.Builder<Builder> {
         /**
          * Set the optional {@link AwsCredentialsProvider} that will provide credentials to be used to authenticate this request.
          *
@@ -67,10 +67,10 @@ public final class AwsRequestOverrideConfig extends RequestOverrideConfig {
         AwsCredentialsProvider credentialsProvider();
 
         @Override
-        AwsRequestOverrideConfig build();
+        AwsRequestOverrideConfiguration build();
     }
 
-    private static final class BuilderImpl extends RequestOverrideConfig.BuilderImpl<Builder> implements Builder {
+    private static final class BuilderImpl extends RequestOverrideConfiguration.BuilderImpl<Builder> implements Builder {
 
         private AwsCredentialsProvider awsCredentialsProvider;
 
@@ -78,7 +78,7 @@ public final class AwsRequestOverrideConfig extends RequestOverrideConfig {
         private BuilderImpl() {
         }
 
-        private BuilderImpl(AwsRequestOverrideConfig awsRequestOverrideConfig) {
+        private BuilderImpl(AwsRequestOverrideConfiguration awsRequestOverrideConfig) {
             super(awsRequestOverrideConfig);
             this.awsCredentialsProvider = awsRequestOverrideConfig.credentialsProvider;
         }
@@ -95,8 +95,8 @@ public final class AwsRequestOverrideConfig extends RequestOverrideConfig {
         }
 
         @Override
-        public AwsRequestOverrideConfig build() {
-            return new AwsRequestOverrideConfig(this);
+        public AwsRequestOverrideConfiguration build() {
+            return new AwsRequestOverrideConfiguration(this);
         }
     }
 }
