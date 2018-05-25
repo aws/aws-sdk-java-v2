@@ -24,6 +24,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
+import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http2.Http2MultiplexCodecBuilder;
 import io.netty.handler.codec.http2.Http2SettingsFrame;
@@ -32,6 +33,7 @@ import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.SslContext;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.http2.SdkHttp2FrameLogger;
 
@@ -43,13 +45,16 @@ class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
     private final Protocol protocol;
     private final SslContext sslCtx;
     private final long clientMaxStreams;
+    private final AtomicReference<ChannelPool> channelPoolRef;
 
     ChannelPipelineInitializer(Protocol protocol,
                                SslContext sslCtx,
-                               long clientMaxStreams) {
+                               long clientMaxStreams,
+                               AtomicReference<ChannelPool> channelPoolRef) {
         this.protocol = protocol;
         this.sslCtx = sslCtx;
         this.clientMaxStreams = clientMaxStreams;
+        this.channelPoolRef = channelPoolRef;
     }
 
     @Override
@@ -87,8 +92,12 @@ class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
 
             @Override
             public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-                ch.attr(PROTOCOL_FUTURE).get().completeExceptionally(cause);
-                ch.close();
+                try {
+                    ch.attr(PROTOCOL_FUTURE).get().completeExceptionally(cause);
+                    ch.close();
+                } finally {
+                    channelPoolRef.get().release(ch);
+                }
             }
         });
     }

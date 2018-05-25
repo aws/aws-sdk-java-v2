@@ -30,6 +30,7 @@ import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.net.URI;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
 import software.amazon.awssdk.http.Protocol;
@@ -117,11 +118,13 @@ public class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                         // TODO run some performance tests with and without this.
                         .option(ChannelOption.TCP_NODELAY, true)
                         .remoteAddress(key.getHost(), key.getPort());
-                return new HandlerRemovingChannelPool(
+                AtomicReference<ChannelPool> channelPoolRef = new AtomicReference<>();
+                channelPoolRef.set(new HandlerRemovingChannelPool(
                     new HttpOrHttp2ChannelPool(bootstrap,
-                                               new ChannelPipelineInitializer(protocol, sslContext, maxStreams),
+                                               new ChannelPipelineInitializer(protocol, sslContext, maxStreams, channelPoolRef),
                                                maxConnectionsPerEndpoint,
-                                               configuration));
+                                               configuration)));
+                return channelPoolRef.get();
             }
         };
     }
