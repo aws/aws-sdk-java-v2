@@ -35,7 +35,7 @@ import software.amazon.awssdk.utils.Validate;
  * Provided to the {@link RequestPipeline#execute(Object, RequestExecutionContext)} method.
  */
 public final class RequestExecutionContext {
-    private static final RequestOverrideConfig EMPTY_CONFIG = SdkRequestOverrideConfig.builder().build();
+    private static final RequestOverrideConfiguration EMPTY_CONFIG = SdkRequestOverrideConfiguration.builder().build();
     private final SdkHttpRequestProvider requestProvider;
     private final SdkRequest originalRequest;
     private final ExecutionContext executionContext;
@@ -80,10 +80,10 @@ public final class RequestExecutionContext {
         return originalRequest;
     }
 
-    public RequestOverrideConfig requestConfig() {
-        return originalRequest.requestOverrideConfig()
+    public RequestOverrideConfiguration requestConfig() {
+        return originalRequest.overrideConfiguration()
                               // ugly but needed to avoid capture of capture and creating a type mismatch
-                              .map(c -> (RequestOverrideConfig) c)
+                              .map(c -> (RequestOverrideConfiguration) c)
                               .orElse(EMPTY_CONFIG);
     }
 

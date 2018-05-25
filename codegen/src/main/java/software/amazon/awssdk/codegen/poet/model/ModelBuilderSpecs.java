@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfig;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
@@ -82,17 +82,17 @@ class ModelBuilderSpecs {
         }
 
         if (isRequest()) {
-            builder.addMethod(MethodSpec.methodBuilder("requestOverrideConfig")
+            builder.addMethod(MethodSpec.methodBuilder("overrideConfiguration")
                     .returns(builderInterfaceName())
                     .addAnnotation(Override.class)
-                    .addParameter(AwsRequestOverrideConfig.class, "awsRequestOverrideConfig")
+                    .addParameter(AwsRequestOverrideConfiguration.class, "overrideConfiguration")
                     .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                     .build());
 
-            builder.addMethod(MethodSpec.methodBuilder("requestOverrideConfig")
+            builder.addMethod(MethodSpec.methodBuilder("overrideConfiguration")
                     .addAnnotation(Override.class)
                     .returns(builderInterfaceName())
-                    .addParameter(ParameterizedTypeName.get(Consumer.class, AwsRequestOverrideConfig.Builder.class),
+                    .addParameter(ParameterizedTypeName.get(Consumer.class, AwsRequestOverrideConfiguration.Builder.class),
                             "builderConsumer")
                     .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                     .build());
@@ -183,22 +183,22 @@ class ModelBuilderSpecs {
         }
 
         if (isRequest()) {
-            accessors.add(MethodSpec.methodBuilder("requestOverrideConfig")
+            accessors.add(MethodSpec.methodBuilder("overrideConfiguration")
                     .addAnnotation(Override.class)
                     .returns(builderInterfaceName())
-                    .addParameter(AwsRequestOverrideConfig.class, "awsRequestOverrideConfig")
+                    .addParameter(AwsRequestOverrideConfiguration.class, "overrideConfiguration")
                     .addModifiers(Modifier.PUBLIC)
-                    .addStatement("super.requestOverrideConfig(awsRequestOverrideConfig)")
+                    .addStatement("super.overrideConfiguration(overrideConfiguration)")
                     .addStatement("return this")
                     .build());
 
-            accessors.add(MethodSpec.methodBuilder("requestOverrideConfig")
+            accessors.add(MethodSpec.methodBuilder("overrideConfiguration")
                     .addAnnotation(Override.class)
                     .returns(builderInterfaceName())
-                    .addParameter(ParameterizedTypeName.get(Consumer.class, AwsRequestOverrideConfig.Builder.class),
+                    .addParameter(ParameterizedTypeName.get(Consumer.class, AwsRequestOverrideConfiguration.Builder.class),
                             "builderConsumer")
                     .addModifiers(Modifier.PUBLIC)
-                    .addStatement("super.requestOverrideConfig(builderConsumer)")
+                    .addStatement("super.overrideConfiguration(builderConsumer)")
                     .addStatement("return this")
                     .build());
         }

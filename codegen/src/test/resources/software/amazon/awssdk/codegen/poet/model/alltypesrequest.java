@@ -13,7 +13,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Generated;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfig;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.runtime.StandardMemberCopier;
 import software.amazon.awssdk.core.runtime.TypeConverter;
 import software.amazon.awssdk.core.runtime.adapters.types.StringToByteBufferAdapter;
@@ -1056,10 +1056,10 @@ public class AllTypesRequest extends JsonProtocolTestsRequest implements
         Builder enumType(EnumType enumType);
 
         @Override
-        Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig);
+        Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration);
 
         @Override
-        Builder requestOverrideConfig(Consumer<AwsRequestOverrideConfig.Builder> builderConsumer);
+        Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer);
     }
 
     static final class BuilderImpl extends JsonProtocolTestsRequest.BuilderImpl implements Builder {
@@ -1592,14 +1592,14 @@ public class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
 
         @Override
-        public Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig) {
-            super.requestOverrideConfig(awsRequestOverrideConfig);
+        public Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration) {
+            super.overrideConfiguration(overrideConfiguration);
             return this;
         }
 
         @Override
-        public Builder requestOverrideConfig(Consumer<AwsRequestOverrideConfig.Builder> builderConsumer) {
-            super.requestOverrideConfig(builderConsumer);
+        public Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer) {
+            super.overrideConfiguration(builderConsumer);
             return this;
         }
 

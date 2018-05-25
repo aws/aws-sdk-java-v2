@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.http.pipeline.stages;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import software.amazon.awssdk.core.RequestExecutionContext;
-import software.amazon.awssdk.core.RequestOverrideConfig;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.config.SdkClientConfiguration;
@@ -126,7 +126,7 @@ public class ClientExecutionTimedStage<OutputT> implements RequestToResponsePipe
      * @param requestConfig Current request configuration
      * @return Client Execution timeout value or 0 if none is set
      */
-    private long getClientExecutionTimeoutInMillis(RequestOverrideConfig requestConfig) {
+    private long getClientExecutionTimeoutInMillis(RequestOverrideConfiguration requestConfig) {
         return 0;
     }
 }

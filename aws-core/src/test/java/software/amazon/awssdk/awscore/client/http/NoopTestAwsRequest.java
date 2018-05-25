@@ -16,7 +16,7 @@
 package software.amazon.awssdk.awscore.client.http;
 
 import software.amazon.awssdk.awscore.AwsRequest;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfig;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 
 public class NoopTestAwsRequest extends AwsRequest {
     private NoopTestAwsRequest(Builder builder) {
@@ -37,7 +37,7 @@ public class NoopTestAwsRequest extends AwsRequest {
         NoopTestAwsRequest build();
 
         @Override
-        Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig);
+        Builder overrideConfiguration(AwsRequestOverrideConfiguration awsRequestOverrideConfig);
     }
 
     private static class BuilderImpl extends AwsRequest.BuilderImpl implements Builder {
@@ -48,8 +48,8 @@ public class NoopTestAwsRequest extends AwsRequest {
         }
 
         @Override
-        public Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig) {
-            super.requestOverrideConfig(awsRequestOverrideConfig);
+        public Builder overrideConfiguration(AwsRequestOverrideConfiguration awsRequestOverrideConfig) {
+            super.overrideConfiguration(awsRequestOverrideConfig);
             return this;
         }
     }
