@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.poet.client.specs;
 
+import static software.amazon.awssdk.codegen.model.intermediate.Protocol.AWS_JSON;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -25,19 +27,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocol;
+import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
+import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorShapeMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
-import software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 
 public class JsonProtocolSpec implements ProtocolSpec {
@@ -50,7 +55,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     @Override
     public FieldSpec protocolFactory(IntermediateModel model) {
-        return FieldSpec.builder(SdkJsonProtocolFactory.class, "protocolFactory")
+        return FieldSpec.builder(AwsJsonProtocolFactory.class, "protocolFactory")
                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL).build();
     }
 
@@ -61,28 +66,32 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
         ClassName baseException = ClassName.get(exceptionPath, model.getSdkModeledExceptionBaseClassName());
 
-        ClassName protocolFactory = poetExtensions.getClientClass(model.getMetadata().getProtocolFactory());
+        Metadata metadata = model.getMetadata();
+        ClassName protocolFactory = poetExtensions.getClientClass(metadata.getProtocolFactory());
 
         MethodSpec.Builder methodSpec = MethodSpec.methodBuilder("init")
                                                   .returns(protocolFactory)
                                                   .addModifiers(Modifier.PRIVATE)
                                                   .addCode(
                                                           "return new $T(new $T()\n" +
-                                                          ".withProtocolVersion($S)\n" +
                                                           ".withSupportsCbor($L)\n" +
                                                           ".withSupportsIon($L)" +
                                                           ".withBaseServiceExceptionClass($L.class)",
-                                                          SdkJsonProtocolFactory.class,
+                                                          AwsJsonProtocolFactory.class,
                                                           JsonClientMetadata.class,
-                                                          model.getMetadata().getJsonVersion(),
-                                                          model.getMetadata().isCborProtocol(),
-                                                          model.getMetadata().isIonProtocol(), baseException);
+                                                          metadata.isCborProtocol(),
+                                                          metadata.isIonProtocol(), baseException);
 
-        if (model.getMetadata().getContentType() != null) {
-            methodSpec.addCode(".withContentTypeOverride($S)", model.getMetadata().getContentType());
+        if (metadata.getContentType() != null) {
+            methodSpec.addCode(".withContentTypeOverride($S)", metadata.getContentType());
         }
 
         errorUnmarshallers(model).forEach(methodSpec::addCode);
+
+        methodSpec.addCode(",\n");
+        methodSpec.addCode("$T.builder().protocolVersion($S)\n" +
+                           ".protocol($T.$L).build()", AwsJsonProtocolMetadata.class,
+                           metadata.getJsonVersion(), AwsJsonProtocol.class, protocolEnumName(metadata.getProtocol()));
 
         methodSpec.addCode(");");
 
@@ -114,7 +123,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
         return CodeBlock
                 .builder()
                 .add("\n\n$T<$T> errorResponseHandler = createErrorResponseHandler();",
-                     HttpResponseHandler.class, SdkServiceException.class)
+                     HttpResponseHandler.class, AwsServiceException.class)
                 .build();
     }
 
@@ -145,7 +154,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
         }
 
         return codeBlock.add(".withMarshaller(new $T(protocolFactory))$L);", marshaller,
-                             opModel.hasStreamingOutput() ? ", streamingResponseHandler" : "")
+                             opModel.hasStreamingOutput() ? ", responseTransformer" : "")
                         .build();
     }
 
@@ -155,27 +164,27 @@ public class JsonProtocolSpec implements ProtocolSpec {
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
         ClassName marshaller = poetExtensions.getRequestTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
 
-        String asyncRequestProvider = opModel.hasStreamingInput() ? ".withAsyncRequestProvider(requestProvider)"
+        String asyncRequestBody = opModel.hasStreamingInput() ? ".withAsyncRequestBody(requestBody)"
                 : "";
         return CodeBlock.builder().add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n" +
                                        ".withMarshaller(new $T(protocolFactory))" +
                                        ".withResponseHandler(responseHandler)" +
                                        ".withErrorResponseHandler(errorResponseHandler)\n" +
-                                       asyncRequestProvider +
+                                       asyncRequestBody +
                                        ".withInput($L)$L);",
                                        ClientExecutionParams.class,
                                        requestType,
                                        pojoResponseType,
                                        marshaller,
                                        opModel.getInput().getVariableName(),
-                                       opModel.hasStreamingOutput() ? ", asyncResponseHandler" : "")
+                                       opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "")
                         .build();
     }
 
     @Override
     public Optional<MethodSpec> createErrorResponseHandler() {
         ClassName httpResponseHandler = ClassName.get(HttpResponseHandler.class);
-        ClassName sdkBaseException = ClassName.get(SdkServiceException.class);
+        ClassName sdkBaseException = ClassName.get(AwsServiceException.class);
         TypeName responseHandlerOfException = ParameterizedTypeName.get(httpResponseHandler, sdkBaseException);
 
         return Optional.of(MethodSpec.methodBuilder("createErrorResponseHandler")
@@ -200,5 +209,16 @@ public class JsonProtocolSpec implements ProtocolSpec {
                                            exceptionClass)
                             .build();
         }).collect(Collectors.toList());
+    }
+
+    private String protocolEnumName(software.amazon.awssdk.codegen.model.intermediate.Protocol protocol) {
+        switch (protocol) {
+            case CBOR:
+            case ION:
+            case AWS_JSON:
+                return AWS_JSON.name();
+            default:
+                return protocol.name();
+        }
     }
 }

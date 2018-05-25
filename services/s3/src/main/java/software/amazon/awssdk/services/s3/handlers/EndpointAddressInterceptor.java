@@ -21,16 +21,16 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
+import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.regions.Region;
-import software.amazon.awssdk.core.regions.RegionMetadata;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.services.s3.BucketUtils;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.RegionMetadata;
 import software.amazon.awssdk.services.s3.S3AdvancedConfiguration;
+import software.amazon.awssdk.services.s3.internal.BucketUtils;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
@@ -59,7 +59,7 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
 
         if (advancedConfiguration == null || !advancedConfiguration.pathStyleAccessEnabled()) {
             sdkRequest.getValueForField("Bucket", String.class).ifPresent(b -> {
-                if (BucketUtils.isValidDnsBucketName(b, false)) {
+                if (BucketUtils.isVirtualAddressingCompatibleBucketName(b, false)) {
                     changeToDnsEndpoint(mutableRequest, b);
                 }
             });

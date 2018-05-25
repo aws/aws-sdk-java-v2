@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.route53;
 
 import java.io.IOException;
 import org.junit.Before;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**

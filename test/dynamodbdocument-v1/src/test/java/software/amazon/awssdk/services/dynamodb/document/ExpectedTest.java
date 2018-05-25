@@ -22,7 +22,7 @@ import java.util.Map.Entry;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.document.internal.InternalUtils;
 import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;

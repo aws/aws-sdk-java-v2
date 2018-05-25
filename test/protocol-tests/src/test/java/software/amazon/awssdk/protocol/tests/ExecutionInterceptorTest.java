@@ -48,19 +48,19 @@ import org.mockito.Mockito;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.async.AsyncRequestProvider;
-import software.amazon.awssdk.core.async.AsyncResponseHandler;
-import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.core.client.builder.ClientBuilder;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -125,7 +125,7 @@ public class ExecutionInterceptorTest {
         stubFor(post(urlPathEqualTo(STREAMING_INPUT_PATH)).willReturn(aResponse().withStatus(200).withBody("")));
 
         // When
-        client.streamingInputOperation(request, RequestBody.of(new byte[] {0}));
+        client.streamingInputOperation(request, RequestBody.fromBytes(new byte[] {0}));
 
         // Expect
         Context.BeforeTransmission beforeTransmissionArg = captureBeforeTransmissionArg(interceptor);
@@ -143,7 +143,7 @@ public class ExecutionInterceptorTest {
         stubFor(post(urlPathEqualTo(STREAMING_INPUT_PATH)).willReturn(aResponse().withStatus(200).withBody("")));
 
         // When
-        client.streamingInputOperation(request, new NoOpRequestProvider()).get(10, TimeUnit.SECONDS);
+        client.streamingInputOperation(request, new NoOpAsyncRequestBody()).get(10, TimeUnit.SECONDS);
 
         // Expect
         Context.BeforeTransmission beforeTransmissionArg = captureBeforeTransmissionArg(interceptor);
@@ -188,7 +188,7 @@ public class ExecutionInterceptorTest {
         stubFor(post(urlPathEqualTo(STREAMING_OUTPUT_PATH)).willReturn(aResponse().withStatus(200).withBody("\0")));
 
         // When
-        client.streamingOutputOperation(request, new NoOpResponseHandler()).get(10, TimeUnit.SECONDS);
+        client.streamingOutputOperation(request, new NoOpAsyncResponseTransformer()).get(10, TimeUnit.SECONDS);
 
         // Expect
         Context.AfterTransmission afterTransmissionArg = captureAfterTransmissionArg(interceptor);
@@ -465,12 +465,12 @@ public class ExecutionInterceptorTest {
         return initializeAndBuild(ProtocolRestJsonAsyncClient.builder(), interceptor);
     }
 
-    private <T extends ClientBuilder<?, U>, U> U initializeAndBuild(T builder, ExecutionInterceptor interceptor) {
+    private <T extends AwsClientBuilder<?, U>, U> U initializeAndBuild(T builder, ExecutionInterceptor interceptor) {
         return builder.region(Region.US_WEST_1)
                       .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                       .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
                       .overrideConfiguration(ClientOverrideConfiguration.builder()
-                                                                        .addLastExecutionInterceptor(interceptor)
+                                                                        .addExecutionInterceptor(interceptor)
                                                                         .build())
                       .build();
     }
@@ -511,7 +511,7 @@ public class ExecutionInterceptorTest {
 
     }
 
-    private static class NoOpRequestProvider implements AsyncRequestProvider {
+    private static class NoOpAsyncRequestBody implements AsyncRequestBody {
         @Override
         public long contentLength() {
             return 0;
@@ -533,7 +533,8 @@ public class ExecutionInterceptorTest {
         }
     }
 
-    private static class NoOpResponseHandler implements AsyncResponseHandler<StreamingOutputOperationResponse, Object> {
+    private static class NoOpAsyncResponseTransformer
+            implements AsyncResponseTransformer<StreamingOutputOperationResponse, Object> {
         private StreamingOutputOperationResponse response;
 
         @Override

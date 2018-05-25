@@ -20,7 +20,7 @@ import static software.amazon.awssdk.utils.Validate.notNull;
 /**
  * Encapsulates the API name and version of a library built using the AWS SDK.
  *
- * See {@link SdkRequestOverrideConfig.Builder#addApiName(ApiName)}.
+ * See {@link RequestOverrideConfig.Builder#addApiName(ApiName)}.
  */
 public final class ApiName {
     private final String name;

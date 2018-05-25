@@ -16,7 +16,9 @@
 package software.amazon.awssdk.core.protocol.json;
 
 import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 
 /**
  * Wrapper object to provide additional metadata about a client's error shapes to {@link
@@ -24,13 +26,14 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  */
 @NotThreadSafe
 @SdkProtectedApi
+@ReviewBeforeRelease("separating errorCode and httpStatusCode")
 public class JsonErrorShapeMetadata {
 
     private String errorCode;
 
     private Integer httpStatusCode;
 
-    private Class<? extends RuntimeException> modeledClass;
+    private Class<? extends SdkServiceException> modeledClass;
 
 
     public String getErrorCode() {
@@ -51,11 +54,11 @@ public class JsonErrorShapeMetadata {
         return this;
     }
 
-    public Class<? extends RuntimeException> getModeledClass() {
+    public Class<? extends SdkServiceException> getModeledClass() {
         return modeledClass;
     }
 
-    public JsonErrorShapeMetadata withModeledClass(Class<? extends RuntimeException> modeledClass) {
+    public JsonErrorShapeMetadata withModeledClass(Class<? extends SdkServiceException> modeledClass) {
         this.modeledClass = modeledClass;
         return this;
     }

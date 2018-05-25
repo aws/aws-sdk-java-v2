@@ -249,7 +249,7 @@ public class Index implements QueryApi, ScanApi {
                                         "Global Secondary Index "
                                         + indexName
                                         + " is not being created or updated (with status="
-                                        + d.indexStatusString() + ")");
+                                        + d.indexStatusAsString() + ")");
                         }
                     }
                 }
@@ -290,7 +290,7 @@ public class Index implements QueryApi, ScanApi {
                         }
                         throw new IllegalArgumentException(
                                 "Global Secondary Index " + indexName
-                                + " is not being deleted (with status=" + d.indexStatusString() + ")");
+                                + " is not being deleted (with status=" + d.indexStatusAsString() + ")");
                     }
                 }
             }

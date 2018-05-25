@@ -63,7 +63,7 @@ class MarshallingTestRunner {
         } else {
             clientReflector.invokeMethod(testCase,
                                          shapeModelReflector.createShapeObject(),
-                                         RequestBody.of(shapeModelReflector.getStreamingMemberValue()));
+                                         RequestBody.fromString(shapeModelReflector.getStreamingMemberValue()));
         }
         LoggedRequest actualRequest = getLoggedRequest();
         testCase.getThen().getMarshallingAssertion().assertMatches(actualRequest);

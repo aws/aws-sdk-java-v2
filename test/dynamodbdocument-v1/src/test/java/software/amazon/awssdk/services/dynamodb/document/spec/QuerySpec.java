@@ -102,7 +102,7 @@ public class QuerySpec extends AbstractCollectionSpec<QueryRequest> {
     }
 
     public String getConditionalOperator() {
-        return getRequest().conditionalOperatorString();
+        return getRequest().conditionalOperatorAsString();
     }
 
     public QuerySpec withConsistentRead(boolean consistentRead) {
@@ -202,7 +202,7 @@ public class QuerySpec extends AbstractCollectionSpec<QueryRequest> {
     }
 
     public String getReturnConsumedCapacity() {
-        return getRequest().returnConsumedCapacityString();
+        return getRequest().returnConsumedCapacityAsString();
     }
 
     public QuerySpec withReturnConsumedCapacity(
@@ -226,7 +226,7 @@ public class QuerySpec extends AbstractCollectionSpec<QueryRequest> {
     }
 
     public String select() {
-        return getRequest().selectString();
+        return getRequest().selectAsString();
     }
 
     // Exclusive start key

@@ -77,7 +77,7 @@ public class CopyObjectIntegrationTest extends S3IntegrationTestBase {
                                      .bucket(BUCKET_NAME)
                                      .key(SOURCE_KEY)
                                      .build(),
-                     RequestBody.of(file));
+                     RequestBody.fromFile(file));
     }
 
     /**

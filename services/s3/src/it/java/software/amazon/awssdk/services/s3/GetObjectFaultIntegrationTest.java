@@ -20,18 +20,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.fail;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
-import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.core.sync.StreamingResponseHandler;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -51,10 +52,9 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET)
                                      .key(KEY)
-                                     .build(), RequestBody.of("some contents"));
+                                     .build(), RequestBody.fromString("some contents"));
         s3ClientWithTimeout = s3ClientBuilder()
                 .overrideConfiguration(ClientOverrideConfiguration.builder()
-                                                                  .totalExecutionTimeout(Duration.ofSeconds(5))
                                                                   .build())
                 .build();
     }
@@ -66,7 +66,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
 
     @Test
     public void handlerThrowsRetryableException_RetriedUpToLimit() throws Exception {
-        RequestCountingResponseHandler<GetObjectResponse, ?> handler = new RequestCountingResponseHandler<>(
+        RequestCountingResponseTransformer<GetObjectResponse, ?> handler = new RequestCountingResponseTransformer<>(
                 (resp, in) -> {
                     throw new RetryableException("");
                 });
@@ -77,7 +77,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
 
     @Test
     public void handlerThrowsNonRetryableException_RequestNotRetried() throws Exception {
-        RequestCountingResponseHandler<GetObjectResponse, ?> handler = new RequestCountingResponseHandler<>(
+        RequestCountingResponseTransformer<GetObjectResponse, ?> handler = new RequestCountingResponseTransformer<>(
                 (resp, in) -> {
                     throw new NonRetryableException("");
                 });
@@ -87,8 +87,10 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
+    @Ignore
+    @ReviewBeforeRelease("add it back once execution time out is added back")
     public void slowHandlerIsInterrupted() throws Exception {
-        RequestCountingResponseHandler<GetObjectResponse, ?> handler = new RequestCountingResponseHandler<>(
+        RequestCountingResponseTransformer<GetObjectResponse, ?> handler = new RequestCountingResponseTransformer<>(
                 (resp, in) -> {
                     try {
                         Thread.sleep(10_000);
@@ -107,8 +109,10 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
      * Customers should be able to just re-interrupt the current thread instead of having to throw {@link InterruptedException}.
      */
     @Test
+    @Ignore
+    @ReviewBeforeRelease("add it back once execution time out is added back")
     public void slowHandlerIsInterrupted_SetsInterruptFlag() throws Exception {
-        RequestCountingResponseHandler<GetObjectResponse, ?> handler = new RequestCountingResponseHandler<>(
+        RequestCountingResponseTransformer<GetObjectResponse, ?> handler = new RequestCountingResponseTransformer<>(
                 (resp, in) -> {
                     try {
                         Thread.sleep(10_000);
@@ -130,7 +134,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
      */
     @Test
     public void handlerSquashsInterrupt_DoesNotThrowClientTimeoutException() throws Exception {
-        RequestCountingResponseHandler<GetObjectResponse, ?> handler = new RequestCountingResponseHandler<>(
+        RequestCountingResponseTransformer<GetObjectResponse, ?> handler = new RequestCountingResponseTransformer<>(
                 (resp, in) -> {
                     try {
                         Thread.sleep(10_000);
@@ -153,15 +157,15 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
     }
 
     /**
-     * Wrapper around a {@link StreamingResponseHandler} that counts how many times it's been invoked.
+     * Wrapper around a {@link ResponseTransformer} that counts how many times it's been invoked.
      */
-    private static class RequestCountingResponseHandler<ResponseT, ReturnT>
-            implements StreamingResponseHandler<ResponseT, ReturnT> {
+    private static class RequestCountingResponseTransformer<ResponseT, ReturnT>
+            implements ResponseTransformer<ResponseT, ReturnT> {
 
-        private final StreamingResponseHandler<ResponseT, ReturnT> delegate;
+        private final ResponseTransformer<ResponseT, ReturnT> delegate;
         private final AtomicInteger callCount = new AtomicInteger(0);
 
-        private RequestCountingResponseHandler(StreamingResponseHandler<ResponseT, ReturnT> delegate) {
+        private RequestCountingResponseTransformer(ResponseTransformer<ResponseT, ReturnT> delegate) {
             this.delegate = delegate;
         }
 
