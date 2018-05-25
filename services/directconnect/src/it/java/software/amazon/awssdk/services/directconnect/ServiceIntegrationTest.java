@@ -84,7 +84,7 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
                 .build());
         assertThat(describeConnectionsResult.connections(), hasSize(1));
         assertEquals(connectionId, describeConnectionsResult.connections().get(0).connectionId());
-        assertEquals(EXPECTED_CONNECTION_STATUS, describeConnectionsResult.connections().get(0).connectionStateString());
+        assertEquals(EXPECTED_CONNECTION_STATUS, describeConnectionsResult.connections().get(0).connectionStateAsString());
     }
 
     /**

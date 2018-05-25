@@ -30,11 +30,12 @@ import software.amazon.awssdk.http.HttpStatusFamily;
  * Base error response handler for JSON protocol.
  */
 @SdkInternalApi
-public abstract class JsonErrorResponseHandler implements HttpResponseHandler<SdkServiceException> {
+public abstract class JsonErrorResponseHandler<ExceptionT extends SdkServiceException> implements
+                                                                                       HttpResponseHandler<ExceptionT> {
     private static final Logger LOG = LoggerFactory.getLogger(JsonErrorResponseHandler.class);
 
-    protected SdkServiceException safeUnmarshall(JsonContent jsonContent,
-                                                 JsonErrorUnmarshaller unmarshaller) {
+    protected ExceptionT safeUnmarshall(JsonContent jsonContent,
+                                        JsonErrorUnmarshaller<ExceptionT> unmarshaller) {
         try {
             return unmarshaller.unmarshall(jsonContent.getJsonNode());
         } catch (Exception e) {
@@ -47,10 +48,7 @@ public abstract class JsonErrorResponseHandler implements HttpResponseHandler<Sd
      * The default unmarshaller should always work but if it doesn't we fall back to creating an
      * exception explicitly.
      */
-    protected SdkServiceException createUnknownException() {
-        return new SdkServiceException(
-            "Unable to unmarshall exception response with the unmarshallers provided");
-    }
+    protected abstract ExceptionT createUnknownException();
 
     protected ErrorType getErrorType(int statusCode) {
         return HttpStatusFamily.of(statusCode) == HttpStatusFamily.SERVER_ERROR ? ErrorType.SERVICE : ErrorType.CLIENT;

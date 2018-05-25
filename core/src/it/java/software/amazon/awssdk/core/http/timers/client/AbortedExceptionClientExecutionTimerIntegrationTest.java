@@ -29,10 +29,12 @@ import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAn
 import java.io.InputStream;
 import java.util.Arrays;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
@@ -55,6 +57,8 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import utils.HttpTestUtils;
 
 @RunWith(MockitoJUnitRunner.class)
+@Ignore
+@ReviewBeforeRelease("add it back once execution time out is added back")
 public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockServerTestBase {
 
     private AmazonSyncHttpClient httpClient;

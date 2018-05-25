@@ -13,19 +13,22 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.retry.conditions;
+package software.amazon.awssdk.awscore.retry;
 
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
+import software.amazon.awssdk.core.retry.conditions.RetryCondition;
 
+/**
+ * Retry condition implementation that retries if the exception or the cause of the exception matches the error codes defined.
+ */
 @SdkPublicApi
 public class RetryOnErrorCodeCondition implements RetryCondition {
 
     private final Set<String> retryableErrorCodes;
 
-    // TODO: Switch to varargs and Set.of()
     public RetryOnErrorCodeCondition(Set<String> retryableErrorCodes) {
         this.retryableErrorCodes = retryableErrorCodes;
     }
@@ -34,12 +37,10 @@ public class RetryOnErrorCodeCondition implements RetryCondition {
     public boolean shouldRetry(RetryPolicyContext context) {
 
         Exception ex = context.exception();
-        if (ex != null && ex instanceof SdkServiceException) {
+        if (ex instanceof SdkServiceException) {
             SdkServiceException exception = (SdkServiceException) ex;
 
-            if (retryableErrorCodes.contains(exception.errorCode())) {
-                return true;
-            }
+            return retryableErrorCodes.contains(exception.errorCode());
         }
         return false;
     }

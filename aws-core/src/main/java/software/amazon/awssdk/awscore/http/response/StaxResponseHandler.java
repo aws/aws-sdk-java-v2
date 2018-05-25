@@ -47,7 +47,7 @@ import software.amazon.awssdk.utils.XmlUtils;
  */
 @SdkProtectedApi
 @ReviewBeforeRelease("ResponseMetadata is currently broken. Revisit when base result types are refactored")
-public class StaxResponseHandler<T extends SdkResponse> implements HttpResponseHandler<T> {
+public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
     private static final Logger log = Logger.loggerFor(StaxResponseHandler.class);
 
     /**

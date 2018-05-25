@@ -78,7 +78,7 @@ public class DynamoDBTestBase extends AwsTestBase {
                 DescribeTableRequest request = DescribeTableRequest.builder().tableName(tableName).build();
                 TableDescription table = dynamo.describeTable(request).table();
 
-                log.info(() -> "  - current state: " + table.tableStatusString());
+                log.info(() -> "  - current state: " + table.tableStatusAsString());
                 if (table.tableStatus() == TableStatus.DELETING) {
                     continue;
                 }

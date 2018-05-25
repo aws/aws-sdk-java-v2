@@ -15,7 +15,10 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling;
 
+import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toMap;
+import static software.amazon.awssdk.core.retry.RetryUtils.isServiceException;
+import static software.amazon.awssdk.core.retry.RetryUtils.toServiceException;
 import static software.amazon.awssdk.services.dynamodb.model.KeyType.HASH;
 import static software.amazon.awssdk.services.dynamodb.model.KeyType.RANGE;
 
@@ -34,12 +37,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfig;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.core.util.VersionInfo;
@@ -1865,8 +1869,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
         }
 
         private boolean isThrottling() {
-            return exception instanceof SdkException &&
-                   RetryUtils.isThrottlingException((SdkException) exception);
+            return exception instanceof SdkServiceException && ((SdkServiceException) exception).isThrottlingException();
         }
 
         private int size() {
@@ -2268,7 +2271,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
             for (Entry<String, AttributeValueUpdate> entry : putValues.entrySet()) {
                 String attributeName = entry.getKey();
                 AttributeValue attributeValue = entry.getValue().value();
-                String attributeAction = entry.getValue().actionString();
+                String attributeAction = entry.getValue().actionAsString();
 
                 /*
                  * AttributeValueUpdate allows nulls for its values, since they are
