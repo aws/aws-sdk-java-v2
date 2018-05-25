@@ -425,7 +425,8 @@
       "errors":[
         {"shape":"ResourceNotFoundException"},
         {"shape":"InvalidArgumentException"},
-        {"shape":"ProvisionedThroughputExceededException"}
+        {"shape":"ResourceInUseException"},
+        {"shape":"LimitExceededException"}
       ]
     },
     "UpdateShardCount":{
@@ -1342,7 +1343,7 @@
         "ShardId":{"shape":"ShardId"},
         "StartingPosition":{"shape":"ShardIteratorType"},
         "StartingSequenceNumber":{"shape":"SequenceNumber"},
-        "Timestamp":{"shape":"Timestamp"}
+        "StartingTimestamp":{"shape":"Timestamp"}
       }
     },
     "SubscribeToShardOutput":{
