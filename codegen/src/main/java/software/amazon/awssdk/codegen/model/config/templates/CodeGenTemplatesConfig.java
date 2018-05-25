@@ -49,6 +49,8 @@ public class CodeGenTemplatesConfig {
     private TopLevelTemplate apiGatewayReadmeTemplate =
             new TopLevelTemplate("/templates/api-gateway/README.md.ftl", Collections.singletonList(
                     new ChildTemplate("/templates/api-gateway/README_Dependencies.ftl", "README_Dependencies")));
+    private TopLevelTemplate moduleInfo = new TopLevelTemplate("templates/common/module-info.ftl", null);
+
 
     private List<ChildTemplate> commonChildTemplates;
 
@@ -231,5 +233,9 @@ public class CodeGenTemplatesConfig {
 
     public TopLevelTemplate getApiGatewayReadmeTemplate() {
         return apiGatewayReadmeTemplate;
+    }
+
+    public TopLevelTemplate getModuleInfo() {
+        return moduleInfo;
     }
 }

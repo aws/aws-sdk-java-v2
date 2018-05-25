@@ -35,15 +35,15 @@ public class SharedModelsTaskParamsValidator implements Consumer<GeneratorTaskPa
             // Validate the service we're sharing models with has been generated already.
             File modelPackageDirectory = new File(params.getPathProvider().getModelDirectory());
 
-            if (!modelPackageDirectory.exists()) {
-                String error = String.format("Unable to share models with '%s', because that service's models haven't been "
-                                             + "generated yet ('%s' doesn't exist). You must generate that service before "
-                                             + "generating '%s'.",
-                                             sharedModelService,
-                                             modelPackageDirectory,
-                                             params.getModel().getMetadata().getServiceName());
-                throw new IllegalStateException(error);
-            }
+//            if (!modelPackageDirectory.exists()) {
+//                String error = String.format("Unable to share models with '%s', because that service's models haven't been "
+//                                             + "generated yet ('%s' doesn't exist). You must generate that service before "
+//                                             + "generating '%s'.",
+//                                             sharedModelService,
+//                                             modelPackageDirectory,
+//                                             params.getModel().getMetadata().getServiceName());
+//                throw new IllegalStateException(error);
+//            }
         }
     }
 }

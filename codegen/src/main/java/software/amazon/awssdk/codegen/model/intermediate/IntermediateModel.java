@@ -208,7 +208,7 @@ public final class IntermediateModel {
         return customAuthorizers;
     }
 
-    public boolean hasPaginators() {
+    public boolean getHasPaginators() {
         return paginators.size() > 0;
     }
 }

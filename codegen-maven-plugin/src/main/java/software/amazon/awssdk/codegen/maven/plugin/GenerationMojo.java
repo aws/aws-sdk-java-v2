@@ -67,7 +67,7 @@ public class GenerationMojo extends AbstractMojo {
 
     public void execute() throws MojoExecutionException {
         this.sourcesDirectory = Paths.get(outputDirectory).resolve("generated-sources").resolve("sdk");
-        this.testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-tests");
+        this.testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk");
 
         findModelRoots().forEach(p -> {
             try {

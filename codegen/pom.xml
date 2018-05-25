@@ -30,9 +30,6 @@
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
 
-    <properties>
-        <jre.version>1.8</jre.version>
-    </properties>
     <!-- The dependencies section in pom.xml is auto generated. No manual changes are allowed -->
     <dependencies>
         <dependency>

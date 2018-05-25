@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.signer.internal;
+package software.amazon.awssdk.auth.signer;
 
 import java.time.Instant;
 import java.time.ZoneId;

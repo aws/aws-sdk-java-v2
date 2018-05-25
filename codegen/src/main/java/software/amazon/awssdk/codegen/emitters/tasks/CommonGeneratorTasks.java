@@ -38,7 +38,8 @@ class CommonGeneratorTasks implements Iterable<GeneratorTask> {
                                        new UnmarshallerGeneratorTasks(params),
                                        new ModelClassGeneratorTasks(params),
                                        new PackageInfoGeneratorTasks(params),
-                                       new BaseExceptionClassGeneratorTasks(params));
+                                       new BaseExceptionClassGeneratorTasks(params),
+                                       new ModuleInfoGeneratorTasks(params));
     }
 
     @Override

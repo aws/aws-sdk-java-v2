@@ -42,7 +42,7 @@ public class PaginatorsGeneratorTasks extends BaseGeneratorTasks {
 
     @Override
     protected boolean hasTasks() {
-        return model.hasPaginators();
+        return model.getHasPaginators();
     }
 
     @Override
