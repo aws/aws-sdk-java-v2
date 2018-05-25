@@ -85,7 +85,7 @@ final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                                             FixedChannelPool.AcquireTimeoutAction.FAIL,
                                             configuration.connectionAcquisitionTimeout(),
                                             configuration.maxConnectionsPerEndpoint(),
-                                            10_000);
+                                            configuration.maxPendingAcquires());
             }
         };
     }

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.protocol.tests.exception;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -25,11 +26,11 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.exception.ErrorType;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolquery.ProtocolQueryClient;
 import software.amazon.awssdk.services.protocolquery.model.AllTypesRequest;
 import software.amazon.awssdk.services.protocolquery.model.EmptyModeledException;
@@ -57,7 +58,8 @@ public class QueryExceptionTests {
     public void unmodeledException_UnmarshalledIntoBaseServiceException() {
         stub404Response(PATH,
                 "<ErrorResponse><Error><Code>UnmodeledException</Code></Error></ErrorResponse>");
-        assertThrowsServiceBaseException(this::callAllTypes);
+        assertThatThrownBy(() -> client.allTypes(AllTypesRequest.builder().build()))
+            .isExactlyInstanceOf(ProtocolQueryException.class);
     }
 
     @Test

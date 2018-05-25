@@ -50,6 +50,7 @@ public final class HttpStatusCodes {
     public static final int NOT_ACCEPTABLE = 406;
     public static final int REQUEST_TIMEOUT = 408;
     public static final int REQUEST_TOO_LONG = 413;
+    public static final int THROTTLING = 429;
 
     // --- 5xx Server Error ---
 

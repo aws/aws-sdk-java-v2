@@ -25,7 +25,6 @@ import software.amazon.awssdk.core.SdkStandardLoggers;
 import software.amazon.awssdk.core.exception.Crc32MismatchException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.http.StaxResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContextImpl;
@@ -36,7 +35,7 @@ import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 
 /**
- * Default implementation of HttpResponseHandler that handles a successful response from an AWS
+ * Default implementation of HttpResponseHandler that handles a successful response from a
  * service and unmarshalls the result using a JSON unmarshaller.
  *
  * @param <T> Indicates the type being unmarshalled by this response handler.
@@ -44,7 +43,7 @@ import software.amazon.awssdk.utils.Logger;
 @SdkProtectedApi
 @ReviewBeforeRelease("Metadata in base result has been broken. Fix this and deal with AwsResponseHandlerAdapter")
 public class JsonResponseHandler<T> implements HttpResponseHandler<T> {
-    private static final Logger log = Logger.loggerFor(StaxResponseHandler.class);
+    private static final Logger log = Logger.loggerFor(JsonResponseHandler.class);
 
     private final JsonFactory jsonFactory;
     private final boolean needsConnectionLeftOpen;

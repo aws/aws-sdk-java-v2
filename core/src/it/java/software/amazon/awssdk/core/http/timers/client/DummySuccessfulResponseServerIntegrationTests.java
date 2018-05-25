@@ -19,8 +19,10 @@ import static software.amazon.awssdk.core.internal.http.timers.TimeoutTestConsta
 import static software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants.TEST_TIMEOUT;
 
 import java.util.Arrays;
+import org.junit.Ignore;
 import org.junit.Test;
-import software.amazon.awssdk.core.http.AmazonHttpClient;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.MockServerTestBase;
 import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
@@ -31,12 +33,13 @@ import software.amazon.awssdk.core.internal.http.request.SlowExecutionIntercepto
 import software.amazon.awssdk.core.internal.http.response.DummyResponseHandler;
 import software.amazon.awssdk.core.internal.http.response.UnresponsiveResponseHandler;
 import utils.HttpTestUtils;
-
+@Ignore
+@ReviewBeforeRelease("add it back once execution time out is added back")
 public class DummySuccessfulResponseServerIntegrationTests extends MockServerTestBase {
 
     private static final int STATUS_CODE = 200;
 
-    private AmazonHttpClient httpClient;
+    private AmazonSyncHttpClient httpClient;
 
     @Override
     protected MockServer buildMockServer() {
@@ -70,7 +73,7 @@ public class DummySuccessfulResponseServerIntegrationTests extends MockServerTes
         requestBuilder().executionContext(withInterceptors(interceptor)).execute(new DummyResponseHandler());
     }
 
-    private AmazonHttpClient.RequestExecutionBuilder requestBuilder() {
+    private AmazonSyncHttpClient.RequestExecutionBuilder requestBuilder() {
         return httpClient.requestExecutionBuilder().request(newGetRequest());
     }
 

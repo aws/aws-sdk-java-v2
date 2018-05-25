@@ -20,10 +20,10 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpService;
 import software.amazon.awssdk.http.async.SdkAsyncHttpService;
-import software.amazon.awssdk.utils.SdkSystemSetting;
 import software.amazon.awssdk.utils.SystemSetting;
 
 /**

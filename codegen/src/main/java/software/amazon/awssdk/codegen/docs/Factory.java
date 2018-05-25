@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.codegen.docs;
 
-import java.util.function.BiFunction;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 
 /**
- * Factory interface to reduce the verbosity of using BiFunction with type args everywhere.
+ * Factory interface for creating an instance of {@link OperationDocProvider}.
  */
 @FunctionalInterface
-interface Factory extends BiFunction<IntermediateModel, OperationModel, OperationDocProvider> {
+interface Factory {
+    OperationDocProvider create(IntermediateModel model, OperationModel opModel, DocConfiguration config);
 }

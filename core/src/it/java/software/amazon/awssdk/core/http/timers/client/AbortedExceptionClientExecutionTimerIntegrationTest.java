@@ -29,16 +29,17 @@ import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAn
 import java.io.InputStream;
 import java.util.Arrays;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.http.AmazonHttpClient;
+import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.MockServerTestBase;
-import software.amazon.awssdk.core.http.NoopTestAwsRequest;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
 import software.amazon.awssdk.core.http.server.MockServer;
@@ -56,9 +57,11 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import utils.HttpTestUtils;
 
 @RunWith(MockitoJUnitRunner.class)
+@Ignore
+@ReviewBeforeRelease("add it back once execution time out is added back")
 public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockServerTestBase {
 
-    private AmazonHttpClient httpClient;
+    private AmazonSyncHttpClient httpClient;
 
     @Mock
     private SdkHttpClient sdkHttpClient;
@@ -102,7 +105,7 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockSer
      * Tests that a streaming operation has it's request properly cleaned up if the client is interrupted after the
      * response is received.
      *
-     * @see TT0070103230
+     * see TT0070103230
      */
     @Test
     public void clientInterruptedDuringResponseHandlers_DoesNotLeakConnection() throws Exception {
@@ -114,7 +117,7 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockSer
         interruptCurrentThreadAfterDelay(1000);
         try {
             requestBuilder()
-                    .originalRequest(NoopTestAwsRequest.builder().build())
+                    .originalRequest(NoopTestRequest.builder().build())
                     .executionContext(withInterceptors(new SlowExecutionInterceptor().afterTransmissionWaitInSeconds(10)))
                     .execute(new DummyResponseHandler().leaveConnectionOpen());
             fail("Expected exception");
@@ -125,7 +128,7 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockSer
         verify(mockContent).close();
     }
 
-    private AmazonHttpClient.RequestExecutionBuilder requestBuilder() {
+    private AmazonSyncHttpClient.RequestExecutionBuilder requestBuilder() {
         return httpClient.requestExecutionBuilder().request(newGetRequest());
     }
 

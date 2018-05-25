@@ -29,6 +29,6 @@ import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
 public class UnwrapResponseContainer<OutputT> implements RequestPipeline<Response<OutputT>, OutputT> {
     @Override
     public OutputT execute(Response<OutputT> input, RequestExecutionContext context) throws Exception {
-        return input.getAwsResponse();
+        return input.response();
     }
 }

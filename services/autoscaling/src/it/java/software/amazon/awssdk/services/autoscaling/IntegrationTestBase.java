@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.autoscaling;
 
 import java.io.IOException;
 import org.junit.BeforeClass;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.autoscaling.model.CreateLaunchConfigurationRequest;
 import software.amazon.awssdk.services.sns.SNSClient;
 import software.amazon.awssdk.testutils.service.AwsTestBase;

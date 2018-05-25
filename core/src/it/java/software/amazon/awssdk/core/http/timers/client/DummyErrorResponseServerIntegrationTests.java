@@ -20,9 +20,11 @@ import static software.amazon.awssdk.core.internal.http.timers.TimeoutTestConsta
 
 import java.util.Collections;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.TestPreConditions;
-import software.amazon.awssdk.core.http.AmazonHttpClient;
+import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.MockServerTestBase;
 import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
@@ -36,10 +38,12 @@ import utils.HttpTestUtils;
 /**
  * Tests that use a server that returns a predetermined error response within the timeout limit
  */
+@Ignore
+@ReviewBeforeRelease("add it back once execution time out is added back")
 public class DummyErrorResponseServerIntegrationTests extends MockServerTestBase {
 
     private static final int STATUS_CODE = 500;
-    private AmazonHttpClient httpClient;
+    private AmazonSyncHttpClient httpClient;
 
     @BeforeClass
     public static void preConditions() {

@@ -15,12 +15,12 @@
 
 package software.amazon.awssdk.core.http;
 
-import software.amazon.awssdk.core.config.SyncClientConfiguration;
+import software.amazon.awssdk.core.config.SdkSyncClientConfiguration;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Validate;
 
 public class HttpSyncClientDependencies extends HttpClientDependencies {
-    private final SyncClientConfiguration syncClientConfiguration;
+    private final SdkSyncClientConfiguration syncClientConfiguration;
 
     private HttpSyncClientDependencies(Builder builder) {
         super(builder.syncClientConfiguration, builder);
@@ -34,7 +34,7 @@ public class HttpSyncClientDependencies extends HttpClientDependencies {
         return new Builder();
     }
 
-    public SyncClientConfiguration syncClientConfiguration() {
+    public SdkSyncClientConfiguration syncClientConfiguration() {
         return syncClientConfiguration;
     }
 
@@ -44,9 +44,9 @@ public class HttpSyncClientDependencies extends HttpClientDependencies {
     }
 
     public static final class Builder extends HttpClientDependencies.Builder<Builder> {
-        private SyncClientConfiguration syncClientConfiguration;
+        private SdkSyncClientConfiguration syncClientConfiguration;
 
-        public Builder syncClientConfiguration(SyncClientConfiguration syncClientConfiguration) {
+        public Builder syncClientConfiguration(SdkSyncClientConfiguration syncClientConfiguration) {
             this.syncClientConfiguration = syncClientConfiguration;
             return this;
         }

@@ -73,7 +73,7 @@ public class BucketAnalyticsConfigurationIntegrationTest extends S3IntegrationTe
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET_NAME)
                                      .key(KEY)
-                                     .build(), RequestBody.of(new RandomTempFile("foo", 1024)));
+                                     .build(), RequestBody.fromFile(new RandomTempFile("foo", 1024)));
     }
 
     @AfterClass

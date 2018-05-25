@@ -34,7 +34,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.junit.After;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkGlobalTime;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.autoscaling.model.AlreadyExistsException;
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
 import software.amazon.awssdk.services.autoscaling.model.BlockDeviceMapping;

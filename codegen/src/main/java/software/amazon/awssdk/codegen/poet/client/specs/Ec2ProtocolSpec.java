@@ -68,7 +68,7 @@ public class Ec2ProtocolSpec extends QueryXmlProtocolSpec {
                 .addStatement("throw new $T($S)", SdkClientException.class,
                         "Unrecognized service response for the dry-run request.")
                 .endControlFlow()
-                .beginControlFlow("catch (SdkServiceException exception)")
+                .beginControlFlow("catch (AwsServiceException exception)")
                 .beginControlFlow("if (exception.errorCode().equals($S) && exception.statusCode() == 412)",
                         "DryRunOperation")
                 .addStatement("return new $T(true, request, exception.getMessage(), exception)", dryRunResultGeneric)

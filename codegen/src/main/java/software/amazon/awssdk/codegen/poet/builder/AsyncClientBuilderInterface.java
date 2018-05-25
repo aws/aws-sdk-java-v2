@@ -19,10 +19,10 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
+import software.amazon.awssdk.awscore.client.builder.AwsAsyncClientBuilder;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.client.builder.AsyncClientBuilder;
 
 public class AsyncClientBuilderInterface implements ClassSpec {
     private final ClassName builderInterfaceName;
@@ -39,7 +39,7 @@ public class AsyncClientBuilderInterface implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         return PoetUtils.createInterfaceBuilder(builderInterfaceName)
-                        .addSuperinterface(ParameterizedTypeName.get(ClassName.get(AsyncClientBuilder.class),
+                        .addSuperinterface(ParameterizedTypeName.get(ClassName.get(AwsAsyncClientBuilder.class),
                                                                      builderInterfaceName, clientInterfaceName))
                         .addSuperinterface(ParameterizedTypeName.get(baseBuilderInterfaceName,
                                                                      builderInterfaceName, clientInterfaceName))

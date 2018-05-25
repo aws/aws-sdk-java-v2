@@ -140,16 +140,16 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
         }
 
         private SdkException handleUnmarshalledException(Response<OutputT> response) {
-            SdkException exception = response.getException();
-            if (!retryHandler.shouldRetry(response.getHttpResponse(), request, context, exception, requestCount)) {
+            SdkException exception = response.exception();
+            if (!retryHandler.shouldRetry(response.httpResponse(), request, context, exception, requestCount)) {
                 throw exception;
             }
             /**
              * Checking for clock skew error again because we don't want to set the global time offset
              * for every service exception.
              */
-            if (RetryUtils.isClockSkewError(exception)) {
-                int clockSkew = ClockSkewUtil.parseClockSkewOffset(response.getHttpResponse());
+            if (RetryUtils.isClockSkewException(exception)) {
+                int clockSkew = ClockSkewUtil.parseClockSkewOffset(response.httpResponse());
                 dependencies.updateTimeOffset(clockSkew);
             }
             return exception;

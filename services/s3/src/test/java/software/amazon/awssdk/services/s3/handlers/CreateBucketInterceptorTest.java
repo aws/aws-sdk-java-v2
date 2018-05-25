@@ -17,11 +17,11 @@ package software.amazon.awssdk.services.s3.handlers;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
+import software.amazon.awssdk.auth.AwsExecutionAttributes;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.regions.Region;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
@@ -42,7 +42,7 @@ public class CreateBucketInterceptorTest {
                 .putAttribute(AwsExecutionAttributes.AWS_REGION, Region.US_EAST_1);
 
         SdkRequest modifiedRequest = new CreateBucketInterceptor().modifyRequest(context, attributes);
-        String locationConstraint = ((CreateBucketRequest) modifiedRequest).createBucketConfiguration().locationConstraintString();
+        String locationConstraint = ((CreateBucketRequest) modifiedRequest).createBucketConfiguration().locationConstraintAsString();
 
         assertThat(locationConstraint).isEqualToIgnoringCase("us-west-2");
     }
@@ -58,7 +58,7 @@ public class CreateBucketInterceptorTest {
                 .putAttribute(AwsExecutionAttributes.AWS_REGION, Region.US_EAST_2);
 
         SdkRequest modifiedRequest = new CreateBucketInterceptor().modifyRequest(context, attributes);
-        String locationConstraint = ((CreateBucketRequest) modifiedRequest).createBucketConfiguration().locationConstraintString();
+        String locationConstraint = ((CreateBucketRequest) modifiedRequest).createBucketConfiguration().locationConstraintAsString();
 
         assertThat(locationConstraint).isEqualToIgnoringCase("us-east-2");
     }
@@ -76,7 +76,7 @@ public class CreateBucketInterceptorTest {
                 .putAttribute(AwsExecutionAttributes.AWS_REGION, Region.US_WEST_2);
 
         SdkRequest modifiedRequest = new CreateBucketInterceptor().modifyRequest(context, attributes);
-        String locationConstraint = ((CreateBucketRequest) modifiedRequest).createBucketConfiguration().locationConstraintString();
+        String locationConstraint = ((CreateBucketRequest) modifiedRequest).createBucketConfiguration().locationConstraintAsString();
 
         assertThat(locationConstraint).isEqualToIgnoringCase("us-west-2");
     }

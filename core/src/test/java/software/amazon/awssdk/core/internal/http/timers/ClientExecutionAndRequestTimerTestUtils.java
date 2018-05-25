@@ -21,12 +21,11 @@ import static org.junit.Assert.assertNull;
 import java.util.Collections;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.http.AmazonHttpClient;
+import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpMethodName;
-import software.amazon.awssdk.core.http.NoopTestAwsRequest;
+import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
@@ -110,10 +109,10 @@ public class ClientExecutionAndRequestTimerTestUtils {
     /**
      * Execute the request with a dummy response handler and error response handler
      */
-    public static void execute(AmazonHttpClient httpClient, Request<?> request) {
+    public static void execute(AmazonSyncHttpClient httpClient, Request<?> request) {
         httpClient.requestExecutionBuilder()
                 .request(request)
-                .originalRequest(NoopTestAwsRequest.builder().build())
+                .originalRequest(NoopTestRequest.builder().build())
                   .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
                 .errorResponseHandler(new NullErrorResponseHandler())
                 .execute(new ErrorDuringUnmarshallingResponseHandler());
@@ -122,7 +121,7 @@ public class ClientExecutionAndRequestTimerTestUtils {
     public static ExecutionContext executionContext(SdkHttpFullRequest request) {
         InterceptorContext incerceptorContext =
                 InterceptorContext.builder()
-                                  .request(NoopTestAwsRequest.builder().build())
+                                  .request(NoopTestRequest.builder().build())
                                   .httpRequest(request)
                                   .build();
         return ExecutionContext.builder()

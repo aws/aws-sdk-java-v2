@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.codegen.poet.transform.protocols;
 
-import static software.amazon.awssdk.codegen.model.intermediate.Protocol.AWS_JSON;
-
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -26,15 +24,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.protocol.Protocol;
 import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
-import software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -54,7 +51,7 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
 
     @Override
     public ParameterSpec protocolFactoryParameter() {
-        return ParameterSpec.builder(SdkJsonProtocolFactory.class, "protocolFactory").build();
+        return ParameterSpec.builder(AwsJsonProtocolFactory.class, "protocolFactory").build();
     }
 
     @Override
@@ -84,7 +81,7 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
 
     @Override
     public FieldSpec protocolFactory() {
-        return FieldSpec.builder(SdkJsonProtocolFactory.class, "protocolFactory")
+        return FieldSpec.builder(AwsJsonProtocolFactory.class, "protocolFactory")
                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL).build();
     }
 
@@ -94,8 +91,7 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
 
         CodeBlock.Builder initializationCodeBlockBuilder = CodeBlock.builder()
                                                                     .add("$T.builder()", OperationInfo.class);
-        initializationCodeBlockBuilder.add(".protocol($T.$L)", Protocol.class, protocolEnumName(metadata.getProtocol()))
-                                      .add(".requestUri($S)", shapeModel.getMarshaller().getRequestUri())
+        initializationCodeBlockBuilder.add(".requestUri($S)", shapeModel.getMarshaller().getRequestUri())
                                       .add(".httpMethodName($T.$L)", HttpMethodName.class, shapeModel.getMarshaller().getVerb())
                                       .add(".hasExplicitPayloadMember($L)", shapeModel.isHasPayloadMember())
                                       .add(".hasPayloadMembers($L)", shapeModel.hasPayloadMembers());
@@ -119,14 +115,4 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
         return fields;
     }
 
-    private String protocolEnumName(software.amazon.awssdk.codegen.model.intermediate.Protocol protocol) {
-        switch (protocol) {
-            case CBOR:
-            case ION:
-            case AWS_JSON:
-                return AWS_JSON.name();
-            default:
-                return protocol.name();
-        }
-    }
 }
