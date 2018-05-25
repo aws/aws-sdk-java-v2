@@ -76,7 +76,7 @@ class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
         pipeline.addLast(Http2MultiplexCodecBuilder
                              .forClient(new NoOpChannelInitializer())
                              // TODO disable frame logging for performance
-                             //.frameLogger(new SdkHttp2FrameLogger(LogLevel.DEBUG))
+                             .frameLogger(new SdkHttp2FrameLogger(LogLevel.DEBUG))
                              .headerSensitivityDetector((name, value) -> {
                                  String lowerName = name.toString().toLowerCase();
                                  return lowerName.equals("authorization");

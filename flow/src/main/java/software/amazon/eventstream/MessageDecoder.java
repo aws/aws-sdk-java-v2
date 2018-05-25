@@ -15,7 +15,7 @@ public final class MessageDecoder {
 
     public MessageDecoder(Consumer<Message> messageConsumer) {
         this.messageConsumer = messageConsumer;
-        this.buf = ByteBuffer.allocate(16 * 128 * 1024);
+        this.buf = ByteBuffer.allocate(8192 * 1024);
     }
 
     public void feed(byte[] bytes) {
