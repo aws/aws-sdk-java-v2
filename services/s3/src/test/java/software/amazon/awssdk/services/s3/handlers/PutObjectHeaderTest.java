@@ -115,7 +115,7 @@ public class PutObjectHeaderTest {
                                     .withBody("{}")));
         String contentType = "hello world";
 
-        putObjectRequest = (PutObjectRequest) putObjectRequest.toBuilder().requestOverrideConfig(b -> b.header(CONTENT_TYPE, contentType)).build();
+        putObjectRequest = (PutObjectRequest) putObjectRequest.toBuilder().overrideConfiguration(b -> b.header(CONTENT_TYPE, contentType)).build();
         s3Client.putObject(putObjectRequest, RequestBody.fromString("test"));
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(contentType)));
     }

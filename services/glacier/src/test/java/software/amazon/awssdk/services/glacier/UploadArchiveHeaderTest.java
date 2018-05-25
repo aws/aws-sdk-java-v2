@@ -91,7 +91,7 @@ public class UploadArchiveHeaderTest {
                                     .withStatus(200)
                                     .withBody("{}")));
 
-        request = (UploadArchiveRequest) request.toBuilder().requestOverrideConfig(b -> b.header(CONTENT_TYPE, "test")).build();
+        request = (UploadArchiveRequest) request.toBuilder().overrideConfiguration(b -> b.header(CONTENT_TYPE, "test")).build();
         glacier.uploadArchive(request, RequestBody.fromBytes("test".getBytes()));
         verify(postRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo("test")));
     }

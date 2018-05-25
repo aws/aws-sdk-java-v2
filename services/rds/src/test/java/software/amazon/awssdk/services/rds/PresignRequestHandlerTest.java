@@ -28,9 +28,9 @@ import java.util.TimeZone;
 import org.junit.Test;
 import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfig;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
@@ -164,8 +164,8 @@ public class PresignRequestHandlerTest {
 
     private ExecutionAttributes executionAttributes(RDSRequest request) {
         return new ExecutionAttributes().putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, CREDENTIALS)
-                                        .putAttribute(AwsExecutionAttributes.REQUEST_CONFIG, request.requestOverrideConfig()
-                                                .orElse(AwsRequestOverrideConfig.builder().build()));
+                                        .putAttribute(AwsExecutionAttributes.REQUEST_CONFIG, request.overrideConfiguration()
+                                                .orElse(AwsRequestOverrideConfiguration.builder().build()));
     }
 
     private CopyDBSnapshotRequest makeTestRequest() {

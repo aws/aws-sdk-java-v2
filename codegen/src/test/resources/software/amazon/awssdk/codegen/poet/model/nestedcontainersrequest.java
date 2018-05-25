@@ -8,7 +8,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import javax.annotation.Generated;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfig;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -171,13 +171,13 @@ public class NestedContainersRequest extends JsonProtocolTestsRequest implements
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder mapOfStringToListOfListOfStrings(
-            Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings);
+                Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings);
 
         @Override
-        Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig);
+        Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration);
 
         @Override
-        Builder requestOverrideConfig(Consumer<AwsRequestOverrideConfig.Builder> builderConsumer);
+        Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer);
     }
 
     static final class BuilderImpl extends JsonProtocolTestsRequest.BuilderImpl implements Builder {
@@ -224,7 +224,7 @@ public class NestedContainersRequest extends JsonProtocolTestsRequest implements
 
         @Override
         public final Builder listOfListOfListOfStrings(
-            Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStrings) {
+                Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStrings) {
             this.listOfListOfListOfStrings = ListOfListOfListOfStringsCopier.copy(listOfListOfListOfStrings);
             return this;
         }
@@ -237,7 +237,7 @@ public class NestedContainersRequest extends JsonProtocolTestsRequest implements
         }
 
         public final void setListOfListOfListOfStrings(
-            Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStrings) {
+                Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStrings) {
             this.listOfListOfListOfStrings = ListOfListOfListOfStringsCopier.copy(listOfListOfListOfStrings);
         }
 
@@ -247,25 +247,25 @@ public class NestedContainersRequest extends JsonProtocolTestsRequest implements
 
         @Override
         public final Builder mapOfStringToListOfListOfStrings(
-            Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings) {
+                Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings) {
             this.mapOfStringToListOfListOfStrings = MapOfStringToListOfListOfStringsCopier.copy(mapOfStringToListOfListOfStrings);
             return this;
         }
 
         public final void setMapOfStringToListOfListOfStrings(
-            Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings) {
+                Map<String, ? extends Collection<? extends Collection<String>>> mapOfStringToListOfListOfStrings) {
             this.mapOfStringToListOfListOfStrings = MapOfStringToListOfListOfStringsCopier.copy(mapOfStringToListOfListOfStrings);
         }
 
         @Override
-        public Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig) {
-            super.requestOverrideConfig(awsRequestOverrideConfig);
+        public Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration) {
+            super.overrideConfiguration(overrideConfiguration);
             return this;
         }
 
         @Override
-        public Builder requestOverrideConfig(Consumer<AwsRequestOverrideConfig.Builder> builderConsumer) {
-            super.requestOverrideConfig(builderConsumer);
+        public Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer) {
+            super.overrideConfiguration(builderConsumer);
             return this;
         }
 

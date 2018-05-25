@@ -31,7 +31,7 @@ public abstract class SdkRequest {
     /**
     * @return The optional client configuration overrides for this request.
     */
-    public abstract Optional<? extends RequestOverrideConfig> requestOverrideConfig();
+    public abstract Optional<? extends RequestOverrideConfiguration> overrideConfiguration();
 
     /**
     * Used to retrieve the value of a field from any class that extends {@link SdkRequest}. The field name
@@ -51,7 +51,7 @@ public abstract class SdkRequest {
     public abstract Builder toBuilder();
 
     public interface Builder {
-        RequestOverrideConfig requestOverrideConfig();
+        RequestOverrideConfiguration overrideConfiguration();
 
         SdkRequest build();
     }

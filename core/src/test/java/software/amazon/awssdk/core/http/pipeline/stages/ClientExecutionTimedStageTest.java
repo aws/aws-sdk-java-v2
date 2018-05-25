@@ -20,14 +20,13 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.time.Duration;
 import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.SdkRequestOverrideConfig;
+import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.config.SdkSyncClientConfiguration;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.http.ExecutionContext;
@@ -78,8 +77,8 @@ public class ClientExecutionTimedStageTest {
         });
 
         SdkRequest originalRequest = NoopTestRequest.builder()
-                                                    .requestOverrideConfig(SdkRequestOverrideConfig.builder()
-                                                                                                   .build())
+                                                    .overrideConfiguration(SdkRequestOverrideConfiguration.builder()
+                                                                                                          .build())
                                                     .build();
 
 
