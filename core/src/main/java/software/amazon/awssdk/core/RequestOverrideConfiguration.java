@@ -31,7 +31,7 @@ import software.amazon.awssdk.annotations.Immutable;
  * Base per-request override configuration for all SDK requests.
  */
 @Immutable
-public abstract class RequestOverrideConfig {
+public abstract class RequestOverrideConfiguration {
 
     private final Map<String, List<String>> headers;
 
@@ -39,7 +39,7 @@ public abstract class RequestOverrideConfig {
 
     private final List<ApiName> apiNames;
 
-    protected RequestOverrideConfig(Builder<?> builder) {
+    protected RequestOverrideConfiguration(Builder<?> builder) {
         this.headers = builder.headers();
         this.rawQueryParameters = builder.rawQueryParameters();
         this.apiNames = builder.apiNames();
@@ -73,7 +73,7 @@ public abstract class RequestOverrideConfig {
     }
 
     /**
-     * Create a {@link Builder} initialized with the properties of this {@code SdkRequestOverrideConfig}.
+     * Create a {@link Builder} initialized with the properties of this {@code SdkRequestOverrideConfiguration}.
      *
      * @return A new builder intialized with this config's properties.
      */
@@ -184,11 +184,11 @@ public abstract class RequestOverrideConfig {
         B addApiName(Consumer<ApiName.Builder> apiNameConsumer);
 
         /**
-         * Create a new {@code SdkRequestOverrideConfig} with the properties set on this builder.
+         * Create a new {@code SdkRequestOverrideConfiguration} with the properties set on this builder.
          *
-         * @return The new {@code SdkRequestOverrideConfig}.
+         * @return The new {@code SdkRequestOverrideConfiguration}.
          */
-        RequestOverrideConfig build();
+        RequestOverrideConfiguration build();
     }
 
     protected abstract static class BuilderImpl<B extends Builder> implements Builder<B> {
@@ -203,7 +203,7 @@ public abstract class RequestOverrideConfig {
         protected BuilderImpl() {
         }
 
-        protected BuilderImpl(RequestOverrideConfig sdkRequestOverrideConfig) {
+        protected BuilderImpl(RequestOverrideConfiguration sdkRequestOverrideConfig) {
             sdkRequestOverrideConfig.headers().ifPresent(this::headers);
             sdkRequestOverrideConfig.rawQueryParameters().ifPresent(this::rawQueryParameters);
             sdkRequestOverrideConfig.apiNames().ifPresent(apiNames -> apiNames.forEach(this::addApiName));
@@ -283,6 +283,6 @@ public abstract class RequestOverrideConfig {
             return (B) this;
         }
 
-        public abstract RequestOverrideConfig build();
+        public abstract RequestOverrideConfiguration build();
     }
 }

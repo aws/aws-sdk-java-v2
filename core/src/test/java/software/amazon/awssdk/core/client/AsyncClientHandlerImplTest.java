@@ -83,7 +83,7 @@ public class AsyncClientHandlerImplTest {
     @Before
     public void setup() {
         this.asyncClientHandler = new SdkAsyncClientHandlerImpl(clientConfiguration(), null);
-        when(request.requestOverrideConfig()).thenReturn(Optional.empty());
+        when(request.overrideConfiguration()).thenReturn(Optional.empty());
     }
 
     @Test

@@ -17,19 +17,19 @@ package software.amazon.awssdk.core.http;
 
 import java.util.Optional;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.SdkRequestOverrideConfig;
+import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 
 public class NoopTestRequest extends SdkRequest {
 
-    private final SdkRequestOverrideConfig requestOverrideConfig;
+    private final SdkRequestOverrideConfiguration requestOverrideConfig;
 
     private NoopTestRequest(Builder builder) {
-        this.requestOverrideConfig = builder.requestOverrideConfig();
+        this.requestOverrideConfig = builder.overrideConfiguration();
 
     }
 
     @Override
-    public Optional<SdkRequestOverrideConfig> requestOverrideConfig() {
+    public Optional<SdkRequestOverrideConfiguration> overrideConfiguration() {
         return Optional.ofNullable(requestOverrideConfig);
     }
 
@@ -47,20 +47,20 @@ public class NoopTestRequest extends SdkRequest {
         NoopTestRequest build();
 
         @Override
-        SdkRequestOverrideConfig requestOverrideConfig();
+        SdkRequestOverrideConfiguration overrideConfiguration();
 
-        Builder requestOverrideConfig(SdkRequestOverrideConfig requestOverrideConfig);
+        Builder overrideConfiguration(SdkRequestOverrideConfiguration requestOverrideConfig);
     }
 
     private static class BuilderImpl implements Builder {
-        private SdkRequestOverrideConfig requestOverrideConfig;
+        private SdkRequestOverrideConfiguration requestOverrideConfig;
 
         @Override
-        public SdkRequestOverrideConfig requestOverrideConfig() {
+        public SdkRequestOverrideConfiguration overrideConfiguration() {
             return requestOverrideConfig;
         }
 
-        public Builder requestOverrideConfig(SdkRequestOverrideConfig requestOverrideConfig) {
+        public Builder overrideConfiguration(SdkRequestOverrideConfiguration requestOverrideConfig) {
             this.requestOverrideConfig = requestOverrideConfig;
             return this;
         }

@@ -78,7 +78,7 @@ public class SyncClientHandlerImplTest {
     @Before
     public void setup() {
         this.syncClientHandler = new SdkSyncClientHandlerImpl(clientConfiguration(), null);
-        when(request.requestOverrideConfig()).thenReturn(Optional.empty());
+        when(request.overrideConfiguration()).thenReturn(Optional.empty());
     }
 
     @Test

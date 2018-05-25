@@ -23,14 +23,14 @@ import software.amazon.awssdk.core.SdkRequest;
  * Base class for all AWS Service requests.
  */
 public abstract class AwsRequest extends SdkRequest {
-    private final AwsRequestOverrideConfig requestOverrideConfig;
+    private final AwsRequestOverrideConfiguration requestOverrideConfig;
 
     protected AwsRequest(Builder builder) {
-        this.requestOverrideConfig = builder.requestOverrideConfig();
+        this.requestOverrideConfig = builder.overrideConfiguration();
     }
 
     @Override
-    public final Optional<AwsRequestOverrideConfig> requestOverrideConfig() {
+    public final Optional<AwsRequestOverrideConfiguration> overrideConfiguration() {
         return Optional.ofNullable(requestOverrideConfig);
     }
 
@@ -39,7 +39,7 @@ public abstract class AwsRequest extends SdkRequest {
 
     public interface Builder extends SdkRequest.Builder {
         @Override
-        AwsRequestOverrideConfig requestOverrideConfig();
+        AwsRequestOverrideConfiguration overrideConfiguration();
 
         /**
          * Add an optional request override configuration.
@@ -47,47 +47,48 @@ public abstract class AwsRequest extends SdkRequest {
          * @param awsRequestOverrideConfig The override configuration.
          * @return This object for method chaining.
          */
-        Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig);
+        Builder overrideConfiguration(AwsRequestOverrideConfiguration awsRequestOverrideConfig);
 
 
         /**
          * Add an optional request override configuration.
          *
-         * @param builderConsumer A {@link Consumer} to which an empty {@link AwsRequestOverrideConfig.Builder} will be given.
+         * @param builderConsumer A {@link Consumer} to which an empty {@link AwsRequestOverrideConfiguration.Builder} will be
+         * given.
          * @return This object for method chaining.
          */
-        Builder requestOverrideConfig(Consumer<AwsRequestOverrideConfig.Builder> builderConsumer);
+        Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer);
 
         @Override
         AwsRequest build();
     }
 
     protected abstract static class BuilderImpl implements Builder {
-        private AwsRequestOverrideConfig awsRequestOverrideConfig;
+        private AwsRequestOverrideConfiguration awsRequestOverrideConfig;
 
         protected BuilderImpl() {
         }
 
         protected BuilderImpl(AwsRequest request) {
-            request.requestOverrideConfig().ifPresent(this::requestOverrideConfig);
+            request.overrideConfiguration().ifPresent(this::overrideConfiguration);
         }
 
         @Override
-        public Builder requestOverrideConfig(AwsRequestOverrideConfig awsRequestOverrideConfig) {
+        public Builder overrideConfiguration(AwsRequestOverrideConfiguration awsRequestOverrideConfig) {
             this.awsRequestOverrideConfig = awsRequestOverrideConfig;
             return this;
         }
 
         @Override
-        public Builder requestOverrideConfig(Consumer<AwsRequestOverrideConfig.Builder> builderConsumer) {
-            AwsRequestOverrideConfig.Builder b = AwsRequestOverrideConfig.builder();
+        public Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> builderConsumer) {
+            AwsRequestOverrideConfiguration.Builder b = AwsRequestOverrideConfiguration.builder();
             builderConsumer.accept(b);
             awsRequestOverrideConfig = b.build();
             return this;
         }
 
         @Override
-        public final AwsRequestOverrideConfig requestOverrideConfig() {
+        public final AwsRequestOverrideConfiguration overrideConfiguration() {
             return awsRequestOverrideConfig;
         }
     }

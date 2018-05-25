@@ -17,8 +17,6 @@ package software.amazon.awssdk.services.dynamodb.datamodeling;
 
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toMap;
-import static software.amazon.awssdk.core.retry.RetryUtils.isServiceException;
-import static software.amazon.awssdk.core.retry.RetryUtils.toServiceException;
 import static software.amazon.awssdk.services.dynamodb.model.KeyType.HASH;
 import static software.amazon.awssdk.services.dynamodb.model.KeyType.RANGE;
 
@@ -37,12 +35,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.awscore.AwsRequest;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfig;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.RetryUtils;
@@ -777,26 +773,26 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
     }
 
     static <X extends AwsRequest> X applyUserAgent(X request) {
-        final AwsRequestOverrideConfig newCfg = request.requestOverrideConfig()
-                .map(c -> c.toBuilder())
-                .orElse(AwsRequestOverrideConfig.builder())
-                .addApiName(apiName -> apiName.name(USER_AGENT_NAME).version(VersionInfo.SDK_VERSION))
-                .build();
+        final AwsRequestOverrideConfiguration newCfg = request.overrideConfiguration()
+                                                              .map(c -> c.toBuilder())
+                                                              .orElse(AwsRequestOverrideConfiguration.builder())
+                                                              .addApiName(apiName -> apiName.name(USER_AGENT_NAME).version(VersionInfo.SDK_VERSION))
+                                                              .build();
 
         return (X) request.toBuilder()
-                .requestOverrideConfig(newCfg)
+                .overrideConfiguration(newCfg)
                 .build();
     }
 
     static <X extends AwsRequest> X applyBatchOperationUserAgent(X request) {
-        final AwsRequestOverrideConfig newCfg = request.requestOverrideConfig()
-                                                       .map(c -> c.toBuilder())
-                                                       .orElse(AwsRequestOverrideConfig.builder())
-                                                       .addApiName(apiName -> apiName.name(USER_AGENT_BATCH_OPERATION_NAME).version(VersionInfo.SDK_VERSION))
-                                                       .build();
+        final AwsRequestOverrideConfiguration newCfg = request.overrideConfiguration()
+                                                              .map(c -> c.toBuilder())
+                                                              .orElse(AwsRequestOverrideConfiguration.builder())
+                                                              .addApiName(apiName -> apiName.name(USER_AGENT_BATCH_OPERATION_NAME).version(VersionInfo.SDK_VERSION))
+                                                              .build();
 
         return (X) request.toBuilder()
-                .requestOverrideConfig(newCfg)
+                .overrideConfiguration(newCfg)
                 .build();
     }
 
