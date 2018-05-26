@@ -1,3 +1,26 @@
+# __2.0.0-preview-10__ __2018-05-25__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add [SdkHttpResponse](https://github.com/aws/aws-sdk-java-v2/blob/master/http-client-spi/src/main/java/software/amazon/awssdk/http/SdkHttpResponse.java) to [SdkResponse](https://github.com/aws/aws-sdk-java-v2/blob/master/core/src/main/java/software/amazon/awssdk/core/SdkResponse.java) so that customers can retrieve Http data such as headers, status code from the response object.
+    - Add a standard User-Agent when making requests to the metadata service.  User-Agent pattern: aws-sdk-java/<version>
+    - Added Consumer<Builder>-style methods for all client overloads.
+    - Added Consumer<Builder>-style methods for vararg parameters.
+    - AsyncResponseTransformer byte array and string methods now match the sync model.
+    - Include root causes in the exception message from AWSCredentialsProviderChain to ease troubleshooting.
+    - Moved AWS specific retry policies to aws-core module, created AwsServiceException and moved isThrottlingException and isClockSkewException methods to SdkServiceException.
+    - Renamed "Bytes" overload for streaming operations to "AsBytes", and "String" overload for enums to "AsString"
+    - Renamed AsyncRequestProvider to AsyncRequestBody to better match sync's RequestBody
+    - Renamed AsyncResponseHandler to AsyncResponseTransformer and StreamingResponseHandler to ResponseTransformer.
+    - Split core module to regions, profiles, auth, aws-core and core modules.[#27](https://github.com/aws/aws-sdk-java-v2/issues/27)
+    - Updating default retry policy to include newly added conditions.
+
+  - ### Removals
+    - Remove httpRequestTimeout and totalExecutionTimeout features
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Add AWS Secrets Manager to v2.
+    
 # __2.0.0-preview-9__ __2018-03-20__
 ## __AWS Lambda__
   - ### Features
@@ -246,29 +269,6 @@
     - The Netty NIO HTTP client now uses a shared event loop group for better resource management. More options for customizing the event loop group are now available.
     - Using java.time instead of the legacy java.util.Date in generated model classes.
     - Various improvements to the immutability of model POJOs. ByteBuffers are now copied and collections are returned as unmodifiable.
-
-# __2.0.0-preview-10__ __2018-05-25__
-## __AWS SDK for Java v2__
-  - ### Features
-    - Add [SdkHttpResponse](https://github.com/aws/aws-sdk-java-v2/blob/master/http-client-spi/src/main/java/software/amazon/awssdk/http/SdkHttpResponse.java) to [SdkResponse](https://github.com/aws/aws-sdk-java-v2/blob/master/core/src/main/java/software/amazon/awssdk/core/SdkResponse.java) so that customers can retrieve Http data such as headers, status code from the response object.
-    - Add a standard User-Agent when making requests to the metadata service.  User-Agent pattern: aws-sdk-java/<version>
-    - Added Consumer<Builder>-style methods for all client overloads.
-    - Added Consumer<Builder>-style methods for vararg parameters.
-    - AsyncResponseTransformer byte array and string methods now match the sync model.
-    - Include root causes in the exception message from AWSCredentialsProviderChain to ease troubleshooting.
-    - Moved AWS specific retry policies to aws-core module, created AwsServiceException and moved isThrottlingException and isClockSkewException methods to SdkServiceException.
-    - Renamed "Bytes" overload for streaming operations to "AsBytes", and "String" overload for enums to "AsString"
-    - Renamed AsyncRequestProvider to AsyncRequestBody to better match sync's RequestBody
-    - Renamed AsyncResponseHandler to AsyncResponseTransformer and StreamingResponseHandler to ResponseTransformer.
-    - Split core module to regions, profiles, auth, aws-core and core modules.[#27](https://github.com/aws/aws-sdk-java-v2/issues/27)
-    - Updating default retry policy to include newly added conditions.
-
-  - ### Removals
-    - Remove httpRequestTimeout and totalExecutionTimeout features
-
-## __AWS Secrets Manager__
-  - ### Features
-    - Add AWS Secrets Manager to v2.
 
 # __2.0.0-preview-1__ __2017-06-28__
 ## __AWS SDK for Java v2__
