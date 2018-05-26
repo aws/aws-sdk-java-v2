@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "feature", 
-    "description": "Add a standard User-Agent when making requests to the metadata service.  User-Agent pattern: aws-sdk-java/<version>"
-}

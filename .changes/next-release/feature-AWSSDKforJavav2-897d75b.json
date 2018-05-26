@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "feature", 
-    "description": "Renamed \"Bytes\" overload for streaming operations to \"AsBytes\", and \"String\" overload for enums to \"AsString\""
-}
