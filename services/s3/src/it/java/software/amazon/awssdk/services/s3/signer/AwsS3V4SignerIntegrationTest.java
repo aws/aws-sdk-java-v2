@@ -32,7 +32,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.auth.signer.params.AwsS3V4SignerParams;
@@ -55,14 +54,12 @@ import software.amazon.awssdk.utils.IoUtils;
 
 public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
 
+    private static final AwsCredentials awsCredentials = CREDENTIALS_PROVIDER_CHAIN.getCredentials();
     private static final Region REGION = Region.US_WEST_2;
     private static final String SIGNING_NAME = "s3";
     private static final String BUCKET_NAME = temporaryBucketName("s3-signer-integ-test");
     private static final String KEY = "test-key";
     private static final String CONTENT = "Hello world";
-
-    private static final AwsCredentials awsCredentials = DefaultCredentialsProvider.create().getCredentials();
-    private static final S3Client s3 = S3Client.builder().region(REGION).build();
 
     @BeforeClass
     public static void setup() {

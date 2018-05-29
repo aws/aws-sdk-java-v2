@@ -39,7 +39,6 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
@@ -50,27 +49,24 @@ import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
-import software.amazon.awssdk.testutils.service.AwsTestBase;
 import software.amazon.awssdk.utils.IoUtils;
 import utils.resources.tables.BasicTempTable;
+import utils.test.util.DynamoDBTestBase;
 import utils.test.util.TableUtils;
 
-public class SignersIntegrationTest extends AwsTestBase {
+public class SignersIntegrationTest extends DynamoDBTestBase {
 
-    private static final Region REGION = Region.US_WEST_1;
     private static final String TABLE_NAME = BasicTempTable.TEMP_TABLE_NAME;
-    private static final String HASH_KEY_NAME = "UID";
+    private static final String HASH_KEY_NAME = BasicTempTable.HASH_KEY_NAME;
     private static final String HASH_KEY_VALUE = "123789";
     private static final String ATTRIBUTE_FOO = "foo";
     private static final String ATTRIBUTE_FOO_VALUE = "bar";
     private static final AwsCredentials awsCredentials = CREDENTIALS_PROVIDER_CHAIN.getCredentials();
     private static final String SIGNING_NAME = "dynamodb";
 
-    private static DynamoDBClient dynamo;
-
     @BeforeClass
     public static void setUpFixture() throws Exception {
-        dynamo = DynamoDBClient.builder().region(REGION).build();
+        DynamoDBTestBase.setUpTestBase();
 
         dynamo.createTable(CreateTableRequest.builder().tableName(TABLE_NAME)
                                              .keySchema(KeySchemaElement.builder().keyType(KeyType.HASH)
@@ -172,8 +168,12 @@ public class SignersIntegrationTest extends AwsTestBase {
                                  .header("X-Amz-Target", "DynamoDB_20120810.GetItem")
                                  .encodedPath("/")
                                  .protocol("https")
-                                 .host("dynamodb.us-west-1.amazonaws.com")
+                                 .host(getHost())
                                  .build();
+    }
+
+    private String getHost() {
+        return String.format("dynamodb.%s.amazonaws.com", REGION.value());
     }
 
     private String getInputContent() {
