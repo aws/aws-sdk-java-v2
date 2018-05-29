@@ -18,15 +18,14 @@ package software.amazon.awssdk.auth.signer;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import software.amazon.awssdk.auth.signer.AbstractAwsSigner;
 
-public class AbstractAwsSignerTest {
+public class AbstractAws4SignerTest {
 
     @Test
     public void test() {
         assertEquals(
             "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            AbstractAwsSigner.EMPTY_STRING_SHA256_HEX);
+            AbstractAws4Signer.EMPTY_STRING_SHA256_HEX);
     }
 
 }

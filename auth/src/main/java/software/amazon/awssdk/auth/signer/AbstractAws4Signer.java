@@ -29,9 +29,11 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.signer.internal.AbstractAwsSigner;
 import software.amazon.awssdk.auth.signer.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.auth.signer.internal.Aws4SignerUtils;
 import software.amazon.awssdk.auth.signer.internal.FifoCache;
@@ -51,12 +53,16 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  * @param <T> Type of the signing params class that is used for signing the request
  * @param <U>Type of the signing params class that is used for pre signing the request
  */
+@SdkProtectedApi
 public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends Aws4PresignerParams>
     extends AbstractAwsSigner implements Presigner {
 
+    public static final String EMPTY_STRING_SHA256_HEX = BinaryUtils.toHex(hash(""));
+
     private static final Logger LOG = LoggerFactory.getLogger(Aws4Signer.class);
     private static final int SIGNER_CACHE_MAX_SIZE = 300;
-    private static final FifoCache<SignerKey> SIGNER_CACHE = new FifoCache<>(SIGNER_CACHE_MAX_SIZE);
+    private static final FifoCache<SignerKey> SIGNER_CACHE =
+        new FifoCache<>(SIGNER_CACHE_MAX_SIZE);
     private static final List<String> LIST_OF_HEADERS_TO_IGNORE_IN_LOWER_CASE = Arrays.asList("connection", "x-amzn-trace-id");
 
     protected SdkHttpFullRequest.Builder doSign(SdkHttpFullRequest request,
