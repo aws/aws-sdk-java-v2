@@ -29,6 +29,8 @@ import utils.S3TestUtils;
  * file and creates an S3 client for callers to use.
  */
 public class S3IntegrationTestBase extends AwsTestBase {
+
+    protected static final Region DEFAULT_REGION = Region.US_WEST_2;
     /**
      * The S3 client for all tests to use.
      */
@@ -48,13 +50,13 @@ public class S3IntegrationTestBase extends AwsTestBase {
 
     protected static S3ClientBuilder s3ClientBuilder() {
         return S3Client.builder()
-                       .region(Region.US_WEST_2)
+                       .region(DEFAULT_REGION)
                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
     }
 
     protected static S3AsyncClientBuilder s3AsyncClientBuilder() {
         return S3AsyncClient.builder()
-                            .region(Region.US_WEST_2)
+                            .region(DEFAULT_REGION)
                             .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
     }
 

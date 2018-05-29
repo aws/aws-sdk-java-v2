@@ -192,7 +192,7 @@ public class BaseClientBuilderClass implements ClassSpec {
     }
 
     private CodeBlock v2SignerDefinitionMethodBody() {
-        return CodeBlock.of("return new $T();", QueryStringSigner.class);
+        return CodeBlock.of("return $T.create();", QueryStringSigner.class);
     }
 
     private CodeBlock s3SignerDefinitionMethodBody() {

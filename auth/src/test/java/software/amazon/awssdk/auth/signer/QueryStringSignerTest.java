@@ -24,6 +24,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
@@ -34,17 +35,19 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 
 public class QueryStringSignerTest {
 
-    private static final QueryStringSigner signer = new QueryStringSigner();
     private static final AwsCredentials credentials = AwsCredentials.create("123456789", "123456789");
-
     private static final String EXPECTED_SIGNATURE = "VjYMhf9TWp08zAxXbKDAvUhW9GjJ56QjAuSj3LBsfjM=";
 
-    static {
+    private static QueryStringSigner signer;
+
+    @BeforeClass
+    public static void setup() {
         Calendar c = new GregorianCalendar();
         c.clear();
         c.set(1981, 1, 16, 6, 30, 0);
         c.setTimeZone(TimeZone.getTimeZone("UTC"));
-        signer.overrideDate(c.getTime());
+
+        signer = QueryStringSigner.builder().overriddenDate(c.getTime()).build();
     }
 
     @Test

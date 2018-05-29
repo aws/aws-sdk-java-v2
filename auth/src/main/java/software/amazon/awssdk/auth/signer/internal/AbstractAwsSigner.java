@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.signer;
+package software.amazon.awssdk.auth.signer.internal;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -33,13 +33,13 @@ import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.signer.SigningAlgorithm;
 import software.amazon.awssdk.core.RequestClientOptions;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.io.SdkDigestInputStream;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.Base64Utils;
-import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
@@ -52,7 +52,6 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  */
 public abstract class AbstractAwsSigner implements Signer {
 
-    public static final String EMPTY_STRING_SHA256_HEX;
     private static final ThreadLocal<MessageDigest> SHA256_MESSAGE_DIGEST;
 
     static {
@@ -65,7 +64,6 @@ public abstract class AbstractAwsSigner implements Signer {
                         + e.getMessage(), e);
             }
         });
-        EMPTY_STRING_SHA256_HEX = BinaryUtils.toHex(doHash(""));
     }
 
     private static byte[] doHash(String text) throws SdkClientException {
@@ -156,7 +154,7 @@ public abstract class AbstractAwsSigner implements Signer {
      * @return The hashed bytes from the specified string.
      * @throws SdkClientException If the hash cannot be computed.
      */
-    public byte[] hash(String text) throws SdkClientException {
+    public static byte[] hash(String text) throws SdkClientException {
         return AbstractAwsSigner.doHash(text);
     }
 
