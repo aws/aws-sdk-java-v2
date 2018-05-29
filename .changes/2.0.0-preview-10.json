@@ -71,6 +71,26 @@
             "category": "AWS SDK for Java v2",
             "type": "feature",
             "description": "Moved AWS specific retry policies to aws-core module, created AwsServiceException and moved isThrottlingException and isClockSkewException methods to SdkServiceException."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Renamed `AdvancedServiceConfiguration` to `ServiceConfiguration`"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Renamed `RequestOverrideConfig` to `RequestOverrideConfiguration` to match `ClientOverrideConfiguration` naming."
+        },
+        {
+            "category": "Amazon S3",
+            "type": "feature",
+            "description": "Renamed `S3AdvancedConfiguration` to `S3Configuration`"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Simplified configuration of HTTP clients."
         }
     ]
 }
