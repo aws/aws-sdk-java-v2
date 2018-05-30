@@ -25,7 +25,7 @@ public class FixedDelayBackoffStrategyTest {
 
     @Test
     public void positiveBackoff_ReturnsFixedBackoffOnDelay() {
-        long delay = new FixedDelayBackoffStrategy(Duration.ofMillis(100)).computeDelayBeforeNextRetry(RetryPolicyContexts.EMPTY)
+        long delay = FixedDelayBackoffStrategy.create(Duration.ofMillis(100)).computeDelayBeforeNextRetry(RetryPolicyContexts.EMPTY)
                                                                           .toMillis();
         assertEquals(100, delay);
     }

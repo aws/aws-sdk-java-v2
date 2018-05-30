@@ -15,10 +15,12 @@
 
 package software.amazon.awssdk.core;
 
+import software.amazon.awssdk.utils.SdkAutoCloseable;
+
 /**
  * All SDK service client interfaces should extend this interface.
  */
-public interface SdkClient {
+public interface SdkClient extends SdkAutoCloseable {
 
     /**
      * The name of the service.

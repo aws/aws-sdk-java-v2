@@ -15,10 +15,12 @@
 
 package software.amazon.awssdk.core.retry;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.http.HttpStatusCodes;
 
+@SdkProtectedApi
 public final class RetryUtils {
 
     private RetryUtils() {

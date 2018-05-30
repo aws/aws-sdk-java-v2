@@ -18,9 +18,9 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import static software.amazon.awssdk.core.config.InternalAdvancedClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
 
 import java.util.Optional;
-import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
+import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.SdkHttpResponseAdapter;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;

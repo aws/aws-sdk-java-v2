@@ -25,16 +25,16 @@ public class MaxNumberOfRetriesConditionTest {
 
     @Test
     public void positiveMaxRetries_OneMoreAttemptToMax_ReturnsTrue() {
-        assertTrue(new MaxNumberOfRetriesCondition(3).shouldRetry(RetryPolicyContexts.withRetriesAttempted(2)));
+        assertTrue(MaxNumberOfRetriesCondition.create(3).shouldRetry(RetryPolicyContexts.withRetriesAttempted(2)));
     }
 
     @Test
     public void positiveMaxRetries_AtMaxAttempts_ReturnsFalse() {
-        assertFalse(new MaxNumberOfRetriesCondition(3).shouldRetry(RetryPolicyContexts.withRetriesAttempted(3)));
+        assertFalse(MaxNumberOfRetriesCondition.create(3).shouldRetry(RetryPolicyContexts.withRetriesAttempted(3)));
     }
 
     @Test
     public void positiveMaxRetries_PastMaxAttempts_ReturnsFalse() {
-        assertFalse(new MaxNumberOfRetriesCondition(3).shouldRetry(RetryPolicyContexts.withRetriesAttempted(4)));
+        assertFalse(MaxNumberOfRetriesCondition.create(3).shouldRetry(RetryPolicyContexts.withRetriesAttempted(4)));
     }
 }

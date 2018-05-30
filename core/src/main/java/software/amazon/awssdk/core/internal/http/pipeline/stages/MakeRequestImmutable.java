@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
-import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 

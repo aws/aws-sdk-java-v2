@@ -26,7 +26,7 @@ import software.amazon.awssdk.core.retry.conditions.RetryOnStatusCodeCondition;
 
 public class RetryOnStatusCodeConditionTest {
 
-    private final RetryCondition condition = new RetryOnStatusCodeCondition(Sets.newHashSet(404, 500, 513));
+    private final RetryCondition condition = RetryOnStatusCodeCondition.create(Sets.newHashSet(404, 500, 513));
 
     @Test
     public void retryableStatusCode_ReturnsTrue() {
@@ -45,13 +45,13 @@ public class RetryOnStatusCodeConditionTest {
 
     @Test
     public void noStatusCodesInList_ReturnsFalse() {
-        final RetryCondition noStatusCodes = new RetryOnStatusCodeCondition(Collections.emptySet());
+        final RetryCondition noStatusCodes = RetryOnStatusCodeCondition.create(Collections.emptySet());
         assertFalse(noStatusCodes.shouldRetry(RetryPolicyContexts.withStatusCode(404)));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void nullListOfStatusCodes_ThrowsException() {
-        new RetryOnStatusCodeCondition(null);
+        RetryOnStatusCodeCondition.create(null);
     }
 
 }

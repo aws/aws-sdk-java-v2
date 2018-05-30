@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
-import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.HttpSyncClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
+import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.SdkHttpClient;

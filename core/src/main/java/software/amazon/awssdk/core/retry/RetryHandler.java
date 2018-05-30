@@ -20,14 +20,14 @@ import static java.util.Collections.singletonList;
 import java.time.Duration;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.util.CapacityManager;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 @SdkInternalApi
-public class RetryHandler {
+public final class RetryHandler {
 
     public static final String HEADER_SDK_RETRY_INFO = "amz-sdk-retry";
 

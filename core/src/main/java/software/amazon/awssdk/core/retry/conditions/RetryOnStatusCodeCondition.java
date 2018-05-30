@@ -27,11 +27,11 @@ import software.amazon.awssdk.core.retry.RetryPolicyContext;
  * Retry condition implementation that retries if the HTTP status code matches one of the provided status codes.
  */
 @SdkPublicApi
-public class RetryOnStatusCodeCondition implements RetryCondition {
+public final class RetryOnStatusCodeCondition implements RetryCondition {
 
     private final Set<Integer> statusCodesToRetryOn;
 
-    public RetryOnStatusCodeCondition(Set<Integer> statusCodesToRetryOn) {
+    private RetryOnStatusCodeCondition(Set<Integer> statusCodesToRetryOn) {
         this.statusCodesToRetryOn = new HashSet<>(
                 assertNotNull(statusCodesToRetryOn, "statusCodesToRetryOn"));
     }
@@ -45,5 +45,9 @@ public class RetryOnStatusCodeCondition implements RetryCondition {
     public boolean shouldRetry(RetryPolicyContext context) {
         return Optional.ofNullable(context.httpStatusCode()).map(s ->
             statusCodesToRetryOn.stream().anyMatch(code -> code.equals(s))).orElse(false);
+    }
+
+    public static RetryOnStatusCodeCondition create(Set<Integer> statusCodesToRetryOn) {
+        return new RetryOnStatusCodeCondition(statusCodesToRetryOn);
     }
 }

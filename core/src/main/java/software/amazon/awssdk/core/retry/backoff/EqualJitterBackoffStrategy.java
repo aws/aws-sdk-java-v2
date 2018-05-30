@@ -47,7 +47,7 @@ public final class EqualJitterBackoffStrategy implements BackoffStrategy,
     private final int numRetries;
     private final Random random = new Random();
 
-    public EqualJitterBackoffStrategy(Builder builder) {
+    private EqualJitterBackoffStrategy(Builder builder) {
         this.baseDelay = isNotNegative(builder.baseDelay, "baseDelay");
         this.maxBackoffTime = isNotNegative(builder.maxBackoffTime, "maxBackoffTime");
         this.numRetries = Validate.isNotNegative(builder.numRetries, "numRetries");
@@ -68,11 +68,14 @@ public final class EqualJitterBackoffStrategy implements BackoffStrategy,
         return new EqualJitterBackoffStrategy.Builder();
     }
 
-    public static class Builder implements CopyableBuilder<EqualJitterBackoffStrategy.Builder, EqualJitterBackoffStrategy> {
+    public static final class Builder implements CopyableBuilder<EqualJitterBackoffStrategy.Builder, EqualJitterBackoffStrategy> {
 
         private Duration baseDelay;
         private Duration maxBackoffTime;
         private int numRetries;
+
+        private Builder(){
+        }
 
         public Builder baseDelay(Duration baseDelay) {
             this.baseDelay = baseDelay;

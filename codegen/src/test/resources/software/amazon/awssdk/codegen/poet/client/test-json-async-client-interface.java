@@ -23,7 +23,6 @@ import software.amazon.awssdk.services.json.model.StreamingOutputOperationReques
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher;
 import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * Service client for accessing Json Service asynchronously. This can be created using the static {@link #builder()}
@@ -32,7 +31,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * A service that is implemented using the query protocol
  */
 @Generated("software.amazon.awssdk:codegen")
-public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
+public interface JsonAsyncClient extends SdkClient {
     String SERVICE_NAME = "json-service";
 
     /**
