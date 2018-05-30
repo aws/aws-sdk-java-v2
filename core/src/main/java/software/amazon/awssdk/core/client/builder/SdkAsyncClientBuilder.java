@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.core.client.builder;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Consumer;
+import software.amazon.awssdk.core.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 
 /**
@@ -30,16 +30,18 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
  */
 public interface SdkAsyncClientBuilder<B extends SdkAsyncClientBuilder<B, C>, C> {
     /**
-     * Configure the executor service provider that generates {@link ScheduledExecutorService} instances to queue
-     * up async tasks in the client. This executor is used for various processes within the async client like queueing up
-     * retries, it is not used to make or process the actual HTTP request (that's handled by the Async HTTP implementation
-     * and can be configured via {@link #asyncHttpClientBuilder(SdkAsyncHttpClient.Builder)} as the implementation allows).
-     *
-     * <p>
-     * A new {@link ExecutorService} will be created from this provider each time {@link SdkClientBuilder#build()} is invoked.
-     * </p>
+     * Specify overrides to the default SDK async configuration that should be used for clients created by this builder.
      */
-    B asyncExecutorProvider(ExecutorProvider asyncExecutorProvider);
+    B asyncConfiguration(ClientAsyncConfiguration clientAsyncConfiguration);
+
+    /**
+     * Similar to {@link #asyncConfiguration(ClientAsyncConfiguration)}, but takes a lambda to configure a new
+     * {@link ClientAsyncConfiguration.Builder}. This removes the need to called {@link ClientAsyncConfiguration#builder()}
+     * and {@link ClientAsyncConfiguration.Builder#build()}.
+     */
+    default B asyncConfiguration(Consumer<ClientAsyncConfiguration.Builder> clientAsyncConfiguration) {
+        return asyncConfiguration(ClientAsyncConfiguration.builder().apply(clientAsyncConfiguration).build());
+    }
 
     /**
      * Sets the {@link SdkAsyncHttpClient} that the SDK service client will use to make HTTP calls. This HTTP client may be

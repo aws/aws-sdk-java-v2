@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.config.options.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.config.options.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.config.options.SdkClientOption;
 import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
@@ -59,7 +60,9 @@ public class HttpTestUtils {
                                      .option(SdkAdvancedClientOption.SIGNER, new NoOpSigner())
                                      .option(SdkAdvancedClientOption.USER_AGENT_PREFIX, "")
                                      .option(SdkAdvancedClientOption.USER_AGENT_SUFFIX, "")
-                                     .option(SdkClientOption.ASYNC_EXECUTOR_SERVICE, Executors.newScheduledThreadPool(1))
+                                     .option(SdkClientOption.ASYNC_RETRY_EXECUTOR_SERVICE, Executors.newScheduledThreadPool(1))
+                                     .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR,
+                                             Runnable::run)
                                      .build();
     }
 
