@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.services.cloudsearchdomain;
 
-import software.amazon.awssdk.core.http.pipeline.stages.MoveParametersToBodyStage;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.MoveParametersToBodyStage;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.services.cloudsearchdomain.model.SearchRequest;

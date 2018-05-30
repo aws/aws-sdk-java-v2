@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  * Adapts a {@link Request} to the new {@link SdkHttpFullRequest} interface.
  */
 @ReviewBeforeRelease("This should eventually be removed and SdkHttpFullRequest should completely replace Request")
+@SdkProtectedApi
 public final class SdkHttpFullRequestAdapter {
 
     private SdkHttpFullRequestAdapter() {

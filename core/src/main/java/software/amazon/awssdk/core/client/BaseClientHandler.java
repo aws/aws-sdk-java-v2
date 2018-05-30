@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.client;
 
 import java.util.Optional;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
@@ -26,7 +27,6 @@ import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.config.InternalAdvancedClientOption;
 import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.http.DefaultSdkHttpResponse;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
@@ -34,10 +34,12 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
+import software.amazon.awssdk.core.internal.http.DefaultSdkHttpResponse;
 import software.amazon.awssdk.core.internal.http.response.SdkErrorResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 
+@SdkProtectedApi
 public abstract class BaseClientHandler {
     private final ServiceConfiguration serviceConfiguration;
     private SdkClientConfiguration clientConfiguration;

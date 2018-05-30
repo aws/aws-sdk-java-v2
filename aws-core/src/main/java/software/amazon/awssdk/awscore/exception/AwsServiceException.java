@@ -17,6 +17,7 @@ package software.amazon.awssdk.awscore.exception;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.awscore.internal.AwsErrorCodes;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 
 /**
@@ -51,9 +52,11 @@ public class AwsServiceException extends SdkServiceException {
     }
 
     @Override
-    public boolean additionalThrottlingCondition() {
-        return Optional.ofNullable(errorCode())
+    public boolean isThrottlingException() {
+        return super.isThrottlingException() ||
+               Optional.ofNullable(errorCode())
                        .map(AwsErrorCodes.THROTTLING_ERROR_CODES::contains)
                        .orElse(false);
     }
+
 }

@@ -98,17 +98,14 @@ public class DefaultErrorResponseHandlerTest extends WireMockTestBase {
     }
 
     private void executeRequest() {
-        expectException(new Runnable() {
-            @Override
-            public void run() {
-                Request<?> request = newGetRequest(RESOURCE);
-                client.requestExecutionBuilder()
-                      .errorResponseHandler(sut)
-                      .originalRequest(NoopTestAwsRequest.builder().build())
-                      .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
-                      .request(request)
-                      .execute();
-            }
+        expectException(() -> {
+            Request<?> request = newGetRequest(RESOURCE);
+            client.requestExecutionBuilder()
+                  .errorResponseHandler(sut)
+                  .originalRequest(NoopTestAwsRequest.builder().build())
+                  .executionContext(executionContext(SdkHttpFullRequestAdapter.toHttpFullRequest(request)))
+                  .request(request)
+                  .execute();
         });
     }
 
@@ -117,14 +114,12 @@ public class DefaultErrorResponseHandlerTest extends WireMockTestBase {
         try {
             r.run();
             throw new RuntimeException("Expected exception, got none");
-        } catch (Exception e) {
-            System.out.println("exept");
-            // Ignored or expected.
+        } catch (Exception expected) {
         }
     }
 
     private List<LoggingEvent> debugEvents() {
-        List<LoggingEvent> info = new ArrayList<LoggingEvent>();
+        List<LoggingEvent> info = new ArrayList<>();
         List<LoggingEvent> loggingEvents = logCaptor.loggedEvents();
         for (LoggingEvent le : loggingEvents) {
             if (le.getLevel().equals(Level.DEBUG)) {

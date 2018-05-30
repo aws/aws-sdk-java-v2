@@ -31,7 +31,7 @@ import software.amazon.awssdk.regions.Region;
  * @param <T> The type of value associated with the option.
  */
 @ReviewBeforeRelease("Ensure that all of these options are actually advanced.")
-public class AwsAdvancedClientOption<T> extends SdkAdvancedClientOption<T> {
+public final class AwsAdvancedClientOption<T> extends SdkAdvancedClientOption<T> {
 
     /**
      * AWS Region the client was configured with. Note that this is not always the signing region in the case of global
@@ -53,7 +53,7 @@ public class AwsAdvancedClientOption<T> extends SdkAdvancedClientOption<T> {
 
     public static final AwsAdvancedClientOption<String> SERVICE_SIGNING_NAME = new AwsAdvancedClientOption<>(String.class);
 
-    protected AwsAdvancedClientOption(Class<T> valueClass) {
+    private AwsAdvancedClientOption(Class<T> valueClass) {
         super(valueClass);
     }
 }

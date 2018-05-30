@@ -24,7 +24,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  */
 @ReviewBeforeRelease("Move this to aws-core module once HttpResponseAdaptingStage is removed")
 @SdkInternalApi
-public class InternalAdvancedClientOption<T> extends SdkAdvancedClientOption<T> {
+public final class InternalAdvancedClientOption<T> extends SdkAdvancedClientOption<T> {
     /**
      * Whether to calculate the CRC 32 checksum of a message based on the uncompressed data. By default, this is false.
      */

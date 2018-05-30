@@ -27,22 +27,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * as this may result in additional calls being made that may contain large payloads.
  */
 @SdkPublicApi
-public class Crc32MismatchException extends SdkClientException {
+public final class Crc32MismatchException extends SdkClientException {
 
     private static final long serialVersionUID = 1L;
-
-    /**
-     * Creates a new CRC32MismatchException with the specified message, and root
-     * cause.
-     *
-     * @param message
-     *            An error message describing why this exception was thrown.
-     * @param t
-     *            The underlying cause of this exception.
-     */
-    public Crc32MismatchException(String message, Throwable t) {
-        super(message, t);
-    }
 
     /**
      * Creates a new CRC32MismatchException with the specified message.

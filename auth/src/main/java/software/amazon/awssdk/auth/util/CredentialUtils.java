@@ -15,8 +15,10 @@
 
 package software.amazon.awssdk.auth.util;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 
+@SdkProtectedApi
 public final class CredentialUtils {
 
     private CredentialUtils() {
