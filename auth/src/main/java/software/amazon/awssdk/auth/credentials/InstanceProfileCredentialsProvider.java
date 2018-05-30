@@ -26,7 +26,7 @@ import software.amazon.awssdk.utils.ToString;
 /**
  * Credentials provider implementation that loads credentials from the Amazon EC2 Instance Metadata Service.
  */
-public class InstanceProfileCredentialsProvider extends HttpCredentialsProvider {
+public final class InstanceProfileCredentialsProvider extends HttpCredentialsProvider {
 
     //TODO: make this private
     static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
@@ -64,7 +64,7 @@ public class InstanceProfileCredentialsProvider extends HttpCredentialsProvider 
         return ToString.create("InstanceProfileCredentialsProvider");
     }
 
-    private static class InstanceProviderCredentialsEndpointProvider implements ResourcesEndpointProvider {
+    private static final class InstanceProviderCredentialsEndpointProvider implements ResourcesEndpointProvider {
         @Override
         public URI endpoint() throws IOException {
             String host = SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();

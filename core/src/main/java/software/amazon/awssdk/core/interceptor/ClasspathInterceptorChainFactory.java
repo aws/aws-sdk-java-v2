@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.ClassLoaderHelper;
 import software.amazon.awssdk.utils.Validate;
@@ -35,6 +36,7 @@ import software.amazon.awssdk.utils.Validate;
 /**
  * Factory for creating request/response handler chains from the classpath.
  */
+@SdkProtectedApi
 public final class ClasspathInterceptorChainFactory {
 
     private static final String GLOBAL_INTERCEPTOR_PATH = "software/amazon/awssdk/global/handlers/execution.interceptors";

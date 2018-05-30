@@ -25,14 +25,10 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * See {@link RetryableException} for marking retryable exceptions.
  */
 @SdkPublicApi
-public class NonRetryableException extends SdkException {
+public final class NonRetryableException extends SdkException {
 
     public NonRetryableException(String message) {
         super(message);
-    }
-
-    public NonRetryableException(String message, Throwable t) {
-        super(message, t);
     }
 
     @Override

@@ -28,11 +28,13 @@ import java.nio.file.StandardOpenOption;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
  * Implementation of {@link AsyncRequestBody} that reads data from a file.
  */
+@SdkInternalApi
 final class FileAsyncRequestBody implements AsyncRequestBody {
 
     /**

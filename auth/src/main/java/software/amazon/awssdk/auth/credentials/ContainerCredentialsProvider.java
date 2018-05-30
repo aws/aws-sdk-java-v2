@@ -142,9 +142,6 @@ public final class ContainerCredentialsProvider extends HttpCredentialsProvider 
 
         private ResourcesEndpointProvider credentialsEndpointProvider = new ContainerCredentialsEndpointProvider();
 
-        /**
-         * Created using {@link #builder()}.
-         */
         private Builder() {
             super.asyncThreadName("container-credentials-provider");
         }

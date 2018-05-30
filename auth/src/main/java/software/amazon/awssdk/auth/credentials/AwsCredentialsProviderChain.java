@@ -123,7 +123,7 @@ public final class AwsCredentialsProviderChain implements AwsCredentialsProvider
     /**
      * A builder for a {@link AwsCredentialsProviderChain} that allows controlling its behavior.
      */
-    public static class Builder {
+    public static final class Builder {
         private Boolean reuseLastProviderEnabled = true;
         private List<AwsCredentialsProvider> credentialsProviders = new ArrayList<>();
 

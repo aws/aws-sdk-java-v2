@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.auth.signer.params;
 
-public class AwsS3V4SignerParams extends Aws4SignerParams {
+public final class AwsS3V4SignerParams extends Aws4SignerParams {
 
     private final Boolean enableChunkedEncoding;
     private final Boolean enablePayloadSigning;
@@ -40,8 +40,8 @@ public class AwsS3V4SignerParams extends Aws4SignerParams {
 
     // Default values from v1
     public static final class Builder extends Aws4SignerParams.Builder<Builder> {
-        public static final boolean DEFAULT_CHUNKED_ENCODING_ENABLED = true;
-        public static final boolean DEFAULT_PAYLOAD_SIGNING_ENABLED = false;
+        static final boolean DEFAULT_CHUNKED_ENCODING_ENABLED = true;
+        static final boolean DEFAULT_PAYLOAD_SIGNING_ENABLED = false;
 
 
         private Boolean enableChunkedEncoding = DEFAULT_CHUNKED_ENCODING_ENABLED;
