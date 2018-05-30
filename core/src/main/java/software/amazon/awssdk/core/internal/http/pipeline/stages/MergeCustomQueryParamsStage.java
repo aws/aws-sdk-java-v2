@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.CollectionUtils;

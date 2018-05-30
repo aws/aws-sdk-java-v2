@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline;
 
 import java.util.function.BiFunction;
-import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 
 /**
  * Represents a series of transformations when executing a SDK request.

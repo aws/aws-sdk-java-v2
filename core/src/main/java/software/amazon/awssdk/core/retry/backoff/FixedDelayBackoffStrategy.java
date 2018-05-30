@@ -27,12 +27,16 @@ public final class FixedDelayBackoffStrategy implements BackoffStrategy {
 
     private final Duration fixedBackoff;
 
-    public FixedDelayBackoffStrategy(Duration fixedBackoff) {
+    private FixedDelayBackoffStrategy(Duration fixedBackoff) {
         this.fixedBackoff = isNotNegative(fixedBackoff, "fixedBackoff");
     }
 
     @Override
     public Duration computeDelayBeforeNextRetry(RetryPolicyContext context) {
         return fixedBackoff;
+    }
+
+    public static FixedDelayBackoffStrategy create(Duration fixedBackoff) {
+        return new FixedDelayBackoffStrategy(fixedBackoff);
     }
 }

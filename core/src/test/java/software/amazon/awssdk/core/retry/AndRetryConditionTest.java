@@ -25,8 +25,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.core.retry.conditions.RetryCondition;
 import software.amazon.awssdk.core.retry.conditions.AndRetryCondition;
+import software.amazon.awssdk.core.retry.conditions.RetryCondition;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AndRetryConditionTest {
@@ -41,7 +41,7 @@ public class AndRetryConditionTest {
 
     @Before
     public void setup() {
-        andCondition = new AndRetryCondition(conditionOne, conditionTwo);
+        andCondition = AndRetryCondition.create(conditionOne, conditionTwo);
     }
 
     @Test
@@ -78,21 +78,21 @@ public class AndRetryConditionTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void noConditions_ThrowsException() {
-        new AndRetryCondition().shouldRetry(RetryPolicyContexts.EMPTY);
+        AndRetryCondition.create().shouldRetry(RetryPolicyContexts.EMPTY);
     }
 
     @Test
     public void singleConditionThatReturnsTrue_ReturnsTrue() {
         when(conditionOne.shouldRetry(RetryPolicyContexts.EMPTY))
                 .thenReturn(true);
-        assertTrue(new AndRetryCondition(conditionOne).shouldRetry(RetryPolicyContexts.EMPTY));
+        assertTrue(AndRetryCondition.create(conditionOne).shouldRetry(RetryPolicyContexts.EMPTY));
     }
 
     @Test
     public void singleConditionThatReturnsFalse_ReturnsFalse() {
         when(conditionOne.shouldRetry(RetryPolicyContexts.EMPTY))
                 .thenReturn(false);
-        assertFalse(new AndRetryCondition(conditionOne).shouldRetry(RetryPolicyContexts.EMPTY));
+        assertFalse(AndRetryCondition.create(conditionOne).shouldRetry(RetryPolicyContexts.EMPTY));
     }
 
 }

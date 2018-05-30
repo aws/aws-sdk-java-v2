@@ -46,6 +46,6 @@ public interface BackoffStrategy {
     }
 
     static BackoffStrategy none() {
-        return new FixedDelayBackoffStrategy(Duration.ofMillis(1));
+        return FixedDelayBackoffStrategy.create(Duration.ofMillis(1));
     }
 }

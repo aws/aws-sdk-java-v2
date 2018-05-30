@@ -44,7 +44,7 @@ public final class FullJitterBackoffStrategy implements BackoffStrategy,
     private final int numRetries;
     private final Random random = new Random();
 
-    public FullJitterBackoffStrategy(Builder builder) {
+    private FullJitterBackoffStrategy(Builder builder) {
         this.baseDelay = isNotNegative(builder.baseDelay, "baseDelay");
         this.maxBackoffTime = isNotNegative(builder.maxBackoffTime, "maxBackoffTime");
         this.numRetries = Validate.isNotNegative(builder.numRetries, "numRetries");
@@ -65,11 +65,14 @@ public final class FullJitterBackoffStrategy implements BackoffStrategy,
         return new Builder();
     }
 
-    public static class Builder implements CopyableBuilder<Builder, FullJitterBackoffStrategy> {
+    public static final class Builder implements CopyableBuilder<Builder, FullJitterBackoffStrategy> {
 
         private Duration baseDelay;
         private Duration maxBackoffTime;
         private int numRetries;
+
+        private Builder(){
+        }
 
         public Builder baseDelay(Duration baseDelay) {
             this.baseDelay = baseDelay;

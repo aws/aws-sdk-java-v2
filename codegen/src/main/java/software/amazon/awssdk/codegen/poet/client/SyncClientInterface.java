@@ -50,7 +50,6 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public final class SyncClientInterface implements ClassSpec {
 
@@ -71,7 +70,6 @@ public final class SyncClientInterface implements ClassSpec {
         TypeSpec.Builder result = PoetUtils.createInterfaceBuilder(className);
 
         result.addSuperinterface(SdkClient.class)
-              .addSuperinterface(SdkAutoCloseable.class)
               .addJavadoc(getJavadoc())
               .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
                                  .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
