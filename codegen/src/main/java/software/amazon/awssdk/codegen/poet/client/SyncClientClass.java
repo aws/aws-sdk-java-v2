@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.config.AwsSyncClientConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -43,18 +42,17 @@ import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryXmlProtocolSpec;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.client.SyncClientHandler;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
 
 public class SyncClientClass implements ClassSpec {
 
     private final IntermediateModel model;
-    private final String basePackage;
     private final PoetExtensions poetExtensions;
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
 
     public SyncClientClass(GeneratorTaskParams taskParams) {
         this.model = taskParams.getModel();
-        this.basePackage = model.getMetadata().getFullClientPackageName();
         this.poetExtensions = taskParams.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getSyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model.getMetadata().getProtocol());
@@ -72,15 +70,10 @@ public class SyncClientClass implements ClassSpec {
                                                     interfaceClass)
                                         .addField(SyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
                                         .addField(protocolSpec.protocolFactory(model))
-                                        .addField(AwsSyncClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
+                                        .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
+                                        .addMethod(constructor())
                                         .addMethod(nameMethod())
                                         .addMethods(operations());
-
-        if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
-            classBuilder.addMethod(constructorWithServiceConfiguration());
-        } else {
-            classBuilder.addMethod(constructor());
-        }
 
         protocolSpec.createErrorResponseHandler().ifPresent(classBuilder::addMethod);
 
@@ -110,22 +103,8 @@ public class SyncClientClass implements ClassSpec {
     private MethodSpec constructor() {
         return MethodSpec.constructorBuilder()
                          .addModifiers(Modifier.PROTECTED)
-                         .addParameter(AwsSyncClientConfiguration.class, "clientConfiguration")
-                         .addStatement("this.clientHandler = new $T(clientConfiguration, null)",
-                                       protocolSpec.getClientHandlerClass())
-                         .addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name)
-                         .addStatement("this.clientConfiguration = clientConfiguration")
-                         .build();
-    }
-
-    private MethodSpec constructorWithServiceConfiguration() {
-        ClassName serviceConfiguration = ClassName.get(basePackage,
-                                                        model.getCustomizationConfig().getServiceSpecificClientConfigClass());
-        return MethodSpec.constructorBuilder()
-                         .addModifiers(Modifier.PROTECTED)
-                         .addParameter(AwsSyncClientConfiguration.class, "clientConfiguration")
-                         .addParameter(serviceConfiguration, "serviceConfiguration")
-                         .addStatement("this.clientHandler = new $T(clientConfiguration, serviceConfiguration)",
+                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
+                         .addStatement("this.clientHandler = new $T(clientConfiguration)",
                                        protocolSpec.getClientHandlerClass())
                          .addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name)
                          .addStatement("this.clientConfiguration = clientConfiguration")

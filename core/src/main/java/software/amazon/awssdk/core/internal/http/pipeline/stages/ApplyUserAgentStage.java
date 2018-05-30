@@ -20,9 +20,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.config.options.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
@@ -55,9 +54,8 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     }
 
     private String getUserAgent(SdkClientConfiguration config, List<ApiName> requestApiNames) {
-        ClientOverrideConfiguration overrideConfig = config.overrideConfiguration();
-        String userDefinedPrefix = overrideConfig.advancedOption(SdkAdvancedClientOption.USER_AGENT_PREFIX);
-        String userDefinedSuffix = overrideConfig.advancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX);
+        String userDefinedPrefix = config.option(SdkAdvancedClientOption.USER_AGENT_PREFIX);
+        String userDefinedSuffix = config.option(SdkAdvancedClientOption.USER_AGENT_SUFFIX);
 
         String awsExecutionEnvironment = SdkSystemSetting.AWS_EXECUTION_ENV.getStringValue().orElse(null);
 

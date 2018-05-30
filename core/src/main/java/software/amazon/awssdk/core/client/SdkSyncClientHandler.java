@@ -20,8 +20,8 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceConfiguration;
-import software.amazon.awssdk.core.config.SdkSyncClientConfiguration;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.config.options.SdkClientOptionValidation;
 import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 
@@ -33,9 +33,9 @@ import software.amazon.awssdk.core.sync.ResponseTransformer;
 @SdkProtectedApi
 public class SdkSyncClientHandler extends BaseSyncClientHandler implements SyncClientHandler {
 
-    protected SdkSyncClientHandler(SdkSyncClientConfiguration clientConfiguration, ServiceConfiguration
-            serviceConfiguration) {
-        super(clientConfiguration, serviceConfiguration, new AmazonSyncHttpClient(clientConfiguration));
+    protected SdkSyncClientHandler(SdkClientConfiguration clientConfiguration) {
+        super(clientConfiguration, new AmazonSyncHttpClient(clientConfiguration));
+        SdkClientOptionValidation.validateSyncClientOptions(clientConfiguration);
     }
 
     @Override

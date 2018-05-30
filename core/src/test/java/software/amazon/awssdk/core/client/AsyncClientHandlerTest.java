@@ -22,7 +22,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -40,21 +39,18 @@ import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
-import software.amazon.awssdk.core.config.SdkAsyncClientConfiguration;
-import software.amazon.awssdk.core.config.SdkMutableClientConfiguration;
-import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.config.options.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.EmptySdkResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
-import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.async.AbortableRunnable;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
+import utils.HttpTestUtils;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AsyncClientHandlerTest {
@@ -82,7 +78,7 @@ public class AsyncClientHandlerTest {
 
     @Before
     public void setup() {
-        this.asyncClientHandler = new SdkAsyncClientHandler(clientConfiguration(), null);
+        this.asyncClientHandler = new SdkAsyncClientHandler(clientConfiguration());
         when(request.overrideConfiguration()).thenReturn(Optional.empty());
     }
 
@@ -145,19 +141,10 @@ public class AsyncClientHandlerTest {
                 .withErrorResponseHandler(errorResponseHandler);
     }
 
-    public SdkAsyncClientConfiguration clientConfiguration() {
-        SdkMutableClientConfiguration mutableClientConfiguration = new SdkMutableClientConfiguration()
-                .asyncHttpClient(httpClient)
-                .endpoint(URI.create("http://test.com"));
-
-        mutableClientConfiguration.overrideConfiguration(
-            ClientOverrideConfiguration.builder()
-                                       .advancedOption(SdkAdvancedClientOption.SIGNER, new NoOpSigner())
-                                       .retryPolicy(RetryPolicy.builder().numRetries(0).build())
-                                       .build());
-
-        new GlobalClientConfigurationDefaults().applyAsyncDefaults(mutableClientConfiguration);
-
-        return mutableClientConfiguration;
+    public SdkClientConfiguration clientConfiguration() {
+        return HttpTestUtils.testClientConfiguration().toBuilder()
+                            .option(SdkClientOption.ASYNC_HTTP_CLIENT, httpClient)
+                            .option(SdkClientOption.RETRY_POLICY, RetryPolicy.NONE)
+                            .build();
     }
 }

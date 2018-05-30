@@ -55,7 +55,6 @@ public class ConnectionPoolMaxConnectionsIntegrationTest {
         String localhostEndpoint = "http://localhost:" + server.getPort();
 
         AmazonSyncHttpClient httpClient = HttpTestUtils.testClientBuilder()
-                                                       .clientExecutionTimeout(null)
                                                        .retryPolicy(RetryPolicy.NONE)
                                                        .httpClient(ApacheHttpClient.builder()
                                                                                    .connectionTimeout(Duration.ofMillis(100))

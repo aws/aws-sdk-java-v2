@@ -18,14 +18,14 @@ package software.amazon.awssdk.awscore.client.handler;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.awscore.config.AwsAsyncClientConfiguration;
+import software.amazon.awssdk.awscore.config.options.AwsClientOptionValidation;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.AsyncClientHandler;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
 import software.amazon.awssdk.core.client.SdkAsyncClientHandler;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
 
 /**
@@ -35,14 +35,12 @@ import software.amazon.awssdk.core.http.ExecutionContext;
 @Immutable
 public final class AwsAsyncClientHandler extends SdkAsyncClientHandler implements AsyncClientHandler {
 
-    private final AwsAsyncClientConfiguration clientConfiguration;
-    private final ServiceConfiguration serviceConfiguration;
+    private final SdkClientConfiguration clientConfiguration;
 
-    public AwsAsyncClientHandler(AwsAsyncClientConfiguration clientConfiguration, ServiceConfiguration
-        serviceConfiguration) {
-        super(clientConfiguration, serviceConfiguration);
+    public AwsAsyncClientHandler(SdkClientConfiguration clientConfiguration) {
+        super(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceConfiguration = serviceConfiguration;
+        AwsClientOptionValidation.validateAsyncClientOptions(clientConfiguration);
     }
 
     @Override
@@ -60,7 +58,7 @@ public final class AwsAsyncClientHandler extends SdkAsyncClientHandler implement
 
     @Override
     protected ExecutionContext createExecutionContext(SdkRequest originalRequest) {
-        return AwsClientHandlerUtils.createExecutionContext(originalRequest, clientConfiguration, serviceConfiguration);
+        return AwsClientHandlerUtils.createExecutionContext(originalRequest, clientConfiguration);
     }
 
 }
