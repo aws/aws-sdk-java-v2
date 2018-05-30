@@ -21,7 +21,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -36,20 +35,17 @@ import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
-import software.amazon.awssdk.core.config.SdkMutableClientConfiguration;
-import software.amazon.awssdk.core.config.SdkSyncClientConfiguration;
-import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.config.options.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.EmptySdkResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
-import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import utils.HttpTestUtils;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SyncClientHandlerTest {
@@ -77,7 +73,7 @@ public class SyncClientHandlerTest {
 
     @Before
     public void setup() {
-        this.syncClientHandler = new SdkSyncClientHandler(clientConfiguration(), null);
+        this.syncClientHandler = new SdkSyncClientHandler(clientConfiguration());
         when(request.overrideConfiguration()).thenReturn(Optional.empty());
     }
 
@@ -135,19 +131,10 @@ public class SyncClientHandlerTest {
                 .withErrorResponseHandler(errorResponseHandler);
     }
 
-    public SdkSyncClientConfiguration clientConfiguration() {
-        SdkMutableClientConfiguration mutableClientConfiguration = new SdkMutableClientConfiguration()
-                .endpoint(URI.create("http://test.com"))
-                .httpClient(httpClient);
-
-        mutableClientConfiguration.overrideConfiguration(
-            ClientOverrideConfiguration.builder()
-                                       .advancedOption(SdkAdvancedClientOption.SIGNER, new NoOpSigner())
-                                       .retryPolicy(RetryPolicy.NONE)
-                                       .build());
-
-        new GlobalClientConfigurationDefaults().applySyncDefaults(mutableClientConfiguration);
-
-        return mutableClientConfiguration;
+    public SdkClientConfiguration clientConfiguration() {
+        return HttpTestUtils.testClientConfiguration().toBuilder()
+                            .option(SdkClientOption.SYNC_HTTP_CLIENT, httpClient)
+                            .option(SdkClientOption.RETRY_POLICY, RetryPolicy.NONE)
+                            .build();
     }
 }

@@ -13,15 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.config;
+package software.amazon.awssdk.core.config.options;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.signer.Signer;
-import software.amazon.awssdk.utils.AttributeMap;
+
 
 /**
  * A collection of advanced options that can be configured on an AWS client via
- * {@link ClientOverrideConfiguration.Builder#advancedOption(SdkAdvancedClientOption, Object)}.
+ * {@link software.amazon.awssdk.core.config.ClientOverrideConfiguration.Builder#advancedOption(SdkAdvancedClientOption, Object)}.
  *
  * <p>These options are usually not required outside of testing or advanced libraries, so most users should not need to configure
  * them.</p>
@@ -29,7 +30,8 @@ import software.amazon.awssdk.utils.AttributeMap;
  * @param <T> The type of value associated with the option.
  */
 @ReviewBeforeRelease("Ensure that all of these options are actually advanced.")
-public class SdkAdvancedClientOption<T> extends AttributeMap.Key<T> {
+@SdkPublicApi
+public class SdkAdvancedClientOption<T> extends ClientOption<T> {
     /**
      * Set the prefix of the user agent that is sent with each request to AWS.
      */
@@ -42,6 +44,9 @@ public class SdkAdvancedClientOption<T> extends AttributeMap.Key<T> {
     @ReviewBeforeRelease("This should either be changed when we refactor metrics, or the comment should be expanded upon.")
     public static final SdkAdvancedClientOption<String> USER_AGENT_SUFFIX = new SdkAdvancedClientOption<>(String.class);
 
+    /**
+     * Define the signer that should be used when authenticating with AWS.
+     */
     public static final SdkAdvancedClientOption<Signer> SIGNER = new SdkAdvancedClientOption<>(Signer.class);
 
     protected SdkAdvancedClientOption(Class<T> valueClass) {

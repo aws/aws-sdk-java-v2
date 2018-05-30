@@ -13,25 +13,25 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.client;
+package software.amazon.awssdk.core.config.options;
 
-import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.config.options.SdkClientOptionValidation;
-import software.amazon.awssdk.core.http.AmazonAsyncHttpClient;
+import software.amazon.awssdk.utils.AttributeMap;
 
 /**
- * Default implementation of {@link AsyncClientHandler}.
+ * An option in a {@link SdkClientConfiguration}.
+ *
+ * @see SdkAdvancedClientOption
+ * @see SdkClientOption
  */
-@Immutable
-@ThreadSafe
 @SdkProtectedApi
-public class SdkAsyncClientHandler extends BaseAsyncClientHandler implements AsyncClientHandler {
+public abstract class ClientOption<T> extends AttributeMap.Key<T> {
+    protected ClientOption(Class<T> valueClass) {
+        super(valueClass);
+    }
 
-    protected SdkAsyncClientHandler(SdkClientConfiguration clientConfiguration) {
-        super(clientConfiguration, new AmazonAsyncHttpClient(clientConfiguration));
-        SdkClientOptionValidation.validateAsyncClientOptions(clientConfiguration);
+    protected ClientOption(UnsafeValueType unsafeValueType) {
+        super(unsafeValueType);
     }
 }
