@@ -38,7 +38,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * <p>Use {@link #builder()} to create a set of options.</p>
  */
 @SdkPublicApi
-public class ClientOverrideConfiguration
+public final class ClientOverrideConfiguration
     implements ToCopyableBuilder<ClientOverrideConfiguration.Builder, ClientOverrideConfiguration> {
     private final Map<String, List<String>> additionalHttpHeaders;
     private final Boolean gzipEnabled;

@@ -22,7 +22,7 @@ import software.amazon.awssdk.regions.util.ResourcesEndpointRetryParameters;
 import software.amazon.awssdk.regions.util.ResourcesEndpointRetryPolicy;
 
 @SdkInternalApi
-class ContainerCredentialsRetryPolicy implements ResourcesEndpointRetryPolicy {
+final class ContainerCredentialsRetryPolicy implements ResourcesEndpointRetryPolicy {
 
     /** Max number of times a request is retried before failing. */
     private static final int MAX_RETRIES = 5;

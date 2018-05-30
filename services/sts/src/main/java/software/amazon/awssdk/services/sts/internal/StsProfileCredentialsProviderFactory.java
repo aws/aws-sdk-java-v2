@@ -35,7 +35,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * {@link StsAssumeRoleCredentialsProvider}.
  */
 @SdkProtectedApi
-public class StsProfileCredentialsProviderFactory implements ChildProfileCredentialsProviderFactory {
+public final class StsProfileCredentialsProviderFactory implements ChildProfileCredentialsProviderFactory {
     private static final String MISSING_PROPERTY_ERROR_FORMAT = "'%s' must be set to use role-based credential loading in the "
                                                                 + "'%s' profile.";
 
@@ -49,7 +49,7 @@ public class StsProfileCredentialsProviderFactory implements ChildProfileCredent
      * {@link #create(AwsCredentialsProvider, Profile)} is invoked. This wrapper is important because it ensures the parent
      * credentials provider is closed when the assume-role credentials provider is no longer needed.
      */
-    private static class StsProfileCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
+    private static final class StsProfileCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
         private final STSClient stsClient;
         private final AwsCredentialsProvider parentCredentialsProvider;
         private final StsAssumeRoleCredentialsProvider credentialsProvider;

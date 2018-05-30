@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.http;
 
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 
 /**
@@ -22,6 +23,7 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
  * for testing purposes.
  */
 @SdkTestInternalApi
+@ReviewBeforeRelease("Don't like this mixing of test code")
 class UnreliableTestConfig {
     private int maxNumErrors = 1;
     private int bytesReadBeforeException = 100;

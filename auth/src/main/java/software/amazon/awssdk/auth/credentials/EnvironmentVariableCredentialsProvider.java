@@ -23,7 +23,7 @@ import software.amazon.awssdk.utils.ToString;
  * {@link AwsCredentialsProvider} implementation that loads credentials from the AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and
  * AWS_SESSION_TOKEN environment variables.
  */
-public class EnvironmentVariableCredentialsProvider extends SystemSettingsCredentialsProvider {
+public final class EnvironmentVariableCredentialsProvider extends SystemSettingsCredentialsProvider {
 
     private EnvironmentVariableCredentialsProvider() {
     }

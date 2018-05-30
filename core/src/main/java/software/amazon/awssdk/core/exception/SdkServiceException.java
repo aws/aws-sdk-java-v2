@@ -239,14 +239,8 @@ public class SdkServiceException extends SdkException {
      *
      * @return true if the status code is 429, otherwise false.
      */
-    public final boolean isThrottlingException() {
-        return statusCode() == HttpStatusCodes.THROTTLING || additionalThrottlingCondition();
+    public boolean isThrottlingException() {
+        return statusCode() == HttpStatusCodes.THROTTLING;
     }
 
-    /**
-     * Can be overridden by subclasses to provide additional throttling conditions.
-     */
-    protected boolean additionalThrottlingCondition() {
-        return false;
-    }
 }
