@@ -24,9 +24,10 @@ import java.io.InputStream;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.RequestExecutionContext;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
-import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
+import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.runtime.io.ReleasableInputStream;
 import software.amazon.awssdk.core.runtime.io.ResettableInputStream;
 import software.amazon.awssdk.core.runtime.io.SdkBufferedInputStream;
@@ -39,6 +40,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  *
  * @param <OutputT> Type of unmarshalled response
  */
+@SdkInternalApi
 public class StreamManagingStage<OutputT> implements RequestPipeline<SdkHttpFullRequest, Response<OutputT>> {
 
     private static final Logger log = LoggerFactory.getLogger(StreamManagingStage.class);

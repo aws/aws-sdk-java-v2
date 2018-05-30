@@ -23,7 +23,6 @@ import software.amazon.awssdk.services.json.model.StreamingOutputOperationReques
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher;
 import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * Service client for accessing Json Service asynchronously. This can be created using the static {@link #builder()}
@@ -32,7 +31,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * A service that is implemented using the query protocol
  */
 @Generated("software.amazon.awssdk:codegen")
-public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
+public interface JsonAsyncClient extends SdkClient {
     String SERVICE_NAME = "json-service";
 
     /**
@@ -767,7 +766,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      * Some operation with a streaming input
      *
      * @param streamingInputOperationRequest
-     * @param path
+     * @param sourcePath
      *        {@link Path} to file containing data to send to the service. File will be read entirely and may be read
      *        multiple times in the event of a retry. If the file does not exist or the current user does not have
      *        access to read it then an exception will be thrown. The service documentation for the request content is
@@ -788,8 +787,8 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
-        StreamingInputOperationRequest streamingInputOperationRequest, Path path) {
-        return streamingInputOperation(streamingInputOperationRequest, AsyncRequestBody.fromFile(path));
+        StreamingInputOperationRequest streamingInputOperationRequest, Path sourcePath) {
+        return streamingInputOperation(streamingInputOperationRequest, AsyncRequestBody.fromFile(sourcePath));
     }
 
     /**
@@ -802,7 +801,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      * @param streamingInputOperationRequest
      *        A {@link Consumer} that will call methods on {@link StructureWithStreamingMember.Builder} to create a
      *        request.
-     * @param path
+     * @param sourcePath
      *        {@link Path} to file containing data to send to the service. File will be read entirely and may be read
      *        multiple times in the event of a retry. If the file does not exist or the current user does not have
      *        access to read it then an exception will be thrown. The service documentation for the request content is
@@ -823,9 +822,9 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
-        Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, Path path) {
+        Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, Path sourcePath) {
         return streamingInputOperation(StreamingInputOperationRequest.builder().apply(streamingInputOperationRequest).build(),
-                                       path);
+                                       sourcePath);
     }
 
     /**
@@ -899,7 +898,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      * Some operation with a streaming output
      *
      * @param streamingOutputOperationRequest
-     * @param path
+     * @param destinationPath
      *        {@link Path} to file that response contents will be written to. The file must not exist or this method
      *        will throw an exception. If the file is not writable by the current user then an exception will be thrown.
      *        The service documentation for the response content is as follows 'This be a stream'.
@@ -919,8 +918,8 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingOutputOperationResponse> streamingOutputOperation(
-        StreamingOutputOperationRequest streamingOutputOperationRequest, Path path) {
-        return streamingOutputOperation(streamingOutputOperationRequest, AsyncResponseTransformer.toFile(path));
+        StreamingOutputOperationRequest streamingOutputOperationRequest, Path destinationPath) {
+        return streamingOutputOperation(streamingOutputOperationRequest, AsyncResponseTransformer.toFile(destinationPath));
     }
 
     /**
@@ -933,7 +932,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      * @param streamingOutputOperationRequest
      *        A {@link Consumer} that will call methods on {@link StreamingOutputOperationRequest.Builder} to create a
      *        request.
-     * @param path
+     * @param destinationPath
      *        {@link Path} to file that response contents will be written to. The file must not exist or this method
      *        will throw an exception. If the file is not writable by the current user then an exception will be thrown.
      *        The service documentation for the response content is as follows 'This be a stream'.
@@ -953,8 +952,8 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingOutputOperationResponse> streamingOutputOperation(
-        Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest, Path path) {
+        Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest, Path destinationPath) {
         return streamingOutputOperation(StreamingOutputOperationRequest.builder().apply(streamingOutputOperationRequest).build(),
-                                        path);
+                                        destinationPath);
     }
 }

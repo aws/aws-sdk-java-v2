@@ -18,12 +18,12 @@ import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.config.AwsAsyncClientConfiguration;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocol;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.core.client.AsyncClientHandler;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.flow.FlowResponseTransformer;
 import software.amazon.awssdk.core.flow.UnmarshallingFlowAsyncResponseTransformer;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -31,7 +31,6 @@ import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorShapeMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
-import software.amazon.awssdk.core.protocol.json.SdkJsonProtocolFactory;
 import software.amazon.awssdk.services.kinesis.model.AddTagsToStreamRequest;
 import software.amazon.awssdk.services.kinesis.model.AddTagsToStreamResponse;
 import software.amazon.awssdk.services.kinesis.model.CreateStreamRequest;
@@ -210,7 +209,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new SubscribeToShardResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<SubscribeToShardRequest, SubscribeToShardResponse>()
                                          .withMarshaller(new SubscribeToShardRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -232,7 +231,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
                 .withHasStreamingSuccessResponse(false),
             new SubscribeToShardEventUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<SubscribeToShardRequest, SubscribeToShardResponse>()
                                          .withMarshaller(new SubscribeToShardRequestMarshaller(protocolFactory))
@@ -272,7 +271,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new AddTagsToStreamResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<AddTagsToStreamRequest, AddTagsToStreamResponse>()
                                          .withMarshaller(new AddTagsToStreamRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -308,7 +307,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new CreateStreamResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<CreateStreamRequest, CreateStreamResponse>()
                                          .withMarshaller(new CreateStreamRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -347,7 +346,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new DecreaseStreamRetentionPeriodResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler
             .execute(new ClientExecutionParams<DecreaseStreamRetentionPeriodRequest, DecreaseStreamRetentionPeriodResponse>()
@@ -385,7 +384,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new DeleteStreamResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<DeleteStreamRequest, DeleteStreamResponse>()
                                          .withMarshaller(new DeleteStreamRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -422,7 +421,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new DeregisterStreamConsumerResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler
             .execute(new ClientExecutionParams<DeregisterStreamConsumerRequest, DeregisterStreamConsumerResponse>()
@@ -458,7 +457,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new DescribeLimitsResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<DescribeLimitsRequest, DescribeLimitsResponse>()
                                          .withMarshaller(new DescribeLimitsRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -493,7 +492,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new DescribeStreamResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<DescribeStreamRequest, DescribeStreamResponse>()
                                          .withMarshaller(new DescribeStreamRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -530,7 +529,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new DescribeStreamConsumerResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<DescribeStreamConsumerRequest, DescribeStreamConsumerResponse>()
                                          .withMarshaller(new DescribeStreamConsumerRequestMarshaller(protocolFactory))
@@ -567,7 +566,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new DescribeStreamSummaryResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<DescribeStreamSummaryRequest, DescribeStreamSummaryResponse>()
                                          .withMarshaller(new DescribeStreamSummaryRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -605,7 +604,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new DisableEnhancedMonitoringResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler
             .execute(new ClientExecutionParams<DisableEnhancedMonitoringRequest, DisableEnhancedMonitoringResponse>()
@@ -645,7 +644,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new EnableEnhancedMonitoringResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler
             .execute(new ClientExecutionParams<EnableEnhancedMonitoringRequest, EnableEnhancedMonitoringResponse>()
@@ -683,7 +682,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new GetChildShardsResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<GetChildShardsRequest, GetChildShardsResponse>()
                                          .withMarshaller(new GetChildShardsRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -726,7 +725,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new GetRecordsResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<GetRecordsRequest, GetRecordsResponse>()
                                          .withMarshaller(new GetRecordsRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -762,7 +761,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new GetShardIteratorResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<GetShardIteratorRequest, GetShardIteratorResponse>()
                                          .withMarshaller(new GetShardIteratorRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -801,7 +800,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new IncreaseStreamRetentionPeriodResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler
             .execute(new ClientExecutionParams<IncreaseStreamRetentionPeriodRequest, IncreaseStreamRetentionPeriodResponse>()
@@ -841,7 +840,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new ListShardsResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<ListShardsRequest, ListShardsResponse>()
                                          .withMarshaller(new ListShardsRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -880,7 +879,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new ListStreamConsumersResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<ListStreamConsumersRequest, ListStreamConsumersResponse>()
                                          .withMarshaller(new ListStreamConsumersRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -914,7 +913,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new ListStreamsResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<ListStreamsRequest, ListStreamsResponse>()
                                          .withMarshaller(new ListStreamsRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -950,7 +949,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new ListTagsForStreamResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<ListTagsForStreamRequest, ListTagsForStreamResponse>()
                                          .withMarshaller(new ListTagsForStreamRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -987,7 +986,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new MergeShardsResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<MergeShardsRequest, MergeShardsResponse>()
                                          .withMarshaller(new MergeShardsRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -1029,7 +1028,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new PutRecordResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<PutRecordRequest, PutRecordResponse>()
                                          .withMarshaller(new PutRecordRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -1071,7 +1070,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new PutRecordsResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<PutRecordsRequest, PutRecordsResponse>()
                                          .withMarshaller(new PutRecordsRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -1109,7 +1108,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new RegisterStreamConsumerResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<RegisterStreamConsumerRequest, RegisterStreamConsumerResponse>()
                                          .withMarshaller(new RegisterStreamConsumerRequestMarshaller(protocolFactory))
@@ -1148,7 +1147,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new RemoveTagsFromStreamResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<RemoveTagsFromStreamRequest, RemoveTagsFromStreamResponse>()
                                          .withMarshaller(new RemoveTagsFromStreamRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -1185,7 +1184,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new SplitShardResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<SplitShardRequest, SplitShardResponse>()
                                          .withMarshaller(new SplitShardRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -1229,7 +1228,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new StartStreamEncryptionResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<StartStreamEncryptionRequest, StartStreamEncryptionResponse>()
                                          .withMarshaller(new StartStreamEncryptionRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -1267,7 +1266,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new StopStreamEncryptionResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<StopStreamEncryptionRequest, StopStreamEncryptionResponse>()
                                          .withMarshaller(new StopStreamEncryptionRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -1304,7 +1303,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
             new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
             new UpdateShardCountResponseUnmarshaller());
 
-        HttpResponseHandler<SdkServiceException> errorResponseHandler = createErrorResponseHandler();
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
         return clientHandler.execute(new ClientExecutionParams<UpdateShardCountRequest, UpdateShardCountResponse>()
                                          .withMarshaller(new UpdateShardCountRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
@@ -1366,7 +1365,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
                                                                  .build());
     }
 
-    private HttpResponseHandler<SdkServiceException> createErrorResponseHandler() {
+    private HttpResponseHandler<AwsServiceException> createErrorResponseHandler() {
         return protocolFactory.createErrorResponseHandler(new JsonErrorResponseMetadata());
     }
 }

@@ -18,8 +18,18 @@ package software.amazon.awssdk.core.async;
 import java.nio.ByteBuffer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
-class ByteArrayAsyncRequestBody implements AsyncRequestBody {
+/**
+ * An implementation of {@link AsyncRequestBody} for providing data from memory. This is created using static
+ * methods on {@link AsyncRequestBody}
+ *
+ * @see AsyncRequestBody#fromBytes(byte[])
+ * @see AsyncRequestBody#fromByteBuffer(ByteBuffer)
+ * @see AsyncRequestBody#fromString(String)
+ */
+@SdkInternalApi
+final class ByteArrayAsyncRequestBody implements AsyncRequestBody {
 
     private final byte[] bytes;
 

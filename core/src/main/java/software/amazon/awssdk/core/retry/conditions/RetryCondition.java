@@ -24,20 +24,19 @@ import software.amazon.awssdk.core.retry.SdkDefaultRetrySettings;
 @FunctionalInterface
 public interface RetryCondition {
 
-    RetryCondition DEFAULT = new OrRetryCondition(
-        new RetryOnErrorCodeCondition(SdkDefaultRetrySettings.RETRYABLE_ERROR_CODES),
-        new RetryOnStatusCodeCondition(SdkDefaultRetrySettings.RETRYABLE_STATUS_CODES),
-        new RetryOnExceptionsCondition(SdkDefaultRetrySettings.RETRYABLE_EXCEPTIONS),
-        c -> RetryUtils.isThrottlingException(c.exception()),
-        c -> RetryUtils.isClockSkewError(c.exception()));
-    RetryCondition NONE = new MaxNumberOfRetriesCondition(0);
+    RetryCondition DEFAULT = OrRetryCondition.create(
+        RetryOnStatusCodeCondition.create(SdkDefaultRetrySettings.RETRYABLE_STATUS_CODES),
+        RetryOnExceptionsCondition.create(SdkDefaultRetrySettings.RETRYABLE_EXCEPTIONS),
+        c -> RetryUtils.isClockSkewException(c.exception()),
+        c -> RetryUtils.isThrottlingException(c.exception()));
+    RetryCondition NONE = MaxNumberOfRetriesCondition.create(0);
 
     default OrRetryCondition or(RetryCondition other) {
-        return new OrRetryCondition(this, other);
+        return OrRetryCondition.create(this, other);
     }
 
     default AndRetryCondition and(RetryCondition other) {
-        return new AndRetryCondition(this, other);
+        return AndRetryCondition.create(this, other);
     }
 
     /**

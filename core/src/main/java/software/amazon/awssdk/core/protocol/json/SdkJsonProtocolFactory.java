@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.OperationInfo;
@@ -34,10 +35,10 @@ import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
  */
 @ThreadSafe
 @SdkProtectedApi
-public class SdkJsonProtocolFactory extends BaseJsonProtocolFactory {
+public class SdkJsonProtocolFactory extends BaseJsonProtocolFactory<SdkRequest, SdkServiceException> {
 
     private static final SdkStructuredJsonFactory JSON_FACTORY = SdkStructuredPlainJsonFactory.SDK_JSON_FACTORY;
-    private static final String CONTENT_TYPE =  "application/json";
+    private static final String CONTENT_TYPE = "application/json";
 
     SdkJsonProtocolFactory(JsonClientMetadata metadata) {
         super(metadata);
@@ -65,15 +66,15 @@ public class SdkJsonProtocolFactory extends BaseJsonProtocolFactory {
      *
      * @param operationMetadata Additional context information about an operation to create the appropriate response handler.
      */
-    public <T> JsonResponseHandler<T> createResponseHandler(
-        JsonOperationMetadata operationMetadata,
-        Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller) {
+    public <T> JsonResponseHandler<T> createResponseHandler(JsonOperationMetadata operationMetadata,
+                                                            Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller) {
         return JSON_FACTORY.createResponseHandler(operationMetadata, responseUnmarshaller);
     }
 
     /**
      * Creates a response handler for handling a error response (non 2xx response).
      */
+    @Override
     public HttpResponseHandler<SdkServiceException> createErrorResponseHandler(
         JsonErrorResponseMetadata errorResponseMetadata) {
         return JSON_FACTORY.createErrorResponseHandler(createErrorUnmarshallers());
@@ -83,8 +84,8 @@ public class SdkJsonProtocolFactory extends BaseJsonProtocolFactory {
     private List<SdkJsonErrorUnmarshaller> createErrorUnmarshallers() {
 
         List<SdkJsonErrorUnmarshaller> errorUnmarshallers = jsonClientMetadata.getErrorShapeMetadata().stream()
-                                                                                    .map(this::createErrorUnmarshaller)
-                                                                                    .collect(Collectors.toList());
+                                                                              .map(this::createErrorUnmarshaller)
+                                                                              .collect(Collectors.toList());
         // All unmodeled/unknown exceptions are unmarshalled into the service specific base
         // exception class.
         errorUnmarshallers.add(new SdkJsonErrorUnmarshaller(
@@ -96,7 +97,7 @@ public class SdkJsonProtocolFactory extends BaseJsonProtocolFactory {
     @SuppressWarnings("unchecked")
     private SdkJsonErrorUnmarshaller createErrorUnmarshaller(JsonErrorShapeMetadata errorShape) {
         return new SdkJsonErrorUnmarshaller(
-            (Class<? extends SdkServiceException>) errorShape.getModeledClass(),
+            errorShape.getModeledClass(),
             Optional.of(errorShape.getHttpStatusCode()));
     }
 }

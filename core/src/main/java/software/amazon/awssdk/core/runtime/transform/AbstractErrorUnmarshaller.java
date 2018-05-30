@@ -24,7 +24,8 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 
 @SdkProtectedApi
-public abstract class AbstractErrorUnmarshaller<T> implements Unmarshaller<SdkServiceException, T> {
+public abstract class AbstractErrorUnmarshaller<ExceptionT extends SdkServiceException, T>
+    implements Unmarshaller<ExceptionT, T> {
 
     /**
      * The type of SdkServiceException that will be instantiated. Subclasses
@@ -35,19 +36,10 @@ public abstract class AbstractErrorUnmarshaller<T> implements Unmarshaller<SdkSe
 
     /**
      * Constructs a new error unmarshaller that will unmarshall error responses
-     * into SdkServiceException objects.
-     */
-    public AbstractErrorUnmarshaller() {
-        this(SdkServiceException.class);
-    }
-
-    /**
-     * Constructs a new error unmarshaller that will unmarshall error responses
      * into objects of the specified class, extending SdkServiceException.
      *
-     * @param exceptionClass
-     *            The subclass of SdkServiceException which will be
-     *            instantiated and populated by this class.
+     * @param exceptionClass The subclass of SdkServiceException which will be
+     * instantiated and populated by this class.
      */
     public AbstractErrorUnmarshaller(Class<? extends SdkServiceException> exceptionClass) {
         this.exceptionClass = exceptionClass;
@@ -57,17 +49,13 @@ public abstract class AbstractErrorUnmarshaller<T> implements Unmarshaller<SdkSe
      * Constructs a new exception object of the type specified in this class's
      * constructor and sets the specified error message.
      *
-     * @param message
-     *            The error message to set in the new exception object.
-     *
+     * @param message The error message to set in the new exception object.
      * @return A new exception object of the type specified in this class's
-     *         constructor and sets the specified error message.
-     *
-     * @throws Exception
-     *             If there are any problems using reflection to invoke the
-     *             exception class's constructor.
+     * constructor and sets the specified error message.
+     * @throws Exception If there are any problems using reflection to invoke the
+     * exception class's constructor.
      */
-    protected SdkServiceException newException(String message) throws Exception {
+    protected ExceptionT newException(String message) throws Exception {
         Method builderMethod = null;
 
         try {
@@ -86,9 +74,9 @@ public abstract class AbstractErrorUnmarshaller<T> implements Unmarshaller<SdkSe
 
             messageSetter.invoke(exceptionBuilder, message);
 
-            return (SdkServiceException) buildMethod.invoke(exceptionBuilder);
+            return (ExceptionT) buildMethod.invoke(exceptionBuilder);
         } else {
-            Constructor<? extends SdkServiceException> constructor = exceptionClass.getConstructor(String.class);
+            Constructor<ExceptionT> constructor = (Constructor<ExceptionT>) exceptionClass.getConstructor(String.class);
             return constructor.newInstance(message);
         }
     }

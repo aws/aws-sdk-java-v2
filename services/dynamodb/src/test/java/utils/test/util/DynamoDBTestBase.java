@@ -38,6 +38,8 @@ import software.amazon.awssdk.utils.Logger;
 public class DynamoDBTestBase extends AwsTestBase {
     protected static final String ENDPOINT = "http://dynamodb.us-east-1.amazonaws.com/";
 
+    protected static final Region REGION = Region.US_EAST_1;
+
     protected static DynamoDBClient dynamo;
 
     private static final Logger log = Logger.loggerFor(DynamoDBTestBase.class);
@@ -49,7 +51,7 @@ public class DynamoDBTestBase extends AwsTestBase {
             throw new SdkClientException("Unable to load credential property file.", e);
         }
 
-        dynamo = DynamoDBClient.builder().region(Region.US_EAST_1).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        dynamo = DynamoDBClient.builder().region(REGION).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 
     public static DynamoDBClient getClient() {
@@ -78,7 +80,7 @@ public class DynamoDBTestBase extends AwsTestBase {
                 DescribeTableRequest request = DescribeTableRequest.builder().tableName(tableName).build();
                 TableDescription table = dynamo.describeTable(request).table();
 
-                log.info(() -> "  - current state: " + table.tableStatusString());
+                log.info(() -> "  - current state: " + table.tableStatusAsString());
                 if (table.tableStatus() == TableStatus.DELETING) {
                     continue;
                 }

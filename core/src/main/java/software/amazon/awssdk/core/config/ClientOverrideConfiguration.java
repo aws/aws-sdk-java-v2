@@ -15,15 +15,14 @@
 
 package software.amazon.awssdk.core.config;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -38,10 +37,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  *
  * <p>Use {@link #builder()} to create a set of options.</p>
  */
-public class ClientOverrideConfiguration
-        implements ToCopyableBuilder<ClientOverrideConfiguration.Builder, ClientOverrideConfiguration> {
-    private final Duration httpRequestTimeout;
-    private final Duration totalExecutionTimeout;
+@SdkPublicApi
+public final class ClientOverrideConfiguration
+    implements ToCopyableBuilder<ClientOverrideConfiguration.Builder, ClientOverrideConfiguration> {
     private final Map<String, List<String>> additionalHttpHeaders;
     private final Boolean gzipEnabled;
     private final RetryPolicy retryPolicy;
@@ -52,8 +50,6 @@ public class ClientOverrideConfiguration
      * Initialize this configuration. Private to require use of {@link #builder()}.
      */
     private ClientOverrideConfiguration(DefaultClientOverrideConfigurationBuilder builder) {
-        this.httpRequestTimeout = builder.httpRequestTimeout;
-        this.totalExecutionTimeout = builder.totalExecutionTimeout;
         this.additionalHttpHeaders = CollectionUtils.deepUnmodifiableMap(builder.additionalHttpHeaders);
         this.gzipEnabled = builder.gzipEnabled;
         this.retryPolicy = builder.retryPolicy;
@@ -64,8 +60,6 @@ public class ClientOverrideConfiguration
     @Override
     public Builder toBuilder() {
         return new DefaultClientOverrideConfigurationBuilder().advancedOptions(advancedOptions.toBuilder())
-                                                              .httpRequestTimeout(httpRequestTimeout)
-                                                              .totalExecutionTimeout(totalExecutionTimeout)
                                                               .additionalHttpHeaders(additionalHttpHeaders)
                                                               .gzipEnabled(gzipEnabled)
                                                               .retryPolicy(retryPolicy)
@@ -77,49 +71,6 @@ public class ClientOverrideConfiguration
      */
     public static Builder builder() {
         return new DefaultClientOverrideConfigurationBuilder();
-    }
-
-    /**
-     * The amount of time to wait for the request to complete before giving up and timing out. An empty value disables this
-     * feature.
-     *
-     * <p>This feature requires buffering the entire response (for non-streaming APIs) into memory to enforce a hard timeout when
-     * reading the response. For APIs that return large responses this could be expensive.</p>
-     *
-     * <p>The request timeout feature doesn't have strict guarantees on how quickly a request is aborted when the timeout is
-     * breached. The typical case aborts the request within a few milliseconds but there may occasionally be requests that don't
-     * get aborted until several seconds after the timer has been breached. Because of this, the request timeout feature should
-     * not be used when absolute precision is needed.</p>
-     *
-     * @see Builder#httpRequestTimeout(Duration)
-     */
-    @ReviewBeforeRelease("This doesn't currently work.")
-    public Duration httpRequestTimeout() {
-        return httpRequestTimeout;
-    }
-
-    /**
-     * The amount of time to allow the client to complete the execution of an API call. This timeout covers the entire client
-     * execution except for marshalling. This includes request handler execution, all HTTP requests including retries,
-     * unmarshalling, etc. An empty value disables this feature.
-     *
-     * <p>This feature requires buffering the entire response (for non-streaming APIs) into memory to enforce a hard timeout when
-     * reading the response. For APIs that return large responses this could be expensive.</p>
-     *
-     * <p>The client execution timeout feature doesn't have strict guarantees on how quickly a request is aborted when the
-     * timeout
-     * is breached. The typical case aborts the request within a few milliseconds but there may occasionally be requests that
-     * don't get aborted until several seconds after the timer has been breached. Because of this, the client execution timeout
-     * feature should not be used when absolute precision is needed.</p>
-     *
-     * <p>This may be used together with {@link #httpRequestTimeout()} to enforce both a timeout on each individual HTTP request
-     * (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'client execution' time). A
-     * non-positive value disables this feature.</p>
-     *
-     * @see Builder#totalExecutionTimeout(Duration)
-     */
-    public Duration totalExecutionTimeout() {
-        return totalExecutionTimeout;
     }
 
     /**
@@ -173,8 +124,6 @@ public class ClientOverrideConfiguration
     @Override
     public String toString() {
         return ToString.builder("ClientOverrideConfiguration")
-                       .add("httpRequestTimeout", httpRequestTimeout)
-                       .add("totalExecutionTimeout", totalExecutionTimeout)
                        .add("additionalHttpHeaders", additionalHttpHeaders)
                        .add("gzipEnabled", gzipEnabled)
                        .add("retryPolicy", retryPolicy)
@@ -189,43 +138,6 @@ public class ClientOverrideConfiguration
      * <p>All implementations of this interface are mutable and not thread safe.</p>
      */
     public interface Builder extends CopyableBuilder<Builder, ClientOverrideConfiguration> {
-        /**
-         * Configure the amount of time to wait for the request to complete before giving up and timing out. A non-positive value
-         * disables this feature.
-         *
-         * <p>This feature requires buffering the entire response (for non-streaming APIs) into memory to enforce a hard timeout
-         * when reading the response. For APIs that return large responses this could be expensive.</p>
-         *
-         * <p>The request timeout feature doesn't have strict guarantees on how quickly a request is aborted when the timeout is
-         * breached. The typical case aborts the request within a few milliseconds but there may occasionally be requests that
-         * don't get aborted until several seconds after the timer has been breached. Because of this, the request timeout
-         * feature
-         * should not be used when absolute precision is needed.</p>
-         *
-         * @see ClientOverrideConfiguration#httpRequestTimeout()
-         */
-        Builder httpRequestTimeout(Duration httpRequestTimeout);
-
-        /**
-         * Configure the amount of time to allow the client to complete the execution of an API call. This timeout covers the
-         * entire client execution except for marshalling. This includes request handler execution, all HTTP request including
-         * retries, unmarshalling, etc.
-         *
-         * <p>This feature requires buffering the entire response (for non-streaming APIs) into memory to enforce a hard timeout
-         * when reading the response. For APIs that return large responses this could be expensive.</p>
-         *
-         * <p>The client execution timeout feature doesn't have strict guarantees on how quickly a request is aborted when the
-         * timeout is breached. The typical case aborts the request within a few milliseconds but there may occasionally be
-         * requests that don't get aborted until several seconds after the timer has been breached. Because of this, the client
-         * execution timeout feature should not be used when absolute precision is needed.</p>
-         *
-         * <p>This may be used together with {@link #httpRequestTimeout()} to enforce both a timeout on each individual HTTP
-         * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'client execution' time).
-         * A non-positive value disables this feature.</p>
-         *
-         * @see ClientOverrideConfiguration#totalExecutionTimeout()
-         */
-        Builder totalExecutionTimeout(Duration totalExecutionTimeout);
 
         /**
          * Define a set of headers that should be added to every HTTP request sent to AWS. This will override any headers
@@ -322,33 +234,11 @@ public class ClientOverrideConfiguration
      * An SDK-internal implementation of {@link ClientOverrideConfiguration.Builder}.
      */
     private static final class DefaultClientOverrideConfigurationBuilder implements Builder {
-        private Duration httpRequestTimeout;
-        private Duration totalExecutionTimeout;
         private Map<String, List<String>> additionalHttpHeaders = new HashMap<>();
         private Boolean gzipEnabled;
         private RetryPolicy retryPolicy;
         private List<ExecutionInterceptor> executionInterceptors = new ArrayList<>();
         private AttributeMap.Builder advancedOptions = AttributeMap.builder();
-
-        @Override
-        public Builder httpRequestTimeout(Duration httpRequestTimeout) {
-            this.httpRequestTimeout = httpRequestTimeout;
-            return this;
-        }
-
-        public void setHttpRequestTimeout(Duration httpRequestTimeout) {
-            httpRequestTimeout(httpRequestTimeout);
-        }
-
-        @Override
-        public Builder totalExecutionTimeout(Duration totalExecutionTimeout) {
-            this.totalExecutionTimeout = totalExecutionTimeout;
-            return this;
-        }
-
-        public void setTotalExecutionTimeout(Duration totalExecutionTimeout) {
-            totalExecutionTimeout(totalExecutionTimeout);
-        }
 
         @Override
         public Builder additionalHttpHeaders(Map<String, List<String>> additionalHttpHeaders) {

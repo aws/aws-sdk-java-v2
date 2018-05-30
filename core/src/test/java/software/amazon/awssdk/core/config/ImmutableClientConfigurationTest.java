@@ -24,8 +24,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import org.junit.Test;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.internal.auth.NoOpSignerProvider;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 
@@ -34,7 +34,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
  */
 @SuppressWarnings("deprecation") // Intentional use of deprecated class
 public class ImmutableClientConfigurationTest {
-    private static final NoOpSignerProvider SIGNER_PROVIDER = new NoOpSignerProvider();
+    private static final NoOpSigner SIGNER = new NoOpSigner();
     private static final URI ENDPOINT = URI.create("https://www.example.com");
     private static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(1);
     private static final SdkHttpClient SYNC_HTTP_CLIENT = mock(SdkHttpClient.class);
@@ -74,13 +74,11 @@ public class ImmutableClientConfigurationTest {
 
     private ClientOverrideConfiguration initializedOverrideConfiguration() {
         return ClientOverrideConfiguration.builder()
-                                          .httpRequestTimeout(Duration.ofSeconds(2))
-                                          .totalExecutionTimeout(Duration.ofSeconds(4))
                                           .gzipEnabled(true)
                                           .addAdditionalHttpHeader("header", "value")
                                           .advancedOption(SdkAdvancedClientOption.USER_AGENT_PREFIX, "userAgentPrefix")
                                           .advancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX, "userAgentSuffix")
-                                          .advancedOption(SdkAdvancedClientOption.SIGNER_PROVIDER, SIGNER_PROVIDER)
+                                          .advancedOption(SdkAdvancedClientOption.SIGNER, SIGNER)
                                           .retryPolicy(RETRY_POLICY)
                                           .addExecutionInterceptor(EXECUTION_INTERCEPTOR)
                                           .build();

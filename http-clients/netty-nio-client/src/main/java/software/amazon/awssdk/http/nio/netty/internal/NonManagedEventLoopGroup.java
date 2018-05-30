@@ -24,7 +24,7 @@ import io.netty.util.concurrent.Future;
  */
 public final class NonManagedEventLoopGroup extends DelegatingEventLoopGroup {
 
-    NonManagedEventLoopGroup(EventLoopGroup delegate) {
+    public NonManagedEventLoopGroup(EventLoopGroup delegate) {
         super(delegate);
     }
 

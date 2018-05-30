@@ -16,11 +16,10 @@ package software.amazon.awssdk.services.kinesis;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
-import software.amazon.awssdk.auth.signer.StaticSignerProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.config.defaults.AwsClientConfigurationDefaults;
 import software.amazon.awssdk.awscore.config.defaults.ServiceBuilderConfigurationDefaults;
-import software.amazon.awssdk.core.runtime.auth.SignerProvider;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -39,7 +38,7 @@ abstract class DefaultKinesisBaseClientBuilder<B extends KinesisBaseClientBuilde
 
     @Override
     protected final AwsClientConfigurationDefaults serviceDefaults() {
-        return ServiceBuilderConfigurationDefaults.builder().defaultSignerProvider(this::defaultSignerProvider)
+        return ServiceBuilderConfigurationDefaults.builder().defaultSigner(this::defaultSigner)
                                                   .addRequestHandlerPath("software/amazon/awssdk/services/kinesis/execution.interceptors")
                                                   .crc32FromCompressedDataEnabled(false).build();
     }
@@ -51,10 +50,12 @@ abstract class DefaultKinesisBaseClientBuilder<B extends KinesisBaseClientBuilde
                            .build();
     }
 
-    private SignerProvider defaultSignerProvider() {
-        Aws4Signer signer = new Aws4Signer();
-        signer.setServiceName("kinesis");
-        signer.setRegionName(signingRegion().value());
-        return StaticSignerProvider.create(signer);
+    private Signer defaultSigner() {
+        return Aws4Signer.create();
+    }
+
+    @Override
+    protected final String signingName() {
+        return "kinesis";
     }
 }

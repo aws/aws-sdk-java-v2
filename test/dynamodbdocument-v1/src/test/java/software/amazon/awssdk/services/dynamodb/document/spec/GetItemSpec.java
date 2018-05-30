@@ -61,7 +61,7 @@ public class GetItemSpec extends AbstractSpecWithPrimaryKey<GetItemRequest> {
     }
 
     public String getReturnConsumedCapacity() {
-        return getRequest().returnConsumedCapacityString();
+        return getRequest().returnConsumedCapacityAsString();
     }
 
     public GetItemSpec withReturnConsumedCapacity(ReturnConsumedCapacity capacity) {

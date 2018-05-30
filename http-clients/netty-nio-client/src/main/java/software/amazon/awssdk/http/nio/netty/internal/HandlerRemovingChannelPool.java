@@ -30,11 +30,11 @@ import io.netty.util.concurrent.Promise;
  * Removes any per request {@link ChannelHandler} from the pipeline prior to releasing
  * it to the pool.
  */
-class HandlerRemovingChannelPool implements ChannelPool {
+public class HandlerRemovingChannelPool implements ChannelPool {
 
     private final ChannelPool delegate;
 
-    HandlerRemovingChannelPool(ChannelPool delegate) {
+    public HandlerRemovingChannelPool(ChannelPool delegate) {
         this.delegate = delegate;
     }
 

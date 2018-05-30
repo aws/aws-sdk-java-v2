@@ -24,9 +24,9 @@ import io.netty.handler.codec.http.HttpVersion;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 
-final class RequestAdapter {
+public final class RequestAdapter {
 
-    HttpRequest adapt(SdkHttpRequest sdkRequest) {
+    public HttpRequest adapt(SdkHttpRequest sdkRequest) {
         HttpMethod method = toNettyHttpMethod(sdkRequest.method());
         HttpHeaders headers = new DefaultHttpHeaders();
         String uri = sdkRequest.getUri().toString();

@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 
 public class AwsJsonErrorUnmarshallerTest {
 
@@ -84,7 +84,7 @@ public class AwsJsonErrorUnmarshallerTest {
         assertFalse(unmarshaller.matchErrorCode(null));
     }
 
-    private static class CustomException extends SdkServiceException {
+    private static class CustomException extends AwsServiceException {
 
         private static final long serialVersionUID = 4140670458615826397L;
 

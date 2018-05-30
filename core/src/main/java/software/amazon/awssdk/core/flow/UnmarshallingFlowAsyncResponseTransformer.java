@@ -127,7 +127,8 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
                 } else {
                     try {
                         remainingDemand.decrementAndGet();
-                        subscriberRef.get().onNext(eventUnmarshaller.handle(adaptMessageToResponse(m), EMPTY_EXECUTION_ATTRIBUTES));
+                        subscriberRef.get().onNext(eventUnmarshaller.handle(adaptMessageToResponse(m),
+                                                                            EMPTY_EXECUTION_ATTRIBUTES));
                     } catch (Exception e) {
                         throw new SdkClientException(e);
                     }
@@ -137,9 +138,9 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
                                                                    m.getHeaders().get(":error-code").getString());
                 // TODO prevent connection reset exception from propagating
                 runAndLogError(log, "Error thrown from Subscriber#onError, ignoring.",
-                               () -> subscriberRef.get().onError(flowException));
+                    () -> subscriberRef.get().onError(flowException));
                 runAndLogError(log, "Error thrown from FlowResponseTransformer#exceptionOccurred, ignoring.",
-                               () -> flowResponseTransformer.exceptionOccurred(flowException));
+                    () -> flowResponseTransformer.exceptionOccurred(flowException));
             }
         });
     }

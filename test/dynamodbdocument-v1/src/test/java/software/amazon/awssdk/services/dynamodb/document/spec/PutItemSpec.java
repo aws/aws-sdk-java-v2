@@ -129,7 +129,7 @@ public class PutItemSpec extends AbstractSpec<PutItemRequest> {
     }
 
     public String getConditionalOperator() {
-        return getRequest().conditionalOperatorString();
+        return getRequest().conditionalOperatorAsString();
     }
 
     public PutItemSpec withConditionalOperator(
@@ -139,7 +139,7 @@ public class PutItemSpec extends AbstractSpec<PutItemRequest> {
     }
 
     public String getReturnConsumedCapacity() {
-        return getRequest().returnConsumedCapacityString();
+        return getRequest().returnConsumedCapacityAsString();
     }
 
     public PutItemSpec withReturnConsumedCapacity(
@@ -149,7 +149,7 @@ public class PutItemSpec extends AbstractSpec<PutItemRequest> {
     }
 
     public String getReturnItemCollectionMetrics() {
-        return getRequest().returnItemCollectionMetricsString();
+        return getRequest().returnItemCollectionMetricsAsString();
     }
 
     public PutItemSpec withReturnItemCollectionMetrics(
@@ -161,7 +161,7 @@ public class PutItemSpec extends AbstractSpec<PutItemRequest> {
     }
 
     public String getReturnValues() {
-        return getRequest().returnValuesString();
+        return getRequest().returnValuesAsString();
     }
 
     public PutItemSpec withReturnValues(ReturnValue returnValues) {

@@ -27,9 +27,13 @@ import software.amazon.awssdk.core.pagination.async.SdkPublisher;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
- * Implementation of {@link AsyncResponseTransformer} that dumps content into a byte array.
+ * Implementation of {@link AsyncResponseTransformer} that dumps content into a byte array and supports further
+ * conversions into types, like strings.
+ *
+ * This can be created with static methods on {@link AsyncResponseTransformer}.
  *
  * @param <ResponseT> Pojo response type.
+ * @see AsyncResponseTransformer#toBytes()
  */
 @SdkInternalApi
 class ByteArrayAsyncResponseTransformer<ResponseT> implements AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>> {

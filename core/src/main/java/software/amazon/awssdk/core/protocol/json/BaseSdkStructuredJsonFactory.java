@@ -55,9 +55,10 @@ public abstract class BaseSdkStructuredJsonFactory implements SdkStructuredJsonF
 
     @Override
     public SdkJsonErrorResponseHandler createErrorResponseHandler(
-        final List<SdkJsonErrorUnmarshaller> errorUnmarshallers) {
+        List<SdkJsonErrorUnmarshaller> errorUnmarshallers) {
         return new SdkJsonErrorResponseHandler(errorUnmarshallers,
-                                               SdkJsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER,
+                                               SdkJsonErrorMessageParser
+                                                   .DEFAULT_ERROR_MESSAGE_PARSER,
                                                jsonFactory);
     }
 

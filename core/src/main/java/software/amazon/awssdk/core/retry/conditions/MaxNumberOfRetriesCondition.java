@@ -23,16 +23,20 @@ import software.amazon.awssdk.utils.Validate;
  * Simple retry condition that allows retries up to a certain max number of retries.
  */
 @SdkPublicApi
-public class MaxNumberOfRetriesCondition implements RetryCondition {
+public final class MaxNumberOfRetriesCondition implements RetryCondition {
 
     private final int maxNumberOfRetries;
 
-    public MaxNumberOfRetriesCondition(int maxNumberOfRetries) {
+    private MaxNumberOfRetriesCondition(int maxNumberOfRetries) {
         this.maxNumberOfRetries = Validate.isNotNegative(maxNumberOfRetries, "maxNumberOfRetries");
     }
 
     @Override
     public boolean shouldRetry(RetryPolicyContext context) {
         return context.retriesAttempted() < maxNumberOfRetries;
+    }
+
+    public static MaxNumberOfRetriesCondition create(int maxNumberOfRetries) {
+        return new MaxNumberOfRetriesCondition(maxNumberOfRetries);
     }
 }

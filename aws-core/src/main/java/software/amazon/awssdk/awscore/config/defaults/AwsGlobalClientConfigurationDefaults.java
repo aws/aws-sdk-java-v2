@@ -24,12 +24,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.config.InternalAdvancedClientOption;
 import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.util.UserAgentUtils;
 
 /**
@@ -55,7 +55,7 @@ public final class AwsGlobalClientConfigurationDefaults extends AwsClientConfigu
                                applyDefault(configuration.advancedOption(InternalAdvancedClientOption
                                                                              .CRC32_FROM_COMPRESSED_DATA_ENABLED), () -> false));
 
-        builder.retryPolicy(applyDefault(configuration.retryPolicy(), () -> RetryPolicy.DEFAULT));
+        builder.retryPolicy(applyDefault(configuration.retryPolicy(), () -> AwsRetryPolicy.DEFAULT));
 
         // Put global interceptors before the ones currently configured.
         List<ExecutionInterceptor> globalInterceptors = new ClasspathInterceptorChainFactory().getGlobalInterceptors();

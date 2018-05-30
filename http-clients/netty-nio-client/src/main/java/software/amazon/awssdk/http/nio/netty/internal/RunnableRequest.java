@@ -38,6 +38,7 @@ import io.netty.util.concurrent.Future;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
@@ -52,13 +53,13 @@ import software.amazon.awssdk.http.nio.netty.internal.http2.HttpToHttp2OutboundA
 import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 
-final class RunnableRequest implements AbortableRunnable {
+public final class RunnableRequest implements AbortableRunnable {
 
     private static final Logger log = LoggerFactory.getLogger(RunnableRequest.class);
     private final RequestContext context;
     private volatile Channel channel;
 
-    RunnableRequest(RequestContext context) {
+    public RunnableRequest(RequestContext context) {
         this.context = context;
     }
 
@@ -111,14 +112,17 @@ final class RunnableRequest implements AbortableRunnable {
     }
 
     private void writeRequest(HttpRequest request) {
-        channel.pipeline().addFirst(new WriteTimeoutHandler(context.configuration().writeTimeout()));
+        channel.pipeline().addFirst(new WriteTimeoutHandler(context.configuration().writeTimeoutMillis(),
+                                                            TimeUnit.MILLISECONDS));
+
         channel.writeAndFlush(new StreamedRequest(request, context.sdkRequestProvider(), channel))
                .addListener(wireCall -> {
                    // Done writing so remove the idle write timeout handler
                    ChannelUtils.removeIfExists(channel.pipeline(), WriteTimeoutHandler.class);
                    if (wireCall.isSuccess()) {
                        // Starting read so add the idle read timeout handler, removed when channel is released
-                       channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeout()));
+                       channel.pipeline().addFirst(new ReadTimeoutHandler(context.configuration().readTimeoutMillis(),
+                                                                          TimeUnit.MILLISECONDS));
                        // Auto-read is turned off so trigger an explicit read to give control to HttpStreamsClientHandler
                        channel.read();
                    } else {

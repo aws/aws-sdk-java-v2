@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "type": "feature", 
-    "description": "AsyncResponseTransformer byte array and string methods now match the sync model."
-}

@@ -22,7 +22,7 @@ import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.config.SdkMutableClientConfiguration;
 import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
 import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
-import software.amazon.awssdk.core.http.loader.DefaultSdkHttpClientFactory;
+import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -31,7 +31,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 
 public class HttpTestUtils {
     public static SdkHttpClient testSdkHttpClient() {
-        return new DefaultSdkHttpClientFactory().createHttpClientWithDefaults(
+        return new DefaultSdkHttpClientBuilder().buildWithDefaults(
                 AttributeMap.empty().merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
     }
 
@@ -73,7 +73,6 @@ public class HttpTestUtils {
             SdkHttpClient sdkHttpClient = this.httpClient != null ? this.httpClient : testSdkHttpClient();
             ClientOverrideConfiguration overrideConfiguration =
                     ClientOverrideConfiguration.builder()
-                                               .totalExecutionTimeout(clientExecutionTimeout)
                                                .apply(this::configureRetryPolicy)
                                                .apply(this::configureAdditionalHeaders)
                                                .build();

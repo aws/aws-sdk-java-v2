@@ -25,12 +25,12 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.core.util.XpathUtils;
@@ -45,13 +45,13 @@ import software.amazon.awssdk.utils.IoUtils;
  * message, AWS error code, AWS request ID, etc).
  */
 @SdkProtectedApi
-public class DefaultErrorResponseHandler implements HttpResponseHandler<SdkServiceException> {
+public class DefaultErrorResponseHandler implements HttpResponseHandler<AwsServiceException> {
     private static final Logger log = LoggerFactory.getLogger(DefaultErrorResponseHandler.class);
 
     /**
      * The list of error response unmarshallers to try to apply to error responses.
      */
-    private List<Unmarshaller<SdkServiceException, Node>> unmarshallerList;
+    private List<Unmarshaller<AwsServiceException, Node>> unmarshallerList;
 
     /**
      * Constructs a new DefaultErrorResponseHandler that will handle error responses from Amazon
@@ -62,14 +62,14 @@ public class DefaultErrorResponseHandler implements HttpResponseHandler<SdkServi
      *                         response.
      */
     public DefaultErrorResponseHandler(
-            List<Unmarshaller<SdkServiceException, Node>> unmarshallerList) {
+            List<Unmarshaller<AwsServiceException, Node>> unmarshallerList) {
         this.unmarshallerList = unmarshallerList;
     }
 
     @Override
-    public SdkServiceException handle(HttpResponse errorResponse,
+    public AwsServiceException handle(HttpResponse errorResponse,
                                       ExecutionAttributes executionAttributes) throws Exception {
-        SdkServiceException exception = createServiceException(errorResponse);
+        AwsServiceException exception = createServiceException(errorResponse);
         if (exception == null) {
             throw new SdkClientException("Unable to unmarshall error response from service");
         }
@@ -80,7 +80,7 @@ public class DefaultErrorResponseHandler implements HttpResponseHandler<SdkServi
         return exception;
     }
 
-    private SdkServiceException createServiceException(HttpResponse errorResponse) throws Exception {
+    private AwsServiceException createServiceException(HttpResponse errorResponse) throws Exception {
         // Try to parse the error response as XML
         final Document document = documentFromContent(errorResponse.getContent(), idString(errorResponse));
 
@@ -91,8 +91,8 @@ public class DefaultErrorResponseHandler implements HttpResponseHandler<SdkServi
          * unmarshall the response, but we might need something a little more
          * sophisticated in the future.
          */
-        for (Unmarshaller<SdkServiceException, Node> unmarshaller : unmarshallerList) {
-            SdkServiceException exception = unmarshaller.unmarshall(document);
+        for (Unmarshaller<AwsServiceException, Node> unmarshaller : unmarshallerList) {
+            AwsServiceException exception = unmarshaller.unmarshall(document);
             if (exception != null) {
                 exception.statusCode(errorResponse.getStatusCode());
                 return exception;

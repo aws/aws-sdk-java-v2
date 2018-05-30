@@ -20,9 +20,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.config.SdkAsyncClientConfiguration;
@@ -32,9 +33,9 @@ import software.amazon.awssdk.core.http.AmazonAsyncHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.http.SdkHttpResponseAdapter;
-import software.amazon.awssdk.core.http.async.SyncResponseHandlerAdapter;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.internal.http.SdkHttpResponseAdapter;
+import software.amazon.awssdk.core.internal.http.async.SyncResponseHandlerAdapter;
 import software.amazon.awssdk.core.pagination.async.SdkPublisher;
 import software.amazon.awssdk.core.util.Throwables;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -43,14 +44,15 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 
+@SdkProtectedApi
 public abstract class BaseAsyncClientHandler extends BaseClientHandler implements AsyncClientHandler {
     private final SdkClientConfiguration clientConfiguration;
     private final AmazonAsyncHttpClient client;
 
     protected BaseAsyncClientHandler(SdkAsyncClientConfiguration clientConfiguration,
-                                     ServiceAdvancedConfiguration serviceAdvancedConfiguration,
+                                     ServiceConfiguration serviceConfiguration,
                                      AmazonAsyncHttpClient client) {
-        super(clientConfiguration, serviceAdvancedConfiguration);
+        super(clientConfiguration, serviceConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.client = client;
     }

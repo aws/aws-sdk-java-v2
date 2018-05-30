@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.retry.conditions;
 import static software.amazon.awssdk.core.util.ValidationUtils.assertNotNull;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
@@ -26,11 +27,11 @@ import software.amazon.awssdk.core.retry.RetryPolicyContext;
  * Retry condition implementation that retries if the HTTP status code matches one of the provided status codes.
  */
 @SdkPublicApi
-public class RetryOnStatusCodeCondition implements RetryCondition {
+public final class RetryOnStatusCodeCondition implements RetryCondition {
 
     private final Set<Integer> statusCodesToRetryOn;
 
-    public RetryOnStatusCodeCondition(Set<Integer> statusCodesToRetryOn) {
+    private RetryOnStatusCodeCondition(Set<Integer> statusCodesToRetryOn) {
         this.statusCodesToRetryOn = new HashSet<>(
                 assertNotNull(statusCodesToRetryOn, "statusCodesToRetryOn"));
     }
@@ -42,13 +43,11 @@ public class RetryOnStatusCodeCondition implements RetryCondition {
      */
     @Override
     public boolean shouldRetry(RetryPolicyContext context) {
-        if (context.httpStatusCode() != null) {
-            for (Integer statusCode : statusCodesToRetryOn) {
-                if (statusCode.equals(context.httpStatusCode())) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return Optional.ofNullable(context.httpStatusCode()).map(s ->
+            statusCodesToRetryOn.stream().anyMatch(code -> code.equals(s))).orElse(false);
+    }
+
+    public static RetryOnStatusCodeCondition create(Set<Integer> statusCodesToRetryOn) {
+        return new RetryOnStatusCodeCondition(statusCodesToRetryOn);
     }
 }

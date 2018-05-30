@@ -36,7 +36,7 @@ import software.amazon.awssdk.core.pagination.async.SdkPublisher;
  * @param <ResponseT> Response POJO type. Returned on {@link #complete()}.
  */
 @SdkInternalApi
-class FileAsyncResponseTransformer<ResponseT> implements AsyncResponseTransformer<ResponseT, ResponseT> {
+final class FileAsyncResponseTransformer<ResponseT> implements AsyncResponseTransformer<ResponseT, ResponseT> {
 
     private final Path path;
     private AsynchronousFileChannel fileChannel;

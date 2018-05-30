@@ -37,7 +37,7 @@ public class CreateBucketIntegrationTest extends S3IntegrationTestBase {
         S3Client client = S3Client.builder().region(Region.US_WEST_2).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
         client.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
 
-        String region = client.getBucketLocation(GetBucketLocationRequest.builder().bucket(BUCKET_NAME).build()).locationConstraintString();
+        String region = client.getBucketLocation(GetBucketLocationRequest.builder().bucket(BUCKET_NAME).build()).locationConstraintAsString();
         assertThat(region).isEqualToIgnoringCase("us-west-2");
     }
 

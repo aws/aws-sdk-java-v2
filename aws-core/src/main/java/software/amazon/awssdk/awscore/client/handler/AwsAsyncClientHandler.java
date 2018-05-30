@@ -21,42 +21,46 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.config.AwsAsyncClientConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.AsyncClientHandler;
-import software.amazon.awssdk.core.client.BaseClientHandler;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
+import software.amazon.awssdk.core.client.SdkAsyncClientHandler;
+import software.amazon.awssdk.core.http.ExecutionContext;
 
 /**
  * Async client handler for AWS SDK clients.
  */
 @ThreadSafe
 @Immutable
-public final class AwsAsyncClientHandler extends BaseClientHandler implements AsyncClientHandler {
+public final class AwsAsyncClientHandler extends SdkAsyncClientHandler implements AsyncClientHandler {
 
-    private final AsyncClientHandler delegateHandler;
+    private final AwsAsyncClientConfiguration clientConfiguration;
+    private final ServiceConfiguration serviceConfiguration;
 
-    public AwsAsyncClientHandler(AwsAsyncClientConfiguration clientConfiguration, ServiceAdvancedConfiguration
-        advancedClientOption) {
-        super(clientConfiguration, advancedClientOption);
-        this.delegateHandler = new AwsAsyncClientHandlerImpl(clientConfiguration, advancedClientOption);
+    public AwsAsyncClientHandler(AwsAsyncClientConfiguration clientConfiguration, ServiceConfiguration
+        serviceConfiguration) {
+        super(clientConfiguration, serviceConfiguration);
+        this.clientConfiguration = clientConfiguration;
+        this.serviceConfiguration = serviceConfiguration;
     }
 
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<OutputT> execute(
         ClientExecutionParams<InputT, OutputT> executionParams) {
-        return delegateHandler.execute(addErrorResponseHandler(executionParams));
+        return super.execute(addErrorResponseHandler(executionParams));
     }
 
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> CompletableFuture<ReturnT> execute(
         ClientExecutionParams<InputT, OutputT> executionParams,
         AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer) {
-        return delegateHandler.execute(addErrorResponseHandler(executionParams), asyncResponseTransformer);
+        return super.execute(addErrorResponseHandler(executionParams), asyncResponseTransformer);
     }
 
     @Override
-    public void close() {
-        delegateHandler.close();
+    protected ExecutionContext createExecutionContext(SdkRequest originalRequest) {
+        return AwsClientHandlerUtils.createExecutionContext(originalRequest, clientConfiguration, serviceConfiguration);
     }
+
 }

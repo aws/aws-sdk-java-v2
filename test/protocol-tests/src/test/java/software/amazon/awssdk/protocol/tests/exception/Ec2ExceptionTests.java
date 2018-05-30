@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.protocol.tests.exception;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static util.exception.ExceptionTestUtils.stub404Response;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -51,30 +51,21 @@ public class Ec2ExceptionTests {
     public void unmodeledException_UnmarshalledIntoBaseServiceException() {
         stub404Response(PATH,
                         "<Response><Errors><Error><Code>UnmodeledException</Code></Error></Errors></Response>");
-        assertThrowsServiceBaseException(this::callAllTypes);
+        assertThatThrownBy(() -> client.allTypes(AllTypesRequest.builder().build()))
+            .isExactlyInstanceOf(ProtocolEc2Exception.class);
     }
 
     @Test
     public void emptyErrorResponse_UnmarshalledIntoBaseServiceException() {
         stub404Response(PATH, "");
-        assertThrowsServiceBaseException(this::callAllTypes);
+        assertThatThrownBy(() -> client.allTypes(AllTypesRequest.builder().build()))
+            .isExactlyInstanceOf(ProtocolEc2Exception.class);
     }
 
     @Test
     public void malformedErrorResponse_UnmarshalledIntoBaseServiceException() {
         stub404Response(PATH, "THIS ISN'T XML");
-        assertThrowsServiceBaseException(this::callAllTypes);
-    }
-
-    private void callAllTypes() {
-        client.allTypes(AllTypesRequest.builder().build());
-    }
-
-    private void assertThrowsServiceBaseException(Runnable runnable) {
-        try {
-            runnable.run();
-        } catch (ProtocolEc2Exception e) {
-            assertEquals(ProtocolEc2Exception.class, e.getClass());
-        }
+        assertThatThrownBy(() -> client.allTypes(AllTypesRequest.builder().build()))
+            .isExactlyInstanceOf(ProtocolEc2Exception.class);
     }
 }

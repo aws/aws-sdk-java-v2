@@ -159,7 +159,7 @@ public class DefaultNamingStrategy implements NamingStrategy {
         String getterMethodName = Utils.unCapitialize(memberName);
 
         if (Utils.isOrContainsEnumShape(shape, serviceModel.getShapes())) {
-            getterMethodName += "String";
+            getterMethodName += "AsString";
 
             if (Utils.isListShape(shape) || Utils.isMapShape(shape)) {
                 getterMethodName += "s";

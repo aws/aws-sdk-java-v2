@@ -23,14 +23,14 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import org.junit.Rule;
 import software.amazon.awssdk.awscore.client.http.NoopTestAwsRequest;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.http.response.AwsJsonErrorResponseHandler;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.awscore.http.response.AwsJsonErrorResponseHandler;
 
 /**
  * Base class for tests that use a WireMock server
@@ -52,14 +52,14 @@ public abstract class WireMockTestBase {
         return request;
     }
 
-    protected HttpResponseHandler<SdkServiceException> stubErrorHandler() throws Exception {
-        HttpResponseHandler<SdkServiceException> errorHandler = mock(AwsJsonErrorResponseHandler.class);
+    protected HttpResponseHandler<AwsServiceException> stubErrorHandler() throws Exception {
+        HttpResponseHandler<AwsServiceException> errorHandler = mock(AwsJsonErrorResponseHandler.class);
         when(errorHandler.handle(any(HttpResponse.class), any(ExecutionAttributes.class))).thenReturn(mockException());
         return errorHandler;
     }
 
-    private SdkServiceException mockException() {
-        SdkServiceException exception = new SdkServiceException("Dummy error response");
+    private AwsServiceException mockException() {
+        AwsServiceException exception = new AwsServiceException("Dummy error response");
         exception.statusCode(500);
         return exception;
     }

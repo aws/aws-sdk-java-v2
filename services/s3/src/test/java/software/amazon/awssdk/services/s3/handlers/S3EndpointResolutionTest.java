@@ -26,12 +26,14 @@ import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.core.client.builder.ClientHttpConfiguration;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.services.s3.S3AdvancedConfiguration;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.testutils.service.http.MockHttpClient;
 
@@ -48,10 +50,12 @@ public class S3EndpointResolutionTest {
     private static final String ENDPOINT_WITH_BUCKET = String.format("https://%s.s3.ap-south-1.amazonaws.com", BUCKET);
 
     private MockHttpClient mockHttpClient;
+    private Signer mockSigner;
 
     @Before
     public void setup() {
         mockHttpClient = new MockHttpClient();
+        mockSigner = (request, executionAttributes) -> request;
     }
 
     /**
@@ -144,7 +148,7 @@ public class S3EndpointResolutionTest {
     public void customHttpEndpoint_PreservesSchemeWhenSwitchingToVirtualAddressing() throws Exception {
         URI customEndpoint = URI.create("http://s3-external-1.amazonaws.com");
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
-        S3Client s3Client = clientBuilder().endpointOverride(customEndpoint).build();
+        S3Client s3Client = clientBuilderWithMockSigner().endpointOverride(customEndpoint).build();
 
         s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
 
@@ -183,7 +187,7 @@ public class S3EndpointResolutionTest {
      * By default we use virtual addressing when possible.
      */
     @Test
-    public void noAdvancedConfigurationProvided_UsesVirtualAddressingWithStandardEndpoint() throws Exception {
+    public void noServiceConfigurationProvided_UsesVirtualAddressingWithStandardEndpoint() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = buildClient(null);
 
@@ -196,9 +200,9 @@ public class S3EndpointResolutionTest {
      * By default we use virtual addressing when possible.
      */
     @Test
-    public void emptyAdvancedConfigurationProvided_UsesVirtualAddressingWithStandardEndpoint() throws Exception {
+    public void emptyServiceConfigurationProvided_UsesVirtualAddressingWithStandardEndpoint() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
-        S3Client s3Client = buildClient(S3AdvancedConfiguration.builder().build());
+        S3Client s3Client = buildClient(S3Configuration.builder().build());
 
         s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
 
@@ -280,10 +284,10 @@ public class S3EndpointResolutionTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void accelerateAndPathStyleEnabled_ThrowsIllegalArgumentException() {
-        buildClient(S3AdvancedConfiguration.builder()
-                                           .pathStyleAccessEnabled(true)
-                                           .accelerateModeEnabled(true)
-                                           .build());
+        buildClient(S3Configuration.builder()
+                                   .pathStyleAccessEnabled(true)
+                                   .accelerateModeEnabled(true)
+                                   .build());
     }
 
     /**
@@ -297,12 +301,12 @@ public class S3EndpointResolutionTest {
     }
 
     /**
-     * @param s3AdvancedConfiguration Advanced configuration to use for this client.
+     * @param s3ServiceConfiguration Advanced configuration to use for this client.
      * @return A built client with the given advanced configuration.
      */
-    private S3Client buildClient(S3AdvancedConfiguration s3AdvancedConfiguration) {
+    private S3Client buildClient(S3Configuration s3ServiceConfiguration) {
         return clientBuilder()
-                .advancedConfiguration(s3AdvancedConfiguration)
+                .serviceConfiguration(s3ServiceConfiguration)
                 .build();
     }
 
@@ -313,56 +317,70 @@ public class S3EndpointResolutionTest {
         return S3Client.builder()
                        .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
                        .region(Region.AP_SOUTH_1)
-                       .httpConfiguration(ClientHttpConfiguration.builder()
-                                                                 .httpClient(mockHttpClient)
-                                                                 .build());
+                       .httpClient(mockHttpClient);
     }
 
     /**
-     * @return S3AdvancedConfiguration with path style enabled.
+     * @return Client builder instance preconfigured with credentials and region using the {@link #mockHttpClient} for transport
+     * and {@link #mockSigner} for signing. Using actual AwsS3V4Signer results in NPE as the execution goes into payload signing
+     * due to "http" protocol and input stream is not mark supported.
      */
-    private S3AdvancedConfiguration withPathStyle() {
-        return S3AdvancedConfiguration.builder()
-                                      .pathStyleAccessEnabled(true)
-                                      .build();
+    private S3ClientBuilder clientBuilderWithMockSigner() {
+        return S3Client.builder()
+                       .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
+                       .region(Region.AP_SOUTH_1)
+                       .overrideConfiguration(ClientOverrideConfiguration.builder()
+                                                                         .advancedOption(SdkAdvancedClientOption.SIGNER,
+                                                                                         mockSigner)
+                                                                         .build())
+                       .httpClient(mockHttpClient);
     }
 
     /**
-     * @return S3AdvancedConfiguration with accelerate mode enabled.
+     * @return S3Configuration with path style enabled.
      */
-    private S3AdvancedConfiguration withAccelerateEnabled() {
-        return S3AdvancedConfiguration.builder()
-                                      .accelerateModeEnabled(true)
-                                      .build();
+    private S3Configuration withPathStyle() {
+        return S3Configuration.builder()
+                              .pathStyleAccessEnabled(true)
+                              .build();
     }
 
     /**
-     * @return S3AdvancedConfiguration with dualstack mode enabled.
+     * @return S3Configuration with accelerate mode enabled.
      */
-    private S3AdvancedConfiguration withDualstackEnabled() {
-        return S3AdvancedConfiguration.builder()
-                                      .dualstackEnabled(true)
-                                      .build();
+    private S3Configuration withAccelerateEnabled() {
+        return S3Configuration.builder()
+                              .accelerateModeEnabled(true)
+                              .build();
     }
 
     /**
-     * @return S3AdvancedConfiguration with dualstack mode and path style enabled.
+     * @return S3Configuration with dualstack mode enabled.
      */
-    private S3AdvancedConfiguration withDualstackAndPathStyleEnabled() {
-        return S3AdvancedConfiguration.builder()
-                                      .dualstackEnabled(true)
-                                      .pathStyleAccessEnabled(true)
-                                      .build();
+    private S3Configuration withDualstackEnabled() {
+        return S3Configuration.builder()
+                              .dualstackEnabled(true)
+                              .build();
     }
 
     /**
-     * @return S3AdvancedConfiguration with dualstack mode and accelerate mode enabled.
+     * @return S3Configuration with dualstack mode and path style enabled.
      */
-    private S3AdvancedConfiguration withDualstackAndAccelerateEnabled() {
-        return S3AdvancedConfiguration.builder()
-                                      .dualstackEnabled(true)
-                                      .accelerateModeEnabled(true)
-                                      .build();
+    private S3Configuration withDualstackAndPathStyleEnabled() {
+        return S3Configuration.builder()
+                              .dualstackEnabled(true)
+                              .pathStyleAccessEnabled(true)
+                              .build();
+    }
+
+    /**
+     * @return S3Configuration with dualstack mode and accelerate mode enabled.
+     */
+    private S3Configuration withDualstackAndAccelerateEnabled() {
+        return S3Configuration.builder()
+                              .dualstackEnabled(true)
+                              .accelerateModeEnabled(true)
+                              .build();
     }
 
 }

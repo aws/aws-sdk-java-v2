@@ -25,11 +25,11 @@ import software.amazon.awssdk.core.retry.RetryPolicyContext;
  * Composite retry condition that evaluates to true if any containing condition evaluates to true.
  */
 @SdkPublicApi
-public class OrRetryCondition implements RetryCondition {
+public final class OrRetryCondition implements RetryCondition {
 
-    private List<RetryCondition> conditions = new ArrayList<RetryCondition>();
+    private List<RetryCondition> conditions = new ArrayList<>();
 
-    public OrRetryCondition(RetryCondition... conditions) {
+    private OrRetryCondition(RetryCondition... conditions) {
         Collections.addAll(this.conditions, conditions);
     }
 
@@ -38,11 +38,10 @@ public class OrRetryCondition implements RetryCondition {
      */
     @Override
     public boolean shouldRetry(RetryPolicyContext context) {
-        for (RetryCondition retryCondition : conditions) {
-            if (retryCondition.shouldRetry(context)) {
-                return true;
-            }
-        }
-        return false;
+        return conditions.stream().anyMatch(r -> r.shouldRetry(context));
+    }
+
+    public static OrRetryCondition create(RetryCondition... conditions) {
+        return new OrRetryCondition(conditions);
     }
 }

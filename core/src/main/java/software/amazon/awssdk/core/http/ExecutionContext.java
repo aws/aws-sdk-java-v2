@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
-import software.amazon.awssdk.core.runtime.auth.SignerProvider;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -33,13 +33,13 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @NotThreadSafe
 @SdkProtectedApi
 public class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Builder, ExecutionContext> {
-    private final SignerProvider signerProvider;
+    private final Signer signer;
     private InterceptorContext interceptorContext;
     private final ExecutionInterceptorChain interceptorChain;
     private final ExecutionAttributes executionAttributes;
 
     private ExecutionContext(final Builder builder) {
-        this.signerProvider = Validate.paramNotNull(builder.signerProvider, "signerProvider");
+        this.signer = Validate.paramNotNull(builder.signer, "signer");
         this.interceptorContext = Validate.paramNotNull(builder.interceptorContext, "interceptorContext");
         this.interceptorChain = Validate.paramNotNull(builder.interceptorChain, "interceptorChain");
         this.executionAttributes = Validate.paramNotNull(builder.executionAttributes, "executionAttributes");
@@ -68,8 +68,8 @@ public class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Buil
         return executionAttributes;
     }
 
-    public SignerProvider signerProvider() {
-        return signerProvider;
+    public Signer signer() {
+        return signer;
     }
 
     @Override
@@ -81,13 +81,13 @@ public class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Buil
         private InterceptorContext interceptorContext;
         private ExecutionInterceptorChain interceptorChain;
         private ExecutionAttributes executionAttributes;
-        private SignerProvider signerProvider;
+        private Signer signer;
 
         private Builder() {
         }
 
         public Builder(ExecutionContext executionContext) {
-            this.signerProvider = executionContext.signerProvider;
+            this.signer = executionContext.signer;
             this.interceptorContext = executionContext.interceptorContext;
             this.interceptorChain = executionContext.interceptorChain;
             this.executionAttributes = executionContext.executionAttributes;
@@ -108,8 +108,8 @@ public class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Buil
             return this;
         }
 
-        public Builder signerProvider(SignerProvider signerProvider) {
-            this.signerProvider = signerProvider;
+        public Builder signer(Signer signer) {
+            this.signer = signer;
             return this;
         }
 

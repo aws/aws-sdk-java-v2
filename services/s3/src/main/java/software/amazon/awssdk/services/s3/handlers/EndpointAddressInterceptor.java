@@ -29,8 +29,8 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.RegionMetadata;
-import software.amazon.awssdk.services.s3.BucketUtils;
-import software.amazon.awssdk.services.s3.S3AdvancedConfiguration;
+import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.internal.BucketUtils;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
@@ -46,20 +46,20 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
         SdkHttpFullRequest request = context.httpRequest();
         SdkRequest sdkRequest = context.request();
 
-        S3AdvancedConfiguration advancedConfiguration =
-                (S3AdvancedConfiguration) executionAttributes.getAttribute(AwsExecutionAttributes.SERVICE_ADVANCED_CONFIG);
+        S3Configuration serviceConfiguration =
+                (S3Configuration) executionAttributes.getAttribute(AwsExecutionAttributes.SERVICE_CONFIG);
         SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
 
         URI endpoint = resolveEndpoint(request, sdkRequest,
-                                       executionAttributes, advancedConfiguration);
+                                       executionAttributes, serviceConfiguration);
         mutableRequest.protocol(endpoint.getScheme())
                       .host(endpoint.getHost())
                       .port(endpoint.getPort())
                       .encodedPath(SdkHttpUtils.appendUri(endpoint.getPath(), mutableRequest.encodedPath()));
 
-        if (advancedConfiguration == null || !advancedConfiguration.pathStyleAccessEnabled()) {
+        if (serviceConfiguration == null || !serviceConfiguration.pathStyleAccessEnabled()) {
             sdkRequest.getValueForField("Bucket", String.class).ifPresent(b -> {
-                if (BucketUtils.isValidDnsBucketName(b, false)) {
+                if (BucketUtils.isVirtualAddressingCompatibleBucketName(b, false)) {
                     changeToDnsEndpoint(mutableRequest, b);
                 }
             });
@@ -69,19 +69,19 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
     }
 
     /**
-     * Determine which endpoint to use based on region and {@link S3AdvancedConfiguration}. Will either be a traditional
+     * Determine which endpoint to use based on region and {@link S3Configuration}. Will either be a traditional
      * S3 endpoint (i.e. s3.us-east-1.amazonaws.com), the global S3 accelerate endpoint (i.e. s3-accelerate.amazonaws.com) or
      * a regional dualstack endpoint for IPV6 (i.e. s3.dualstack.us-east-1.amazonaws.com).
      */
     private URI resolveEndpoint(SdkHttpFullRequest request,
                                 SdkRequest originalRequest,
                                 ExecutionAttributes executionAttributes,
-                                S3AdvancedConfiguration advancedConfiguration) {
+                                S3Configuration serviceConfiguration) {
         Region region = executionAttributes.getAttribute(AwsExecutionAttributes.AWS_REGION);
         RegionMetadata regionMetadata = RegionMetadata.of(region);
-        if (isAccelerateEnabled(advancedConfiguration) && isAccelerateSupported(originalRequest)) {
-            return accelerateEndpoint(advancedConfiguration, regionMetadata);
-        } else if (advancedConfiguration != null && advancedConfiguration.dualstackEnabled()) {
+        if (isAccelerateEnabled(serviceConfiguration) && isAccelerateSupported(originalRequest)) {
+            return accelerateEndpoint(serviceConfiguration, regionMetadata);
+        } else if (serviceConfiguration != null && serviceConfiguration.dualstackEnabled()) {
             return dualstackEndpoint(regionMetadata);
         } else {
             return invokeSafely(() -> new URI(request.protocol(), null, request.host(), request.port(), null, null, null));
@@ -94,10 +94,10 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
     }
 
     /**
-     * @return True if accelerate mode is enabled per {@link S3AdvancedConfiguration}, false if not.
+     * @return True if accelerate mode is enabled per {@link S3Configuration}, false if not.
      */
-    private static boolean isAccelerateEnabled(S3AdvancedConfiguration advancedConfiguration) {
-        return advancedConfiguration != null && advancedConfiguration.accelerateModeEnabled();
+    private static boolean isAccelerateEnabled(S3Configuration serviceConfiguration) {
+        return serviceConfiguration != null && serviceConfiguration.accelerateModeEnabled();
     }
 
     /**
@@ -111,8 +111,8 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
     /**
      * @return The endpoint for an S3 accelerate enabled operation. S3 accelerate has a single global endpoint.
      */
-    private static URI accelerateEndpoint(S3AdvancedConfiguration advancedConfiguration, RegionMetadata metadata) {
-        if (advancedConfiguration.dualstackEnabled()) {
+    private static URI accelerateEndpoint(S3Configuration serviceConfiguration, RegionMetadata metadata) {
+        if (serviceConfiguration.dualstackEnabled()) {
             return toUri("s3-accelerate.dualstack." + metadata.getDomain());
         }
         return toUri("s3-accelerate." + metadata.getDomain());

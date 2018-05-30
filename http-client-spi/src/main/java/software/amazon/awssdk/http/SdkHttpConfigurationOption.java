@@ -30,18 +30,29 @@ import software.amazon.awssdk.utils.AttributeMap;
  */
 @SdkProtectedApi
 public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
-
     /**
      * Timeout for each read to the underlying socket.
      */
-    public static final SdkHttpConfigurationOption<Duration> SOCKET_TIMEOUT =
-            new SdkHttpConfigurationOption<>("SocketTimeout", Duration.class);
+    public static final SdkHttpConfigurationOption<Duration> READ_TIMEOUT =
+            new SdkHttpConfigurationOption<>("ReadTimeout", Duration.class);
+
+    /**
+     * Timeout for each write to the underlying socket.
+     */
+    public static final SdkHttpConfigurationOption<Duration> WRITE_TIMEOUT =
+            new SdkHttpConfigurationOption<>("WriteTimeout", Duration.class);
 
     /**
      * Timeout for establishing a connection to a remote service.
      */
     public static final SdkHttpConfigurationOption<Duration> CONNECTION_TIMEOUT =
             new SdkHttpConfigurationOption<>("ConnectionTimeout", Duration.class);
+
+    /**
+     * Timeout for acquiring an already-established connection from a connection pool to a remote service.
+     */
+    public static final SdkHttpConfigurationOption<Duration> CONNECTION_ACQUIRE_TIMEOUT =
+            new SdkHttpConfigurationOption<>("ConnectionAcquireTimeout", Duration.class);
 
     /**
      * Maximum number of connections allowed in a connection pool.
@@ -54,6 +65,11 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
      */
     public static final SdkHttpConfigurationOption<Protocol> PROTOCOL =
         new SdkHttpConfigurationOption<>("Protocol", Protocol.class);
+    /**
+     * Maximum number of requests allowed to wait for a connection.
+     */
+    public static final SdkHttpConfigurationOption<Integer> MAX_PENDING_CONNECTION_ACQUIRES =
+            new SdkHttpConfigurationOption<>("MaxConnectionAcquires", Integer.class);
 
     /**
      * Whether or not to use strict hostname verification when establishing the SSL connection. For almost all services this
@@ -64,24 +80,32 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     public static final SdkHttpConfigurationOption<Boolean> USE_STRICT_HOSTNAME_VERIFICATION =
             new SdkHttpConfigurationOption<>("UseStrictHostnameVerification", Boolean.class);
 
-    private static final Duration DEFAULT_SOCKET_TIMEOUT = Duration.ofSeconds(50);
+    public static final SdkHttpConfigurationOption<Boolean> TRUST_ALL_CERTIFICATES =
+            new SdkHttpConfigurationOption<>("TrustAllCertificates", Boolean.class);
 
+    private static final Duration DEFAULT_SOCKET_READ_TIMEOUT = Duration.ofSeconds(50);
+    private static final Duration DEFAULT_SOCKET_WRITE_TIMEOUT = Duration.ofSeconds(50);
     private static final Duration DEFAULT_CONNECTION_TIMEOUT = Duration.ofSeconds(10);
-
+    private static final Duration DEFAULT_CONNECTION_ACQUIRE_TIMEOUT = Duration.ofSeconds(10);
     private static final int DEFAULT_MAX_CONNECTIONS = 50;
-
+    private static final int DEFAULT_MAX_CONNECTION_ACQUIRES = 10_000;
     private static final Boolean DEFAULT_USE_STRICT_HOSTNAME_VERIFICATION = Boolean.TRUE;
+    private static final Boolean DEFAULT_TRUST_ALL_CERTIFICATES = Boolean.FALSE;
 
     private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP1_1;
 
     @ReviewBeforeRelease("Confirm defaults")
     public static final AttributeMap GLOBAL_HTTP_DEFAULTS = AttributeMap
             .builder()
-            .put(SOCKET_TIMEOUT, DEFAULT_SOCKET_TIMEOUT)
+            .put(READ_TIMEOUT, DEFAULT_SOCKET_READ_TIMEOUT)
+            .put(WRITE_TIMEOUT, DEFAULT_SOCKET_WRITE_TIMEOUT)
             .put(CONNECTION_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT)
+            .put(CONNECTION_ACQUIRE_TIMEOUT, DEFAULT_CONNECTION_ACQUIRE_TIMEOUT)
             .put(MAX_CONNECTIONS, DEFAULT_MAX_CONNECTIONS)
+            .put(MAX_PENDING_CONNECTION_ACQUIRES, DEFAULT_MAX_CONNECTION_ACQUIRES)
             .put(USE_STRICT_HOSTNAME_VERIFICATION, DEFAULT_USE_STRICT_HOSTNAME_VERIFICATION)
             .put(PROTOCOL, DEFAULT_PROTOCOL)
+            .put(TRUST_ALL_CERTIFICATES, DEFAULT_TRUST_ALL_CERTIFICATES)
             .build();
 
     private final String name;

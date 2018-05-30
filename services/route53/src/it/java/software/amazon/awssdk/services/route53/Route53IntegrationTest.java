@@ -279,7 +279,7 @@ public class Route53IntegrationTest extends IntegrationTestBase {
         assertNotNull(CALLER_REFERENCE, healthCheck.callerReference());
         assertNotNull(healthCheck.id());
         assertEquals(PORT_NUM, healthCheck.healthCheckConfig().port().intValue());
-        assertEquals(TYPE, healthCheck.healthCheckConfig().typeString());
+        assertEquals(TYPE, healthCheck.healthCheckConfig().typeAsString());
         assertEquals(IP_ADDRESS, healthCheck.healthCheckConfig().ipAddress());
     }
 

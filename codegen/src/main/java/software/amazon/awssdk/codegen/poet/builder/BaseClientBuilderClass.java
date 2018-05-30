@@ -25,7 +25,6 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.QueryStringSigner;
-import software.amazon.awssdk.auth.signer.StaticSignerProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.config.defaults.AwsClientConfigurationDefaults;
 import software.amazon.awssdk.awscore.config.defaults.ServiceBuilderConfigurationDefaults;
@@ -34,7 +33,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.runtime.auth.SignerProvider;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.utils.AttributeMap;
 
 public class BaseClientBuilderClass implements ClassSpec {
@@ -64,21 +63,22 @@ public class BaseClientBuilderClass implements ClassSpec {
                                      ClassName.get(basePackage, model.getMetadata().getAsyncBuilder()));
 
         if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
-            ClassName advancedConfiguration = ClassName.get(basePackage,
-                                                            model.getCustomizationConfig().getServiceSpecificClientConfigClass());
-            builder.addField(FieldSpec.builder(advancedConfiguration, "advancedConfiguration")
+            ClassName serviceConfiguration = ClassName.get(basePackage,
+                                                           model.getCustomizationConfig().getServiceSpecificClientConfigClass());
+            builder.addField(FieldSpec.builder(serviceConfiguration, "serviceConfiguration")
                                       .addModifiers(Modifier.PRIVATE)
                                       .build());
         }
 
         builder.addMethod(serviceEndpointPrefixMethod());
         builder.addMethod(serviceDefaultsMethod());
-        builder.addMethod(defaultSignerProviderMethod());
+        builder.addMethod(defaultSignerMethod());
+        builder.addMethod(signingNameMethod());
 
         if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
-            builder.addMethod(setAdvancedConfigurationMethod())
-                   .addMethod(getAdvancedConfigurationMethod())
-                   .addMethod(beanStyleSetAdvancedConfigurationMethod());
+            builder.addMethod(setServiceConfigurationMethod())
+                   .addMethod(getServiceConfigurationMethod())
+                   .addMethod(beanStyleSetServiceConfigurationMethod());
         }
 
         if (model.getCustomizationConfig().getServiceSpecificHttpConfig() != null) {
@@ -86,6 +86,23 @@ public class BaseClientBuilderClass implements ClassSpec {
         }
 
         return builder.build();
+    }
+
+    private MethodSpec signingNameMethod() {
+        return MethodSpec.methodBuilder("signingName")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                         .returns(String.class)
+                         .addCode("return $S;", model.getMetadata().getSigningName())
+                         .build();
+    }
+
+    private MethodSpec defaultSignerMethod() {
+        return MethodSpec.methodBuilder("defaultSigner")
+                         .returns(Signer.class)
+                         .addModifiers(Modifier.PRIVATE)
+                         .addCode(signerDefinitionMethodBody())
+                         .build();
     }
 
     private MethodSpec serviceEndpointPrefixMethod() {
@@ -108,42 +125,42 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                          .returns(AwsClientConfigurationDefaults.class)
                          .addCode("return $T.builder()\n", ServiceBuilderConfigurationDefaults.class)
-                         .addCode("         .defaultSignerProvider(this::defaultSignerProvider)\n")
+                         .addCode("         .defaultSigner(this::defaultSigner)\n")
                          .addCode("         .addRequestHandlerPath($S)\n", requestHandlerPath)
                          .addCode("         .crc32FromCompressedDataEnabled($L)\n", crc32FromCompressedDataEnabled)
                          .addCode("         .build();\n")
                          .build();
     }
 
-    private MethodSpec setAdvancedConfigurationMethod() {
-        ClassName advancedConfiguration = ClassName.get(basePackage,
+    private MethodSpec setServiceConfigurationMethod() {
+        ClassName serviceConfiguration = ClassName.get(basePackage,
                                                         model.getCustomizationConfig().getServiceSpecificClientConfigClass());
-        return MethodSpec.methodBuilder("advancedConfiguration")
+        return MethodSpec.methodBuilder("serviceConfiguration")
                          .addModifiers(Modifier.PUBLIC)
                          .returns(TypeVariableName.get("B"))
-                         .addParameter(advancedConfiguration, "advancedConfiguration")
-                         .addStatement("this.advancedConfiguration = advancedConfiguration")
+                         .addParameter(serviceConfiguration, "serviceConfiguration")
+                         .addStatement("this.serviceConfiguration = serviceConfiguration")
                          .addStatement("return thisBuilder()")
                          .build();
     }
 
-    private MethodSpec getAdvancedConfigurationMethod() {
-        ClassName advancedConfiguration = ClassName.get(basePackage,
+    private MethodSpec getServiceConfigurationMethod() {
+        ClassName serviceConfiguration = ClassName.get(basePackage,
                                                         model.getCustomizationConfig().getServiceSpecificClientConfigClass());
-        return MethodSpec.methodBuilder("advancedConfiguration")
+        return MethodSpec.methodBuilder("serviceConfiguration")
                          .addModifiers(Modifier.PROTECTED)
-                         .returns(advancedConfiguration)
-                         .addStatement("return advancedConfiguration")
+                         .returns(serviceConfiguration)
+                         .addStatement("return serviceConfiguration")
                          .build();
     }
 
-    private MethodSpec beanStyleSetAdvancedConfigurationMethod() {
-        ClassName advancedConfiguration = ClassName.get(basePackage,
+    private MethodSpec beanStyleSetServiceConfigurationMethod() {
+        ClassName serviceConfiguration = ClassName.get(basePackage,
                                                         model.getCustomizationConfig().getServiceSpecificClientConfigClass());
-        return MethodSpec.methodBuilder("setAdvancedConfiguration")
+        return MethodSpec.methodBuilder("setServiceConfiguration")
                          .addModifiers(Modifier.PUBLIC)
-                         .addParameter(advancedConfiguration, "advancedConfiguration")
-                         .addStatement("advancedConfiguration(advancedConfiguration)")
+                         .addParameter(serviceConfiguration, "serviceConfiguration")
+                         .addStatement("serviceConfiguration(serviceConfiguration)")
                          .build();
     }
 
@@ -153,14 +170,6 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                          .returns(AttributeMap.class)
                          .addCode("return $L;", model.getCustomizationConfig().getServiceSpecificHttpConfig())
-                         .build();
-    }
-
-    private MethodSpec defaultSignerProviderMethod() {
-        return MethodSpec.methodBuilder("defaultSignerProvider")
-                         .returns(SignerProvider.class)
-                         .addModifiers(Modifier.PRIVATE)
-                         .addCode(signerDefinitionMethodBody())
                          .build();
     }
 
@@ -179,31 +188,16 @@ public class BaseClientBuilderClass implements ClassSpec {
     }
 
     private CodeBlock v4SignerDefinitionMethodBody() {
-        return CodeBlock.of("$T signer = new $T();\n" +
-                            "signer.setServiceName($S);\n" +
-                            "signer.setRegionName(signingRegion().value());\n" +
-                            "return $T.create(signer);\n",
-                            Aws4Signer.class,
-                            Aws4Signer.class,
-                            model.getMetadata().getSigningName(),
-                            StaticSignerProvider.class);
+        return CodeBlock.of("return $T.create();", Aws4Signer.class);
     }
 
     private CodeBlock v2SignerDefinitionMethodBody() {
-        return CodeBlock.of("return $T.create(new $T());\n",
-                            StaticSignerProvider.class,
-                            QueryStringSigner.class);
+        return CodeBlock.of("return new $T();", QueryStringSigner.class);
     }
 
     private CodeBlock s3SignerDefinitionMethodBody() {
-        return CodeBlock.of("$T signer = new $T();\n" +
-                            "signer.setServiceName(\"$L\");\n" +
-                            "signer.setRegionName(signingRegion().value());\n" +
-                            "return $T.create(signer);\n",
-                            ClassName.get("software.amazon.awssdk.services.s3", "AwsS3V4Signer"),
-                            ClassName.get("software.amazon.awssdk.services.s3", "AwsS3V4Signer"),
-                            model.getMetadata().getSigningName(),
-                            StaticSignerProvider.class);
+        return CodeBlock.of("return $T.create();\n",
+                            ClassName.get("software.amazon.awssdk.services.s3", "AwsS3V4Signer"));
     }
 
     @Override

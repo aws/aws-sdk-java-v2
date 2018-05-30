@@ -1,0 +1,96 @@
+{
+    "date": "2018-05-25",
+    "version": "2.0.0-preview-10",
+    "entries": [
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Updating default retry policy to include newly added conditions."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Added Consumer<Builder>-style methods for all client overloads."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "AsyncResponseTransformer byte array and string methods now match the sync model."
+        },
+        {
+            "category": "AWS Secrets Manager",
+            "type": "feature",
+            "description": "Add AWS Secrets Manager to v2."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Renamed AsyncRequestProvider to AsyncRequestBody to better match sync's RequestBody"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "removal",
+            "description": "Remove httpRequestTimeout and totalExecutionTimeout features"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Include root causes in the exception message from AWSCredentialsProviderChain to ease troubleshooting."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Add a standard User-Agent when making requests to the metadata service.  User-Agent pattern: aws-sdk-java/<version>"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Add [SdkHttpResponse](https://github.com/aws/aws-sdk-java-v2/blob/master/http-client-spi/src/main/java/software/amazon/awssdk/http/SdkHttpResponse.java) to [SdkResponse](https://github.com/aws/aws-sdk-java-v2/blob/master/core/src/main/java/software/amazon/awssdk/core/SdkResponse.java) so that customers can retrieve Http data such as headers, status code from the response object."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Renamed \"Bytes\" overload for streaming operations to \"AsBytes\", and \"String\" overload for enums to \"AsString\""
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Renamed AsyncResponseHandler to AsyncResponseTransformer and StreamingResponseHandler to ResponseTransformer."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Added Consumer<Builder>-style methods for vararg parameters."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Split core module to regions, profiles, auth, aws-core and core modules.[#27](https://github.com/aws/aws-sdk-java-v2/issues/27)"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Moved AWS specific retry policies to aws-core module, created AwsServiceException and moved isThrottlingException and isClockSkewException methods to SdkServiceException."
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Renamed `AdvancedServiceConfiguration` to `ServiceConfiguration`"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Renamed `RequestOverrideConfig` to `RequestOverrideConfiguration` to match `ClientOverrideConfiguration` naming."
+        },
+        {
+            "category": "Amazon S3",
+            "type": "feature",
+            "description": "Renamed `S3AdvancedConfiguration` to `S3Configuration`"
+        },
+        {
+            "category": "AWS SDK for Java v2",
+            "type": "feature",
+            "description": "Simplified configuration of HTTP clients."
+        }
+    ]
+}

@@ -19,13 +19,12 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.http.AmazonAsyncHttpClient;
 import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
-import software.amazon.awssdk.core.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionAbortTrackerTask;
 import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
-import software.amazon.awssdk.core.runtime.auth.Signer;
-import software.amazon.awssdk.core.runtime.auth.SignerProvider;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.utils.Validate;
 
@@ -35,7 +34,7 @@ import software.amazon.awssdk.utils.Validate;
  * Provided to the {@link RequestPipeline#execute(Object, RequestExecutionContext)} method.
  */
 public final class RequestExecutionContext {
-    private static final RequestOverrideConfig EMPTY_CONFIG = SdkRequestOverrideConfig.builder().build();
+    private static final RequestOverrideConfiguration EMPTY_CONFIG = SdkRequestOverrideConfiguration.builder().build();
     private final SdkHttpRequestProvider requestProvider;
     private final SdkRequest originalRequest;
     private final ExecutionContext executionContext;
@@ -80,18 +79,18 @@ public final class RequestExecutionContext {
         return originalRequest;
     }
 
-    public RequestOverrideConfig requestConfig() {
-        return originalRequest.requestOverrideConfig()
+    public RequestOverrideConfiguration requestConfig() {
+        return originalRequest.overrideConfiguration()
                               // ugly but needed to avoid capture of capture and creating a type mismatch
-                              .map(c -> (RequestOverrideConfig) c)
+                              .map(c -> (RequestOverrideConfiguration) c)
                               .orElse(EMPTY_CONFIG);
     }
 
     /**
      * @return SignerProvider used to obtain an instance of a {@link Signer}.
      */
-    public SignerProvider signerProvider() {
-        return executionContext.signerProvider();
+    public Signer signer() {
+        return executionContext.signer();
     }
 
     /**

@@ -25,8 +25,8 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.AccelerateConfiguration;
 import software.amazon.awssdk.services.s3.model.BucketAccelerateStatus;
 import software.amazon.awssdk.services.s3.model.BucketVersioningStatus;
@@ -68,9 +68,9 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
         accelerateClient = S3Client.builder()
                                    .region(Region.US_WEST_2)
                                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                   .advancedConfiguration(S3AdvancedConfiguration.builder()
-                                                                                 .accelerateModeEnabled(true)
-                                                                                 .build())
+                                   .serviceConfiguration(S3Configuration.builder()
+                                                                         .accelerateModeEnabled(true)
+                                                                         .build())
                                    .build();
 
         setUpBuckets();
@@ -132,7 +132,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
         String status = s3.getBucketAccelerateConfiguration(GetBucketAccelerateConfigurationRequest.builder()
                                                                                                    .bucket(US_BUCKET_NAME)
                                                                                                    .build())
-                          .statusString();
+                          .statusAsString();
 
         if (status == null || !status.equals("Enabled")) {
             enableAccelerateOnBucket();
@@ -159,7 +159,7 @@ public class BucketAccelerateIntegrationTest extends S3IntegrationTestBase {
         String status = s3.getBucketAccelerateConfiguration(GetBucketAccelerateConfigurationRequest.builder()
                                                                                                    .bucket(US_BUCKET_NAME)
                                                                                                    .build())
-                          .statusString();
+                          .statusAsString();
 
         if (status == null || !status.equals("Enabled")) {
             enableAccelerateOnBucket();

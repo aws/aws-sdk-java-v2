@@ -28,11 +28,10 @@ import software.amazon.awssdk.core.config.SdkImmutableSyncClientConfiguration;
 import software.amazon.awssdk.core.config.SdkMutableClientConfiguration;
 import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
 import software.amazon.awssdk.core.config.defaults.SdkClientConfigurationDefaults;
-import software.amazon.awssdk.core.http.loader.DefaultSdkAsyncHttpClientFactory;
-import software.amazon.awssdk.core.http.loader.DefaultSdkHttpClientFactory;
+import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
+import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpClientFactory;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -40,10 +39,11 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.async.AbortableRunnable;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClientFactory;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.Either;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * An SDK-internal implementation of the methods in {@link SdkClientBuilder}, {@link SdkAsyncClientBuilder} and
@@ -64,28 +64,30 @@ import software.amazon.awssdk.utils.AttributeMap;
  */
 @SdkProtectedApi
 public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, C> implements SdkClientBuilder<B, C> {
-    private static final SdkHttpClientFactory DEFAULT_HTTP_CLIENT_FACTORY = new DefaultSdkHttpClientFactory();
-    private static final SdkAsyncHttpClientFactory DEFAULT_ASYNC_HTTP_CLIENT_FACTORY = new DefaultSdkAsyncHttpClientFactory();
+    private static final SdkHttpClient.Builder DEFAULT_HTTP_CLIENT_BUILDER = new DefaultSdkHttpClientBuilder();
+    private static final SdkAsyncHttpClient.Builder DEFAULT_ASYNC_HTTP_CLIENT_BUILDER = new DefaultSdkAsyncHttpClientBuilder();
 
     protected ExecutorProvider asyncExecutorProvider;
 
-    private final SdkHttpClientFactory defaultHttpClientFactory;
-    private final SdkAsyncHttpClientFactory defaultAsyncHttpClientFactory;
+    private final SdkHttpClient.Builder defaultHttpClientBuilder;
+    private final SdkAsyncHttpClient.Builder defaultAsyncHttpClientBuilder;
 
     private SdkMutableClientConfiguration mutableClientConfiguration = new SdkMutableClientConfiguration();
 
-    private ClientHttpConfiguration httpConfiguration = ClientHttpConfiguration.builder().build();
-    private ClientAsyncHttpConfiguration asyncHttpConfiguration = ClientAsyncHttpConfiguration.builder().build();
+    private SdkHttpClient httpClient;
+    private SdkHttpClient.Builder httpClientBuilder;
+    private SdkAsyncHttpClient asyncHttpClient;
+    private SdkAsyncHttpClient.Builder asyncHttpClientBuilder;
 
     protected SdkDefaultClientBuilder() {
-        this(DEFAULT_HTTP_CLIENT_FACTORY, DEFAULT_ASYNC_HTTP_CLIENT_FACTORY);
+        this(DEFAULT_HTTP_CLIENT_BUILDER, DEFAULT_ASYNC_HTTP_CLIENT_BUILDER);
     }
 
     @SdkTestInternalApi
-    protected SdkDefaultClientBuilder(SdkHttpClientFactory defaultHttpClientFactory,
-                                      SdkAsyncHttpClientFactory defaultAsyncHttpClientFactory) {
-        this.defaultHttpClientFactory = defaultHttpClientFactory;
-        this.defaultAsyncHttpClientFactory = defaultAsyncHttpClientFactory;
+    protected SdkDefaultClientBuilder(SdkHttpClient.Builder defaultHttpClientBuilder,
+                                      SdkAsyncHttpClient.Builder defaultAsyncHttpClientBuilder) {
+        this.defaultHttpClientBuilder = defaultHttpClientBuilder;
+        this.defaultAsyncHttpClientBuilder = defaultAsyncHttpClientBuilder;
     }
 
     /**
@@ -167,11 +169,11 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     }
 
     private SdkHttpClient resolveSdkHttpClient() {
-        return httpConfiguration
-            .toEither()
-            .map(e -> e.map(
-                NonManagedSdkHttpClient::new, factory -> factory.createHttpClientWithDefaults(serviceSpecificHttpConfig())))
-            .orElseGet(() -> defaultHttpClientFactory.createHttpClientWithDefaults(serviceSpecificHttpConfig()));
+        Validate.isTrue(httpClient == null || httpClientBuilder == null,
+                        "The httpClient and the httpClientBuilder can't both be configured.");
+        return Either.fromNullable(httpClient, httpClientBuilder)
+                     .map(e -> e.map(NonManagedSdkHttpClient::new, b -> b.buildWithDefaults(serviceSpecificHttpConfig())))
+                     .orElseGet(() -> defaultHttpClientBuilder.buildWithDefaults(serviceSpecificHttpConfig()));
     }
 
     protected void applySdkAsyncHttpClient(SdkMutableClientConfiguration config) {
@@ -179,11 +181,11 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     }
 
     private SdkAsyncHttpClient resolveSdkAsyncHttpClient() {
-        return asyncHttpConfiguration
-            .toEither()
-            .map(e -> e.map(
-                NonManagedSdkAsyncHttpClient::new, factory -> factory.createHttpClientWithDefaults(serviceSpecificHttpConfig())))
-            .orElseGet(() -> defaultAsyncHttpClientFactory.createHttpClientWithDefaults(serviceSpecificHttpConfig()));
+        Validate.isTrue(asyncHttpClient == null || asyncHttpClientBuilder == null,
+                        "The asyncHttpClient and the asyncHttpClientBuilder can't both be configured.");
+        return Either.fromNullable(asyncHttpClient, asyncHttpClientBuilder)
+                     .map(e -> e.map(NonManagedSdkAsyncHttpClient::new, b -> b.buildWithDefaults(serviceSpecificHttpConfig())))
+                     .orElseGet(() -> defaultAsyncHttpClientBuilder.buildWithDefaults(serviceSpecificHttpConfig()));
     }
 
     /**
@@ -249,22 +251,24 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         overrideConfiguration(overrideConfiguration);
     }
 
-    public final B httpConfiguration(ClientHttpConfiguration httpConfiguration) {
-        this.httpConfiguration = httpConfiguration;
+    public final B httpClient(SdkHttpClient httpClient) {
+        this.httpClient = httpClient;
         return thisBuilder();
     }
 
-    public final void setHttpConfiguration(ClientHttpConfiguration httpConfiguration) {
-        this.httpConfiguration = httpConfiguration;
-    }
-
-    public final B asyncHttpConfiguration(ClientAsyncHttpConfiguration asyncHttpConfiguration) {
-        this.asyncHttpConfiguration = asyncHttpConfiguration;
+    public final B httpClientBuilder(SdkHttpClient.Builder httpClientBuilder) {
+        this.httpClientBuilder = httpClientBuilder;
         return thisBuilder();
     }
 
-    public final void setAsyncHttpConfiguration(ClientAsyncHttpConfiguration asyncHttpConfiguration) {
-        this.asyncHttpConfiguration = asyncHttpConfiguration;
+    public final B asyncHttpClient(SdkAsyncHttpClient httpClient) {
+        this.asyncHttpClient = httpClient;
+        return thisBuilder();
+    }
+
+    public final B asyncHttpClientBuilder(SdkAsyncHttpClient.Builder httpClientBuilder) {
+        this.asyncHttpClientBuilder = httpClientBuilder;
+        return thisBuilder();
     }
 
     /**

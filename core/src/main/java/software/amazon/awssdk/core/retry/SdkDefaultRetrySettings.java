@@ -48,15 +48,10 @@ public final class SdkDefaultRetrySettings {
 
     public static final Integer DEFAULT_MAX_RETRIES = 3;
 
-    public static final Set<String> RETRYABLE_ERROR_CODES;
     public static final Set<Integer> RETRYABLE_STATUS_CODES;
     public static final Set<Class<? extends Exception>> RETRYABLE_EXCEPTIONS;
 
     static {
-        Set<String> retryableErrorCodes = new HashSet<>();
-        retryableErrorCodes.add("PriorRequestNotComplete");
-        RETRYABLE_ERROR_CODES = unmodifiableSet(retryableErrorCodes);
-
         Set<Integer> retryableStatusCodes = new HashSet<>();
         retryableStatusCodes.add(HttpStatusCodes.INTERNAL_SERVER_ERROR);
         retryableStatusCodes.add(HttpStatusCodes.BAD_GATEWAY);

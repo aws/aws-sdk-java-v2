@@ -16,11 +16,13 @@
 package software.amazon.awssdk.core.client;
 
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.config.SdkSyncClientConfiguration;
+import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 
 /**
@@ -28,32 +30,25 @@ import software.amazon.awssdk.core.sync.ResponseTransformer;
  */
 @ThreadSafe
 @Immutable
-public final class SdkSyncClientHandler extends BaseClientHandler implements SyncClientHandler {
+@SdkProtectedApi
+public class SdkSyncClientHandler extends BaseSyncClientHandler implements SyncClientHandler {
 
-    private final SyncClientHandler delegateHandler;
-
-    public SdkSyncClientHandler(SdkSyncClientConfiguration clientConfiguration, ServiceAdvancedConfiguration
-        serviceAdvancedConfiguration) {
-        super(clientConfiguration, serviceAdvancedConfiguration);
-        this.delegateHandler = new SdkSyncClientHandlerImpl(clientConfiguration, serviceAdvancedConfiguration);
+    protected SdkSyncClientHandler(SdkSyncClientConfiguration clientConfiguration, ServiceConfiguration
+            serviceConfiguration) {
+        super(clientConfiguration, serviceConfiguration, new AmazonSyncHttpClient(clientConfiguration));
     }
 
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse> OutputT execute(
         ClientExecutionParams<InputT, OutputT> executionParams) {
-        return delegateHandler.execute(addErrorResponseHandler(executionParams));
-
+        return super.execute(addErrorResponseHandler(executionParams));
     }
 
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> ReturnT execute(
         ClientExecutionParams<InputT, OutputT> executionParams,
         ResponseTransformer<OutputT, ReturnT> responseTransformer) {
-        return delegateHandler.execute(addErrorResponseHandler(executionParams), responseTransformer);
+        return super.execute(addErrorResponseHandler(executionParams), responseTransformer);
     }
 
-    @Override
-    public void close() {
-        delegateHandler.close();
-    }
 }

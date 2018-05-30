@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
@@ -45,12 +46,10 @@ import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public final class SyncClientInterface implements ClassSpec {
 
@@ -68,19 +67,24 @@ public final class SyncClientInterface implements ClassSpec {
 
     @Override
     public TypeSpec poetSpec() {
-        return PoetUtils.createInterfaceBuilder(className)
-                        .addSuperinterface(SdkClient.class)
-                        .addSuperinterface(SdkAutoCloseable.class)
-                        .addJavadoc(getJavadoc())
-                        .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
-                                                           .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                                                           .initializer("$S", model.getMetadata().getSigningName())
-                                                           .build())
-                        .addMethod(create())
-                        .addMethod(builder())
-                        .addMethods(operations())
-                        .addMethod(serviceMetadata())
-                        .build();
+        TypeSpec.Builder result = PoetUtils.createInterfaceBuilder(className);
+
+        result.addSuperinterface(SdkClient.class)
+              .addJavadoc(getJavadoc())
+              .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
+                                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                                 .initializer("$S", model.getMetadata().getSigningName())
+                                 .build());
+
+        if (!model.getCustomizationConfig().isExcludeClientCreateMethod()) {
+            result.addMethod(create());
+        }
+
+        result.addMethod(builder())
+              .addMethods(operations())
+              .addMethod(serviceMetadata());
+
+        return result.build();
     }
 
     @Override
@@ -355,7 +359,7 @@ public final class SyncClientInterface implements ClassSpec {
      */
     private MethodSpec bytesSimpleMethod(OperationModel opModel, TypeName responseType, ClassName requestType) {
         TypeName returnType = ParameterizedTypeName.get(ClassName.get(ResponseBytes.class), responseType);
-        return MethodSpec.methodBuilder(opModel.getMethodName() + "Bytes")
+        return MethodSpec.methodBuilder(opModel.getMethodName() + "AsBytes")
                          .returns(returnType)
                          .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
                          .addParameter(requestType, opModel.getInput().getVariableName())
@@ -390,7 +394,7 @@ public final class SyncClientInterface implements ClassSpec {
                                             .map(e -> ClassName.get(model.getMetadata().getFullModelPackageName(),
                                                                     e.getExceptionName()))
                                             .collect(toCollection(ArrayList::new));
-        Collections.addAll(exceptions, ClassName.get(SdkServiceException.class),
+        Collections.addAll(exceptions, ClassName.get(AwsServiceException.class),
                            ClassName.get(SdkClientException.class),
                            ClassName.get(model.getMetadata().getFullModelPackageName(),
                                          model.getSdkModeledExceptionBaseClassName()));

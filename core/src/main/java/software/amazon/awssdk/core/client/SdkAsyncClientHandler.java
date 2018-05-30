@@ -15,45 +15,23 @@
 
 package software.amazon.awssdk.core.client;
 
-import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
-import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.config.SdkAsyncClientConfiguration;
+import software.amazon.awssdk.core.http.AmazonAsyncHttpClient;
 
 /**
- * Client handler for SDK clients.
+ * Default implementation of {@link AsyncClientHandler}.
  */
-@ThreadSafe
 @Immutable
-public class SdkAsyncClientHandler extends BaseClientHandler implements AsyncClientHandler {
+@ThreadSafe
+@SdkProtectedApi
+public class SdkAsyncClientHandler extends BaseAsyncClientHandler implements AsyncClientHandler {
 
-    private final AsyncClientHandler delegateHandler;
-
-    public SdkAsyncClientHandler(SdkAsyncClientConfiguration asyncClientConfiguration,
-                                 ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
-        super(asyncClientConfiguration, serviceAdvancedConfiguration);
-        this.delegateHandler = new SdkAsyncClientHandlerImpl(asyncClientConfiguration, serviceAdvancedConfiguration);
-    }
-
-    @Override
-    public <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<OutputT> execute(
-            ClientExecutionParams<InputT, OutputT> executionParams) {
-        return delegateHandler.execute(addErrorResponseHandler(executionParams));
-    }
-
-    @Override
-    public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> CompletableFuture<ReturnT> execute(
-            ClientExecutionParams<InputT, OutputT> executionParams,
-            AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer) {
-        return delegateHandler.execute(addErrorResponseHandler(executionParams), asyncResponseTransformer);
-    }
-
-    @Override
-    public void close() {
-        delegateHandler.close();
+    protected SdkAsyncClientHandler(SdkAsyncClientConfiguration asyncClientConfiguration,
+                          ServiceConfiguration serviceConfiguration) {
+        super(asyncClientConfiguration, serviceConfiguration, new AmazonAsyncHttpClient(asyncClientConfiguration));
     }
 }

@@ -48,8 +48,8 @@ abstract class BaseAwsStructuredJsonFactory implements AwsStructuredJsonFactory 
 
     @Override
     public <T> JsonResponseHandler<T> createResponseHandler(
-            JsonOperationMetadata operationMetadata,
-            Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller) {
+        JsonOperationMetadata operationMetadata,
+        Unmarshaller<T, JsonUnmarshallerContext> responseUnmarshaller) {
         return new JsonResponseHandler<>(responseUnmarshaller, unmarshallers, jsonFactory,
                                          operationMetadata.isHasStreamingSuccessResponse(),
                                          operationMetadata.isPayloadJson());

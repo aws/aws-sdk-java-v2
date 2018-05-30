@@ -1,14 +1,42 @@
-# __2.0.0-preview-9__ __2018-03-20__
+# __2.0.0-preview-10__ __2018-05-25__
 ## __AWS SDK for Java v2__
   - ### Features
-    - Added support for auto-pagination in sync and async clients. A blog post for this feature will be released soon. In the meantime, Please refer to [ScanPaginatorIntegrationTest](https://github.com/aws/aws-sdk-java-v2/blob/2.0.0-preview-9/services/dynamodb/src/it/java/software/amazon/awssdk/services/dynamodb/ScanPaginatorIntegrationTest.java) and [ListObjectsV2PaginatorsIntegrationTest](https://github.com/aws/aws-sdk-java-v2/blob/2.0.0-preview-9/services/s3/src/it/java/software/amazon/awssdk/services/s3/ListObjectsV2PaginatorsIntegrationTest.java) classes for sample code.
-  
-  - ### Bugfixes
-    - Fix default user agent to comply with [RFC 7231](https://tools.ietf.org/html/rfc7231#section-5.5.3). Related to [#80](https://github.com/aws/aws-sdk-java-v2/issues/80)
+    - Add [SdkHttpResponse](https://github.com/aws/aws-sdk-java-v2/blob/master/http-client-spi/src/main/java/software/amazon/awssdk/http/SdkHttpResponse.java) to [SdkResponse](https://github.com/aws/aws-sdk-java-v2/blob/master/core/src/main/java/software/amazon/awssdk/core/SdkResponse.java) so that customers can retrieve Http data such as headers, status code from the response object.
+    - Add a standard User-Agent when making requests to the metadata service.  User-Agent pattern: aws-sdk-java/<version>
+    - Added Consumer<Builder>-style methods for all client overloads.
+    - Added Consumer<Builder>-style methods for vararg parameters.
+    - AsyncResponseTransformer byte array and string methods now match the sync model.
+    - Include root causes in the exception message from AWSCredentialsProviderChain to ease troubleshooting.
+    - Moved AWS specific retry policies to aws-core module, created AwsServiceException and moved isThrottlingException and isClockSkewException methods to SdkServiceException.
+    - Renamed "Bytes" overload for streaming operations to "AsBytes", and "String" overload for enums to "AsString"
+    - Renamed AsyncRequestProvider to AsyncRequestBody to better match sync's RequestBody
+    - Renamed AsyncResponseHandler to AsyncResponseTransformer and StreamingResponseHandler to ResponseTransformer.
+    - Split core module to regions, profiles, auth, aws-core and core modules.[#27](https://github.com/aws/aws-sdk-java-v2/issues/27)
+    - Updating default retry policy to include newly added conditions.
+    - Renamed `AdvancedServiceConfiguration` to `ServiceConfiguration`
+    - Renamed `RequestOverrideConfig` to `RequestOverrideConfiguration` to match `ClientOverrideConfiguration` naming.
+    - Simplified configuration of HTTP clients.
+
+  - ### Removals
+    - Remove httpRequestTimeout and totalExecutionTimeout features
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Add AWS Secrets Manager to v2.
     
+## __Amazon S3__
+  - ### Features
+    - Renamed `S3AdvancedConfiguration` to `S3Configuration`
+    
+# __2.0.0-preview-9__ __2018-03-20__
 ## __AWS Lambda__
   - ### Features
     - Added latest model for new service features.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix default user agent to comply with [RFC 7231](https://tools.ietf.org/html/rfc7231#section-5.5.3). Related to [#80](https://github.com/aws/aws-sdk-java-v2/issues/80)
+    - Maven artifact software.amazon.awssdk:bom no longer includes non-SDK dependencies.
 
 # __2.0.0-preview-8__ __2018-02-02__
 ## __AWS SDK for Java v2__

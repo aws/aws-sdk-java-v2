@@ -16,17 +16,17 @@
 package software.amazon.awssdk.core.client;
 
 import java.util.Optional;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.RequestOverrideConfig;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.SdkRequestOverrideConfig;
+import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.config.InternalAdvancedClientOption;
 import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.http.DefaultSdkHttpResponse;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
@@ -34,18 +34,20 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
+import software.amazon.awssdk.core.internal.http.DefaultSdkHttpResponse;
 import software.amazon.awssdk.core.internal.http.response.SdkErrorResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 
+@SdkProtectedApi
 public abstract class BaseClientHandler {
-    private final ServiceAdvancedConfiguration serviceAdvancedConfiguration;
+    private final ServiceConfiguration serviceConfiguration;
     private SdkClientConfiguration clientConfiguration;
 
     protected BaseClientHandler(SdkClientConfiguration clientConfiguration,
-                                ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
+                                ServiceConfiguration serviceConfiguration) {
         this.clientConfiguration = clientConfiguration;
-        this.serviceAdvancedConfiguration = serviceAdvancedConfiguration;
+        this.serviceConfiguration = serviceConfiguration;
     }
 
     static <InputT extends SdkRequest> InputT finalizeSdkRequest(ExecutionContext executionContext) {
@@ -154,17 +156,17 @@ public abstract class BaseClientHandler {
         ClientOverrideConfiguration overrideConfiguration = clientConfiguration.overrideConfiguration();
 
         ExecutionAttributes executionAttributes = new ExecutionAttributes()
-            .putAttribute(SdkExecutionAttributes.REQUEST_CONFIG, originalRequest.requestOverrideConfig()
+            .putAttribute(SdkExecutionAttributes.REQUEST_CONFIG, originalRequest.overrideConfiguration()
                                                                                 .filter(c -> c instanceof
-                                                                                    SdkRequestOverrideConfig)
-                                                                                .map(c -> (RequestOverrideConfig) c)
-                                                                                .orElse(SdkRequestOverrideConfig.builder()
-                                                                                                                .build()))
-            .putAttribute(SdkExecutionAttributes.SERVICE_ADVANCED_CONFIG, serviceAdvancedConfiguration)
-            .putAttribute(SdkExecutionAttributes.REQUEST_CONFIG, originalRequest.requestOverrideConfig()
-                                                                                .map(c -> (SdkRequestOverrideConfig) c)
-                                                                                .orElse(SdkRequestOverrideConfig.builder()
-                                                                                                                .build()));
+                                                                                        SdkRequestOverrideConfiguration)
+                                                                                .map(c -> (RequestOverrideConfiguration) c)
+                                                                                .orElse(SdkRequestOverrideConfiguration.builder()
+                                                                                                                       .build()))
+            .putAttribute(SdkExecutionAttributes.SERVICE_CONFIG, serviceConfiguration)
+            .putAttribute(SdkExecutionAttributes.REQUEST_CONFIG, originalRequest.overrideConfiguration()
+                                                                                .map(c -> (SdkRequestOverrideConfiguration) c)
+                                                                                .orElse(SdkRequestOverrideConfiguration.builder()
+                                                                                                                       .build()));
 
         return ExecutionContext.builder()
                                .interceptorChain(new ExecutionInterceptorChain(overrideConfiguration.executionInterceptors()))
@@ -172,7 +174,7 @@ public abstract class BaseClientHandler {
                                                                      .request(originalRequest)
                                                                      .build())
                                .executionAttributes(executionAttributes)
-                               .signerProvider(overrideConfiguration.advancedOption(SdkAdvancedClientOption.SIGNER_PROVIDER))
+                               .signer(overrideConfiguration.advancedOption(SdkAdvancedClientOption.SIGNER))
                                .build();
     }
 

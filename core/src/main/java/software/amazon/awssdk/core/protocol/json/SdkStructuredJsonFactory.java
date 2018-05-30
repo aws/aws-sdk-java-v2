@@ -34,5 +34,4 @@ public interface SdkStructuredJsonFactory extends StructuredJsonFactory {
      */
     SdkJsonErrorResponseHandler createErrorResponseHandler(
         List<SdkJsonErrorUnmarshaller> errorUnmarshallers);
-
 }

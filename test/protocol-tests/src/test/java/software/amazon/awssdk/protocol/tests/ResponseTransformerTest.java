@@ -36,13 +36,11 @@ import java.util.UUID;
 import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.core.client.builder.ClientHttpConfiguration;
-import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
-import software.amazon.awssdk.http.SdkHttpClientFactory;
-import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
@@ -62,7 +60,7 @@ public class ResponseTransformerTest {
         stubFor(post(urlPathEqualTo(STREAMING_OUTPUT_PATH)).willReturn(aResponse().withStatus(200).withBody("test \uD83D\uDE02")));
 
         ResponseBytes<StreamingOutputOperationResponse> response =
-                testClient().streamingOutputOperationBytes(StreamingOutputOperationRequest.builder().build());
+                testClient().streamingOutputOperationAsBytes(StreamingOutputOperationRequest.builder().build());
 
         byte[] arrayCopy = response.asByteArray();
         assertThat(arrayCopy).containsExactly('t', 'e', 's', 't', ' ', -16, -97, -104, -126);
@@ -81,7 +79,7 @@ public class ResponseTransformerTest {
         stubForRetries();
 
         ResponseBytes<StreamingOutputOperationResponse> response =
-                testClient().streamingOutputOperationBytes(StreamingOutputOperationRequest.builder().build());
+                testClient().streamingOutputOperationAsBytes(StreamingOutputOperationRequest.builder().build());
 
         assertThat(response.asUtf8String()).isEqualTo("retried");
     }
@@ -124,18 +122,11 @@ public class ResponseTransformerTest {
     }
 
     private ProtocolRestJsonClient testClient() {
-        SdkHttpClientFactory httpClientFactory = ApacheSdkHttpClientFactory.builder()
-                                                                           .socketTimeout(Duration.ofSeconds(1))
-                                                                           .build();
-
-        ClientHttpConfiguration httpConfig = ClientHttpConfiguration.builder()
-                                                                    .httpClientFactory(httpClientFactory)
-                                                                    .build();
         return ProtocolRestJsonClient.builder()
                                      .region(Region.US_WEST_1)
                                      .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                      .credentialsProvider(() -> AwsCredentials.create("akid", "skid"))
-                                     .httpConfiguration(httpConfig)
+                                     .httpClientBuilder(ApacheHttpClient.builder().socketTimeout(Duration.ofSeconds(1)))
                                      .build();
     }
 }

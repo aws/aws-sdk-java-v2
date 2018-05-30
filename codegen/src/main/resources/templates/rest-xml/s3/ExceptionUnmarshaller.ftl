@@ -4,7 +4,7 @@ package ${transformPackage};
 import org.w3c.dom.Node;
 import javax.annotation.Generated;
 
-import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.util.XpathUtils;
 import software.amazon.awssdk.services.s3.transform.S3ExceptionUnmarshaller;
 import ${metadata.fullModelPackageName}.${shape.shapeName};
@@ -17,7 +17,7 @@ public class ${shape.shapeName}Unmarshaller extends S3ExceptionUnmarshaller {
     }
 
     @Override
-    public SdkServiceException unmarshall(Node node) throws Exception {
+    public AwsServiceException unmarshall(Node node) throws Exception {
         return super.unmarshall(node);
     }
 }

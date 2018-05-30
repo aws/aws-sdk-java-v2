@@ -25,6 +25,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  */
 @SdkPublicApi
 public class SdkException extends RuntimeException {
+
     private static final long serialVersionUID = 1L;
 
     /**

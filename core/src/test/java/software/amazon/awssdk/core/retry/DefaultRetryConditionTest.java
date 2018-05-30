@@ -27,21 +27,8 @@ import software.amazon.awssdk.core.retry.conditions.RetryCondition;
 public class DefaultRetryConditionTest {
 
     @Test
-    public void retriesOnRetryableErrorCodes() {
-        assertTrue(shouldRetry(applyErrorCode("PriorRequestNotComplete")));
-    }
-
-    @Test
     public void retriesOnThrottlingExceptions() {
-        assertTrue(shouldRetry(applyErrorCode("ThrottlingException")));
-        assertTrue(shouldRetry(applyErrorCode("ThrottledException")));
         assertTrue(shouldRetry(applyStatusCode(429)));
-    }
-
-    @Test
-    public void retriesOnClockSkewErrors() {
-        assertTrue(shouldRetry(applyErrorCode("RequestTimeTooSkewed")));
-        assertTrue(shouldRetry(applyErrorCode("AuthFailure")));
     }
 
     @Test
@@ -84,22 +71,10 @@ public class DefaultRetryConditionTest {
         assertFalse(shouldRetry(applyStatusCode(404)));
     }
 
-    @Test
-    public void doesNotRetryOnNonRetryableErrorCode() {
-        assertFalse(shouldRetry(applyErrorCode("ValidationError")));
-    }
-
     private boolean shouldRetry(Consumer<RetryPolicyContext.Builder> builder) {
         return RetryCondition.DEFAULT.shouldRetry(RetryPolicyContext.builder()
                                                                     .apply(builder)
                                                                     .build());
-    }
-
-    private Consumer<RetryPolicyContext.Builder> applyErrorCode(String errorCode) {
-        SdkServiceException exception = new SdkServiceException("");
-        exception.statusCode(404);
-        exception.errorCode(errorCode);
-        return b -> b.exception(exception);
     }
 
     private Consumer<RetryPolicyContext.Builder> applyStatusCode(Integer statusCode) {

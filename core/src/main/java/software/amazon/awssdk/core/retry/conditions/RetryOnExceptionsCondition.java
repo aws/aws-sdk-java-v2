@@ -24,14 +24,14 @@ import software.amazon.awssdk.core.retry.RetryPolicyContext;
  * Retry condition implementation that retries if the exception or the cause of the exception matches the classes defined.
  */
 @SdkPublicApi
-public class RetryOnExceptionsCondition implements RetryCondition {
+public final class RetryOnExceptionsCondition implements RetryCondition {
 
     private final Set<Class<? extends Exception>> exceptionsToRetryOn;
 
     /**
      * @param exceptionsToRetryOn Exception classes to retry on.
      */
-    public RetryOnExceptionsCondition(Set<Class<? extends Exception>> exceptionsToRetryOn) {
+    private RetryOnExceptionsCondition(Set<Class<? extends Exception>> exceptionsToRetryOn) {
         this.exceptionsToRetryOn = new HashSet<>(exceptionsToRetryOn);
     }
 
@@ -76,5 +76,12 @@ public class RetryOnExceptionsCondition implements RetryCondition {
             return false;
         }
         return context.exception().getCause().getClass().equals(exceptionClass);
+    }
+
+    /**
+     * @param exceptionsToRetryOn Exception classes to retry on.
+     */
+    public static RetryOnExceptionsCondition create(Set<Class<? extends Exception>> exceptionsToRetryOn) {
+        return new RetryOnExceptionsCondition(exceptionsToRetryOn);
     }
 }

@@ -15,33 +15,33 @@
 
 package software.amazon.awssdk.core.http;
 
-import static software.amazon.awssdk.core.http.pipeline.RequestPipelineBuilder.async;
+import static software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder.async;
 
 import java.util.concurrent.CompletableFuture;
-
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.config.SdkAsyncClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.http.pipeline.RequestPipelineBuilder;
-import software.amazon.awssdk.core.http.pipeline.stages.AfterExecutionInterceptorsStage;
-import software.amazon.awssdk.core.http.pipeline.stages.ApplyTransactionIdStage;
-import software.amazon.awssdk.core.http.pipeline.stages.ApplyUserAgentStage;
-import software.amazon.awssdk.core.http.pipeline.stages.AsyncExecutionFailureExceptionReportingStage;
-import software.amazon.awssdk.core.http.pipeline.stages.AsyncRetryableStage;
-import software.amazon.awssdk.core.http.pipeline.stages.BeforeTransmissionExecutionInterceptorsStage;
-import software.amazon.awssdk.core.http.pipeline.stages.MakeAsyncHttpRequestStage;
-import software.amazon.awssdk.core.http.pipeline.stages.MakeRequestImmutable;
-import software.amazon.awssdk.core.http.pipeline.stages.MakeRequestMutable;
-import software.amazon.awssdk.core.http.pipeline.stages.MergeCustomHeadersStage;
-import software.amazon.awssdk.core.http.pipeline.stages.MergeCustomQueryParamsStage;
-import software.amazon.awssdk.core.http.pipeline.stages.MoveParametersToBodyStage;
-import software.amazon.awssdk.core.http.pipeline.stages.SigningStage;
-import software.amazon.awssdk.core.http.pipeline.stages.UnwrapResponseContainer;
+import software.amazon.awssdk.core.internal.http.HttpAsyncClientDependencies;
+import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
+import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionInterceptorsStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncExecutionFailureExceptionReportingStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncRetryableStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeTransmissionExecutionInterceptorsStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeAsyncHttpRequestStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestImmutable;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestMutable;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomHeadersStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomQueryParamsStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.MoveParametersToBodyStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.SigningStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.UnwrapResponseContainer;
 import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
 import software.amazon.awssdk.core.retry.SdkDefaultRetrySettings;
 import software.amazon.awssdk.core.util.CapacityManager;

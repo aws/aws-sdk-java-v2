@@ -20,7 +20,8 @@ import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.awscore.AwsRequest;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.OperationInfo;
 import software.amazon.awssdk.core.protocol.json.BaseJsonProtocolFactory;
@@ -39,7 +40,7 @@ import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
  */
 @ThreadSafe
 @SdkProtectedApi
-public final class AwsJsonProtocolFactory extends BaseJsonProtocolFactory {
+public final class AwsJsonProtocolFactory extends BaseJsonProtocolFactory<AwsRequest, AwsServiceException> {
 
     private final AwsJsonProtocolMetadata protocolMetadata;
     private final List<AwsJsonErrorUnmarshaller> errorUnmarshallers = new ArrayList<>();
@@ -66,7 +67,7 @@ public final class AwsJsonProtocolFactory extends BaseJsonProtocolFactory {
      * Creates a response handler for handling a error response (non 2xx response).
      */
     @Override
-    public HttpResponseHandler<SdkServiceException> createErrorResponseHandler(
+    public HttpResponseHandler<AwsServiceException> createErrorResponseHandler(
         JsonErrorResponseMetadata errorResponseMetadata) {
         return getSdkFactory().createErrorResponseHandler(errorUnmarshallers, errorResponseMetadata
             .getCustomErrorCodeFieldName());
@@ -94,12 +95,12 @@ public final class AwsJsonProtocolFactory extends BaseJsonProtocolFactory {
     private void createErrorUnmarshallers() {
         for (JsonErrorShapeMetadata errorMetadata : jsonClientMetadata.getErrorShapeMetadata()) {
             errorUnmarshallers.add(new AwsJsonErrorUnmarshaller(
-                (Class<? extends SdkServiceException>) errorMetadata.getModeledClass(),
+                (Class<? extends AwsServiceException>) errorMetadata.getModeledClass(),
                 errorMetadata.getErrorCode()));
-
         }
+
         errorUnmarshallers.add(new AwsJsonErrorUnmarshaller(
-            (Class<? extends SdkServiceException>) jsonClientMetadata.getBaseServiceExceptionClass(),
+            (Class<? extends AwsServiceException>) jsonClientMetadata.getBaseServiceExceptionClass(),
             null));
     }
 

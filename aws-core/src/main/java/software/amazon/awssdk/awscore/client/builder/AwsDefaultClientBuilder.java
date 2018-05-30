@@ -30,13 +30,13 @@ import software.amazon.awssdk.awscore.config.AwsImmutableSyncClientConfiguration
 import software.amazon.awssdk.awscore.config.AwsMutableClientConfiguration;
 import software.amazon.awssdk.awscore.config.defaults.AwsClientConfigurationDefaults;
 import software.amazon.awssdk.awscore.config.defaults.AwsGlobalClientConfigurationDefaults;
-import software.amazon.awssdk.awscore.endpoint.EndpointUtils;
+import software.amazon.awssdk.awscore.internal.EndpointUtils;
 import software.amazon.awssdk.core.client.builder.ExecutorProvider;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.http.SdkHttpClientFactory;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClientFactory;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
@@ -75,9 +75,9 @@ public abstract class AwsDefaultClientBuilder<B extends AwsClientBuilder<B, C>, 
     }
 
     @SdkTestInternalApi
-    AwsDefaultClientBuilder(SdkHttpClientFactory defaultHttpClientFactory,
-                            SdkAsyncHttpClientFactory defaultAsyncHttpClientFactory) {
-        super(defaultHttpClientFactory, defaultAsyncHttpClientFactory);
+    AwsDefaultClientBuilder(SdkHttpClient.Builder defaultHttpClientBuilder,
+                            SdkAsyncHttpClient.Builder defaultAsyncHttpClientFactory) {
+        super(defaultHttpClientBuilder, defaultAsyncHttpClientFactory);
     }
 
     /**
@@ -88,6 +88,7 @@ public abstract class AwsDefaultClientBuilder<B extends AwsClientBuilder<B, C>, 
      */
     protected abstract String serviceEndpointPrefix();
 
+    protected abstract String signingName();
 
     /**
      * An optional hook that can be overridden by service client builders to set service-specific defaults.
@@ -182,6 +183,8 @@ public abstract class AwsDefaultClientBuilder<B extends AwsClientBuilder<B, C>, 
             protected void applyOverrideDefaults(ClientOverrideConfiguration.Builder builder) {
                 builder.advancedOption(AwsAdvancedClientOption.AWS_REGION,
                                        resolveRegion().orElseThrow(() -> new SdkClientException("AWS region not provided")));
+                builder.advancedOption(AwsAdvancedClientOption.SERVICE_SIGNING_NAME, signingName());
+                builder.advancedOption(AwsAdvancedClientOption.SIGNING_REGION, signingRegion());
             }
         };
     }

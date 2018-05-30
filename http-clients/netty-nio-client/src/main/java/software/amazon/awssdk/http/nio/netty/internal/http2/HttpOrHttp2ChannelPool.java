@@ -116,9 +116,9 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
                                                  .channelPool(simpleChannelPool)
                                                  .executor(eventLoop)
                                                  .acquireTimeoutAction(BetterFixedChannelPool.AcquireTimeoutAction.FAIL)
-                                                 .acquireTimeoutMillis(configuration.connectionAcquisitionTimeout())
+                                                 .acquireTimeoutMillis(configuration.connectionAcquireTimeoutMillis())
                                                  .maxConnections(maxConcurrency)
-                                                 .maxPendingAcquires(configuration.maxPendingAcquires())
+                                                 .maxPendingAcquires(configuration.maxPendingConnectionAcquires())
                                                  .build();
         } else {
             ChannelPool h2Pool = new Http2MultiplexedChannelPool(
@@ -127,9 +127,9 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
                                                  .channelPool(h2Pool)
                                                  .executor(eventLoop)
                                                  .acquireTimeoutAction(BetterFixedChannelPool.AcquireTimeoutAction.FAIL)
-                                                 .acquireTimeoutMillis(configuration.connectionAcquisitionTimeout())
+                                                 .acquireTimeoutMillis(configuration.connectionAcquireTimeoutMillis())
                                                  .maxConnections(maxConcurrency)
-                                                 .maxPendingAcquires(configuration.maxPendingAcquires())
+                                                 .maxPendingAcquires(configuration.maxPendingConnectionAcquires())
                                                  .build();
         }
         // Give the channel back so it can be acquired again by protocolImpl

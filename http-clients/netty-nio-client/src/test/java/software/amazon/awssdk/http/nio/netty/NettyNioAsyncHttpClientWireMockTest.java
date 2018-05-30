@@ -56,7 +56,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.assertj.core.api.Condition;
 import org.junit.AfterClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,7 +64,6 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -82,10 +80,9 @@ public class NettyNioAsyncHttpClientWireMockTest {
     @Mock
     private SdkRequestContext requestContext;
 
-    private static SdkAsyncHttpClient client = NettySdkHttpClientFactory.builder()
-                                                                        .trustAllCertificates(true)
-                                                                        .build()
-                                                                        .createHttpClient();
+    private static SdkAsyncHttpClient client = NettyNioAsyncHttpClient.builder()
+                                                                      .trustAllCertificates(true)
+                                                                      .build();
 
     @AfterClass
     public static void tearDown() throws Exception {
@@ -95,18 +92,13 @@ public class NettyNioAsyncHttpClientWireMockTest {
     @Test
     public void customFactoryIsUsed() throws Exception {
         ThreadFactory threadFactory = spy(new CustomThreadFactory());
-        EventLoopGroupConfiguration eventLoopGroupConfiguration =
-                EventLoopGroupConfiguration.builder()
-                                           .eventLoopGroupFactory(DefaultEventLoopGroupFactory.builder()
-                                                                                              .threadFactory(threadFactory)
-                                                                                              .build())
-                                           .build();
         SdkAsyncHttpClient customClient =
-                NettySdkHttpClientFactory.builder()
-                                         .trustAllCertificates(true)
-                                         .eventLoopGroupConfiguration(eventLoopGroupConfiguration)
-                                         .build()
-                                         .createHttpClient();
+                NettyNioAsyncHttpClient.builder()
+                                       .trustAllCertificates(true)
+                                       .eventLoopGroupFactory(DefaultEventLoopGroupFactory.builder()
+                                                                                          .threadFactory(threadFactory)
+                                                                                          .build())
+                                       .build();
 
         makeSimpleRequest(customClient);
         customClient.close();
@@ -129,19 +121,14 @@ public class NettyNioAsyncHttpClientWireMockTest {
     public void customThreadCountIsRespected() throws Exception {
         final int threadCount = 10;
         ThreadFactory threadFactory = spy(new CustomThreadFactory());
-        EventLoopGroupConfiguration eventLoopGroupConfiguration =
-                EventLoopGroupConfiguration.builder()
-                                           .eventLoopGroupFactory(DefaultEventLoopGroupFactory.builder()
-                                                                                              .threadFactory(threadFactory)
-                                                                                              .numberOfThreads(threadCount)
-                                                                                              .build())
-                                           .build();
         SdkAsyncHttpClient customClient =
-                NettySdkHttpClientFactory.builder()
-                                         .trustAllCertificates(true)
-                                         .eventLoopGroupConfiguration(eventLoopGroupConfiguration)
-                                         .build()
-                                         .createHttpClient();
+                NettyNioAsyncHttpClient.builder()
+                                       .trustAllCertificates(true)
+                                       .eventLoopGroupFactory(DefaultEventLoopGroupFactory.builder()
+                                                                                          .threadFactory(threadFactory)
+                                                                                          .numberOfThreads(threadCount)
+                                                                                          .build())
+                                       .build();
 
         // Have to make enough requests to prime the threads
         for (int i = 0; i < threadCount + 1; i++) {
@@ -160,16 +147,11 @@ public class NettyNioAsyncHttpClientWireMockTest {
         // implementation it creates is platform-dependent and could be a final
         // (i.e. non-spyable) class.
         EventLoopGroup eventLoopGroup = spy(new NioEventLoopGroup(0, threadFactory));
-        EventLoopGroupConfiguration eventLoopGroupConfiguration =
-                EventLoopGroupConfiguration.builder()
-                                           .eventLoopGroup(eventLoopGroup)
-                                           .build();
         SdkAsyncHttpClient customClient =
-                NettySdkHttpClientFactory.builder()
-                                         .trustAllCertificates(true)
-                                         .eventLoopGroupConfiguration(eventLoopGroupConfiguration)
-                                         .build()
-                                         .createHttpClient();
+                NettyNioAsyncHttpClient.builder()
+                                       .trustAllCertificates(true)
+                                       .eventLoopGroup(eventLoopGroup)
+                                       .build();
 
         makeSimpleRequest(customClient);
         customClient.close();
@@ -343,11 +325,10 @@ public class NettyNioAsyncHttpClientWireMockTest {
     public void testExceptionMessageChanged_WhenPendingAcquireQueueIsFull() throws Exception {
         String expectedErrorMsg = "Maximum pending connection acquisitions exceeded.";
 
-        SdkAsyncHttpClient customClient = NettySdkHttpClientFactory.builder()
-                                                                   .maxConnectionsPerEndpoint(1)
-                                                                   .maxPendingAcquires(1)
-                                                                   .build()
-                                                                   .createHttpClient();
+        SdkAsyncHttpClient customClient = NettyNioAsyncHttpClient.builder()
+                                                                 .maxConnectionsPerEndpoint(1)
+                                                                 .maxPendingConnectionAcquires(1)
+                                                                 .build();
 
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
@@ -366,11 +347,11 @@ public class NettyNioAsyncHttpClientWireMockTest {
         String expectedErrorMsg = "Acquire operation took longer than the configured maximum time. This indicates that a request "
                                   + "cannot get a connection from the pool within the specified maximum time.";
 
-        SdkAsyncHttpClient customClient = NettySdkHttpClientFactory.builder()
-                                                                   .maxConnectionsPerEndpoint(1)
-                                                                   .connectionTimeout(Duration.ofNanos(1))
-                                                                   .build()
-                                                                   .createHttpClient();
+        SdkAsyncHttpClient customClient = NettyNioAsyncHttpClient.builder()
+                                                                 .maxConnectionsPerEndpoint(1)
+                                                                 .connectionTimeout(Duration.ofMillis(1))
+                                                                 .connectionAcquisitionTimeout(Duration.ofMillis(1))
+                                                                 .build();
 
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (int i = 0; i < 2; i++) {

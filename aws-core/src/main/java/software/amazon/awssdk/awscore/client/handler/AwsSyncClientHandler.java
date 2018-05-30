@@ -16,14 +16,16 @@
 package software.amazon.awssdk.awscore.client.handler;
 
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.config.AwsSyncClientConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
-import software.amazon.awssdk.core.client.BaseClientHandler;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
+import software.amazon.awssdk.core.client.SdkSyncClientHandler;
 import software.amazon.awssdk.core.client.SyncClientHandler;
+import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 
 /**
@@ -31,31 +33,34 @@ import software.amazon.awssdk.core.sync.ResponseTransformer;
  */
 @ThreadSafe
 @Immutable
-public class AwsSyncClientHandler extends BaseClientHandler implements SyncClientHandler {
+@ReviewBeforeRelease("This looks identical to the Sdk version, revisit when we add APIG back")
+public class AwsSyncClientHandler extends SdkSyncClientHandler implements SyncClientHandler {
 
-    private final SyncClientHandler delegateHandler;
+    private final AwsSyncClientConfiguration clientConfiguration;
+    private final ServiceConfiguration serviceConfiguration;
 
-    public AwsSyncClientHandler(AwsSyncClientConfiguration clientConfiguration, ServiceAdvancedConfiguration
-        serviceAdvancedConfiguration) {
-        super(clientConfiguration, serviceAdvancedConfiguration);
-        this.delegateHandler = new AwsSyncClientHandlerImpl(clientConfiguration, serviceAdvancedConfiguration);
+    public AwsSyncClientHandler(AwsSyncClientConfiguration clientConfiguration,
+                                ServiceConfiguration serviceConfiguration) {
+        super(clientConfiguration, serviceConfiguration);
+        this.clientConfiguration = clientConfiguration;
+        this.serviceConfiguration = serviceConfiguration;
     }
 
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse> OutputT execute(
         ClientExecutionParams<InputT, OutputT> executionParams) {
-        return delegateHandler.execute(addErrorResponseHandler(executionParams));
+        return super.execute(addErrorResponseHandler(executionParams));
     }
 
     @Override
     public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> ReturnT execute(
         ClientExecutionParams<InputT, OutputT> executionParams,
         ResponseTransformer<OutputT, ReturnT> responseTransformer) {
-        return delegateHandler.execute(addErrorResponseHandler(executionParams), responseTransformer);
+        return super.execute(addErrorResponseHandler(executionParams), responseTransformer);
     }
 
     @Override
-    public void close() {
-        delegateHandler.close();
+    protected ExecutionContext createExecutionContext(SdkRequest originalRequest) {
+        return AwsClientHandlerUtils.createExecutionContext(originalRequest, clientConfiguration, serviceConfiguration);
     }
 }

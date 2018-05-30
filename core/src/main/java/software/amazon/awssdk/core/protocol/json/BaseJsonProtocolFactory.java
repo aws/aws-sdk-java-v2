@@ -32,10 +32,13 @@ import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 /**
  * Factory to generate the various JSON protocol handlers and generators depending on the wire protocol to be used for
  * communicating with the service.
+ *
+ * @param <RequestT> The type of the request
+ * @param <ExceptionT> the type of the exception
  */
 @ThreadSafe
 @SdkProtectedApi
-public abstract class BaseJsonProtocolFactory {
+public abstract class BaseJsonProtocolFactory<RequestT extends SdkRequest, ExceptionT extends SdkServiceException> {
 
     protected final JsonClientMetadata jsonClientMetadata;
 
@@ -43,7 +46,7 @@ public abstract class BaseJsonProtocolFactory {
         this.jsonClientMetadata = metadata;
     }
 
-    public <T extends SdkRequest> ProtocolRequestMarshaller<T> createProtocolMarshaller(
+    public <T extends RequestT> ProtocolRequestMarshaller<T> createProtocolMarshaller(
         OperationInfo operationInfo, T origRequest) {
         return JsonProtocolMarshallerBuilder.<T>standard()
             .jsonGenerator(createGenerator(operationInfo))
@@ -57,8 +60,8 @@ public abstract class BaseJsonProtocolFactory {
     /**
      * Creates a response handler for handling a error response (non 2xx response).
      */
-    public abstract HttpResponseHandler<SdkServiceException> createErrorResponseHandler(JsonErrorResponseMetadata
-                                                                                            errorResponseMetadata);
+    public abstract HttpResponseHandler<ExceptionT> createErrorResponseHandler(
+        JsonErrorResponseMetadata errorResponseMetadata);
 
     /**
      * Returns the response handler to be used for handling a successful response.

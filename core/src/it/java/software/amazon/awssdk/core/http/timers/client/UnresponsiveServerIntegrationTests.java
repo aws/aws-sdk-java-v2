@@ -30,7 +30,9 @@ import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.time.Duration;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.TestPreConditions;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.config.SdkMutableClientConfiguration;
@@ -38,13 +40,14 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.http.UnresponsiveMockServerTestBase;
 import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
-import software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants;
 import software.amazon.awssdk.core.retry.FixedTimeBackoffStrategy;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ApacheSdkHttpClientFactory;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import utils.HttpTestUtils;
 
+@Ignore
+@ReviewBeforeRelease("Add the tests back once execution, request timeout are added back")
 public class UnresponsiveServerIntegrationTests extends UnresponsiveMockServerTestBase {
 
     private static final Duration LONGER_SOCKET_TIMEOUT =
@@ -90,7 +93,6 @@ public class UnresponsiveServerIntegrationTests extends UnresponsiveMockServerTe
 
         ClientOverrideConfiguration overrideConfiguration =
                 ClientOverrideConfiguration.builder()
-                                           .totalExecutionTimeout(TimeoutTestConstants.CLIENT_EXECUTION_TIMEOUT)
                                            .retryPolicy(retryPolicy)
                                            .build();
 
@@ -129,10 +131,9 @@ public class UnresponsiveServerIntegrationTests extends UnresponsiveMockServerTe
     }
 
     private SdkHttpClient createClientWithSocketTimeout(Duration socketTimeout) {
-        return ApacheSdkHttpClientFactory.builder()
-                                         .socketTimeout(socketTimeout)
-                                         .build()
-                                         .createHttpClient();
+        return ApacheHttpClient.builder()
+                               .socketTimeout(socketTimeout)
+                               .build();
     }
 
     @Test(timeout = TEST_TIMEOUT)
