@@ -24,10 +24,10 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.HttpAsyncClientDependencies;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.HttpSyncClientDependencies;
+import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 
 /**
  * Builder for a {@link RequestPipeline}.

@@ -17,8 +17,8 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.util.Random;
 import java.util.UUID;
-import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
+import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 

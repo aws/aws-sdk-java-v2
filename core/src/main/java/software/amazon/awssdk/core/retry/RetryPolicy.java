@@ -58,11 +58,11 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
     private final BackoffStrategy backoffStrategy;
     private final Integer numRetries;
 
-    RetryPolicy(Builder builder) {
+    private RetryPolicy(Builder builder) {
         this.backoffStrategy = builder.backoffStrategy;
         this.numRetries = builder.numRetries;
         this.retryConditionFromBuilder = builder.retryCondition;
-        this.retryCondition = new AndRetryCondition(new MaxNumberOfRetriesCondition(numRetries), retryConditionFromBuilder);
+        this.retryCondition = AndRetryCondition.create(MaxNumberOfRetriesCondition.create(numRetries), retryConditionFromBuilder);
     }
 
     public RetryCondition retryCondition() {
@@ -93,6 +93,9 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
         private Integer numRetries = SdkDefaultRetrySettings.DEFAULT_MAX_RETRIES;
         private BackoffStrategy backoffStrategy = BackoffStrategy.defaultStrategy();
         private RetryCondition retryCondition = RetryCondition.DEFAULT;
+
+        private Builder(){
+        }
 
         public Builder numRetries(Integer numRetries) {
             this.numRetries = numRetries;

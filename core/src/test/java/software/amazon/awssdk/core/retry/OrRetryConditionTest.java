@@ -25,8 +25,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.core.retry.conditions.RetryCondition;
 import software.amazon.awssdk.core.retry.conditions.OrRetryCondition;
+import software.amazon.awssdk.core.retry.conditions.RetryCondition;
 
 @RunWith(MockitoJUnitRunner.class)
 public class OrRetryConditionTest {
@@ -41,7 +41,7 @@ public class OrRetryConditionTest {
 
     @Before
     public void setup() {
-        this.orCondition = new OrRetryCondition(conditionOne, conditionTwo);
+        this.orCondition = OrRetryCondition.create(conditionOne, conditionTwo);
     }
 
     @Test
@@ -65,21 +65,21 @@ public class OrRetryConditionTest {
 
     @Test
     public void noConditions_ReturnsFalse() {
-        assertFalse(new OrRetryCondition().shouldRetry(RetryPolicyContexts.EMPTY));
+        assertFalse(OrRetryCondition.create().shouldRetry(RetryPolicyContexts.EMPTY));
     }
 
     @Test
     public void singleConditionThatReturnsTrue_ReturnsTrue() {
         when(conditionOne.shouldRetry(RetryPolicyContexts.EMPTY))
                 .thenReturn(true);
-        assertTrue(new OrRetryCondition(conditionOne).shouldRetry(RetryPolicyContexts.EMPTY));
+        assertTrue(OrRetryCondition.create(conditionOne).shouldRetry(RetryPolicyContexts.EMPTY));
     }
 
     @Test
     public void singleConditionThatReturnsFalse_ReturnsFalse() {
         when(conditionOne.shouldRetry(RetryPolicyContexts.EMPTY))
                 .thenReturn(false);
-        assertFalse(new OrRetryCondition(conditionOne).shouldRetry(RetryPolicyContexts.EMPTY));
+        assertFalse(OrRetryCondition.create(conditionOne).shouldRetry(RetryPolicyContexts.EMPTY));
     }
 
 }

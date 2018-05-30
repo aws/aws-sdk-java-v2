@@ -30,10 +30,5 @@ public class SdkStandardLoggers {
      */
     public static final Logger REQUEST_LOGGER = Logger.loggerFor("software.amazon.awssdk.request");
 
-    /**
-     * Logger providing request ID information. Users can enable this logger to have just the request IDs logged.
-     */
-    public static final Logger REQUEST_ID_LOGGER = Logger.loggerFor("software.amazon.awssdk.requestId");
-
     private SdkStandardLoggers() {}
 }

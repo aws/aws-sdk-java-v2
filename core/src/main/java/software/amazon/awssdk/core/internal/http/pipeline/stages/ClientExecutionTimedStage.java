@@ -17,7 +17,6 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
-import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
@@ -27,6 +26,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
 import software.amazon.awssdk.core.http.exception.SdkInterruptedException;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
+import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToResponsePipeline;
 import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionAbortTrackerTask;
