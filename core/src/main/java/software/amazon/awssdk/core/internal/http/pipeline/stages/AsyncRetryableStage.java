@@ -57,7 +57,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
     public AsyncRetryableStage(HttpClientDependencies dependencies,
                                RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> requestPipeline) {
         this.dependencies = dependencies;
-        this.retrySubmitter = dependencies.clientConfiguration().option(SdkClientOption.ASYNC_EXECUTOR_SERVICE);
+        this.retrySubmitter = dependencies.clientConfiguration().option(SdkClientOption.ASYNC_RETRY_EXECUTOR_SERVICE);
         this.retryPolicy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_POLICY);
         this.retryCapacity = dependencies.retryCapacity();
         this.requestPipeline = requestPipeline;

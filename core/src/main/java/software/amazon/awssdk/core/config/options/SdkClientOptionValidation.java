@@ -28,7 +28,8 @@ public class SdkClientOptionValidation {
     protected SdkClientOptionValidation() {}
 
     public static void validateAsyncClientOptions(SdkClientConfiguration c) {
-        require("asyncExecutorService", c.option(SdkClientOption.ASYNC_EXECUTOR_SERVICE));
+        require("asyncConfiguration.advancedOption[FUTURE_COMPLETION_EXECUTOR]",
+                c.option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR));
         require("asyncHttpClient", c.option(SdkClientOption.ASYNC_HTTP_CLIENT));
 
         validateClientOptions(c);
