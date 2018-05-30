@@ -26,9 +26,8 @@ import static org.junit.Assert.fail;
 import static software.amazon.awssdk.core.retry.RetryHandler.HEADER_SDK_RETRY_INFO;
 
 import org.junit.Test;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.config.SdkMutableClientConfiguration;
-import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.config.options.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -70,15 +69,12 @@ public class RetryCountInUserAgentTest extends WireMockTestBase {
     private void executeRequest() throws Exception {
         RetryPolicy policy = RetryPolicy.builder().backoffStrategy(new SimpleArrayBackoffStrategy(BACKOFF_VALUES)).build();
 
-        ClientOverrideConfiguration overrideConfig =
-            ClientOverrideConfiguration.builder().retryPolicy(policy).build();
-        SdkMutableClientConfiguration clientConfiguration = new SdkMutableClientConfiguration()
-            .overrideConfiguration(overrideConfig)
-            .httpClient(HttpTestUtils.testSdkHttpClient());
+        SdkClientConfiguration config = HttpTestUtils.testClientConfiguration().toBuilder()
+                                                     .option(SdkClientOption.SYNC_HTTP_CLIENT, HttpTestUtils.testSdkHttpClient())
+                                                     .option(SdkClientOption.RETRY_POLICY, policy)
+                                                     .build();
 
-        new GlobalClientConfigurationDefaults().applySyncDefaults(clientConfiguration);
-
-        AmazonSyncHttpClient httpClient = new AmazonSyncHttpClient(clientConfiguration);
+        AmazonSyncHttpClient httpClient = new AmazonSyncHttpClient(config);
         try {
             SdkHttpFullRequest request = SdkHttpFullRequestAdapter.toHttpFullRequest(newGetRequest(RESOURCE_PATH));
             httpClient.requestExecutionBuilder()

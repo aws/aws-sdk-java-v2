@@ -21,9 +21,10 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.config.options.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponse;
-import software.amazon.awssdk.core.internal.http.HttpAsyncClientDependencies;
+import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.SdkHttpResponseAdapter;
@@ -54,10 +55,10 @@ public class MakeAsyncHttpRequestStage<OutputT>
 
     public MakeAsyncHttpRequestStage(SdkHttpResponseHandler<OutputT> responseHandler,
                                      SdkHttpResponseHandler<? extends SdkException> errorResponseHandler,
-                                     HttpAsyncClientDependencies dependencies) {
+                                     HttpClientDependencies dependencies) {
         this.responseHandler = responseHandler;
         this.errorResponseHandler = errorResponseHandler;
-        this.sdkAsyncHttpClient = dependencies.asyncClientConfiguration().asyncHttpClient();
+        this.sdkAsyncHttpClient = dependencies.clientConfiguration().option(SdkClientOption.ASYNC_HTTP_CLIENT);
     }
 
     /**

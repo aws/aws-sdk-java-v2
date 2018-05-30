@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.config.options.SdkClientOption;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
@@ -42,7 +43,7 @@ public class MergeCustomHeadersStage implements MutableRequestToRequestPipeline 
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
             throws Exception {
         return request.headers(mergeHeaders(request.headers(),
-                                            config.overrideConfiguration().additionalHttpHeaders(),
+                                            config.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS),
                                             adaptHeaders(context.requestConfig().headers()
                                                     .orElse(Collections.emptyMap()))));
     }

@@ -30,5 +30,4 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
                      "Also may be worthwhile to also allow customer to provide just a ScheduledExecutorService" +
                      "that may be shared and is managed by them.")
 public interface ExecutorProvider extends Supplier<ScheduledExecutorService> {
-
 }

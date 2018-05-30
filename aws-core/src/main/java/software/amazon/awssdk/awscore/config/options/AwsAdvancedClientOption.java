@@ -13,12 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awscore.config;
+package software.amazon.awssdk.awscore.config.options;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration.Builder;
-import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.config.options.SdkAdvancedClientOption;
 import software.amazon.awssdk.regions.Region;
 
 /**
@@ -31,18 +32,8 @@ import software.amazon.awssdk.regions.Region;
  * @param <T> The type of value associated with the option.
  */
 @ReviewBeforeRelease("Ensure that all of these options are actually advanced.")
+@SdkPublicApi
 public final class AwsAdvancedClientOption<T> extends SdkAdvancedClientOption<T> {
-
-    /**
-     * AWS Region the client was configured with. Note that this is not always the signing region in the case of global
-     * services like IAM.
-     */
-    public static final AwsAdvancedClientOption<Region> AWS_REGION = new AwsAdvancedClientOption<>(Region.class);
-
-    /**
-     * AWS Region to be used for signing the request. This is not always same as {@link #AWS_REGION} in case of global services.
-     */
-    public static final AwsAdvancedClientOption<Region> SIGNING_REGION = new AwsAdvancedClientOption<>(Region.class);
 
     /**
      * Whether region detection should be enabled. Region detection is used when the {@link AwsClientBuilder#region(Region)} is
@@ -50,8 +41,6 @@ public final class AwsAdvancedClientOption<T> extends SdkAdvancedClientOption<T>
      */
     public static final AwsAdvancedClientOption<Boolean> ENABLE_DEFAULT_REGION_DETECTION =
         new AwsAdvancedClientOption<>(Boolean.class);
-
-    public static final AwsAdvancedClientOption<String> SERVICE_SIGNING_NAME = new AwsAdvancedClientOption<>(String.class);
 
     private AwsAdvancedClientOption(Class<T> valueClass) {
         super(valueClass);

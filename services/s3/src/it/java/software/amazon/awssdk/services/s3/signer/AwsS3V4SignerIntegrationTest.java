@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.s3.signer;
 
 import static org.junit.Assert.assertEquals;
-import static software.amazon.awssdk.core.config.SdkAdvancedClientOption.SIGNER;
+import static software.amazon.awssdk.core.config.options.SdkAdvancedClientOption.SIGNER;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.IOException;

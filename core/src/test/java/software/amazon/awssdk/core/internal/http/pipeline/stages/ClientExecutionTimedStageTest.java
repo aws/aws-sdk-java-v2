@@ -26,11 +26,11 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
-import software.amazon.awssdk.core.config.SdkSyncClientConfiguration;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;
-import software.amazon.awssdk.core.internal.http.HttpSyncClientDependencies;
+import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
@@ -64,11 +64,11 @@ public class ClientExecutionTimedStageTest {
     private void nonTimerInterruption_interruptFlagIsPreserved(final Exception exceptionToThrow) throws Exception {
         RequestPipeline<SdkHttpFullRequest, Response<Void>> wrapped =
                 (RequestPipeline<SdkHttpFullRequest, Response<Void>>) mock(RequestPipeline.class);
-        ClientExecutionTimedStage<Void> stage = new ClientExecutionTimedStage<>(HttpSyncClientDependencies.builder()
-                                                                                                          .clientExecutionTimer(new ClientExecutionTimer())
-                                                                                                          .syncClientConfiguration(mock(SdkSyncClientConfiguration.class))
-                                                                                                          .capacityManager(mock(CapacityManager.class))
-                                                                                                          .build(),
+        ClientExecutionTimedStage<Void> stage = new ClientExecutionTimedStage<>(HttpClientDependencies.builder()
+                                                                                                      .clientExecutionTimer(new ClientExecutionTimer())
+                                                                                                      .clientConfiguration(mock(SdkClientConfiguration.class))
+                                                                                                      .capacityManager(mock(CapacityManager.class))
+                                                                                                      .build(),
                                                                                 wrapped);
 
         when(wrapped.execute(any(SdkHttpFullRequest.class), any(RequestExecutionContext.class))).thenAnswer(invocationOnMock -> {

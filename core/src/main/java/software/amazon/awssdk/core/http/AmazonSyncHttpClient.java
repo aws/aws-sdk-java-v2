@@ -21,11 +21,11 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.config.SdkSyncClientConfiguration;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.internal.http.HttpSyncClientDependencies;
+import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionInterceptorsStage;
@@ -62,14 +62,14 @@ public class AmazonSyncHttpClient implements SdkAutoCloseable {
      */
     static UnreliableTestConfig unreliableTestConfig;
 
-    private final HttpSyncClientDependencies httpClientDependencies;
+    private final HttpClientDependencies httpClientDependencies;
 
-    public AmazonSyncHttpClient(SdkSyncClientConfiguration syncClientConfiguration) {
-        this.httpClientDependencies = HttpSyncClientDependencies.builder()
-                                                                .clientExecutionTimer(new ClientExecutionTimer())
-                                                                .syncClientConfiguration(syncClientConfiguration)
-                                                                .capacityManager(createCapacityManager())
-                                                                .build();
+    public AmazonSyncHttpClient(SdkClientConfiguration clientConfiguration) {
+        this.httpClientDependencies = HttpClientDependencies.builder()
+                                                            .clientConfiguration(clientConfiguration)
+                                                            .clientExecutionTimer(new ClientExecutionTimer())
+                                                            .capacityManager(createCapacityManager())
+                                                            .build();
     }
 
     private CapacityManager createCapacityManager() {
@@ -253,8 +253,8 @@ public class AmazonSyncHttpClient implements SdkAutoCloseable {
             try {
                 return RequestPipelineBuilder
                     // Start of mutating request
-                    .firstSync(RequestPipelineBuilder
-                                   .firstSync(MakeRequestMutable::new)
+                    .first(RequestPipelineBuilder
+                                   .first(MakeRequestMutable::new)
                                    .then(ApplyTransactionIdStage::new)
                                    .then(ApplyUserAgentStage::new)
                                    .then(MergeCustomHeadersStage::new)
@@ -263,7 +263,7 @@ public class AmazonSyncHttpClient implements SdkAutoCloseable {
                                    .then(MakeRequestImmutable::new)
                                    // End of mutating request
                                    .then(RequestPipelineBuilder
-                                             .firstSync(SigningStage::new)
+                                             .first(SigningStage::new)
                                              .then(BeforeTransmissionExecutionInterceptorsStage::new)
                                              .then(MakeHttpRequestStage::new)
                                              .then(AfterTransmissionExecutionInterceptorsStage::new)

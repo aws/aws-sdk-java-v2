@@ -22,10 +22,10 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.config.SdkAsyncClientConfiguration;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.internal.http.HttpAsyncClientDependencies;
+import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionInterceptorsStage;
@@ -54,14 +54,14 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 @SdkInternalApi
 @ReviewBeforeRelease("come up with better name")
 public class AmazonAsyncHttpClient implements SdkAutoCloseable {
-    private final HttpAsyncClientDependencies httpClientDependencies;
+    private final HttpClientDependencies httpClientDependencies;
 
-    public AmazonAsyncHttpClient(SdkAsyncClientConfiguration configuration) {
-        this.httpClientDependencies = HttpAsyncClientDependencies.builder()
-                                                                 .clientExecutionTimer(new ClientExecutionTimer())
-                                                                 .asyncClientConfiguration(configuration)
-                                                                 .capacityManager(createCapacityManager())
-                                                                 .build();
+    public AmazonAsyncHttpClient(SdkClientConfiguration clientConfiguration) {
+        this.httpClientDependencies = HttpClientDependencies.builder()
+                                                            .clientExecutionTimer(new ClientExecutionTimer())
+                                                            .clientConfiguration(clientConfiguration)
+                                                            .capacityManager(createCapacityManager())
+                                                            .build();
     }
 
     private CapacityManager createCapacityManager() {
@@ -189,8 +189,8 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
         public <OutputT> CompletableFuture<OutputT> execute(SdkHttpResponseHandler<OutputT> responseHandler) {
             try {
                 return RequestPipelineBuilder
-                        .firstAsync(RequestPipelineBuilder
-                                .firstAsync(MakeRequestMutable::new)
+                        .first(RequestPipelineBuilder
+                                .first(MakeRequestMutable::new)
                                 .then(ApplyTransactionIdStage::new)
                                 .then(ApplyUserAgentStage::new)
                                 .then(MergeCustomHeadersStage::new)
@@ -198,7 +198,7 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                 .then(MoveParametersToBodyStage::new)
                                 .then(MakeRequestImmutable::new)
                                 .then(RequestPipelineBuilder
-                                      .firstAsync(SigningStage::new)
+                                      .first(SigningStage::new)
                                       .then(BeforeTransmissionExecutionInterceptorsStage::new)
                                       .then(d -> new MakeAsyncHttpRequestStage<>(responseHandler, errorResponseHandler, d))
                                       .wrap(AsyncRetryableStage::new)

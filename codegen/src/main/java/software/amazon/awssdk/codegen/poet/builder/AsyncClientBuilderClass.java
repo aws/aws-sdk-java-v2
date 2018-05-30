@@ -26,7 +26,6 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 
 public class AsyncClientBuilderClass implements ClassSpec {
-    private final IntermediateModel model;
     private final ClassName clientInterfaceName;
     private final ClassName clientClassName;
     private final ClassName builderInterfaceName;
@@ -35,7 +34,6 @@ public class AsyncClientBuilderClass implements ClassSpec {
 
     public AsyncClientBuilderClass(IntermediateModel model) {
         final String basePackage = model.getMetadata().getFullClientPackageName();
-        this.model = model;
         this.clientInterfaceName = ClassName.get(basePackage, model.getMetadata().getAsyncInterface());
         this.clientClassName = ClassName.get(basePackage, model.getMetadata().getAsyncClient());
         this.builderInterfaceName = ClassName.get(basePackage, model.getMetadata().getAsyncBuilderInterface());
@@ -58,14 +56,11 @@ public class AsyncClientBuilderClass implements ClassSpec {
     }
 
     private MethodSpec buildClientMethod() {
-        String serviceConfigParam = model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null ?
-                ", serviceConfiguration()" : "";
         return MethodSpec.methodBuilder("buildClient")
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                          .returns(clientInterfaceName)
-                         .addCode("return new $T(super.asyncClientConfiguration() $L);",
-                                  clientClassName, serviceConfigParam)
+                         .addCode("return new $T(super.asyncClientConfiguration());", clientClassName)
                          .build();
     }
 

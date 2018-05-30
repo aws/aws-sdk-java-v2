@@ -15,31 +15,89 @@
 
 package software.amazon.awssdk.core.config;
 
-import java.net.URI;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.config.options.ClientOption;
+import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * An interface that represents all configuration required by an AWS client in order to operate. AWS clients accept
- * implementations of the child interfaces ({@link SdkAsyncClientConfiguration} or {@link SdkSyncClientConfiguration}) when
- *  * constructed.
+ * A collection of configuration that is required by an AWS client in order to operate.
  *
- * <p>Implementations of this interface are not necessarily immutable or thread safe. If thread safety is required, consider
- * creating an immutable representation with {@link SdkImmutableClientConfiguration}.</p>
+ * Configuration can be set via {@link SdkClientConfiguration.Builder#option(ClientOption, Object)} and checked via
+ * {@link SdkClientConfiguration#option(ClientOption)}.
+ *
+ * This configuration can be merged with other configuration using {@link SdkClientConfiguration#merge}.
+ *
+ * This configuration object can be {@link #close()}d to release all closeable resources configured within it.
  */
 @SdkInternalApi
-@ReviewBeforeRelease("Do we want to have all optional Client*Configuration objects merged under one 'ClientOverrideConfig', to "
-                     + "make it easier to find the required configuration, like endpoint? This would also make it clear why "
-                     + "the credential configuration is separated from the other security configuration.")
-public interface SdkClientConfiguration {
-    /**
-     * Override default client configuration options, such as request timeouts, retry behavior and compression. This will never
-     * return null.
-     */
-    ClientOverrideConfiguration overrideConfiguration();
+public final class SdkClientConfiguration
+        implements ToCopyableBuilder<SdkClientConfiguration.Builder, SdkClientConfiguration>, SdkAutoCloseable {
+    private final AttributeMap attributes;
+
+    private SdkClientConfiguration(AttributeMap attributes) {
+        this.attributes = attributes;
+    }
 
     /**
-     * The endpoint with which the SDK should communicate.
+     * Create a builder for a {@link SdkClientConfiguration}.
      */
-    URI endpoint();
+    public static SdkClientConfiguration.Builder builder() {
+        return new Builder(AttributeMap.builder());
+    }
+
+    /**
+     * Retrieve the value of a specific option.
+     */
+    public <T> T option(ClientOption<T> option) {
+        return attributes.get(option);
+    }
+
+    /**
+     * Merge this configuration with another configuration, where this configuration's values take precedence.
+     */
+    public SdkClientConfiguration merge(SdkClientConfiguration configuration) {
+        return new SdkClientConfiguration(attributes.merge(configuration.attributes));
+    }
+
+    public SdkClientConfiguration merge(Consumer<SdkClientConfiguration.Builder> configuration) {
+        return merge(SdkClientConfiguration.builder().apply(configuration).build());
+    }
+
+    @Override
+    public Builder toBuilder() {
+        return new Builder(attributes.toBuilder());
+    }
+
+    /**
+     * Close this configuration, which closes all closeable attributes.
+     */
+    @Override
+    public void close() {
+        attributes.close();
+    }
+
+    public static final class Builder implements CopyableBuilder<Builder, SdkClientConfiguration> {
+        private final AttributeMap.Builder attributes;
+
+        private Builder(AttributeMap.Builder attributes) {
+            this.attributes = attributes;
+        }
+
+        /**
+         * Configure the value of a specific option.
+         */
+        public <T> Builder option(ClientOption<T> option, T value) {
+            this.attributes.put(option, value);
+            return this;
+        }
+
+        @Override
+        public SdkClientConfiguration build() {
+            return new SdkClientConfiguration(attributes.build());
+        }
+    }
 }

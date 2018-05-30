@@ -32,7 +32,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * RequestPipeline} implementations by {@link RequestPipelineBuilder}.
  */
 @SdkInternalApi
-public abstract class HttpClientDependencies implements SdkAutoCloseable {
+public class HttpClientDependencies implements SdkAutoCloseable {
     private final SdkClientConfiguration clientConfiguration;
     private final CapacityManager capacityManager;
     private final ClientExecutionTimer clientExecutionTimer;
@@ -42,10 +42,14 @@ public abstract class HttpClientDependencies implements SdkAutoCloseable {
      */
     private volatile int timeOffset = SdkGlobalTime.getGlobalTimeOffset();
 
-    protected HttpClientDependencies(SdkClientConfiguration clientConfiguration, Builder<?> builder) {
-        this.clientConfiguration = paramNotNull(clientConfiguration, "ClientConfiguration");
+    private HttpClientDependencies(Builder builder) {
+        this.clientConfiguration = paramNotNull(builder.clientConfiguration, "ClientConfiguration");
         this.capacityManager = paramNotNull(builder.capacityManager, "CapacityManager");
         this.clientExecutionTimer = paramNotNull(builder.clientExecutionTimer, "ClientExecutionTimer");
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     public SdkClientConfiguration clientConfiguration() {
@@ -84,35 +88,37 @@ public abstract class HttpClientDependencies implements SdkAutoCloseable {
 
     @Override
     public final void close() {
-        doClose();
+        this.clientConfiguration.close();
         this.clientExecutionTimer.close();
     }
 
     /**
-     * A close method implemented by child classes to clean up their resources.
-     */
-    protected abstract void doClose();
-
-    /**
      * Builder for {@link HttpClientDependencies}.
      */
-    public abstract static class Builder<T extends Builder<T>> {
+    public static class Builder {
+        private SdkClientConfiguration clientConfiguration;
         private CapacityManager capacityManager;
         private ClientExecutionTimer clientExecutionTimer;
 
-        public T capacityManager(CapacityManager capacityManager) {
+        private Builder() {}
+
+        public Builder clientConfiguration(SdkClientConfiguration clientConfiguration) {
+            this.clientConfiguration = clientConfiguration;
+            return this;
+        }
+
+        public Builder capacityManager(CapacityManager capacityManager) {
             this.capacityManager = capacityManager;
-            return thisBuilder();
+            return this;
         }
 
-        public T clientExecutionTimer(ClientExecutionTimer clientExecutionTimer) {
+        public Builder clientExecutionTimer(ClientExecutionTimer clientExecutionTimer) {
             this.clientExecutionTimer = clientExecutionTimer;
-            return thisBuilder();
+            return this;
         }
 
-        @SuppressWarnings("unchecked")
-        private T thisBuilder() {
-            return (T) this;
+        public HttpClientDependencies build() {
+            return new HttpClientDependencies(this);
         }
     }
 }

@@ -23,9 +23,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static software.amazon.awssdk.awscore.config.AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION;
-import static software.amazon.awssdk.awscore.config.AwsAdvancedClientOption.SERVICE_SIGNING_NAME;
-import static software.amazon.awssdk.core.config.SdkAdvancedClientOption.SIGNER;
+import static software.amazon.awssdk.awscore.config.options.AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION;
+import static software.amazon.awssdk.awscore.config.options.AwsClientOption.SERVICE_SIGNING_NAME;
+import static software.amazon.awssdk.awscore.config.options.AwsClientOption.SIGNING_REGION;
+import static software.amazon.awssdk.core.config.options.SdkAdvancedClientOption.SIGNER;
 
 import java.beans.BeanInfo;
 import java.beans.Introspector;
@@ -42,10 +43,9 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
-import software.amazon.awssdk.awscore.config.AwsImmutableAsyncClientConfiguration;
-import software.amazon.awssdk.awscore.config.AwsImmutableSyncClientConfiguration;
-import software.amazon.awssdk.awscore.config.defaults.AwsClientConfigurationDefaults;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.config.options.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -85,41 +85,33 @@ public class DefaultAwsClientBuilderTest {
     @Test
     public void buildIncludesServiceDefaults() {
         TestClient client = testClientBuilder().region(Region.US_WEST_1).build();
-        assertThat(client.syncClientConfiguration.overrideConfiguration().advancedOption(SIGNER))
-            .isEqualTo(TEST_SIGNER);
-        assertThat(client.signingRegion).isNotNull();
+        assertThat(client.clientConfiguration.option(SIGNER)).isEqualTo(TEST_SIGNER);
+        assertThat(client.clientConfiguration.option(SIGNING_REGION)).isNotNull();
     }
 
     @Test
     public void buildWithRegionShouldHaveCorrectEndpointAndSigningRegion() {
         TestClient client = testClientBuilder().region(Region.US_WEST_1).build();
 
-        assertThat(client.syncClientConfiguration.endpoint())
+        assertThat(client.clientConfiguration.option(SdkClientOption.ENDPOINT))
             .hasToString("https://" + ENDPOINT_PREFIX + ".us-west-1.amazonaws.com");
-        assertThat(client.signingRegion).isEqualTo(Region.US_WEST_1);
-        assertThat(client.syncClientConfiguration.overrideConfiguration().advancedOption(SERVICE_SIGNING_NAME))
-            .isEqualTo(SIGNING_NAME);
+        assertThat(client.clientConfiguration.option(SIGNING_REGION)).isEqualTo(Region.US_WEST_1);
+        assertThat(client.clientConfiguration.option(SERVICE_SIGNING_NAME)).isEqualTo(SIGNING_NAME);
     }
 
     @Test
     public void buildWithEndpointShouldHaveCorrectEndpointAndSigningRegion() {
         TestClient client = testClientBuilder().region(Region.US_WEST_1).endpointOverride(ENDPOINT).build();
 
-        assertThat(client.syncClientConfiguration.endpoint()).isEqualTo(ENDPOINT);
-        assertThat(client.signingRegion).isEqualTo(Region.US_WEST_1);
-        assertThat(client.syncClientConfiguration.overrideConfiguration().advancedOption(SERVICE_SIGNING_NAME))
-            .isEqualTo(SIGNING_NAME);
-    }
-
-    @Test
-    public void buildWithoutRegionOrEndpointOrDefaultProviderThrowsException() {
-        assertThatExceptionOfType(SdkClientException.class).isThrownBy(() -> testClientBuilder().build());
+        assertThat(client.clientConfiguration.option(SdkClientOption.ENDPOINT)).isEqualTo(ENDPOINT);
+        assertThat(client.clientConfiguration.option(SIGNING_REGION)).isEqualTo(Region.US_WEST_1);
+        assertThat(client.clientConfiguration.option(SERVICE_SIGNING_NAME)).isEqualTo(SIGNING_NAME);
     }
 
     @Test
     public void noClientProvided_DefaultHttpClientIsManagedBySdk() {
         TestClient client = testClientBuilder().region(Region.US_WEST_2).build();
-        assertThat(client.syncClientConfiguration.httpClient())
+        assertThat(client.clientConfiguration.option(SdkClientOption.SYNC_HTTP_CLIENT))
             .isNotInstanceOf(AwsDefaultClientBuilder.NonManagedSdkHttpClient.class);
         verify(defaultHttpClientBuilder, times(1)).buildWithDefaults(any());
     }
@@ -127,7 +119,7 @@ public class DefaultAwsClientBuilderTest {
     @Test
     public void noAsyncClientProvided_DefaultAsyncHttpClientIsManagedBySdk() {
         TestAsyncClient client = testAsyncClientBuilder().region(Region.US_WEST_2).build();
-        assertThat(client.asyncClientConfiguration.asyncHttpClient())
+        assertThat(client.clientConfiguration.option(SdkClientOption.ASYNC_HTTP_CLIENT))
             .isNotInstanceOf(AwsDefaultClientBuilder.NonManagedSdkAsyncHttpClient.class);
         verify(defaultAsyncHttpClientFactory, times(1)).buildWithDefaults(any());
     }
@@ -141,7 +133,7 @@ public class DefaultAwsClientBuilderTest {
                 return mock(SdkHttpClient.class);
             })
             .build();
-        assertThat(client.syncClientConfiguration.httpClient())
+        assertThat(client.clientConfiguration.option(SdkClientOption.SYNC_HTTP_CLIENT))
             .isNotInstanceOf(AwsDefaultClientBuilder.NonManagedSdkHttpClient.class);
         verify(defaultHttpClientBuilder, never()).buildWithDefaults(any());
     }
@@ -155,7 +147,7 @@ public class DefaultAwsClientBuilderTest {
                 return mock(SdkAsyncHttpClient.class);
             })
             .build();
-        assertThat(client.asyncClientConfiguration.asyncHttpClient())
+        assertThat(client.clientConfiguration.option(SdkClientOption.ASYNC_HTTP_CLIENT))
             .isNotInstanceOf(AwsDefaultClientBuilder.NonManagedSdkAsyncHttpClient.class);
         verify(defaultAsyncHttpClientFactory, never()).buildWithDefaults(any());
     }
@@ -166,7 +158,7 @@ public class DefaultAwsClientBuilderTest {
             .region(Region.US_WEST_2)
             .httpClient(mock(SdkHttpClient.class))
             .build();
-        assertThat(client.syncClientConfiguration.httpClient())
+        assertThat(client.clientConfiguration.option(SdkClientOption.SYNC_HTTP_CLIENT))
             .isInstanceOf(AwsDefaultClientBuilder.NonManagedSdkHttpClient.class);
         verify(defaultHttpClientBuilder, never()).buildWithDefaults(any());
     }
@@ -177,7 +169,7 @@ public class DefaultAwsClientBuilderTest {
             .region(Region.US_WEST_2)
             .asyncHttpClient(mock(SdkAsyncHttpClient.class))
             .build();
-        assertThat(client.asyncClientConfiguration.asyncHttpClient())
+        assertThat(client.clientConfiguration.option(SdkClientOption.ASYNC_HTTP_CLIENT))
             .isInstanceOf(AwsDefaultClientBuilder.NonManagedSdkAsyncHttpClient.class);
         verify(defaultAsyncHttpClientFactory, never()).buildWithDefaults(any());
     }
@@ -228,13 +220,10 @@ public class DefaultAwsClientBuilderTest {
     }
 
     private static class TestClient {
-        private final AwsImmutableSyncClientConfiguration syncClientConfiguration;
-        private final Region signingRegion;
+        private final SdkClientConfiguration clientConfiguration;
 
-        private TestClient(AwsImmutableSyncClientConfiguration syncClientConfiguration,
-                           Region signingRegion) {
-            this.syncClientConfiguration = syncClientConfiguration;
-            this.signingRegion = signingRegion;
+        public TestClient(SdkClientConfiguration clientConfiguration) {
+            this.clientConfiguration = clientConfiguration;
         }
     }
 
@@ -247,8 +236,7 @@ public class DefaultAwsClientBuilderTest {
 
         @Override
         protected TestClient buildClient() {
-            return new TestClient(super.syncClientConfiguration(),
-                                  super.signingRegion());
+            return new TestClient(super.syncClientConfiguration());
         }
 
         @Override
@@ -262,27 +250,16 @@ public class DefaultAwsClientBuilderTest {
         }
 
         @Override
-        protected AwsClientConfigurationDefaults serviceDefaults() {
-            return new AwsClientConfigurationDefaults() {
-                @Override
-                protected void applyOverrideDefaults(ClientOverrideConfiguration.Builder builder) {
-                    ClientOverrideConfiguration config = builder.build();
-                    builder.advancedOption(SIGNER, applyDefault(config.advancedOption(SIGNER), () -> null));
-                }
-            };
-        }
-
-        @Override
-        protected AttributeMap serviceSpecificHttpConfig() {
+        protected AttributeMap serviceHttpConfig() {
             return MOCK_DEFAULTS;
         }
     }
 
     private static class TestAsyncClient {
-        private final AwsImmutableAsyncClientConfiguration asyncClientConfiguration;
+        private final SdkClientConfiguration clientConfiguration;
 
-        private TestAsyncClient(AwsImmutableAsyncClientConfiguration asyncClientConfiguration) {
-            this.asyncClientConfiguration = asyncClientConfiguration;
+        private TestAsyncClient(SdkClientConfiguration clientConfiguration) {
+            this.clientConfiguration = clientConfiguration;
         }
     }
 
@@ -309,18 +286,7 @@ public class DefaultAwsClientBuilderTest {
         }
 
         @Override
-        protected AwsClientConfigurationDefaults serviceDefaults() {
-            return new AwsClientConfigurationDefaults() {
-                @Override
-                protected void applyOverrideDefaults(ClientOverrideConfiguration.Builder builder) {
-                    ClientOverrideConfiguration config = builder.build();
-                    builder.advancedOption(SIGNER, applyDefault(config.advancedOption(SIGNER), () -> null));
-                }
-            };
-        }
-
-        @Override
-        protected AttributeMap serviceSpecificHttpConfig() {
+        protected AttributeMap serviceHttpConfig() {
             return MOCK_DEFAULTS;
         }
     }
