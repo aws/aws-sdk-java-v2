@@ -16,11 +16,13 @@
 package software.amazon.awssdk.regions.providers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import org.junit.Rule;
 import org.junit.Test;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.core.SdkSystemSetting;
@@ -31,10 +33,12 @@ public class AwsProfileRegionProviderTest {
     public EnvironmentVariableHelper settingsHelper = new EnvironmentVariableHelper();
 
     @Test
-    public void nonExistentDefaultConfigFile_ReturnsNull() {
+    public void nonExistentDefaultConfigFile_ThrowsException() {
         settingsHelper.set(SdkSystemSetting.AWS_CONFIG_FILE, "/var/tmp/this/is/invalid.txt");
         settingsHelper.set(SdkSystemSetting.AWS_SHARED_CREDENTIALS_FILE, "/var/tmp/this/is/also.invalid.txt");
-        assertThat(new AwsProfileRegionProvider().getRegion()).isNull();
+        assertThatThrownBy(() -> new AwsProfileRegionProvider().getRegion())
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("No region provided in profile: default");
     }
 
     @Test

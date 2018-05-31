@@ -16,7 +16,6 @@
 package software.amazon.awssdk.regions.providers;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -77,12 +76,12 @@ public class AwsRegionProviderChainTest {
         assertEquals(expectedRegion, chain.getRegion());
     }
 
-    @Test
-    public void noProviderGivesRegion_ReturnsNull() {
+    @Test (expected = SdkClientException.class)
+    public void noProviderGivesRegion_ThrowsException() {
         AwsRegionProviderChain chain = new AwsRegionProviderChain(new NeverAwsRegionProvider(),
                                                                   new NeverAwsRegionProvider(),
                                                                   new NeverAwsRegionProvider());
-        assertNull(chain.getRegion());
+       chain.getRegion();
     }
 
     private static class NeverAwsRegionProvider implements AwsRegionProvider {

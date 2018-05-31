@@ -17,6 +17,7 @@ package software.amazon.awssdk.regions.providers;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperties;
 import software.amazon.awssdk.regions.Region;
@@ -35,7 +36,7 @@ class AwsProfileRegionProvider implements AwsRegionProvider {
                           .profile(profileName)
                           .map(p -> p.properties().get(ProfileProperties.REGION))
                           .map(Region::of)
-                          .orElse(null);
+                          .orElseThrow(() -> new SdkClientException("No region provided in profile: " + profileName));
     }
 }
 
