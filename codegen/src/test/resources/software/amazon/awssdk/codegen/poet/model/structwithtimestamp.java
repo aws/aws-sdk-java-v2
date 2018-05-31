@@ -15,7 +15,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class StructWithTimestamp implements StructuredPojo, ToCopyableBuilder<StructWithTimestamp.Builder, StructWithTimestamp> {
+public final class StructWithTimestamp implements StructuredPojo, ToCopyableBuilder<StructWithTimestamp.Builder, StructWithTimestamp> {
     private final Instant nestedTimestamp;
 
     private StructWithTimestamp(BuilderImpl builder) {

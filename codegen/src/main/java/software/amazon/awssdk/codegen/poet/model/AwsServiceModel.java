@@ -74,7 +74,7 @@ public class AwsServiceModel implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         TypeSpec.Builder specBuilder = TypeSpec.classBuilder(shapeModel.getShapeName())
-                                               .addModifiers(Modifier.PUBLIC)
+                                               .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                                                .addAnnotation(PoetUtils.GENERATED)
                                                .addSuperinterfaces(modelSuperInterfaces())
                                                .superclass(modelSuperClass())

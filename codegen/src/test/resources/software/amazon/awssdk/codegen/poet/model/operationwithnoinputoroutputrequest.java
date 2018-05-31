@@ -9,7 +9,7 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @Generated("software.amazon.awssdk:codegen")
-public class OperationWithNoInputOrOutputRequest extends JsonProtocolTestsRequest implements
+public final class OperationWithNoInputOrOutputRequest extends JsonProtocolTestsRequest implements
                                                                                   ToCopyableBuilder<OperationWithNoInputOrOutputRequest.Builder, OperationWithNoInputOrOutputRequest> {
     private OperationWithNoInputOrOutputRequest(BuilderImpl builder) {
         super(builder);

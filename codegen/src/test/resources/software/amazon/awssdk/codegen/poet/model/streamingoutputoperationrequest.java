@@ -9,7 +9,7 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @Generated("software.amazon.awssdk:codegen")
-public class StreamingOutputOperationRequest extends JsonProtocolTestsRequest implements
+public final class StreamingOutputOperationRequest extends JsonProtocolTestsRequest implements
                                                                               ToCopyableBuilder<StreamingOutputOperationRequest.Builder, StreamingOutputOperationRequest> {
     private StreamingOutputOperationRequest(BuilderImpl builder) {
         super(builder);

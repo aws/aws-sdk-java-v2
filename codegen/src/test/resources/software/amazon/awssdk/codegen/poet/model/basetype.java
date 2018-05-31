@@ -14,7 +14,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class BaseType implements StructuredPojo, ToCopyableBuilder<BaseType.Builder, BaseType> {
+public final class BaseType implements StructuredPojo, ToCopyableBuilder<BaseType.Builder, BaseType> {
     private final String baseMember;
 
     private BaseType(BuilderImpl builder) {
