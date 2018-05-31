@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.MAX_CONCURRENT_STREAMS;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.PROTOCOL_FUTURE;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
@@ -33,13 +34,19 @@ import io.netty.handler.ssl.SslContext;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.http2.SdkHttp2FrameLogger;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * Configures the client pipeline to support HTTP/2 frames with multiplexed streams.
  */
 public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(ChannelPipelineInitializer.class);
 
     private final Protocol protocol;
     private final SslContext sslCtx;
@@ -47,9 +54,9 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
     private final AtomicReference<ChannelPool> channelPoolRef;
 
     public ChannelPipelineInitializer(Protocol protocol,
-                               SslContext sslCtx,
-                               long clientMaxStreams,
-                               AtomicReference<ChannelPool> channelPoolRef) {
+                                      SslContext sslCtx,
+                                      long clientMaxStreams,
+                                      AtomicReference<ChannelPool> channelPoolRef) {
         this.protocol = protocol;
         this.sslCtx = sslCtx;
         this.clientMaxStreams = clientMaxStreams;
@@ -72,6 +79,7 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
     }
 
     private void configureHttp2(Channel ch, ChannelPipeline pipeline) {
+        pipeline.addLast(new WireDumpLoggingHandler());
         pipeline.addLast(Http2MultiplexCodecBuilder
                              .forClient(new NoOpChannelInitializer())
                              // TODO disable frame logging for performance
@@ -112,6 +120,23 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
         }
     }
 
+    @ReviewBeforeRelease("Remove me")
+    private static class WireDumpLoggingHandler extends SimpleChannelInboundHandler<ByteBuf> {
+        @Override
+        protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
+            log.debug(dataToString(msg));
+            msg.retain();
+            ctx.fireChannelRead(msg);
+        }
+
+        private String dataToString(ByteBuf data) {
+            StringBuilder builder = new StringBuilder("Inbound Hex Data - ");
+            for (byte b : BinaryUtils.copyBytesFrom(data.nioBuffer())) {
+                builder.append(String.format("%02X", b));
+            }
+            return builder.toString();
+        }
+    }
 }
 
 
