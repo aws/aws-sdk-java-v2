@@ -14,7 +14,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class NestedContainersResponse extends JsonProtocolTestsResponse implements
+public final class NestedContainersResponse extends JsonProtocolTestsResponse implements
                                                                         ToCopyableBuilder<NestedContainersResponse.Builder, NestedContainersResponse> {
     private final List<List<String>> listOfListOfStrings;
 

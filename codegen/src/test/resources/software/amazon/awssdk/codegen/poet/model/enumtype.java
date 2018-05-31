@@ -7,7 +7,7 @@ import software.amazon.awssdk.utils.ToString;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class EnumType {
+public final class EnumType {
     private EnumType(EnumType.BuilderImpl builder) {
     }
 

@@ -14,7 +14,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class SimpleStruct implements StructuredPojo, ToCopyableBuilder<SimpleStruct.Builder, SimpleStruct> {
+public final class SimpleStruct implements StructuredPojo, ToCopyableBuilder<SimpleStruct.Builder, SimpleStruct> {
     private final String stringMember;
 
     private SimpleStruct(BuilderImpl builder) {

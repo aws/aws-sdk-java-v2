@@ -24,7 +24,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class AllTypesResponse extends JsonProtocolTestsResponse implements
+public final class AllTypesResponse extends JsonProtocolTestsResponse implements
                                                                 ToCopyableBuilder<AllTypesResponse.Builder, AllTypesResponse> {
     private final String stringMember;
 
