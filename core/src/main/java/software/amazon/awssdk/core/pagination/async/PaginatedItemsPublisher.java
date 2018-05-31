@@ -45,6 +45,6 @@ public class PaginatedItemsPublisher<ResponseT, ItemT> implements SdkPublisher<I
     @Override
     public void subscribe(Subscriber<? super ItemT> subscriber) {
         subscriber.onSubscribe(isLastPage ? new EmptySubscription(subscriber)
-                                          : new ItemsSubscription(subscriber, nextPageFetcher, getIteratorFunction));
+                                          : new ItemsSubscription<>(subscriber, nextPageFetcher, getIteratorFunction));
     }
 }

@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.http.async;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.nio.ByteBuffer;
+
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
@@ -62,16 +63,31 @@ public final class SimpleRequestProvider implements SdkHttpRequestProvider {
 
     @Override
     public void subscribe(Subscriber<? super ByteBuffer> s) {
-        s.onSubscribe(new Subscription() {
-            @Override
-            public void request(long n) {
+        s.onSubscribe(new SubscriptionImpl(s));
+    }
+
+    private class SubscriptionImpl implements Subscription {
+        private boolean running = true;
+        private final Subscriber<? super ByteBuffer> s;
+
+        private SubscriptionImpl(Subscriber<? super ByteBuffer> s) {
+            this.s = s;
+        }
+
+        @Override
+        public void request(long n) {
+            if (n <= 0) {
+                s.onError(new IllegalArgumentException("Demand must be positive"));
+            } else if (running) {
                 s.onNext(ByteBuffer.wrap(content));
                 s.onComplete();
+                running = false;
             }
+        }
 
-            @Override
-            public void cancel() {
-            }
-        });
+        @Override
+        public void cancel() {
+            running = false;
+        }
     }
 }

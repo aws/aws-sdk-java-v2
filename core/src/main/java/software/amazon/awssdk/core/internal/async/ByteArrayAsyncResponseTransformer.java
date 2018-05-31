@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.async;
+package software.amazon.awssdk.core.internal.async;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
@@ -24,6 +24,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
@@ -36,7 +37,8 @@ import software.amazon.awssdk.utils.BinaryUtils;
  * @see AsyncResponseTransformer#toBytes()
  */
 @SdkInternalApi
-class ByteArrayAsyncResponseTransformer<ResponseT> implements AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>> {
+public class ByteArrayAsyncResponseTransformer<ResponseT> implements
+        AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>> {
 
     private ResponseT response;
     private ByteArrayOutputStream baos;
@@ -49,7 +51,7 @@ class ByteArrayAsyncResponseTransformer<ResponseT> implements AsyncResponseTrans
     @Override
     public void onStream(Publisher<ByteBuffer> publisher) {
         baos = new ByteArrayOutputStream();
-        publisher.subscribe(new BaosSubscriber());
+        publisher.subscribe(new BaosSubscriber(baos));
     }
 
     @Override
@@ -66,16 +68,21 @@ class ByteArrayAsyncResponseTransformer<ResponseT> implements AsyncResponseTrans
         }
     }
 
-    /**
-     * Requests chunks sequentially and dumps them into a {@link ByteArrayOutputStream}.
-     */
-    // TODO cover with Reactive Streams TCK, it's mostly ok, just a few edge cases / sanity checks should be covered AFAICS
-    private class BaosSubscriber implements Subscriber<ByteBuffer> {
+    static class BaosSubscriber implements Subscriber<ByteBuffer> {
+        private final ByteArrayOutputStream baos;
 
         private Subscription subscription;
 
+        BaosSubscriber(ByteArrayOutputStream baos) {
+            this.baos = baos;
+        }
+
         @Override
         public void onSubscribe(Subscription s) {
+            if (this.subscription != null) {
+                s.cancel();
+                return;
+            }
             this.subscription = s;
             subscription.request(1);
         }
