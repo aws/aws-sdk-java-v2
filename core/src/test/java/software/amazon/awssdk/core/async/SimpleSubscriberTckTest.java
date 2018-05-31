@@ -12,6 +12,7 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
+
 package software.amazon.awssdk.core.async;
 
 import org.reactivestreams.Subscriber;
@@ -20,22 +21,25 @@ import software.amazon.awssdk.http.async.SimpleSubscriber;
 
 import java.nio.ByteBuffer;
 
+/**
+ * TCK verifiation test for {@link SimpleSubscriber}.
+ */
 public class SimpleSubscriberTckTest extends org.reactivestreams.tck.SubscriberBlackboxVerification<ByteBuffer> {
 
-  public SimpleSubscriberTckTest() {
-    super(new TestEnvironment());
-  }
+    public SimpleSubscriberTckTest() {
+        super(new TestEnvironment());
+    }
 
-  @Override
-  public Subscriber<ByteBuffer> createSubscriber() {
-    return new SimpleSubscriber(buffer -> {
-      // ignore
-    });
-  }
+    @Override
+    public Subscriber<ByteBuffer> createSubscriber() {
+        return new SimpleSubscriber(buffer -> {
+            // ignore
+        });
+    }
 
-  @Override
-  public ByteBuffer createElement(int i) {
-    return ByteBuffer.wrap(String.valueOf(i).getBytes());
-  }
+    @Override
+    public ByteBuffer createElement(int i) {
+        return ByteBuffer.wrap(String.valueOf(i).getBytes());
+    }
 
 }

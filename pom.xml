@@ -118,6 +118,8 @@
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.jacoco.reportPath>${basedir}/${root.offset}/target/jacoco.exec</sonar.jacoco.reportPath>
 
+        <jimfs.version>1.1</jimfs.version>
+
         <skip.unit.tests>${skipTests}</skip.unit.tests>
     </properties>
 
@@ -260,6 +262,7 @@
                 <artifactId>rxjava</artifactId>
                 <version>2.1.9</version>
             </dependency>
+            <dependency>
                 <groupId>org.reactivestreams</groupId>
                 <artifactId>reactive-streams</artifactId>
                 <version>${reactive-streams.version}</version>
@@ -268,6 +271,12 @@
                 <groupId>org.reactivestreams</groupId>
                 <artifactId>reactive-streams-tck</artifactId>
                 <version>${reactive-streams.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.jimfs</groupId>
+                <artifactId>jimfs</artifactId>
+                <version>${jimfs.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>

@@ -128,6 +128,18 @@ checklist below:
   Commit the new file created by the script in `.changes/next-release` with
   your changes.
 
+__Note__: Some changes have additional requirements. Refer to the section below
+to see if your change will require additional work to be accepted.
+
+#### Additional Pull Request Requirements
+##### Reactive Streams
+If the change includes implementations of the [Reactive Streams
+interfaces](https://github.com/reactive-streams/reactive-streams-jvm), the
+change must also contain verification tests using the [Reactive Streams
+Technology Compatibility
+Kit](https://github.com/reactive-streams/reactive-streams-jvm/tree/master/tck)
+to ensure specificiation compliance.
+
 ### Getting Your Pull Request Merged
 All Pull Requests must be approved by at least one member of the SDK team
 before it can be merged in. The members only have limited bandwitdth to review

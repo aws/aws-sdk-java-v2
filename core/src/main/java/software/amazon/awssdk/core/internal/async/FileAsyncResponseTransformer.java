@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.async;
+package software.amazon.awssdk.core.internal.async;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
@@ -29,6 +29,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 
 /**
  * {@link AsyncResponseTransformer} that writes the data to the specified file.
@@ -36,13 +37,13 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * @param <ResponseT> Response POJO type. Returned on {@link #complete()}.
  */
 @SdkInternalApi
-final class FileAsyncResponseTransformer<ResponseT> implements AsyncResponseTransformer<ResponseT, ResponseT> {
+public final class FileAsyncResponseTransformer<ResponseT> implements AsyncResponseTransformer<ResponseT, ResponseT> {
 
     private final Path path;
     private AsynchronousFileChannel fileChannel;
     private volatile ResponseT response;
 
-    FileAsyncResponseTransformer(Path path) {
+    public FileAsyncResponseTransformer(Path path) {
         this.path = path;
     }
 
@@ -59,7 +60,7 @@ final class FileAsyncResponseTransformer<ResponseT> implements AsyncResponseTran
     public void onStream(Publisher<ByteBuffer> publisher) {
         // onStream may be called multiple times so reset the file channel every time
         this.fileChannel = invokeSafely(() -> createChannel(path));
-        publisher.subscribe(new FileSubscriber());
+        publisher.subscribe(new FileSubscriber(this.fileChannel, path));
     }
 
     @Override
@@ -82,16 +83,27 @@ final class FileAsyncResponseTransformer<ResponseT> implements AsyncResponseTran
     /**
      * {@link Subscriber} implementation that writes chunks to a file.
      */
-    // FIXME cover with Reactive Streams TCK, looks ok from a first brief look, but could be missing some edge cases
-    private class FileSubscriber implements Subscriber<ByteBuffer> {
+    static class FileSubscriber implements Subscriber<ByteBuffer> {
+        private final AtomicLong position = new AtomicLong();
+
+        private final AsynchronousFileChannel fileChannel;
+        private final Path path;
 
         private volatile boolean writeInProgress = false;
         private volatile boolean closeOnLastWrite = false;
-        private final AtomicLong position = new AtomicLong();
         private Subscription subscription;
+
+        FileSubscriber(AsynchronousFileChannel fileChannel, Path path) {
+            this.fileChannel = fileChannel;
+            this.path = path;
+        }
 
         @Override
         public void onSubscribe(Subscription s) {
+            if (this.subscription != null) {
+                s.cancel();
+                return;
+            }
             this.subscription = s;
             // Request the first chunk to start producing content
             s.request(1);
@@ -99,6 +111,10 @@ final class FileAsyncResponseTransformer<ResponseT> implements AsyncResponseTran
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
+            if (byteBuffer == null) {
+                throw new NullPointerException("Element must not be null");
+            }
+
             writeInProgress = true;
             fileChannel.write(byteBuffer, position.get(), byteBuffer, new CompletionHandler<Integer, ByteBuffer>() {
                 @Override

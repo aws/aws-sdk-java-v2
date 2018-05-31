@@ -15,65 +15,73 @@
 
 package software.amazon.awssdk.core.async;
 
-import org.junit.Test;
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
 import org.reactivestreams.tck.TestEnvironment;
-import software.amazon.awssdk.http.async.SimpleSubscriber;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
 
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
-
+/**
+ * TCK verification test for {@link FileAsyncRequestBody}.
+ */
 public class FileAsyncRequestPublisherTckTest extends org.reactivestreams.tck.PublisherVerification<ByteBuffer> {
 
     // same as `FileAsyncRequestProvider.DEFAULT_CHUNK_SIZE`:
-    final int DEFAULT_CHUNK_SIZE = 16 * 1024;
-    final int ELEMENTS = 1000;
+    private static final int CHUNK_SIZE = 16 * 1024;
+    private static final int MAX_ELEMENTS = 1000;
 
-    // mock file system:
-    final FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
-
-    final Path testFile;
-    final Path doestNotExist;
+    private final FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
+    private final Path rootDir = fs.getRootDirectories().iterator().next();
+    private final byte[] chunkData = new byte[CHUNK_SIZE];
 
     public FileAsyncRequestPublisherTckTest() throws IOException {
         super(new TestEnvironment());
-        testFile = Files.createFile(fs.getPath("/test-file.tmp"));
+    }
 
-        doestNotExist = new File("does-not-exist").toPath();
-
-        final BufferedWriter writer = Files.newBufferedWriter(testFile);
-
-        final char[] chars = new char[DEFAULT_CHUNK_SIZE];
-        Arrays.fill(chars, 'A');
-
-        for (int i = 0; i < ELEMENTS; i++) {
-            writer.write(chars); // write one chunk
-        }
+    // prevent some tests from trying to create publishers with more elements
+    // than this since it would be impractical. For example, one test attempts
+    // to create a publisher with Long.MAX_VALUE elements
+    @Override
+    public long maxElementsFromPublisher() {
+        return MAX_ELEMENTS;
     }
 
     @Override
     public Publisher<ByteBuffer> createPublisher(long elements) {
-        if (elements < ELEMENTS) return AsyncRequestProvider.fromFile(testFile);
-        else return null; // we don't support more elements
+        return FileAsyncRequestBody.builder()
+                .chunkSizeInBytes(CHUNK_SIZE)
+                .path(fileOfNChunks(elements))
+                .build();
     }
 
     @Override
     public Publisher<ByteBuffer> createFailedPublisher() {
         // tests properly failing on non existing files:
-        return AsyncRequestProvider.fromFile(doestNotExist);
+        return FileAsyncRequestBody.builder()
+                .chunkSizeInBytes(CHUNK_SIZE)
+                .path(rootDir.resolve("does-not-exist"))
+                .build();
+    }
+
+    private Path fileOfNChunks(long nChunks) {
+        String name = String.format("%d-chunks-file.dat", nChunks);
+        Path p = rootDir.resolve(name);
+        if (!Files.exists(p)) {
+            try (OutputStream os = Files.newOutputStream(p)) {
+                for (int i = 0; i < nChunks; ++i) {
+                    os.write(chunkData);
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        return p;
     }
 }

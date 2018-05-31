@@ -35,19 +35,24 @@ public class SimpleSubscriber implements Subscriber<ByteBuffer> {
 
     @Override
     public void onSubscribe(Subscription s) {
-        // As per rule 2.13, we need to throw a `java.lang.NullPointerException` if the `Subscription` is `null`
-        if (s == null) throw new NullPointerException("Subscription MUST NOT be null.");
+        // As per rule 1.9 we must throw NullPointerException if the subscriber parameter is null
+        if (s == null) {
+            throw new NullPointerException("Subscription MUST NOT be null.");
+        }
 
         if (subscription.get() == null) {
             if (subscription.compareAndSet(null, s)) {
                 s.request(Long.MAX_VALUE);
-            } else onSubscribe(s); // lost race, retry (will cancel in the else branch below)
+            } else {
+                onSubscribe(s); // lost race, retry (will cancel in the else branch below)
+            }
         } else {
             try {
                 s.cancel(); // Cancel the additional subscription
             } catch (final Throwable t) {
                 // Subscription.cancel is not allowed to throw an exception, according to rule 3.15
-                (new IllegalStateException(s + " violated the Reactive Streams rule 3.15 by throwing an exception from cancel.", t))
+                (new IllegalStateException(s + " violated the Reactive Streams rule 3.15 by throwing an exception from cancel.",
+                        t))
                     .printStackTrace(System.err);
             }
         }
@@ -56,14 +61,18 @@ public class SimpleSubscriber implements Subscriber<ByteBuffer> {
     @Override
     public void onNext(ByteBuffer byteBuffer) {
         // Rule 2.13, null arguments must be failed on eagerly
-        if (byteBuffer == null) throw new NullPointerException("Element passed to onNext MUST NOT be null.");
+        if (byteBuffer == null) {
+            throw new NullPointerException("Element passed to onNext MUST NOT be null.");
+        }
 
         consumer.accept(byteBuffer);
     }
 
     @Override
     public void onError(Throwable t) {
-        if (t == null) throw new NullPointerException("Throwable passed to onError MUST NOT be null.");
+        if (t == null) {
+            throw new NullPointerException("Throwable passed to onError MUST NOT be null.");
+        }
         // else, ignore
     }
 

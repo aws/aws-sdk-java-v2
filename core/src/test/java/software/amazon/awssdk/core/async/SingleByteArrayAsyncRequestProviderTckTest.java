@@ -12,6 +12,7 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
+
 package software.amazon.awssdk.core.async;
 
 import org.reactivestreams.Publisher;
@@ -21,23 +22,23 @@ import java.nio.ByteBuffer;
 
 public class SingleByteArrayAsyncRequestProviderTckTest extends org.reactivestreams.tck.PublisherVerification<ByteBuffer> {
 
-  public SingleByteArrayAsyncRequestProviderTckTest() {
-    super(new TestEnvironment());
-  }
+    public SingleByteArrayAsyncRequestProviderTckTest() {
+        super(new TestEnvironment());
+    }
 
-  @Override
-  public long maxElementsFromPublisher() {
-    int canOnlySignalSingleElement = 1;
-    return canOnlySignalSingleElement;
-  }
+    @Override
+    public long maxElementsFromPublisher() {
+        int canOnlySignalSingleElement = 1;
+        return canOnlySignalSingleElement;
+    }
 
-  @Override
-  public Publisher<ByteBuffer> createPublisher(long n) {
-    return AsyncRequestProvider.fromString("Hello world");
-  }
+    @Override
+    public Publisher<ByteBuffer> createPublisher(long n) {
+        return AsyncRequestBody.fromString("Hello world");
+    }
 
-  @Override
-  public Publisher<ByteBuffer> createFailedPublisher() {
-    return null;
-  }
+    @Override
+    public Publisher<ByteBuffer> createFailedPublisher() {
+        return null;
+    }
 }

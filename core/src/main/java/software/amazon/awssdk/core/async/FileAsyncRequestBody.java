@@ -16,17 +16,16 @@
 package software.amazon.awssdk.core.async;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.util.async.NoopSubscription;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
@@ -43,7 +42,7 @@ final class FileAsyncRequestBody implements AsyncRequestBody {
     /**
      * File to read.
      */
-    private final Path file;
+    private final Path path;
 
     /**
      * Size (in bytes) of ByteBuffer chunks read from the file and delivered to the subscriber.
@@ -52,18 +51,33 @@ final class FileAsyncRequestBody implements AsyncRequestBody {
 
 
     private FileAsyncRequestBody(DefaultBuilder builder) {
-        this.file = builder.path;
+        this.path = builder.path;
         this.chunkSizeInBytes = builder.chunkSizeInBytes == null ? DEFAULT_CHUNK_SIZE : builder.chunkSizeInBytes;
     }
 
     @Override
     public long contentLength() {
-        return file.toFile().length();
+        return path.toFile().length();
     }
 
     @Override
     public void subscribe(Subscriber<? super ByteBuffer> s) {
-        s.onSubscribe(new FileSubscription(file, s, chunkSizeInBytes));
+        try {
+            AsynchronousFileChannel channel = openInputChannel(this.path);
+
+            // We need to synchronize here because the subscriber could call
+            // request() from within onSubscribe which would potentially
+            // trigger onNext before onSubscribe is finished.
+            Subscription subscription = new FileSubscription(channel, s, chunkSizeInBytes);
+            synchronized (subscription) {
+                s.onSubscribe(subscription);
+            }
+        } catch (IOException e) {
+            // subscribe() must return normally, so we need to signal the
+            // failure to open via onError() once onSubscribe() is signaled.
+            s.onSubscribe(new NoopSubscription(s));
+            s.onError(e);
+        }
     }
 
     /**
@@ -135,7 +149,6 @@ final class FileAsyncRequestBody implements AsyncRequestBody {
      * Reads the file for one subscriber.
      */
     private static class FileSubscription implements Subscription {
-
         private final AsynchronousFileChannel inputChannel;
         private final Subscriber<? super ByteBuffer> subscriber;
         private final int chunkSize;
@@ -143,29 +156,36 @@ final class FileAsyncRequestBody implements AsyncRequestBody {
         private long position = 0;
         private AtomicLong outstandingDemand = new AtomicLong(0);
         private boolean writeInProgress = false;
+        private volatile boolean done = false;
 
-        private FileSubscription(Path file, Subscriber<? super ByteBuffer> subscriber, int chunkSize) {
-            this.inputChannel = openInputChannel(file);
+        private FileSubscription(AsynchronousFileChannel inputChannel, Subscriber<? super ByteBuffer> subscriber, int chunkSize) {
+            this.inputChannel = inputChannel;
             this.subscriber = subscriber;
             this.chunkSize = chunkSize;
         }
 
         @Override
         public void request(long n) {
+            if (done) {
+                return;
+            }
+
             if (n < 1) {
                 IllegalArgumentException ex =
-                    new IllegalArgumentException(subscriber + " violated the Reactive Streams rule 3.9 by requesting a non-positive number of elements.");
-                subscriber.onError(ex);
-            } else
+                    new IllegalArgumentException(subscriber + " violated the Reactive Streams rule 3.9 by requesting a "
+                            + "non-positive number of elements.");
+                signalOnError(ex);
+            } else {
                 try {
-                    long initialDemand = outstandingDemand.get();
-                    long newDemand = initialDemand + n;
-                    if (newDemand < 1) {
-                        // As governed by rule 3.17, when demand overflows `Long.MAX_VALUE` we treat the signalled demand as "effectively unbounded"
-                        outstandingDemand.set(Long.MAX_VALUE);
-                    } else {
-                        outstandingDemand.set(newDemand);
-                    }
+                    // As governed by rule 3.17, when demand overflows `Long.MAX_VALUE` we treat the signalled demand as
+                    // "effectively unbounded"
+                    outstandingDemand.getAndUpdate(initialDemand -> {
+                        if (Long.MAX_VALUE - initialDemand < n) {
+                            return Long.MAX_VALUE;
+                        } else {
+                            return initialDemand + n;
+                        }
+                    });
 
                     synchronized (this) {
                         if (!writeInProgress) {
@@ -174,13 +194,19 @@ final class FileAsyncRequestBody implements AsyncRequestBody {
                         }
                     }
                 } catch (Exception e) {
-                    subscriber.onError(e);
+                    signalOnError(e);
                 }
+            }
         }
 
         @Override
         public void cancel() {
-            closeFile();
+            synchronized (this) {
+                if (!done) {
+                    done = true;
+                    closeFile();
+                }
+            }
         }
 
         private void readData() {
@@ -188,6 +214,7 @@ final class FileAsyncRequestBody implements AsyncRequestBody {
             if (!inputChannel.isOpen()) {
                 return;
             }
+
             final ByteBuffer buffer = ByteBuffer.allocate(chunkSize);
             inputChannel.read(buffer, position, buffer, new CompletionHandler<Integer, ByteBuffer>() {
                 @Override
@@ -195,7 +222,7 @@ final class FileAsyncRequestBody implements AsyncRequestBody {
                     if (result > 0) {
                         attachment.flip();
                         position += attachment.remaining();
-                        subscriber.onNext(attachment);
+                        signalOnNext(attachment);
                         // If we have more permits, queue up another read.
                         if (outstandingDemand.decrementAndGet() > 0) {
                             readData();
@@ -203,18 +230,18 @@ final class FileAsyncRequestBody implements AsyncRequestBody {
                         }
                     } else {
                         // Reached the end of the file, notify the subscriber and cleanup
-                        subscriber.onComplete();
+                        signalOnComplete();
                         closeFile();
                     }
 
-                    synchronized (FileSubscription.this) {
+                    synchronized (this) {
                         writeInProgress = false;
                     }
                 }
 
                 @Override
                 public void failed(Throwable exc, ByteBuffer attachment) {
-                    subscriber.onError(exc);
+                    signalOnError(exc);
                     closeFile();
                 }
             });
@@ -224,20 +251,38 @@ final class FileAsyncRequestBody implements AsyncRequestBody {
             try {
                 inputChannel.close();
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                signalOnError(e);
             }
         }
 
-    }
+        private void signalOnNext(ByteBuffer bb) {
+            synchronized (this) {
+                if (!done) {
+                    subscriber.onNext(bb);
+                }
+            }
+        }
 
-    private static AsynchronousFileChannel openInputChannel(Path path) {
-        try {
-            if (!Files.exists(path)) Files.createFile(path);
-            return AsynchronousFileChannel.open(path, StandardOpenOption.READ);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        private void signalOnComplete() {
+            synchronized (this) {
+                if (!done) {
+                    subscriber.onComplete();
+                    done = true;
+                }
+            }
+        }
+
+        private void signalOnError(Throwable t) {
+            synchronized (this) {
+                if (!done) {
+                    subscriber.onError(t);
+                    done = true;
+                }
+            }
         }
     }
 
-
+    private static AsynchronousFileChannel openInputChannel(Path path) throws IOException {
+        return AsynchronousFileChannel.open(path, StandardOpenOption.READ);
+    }
 }
