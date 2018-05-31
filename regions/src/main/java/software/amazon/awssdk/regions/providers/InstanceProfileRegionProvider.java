@@ -15,14 +15,13 @@
 
 package software.amazon.awssdk.regions.providers;
 
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.util.EC2MetadataUtils;
 
 /**
  * Attempts to load region information from the EC2 Metadata service. If the application is not
- * running on EC2 this provider will return null.
+ * running on EC2 this provider will thrown an exception.
  */
 public class InstanceProfileRegionProvider implements AwsRegionProvider {
 
@@ -41,16 +40,15 @@ public class InstanceProfileRegionProvider implements AwsRegionProvider {
             }
         }
 
-        return region == null ? null : Region.of(region);
+        if (region == null) {
+            throw new SdkClientException("Unable to retrieve region information from EC2 Metadata service. "
+                                         + "Please make sure the application is running on EC2.");
+        }
+
+        return Region.of(region);
     }
 
     private String tryDetectRegion() {
-        try {
-            return EC2MetadataUtils.getEC2InstanceRegion();
-        } catch (SdkClientException sce) {
-            LoggerFactory.getLogger(InstanceProfileRegionProvider.class)
-                      .debug("Ignoring failure to retrieve the region: {}", sce.getMessage());
-            return null;
-        }
+        return EC2MetadataUtils.getEC2InstanceRegion();
     }
 }
