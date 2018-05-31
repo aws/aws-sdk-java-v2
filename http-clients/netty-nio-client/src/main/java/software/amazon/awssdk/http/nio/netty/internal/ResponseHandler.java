@@ -170,7 +170,6 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         return bb;
     }
 
-    // TODO cover using Reactive Streams TCK
     private static class PublisherAdapter implements Publisher<ByteBuffer> {
         private final StreamedHttpResponse response;
         private final ChannelHandlerContext channelContext;
@@ -221,10 +220,11 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         }
     }
 
-    // TODO cover using Reactive Streams TCK (glad you seem to already have looked into the rules! :-))
-    private static class FullResponseContentPublisher implements Publisher<ByteBuffer> {
+    static class FullResponseContentPublisher implements Publisher<ByteBuffer> {
         private final ChannelHandlerContext channelContext;
         private final ByteBuffer fullContent;
+        private boolean running = true;
+        private Subscriber<? super ByteBuffer> subscriber;
 
         FullResponseContentPublisher(ChannelHandlerContext channelContext, ByteBuffer fullContent) {
             this.channelContext = channelContext;
@@ -236,9 +236,33 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         // see item 1.1, 1.9: https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.1/README.md#specification
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-            subscriber.onNext(fullContent);
-            channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY)
-                    .set(subscriber);
+            if (this.subscriber != null) {
+                subscriber.onComplete();
+                return;
+            }
+
+            subscriber.onSubscribe(new Subscription() {
+                @Override
+                public void request(long l) {
+                    if (l <= 0 && running) {
+                        subscriber.onError(new IllegalArgumentException("Demand must be positive!"));
+                        running = false;
+                    } else if (running) {
+                        subscriber.onNext(fullContent);
+                        subscriber.onComplete();
+                        channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY)
+                            .set(subscriber);
+                        running = false;
+                    }
+                }
+
+                @Override
+                public void cancel() {
+                    running = false;
+                }
+            });
+
+            this.subscriber = subscriber;
         }
     }
 
