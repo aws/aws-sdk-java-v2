@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -270,6 +271,15 @@ public class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * @see DefaultEventLoopGroupFactory
          */
         Builder eventLoopGroupFactory(EventLoopGroupFactory eventLoopGroupFactory);
+
+        /**
+         * Sets the HTTP protocol to use (i.e. HTTP/1.1 or HTTP/2). Not all services support HTTP/2.
+         *
+         * @param protocol Protocol to use.
+         * @return This builder for method chaining.
+         */
+        @ReviewBeforeRelease("Decide if we want to expose this to customers")
+        Builder protocol(Protocol protocol);
     }
 
     /**
@@ -454,6 +464,16 @@ public class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         public void setEventLoopGroupFactory(EventLoopGroupFactory eventLoopGroupFactory) {
             eventLoopGroupFactory(eventLoopGroupFactory);
+        }
+
+        @Override
+        public Builder protocol(Protocol protocol) {
+            standardOptions.put(SdkHttpConfigurationOption.PROTOCOL, protocol);
+            return this;
+        }
+
+        public void setProtocol(Protocol protocol) {
+            protocol(protocol);
         }
 
         @Override
