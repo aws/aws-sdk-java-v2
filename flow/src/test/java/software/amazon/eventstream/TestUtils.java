@@ -23,6 +23,10 @@ public class TestUtils {
         return new Message(randomHeaders(), randomPayload());
     }
 
+    public Message randomMessage(int payloadSize) {
+        return new Message(randomHeaders(), randomPayload(payloadSize));
+    }
+
     private Map<String, HeaderValue> randomHeaders() {
         Map<String, HeaderValue> headers = new HashMap<>();
         int numHeaders = rand.nextInt(maxHeaders + 1);
@@ -57,8 +61,11 @@ public class TestUtils {
     }
 
     private byte[] randomPayload() {
-        int bytes = rand.nextInt(maxPayloadSize + 1);
-        byte[] ret = new byte[bytes];
+        return randomPayload(rand.nextInt(maxPayloadSize + 1));
+    }
+
+    private byte[] randomPayload(int payloadSize) {
+        byte[] ret = new byte[payloadSize];
         rand.nextBytes(ret);
         return ret;
     }

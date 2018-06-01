@@ -56,8 +56,17 @@ public class Message {
     }
 
     public static Message decode(ByteBuffer buf) {
-        Prelude prelude = Prelude.decode(buf);
+        return decode(Prelude.decode(buf), buf);
+    }
 
+    /**
+     * Decodes a message with an already decoded prelude. Useful for not decoding the prelude twice.
+     *
+     * @param prelude Decoded prelude of message.
+     * @param buf Data of message (including prelude which will be skipped over).
+     * @return Decoded message
+     */
+    public static Message decode(Prelude prelude, ByteBuffer buf) {
         int totalLength = prelude.getTotalLength();
         validateMessageCrc(buf, totalLength);
         buf.position(buf.position() + Prelude.LENGTH_WITH_CRC);

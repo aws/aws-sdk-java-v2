@@ -3,50 +3,85 @@ package software.amazon.eventstream;
 import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 
-import static java.lang.Math.toIntExact;
-
 /**
  * A simple decoder that accumulates chunks of bytes and emits eventstream
  * messages. Instances of this class are not thread-safe.
  */
 public final class MessageDecoder {
+
+    /**
+     * Initial buffer size is 2MB. Will grow as needed to accommodate larger messages.
+     */
+    private static final int INITIAL_BUFFER_SIZE = 2048 * 1024;
+
     private final Consumer<Message> messageConsumer;
     private ByteBuffer buf;
+    private Prelude currentPrelude;
 
     public MessageDecoder(Consumer<Message> messageConsumer) {
+        this(messageConsumer, INITIAL_BUFFER_SIZE);
+    }
+
+    /**
+     * To be used by tests only.
+     */
+    MessageDecoder(Consumer<Message> messageConsumer, int initialBufferSize) {
         this.messageConsumer = messageConsumer;
-        this.buf = ByteBuffer.allocate(8192 * 1024);
+        this.buf = ByteBuffer.allocate(initialBufferSize);
     }
 
     public void feed(byte[] bytes) {
-        feed(bytes, 0, bytes.length);
-    }
-
-    public void feed(byte[] bytes, int offset, int length) {
-        // TODO instead of blindly putting bytes can we first calculate the prelude if available then cache, then
-        // put all bytes up to the length of the frame then decode then clear and reset for next prelude
-        // Also we can detect the length of the payload and grow if needed
-        buf.put(bytes, offset, length);
-        ByteBuffer readView = (ByteBuffer) buf.duplicate().flip();
         int bytesConsumed = 0;
-        while (readView.remaining() >= 15) {
-            // TODO seems wasteful to decode the prelude multiple times. Can we cache until we've read all the data for
-            // this frame?
-            int totalMessageLength = toIntExact(Prelude.decode(readView.duplicate()).getTotalLength());
+        while (bytesConsumed < bytes.length) {
+            ByteBuffer readView = updateReadView();
+            if (currentPrelude == null) {
+                // Put only 15 bytes into buffer and compute prelude.
+                int numBytesToWrite = Math.min(15 - readView.remaining(),
+                                               bytes.length - bytesConsumed);
 
-            if (readView.remaining() >= totalMessageLength) {
-                Message decoded = Message.decode(readView);
-                messageConsumer.accept(decoded);
-                bytesConsumed += totalMessageLength;
-            } else {
-                break;
+                buf.put(bytes, bytesConsumed, numBytesToWrite);
+                bytesConsumed += numBytesToWrite;
+                readView = updateReadView();
+
+                // Have enough data to decode the prelude
+                if (readView.remaining() >= 15) {
+                    currentPrelude = Prelude.decode(readView.duplicate());
+                    if (buf.capacity() < currentPrelude.getTotalLength()) {
+                        // Don't have enough capacity to hold this message, grow the buffer
+                        buf = ByteBuffer.allocate(currentPrelude.getTotalLength());
+                        buf.put(readView);
+                        readView = updateReadView();
+                    }
+                }
+            }
+            // We might not have received enough data to decode the prelude so check for null again
+            if (currentPrelude != null) {
+                // Only write up to what we need to decode the next message
+                int numBytesToWrite = Math.min(currentPrelude.getTotalLength() - readView.remaining(),
+                                               bytes.length - bytesConsumed);
+
+                buf.put(bytes, bytesConsumed, numBytesToWrite);
+                bytesConsumed += numBytesToWrite;
+                readView = updateReadView();
+
+                // If we have enough data to decode the message do so and reset the buffer for the next message
+                if (readView.remaining() >= currentPrelude.getTotalLength()) {
+                    messageConsumer.accept(Message.decode(currentPrelude, readView));
+                    buf.clear();
+                    currentPrelude = null;
+                }
             }
         }
+    }
 
-        if (bytesConsumed > 0) {
-            buf.flip();
-            buf.position(buf.position() + bytesConsumed);
-            buf.compact();
-        }
+    private ByteBuffer updateReadView() {
+        return (ByteBuffer) buf.duplicate().flip();
+    }
+
+    /**
+     * To be used by tests only.
+     */
+    int currentBufferSize() {
+        return buf.capacity();
     }
 }
