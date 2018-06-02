@@ -122,6 +122,7 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
 
     @ReviewBeforeRelease("Remove me")
     private static class WireDumpLoggingHandler extends SimpleChannelInboundHandler<ByteBuf> {
+
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
             log.debug(dataToString(msg));

@@ -50,9 +50,9 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
     private ChannelPool protocolImpl;
 
     public HttpOrHttp2ChannelPool(Bootstrap bootstrap,
-                           ChannelPoolHandler handler,
-                           int maxConcurrency,
-                           NettyConfiguration configuration) {
+                                  ChannelPoolHandler handler,
+                                  int maxConcurrency,
+                                  NettyConfiguration configuration) {
         this.simpleChannelPool = new SimpleChannelPool(bootstrap, handler);
         this.maxConcurrency = maxConcurrency;
         this.eventLoop = bootstrap.config().group().next();
@@ -139,13 +139,25 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
 
     @Override
     public Future<Void> release(Channel channel) {
-        return protocolImpl.release(channel, new DefaultPromise<>(eventLoop));
+        return release(channel, eventLoop.newPromise());
     }
 
     @Override
     public Future<Void> release(Channel channel, Promise<Void> promise) {
-        doInEventLoop(eventLoop, () -> protocolImpl.release(channel, promise), promise);
+        doInEventLoop(eventLoop,
+                      () -> release0(channel, promise),
+                      promise);
         return promise;
+    }
+
+    private void release0(Channel channel, Promise<Void> promise) {
+        if (protocolImpl == null) {
+            // If protocolImpl is null that means the first connection failed to establish. Release it back to the
+            // underlying connection pool.
+            simpleChannelPool.release(channel, promise);
+        } else {
+            protocolImpl.release(channel, promise);
+        }
     }
 
     @Override

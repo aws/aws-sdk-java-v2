@@ -18,8 +18,8 @@ package software.amazon.awssdk.http.nio.netty.internal.http2;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.CHANNEL_POOL_RECORD;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.asyncPromiseNotifyingBiConsumer;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.doInEventLoop;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.promiseNotifyingListener;
-import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http2.Http2StreamChannelBootstrap;
@@ -29,12 +29,13 @@ import io.netty.util.concurrent.Promise;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 
 /**
  * Contains a {@link Future} for the actual socket channel and tracks available
  * streams based on the MAX_CONCURRENT_STREAMS setting for the connection.
  */
-public final class MultiplexedChannelRecord implements Comparable<MultiplexedChannelRecord> {
+public final class MultiplexedChannelRecord {
 
     private final Future<Channel> connectionFuture;
     private final AtomicLong availableStreams;
@@ -52,9 +53,12 @@ public final class MultiplexedChannelRecord implements Comparable<MultiplexedCha
             createChildChannel(channelPromise, connection);
         } else {
             connectionFuture.addListener((GenericFutureListener<Future<Channel>>) future -> {
-                connection = future.getNow();
-                createChildChannel(channelPromise, connection);
-
+                if (future.isSuccess()) {
+                    connection = future.getNow();
+                    createChildChannel(channelPromise, connection);
+                } else {
+                    channelPromise.setFailure(future.cause());
+                }
             });
         }
         return this;
@@ -67,12 +71,9 @@ public final class MultiplexedChannelRecord implements Comparable<MultiplexedCha
      * @param parentChannel Parent socket channel.
      */
     private void createChildChannel(Promise<Channel> channelPromise, Channel parentChannel) {
-        if (parentChannel.eventLoop().inEventLoop()) {
-            createChildChannel0(channelPromise, parentChannel);
-        } else {
-            parentChannel.eventLoop().submit(() -> createChildChannel0(channelPromise, parentChannel));
-        }
-
+        doInEventLoop(parentChannel.eventLoop(),
+                      () -> createChildChannel0(channelPromise, parentChannel),
+                      channelPromise);
     }
 
     private void createChildChannel0(Promise<Channel> channelPromise, Channel parentChannel) {
@@ -102,12 +103,6 @@ public final class MultiplexedChannelRecord implements Comparable<MultiplexedCha
 
     long availableStreams() {
         return availableStreams.get();
-    }
-
-    @Override
-    public int compareTo(MultiplexedChannelRecord o) {
-        // TODO test this
-        return saturatedCast(availableStreams.get() - o.availableStreams.get());
     }
 
 }

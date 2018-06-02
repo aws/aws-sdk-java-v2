@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.CHANNEL_POOL_RECORD;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.doInEventLoop;
 
 import io.netty.channel.Channel;
@@ -93,22 +94,32 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
     }
 
     @Override
-    public Future<Void> release(Channel childChannel, Promise<Void> promise) {
-        doInEventLoop(eventLoop, () -> release0(childChannel, promise), promise);
+    public Future<Void> release(Channel channel, Promise<Void> promise) {
+        doInEventLoop(eventLoop, () -> release0(channel, promise), promise);
         return promise;
     }
 
-    private void release0(Channel childChannel, Promise<Void> promise) {
-        Channel parentChannel = childChannel.parent();
-        MultiplexedChannelRecord channelRecord = parentChannel.attr(CHANNEL_POOL_RECORD).get();
-        if (!parentChannel.isActive()) {
-            connections.remove(channelRecord);
-            parentChannel.close();
-            connectionPool.release(parentChannel);
+    private void release0(Channel channel, Promise<Void> promise) {
+        if (channel.parent() == null) {
+            // This is the socket channel, close and release from underlying connection pool
+            releaseParentChannel(channel);
+        } else {
+            Channel parentChannel = channel.parent();
+            MultiplexedChannelRecord channelRecord = parentChannel.attr(CHANNEL_POOL_RECORD).get();
+            if (!parentChannel.isActive()) {
+                releaseParentChannel(parentChannel);
+            }
+            channelRecord.release();
+            channel.close();
+            promise.setSuccess(null);
         }
-        channelRecord.release();
-        childChannel.close();
-        promise.setSuccess(null);
+    }
+
+    private void releaseParentChannel(Channel parentChannel) {
+        MultiplexedChannelRecord channelRecord = parentChannel.attr(CHANNEL_POOL_RECORD).get();
+        connections.remove(channelRecord);
+        parentChannel.close();
+        connectionPool.release(parentChannel);
     }
 
     @Override
