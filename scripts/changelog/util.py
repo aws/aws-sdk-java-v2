@@ -4,8 +4,8 @@ import json
 from model import ReleaseChanges, ChangelogEntry, Version
 
 def version_cmp(a,b):
-    aa = [a.major, a.minor, a.patch, a.prerelease]
-    bb = [b.major, b.minor, b.patch, b.prerelease]
+    aa = [a.major, a.minor, a.patch, a.prerelease_version_number()]
+    bb = [b.major, b.minor, b.patch, b.prerelease_version_number()]
     return cmp(bb,aa)
 
 def load_all_released_changes(d):
