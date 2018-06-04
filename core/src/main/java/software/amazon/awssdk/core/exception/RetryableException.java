@@ -25,7 +25,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * See {@link NonRetryableException} for marking non-retryable exceptions.
  */
 @SdkPublicApi
-public class RetryableException extends SdkException {
+public final class RetryableException extends SdkException {
 
     public RetryableException(String message) {
         super(message);

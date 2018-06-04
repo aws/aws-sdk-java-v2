@@ -24,11 +24,10 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * This exception is not meant to be retried.
  */
 @SdkPublicApi
-public class AbortedException extends SdkClientException {
-
+public final class AbortedException extends SdkClientException {
 
     public AbortedException() {
-        super("Aborted.");
+        this("Aborted.");
     }
 
     public AbortedException(String message) {

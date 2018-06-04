@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.regions.providers;
 
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
@@ -28,10 +27,10 @@ import software.amazon.awssdk.regions.Region;
 @FunctionalInterface
 public interface AwsRegionProvider {
     /**
-     * @return Region name to use or null if region information is not available.
+     * Returns the region name to use. If region information is not available, throws an {@link SdkClientException}.
+     *
+     * @return Region name to use.
      */
-    @ReviewBeforeRelease("Should this throw exceptions so that its contract matches that of the credential providers? This is " +
-                         "currently a protected API used in STS, so we should decide before GA.")
-    Region getRegion() throws SdkClientException;
+    Region getRegion();
 
 }

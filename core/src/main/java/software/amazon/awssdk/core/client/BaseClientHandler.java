@@ -15,18 +15,15 @@
 
 package software.amazon.awssdk.core.client;
 
-import java.util.Optional;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceConfiguration;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.config.InternalAdvancedClientOption;
-import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.http.DefaultSdkHttpResponse;
+import software.amazon.awssdk.core.config.options.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.config.options.SdkClientOption;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
@@ -34,18 +31,17 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
+import software.amazon.awssdk.core.internal.http.DefaultSdkHttpResponse;
 import software.amazon.awssdk.core.internal.http.response.SdkErrorResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 
+@SdkProtectedApi
 public abstract class BaseClientHandler {
-    private final ServiceConfiguration serviceConfiguration;
     private SdkClientConfiguration clientConfiguration;
 
-    protected BaseClientHandler(SdkClientConfiguration clientConfiguration,
-                                ServiceConfiguration serviceConfiguration) {
+    protected BaseClientHandler(SdkClientConfiguration clientConfiguration) {
         this.clientConfiguration = clientConfiguration;
-        this.serviceConfiguration = serviceConfiguration;
     }
 
     static <InputT extends SdkRequest> InputT finalizeSdkRequest(ExecutionContext executionContext) {
@@ -60,7 +56,7 @@ public abstract class BaseClientHandler {
 
         runBeforeMarshallingInterceptors(executionContext);
         Request<InputT> request = executionParams.getMarshaller().marshall(inputT);
-        request.setEndpoint(clientConfiguration.endpoint());
+        request.setEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT));
 
         executionContext.executionAttributes().putAttribute(SdkExecutionAttributes.SERVICE_NAME,
                                                             request.getServiceName());
@@ -150,9 +146,6 @@ public abstract class BaseClientHandler {
     }
 
     protected ExecutionContext createExecutionContext(SdkRequest originalRequest) {
-
-        ClientOverrideConfiguration overrideConfiguration = clientConfiguration.overrideConfiguration();
-
         ExecutionAttributes executionAttributes = new ExecutionAttributes()
             .putAttribute(SdkExecutionAttributes.REQUEST_CONFIG, originalRequest.overrideConfiguration()
                                                                                 .filter(c -> c instanceof
@@ -160,26 +153,28 @@ public abstract class BaseClientHandler {
                                                                                 .map(c -> (RequestOverrideConfiguration) c)
                                                                                 .orElse(SdkRequestOverrideConfiguration.builder()
                                                                                                                        .build()))
-            .putAttribute(SdkExecutionAttributes.SERVICE_CONFIG, serviceConfiguration)
+            .putAttribute(SdkExecutionAttributes.SERVICE_CONFIG,
+                          clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION))
             .putAttribute(SdkExecutionAttributes.REQUEST_CONFIG, originalRequest.overrideConfiguration()
                                                                                 .map(c -> (SdkRequestOverrideConfiguration) c)
                                                                                 .orElse(SdkRequestOverrideConfiguration.builder()
                                                                                                                        .build()));
 
+        ExecutionInterceptorChain interceptorChain =
+                new ExecutionInterceptorChain(clientConfiguration.option(SdkClientOption.EXECUTION_INTERCEPTORS));
+
         return ExecutionContext.builder()
-                               .interceptorChain(new ExecutionInterceptorChain(overrideConfiguration.executionInterceptors()))
+                               .interceptorChain(interceptorChain)
                                .interceptorContext(InterceptorContext.builder()
                                                                      .request(originalRequest)
                                                                      .build())
                                .executionAttributes(executionAttributes)
-                               .signerProvider(overrideConfiguration.advancedOption(SdkAdvancedClientOption.SIGNER_PROVIDER))
+                               .signer(clientConfiguration.option(SdkAdvancedClientOption.SIGNER))
                                .build();
     }
 
     protected boolean isCalculateCrc32FromCompressedData() {
-        return Optional.ofNullable(clientConfiguration.overrideConfiguration()
-                                                      .advancedOption(InternalAdvancedClientOption
-                                                                          .CRC32_FROM_COMPRESSED_DATA_ENABLED)).orElse(false);
+        return clientConfiguration.option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED);
     }
 
     /**

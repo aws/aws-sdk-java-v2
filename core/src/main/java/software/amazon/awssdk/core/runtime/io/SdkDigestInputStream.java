@@ -21,7 +21,7 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.internal.io.Releasable;
-import software.amazon.awssdk.core.internal.io.SdkIoUtils;
+import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * Base class for AWS Java SDK specific {@link DigestInputStream}.
@@ -81,7 +81,7 @@ public class SdkDigestInputStream extends DigestInputStream implements Releasabl
     @Override
     public final void release() {
         // Don't call IOUtils.release(in, null) or else could lead to infinite loop
-        SdkIoUtils.closeQuietly(this);
+        IoUtils.closeQuietly(this, null);
         if (in instanceof Releasable) {
             // This allows any underlying stream that has the close operation
             // disabled to be truly released

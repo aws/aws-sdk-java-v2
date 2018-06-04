@@ -25,11 +25,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * This exception is not meant to be retried.
  */
 @SdkPublicApi
-public class ResetException extends SdkClientException {
-
-    public ResetException(String message) {
-        super(message);
-    }
+public final class ResetException extends SdkClientException {
 
     public ResetException(String message, Throwable t) {
         super(message, t);

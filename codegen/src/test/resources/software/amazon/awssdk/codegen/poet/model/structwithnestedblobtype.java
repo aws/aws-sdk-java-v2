@@ -16,8 +16,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class StructWithNestedBlobType implements StructuredPojo,
-                                                 ToCopyableBuilder<StructWithNestedBlobType.Builder, StructWithNestedBlobType> {
+public final class StructWithNestedBlobType implements StructuredPojo,
+                                                       ToCopyableBuilder<StructWithNestedBlobType.Builder,
+                                                           StructWithNestedBlobType> {
     private final ByteBuffer nestedBlob;
 
     private StructWithNestedBlobType(BuilderImpl builder) {

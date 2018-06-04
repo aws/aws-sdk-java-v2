@@ -82,6 +82,11 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_IN_REGION_OPTIMIZATION_ENABLED("aws.inRegionOptimizationEnabled", "false"),
 
     /**
+     * Whether to load information such as credentials, regions from EC2 Metadata instance service.
+     */
+    AWS_EC2_METADATA_DISABLED("aws.disableEc2Metadata", "false"),
+
+    /**
      * The EC2 instance metadata service endpoint.
      *
      * This allows a service running in EC2 to automatically load its credentials and region without needing to configure them

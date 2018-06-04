@@ -20,31 +20,32 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.RequestExecutionContext;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.config.SdkSyncClientConfiguration;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.http.pipeline.RequestPipelineBuilder;
-import software.amazon.awssdk.core.http.pipeline.stages.AfterExecutionInterceptorsStage;
-import software.amazon.awssdk.core.http.pipeline.stages.AfterTransmissionExecutionInterceptorsStage;
-import software.amazon.awssdk.core.http.pipeline.stages.ApplyTransactionIdStage;
-import software.amazon.awssdk.core.http.pipeline.stages.ApplyUserAgentStage;
-import software.amazon.awssdk.core.http.pipeline.stages.BeforeTransmissionExecutionInterceptorsStage;
-import software.amazon.awssdk.core.http.pipeline.stages.BeforeUnmarshallingExecutionInterceptorsStage;
-import software.amazon.awssdk.core.http.pipeline.stages.ExecutionFailureExceptionReportingStage;
-import software.amazon.awssdk.core.http.pipeline.stages.HandleResponseStage;
-import software.amazon.awssdk.core.http.pipeline.stages.HttpResponseAdaptingStage;
-import software.amazon.awssdk.core.http.pipeline.stages.MakeHttpRequestStage;
-import software.amazon.awssdk.core.http.pipeline.stages.MakeRequestImmutable;
-import software.amazon.awssdk.core.http.pipeline.stages.MakeRequestMutable;
-import software.amazon.awssdk.core.http.pipeline.stages.MergeCustomHeadersStage;
-import software.amazon.awssdk.core.http.pipeline.stages.MergeCustomQueryParamsStage;
-import software.amazon.awssdk.core.http.pipeline.stages.MoveParametersToBodyStage;
-import software.amazon.awssdk.core.http.pipeline.stages.RetryableStage;
-import software.amazon.awssdk.core.http.pipeline.stages.SigningStage;
-import software.amazon.awssdk.core.http.pipeline.stages.UnwrapResponseContainer;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
+import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
+import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionInterceptorsStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterTransmissionExecutionInterceptorsStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeTransmissionExecutionInterceptorsStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeUnmarshallingExecutionInterceptorsStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.ExecutionFailureExceptionReportingStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.HandleResponseStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.HttpResponseAdaptingStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeHttpRequestStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestImmutable;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestMutable;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomHeadersStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomQueryParamsStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.MoveParametersToBodyStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.RetryableStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.SigningStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.UnwrapResponseContainer;
 import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
 import software.amazon.awssdk.core.retry.SdkDefaultRetrySettings;
 import software.amazon.awssdk.core.util.CapacityManager;
@@ -53,21 +54,22 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @ThreadSafe
 @SdkInternalApi
-@ReviewBeforeRelease("come up with better name")
+@ReviewBeforeRelease("come up with better name, Also this can be moved to an internal package if we "
+                     + "deal with HttpTestUtils.")
 public class AmazonSyncHttpClient implements SdkAutoCloseable {
     /**
      * Used for testing via failure injection.
      */
     static UnreliableTestConfig unreliableTestConfig;
 
-    private final HttpSyncClientDependencies httpClientDependencies;
+    private final HttpClientDependencies httpClientDependencies;
 
-    public AmazonSyncHttpClient(SdkSyncClientConfiguration syncClientConfiguration) {
-        this.httpClientDependencies = HttpSyncClientDependencies.builder()
-                                                                .clientExecutionTimer(new ClientExecutionTimer())
-                                                                .syncClientConfiguration(syncClientConfiguration)
-                                                                .capacityManager(createCapacityManager())
-                                                                .build();
+    public AmazonSyncHttpClient(SdkClientConfiguration clientConfiguration) {
+        this.httpClientDependencies = HttpClientDependencies.builder()
+                                                            .clientConfiguration(clientConfiguration)
+                                                            .clientExecutionTimer(new ClientExecutionTimer())
+                                                            .capacityManager(createCapacityManager())
+                                                            .build();
     }
 
     private CapacityManager createCapacityManager() {
@@ -251,8 +253,8 @@ public class AmazonSyncHttpClient implements SdkAutoCloseable {
             try {
                 return RequestPipelineBuilder
                     // Start of mutating request
-                    .firstSync(RequestPipelineBuilder
-                                   .firstSync(MakeRequestMutable::new)
+                    .first(RequestPipelineBuilder
+                                   .first(MakeRequestMutable::new)
                                    .then(ApplyTransactionIdStage::new)
                                    .then(ApplyUserAgentStage::new)
                                    .then(MergeCustomHeadersStage::new)
@@ -261,7 +263,7 @@ public class AmazonSyncHttpClient implements SdkAutoCloseable {
                                    .then(MakeRequestImmutable::new)
                                    // End of mutating request
                                    .then(RequestPipelineBuilder
-                                             .firstSync(SigningStage::new)
+                                             .first(SigningStage::new)
                                              .then(BeforeTransmissionExecutionInterceptorsStage::new)
                                              .then(MakeHttpRequestStage::new)
                                              .then(AfterTransmissionExecutionInterceptorsStage::new)

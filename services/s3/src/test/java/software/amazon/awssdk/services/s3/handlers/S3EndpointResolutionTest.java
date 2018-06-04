@@ -26,6 +26,9 @@ import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.config.options.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -47,10 +50,12 @@ public class S3EndpointResolutionTest {
     private static final String ENDPOINT_WITH_BUCKET = String.format("https://%s.s3.ap-south-1.amazonaws.com", BUCKET);
 
     private MockHttpClient mockHttpClient;
+    private Signer mockSigner;
 
     @Before
     public void setup() {
         mockHttpClient = new MockHttpClient();
+        mockSigner = (request, executionAttributes) -> request;
     }
 
     /**
@@ -143,7 +148,7 @@ public class S3EndpointResolutionTest {
     public void customHttpEndpoint_PreservesSchemeWhenSwitchingToVirtualAddressing() throws Exception {
         URI customEndpoint = URI.create("http://s3-external-1.amazonaws.com");
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
-        S3Client s3Client = clientBuilder().endpointOverride(customEndpoint).build();
+        S3Client s3Client = clientBuilderWithMockSigner().endpointOverride(customEndpoint).build();
 
         s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
 
@@ -312,6 +317,22 @@ public class S3EndpointResolutionTest {
         return S3Client.builder()
                        .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
                        .region(Region.AP_SOUTH_1)
+                       .httpClient(mockHttpClient);
+    }
+
+    /**
+     * @return Client builder instance preconfigured with credentials and region using the {@link #mockHttpClient} for transport
+     * and {@link #mockSigner} for signing. Using actual AwsS3V4Signer results in NPE as the execution goes into payload signing
+     * due to "http" protocol and input stream is not mark supported.
+     */
+    private S3ClientBuilder clientBuilderWithMockSigner() {
+        return S3Client.builder()
+                       .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
+                       .region(Region.AP_SOUTH_1)
+                       .overrideConfiguration(ClientOverrideConfiguration.builder()
+                                                                         .advancedOption(SdkAdvancedClientOption.SIGNER,
+                                                                                         mockSigner)
+                                                                         .build())
                        .httpClient(mockHttpClient);
     }
 

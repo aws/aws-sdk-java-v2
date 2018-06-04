@@ -26,6 +26,8 @@ import software.amazon.awssdk.regions.Region;
 /**
  * Composite {@link AwsRegionProvider} that sequentially delegates to a chain of providers looking
  * for region information.
+ *
+ * Throws an {@link SdkClientException} if region could not be find in any of the providers.
  */
 public class AwsRegionProviderChain implements AwsRegionProvider {
 
@@ -40,6 +42,8 @@ public class AwsRegionProviderChain implements AwsRegionProvider {
 
     @Override
     public Region getRegion() throws SdkClientException {
+        List<String> exceptionMessages = null;
+
         for (AwsRegionProvider provider : providers) {
             try {
                 final Region region = provider.getRegion();
@@ -49,9 +53,16 @@ public class AwsRegionProviderChain implements AwsRegionProvider {
             } catch (Exception e) {
                 // Ignore any exceptions and move onto the next provider
                 log.debug("Unable to load region from {}:{}", provider.toString(), e.getMessage());
+
+                String message = provider.toString() + ": " + e.getMessage();
+                if (exceptionMessages == null) {
+                    exceptionMessages = new ArrayList<>();
+                }
+                exceptionMessages.add(message);
             }
         }
 
-        return null;
+        throw new SdkClientException("Unable to load region from any of the providers in the chain " + this
+                                     + ": " + exceptionMessages);
     }
 }

@@ -13,6 +13,9 @@
     - Renamed AsyncResponseHandler to AsyncResponseTransformer and StreamingResponseHandler to ResponseTransformer.
     - Split core module to regions, profiles, auth, aws-core and core modules.[#27](https://github.com/aws/aws-sdk-java-v2/issues/27)
     - Updating default retry policy to include newly added conditions.
+    - Renamed `AdvancedServiceConfiguration` to `ServiceConfiguration`
+    - Renamed `RequestOverrideConfig` to `RequestOverrideConfiguration` to match `ClientOverrideConfiguration` naming.
+    - Simplified configuration of HTTP clients.
 
   - ### Removals
     - Remove httpRequestTimeout and totalExecutionTimeout features
@@ -20,6 +23,10 @@
 ## __AWS Secrets Manager__
   - ### Features
     - Add AWS Secrets Manager to v2.
+    
+## __Amazon S3__
+  - ### Features
+    - Renamed `S3AdvancedConfiguration` to `S3Configuration`
     
 # __2.0.0-preview-9__ __2018-03-20__
 ## __AWS Lambda__

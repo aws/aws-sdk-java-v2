@@ -21,8 +21,8 @@ import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.internal.io.Releasable;
-import software.amazon.awssdk.core.internal.io.SdkIoUtils;
 import software.amazon.awssdk.core.util.SdkRuntime;
+import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * Base class for AWS Java SDK specific {@link FilterInputStream}.
@@ -106,7 +106,7 @@ public class SdkFilterInputStream extends FilterInputStream implements Releasabl
     @Override
     public void release() {
         // Don't call IOUtils.release(in, null) or else could lead to infinite loop
-        SdkIoUtils.closeQuietly(this);
+        IoUtils.closeQuietly(this, null);
         if (in instanceof Releasable) {
             // This allows any underlying stream that has the close operation
             // disabled to be truly released

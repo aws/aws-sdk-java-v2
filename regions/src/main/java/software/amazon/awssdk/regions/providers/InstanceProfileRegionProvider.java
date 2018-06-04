@@ -15,14 +15,18 @@
 
 package software.amazon.awssdk.regions.providers;
 
-import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.util.EC2MetadataUtils;
 
 /**
  * Attempts to load region information from the EC2 Metadata service. If the application is not
- * running on EC2 this provider will return null.
+ * running on EC2 this provider will thrown an exception.
+ *
+ * <P>
+ * If {@link SdkSystemSetting#AWS_EC2_METADATA_DISABLED} is set to true, it will not try to load
+ * region from EC2 metadata service and will return null.
  */
 public class InstanceProfileRegionProvider implements AwsRegionProvider {
 
@@ -33,6 +37,11 @@ public class InstanceProfileRegionProvider implements AwsRegionProvider {
 
     @Override
     public Region getRegion() throws SdkClientException {
+        if (SdkSystemSetting.AWS_EC2_METADATA_DISABLED.getBooleanValueOrThrow()) {
+            throw new SdkClientException("EC2 Metadata is disabled. Unable to retrieve region information from EC2 Metadata "
+                                         + "service.");
+        }
+
         if (region == null) {
             synchronized (this) {
                 if (region == null) {
@@ -41,16 +50,15 @@ public class InstanceProfileRegionProvider implements AwsRegionProvider {
             }
         }
 
-        return region == null ? null : Region.of(region);
+        if (region == null) {
+            throw new SdkClientException("Unable to retrieve region information from EC2 Metadata service. "
+                                         + "Please make sure the application is running on EC2.");
+        }
+
+        return Region.of(region);
     }
 
     private String tryDetectRegion() {
-        try {
-            return EC2MetadataUtils.getEC2InstanceRegion();
-        } catch (SdkClientException sce) {
-            LoggerFactory.getLogger(InstanceProfileRegionProvider.class)
-                      .debug("Ignoring failure to retrieve the region: {}", sce.getMessage());
-            return null;
-        }
+        return EC2MetadataUtils.getEC2InstanceRegion();
     }
 }

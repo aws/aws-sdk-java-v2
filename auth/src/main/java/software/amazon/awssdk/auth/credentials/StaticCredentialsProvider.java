@@ -23,7 +23,7 @@ import software.amazon.awssdk.utils.Validate;
  * An implementation of {@link AwsCredentialsProvider} that returns a set implementation of {@link AwsCredentials}.
  */
 @SdkPublicApi
-public class StaticCredentialsProvider implements AwsCredentialsProvider {
+public final class StaticCredentialsProvider implements AwsCredentialsProvider {
     private final AwsCredentials credentials;
 
     private StaticCredentialsProvider(AwsCredentials credentials) {

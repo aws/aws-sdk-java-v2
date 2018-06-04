@@ -51,7 +51,7 @@ public class WafIntegrationTest extends AwsTestBase {
 
     @BeforeClass
     public static void setup() throws IOException {
-        FixedDelayBackoffStrategy fixedBackoffStrategy = new FixedDelayBackoffStrategy(Duration.ofSeconds(30));
+        FixedDelayBackoffStrategy fixedBackoffStrategy = FixedDelayBackoffStrategy.create(Duration.ofSeconds(30));
         setUpCredentials();
         client = WAFClient.builder()
                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)

@@ -15,29 +15,47 @@
 
 package software.amazon.awssdk.auth.signer;
 
+import java.time.Clock;
 import java.util.Date;
-import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.NoopTestRequest;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.InterceptorContext;
-import software.amazon.awssdk.core.runtime.auth.Signer;
+import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
+import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.regions.Region;
 
 public class SignerTestUtils {
-    public static SdkHttpFullRequest signRequest(Signer signer,
+    public static SdkHttpFullRequest signRequest(Aws4Signer signer,
                                                  SdkHttpFullRequest request,
-                                                 AwsCredentials credentials) {
-        return signer.sign(InterceptorContext.builder().request(NoopTestRequest.builder().build()).httpRequest(request).build(),
-                           new ExecutionAttributes().putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, credentials));
+                                                 AwsCredentials credentials,
+                                                 String signingName,
+                                                 Clock signingDateOverride,
+                                                 String region) {
+
+        Aws4SignerParams signerParams = Aws4SignerParams.builder()
+                                                        .awsCredentials(credentials)
+                                                        .signingName(signingName)
+                                                        .signingClockOverride(signingDateOverride)
+                                                        .signingRegion(Region.of(region))
+                                                        .build();
+
+        return signer.sign(request, signerParams);
     }
 
-    public static SdkHttpFullRequest presignRequest(Presigner presigner,
+    public static SdkHttpFullRequest presignRequest(Aws4Signer presigner,
                                                     SdkHttpFullRequest request,
                                                     AwsCredentials credentials,
-                                                    Date expiration) {
-        return presigner.presign(InterceptorContext.builder().request(NoopTestRequest.builder().build()).httpRequest(request).build(),
-                                 new ExecutionAttributes().putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, credentials),
-                                 expiration);
+                                                    Date expiration,
+                                                    String signingName,
+                                                    Clock signingDateOverride,
+                                                    String region) {
+        Aws4PresignerParams signerParams = Aws4PresignerParams.builder()
+                                                              .awsCredentials(credentials)
+                                                              .expirationDate(expiration)
+                                                              .signingName(signingName)
+                                                              .signingClockOverride(signingDateOverride)
+                                                              .signingRegion(Region.of(region))
+                                                              .build();
+
+        return presigner.presign(request, signerParams);
     }
 }

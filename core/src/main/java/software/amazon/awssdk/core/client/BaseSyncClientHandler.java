@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.core.client;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
@@ -29,20 +29,20 @@ import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
+@SdkProtectedApi
 public abstract class BaseSyncClientHandler extends BaseClientHandler implements SyncClientHandler {
     private final SdkClientConfiguration clientConfiguration;
     private final AmazonSyncHttpClient client;
 
     protected BaseSyncClientHandler(SdkClientConfiguration clientConfiguration,
-                                    ServiceConfiguration serviceConfiguration,
                                     AmazonSyncHttpClient client) {
-        super(clientConfiguration, serviceConfiguration);
+        super(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.client = client;
     }
 
     @Override
-    public final <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> ReturnT execute(
+    public <InputT extends SdkRequest, OutputT extends SdkResponse, ReturnT> ReturnT execute(
         ClientExecutionParams<InputT, OutputT> executionParams,
         ResponseTransformer<OutputT, ReturnT> responseTransformer) {
 
@@ -57,7 +57,7 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
     }
 
     @Override
-    public final <InputT extends SdkRequest, OutputT extends SdkResponse> OutputT execute(
+    public <InputT extends SdkRequest, OutputT extends SdkResponse> OutputT execute(
         ClientExecutionParams<InputT, OutputT> executionParams) {
 
         ExecutionContext executionContext = createExecutionContext(executionParams.getInput());

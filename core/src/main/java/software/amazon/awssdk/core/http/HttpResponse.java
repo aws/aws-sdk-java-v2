@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.http;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.http.HttpStatusFamily;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  * service request.
  */
 @SdkPublicApi
+@ReviewBeforeRelease("Make sure we aren't exposing this anywhere")
 public class HttpResponse implements Abortable {
 
     private final SdkHttpFullRequest request;

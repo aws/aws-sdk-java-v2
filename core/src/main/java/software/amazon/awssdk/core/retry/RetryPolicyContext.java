@@ -38,18 +38,13 @@ public final class RetryPolicyContext implements ToCopyableBuilder<RetryPolicyCo
     private final int retriesAttempted;
     private final Integer httpStatusCode;
 
-    private RetryPolicyContext(SdkRequest originalRequest,
-                               SdkHttpFullRequest request,
-                               SdkException exception,
-                               ExecutionAttributes executionAttributes,
-                               int retriesAttempted,
-                               Integer httpStatusCode) {
-        this.originalRequest = originalRequest;
-        this.request = request;
-        this.exception = exception;
-        this.executionAttributes = executionAttributes;
-        this.retriesAttempted = retriesAttempted;
-        this.httpStatusCode = httpStatusCode;
+    private RetryPolicyContext(Builder builder) {
+        this.originalRequest = builder.originalRequest;
+        this.request = builder.request;
+        this.exception = builder.exception;
+        this.executionAttributes = builder.executionAttributes;
+        this.retriesAttempted = builder.retriesAttempted;
+        this.httpStatusCode = builder.httpStatusCode;
     }
 
     @SdkInternalApi
@@ -112,7 +107,7 @@ public final class RetryPolicyContext implements ToCopyableBuilder<RetryPolicyCo
     }
 
     @SdkInternalApi
-    public static class Builder implements CopyableBuilder<Builder, RetryPolicyContext> {
+    public static final class Builder implements CopyableBuilder<Builder, RetryPolicyContext> {
 
         private SdkRequest originalRequest;
         private SdkHttpFullRequest request;
@@ -164,12 +159,7 @@ public final class RetryPolicyContext implements ToCopyableBuilder<RetryPolicyCo
         }
 
         public RetryPolicyContext build() {
-            return new RetryPolicyContext(originalRequest,
-                                          request,
-                                          exception,
-                                          executionAttributes,
-                                          retriesAttempted,
-                                          httpStatusCode);
+            return new RetryPolicyContext(this);
         }
 
     }

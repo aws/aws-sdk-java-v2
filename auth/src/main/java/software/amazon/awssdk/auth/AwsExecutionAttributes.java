@@ -15,12 +15,13 @@
 
 package software.amazon.awssdk.auth;
 
+import java.util.Date;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
-import software.amazon.awssdk.core.runtime.auth.Signer;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.regions.Region;
 
 /**
@@ -36,9 +37,32 @@ public final class AwsExecutionAttributes extends SdkExecutionAttributes {
     public static final ExecutionAttribute<AwsCredentials> AWS_CREDENTIALS = new ExecutionAttribute<>("AwsCredentials");
 
     /**
-     * The AWS {@link Region} the client was configured with.
+     * The AWS {@link Region} the client was configured with. This is not always same as {@link #SIGNING_REGION} for
+     * global services like IAM.
      */
     public static final ExecutionAttribute<Region> AWS_REGION = new ExecutionAttribute<>("AwsRegion");
+
+    /**
+     * The AWS {@link Region} that is used for signing a request. This is not always same as {@link #AWS_REGION} for
+     * global services like IAM.
+     */
+    public static final ExecutionAttribute<Region> SIGNING_REGION = new ExecutionAttribute<>("SigningRegion");
+
+    /**
+     * The signing name of the service to be using in SigV4 signing
+     */
+    public static final ExecutionAttribute<String> SERVICE_SIGNING_NAME = new ExecutionAttribute<>("ServiceSigningName");
+
+    /**
+     * The key to specify whether to use double url encoding during signing.
+     */
+    public static final ExecutionAttribute<Boolean> SIGNER_DOUBLE_URL_ENCODE = new ExecutionAttribute<>("DoubleUrlEncode");
+
+    /**
+     * The key to specify the expiration date when pre-signing aws requests.
+     */
+    public static final ExecutionAttribute<Date> AWS_PRESIGNER_EXPIRATION_DATE =
+        new ExecutionAttribute<>("PresignerExpirationDate");
 
     private AwsExecutionAttributes() {
     }

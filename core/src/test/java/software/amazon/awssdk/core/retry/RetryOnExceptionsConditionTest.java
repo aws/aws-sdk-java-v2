@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.retry.conditions.RetryOnExceptionsCondition;
 
 public class RetryOnExceptionsConditionTest {
 
-    private RetryCondition condition = new RetryOnExceptionsCondition(Sets.newHashSet(
+    private RetryCondition condition = RetryOnExceptionsCondition.create(Sets.newHashSet(
         RetryableServiceException.class,
         RetryableClientException.class,
         SocketTimeoutException.class
@@ -83,7 +83,7 @@ public class RetryOnExceptionsConditionTest {
 
     @Test
     public void noRetryableExceptions_ReturnsFalse() {
-        final RetryCondition noExceptionsCondition = new RetryOnExceptionsCondition(
+        final RetryCondition noExceptionsCondition = RetryOnExceptionsCondition.create(
                 Collections.emptySet());
         assertFalse(noExceptionsCondition.shouldRetry(RetryPolicyContexts.withException(new RetryableServiceException())));
     }

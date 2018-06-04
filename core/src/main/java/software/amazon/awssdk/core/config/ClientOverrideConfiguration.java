@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.config.options.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -38,7 +39,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * <p>Use {@link #builder()} to create a set of options.</p>
  */
 @SdkPublicApi
-public class ClientOverrideConfiguration
+public final class ClientOverrideConfiguration
     implements ToCopyableBuilder<ClientOverrideConfiguration.Builder, ClientOverrideConfiguration> {
     private final Map<String, List<String>> additionalHttpHeaders;
     private final Boolean gzipEnabled;

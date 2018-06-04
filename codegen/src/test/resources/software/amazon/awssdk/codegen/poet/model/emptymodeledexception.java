@@ -7,7 +7,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class EmptyModeledException extends JsonProtocolTestsException implements
+public final class EmptyModeledException extends JsonProtocolTestsException implements
         ToCopyableBuilder<EmptyModeledException.Builder, EmptyModeledException> {
     private EmptyModeledException(BuilderImpl builder) {
         super(builder.message);

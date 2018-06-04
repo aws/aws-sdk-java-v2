@@ -24,7 +24,7 @@ import software.amazon.awssdk.utils.Validate;
  * tokens are typically provided by a token broker service, like AWS Security Token Service, and provide temporary access to an
  * AWS service.
  */
-public class AwsSessionCredentials extends AwsCredentials {
+public final class AwsSessionCredentials extends AwsCredentials {
     private final String sessionToken;
 
     private AwsSessionCredentials(String accessKey, String secretKey, String sessionToken) {
@@ -48,7 +48,7 @@ public class AwsSessionCredentials extends AwsCredentials {
      * Retrieve the AWS session token. This token is retrieved from an AWS token service, and is used for authenticating that this
      * user has received temporary permission to access some resource.
      */
-    public final String sessionToken() {
+    public String sessionToken() {
         return sessionToken;
     }
 
