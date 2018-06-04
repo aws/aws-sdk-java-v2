@@ -61,7 +61,7 @@ public class AsyncResponseClassSpec extends PaginatorsClassSpec {
     public TypeSpec poetSpec() {
         TypeSpec.Builder specBuilder = TypeSpec.classBuilder(className())
                                                .addModifiers(Modifier.PUBLIC)
-                                               .addAnnotation(PoetUtils.GENERATED)
+                                               .addAnnotation(PoetUtils.generatedAnnotation())
                                                .addSuperinterface(getAsyncResponseInterface())
                                                .addFields(Stream.of(asyncClientInterfaceField(),
                                                                     requestClassField(),

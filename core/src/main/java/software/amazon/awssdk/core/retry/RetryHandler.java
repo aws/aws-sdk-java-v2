@@ -56,7 +56,7 @@ public final class RetryHandler {
         // Do not use retry capacity for throttling exceptions
         if (!RetryUtils.isThrottlingException(exception)) {
             // See if we have enough available retry capacity to be able to execute this retry attempt.
-            if (!retryCapacity.acquire(SdkDefaultRetrySettings.RETRY_THROTTLING_COST)) {
+            if (!retryCapacity.acquire(SdkDefaultRetrySetting.RETRY_THROTTLING_COST)) {
                 return false;
             }
             this.retryCapacityConsumed = true;
@@ -74,7 +74,7 @@ public final class RetryHandler {
         if (!retryPolicy.retryCondition().shouldRetry(retryPolicyContext)) {
             // If the retry policy fails we immediately return consumed capacity to the pool.
             if (retryCapacityConsumed) {
-                retryCapacity.release(SdkDefaultRetrySettings.RETRY_THROTTLING_COST);
+                retryCapacity.release(SdkDefaultRetrySetting.RETRY_THROTTLING_COST);
             }
             return false;
         }
@@ -88,7 +88,7 @@ public final class RetryHandler {
      */
     public void releaseRetryCapacity() {
         if (isRetry() && retryCapacityConsumed) {
-            retryCapacity.release(SdkDefaultRetrySettings.RETRY_THROTTLING_COST);
+            retryCapacity.release(SdkDefaultRetrySetting.RETRY_THROTTLING_COST);
         } else {
             retryCapacity.release();
         }

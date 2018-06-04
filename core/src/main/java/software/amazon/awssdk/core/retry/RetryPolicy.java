@@ -32,7 +32,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * {@link RetryCondition}.
  *
  * When using the {@link #builder()} the SDK will use default values for fields that are not provided. The default number of
- * retries that will be used is {@link SdkDefaultRetrySettings#DEFAULT_MAX_RETRIES}. The default retry condition is
+ * retries that will be used is {@link SdkDefaultRetrySetting#DEFAULT_MAX_RETRIES}. The default retry condition is
  * {@link RetryCondition#DEFAULT} and the default backoff strategy is {@link BackoffStrategy#defaultStrategy()}.
  *
  * @see RetryCondition for a list of SDK provided retry condition strategies
@@ -44,7 +44,7 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
 
     public static final RetryPolicy DEFAULT = RetryPolicy.builder()
                                                          .backoffStrategy(BackoffStrategy.defaultStrategy())
-                                                         .numRetries(SdkDefaultRetrySettings.DEFAULT_MAX_RETRIES)
+                                                         .numRetries(SdkDefaultRetrySetting.DEFAULT_MAX_RETRIES)
                                                          .retryCondition(RetryCondition.DEFAULT)
                                                          .build();
 
@@ -90,7 +90,7 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
      */
     public static final class Builder implements CopyableBuilder<Builder, RetryPolicy> {
 
-        private Integer numRetries = SdkDefaultRetrySettings.DEFAULT_MAX_RETRIES;
+        private Integer numRetries = SdkDefaultRetrySetting.DEFAULT_MAX_RETRIES;
         private BackoffStrategy backoffStrategy = BackoffStrategy.defaultStrategy();
         private RetryCondition retryCondition = RetryCondition.DEFAULT;
 

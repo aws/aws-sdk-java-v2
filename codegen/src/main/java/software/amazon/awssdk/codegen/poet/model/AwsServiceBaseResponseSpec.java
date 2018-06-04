@@ -37,7 +37,7 @@ public class AwsServiceBaseResponseSpec implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         TypeSpec.Builder builder = TypeSpec.classBuilder(className())
-                .addAnnotation(PoetUtils.GENERATED)
+                .addAnnotation(PoetUtils.generatedAnnotation())
                 .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                 .superclass(ClassName.get(AwsResponse.class))
                 .addMethod(MethodSpec.constructorBuilder()

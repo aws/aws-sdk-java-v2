@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.ec2.transform;
 
-import static software.amazon.awssdk.auth.AwsExecutionAttributes.AWS_CREDENTIALS;
+import static software.amazon.awssdk.auth.AwsExecutionAttribute.AWS_CREDENTIALS;
 
 import java.net.URI;
 import software.amazon.awssdk.auth.signer.Aws4Signer;

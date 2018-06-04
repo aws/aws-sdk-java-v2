@@ -16,7 +16,7 @@
 package software.amazon.awssdk.awscore.interceptor;
 
 import java.net.UnknownHostException;
-import software.amazon.awssdk.auth.AwsExecutionAttributes;
+import software.amazon.awssdk.auth.AwsExecutionAttribute;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -30,7 +30,7 @@ public class GlobalServiceExecutionInterceptor implements ExecutionInterceptor {
     @Override
     public void onExecutionFailure(Context.FailedExecution context, ExecutionAttributes executionAttributes) {
         if (hasCause(context.exception(), UnknownHostException.class) &&
-            !executionAttributes.getAttribute(AwsExecutionAttributes.AWS_REGION).isGlobalRegion()) {
+            !executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION).isGlobalRegion()) {
             throw new SdkClientException("This is a global service. Consider setting AWS_GLOBAL or another global " +
                                          "region when creating your client.", context.exception());
         }

@@ -16,8 +16,8 @@
 package software.amazon.awssdk.core.runtime.adapters.types;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.util.StringUtils;
 
 @SdkProtectedApi
 public class StringToByteBufferAdapter implements TypeAdapter<String, ByteBuffer> {
@@ -27,7 +27,7 @@ public class StringToByteBufferAdapter implements TypeAdapter<String, ByteBuffer
         if (source == null) {
             return null;
         } else {
-            return ByteBuffer.wrap(source.getBytes(StringUtils.UTF8));
+            return ByteBuffer.wrap(source.getBytes(StandardCharsets.UTF_8));
         }
     }
 

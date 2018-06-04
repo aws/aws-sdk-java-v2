@@ -2,7 +2,7 @@ ${fileHeader}
 package ${transformPackage};
 
 import static software.amazon.awssdk.core.utils.FunctionalUtils.invokeSafely;
-import static software.amazon.awssdk.core.util.StringUtils.UTF8;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -113,11 +113,11 @@ public class ${shapeName}Marshaller implements Marshaller<Request<${shapeName}>,
                         <#-- TODO @ReviewBeforeRelease this should probably be done in a request handler -->
                         <#if metadata.serviceName == "Amazon S3">
                         if (!request.getHeaders().containsKey("Content-MD5")) {
-                            request.addHeader("Content-MD5", Md5Utils.md5AsBase64(stringWriter.getBuffer().toString().getBytes(UTF8)));
+                            request.addHeader("Content-MD5", Md5Utils.md5AsBase64(stringWriter.getBuffer().toString().getBytes(UTF_8)));
                         }
                         </#if>
                         request.setContent(new StringInputStream(stringWriter.getBuffer().toString()));
-                        request.addHeader("Content-Length", Integer.toString(stringWriter.getBuffer().toString().getBytes(UTF8).length));
+                        request.addHeader("Content-Length", Integer.toString(stringWriter.getBuffer().toString().getBytes(UTF_8).length));
                     }
                     if (!request.getHeaders().containsKey("Content-Type")) {
                         request.addHeader("Content-Type", "application/xml");
@@ -139,7 +139,7 @@ public class ${shapeName}Marshaller implements Marshaller<Request<${shapeName}>,
             xmlWriter.endElement();
 
             request.setContent(new StringInputStream(stringWriter.getBuffer().toString()));
-            request.addHeader("Content-Length", Integer.toString(stringWriter.getBuffer().toString().getBytes(UTF8).length));
+            request.addHeader("Content-Length", Integer.toString(stringWriter.getBuffer().toString().getBytes(UTF_8).length));
             if (!request.getHeaders().containsKey("Content-Type")) {
                 request.addHeader("Content-Type", "application/xml");
             }

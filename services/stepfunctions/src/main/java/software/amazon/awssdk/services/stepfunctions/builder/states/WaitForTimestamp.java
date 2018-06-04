@@ -17,17 +17,17 @@ package software.amazon.awssdk.services.stepfunctions.builder.states;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * {@link WaitFor} implementation that can be used in a {@link WaitState}. Corresponds to the
- * "{@value PropertyNames#TIMESTAMP}" field in the JSON document.
+ * "{@value PropertyName#TIMESTAMP}" field in the JSON document.
  *
  * @see <a href="https://states-language.net/spec.html#wait-state">https://states-language.net/spec.html#wait-state</a>
  */
 public final class WaitForTimestamp implements WaitFor {
 
-    @JsonProperty(PropertyNames.TIMESTAMP)
+    @JsonProperty(PropertyName.TIMESTAMP)
     private final Date timestamp;
 
     private WaitForTimestamp(Builder builder) {

@@ -21,7 +21,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
-import software.amazon.awssdk.auth.AwsExecutionAttributes;
+import software.amazon.awssdk.auth.AwsExecutionAttribute;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -47,7 +47,7 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
         SdkRequest sdkRequest = context.request();
 
         S3Configuration serviceConfiguration =
-                (S3Configuration) executionAttributes.getAttribute(AwsExecutionAttributes.SERVICE_CONFIG);
+                (S3Configuration) executionAttributes.getAttribute(AwsExecutionAttribute.SERVICE_CONFIG);
         SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
 
         URI endpoint = resolveEndpoint(request, sdkRequest,
@@ -77,7 +77,7 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
                                 SdkRequest originalRequest,
                                 ExecutionAttributes executionAttributes,
                                 S3Configuration serviceConfiguration) {
-        Region region = executionAttributes.getAttribute(AwsExecutionAttributes.AWS_REGION);
+        Region region = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION);
         RegionMetadata regionMetadata = RegionMetadata.of(region);
         if (isAccelerateEnabled(serviceConfiguration) && isAccelerateSupported(originalRequest)) {
             return accelerateEndpoint(serviceConfiguration, regionMetadata);

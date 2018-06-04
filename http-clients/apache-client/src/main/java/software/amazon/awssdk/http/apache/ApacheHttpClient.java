@@ -65,7 +65,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
-import software.amazon.awssdk.http.apache.internal.Defaults;
+import software.amazon.awssdk.http.apache.internal.DefaultConfiguration;
 import software.amazon.awssdk.http.apache.internal.SdkProxyRoutePlanner;
 import software.amazon.awssdk.http.apache.internal.conn.ClientConnectionManagerFactory;
 import software.amazon.awssdk.http.apache.internal.conn.SdkConnectionKeepAliveStrategy;
@@ -151,7 +151,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
     private ConnectionKeepAliveStrategy buildKeepAliveStrategy(ApacheHttpClient.DefaultBuilder configuration) {
         final long maxIdle = Optional.ofNullable(configuration.connectionMaxIdleTime)
-                                     .orElse(Defaults.MAX_IDLE_CONNECTION_TIME)
+                                     .orElse(DefaultConfiguration.MAX_IDLE_CONNECTION_TIME)
                                      .toMillis();
         return maxIdle > 0 ? new SdkConnectionKeepAliveStrategy(maxIdle) : null;
     }
@@ -240,7 +240,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
                                       .proxyConfiguration(builder.proxyConfiguration)
                                       .localAddress(Optional.ofNullable(builder.localAddress).orElse(null))
                                       .expectContinueEnabled(Optional.ofNullable(builder.expectContinueEnabled)
-                                                                     .orElse(Defaults.EXPECT_CONTINUE_ENABLED))
+                                                                     .orElse(DefaultConfiguration.EXPECT_CONTINUE_ENABLED))
                                       .build();
     }
 
@@ -416,7 +416,9 @@ public final class ApacheHttpClient implements SdkHttpClient {
                     null,
                     DefaultSchemePortResolver.INSTANCE,
                     null,
-                    Optional.ofNullable(configuration.connectionTimeToLive).orElse(Defaults.CONNECTION_POOL_TTL).toMillis(),
+                    Optional.ofNullable(configuration.connectionTimeToLive)
+                            .orElse(DefaultConfiguration.CONNECTION_POOL_TTL)
+                            .toMillis(),
                     TimeUnit.MILLISECONDS);
 
             cm.setDefaultMaxPerRoute(standardOptions.get(SdkHttpConfigurationOption.MAX_CONNECTIONS));

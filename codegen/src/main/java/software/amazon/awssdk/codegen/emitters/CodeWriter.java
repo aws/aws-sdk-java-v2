@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.emitters;
 
-import static software.amazon.awssdk.codegen.internal.Constants.JAVA_FILE_NAME_SUFFIX;
+import static software.amazon.awssdk.codegen.internal.Constant.JAVA_FILE_NAME_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Utils.closeQuietly;
 
 import java.io.File;

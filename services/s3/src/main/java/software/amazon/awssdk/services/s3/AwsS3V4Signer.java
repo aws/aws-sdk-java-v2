@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.s3;
 
-import static software.amazon.awssdk.auth.signer.SignerConstants.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.auth.signer.SignerConstant.X_AMZ_CONTENT_SHA256;
 import static software.amazon.awssdk.utils.Validate.validState;
 
 import java.io.IOException;
@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.services.s3.auth.AwsChunkedEncodingInputStream;
-import software.amazon.awssdk.services.s3.auth.S3ExecutionAttributes;
+import software.amazon.awssdk.services.s3.auth.S3ExecutionAttribute;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
@@ -87,11 +87,11 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
         final AwsS3V4SignerParams.Builder signerParams = extractSignerParams(AwsS3V4SignerParams.builder(),
                                                                              executionAttributes);
 
-        if (executionAttributes.getAttribute(S3ExecutionAttributes.ENABLE_CHUNKED_ENCODING) != null) {
-            signerParams.enableChunkedEncoding(executionAttributes.getAttribute(S3ExecutionAttributes.ENABLE_CHUNKED_ENCODING));
+        if (executionAttributes.getAttribute(S3ExecutionAttribute.ENABLE_CHUNKED_ENCODING) != null) {
+            signerParams.enableChunkedEncoding(executionAttributes.getAttribute(S3ExecutionAttribute.ENABLE_CHUNKED_ENCODING));
         }
-        if (executionAttributes.getAttribute(S3ExecutionAttributes.ENABLE_PAYLOAD_SIGNING) != null) {
-            signerParams.enablePayloadSigning(executionAttributes.getAttribute(S3ExecutionAttributes.ENABLE_PAYLOAD_SIGNING));
+        if (executionAttributes.getAttribute(S3ExecutionAttribute.ENABLE_PAYLOAD_SIGNING) != null) {
+            signerParams.enablePayloadSigning(executionAttributes.getAttribute(S3ExecutionAttribute.ENABLE_PAYLOAD_SIGNING));
         }
 
         return signerParams.build();

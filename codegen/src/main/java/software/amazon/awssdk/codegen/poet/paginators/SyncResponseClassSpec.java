@@ -53,7 +53,7 @@ public class SyncResponseClassSpec extends PaginatorsClassSpec {
     public TypeSpec poetSpec() {
         TypeSpec.Builder specBuilder = TypeSpec.classBuilder(className())
                                                .addModifiers(Modifier.PUBLIC)
-                                               .addAnnotation(PoetUtils.GENERATED)
+                                               .addAnnotation(PoetUtils.generatedAnnotation())
                                                .addSuperinterface(getSyncResponseInterface())
                                                .addFields(Stream.of(syncClientInterfaceField(),
                                                                     requestClassField(),

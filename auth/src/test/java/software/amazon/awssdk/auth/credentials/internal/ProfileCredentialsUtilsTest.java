@@ -17,15 +17,13 @@ package software.amazon.awssdk.auth.credentials.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Map;
 import java.util.function.Consumer;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.core.util.StringInputStream;
-import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
-import software.amazon.awssdk.profiles.ProfileProperties;
+import software.amazon.awssdk.profiles.ProfileProperty;
 
 public class ProfileCredentialsUtilsTest {
 
@@ -83,7 +81,7 @@ public class ProfileCredentialsUtilsTest {
     @Test
     public void profileFileWithRegionLoadsCorrectly() {
         assertThat(allTypesProfile().profile("profile-with-region")).hasValueSatisfying(profile -> {
-            assertThat(profile.property(ProfileProperties.REGION)).hasValue("us-east-1");
+            assertThat(profile.property(ProfileProperty.REGION)).hasValue("us-east-1");
         });
     }
 
@@ -92,9 +90,9 @@ public class ProfileCredentialsUtilsTest {
         ProfileFile profileFile = allTypesProfile();
         assertThat(profileFile.profile("default")).hasValueSatisfying(profile -> {
             assertThat(profile.name()).isEqualTo("default");
-            assertThat(profile.property(ProfileProperties.AWS_ACCESS_KEY_ID)).hasValue("defaultAccessKey");
+            assertThat(profile.property(ProfileProperty.AWS_ACCESS_KEY_ID)).hasValue("defaultAccessKey");
             assertThat(profile.toString()).contains("default");
-            assertThat(profile.property(ProfileProperties.REGION)).isNotPresent();
+            assertThat(profile.property(ProfileProperty.REGION)).isNotPresent();
             assertThat(new ProfileCredentialsUtils(profile, profileFile::profile).credentialsProvider()).hasValueSatisfying(credentialsProvider -> {
                 assertThat(credentialsProvider.getCredentials()).satisfies(credentials -> {
                     assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
@@ -108,7 +106,7 @@ public class ProfileCredentialsUtilsTest {
     public void profileFileWithSessionCredentialsLoadsCorrectly() {
         ProfileFile profileFile = allTypesProfile();
         assertThat(profileFile.profile("profile-with-session-token")).hasValueSatisfying(profile -> {
-            assertThat(profile.property(ProfileProperties.REGION)).isNotPresent();
+            assertThat(profile.property(ProfileProperty.REGION)).isNotPresent();
             assertThat(new ProfileCredentialsUtils(profile, profileFile::profile).credentialsProvider()).hasValueSatisfying(credentialsProvider -> {
                 assertThat(credentialsProvider.getCredentials()).satisfies(credentials -> {
                     assertThat(credentials).isInstanceOf(AwsSessionCredentials.class);
@@ -124,7 +122,7 @@ public class ProfileCredentialsUtilsTest {
     public void profileFileWithAssumeRoleThrowsExceptionWhenRetrievingCredentialsProvider() {
         ProfileFile profileFile = allTypesProfile();
         assertThat(profileFile.profile("profile-with-assume-role")).hasValueSatisfying(profile -> {
-            assertThat(profile.property(ProfileProperties.REGION)).isNotPresent();
+            assertThat(profile.property(ProfileProperty.REGION)).isNotPresent();
 
             ProfileCredentialsUtils profileCredentialsUtils = new ProfileCredentialsUtils(profile, profileFile::profile);
             Assertions.assertThatThrownBy(profileCredentialsUtils::credentialsProvider).isInstanceOf(IllegalStateException.class);

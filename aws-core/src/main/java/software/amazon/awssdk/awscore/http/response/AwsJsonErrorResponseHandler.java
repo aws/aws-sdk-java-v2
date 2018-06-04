@@ -23,7 +23,7 @@ import software.amazon.awssdk.awscore.protocol.json.AwsJsonErrorUnmarshaller;
 import software.amazon.awssdk.awscore.protocol.json.ErrorCodeParser;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.protocol.json.ErrorMessageParser;
 import software.amazon.awssdk.core.protocol.json.JsonContent;
 import software.amazon.awssdk.core.runtime.http.response.JsonErrorResponseHandler;
@@ -68,7 +68,7 @@ public class AwsJsonErrorResponseHandler extends JsonErrorResponseHandler<AwsSer
         }
 
         exception.errorCode(errorCode);
-        exception.serviceName(executionAttributes.getAttribute(SdkExecutionAttributes.SERVICE_NAME));
+        exception.serviceName(executionAttributes.getAttribute(SdkExecutionAttribute.SERVICE_NAME));
         exception.statusCode(response.getStatusCode());
         exception.errorType(getErrorType(response.getStatusCode()));
         exception.rawResponse(jsonContent.getRawContent());

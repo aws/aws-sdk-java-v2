@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.stepfunctions.builder.conditions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * Binary condition for Timestamp greater than comparison. Dates are converted to ISO8601 UTC timestamps.
@@ -27,10 +27,10 @@ import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNa
  */
 public final class TimestampGreaterThanCondition implements BinaryCondition<Date> {
 
-    @JsonProperty(PropertyNames.VARIABLE)
+    @JsonProperty(PropertyName.VARIABLE)
     private final String variable;
 
-    @JsonProperty(PropertyNames.TIMESTAMP_GREATER_THAN)
+    @JsonProperty(PropertyName.TIMESTAMP_GREATER_THAN)
     private final Date expectedValue;
 
     private TimestampGreaterThanCondition(Builder builder) {
@@ -66,10 +66,10 @@ public final class TimestampGreaterThanCondition implements BinaryCondition<Date
      */
     public static final class Builder extends BinaryTimestampConditionBuilder {
 
-        @JsonProperty(PropertyNames.VARIABLE)
+        @JsonProperty(PropertyName.VARIABLE)
         private String variable;
 
-        @JsonProperty(PropertyNames.TIMESTAMP_GREATER_THAN)
+        @JsonProperty(PropertyName.TIMESTAMP_GREATER_THAN)
         private Date expectedValue;
 
         private Builder() {
@@ -101,7 +101,7 @@ public final class TimestampGreaterThanCondition implements BinaryCondition<Date
 
         @Override
         String type() {
-            return PropertyNames.TIMESTAMP_GREATER_THAN;
+            return PropertyName.TIMESTAMP_GREATER_THAN;
         }
 
         /**

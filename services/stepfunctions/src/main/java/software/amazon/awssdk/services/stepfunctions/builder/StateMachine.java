@@ -25,7 +25,7 @@ import java.util.Map;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.stepfunctions.builder.internal.Buildable;
 import software.amazon.awssdk.services.stepfunctions.builder.internal.DateModule;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 import software.amazon.awssdk.services.stepfunctions.builder.internal.validation.StateMachineValidator;
 import software.amazon.awssdk.services.stepfunctions.builder.states.State;
 
@@ -41,16 +41,16 @@ public final class StateMachine {
             .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
             .registerModule(DateModule.INSTANCE);
 
-    @JsonProperty(PropertyNames.COMMENT)
+    @JsonProperty(PropertyName.COMMENT)
     private final String comment;
 
-    @JsonProperty(PropertyNames.START_AT)
+    @JsonProperty(PropertyName.START_AT)
     private final String startAt;
 
-    @JsonProperty(PropertyNames.TIMEOUT_SECONDS)
+    @JsonProperty(PropertyName.TIMEOUT_SECONDS)
     private final Integer timeoutSeconds;
 
-    @JsonProperty(PropertyNames.STATES)
+    @JsonProperty(PropertyName.STATES)
     private final Map<String, State> states;
 
     private StateMachine(Builder builder) {
@@ -98,7 +98,7 @@ public final class StateMachine {
 
     /**
      * @return Timeout, in seconds, that a state machine is allowed to run. If the machine execution runs longer than this timeout
-     *     the execution fails with a {@link ErrorCodes#TIMEOUT} error
+     *     the execution fails with a {@link ErrorCode#TIMEOUT} error
      */
     public Integer getTimeoutSeconds() {
         return timeoutSeconds;
@@ -140,13 +140,13 @@ public final class StateMachine {
      */
     public static final class Builder {
 
-        @JsonProperty(PropertyNames.STATES)
+        @JsonProperty(PropertyName.STATES)
         private final Map<String, State.Builder> states = new LinkedHashMap<String, State.Builder>();
-        @JsonProperty(PropertyNames.COMMENT)
+        @JsonProperty(PropertyName.COMMENT)
         private String comment;
-        @JsonProperty(PropertyNames.START_AT)
+        @JsonProperty(PropertyName.START_AT)
         private String startAt;
-        @JsonProperty(PropertyNames.TIMEOUT_SECONDS)
+        @JsonProperty(PropertyName.TIMEOUT_SECONDS)
         private Integer timeoutSeconds;
 
         private Builder() {
@@ -177,7 +177,7 @@ public final class StateMachine {
 
         /**
          * OPTIONAL. Timeout, in seconds, that a state machine is allowed to run. If the machine execution runs longer than this
-         * timeout the execution fails with a {@link ErrorCodes#TIMEOUT} error
+         * timeout the execution fails with a {@link ErrorCode#TIMEOUT} error
          *
          * @param timeoutSeconds Timeout value.
          * @return This object for method chaining.

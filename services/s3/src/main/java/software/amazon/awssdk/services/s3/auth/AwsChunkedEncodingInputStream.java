@@ -15,10 +15,9 @@
 
 package software.amazon.awssdk.services.s3.auth;
 
-import static software.amazon.awssdk.core.util.StringUtils.UTF8;
-
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -343,8 +342,8 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
                 .append(CRLF)
         ;
         try {
-            byte[] header = chunkHeader.toString().getBytes(UTF8);
-            byte[] trailer = CRLF.getBytes(UTF8);
+            byte[] header = chunkHeader.toString().getBytes(StandardCharsets.UTF_8);
+            byte[] trailer = CRLF.getBytes(StandardCharsets.UTF_8);
             byte[] signedChunk = new byte[header.length + chunkData.length + trailer.length];
             System.arraycopy(header, 0, signedChunk, 0, header.length);
             System.arraycopy(chunkData, 0, signedChunk, header.length, chunkData.length);

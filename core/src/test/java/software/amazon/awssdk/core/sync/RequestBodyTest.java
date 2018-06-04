@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.ByteBuffer;
 import org.junit.Test;
-import software.amazon.awssdk.core.util.Mimetypes;
+import software.amazon.awssdk.core.util.Mimetype;
 import software.amazon.awssdk.core.util.StringInputStream;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -37,33 +37,33 @@ public class RequestBodyTest {
     @Test
     public void stringConstructorHasCorrectContentType() {
         RequestBody requestBody = RequestBody.fromString("hello world");
-        assertThat(requestBody.contentType()).isEqualTo(Mimetypes.MIMETYPE_TEXT_PLAIN);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_TEXT_PLAIN);
     }
 
     @Test
     public void streamConstructorHasCorrectContentType() {
         StringInputStream inputStream = new StringInputStream("hello world");
         RequestBody requestBody = RequestBody.fromInputStream(inputStream, 11);
-        assertThat(requestBody.contentType()).isEqualTo(Mimetypes.MIMETYPE_OCTET_STREAM);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
         IoUtils.closeQuietly(inputStream, null);
     }
 
     @Test
     public void bytesArrayConstructorHasCorrectContentType() {
         RequestBody requestBody = RequestBody.fromBytes("hello world".getBytes());
-        assertThat(requestBody.contentType()).isEqualTo(Mimetypes.MIMETYPE_OCTET_STREAM);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     @Test
     public void bytesBufferConstructorHasCorrectContentType() {
         ByteBuffer byteBuffer = ByteBuffer.wrap("hello world".getBytes());
         RequestBody requestBody = RequestBody.fromByteBuffer(byteBuffer);
-        assertThat(requestBody.contentType()).isEqualTo(Mimetypes.MIMETYPE_OCTET_STREAM);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     @Test
     public void emptyBytesConstructorHasCorrectContentType() {
         RequestBody requestBody = RequestBody.empty();
-        assertThat(requestBody.contentType()).isEqualTo(Mimetypes.MIMETYPE_OCTET_STREAM);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
     }
 }

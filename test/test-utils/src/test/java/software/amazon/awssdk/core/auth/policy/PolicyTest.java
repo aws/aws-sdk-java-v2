@@ -25,8 +25,8 @@ import java.util.HashSet;
 import java.util.Set;
 import junit.framework.Assert;
 import org.junit.Test;
-import software.amazon.awssdk.core.auth.policy.Principal.Services;
-import software.amazon.awssdk.core.auth.policy.Principal.WebIdentityProviders;
+import software.amazon.awssdk.core.auth.policy.Principal.Service;
+import software.amazon.awssdk.core.auth.policy.Principal.WebIdentityProvider;
 import software.amazon.awssdk.core.auth.policy.Statement.Effect;
 import software.amazon.awssdk.core.auth.policy.conditions.IpAddressCondition;
 import software.amazon.awssdk.core.auth.policy.conditions.IpAddressCondition.IpAddressComparisonType;
@@ -68,8 +68,8 @@ public class PolicyTest {
         policy = new Policy();
         policy.withStatements(new Statement(Effect.Allow)
                                       .withResources(new Resource("resource"))
-                                      .withPrincipals(new Principal(Services.AmazonEC2),
-                                                      new Principal(Services.AmazonElasticTranscoder))
+                                      .withPrincipals(new Principal(Principal.Service.AmazonEC2),
+                                                      new Principal(Principal.Service.AmazonElasticTranscoder))
                                       .withActions(new Action("action")));
 
         jsonPolicyNode = JacksonUtils.jsonNodeOf(policy.toJson());
@@ -85,9 +85,9 @@ public class PolicyTest {
         JsonNode services = statement.get("Principal").get("Service");
         assertTrue(services.isArray());
         assertTrue(services.size() == 2);
-        assertEquals(Services.AmazonEC2.getServiceId(), services.get(0)
-                                                                .asText());
-        assertEquals(Services.AmazonElasticTranscoder.getServiceId(), services
+        assertEquals(Service.AmazonEC2.getServiceId(), services.get(0)
+                                                               .asText());
+        assertEquals(Principal.Service.AmazonElasticTranscoder.getServiceId(), services
                 .get(1).asText());
 
         policy = new Policy();
@@ -206,7 +206,7 @@ public class PolicyTest {
         policy = new Policy();
         policy.withStatements(new Statement(Effect.Allow)
                                       .withResources(new Resource("resource"))
-                                      .withPrincipals(new Principal(Services.AmazonEC2),
+                                      .withPrincipals(new Principal(Principal.Service.AmazonEC2),
                                                       Principal.ALL_SERVICES, new Principal("accountId1"))
                                       .withActions(new Action("action")));
 
@@ -225,15 +225,15 @@ public class PolicyTest {
 
         assertEquals(users.asText(), "accountId1");
         assertEquals(services.get(0).asText(),
-                     Services.AmazonEC2.getServiceId());
+                     Service.AmazonEC2.getServiceId());
         assertEquals(services.get(1).asText(), "*");
 
         policy = new Policy();
         policy.withStatements(new Statement(Effect.Allow)
                                       .withResources(new Resource("resource"))
-                                      .withPrincipals(new Principal(Services.AmazonEC2),
+                                      .withPrincipals(new Principal(Service.AmazonEC2),
                                                       Principal.ALL_SERVICES, new Principal("accountId1"),
-                                                      new Principal(WebIdentityProviders.Amazon),
+                                                      new Principal(WebIdentityProvider.Amazon),
                                                       Principal.ALL_WEB_PROVIDERS)
                                       .withActions(new Action("action")));
 
@@ -252,11 +252,11 @@ public class PolicyTest {
         webProviders = statement.get("Principal").get("Federated");
 
         assertEquals(services.get(0).asText(),
-                     Services.AmazonEC2.getServiceId());
+                     Service.AmazonEC2.getServiceId());
         assertEquals(services.get(1).asText(), "*");
         assertEquals(users.asText(), "accountId1");
         assertEquals(webProviders.get(0).asText(),
-                     WebIdentityProviders.Amazon.getWebIdentityProvider());
+                     WebIdentityProvider.Amazon.getWebIdentityProvider());
         assertEquals(webProviders.get(1).asText(), "*");
     }
 
