@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.Response;
-import software.amazon.awssdk.core.SdkStandardLoggers;
+import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -112,7 +112,7 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
         try {
             SdkException exception = errorResponseHandler.handle(httpResponse, context.executionAttributes());
             exception.fillInStackTrace();
-            SdkStandardLoggers.REQUEST_LOGGER.debug(() -> "Received error response: " + exception);
+            SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Received error response: " + exception);
             return exception;
         } catch (InterruptedException | IOException e) {
             throw e;

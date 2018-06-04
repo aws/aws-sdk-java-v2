@@ -17,8 +17,8 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_CONTEXT_KEY;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.RESPONSE_COMPLETE_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 
 import com.typesafe.netty.http.HttpStreamsClientHandler;
 import com.typesafe.netty.http.StreamedHttpResponse;
@@ -86,7 +86,7 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
             final ByteBuffer bb = copyToByteBuffer(fullContent);
             fullContent.release();
             requestContext.handler().onStream(new FullResponseContentPublisher(channelContext, bb));
-            Subscriber<? super ByteBuffer> subscriber = channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY).get();
+            Subscriber<? super ByteBuffer> subscriber = channelContext.channel().attr(ChannelAttributeKey.SUBSCRIBER_KEY).get();
             try {
                 subscriber.onComplete();
                 requestContext.handler().complete();
@@ -251,7 +251,7 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                         running = false;
                         subscriber.onNext(fullContent);
                         subscriber.onComplete();
-                        channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY)
+                        channelContext.channel().attr(ChannelAttributeKey.SUBSCRIBER_KEY)
                             .set(subscriber);
                     }
                 }

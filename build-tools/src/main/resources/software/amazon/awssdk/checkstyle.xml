@@ -410,6 +410,9 @@
             <property name="ignoreComments" value="true"/>
         </module>
 
+        <!-- Checks that we don't use plural enum names -->
+        <module name="software.amazon.awssdk.buildtools.checkstyle.PluralEnumNames"/>
+
         <!-- Checks for redundant public modifier on interfaces and other redundant modifiers -->
         <module name="RedundantModifier" />
 

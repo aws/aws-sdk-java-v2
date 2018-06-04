@@ -22,7 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -56,7 +56,7 @@ public final class MoveParametersToBodyStage implements MutableRequestToRequestP
                          " and unencode and sign them as query params. We did a similar thing in the V4 signer in 1.11.x" +
                          " but I'd rather have the grossness in the legacy signer implementation")
     private boolean notSimpleDb(RequestExecutionContext context) {
-        return !"SimpleDBClient".equals(context.executionAttributes().getAttribute(SdkExecutionAttributes.SERVICE_NAME));
+        return !"SimpleDBClient".equals(context.executionAttributes().getAttribute(SdkExecutionAttribute.SERVICE_NAME));
     }
 
     @SdkProtectedApi

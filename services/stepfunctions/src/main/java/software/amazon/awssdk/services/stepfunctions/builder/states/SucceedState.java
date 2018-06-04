@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.stepfunctions.builder.states;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * The Succeed State terminates a state machine successfully. The Succeed State is a useful target for Choice-state branches that
@@ -26,13 +26,13 @@ import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNa
  */
 public final class SucceedState implements State {
 
-    @JsonProperty(PropertyNames.COMMENT)
+    @JsonProperty(PropertyName.COMMENT)
     private final String comment;
 
-    @JsonProperty(PropertyNames.INPUT_PATH)
+    @JsonProperty(PropertyName.INPUT_PATH)
     private final String inputPath;
 
-    @JsonProperty(PropertyNames.OUTPUT_PATH)
+    @JsonProperty(PropertyName.OUTPUT_PATH)
     private final String outputPath;
 
     private SucceedState(Builder builder) {
@@ -97,13 +97,13 @@ public final class SucceedState implements State {
      */
     public static final class Builder implements State.Builder {
 
-        @JsonProperty(PropertyNames.COMMENT)
+        @JsonProperty(PropertyName.COMMENT)
         private String comment;
 
-        @JsonProperty(PropertyNames.INPUT_PATH)
+        @JsonProperty(PropertyName.INPUT_PATH)
         private String inputPath;
 
-        @JsonProperty(PropertyNames.OUTPUT_PATH)
+        @JsonProperty(PropertyName.OUTPUT_PATH)
         private String outputPath;
 
         private Builder() {

@@ -46,7 +46,7 @@ import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.BatchLoadRetryStrategy;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.BatchWriteRetryStrategy;
-import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.ConsistentReads;
+import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.ConsistentRead;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.SaveBehavior;
 import software.amazon.awssdk.services.dynamodb.model.AttributeAction;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
@@ -832,7 +832,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
 
         rqBuilder.key(key);
         rqBuilder.tableName(tableName);
-        rqBuilder.consistentRead(config.getConsistentReads() == ConsistentReads.CONSISTENT);
+        rqBuilder.consistentRead(config.getConsistentRead() == ConsistentRead.CONSISTENT);
 
         GetItemRequest rq = rqBuilder.build();
 
@@ -1296,7 +1296,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
     @Override
     public Map<String, List<Object>> batchLoad(Iterable<? extends Object> itemsToGet, DynamoDbMapperConfig config) {
         config = mergeConfig(config);
-        boolean consistentReads = (config.getConsistentReads() == ConsistentReads.CONSISTENT);
+        boolean consistentReads = (config.getConsistentRead() == ConsistentRead.CONSISTENT);
 
         if (itemsToGet == null) {
             return new HashMap<>();

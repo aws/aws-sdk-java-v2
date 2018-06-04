@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.rds;
 
-import static software.amazon.awssdk.auth.AwsExecutionAttributes.AWS_CREDENTIALS;
+import static software.amazon.awssdk.auth.AwsExecutionAttribute.AWS_CREDENTIALS;
 
 import java.net.URI;
 import java.time.Clock;

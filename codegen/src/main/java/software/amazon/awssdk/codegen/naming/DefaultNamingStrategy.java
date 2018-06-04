@@ -15,12 +15,12 @@
 
 package software.amazon.awssdk.codegen.naming;
 
-import static software.amazon.awssdk.codegen.internal.Constants.AUTHORIZER_NAME_PREFIX;
-import static software.amazon.awssdk.codegen.internal.Constants.EXCEPTION_CLASS_SUFFIX;
-import static software.amazon.awssdk.codegen.internal.Constants.FAULT_CLASS_SUFFIX;
-import static software.amazon.awssdk.codegen.internal.Constants.REQUEST_CLASS_SUFFIX;
-import static software.amazon.awssdk.codegen.internal.Constants.RESPONSE_CLASS_SUFFIX;
-import static software.amazon.awssdk.codegen.internal.Constants.VARIABLE_NAME_SUFFIX;
+import static software.amazon.awssdk.codegen.internal.Constant.AUTHORIZER_NAME_PREFIX;
+import static software.amazon.awssdk.codegen.internal.Constant.EXCEPTION_CLASS_SUFFIX;
+import static software.amazon.awssdk.codegen.internal.Constant.FAULT_CLASS_SUFFIX;
+import static software.amazon.awssdk.codegen.internal.Constant.REQUEST_CLASS_SUFFIX;
+import static software.amazon.awssdk.codegen.internal.Constant.RESPONSE_CLASS_SUFFIX;
+import static software.amazon.awssdk.codegen.internal.Constant.VARIABLE_NAME_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Utils.capitialize;
 import static software.amazon.awssdk.codegen.internal.Utils.unCapitialize;
 

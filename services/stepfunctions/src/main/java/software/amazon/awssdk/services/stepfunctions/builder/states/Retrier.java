@@ -19,9 +19,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import software.amazon.awssdk.services.stepfunctions.builder.ErrorCodes;
+import software.amazon.awssdk.services.stepfunctions.builder.ErrorCode;
 import software.amazon.awssdk.services.stepfunctions.builder.internal.Buildable;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * Describes retry behavior for a state. A Retrier consists of a list of error codes that the retrier applies to and parameters
@@ -31,16 +31,16 @@ import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNa
  */
 public final class Retrier {
 
-    @JsonProperty(PropertyNames.ERROR_EQUALS)
+    @JsonProperty(PropertyName.ERROR_EQUALS)
     private final List<String> errorEquals;
 
-    @JsonProperty(PropertyNames.INTERVAL_SECONDS)
+    @JsonProperty(PropertyName.INTERVAL_SECONDS)
     private final Integer intervalSeconds;
 
-    @JsonProperty(PropertyNames.MAX_ATTEMPTS)
+    @JsonProperty(PropertyName.MAX_ATTEMPTS)
     private final Integer maxAttempts;
 
-    @JsonProperty(PropertyNames.BACKOFF_RATE)
+    @JsonProperty(PropertyName.BACKOFF_RATE)
     private final Double backoffRate;
 
     private Retrier(Builder builder) {
@@ -90,16 +90,16 @@ public final class Retrier {
      */
     public static final class Builder implements Buildable<Retrier> {
 
-        @JsonProperty(PropertyNames.ERROR_EQUALS)
+        @JsonProperty(PropertyName.ERROR_EQUALS)
         private List<String> errorEquals = new ArrayList<String>();
 
-        @JsonProperty(PropertyNames.INTERVAL_SECONDS)
+        @JsonProperty(PropertyName.INTERVAL_SECONDS)
         private Integer intervalSeconds;
 
-        @JsonProperty(PropertyNames.MAX_ATTEMPTS)
+        @JsonProperty(PropertyName.MAX_ATTEMPTS)
         private Integer maxAttempts;
 
-        @JsonProperty(PropertyNames.BACKOFF_RATE)
+        @JsonProperty(PropertyName.BACKOFF_RATE)
         private Double backoffRate;
 
         private Builder() {
@@ -124,7 +124,7 @@ public final class Retrier {
          */
         public Builder retryOnAllErrors() {
             this.errorEquals.clear();
-            errorEquals(ErrorCodes.ALL);
+            errorEquals(ErrorCode.ALL);
             return this;
         }
 

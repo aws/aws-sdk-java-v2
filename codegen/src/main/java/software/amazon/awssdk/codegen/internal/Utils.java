@@ -109,7 +109,7 @@ public final class Utils {
 
     public static String getClientPackageName(String serviceName, CustomizationConfig customizationConfig) {
         return getCustomizedPackageName(serviceName,
-                                        Constants.PACKAGE_NAME_CLIENT_PATTERN);
+                                        Constant.PACKAGE_NAME_CLIENT_PATTERN);
     }
 
     public static String getModelPackageName(String serviceName, CustomizationConfig customizationConfig) {
@@ -118,7 +118,7 @@ public final class Utils {
             serviceName = customizationConfig.getShareModelsWith();
         }
         return getCustomizedPackageName(serviceName,
-                                        Constants.PACKAGE_NAME_MODEL_PATTERN);
+                                        Constant.PACKAGE_NAME_MODEL_PATTERN);
     }
 
     public static String getTransformPackageName(String serviceName, CustomizationConfig customizationConfig) {
@@ -131,21 +131,21 @@ public final class Utils {
 
     public static String getRequestTransformPackageName(String serviceName, CustomizationConfig customizationConfig) {
         return getCustomizedPackageName(serviceName,
-                                        Constants.PACKAGE_NAME_TRANSFORM_PATTERN);
+                                        Constant.PACKAGE_NAME_TRANSFORM_PATTERN);
     }
 
     public static String getPaginatorsPackageName(String serviceName, CustomizationConfig customizationConfig) {
-        return getCustomizedPackageName(serviceName, Constants.PACKAGE_NAME_PAGINATORS_PATTERN);
+        return getCustomizedPackageName(serviceName, Constant.PACKAGE_NAME_PAGINATORS_PATTERN);
     }
 
     public static String getSmokeTestPackageName(String serviceName, CustomizationConfig customizationConfig) {
         return getCustomizedPackageName(serviceName,
-                                        Constants.PACKAGE_NAME_SMOKE_TEST_PATTERN);
+                                        Constant.PACKAGE_NAME_SMOKE_TEST_PATTERN);
     }
 
     public static String getAuthPolicyPackageName(String serviceName, CustomizationConfig customizationConfig) {
         return getCustomizedPackageName(serviceName,
-                                        Constants.PACKAGE_NAME_CUSTOM_AUTH_PATTERN);
+                                        Constant.PACKAGE_NAME_CUSTOM_AUTH_PATTERN);
     }
 
     private static String getCustomizedPackageName(String serviceName, String defaultPattern) {

@@ -16,7 +16,7 @@
 package software.amazon.awssdk.codegen.docs;
 
 import static java.util.Collections.singletonList;
-import static software.amazon.awssdk.codegen.internal.Constants.LF;
+import static software.amazon.awssdk.codegen.internal.Constant.LF;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -27,7 +27,7 @@ import java.util.Map;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.auth.AwsExecutionAttributes;
+import software.amazon.awssdk.auth.AwsExecutionAttribute;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
@@ -225,10 +225,10 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
 
     private ExecutionAttributes constructExecutionAttributes() {
         return new ExecutionAttributes()
-            .putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, awsCredentials)
-            .putAttribute(AwsExecutionAttributes.SERVICE_SIGNING_NAME, SIGNING_NAME)
-            .putAttribute(AwsExecutionAttributes.SIGNING_REGION, REGION)
-            .putAttribute(AwsExecutionAttributes.SIGNER_DOUBLE_URL_ENCODE, Boolean.TRUE);
+            .putAttribute(AwsExecutionAttribute.AWS_CREDENTIALS, awsCredentials)
+            .putAttribute(AwsExecutionAttribute.SERVICE_SIGNING_NAME, SIGNING_NAME)
+            .putAttribute(AwsExecutionAttribute.SIGNING_REGION, REGION)
+            .putAttribute(AwsExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE, Boolean.TRUE);
     }
 
     private static DynamoDBClientBuilder getClientBuilder() {

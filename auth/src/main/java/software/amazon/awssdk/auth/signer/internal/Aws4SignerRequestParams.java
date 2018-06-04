@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.auth.signer.internal;
 
-import software.amazon.awssdk.auth.signer.SignerConstants;
+import software.amazon.awssdk.auth.signer.SignerConstant;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.regions.Region;
 
@@ -27,7 +27,7 @@ public final class Aws4SignerRequestParams {
     /**
      * The signing algorithm to be used for computing the signature.
      */
-    private final String signingAlgorithm = SignerConstants.AWS4_SIGNING_ALGORITHM;
+    private final String signingAlgorithm = SignerConstant.AWS4_SIGNING_ALGORITHM;
 
     /**
      * The datetime in milliseconds for which the signature needs to be
@@ -94,7 +94,7 @@ public final class Aws4SignerRequestParams {
      * Returns the scope to be used for the signing.
      */
     private String generateScope(String dateStamp, String serviceName, String regionName) {
-        return dateStamp + "/" + regionName + "/" + serviceName + "/" + SignerConstants.AWS4_TERMINATOR;
+        return dateStamp + "/" + regionName + "/" + serviceName + "/" + SignerConstant.AWS4_TERMINATOR;
     }
 
     /**

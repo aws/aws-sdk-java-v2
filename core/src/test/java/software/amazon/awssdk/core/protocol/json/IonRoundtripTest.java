@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,7 +35,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.ion.IonException;
 import software.amazon.ion.IonSystem;
 import software.amazon.ion.system.IonBinaryWriterBuilder;
@@ -291,13 +291,13 @@ public class IonRoundtripTest {
         BYTES {
             @Override
             public void generate(SdkIonGenerator generator) {
-                generator.writeValue(ByteBuffer.wrap("foobar".getBytes(StringUtils.UTF8)));
+                generator.writeValue(ByteBuffer.wrap("foobar".getBytes(StandardCharsets.UTF_8)));
             }
 
             @Override
             public void parse(IonParser parser) throws IOException {
                 assertEquals(JsonToken.VALUE_EMBEDDED_OBJECT, parser.nextToken());
-                assertEquals(ByteBuffer.wrap("foobar".getBytes(StringUtils.UTF8)), parser.getEmbeddedObject());
+                assertEquals(ByteBuffer.wrap("foobar".getBytes(StandardCharsets.UTF_8)), parser.getEmbeddedObject());
             }
         },
         EMPTY_STRUCT {

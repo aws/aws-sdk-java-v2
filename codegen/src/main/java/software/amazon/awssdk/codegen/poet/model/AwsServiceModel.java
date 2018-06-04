@@ -75,7 +75,7 @@ public class AwsServiceModel implements ClassSpec {
     public TypeSpec poetSpec() {
         TypeSpec.Builder specBuilder = TypeSpec.classBuilder(shapeModel.getShapeName())
                                                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                                               .addAnnotation(PoetUtils.GENERATED)
+                                               .addAnnotation(PoetUtils.generatedAnnotation())
                                                .addSuperinterfaces(modelSuperInterfaces())
                                                .superclass(modelSuperClass())
                                                .addMethods(modelClassMethods())

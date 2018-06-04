@@ -65,7 +65,7 @@ public class MarshallerSpec implements ClassSpec {
         return TypeSpec.classBuilder(className)
                        .addJavadoc("{@link $T} Marshaller", requestClassName)
                        .addModifiers(Modifier.PUBLIC)
-                       .addAnnotation(PoetUtils.GENERATED)
+                       .addAnnotation(PoetUtils.generatedAnnotation())
                        .addAnnotation(SdkInternalApi.class)
                        .addSuperinterface(
                            ParameterizedTypeName.get(baseMashallerName,

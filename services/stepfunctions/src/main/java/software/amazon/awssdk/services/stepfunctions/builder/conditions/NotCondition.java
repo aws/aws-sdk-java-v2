@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.stepfunctions.builder.conditions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 import software.amazon.awssdk.services.stepfunctions.builder.states.ChoiceState;
 
 /**
@@ -27,7 +27,7 @@ import software.amazon.awssdk.services.stepfunctions.builder.states.ChoiceState;
  */
 public final class NotCondition implements Condition {
 
-    @JsonProperty(PropertyNames.NOT)
+    @JsonProperty(PropertyName.NOT)
     private final Condition condition;
 
     private NotCondition(Builder builder) {

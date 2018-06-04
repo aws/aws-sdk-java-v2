@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import software.amazon.awssdk.utils.Base16;
@@ -28,19 +29,19 @@ public class Md5UtilsTest {
 
     @Test
     public void testBytes() {
-        byte[] md5 = Md5Utils.computeMD5Hash("Testing MD5".getBytes(StringUtils.UTF8));
+        byte[] md5 = Md5Utils.computeMD5Hash("Testing MD5".getBytes(StandardCharsets.UTF_8));
         assertEquals("0b4f503b8eb7714ce12402406895cf68", StringUtils.lowerCase(Base16.encodeAsString(md5)));
 
-        String b64 = Md5Utils.md5AsBase64("Testing MD5".getBytes(StringUtils.UTF8));
+        String b64 = Md5Utils.md5AsBase64("Testing MD5".getBytes(StandardCharsets.UTF_8));
         assertEquals("C09QO463cUzhJAJAaJXPaA==", b64);
     }
 
     @Test
     public void testStream() throws IOException {
-        byte[] md5 = Md5Utils.computeMD5Hash(new ByteArrayInputStream("Testing MD5".getBytes(StringUtils.UTF8)));
+        byte[] md5 = Md5Utils.computeMD5Hash(new ByteArrayInputStream("Testing MD5".getBytes(StandardCharsets.UTF_8)));
         assertEquals("0b4f503b8eb7714ce12402406895cf68", StringUtils.lowerCase(Base16.encodeAsString(md5)));
 
-        String b64 = Md5Utils.md5AsBase64(new ByteArrayInputStream("Testing MD5".getBytes(StringUtils.UTF8)));
+        String b64 = Md5Utils.md5AsBase64(new ByteArrayInputStream("Testing MD5".getBytes(StandardCharsets.UTF_8)));
         assertEquals("C09QO463cUzhJAJAaJXPaA==", b64);
     }
 

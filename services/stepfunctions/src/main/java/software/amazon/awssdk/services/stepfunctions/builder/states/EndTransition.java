@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.stepfunctions.builder.states;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * Terminal transition that indicates the state machine should terminate.
@@ -26,7 +26,7 @@ import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNa
 public final class EndTransition implements Transition {
 
     // Required for proper serialization
-    @JsonProperty(PropertyNames.END)
+    @JsonProperty(PropertyName.END)
     private final boolean end = true;
 
     private EndTransition() {

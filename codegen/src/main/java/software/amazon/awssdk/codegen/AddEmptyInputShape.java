@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen;
 
-import static software.amazon.awssdk.codegen.internal.Constants.REQUEST_CLASS_SUFFIX;
+import static software.amazon.awssdk.codegen.internal.Constant.REQUEST_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Utils.createInputShapeMarshaller;
 import static software.amazon.awssdk.codegen.internal.Utils.unCapitialize;
 

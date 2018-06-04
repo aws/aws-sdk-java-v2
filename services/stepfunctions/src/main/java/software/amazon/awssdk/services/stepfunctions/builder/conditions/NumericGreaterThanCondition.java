@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.LongNode;
 import com.fasterxml.jackson.databind.node.NumericNode;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * Binary condition for Numeric greater than comparison. Supports both integral and floating point numeric types.
@@ -31,10 +31,10 @@ import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNa
  */
 public final class NumericGreaterThanCondition implements BinaryCondition<String> {
 
-    @JsonProperty(PropertyNames.VARIABLE)
+    @JsonProperty(PropertyName.VARIABLE)
     private final String variable;
 
-    @JsonProperty(PropertyNames.NUMERIC_GREATER_THAN)
+    @JsonProperty(PropertyName.NUMERIC_GREATER_THAN)
     private final NumericNode expectedValue;
 
     private NumericGreaterThanCondition(Builder builder) {
@@ -70,10 +70,10 @@ public final class NumericGreaterThanCondition implements BinaryCondition<String
      */
     public static final class Builder extends BinaryConditionBuilder {
 
-        @JsonProperty(PropertyNames.VARIABLE)
+        @JsonProperty(PropertyName.VARIABLE)
         private String variable;
 
-        @JsonProperty(PropertyNames.NUMERIC_GREATER_THAN)
+        @JsonProperty(PropertyName.NUMERIC_GREATER_THAN)
         private NumericNode expectedValue;
 
         private Builder() {
@@ -115,7 +115,7 @@ public final class NumericGreaterThanCondition implements BinaryCondition<String
 
         @Override
         String type() {
-            return PropertyNames.NUMERIC_GREATER_THAN;
+            return PropertyName.NUMERIC_GREATER_THAN;
         }
 
         @Override

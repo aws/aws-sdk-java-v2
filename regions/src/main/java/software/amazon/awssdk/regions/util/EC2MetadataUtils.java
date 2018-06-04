@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,7 +37,6 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.core.util.json.JacksonUtils;
 
 /**
@@ -270,7 +270,7 @@ public final class EC2MetadataUtils {
     static String doGetEC2InstanceRegion(final String json) {
         if (null != json) {
             try {
-                JsonNode node = MAPPER.readTree(json.getBytes(StringUtils.UTF8));
+                JsonNode node = MAPPER.readTree(json.getBytes(StandardCharsets.UTF_8));
                 JsonNode region = node.findValue(REGION);
                 return region.asText();
             } catch (Exception e) {

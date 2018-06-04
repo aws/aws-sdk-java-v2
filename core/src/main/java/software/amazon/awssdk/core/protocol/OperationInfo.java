@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.protocol;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.http.HttpMethodName;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 
 /**
  * Static information about an API operation used to marshall it correctly.
@@ -65,7 +65,7 @@ public class OperationInfo {
     }
 
     /**
-     * @return Display name for the service. Available in the {@link SdkExecutionAttributes} object. This is usually the service
+     * @return Display name for the service. Available in the {@link SdkExecutionAttribute} object. This is usually the service
      * interface name but may be customized at generation time ('AmazonDynamoDBv2' for example).
      */
     public String serviceName() {

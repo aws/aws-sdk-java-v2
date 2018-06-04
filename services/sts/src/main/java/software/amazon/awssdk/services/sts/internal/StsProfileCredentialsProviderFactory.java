@@ -20,7 +20,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ChildProfileCredentialsProviderFactory;
 import software.amazon.awssdk.profiles.Profile;
-import software.amazon.awssdk.profiles.ProfileProperties;
+import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProviderChain;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
@@ -55,10 +55,10 @@ public final class StsProfileCredentialsProviderFactory implements ChildProfileC
         private final StsAssumeRoleCredentialsProvider credentialsProvider;
 
         private StsProfileCredentialsProvider(AwsCredentialsProvider parentCredentialsProvider, Profile profile) {
-            String roleArn = requireProperty(profile, ProfileProperties.ROLE_ARN);
-            String roleSessionName = profile.property(ProfileProperties.ROLE_SESSION_NAME)
+            String roleArn = requireProperty(profile, ProfileProperty.ROLE_ARN);
+            String roleSessionName = profile.property(ProfileProperty.ROLE_SESSION_NAME)
                                             .orElseGet(() -> "aws-sdk-java-" + System.currentTimeMillis());
-            String externalId = profile.property(ProfileProperties.EXTERNAL_ID).orElse(null);
+            String externalId = profile.property(ProfileProperty.EXTERNAL_ID).orElse(null);
 
             // Use the default region chain and if that fails us, fall back to AWS_GLOBAL.
             Region stsRegion =

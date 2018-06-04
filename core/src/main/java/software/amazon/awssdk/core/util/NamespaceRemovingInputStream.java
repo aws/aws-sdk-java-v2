@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.util;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.core.runtime.io.SdkFilterInputStream;
 
 /**
@@ -59,7 +60,7 @@ class NamespaceRemovingInputStream extends SdkFilterInputStream {
             int bytesRead = in.read(lookAheadData, 1, lookAheadData.length - 1);
             in.reset();
 
-            String string = new String(lookAheadData, 0, bytesRead + 1, StringUtils.UTF8);
+            String string = new String(lookAheadData, 0, bytesRead + 1, StandardCharsets.UTF_8);
 
             int numberCharsMatched = matchXmlNamespaceAttribute(string);
             if (numberCharsMatched > 0) {
