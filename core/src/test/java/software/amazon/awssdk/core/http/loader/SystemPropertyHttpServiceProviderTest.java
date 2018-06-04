@@ -21,9 +21,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.http.SdkHttpClientFactory;
+import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpService;
-import software.amazon.awssdk.utils.SdkSystemSetting;
+import software.amazon.awssdk.core.SdkSystemSetting;
 
 public class SystemPropertyHttpServiceProviderTest {
 
@@ -71,7 +71,7 @@ public class SystemPropertyHttpServiceProviderTest {
     public static final class MockHttpService implements SdkHttpService {
 
         @Override
-        public SdkHttpClientFactory createHttpClientFactory() {
+        public SdkHttpClient.Builder createHttpClientBuilder() {
             return null;
         }
     }
@@ -82,7 +82,7 @@ public class SystemPropertyHttpServiceProviderTest {
         }
 
         @Override
-        public SdkHttpClientFactory createHttpClientFactory() {
+        public SdkHttpClient.Builder createHttpClientBuilder() {
             return null;
         }
     }

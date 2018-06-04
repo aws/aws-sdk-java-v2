@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.http.nio.netty;
 
-import software.amazon.awssdk.http.async.SdkAsyncHttpClientFactory;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpService;
 
 /**
@@ -24,7 +24,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpService;
 public class NettySdkAsyncHttpService implements SdkAsyncHttpService {
 
     @Override
-    public SdkAsyncHttpClientFactory createAsyncHttpClientFactory() {
-        return NettySdkHttpClientFactory.builder().build();
+    public SdkAsyncHttpClient.Builder createAsyncHttpClientFactory() {
+        return NettyNioAsyncHttpClient.builder();
     }
 }

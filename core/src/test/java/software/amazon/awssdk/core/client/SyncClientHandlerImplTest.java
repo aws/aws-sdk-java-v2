@@ -22,24 +22,27 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.net.URI;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-import software.amazon.awssdk.core.AwsRequest;
+import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.core.config.AdvancedClientOption;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.config.MutableClientConfiguration;
-import software.amazon.awssdk.core.config.SyncClientConfiguration;
+import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.config.SdkMutableClientConfiguration;
+import software.amazon.awssdk.core.config.SdkSyncClientConfiguration;
 import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.http.EmptySdkResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.internal.auth.NoOpSignerProvider;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -50,15 +53,10 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SyncClientHandlerImplTest {
-    private SyncClientHandlerImpl syncClientHandler;
+    private SdkSyncClientHandlerImpl syncClientHandler;
 
     @Mock
-    private AwsCredentialsProvider credentialsProvider;
-
-    private AwsCredentials awsCredentials = AwsCredentials.create("public", "private");
-
-    @Mock
-    private AwsRequest request;
+    private SdkRequest request;
 
     @Mock
     private Marshaller<Request<SdkRequest>, SdkRequest> marshaller;
@@ -77,36 +75,44 @@ public class SyncClientHandlerImplTest {
     @Mock
     private HttpResponseHandler<SdkServiceException> errorResponseHandler;
 
-    @Mock
-    private SdkResponse response;
-
     @Before
     public void setup() {
-        this.syncClientHandler = new SyncClientHandlerImpl(clientConfiguration(), null);
+        this.syncClientHandler = new SdkSyncClientHandlerImpl(clientConfiguration(), null);
+        when(request.overrideConfiguration()).thenReturn(Optional.empty());
     }
 
     @Test
     public void successfulExecutionCallsResponseHandler() throws Exception {
+
+        SdkResponse expected = EmptySdkResponse.builder().build();
+        Map<String, List<String>> headers = new HashMap<>();
+        headers.put("foo", Arrays.asList("bar"));
+
         // Given
         expectRetrievalFromMocks();
-        when(httpClientCall.call()).thenReturn(SdkHttpFullResponse.builder().statusCode(200).build()); // Successful HTTP call
-        when(responseHandler.handle(any(), any())).thenReturn(response); // Response handler call
+        when(httpClientCall.call()).thenReturn(SdkHttpFullResponse.builder().statusCode(200)
+                                                                  .headers(headers).build()); // Successful HTTP call
+        when(responseHandler.handle(any(), any())).thenReturn(expected); // Response handler call
 
         // When
-        SdkResponse response = syncClientHandler.execute(clientExecutionParams());
+        SdkResponse actual = syncClientHandler.execute(clientExecutionParams());
 
         // Then
         verifyNoMoreInteractions(errorResponseHandler); // No error handler calls
-        assertThat(response).isEqualTo(this.response); // Response handler result returned
+        assertThat(actual.sdkHttpResponse().statusCode()).isEqualTo(200);
+        assertThat(actual.sdkHttpResponse().headers()).isEqualTo(headers);
     }
 
     @Test
     public void failedExecutionCallsErrorResponseHandler() throws Exception {
         SdkServiceException exception = new SdkServiceException("Uh oh!");
 
+        Map<String, List<String>> headers = new HashMap<>();
+        headers.put("foo", Arrays.asList("bar"));
+
         // Given
         expectRetrievalFromMocks();
-        when(httpClientCall.call()).thenReturn(SdkHttpFullResponse.builder().statusCode(500).build()); // Failed HTTP call
+        when(httpClientCall.call()).thenReturn(SdkHttpFullResponse.builder().statusCode(500).headers(headers).build()); // Failed HTTP call
         when(errorResponseHandler.handle(any(), any())).thenReturn(exception); // Error response handler call
 
         // When
@@ -116,14 +122,7 @@ public class SyncClientHandlerImplTest {
         verifyNoMoreInteractions(responseHandler); // No response handler calls
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void clientHandlerThrowsExceptionWhenCredentialProviderReturnsNull() {
-        when(credentialsProvider.getCredentials()).thenReturn(null);
-        syncClientHandler.execute(clientExecutionParams());
-    }
-
     private void expectRetrievalFromMocks() {
-        when(credentialsProvider.getCredentials()).thenReturn(awsCredentials);
         when(marshaller.marshall(request)).thenReturn(marshalledRequest);
         when(httpClient.prepareRequest(any(), any())).thenReturn(httpClientCall);
     }
@@ -136,15 +135,14 @@ public class SyncClientHandlerImplTest {
                 .withErrorResponseHandler(errorResponseHandler);
     }
 
-    public SyncClientConfiguration clientConfiguration() {
-        MutableClientConfiguration mutableClientConfiguration = new MutableClientConfiguration()
+    public SdkSyncClientConfiguration clientConfiguration() {
+        SdkMutableClientConfiguration mutableClientConfiguration = new SdkMutableClientConfiguration()
                 .endpoint(URI.create("http://test.com"))
-                .credentialsProvider(credentialsProvider)
                 .httpClient(httpClient);
 
         mutableClientConfiguration.overrideConfiguration(
             ClientOverrideConfiguration.builder()
-                                       .advancedOption(AdvancedClientOption.SIGNER_PROVIDER, new NoOpSignerProvider())
+                                       .advancedOption(SdkAdvancedClientOption.SIGNER_PROVIDER, new NoOpSignerProvider())
                                        .retryPolicy(RetryPolicy.NONE)
                                        .build());
 

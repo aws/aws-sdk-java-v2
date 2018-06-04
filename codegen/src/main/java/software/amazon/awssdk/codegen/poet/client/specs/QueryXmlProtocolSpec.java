@@ -27,17 +27,17 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import org.w3c.dom.Node;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.http.response.DefaultErrorResponseHandler;
+import software.amazon.awssdk.awscore.http.response.StaxResponseHandler;
+import software.amazon.awssdk.awscore.protocol.xml.StandardErrorUnmarshaller;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
-import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.http.DefaultErrorResponseHandler;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.http.StaxResponseHandler;
-import software.amazon.awssdk.core.runtime.transform.StandardErrorUnmarshaller;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.utils.StringUtils;
@@ -46,7 +46,7 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
 
     private final PoetExtensions poetExtensions;
     private final TypeName unmarshallerType = ParameterizedTypeName.get(Unmarshaller.class,
-                                                                        SdkServiceException.class,
+                                                                        AwsServiceException.class,
                                                                         Node.class);
     private final TypeName listOfUnmarshallersType = ParameterizedTypeName.get(ClassName.get("java.util", "List"),
                                                                                unmarshallerType);

@@ -19,10 +19,10 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.config.MutableClientConfiguration;
+import software.amazon.awssdk.core.config.SdkMutableClientConfiguration;
 import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
-import software.amazon.awssdk.core.http.AmazonHttpClient;
-import software.amazon.awssdk.core.http.loader.DefaultSdkHttpClientFactory;
+import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
+import software.amazon.awssdk.core.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -31,11 +31,11 @@ import software.amazon.awssdk.utils.AttributeMap;
 
 public class HttpTestUtils {
     public static SdkHttpClient testSdkHttpClient() {
-        return new DefaultSdkHttpClientFactory().createHttpClientWithDefaults(
+        return new DefaultSdkHttpClientBuilder().buildWithDefaults(
                 AttributeMap.empty().merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
     }
 
-    public static AmazonHttpClient testAmazonHttpClient() {
+    public static AmazonSyncHttpClient testAmazonHttpClient() {
         return testClientBuilder().httpClient(testSdkHttpClient()).build();
     }
 
@@ -69,22 +69,21 @@ public class HttpTestUtils {
             return this;
         }
 
-        public AmazonHttpClient build() {
+        public AmazonSyncHttpClient build() {
             SdkHttpClient sdkHttpClient = this.httpClient != null ? this.httpClient : testSdkHttpClient();
             ClientOverrideConfiguration overrideConfiguration =
                     ClientOverrideConfiguration.builder()
-                                               .totalExecutionTimeout(clientExecutionTimeout)
                                                .apply(this::configureRetryPolicy)
                                                .apply(this::configureAdditionalHeaders)
                                                .build();
 
-            MutableClientConfiguration clientConfig = new MutableClientConfiguration()
+            SdkMutableClientConfiguration clientConfig = new SdkMutableClientConfiguration()
                     .httpClient(sdkHttpClient)
                     .overrideConfiguration(overrideConfiguration);
 
             new GlobalClientConfigurationDefaults().applySyncDefaults(clientConfig);
 
-            return new AmazonHttpClient(clientConfig);
+            return new AmazonSyncHttpClient(clientConfig);
         }
 
         private ClientOverrideConfiguration.Builder configureAdditionalHeaders(ClientOverrideConfiguration.Builder builder) {

@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
@@ -78,7 +78,7 @@ public class DynamoDBTestBase extends AwsTestBase {
                 DescribeTableRequest request = DescribeTableRequest.builder().tableName(tableName).build();
                 TableDescription table = dynamo.describeTable(request).table();
 
-                log.info(() -> "  - current state: " + table.tableStatusString());
+                log.info(() -> "  - current state: " + table.tableStatusAsString());
                 if (table.tableStatus() == TableStatus.DELETING) {
                     continue;
                 }

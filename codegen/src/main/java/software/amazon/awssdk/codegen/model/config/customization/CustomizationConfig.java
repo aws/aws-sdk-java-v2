@@ -91,13 +91,19 @@ public class CustomizationConfig {
     private boolean skipSmokeTests;
 
     /**
+     * Exclude the create() method on a client. This is useful for global services that will need a global region configured to
+     * work.
+     */
+    private boolean excludeClientCreateMethod = false;
+
+    /**
      * A service name that this service client should share models with. The models and non-request marshallers will be generated
      * into the same directory as the provided service's models.
      */
     private String shareModelsWith;
 
     /**
-     * Expression to return a service specific instance of {@link software.amazon.awssdk.http.SdkHttpConfigurationOptions}. If
+     * Expression to return a service specific instance of {@link software.amazon.awssdk.http.SdkHttpConfigurationOption}. If
      * present, the client builder will override the hook to return service specific HTTP config and inject this expression into
      * that method. At some point we may want to have a more data driven way to declare these settings but right now we don't
      * have any requirements to necessitate that and referencing handwritten code is simpler. See SWF customization.config
@@ -257,6 +263,14 @@ public class CustomizationConfig {
 
     public void setSkipSmokeTests(boolean skipSmokeTests) {
         this.skipSmokeTests = skipSmokeTests;
+    }
+
+    public boolean isExcludeClientCreateMethod() {
+        return excludeClientCreateMethod;
+    }
+
+    public void setExcludeClientCreateMethod(boolean excludeClientCreateMethod) {
+        this.excludeClientCreateMethod = excludeClientCreateMethod;
     }
 
     public String getShareModelsWith() {

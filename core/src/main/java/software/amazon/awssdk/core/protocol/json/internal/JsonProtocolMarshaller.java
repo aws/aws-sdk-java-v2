@@ -34,7 +34,7 @@ import software.amazon.awssdk.core.util.UriResourcePathUtils;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
- * Implementation of {@link ProtocolMarshaller} for JSON based services. This includes JSON-RPC and REST-JSON.
+ * Implementation of {@link ProtocolRequestMarshaller} for JSON based services. This includes JSON-RPC and REST-JSON.
  *
  * @param <OrigRequestT> Type of the original request object.
  */

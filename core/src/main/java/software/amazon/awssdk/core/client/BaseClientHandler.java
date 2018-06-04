@@ -15,99 +15,93 @@
 
 package software.amazon.awssdk.core.client;
 
-import software.amazon.awssdk.core.AwsRequestOverrideConfig;
+import java.util.Optional;
+import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.SdkRequestOverrideConfig;
+import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceAdvancedConfiguration;
-import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.auth.AwsCredentialsProvider;
-import software.amazon.awssdk.core.config.AdvancedClientOption;
-import software.amazon.awssdk.core.config.ClientConfiguration;
+import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.config.InternalAdvancedClientOption;
+import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.http.DefaultSdkHttpResponse;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.interceptor.AwsExecutionAttributes;
+import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
+import software.amazon.awssdk.core.internal.http.response.SdkErrorResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.http.SdkHttpResponse;
 
-abstract class BaseClientHandler {
-    private final ClientConfiguration clientConfiguration;
-    private final ServiceAdvancedConfiguration serviceAdvancedConfiguration;
+public abstract class BaseClientHandler {
+    private final ServiceConfiguration serviceConfiguration;
+    private SdkClientConfiguration clientConfiguration;
 
-    BaseClientHandler(ClientConfiguration clientConfiguration,
-                      ServiceAdvancedConfiguration serviceAdvancedConfiguration) {
+    protected BaseClientHandler(SdkClientConfiguration clientConfiguration,
+                                ServiceConfiguration serviceConfiguration) {
         this.clientConfiguration = clientConfiguration;
-        this.serviceAdvancedConfiguration = serviceAdvancedConfiguration;
+        this.serviceConfiguration = serviceConfiguration;
     }
 
-    ExecutionContext createExecutionContext(SdkRequest originalRequest) {
-        AwsCredentialsProvider credentialsProvider = originalRequest.requestOverrideConfig()
-                .filter(c -> c instanceof AwsRequestOverrideConfig)
-                .map(c -> (AwsRequestOverrideConfig) c)
-                .flatMap(AwsRequestOverrideConfig::credentialsProvider)
-                .orElse(clientConfiguration.credentialsProvider());
-
-        ClientOverrideConfiguration overrideConfiguration = clientConfiguration.overrideConfiguration();
-
-        AwsCredentials credentials = credentialsProvider.getCredentials();
-
-        Validate.validState(credentials != null, "Credential providers must never return null.");
-
-        ExecutionAttributes executionAttributes = new ExecutionAttributes()
-                .putAttribute(AwsExecutionAttributes.SERVICE_ADVANCED_CONFIG, serviceAdvancedConfiguration)
-                .putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, credentials)
-                .putAttribute(AwsExecutionAttributes.REQUEST_CONFIG, originalRequest.requestOverrideConfig()
-                        .map(c -> (SdkRequestOverrideConfig) c)
-                        .orElse(AwsRequestOverrideConfig.builder().build()))
-                .putAttribute(AwsExecutionAttributes.AWS_REGION,
-                              overrideConfiguration.advancedOption(AdvancedClientOption.AWS_REGION));
-
-        return ExecutionContext.builder()
-                               .interceptorChain(new ExecutionInterceptorChain(overrideConfiguration.lastExecutionInterceptors()))
-                               .interceptorContext(InterceptorContext.builder()
-                                                                     .request(originalRequest)
-                                                                     .build())
-                               .executionAttributes(executionAttributes)
-                               .signerProvider(overrideConfiguration.advancedOption(AdvancedClientOption.SIGNER_PROVIDER))
-                               .build();
+    static <InputT extends SdkRequest> InputT finalizeSdkRequest(ExecutionContext executionContext) {
+        runBeforeExecutionInterceptors(executionContext);
+        return runModifyRequestInterceptors(executionContext);
     }
 
-    protected void runBeforeExecutionInterceptors(ExecutionContext executionContext) {
+    static <InputT extends SdkRequest, OutputT> SdkHttpFullRequest finalizeSdkHttpFullRequest(
+        ClientExecutionParams<InputT, OutputT> executionParams,
+        ExecutionContext executionContext, InputT inputT,
+        SdkClientConfiguration clientConfiguration) {
+
+        runBeforeMarshallingInterceptors(executionContext);
+        Request<InputT> request = executionParams.getMarshaller().marshall(inputT);
+        request.setEndpoint(clientConfiguration.endpoint());
+
+        executionContext.executionAttributes().putAttribute(SdkExecutionAttributes.SERVICE_NAME,
+                                                            request.getServiceName());
+
+        addHttpRequest(executionContext, SdkHttpFullRequestAdapter.toHttpFullRequest(request));
+        runAfterMarshallingInterceptors(executionContext);
+        return runModifyHttpRequestInterceptors(executionContext);
+    }
+
+    private static void runBeforeExecutionInterceptors(ExecutionContext executionContext) {
         executionContext.interceptorChain().beforeExecution(executionContext.interceptorContext(),
                                                             executionContext.executionAttributes());
     }
 
-    protected <T> T runModifyRequestInterceptors(ExecutionContext executionContext) {
+    private static <T> T runModifyRequestInterceptors(ExecutionContext executionContext) {
         InterceptorContext interceptorContext =
-                executionContext.interceptorChain().modifyRequest(executionContext.interceptorContext(),
-                                                                  executionContext.executionAttributes());
+            executionContext.interceptorChain().modifyRequest(executionContext.interceptorContext(),
+                                                              executionContext.executionAttributes());
         executionContext.interceptorContext(interceptorContext);
         return (T) interceptorContext.request();
     }
 
-    protected void runBeforeMarshallingInterceptors(ExecutionContext executionContext) {
+    private static void runBeforeMarshallingInterceptors(ExecutionContext executionContext) {
         executionContext.interceptorChain().beforeMarshalling(executionContext.interceptorContext(),
                                                               executionContext.executionAttributes());
     }
 
-    protected void addHttpRequest(ExecutionContext executionContext, SdkHttpFullRequest request) {
+    private static void addHttpRequest(ExecutionContext executionContext, SdkHttpFullRequest request) {
         InterceptorContext interceptorContext = executionContext.interceptorContext().copy(b -> b.httpRequest(request));
         executionContext.interceptorContext(interceptorContext);
     }
 
-    protected void runAfterMarshallingInterceptors(ExecutionContext executionContext) {
+    private static void runAfterMarshallingInterceptors(ExecutionContext executionContext) {
         executionContext.interceptorChain().afterMarshalling(executionContext.interceptorContext(),
                                                              executionContext.executionAttributes());
     }
 
-    protected SdkHttpFullRequest runModifyHttpRequestInterceptors(ExecutionContext executionContext) {
+    private static SdkHttpFullRequest runModifyHttpRequestInterceptors(ExecutionContext executionContext) {
         InterceptorContext interceptorContext =
-                executionContext.interceptorChain().modifyHttpRequest(executionContext.interceptorContext(),
-                                                                      executionContext.executionAttributes());
+            executionContext.interceptorChain().modifyHttpRequest(executionContext.interceptorContext(),
+                                                                  executionContext.executionAttributes());
         executionContext.interceptorContext(interceptorContext);
         return interceptorContext.httpRequest();
     }
@@ -116,7 +110,7 @@ abstract class BaseClientHandler {
                                                                                            ExecutionContext context) {
         // Update interceptor context to include response
         InterceptorContext interceptorContext =
-                context.interceptorContext().copy(b -> b.response(response));
+            context.interceptorContext().copy(b -> b.response(response));
 
         context.interceptorChain().afterUnmarshalling(interceptorContext, context.executionAttributes());
 
@@ -128,9 +122,72 @@ abstract class BaseClientHandler {
         return (OutputT) interceptorContext.response();
     }
 
-    protected static <OutputT extends SdkResponse>
-        HttpResponseHandler<OutputT> interceptorCalling(HttpResponseHandler<OutputT> delegate, ExecutionContext context) {
+    /**
+     * Add {@link SdkHttpResponse} to SdkResponse.
+     */
+    @SuppressWarnings("unchecked")
+    private static <OutputT extends SdkResponse> HttpResponseHandler<OutputT> addHttpResponseMetadataResponseHandler(
+        HttpResponseHandler<OutputT> delegate) {
+        return (response, executionAttributes) -> {
+            OutputT sdkResponse = delegate.handle(response, executionAttributes);
+
+            return (OutputT) sdkResponse.toBuilder()
+                                        .sdkHttpResponse(DefaultSdkHttpResponse.from(response))
+                                        .build();
+        };
+    }
+
+    static <OutputT extends SdkResponse> HttpResponseHandler<OutputT> interceptorCalling(
+        HttpResponseHandler<OutputT> delegate, ExecutionContext context) {
         return (response, executionAttributes) ->
-                runAfterUnmarshallingInterceptors(delegate.handle(response, executionAttributes), context);
+            runAfterUnmarshallingInterceptors(delegate.handle(response, executionAttributes), context);
+    }
+
+    protected static <InputT extends SdkRequest, OutputT> ClientExecutionParams<InputT, OutputT> addErrorResponseHandler(
+        ClientExecutionParams<InputT, OutputT> params) {
+        return params.withErrorResponseHandler(
+            new SdkErrorResponseHandler(params.getErrorResponseHandler()));
+    }
+
+    protected ExecutionContext createExecutionContext(SdkRequest originalRequest) {
+
+        ClientOverrideConfiguration overrideConfiguration = clientConfiguration.overrideConfiguration();
+
+        ExecutionAttributes executionAttributes = new ExecutionAttributes()
+            .putAttribute(SdkExecutionAttributes.REQUEST_CONFIG, originalRequest.overrideConfiguration()
+                                                                                .filter(c -> c instanceof
+                                                                                        SdkRequestOverrideConfiguration)
+                                                                                .map(c -> (RequestOverrideConfiguration) c)
+                                                                                .orElse(SdkRequestOverrideConfiguration.builder()
+                                                                                                                       .build()))
+            .putAttribute(SdkExecutionAttributes.SERVICE_CONFIG, serviceConfiguration)
+            .putAttribute(SdkExecutionAttributes.REQUEST_CONFIG, originalRequest.overrideConfiguration()
+                                                                                .map(c -> (SdkRequestOverrideConfiguration) c)
+                                                                                .orElse(SdkRequestOverrideConfiguration.builder()
+                                                                                                                       .build()));
+
+        return ExecutionContext.builder()
+                               .interceptorChain(new ExecutionInterceptorChain(overrideConfiguration.executionInterceptors()))
+                               .interceptorContext(InterceptorContext.builder()
+                                                                     .request(originalRequest)
+                                                                     .build())
+                               .executionAttributes(executionAttributes)
+                               .signerProvider(overrideConfiguration.advancedOption(SdkAdvancedClientOption.SIGNER_PROVIDER))
+                               .build();
+    }
+
+    protected boolean isCalculateCrc32FromCompressedData() {
+        return Optional.ofNullable(clientConfiguration.overrideConfiguration()
+                                                      .advancedOption(InternalAdvancedClientOption
+                                                                          .CRC32_FROM_COMPRESSED_DATA_ENABLED)).orElse(false);
+    }
+
+    /**
+     * Decorate response handlers by running after unmarshalling Interceptors and adding http response metadata.
+     */
+    static <InputT extends SdkRequest, OutputT extends SdkResponse> HttpResponseHandler<OutputT> decorateResponseHandlers(
+        HttpResponseHandler<OutputT> delegate, ExecutionContext executionContext) {
+        HttpResponseHandler<OutputT> interceptorCallingResponseHandler = interceptorCalling(delegate, executionContext);
+        return addHttpResponseMetadataResponseHandler(interceptorCallingResponseHandler);
     }
 }

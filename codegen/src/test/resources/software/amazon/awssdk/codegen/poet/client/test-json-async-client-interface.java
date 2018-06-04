@@ -37,8 +37,8 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
 
     /**
      * Create a {@link JsonAsyncClient} with the region loaded from the
-     * {@link software.amazon.awssdk.core.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from
-     * the {@link software.amazon.awssdk.core.auth.DefaultCredentialsProvider}.
+     * {@link software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from the
+     * {@link software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider}.
      */
     static JsonAsyncClient create() {
         return builder().build();
@@ -135,7 +135,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
-            APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
+        APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
         throw new UnsupportedOperationException();
     }
 
@@ -170,7 +170,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
-            Consumer<APostOperationWithOutputRequest.Builder> aPostOperationWithOutputRequest) {
+        Consumer<APostOperationWithOutputRequest.Builder> aPostOperationWithOutputRequest) {
         return aPostOperationWithOutput(APostOperationWithOutputRequest.builder().apply(aPostOperationWithOutputRequest).build());
     }
 
@@ -198,7 +198,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
-            GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) {
+        GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) {
         throw new UnsupportedOperationException();
     }
 
@@ -233,7 +233,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
-            Consumer<GetWithoutRequiredMembersRequest.Builder> getWithoutRequiredMembersRequest) {
+        Consumer<GetWithoutRequiredMembersRequest.Builder> getWithoutRequiredMembersRequest) {
         return getWithoutRequiredMembers(GetWithoutRequiredMembersRequest.builder().apply(getWithoutRequiredMembersRequest)
                                                                          .build());
     }
@@ -285,7 +285,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey(
-            PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
+        PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
         throw new UnsupportedOperationException();
     }
 
@@ -316,7 +316,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey(
-            Consumer<PaginatedOperationWithResultKeyRequest.Builder> paginatedOperationWithResultKeyRequest) {
+        Consumer<PaginatedOperationWithResultKeyRequest.Builder> paginatedOperationWithResultKeyRequest) {
         return paginatedOperationWithResultKey(PaginatedOperationWithResultKeyRequest.builder()
                                                                                      .apply(paginatedOperationWithResultKeyRequest).build());
     }
@@ -413,7 +413,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithResultKeyPublisher paginatedOperationWithResultKeyPaginator(
-            PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
+        PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
         throw new UnsupportedOperationException();
     }
 
@@ -509,7 +509,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<PaginatedOperationWithoutResultKeyResponse> paginatedOperationWithoutResultKey(
-            PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
+        PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
         throw new UnsupportedOperationException();
     }
 
@@ -540,7 +540,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<PaginatedOperationWithoutResultKeyResponse> paginatedOperationWithoutResultKey(
-            Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest) {
+        Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest) {
         return paginatedOperationWithoutResultKey(PaginatedOperationWithoutResultKeyRequest.builder()
                                                                                            .apply(paginatedOperationWithoutResultKeyRequest).build());
     }
@@ -614,7 +614,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithoutResultKeyPublisher paginatedOperationWithoutResultKeyPaginator(
-            PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
+        PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
         throw new UnsupportedOperationException();
     }
 
@@ -693,7 +693,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default PaginatedOperationWithoutResultKeyPublisher paginatedOperationWithoutResultKeyPaginator(
-            Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest) {
+        Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest) {
         return paginatedOperationWithoutResultKeyPaginator(PaginatedOperationWithoutResultKeyRequest.builder()
                                                                                                     .apply(paginatedOperationWithoutResultKeyRequest).build());
     }
@@ -723,7 +723,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
-            StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestBody requestBody) {
+        StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestBody requestBody) {
         throw new UnsupportedOperationException();
     }
 
@@ -758,7 +758,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
-            Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, AsyncRequestBody requestBody) {
+        Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, AsyncRequestBody requestBody) {
         return streamingInputOperation(StreamingInputOperationRequest.builder().apply(streamingInputOperationRequest).build(),
                                        requestBody);
     }
@@ -767,7 +767,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      * Some operation with a streaming input
      *
      * @param streamingInputOperationRequest
-     * @param path
+     * @param sourcePath
      *        {@link Path} to file containing data to send to the service. File will be read entirely and may be read
      *        multiple times in the event of a retry. If the file does not exist or the current user does not have
      *        access to read it then an exception will be thrown. The service documentation for the request content is
@@ -788,8 +788,8 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
-            StreamingInputOperationRequest streamingInputOperationRequest, Path path) {
-        return streamingInputOperation(streamingInputOperationRequest, AsyncRequestBody.fromFile(path));
+        StreamingInputOperationRequest streamingInputOperationRequest, Path sourcePath) {
+        return streamingInputOperation(streamingInputOperationRequest, AsyncRequestBody.fromFile(sourcePath));
     }
 
     /**
@@ -802,7 +802,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      * @param streamingInputOperationRequest
      *        A {@link Consumer} that will call methods on {@link StructureWithStreamingMember.Builder} to create a
      *        request.
-     * @param path
+     * @param sourcePath
      *        {@link Path} to file containing data to send to the service. File will be read entirely and may be read
      *        multiple times in the event of a retry. If the file does not exist or the current user does not have
      *        access to read it then an exception will be thrown. The service documentation for the request content is
@@ -823,9 +823,9 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
-            Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, Path path) {
+        Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, Path sourcePath) {
         return streamingInputOperation(StreamingInputOperationRequest.builder().apply(streamingInputOperationRequest).build(),
-                                       path);
+                                       sourcePath);
     }
 
     /**
@@ -853,8 +853,8 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
-            StreamingOutputOperationRequest streamingOutputOperationRequest,
-            AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
+        StreamingOutputOperationRequest streamingOutputOperationRequest,
+        AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
         throw new UnsupportedOperationException();
     }
 
@@ -889,8 +889,8 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
-            Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest,
-            AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
+        Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest,
+        AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
         return streamingOutputOperation(StreamingOutputOperationRequest.builder().apply(streamingOutputOperationRequest).build(),
                                         asyncResponseTransformer);
     }
@@ -899,7 +899,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      * Some operation with a streaming output
      *
      * @param streamingOutputOperationRequest
-     * @param path
+     * @param destinationPath
      *        {@link Path} to file that response contents will be written to. The file must not exist or this method
      *        will throw an exception. If the file is not writable by the current user then an exception will be thrown.
      *        The service documentation for the response content is as follows 'This be a stream'.
@@ -919,8 +919,8 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingOutputOperationResponse> streamingOutputOperation(
-            StreamingOutputOperationRequest streamingOutputOperationRequest, Path path) {
-        return streamingOutputOperation(streamingOutputOperationRequest, AsyncResponseTransformer.toFile(path));
+        StreamingOutputOperationRequest streamingOutputOperationRequest, Path destinationPath) {
+        return streamingOutputOperation(streamingOutputOperationRequest, AsyncResponseTransformer.toFile(destinationPath));
     }
 
     /**
@@ -933,7 +933,7 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      * @param streamingOutputOperationRequest
      *        A {@link Consumer} that will call methods on {@link StreamingOutputOperationRequest.Builder} to create a
      *        request.
-     * @param path
+     * @param destinationPath
      *        {@link Path} to file that response contents will be written to. The file must not exist or this method
      *        will throw an exception. If the file is not writable by the current user then an exception will be thrown.
      *        The service documentation for the response content is as follows 'This be a stream'.
@@ -953,8 +953,8 @@ public interface JsonAsyncClient extends SdkClient, SdkAutoCloseable {
      *      target="_top">AWS API Documentation</a>
      */
     default CompletableFuture<StreamingOutputOperationResponse> streamingOutputOperation(
-            Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest, Path path) {
+        Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest, Path destinationPath) {
         return streamingOutputOperation(StreamingOutputOperationRequest.builder().apply(streamingOutputOperationRequest).build(),
-                                        path);
+                                        destinationPath);
     }
 }

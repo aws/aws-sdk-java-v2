@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
@@ -43,8 +44,7 @@ import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.auth.DefaultCredentialsProvider;
-import software.amazon.awssdk.core.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public class AsyncClientInterface implements ClassSpec {
@@ -68,18 +68,24 @@ public class AsyncClientInterface implements ClassSpec {
 
     @Override
     public TypeSpec poetSpec() {
-        return PoetUtils.createInterfaceBuilder(className)
-                        .addSuperinterface(SdkClient.class)
-                        .addSuperinterface(SdkAutoCloseable.class)
-                        .addJavadoc(getJavadoc())
-                        .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
-                                           .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                                           .initializer("$S", model.getMetadata().getSigningName())
-                                           .build())
-                        .addMethod(create())
-                        .addMethod(builder())
-                        .addMethods(operationsAndSimpleMethods())
-                        .build();
+        TypeSpec.Builder result = PoetUtils.createInterfaceBuilder(className);
+
+        result.addSuperinterface(SdkClient.class)
+              .addSuperinterface(SdkAutoCloseable.class)
+              .addJavadoc(getJavadoc())
+              .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
+                                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                                 .initializer("$S", model.getMetadata().getSigningName())
+                                 .build());
+
+        if (!model.getCustomizationConfig().isExcludeClientCreateMethod()) {
+            result.addMethod(create());
+        }
+
+        result.addMethod(builder())
+              .addMethods(operationsAndSimpleMethods());
+
+        return result.build();
     }
 
     @Override
@@ -301,8 +307,8 @@ public class AsyncClientInterface implements ClassSpec {
         return interfaceMethodSignature(opModel)
                 .addJavadoc(opModel.getDocs(model, ClientType.ASYNC, SimpleMethodOverload.FILE))
                 .addParameter(requestType, opModel.getInput().getVariableName())
-                .addParameter(ClassName.get(Path.class), "path")
-                .addStatement("return $L($L, $T.fromFile(path))", opModel.getMethodName(),
+                .addParameter(ClassName.get(Path.class), "sourcePath")
+                .addStatement("return $L($L, $T.fromFile(sourcePath))", opModel.getMethodName(),
                               opModel.getInput().getVariableName(),
                               ClassName.get(AsyncRequestBody.class))
                 .build();
@@ -318,8 +324,8 @@ public class AsyncClientInterface implements ClassSpec {
                 .returns(completableFutureType(getPojoResponseType(opModel)))
                 .addJavadoc(opModel.getDocs(model, ClientType.ASYNC, SimpleMethodOverload.FILE))
                 .addParameter(requestType, opModel.getInput().getVariableName())
-                .addParameter(ClassName.get(Path.class), "path")
-                .addStatement("return $L($L, $T.toFile(path))", opModel.getMethodName(),
+                .addParameter(ClassName.get(Path.class), "destinationPath")
+                .addStatement("return $L($L, $T.toFile(destinationPath))", opModel.getMethodName(),
                               opModel.getInput().getVariableName(),
                               ClassName.get(AsyncResponseTransformer.class))
                 .build();

@@ -189,7 +189,7 @@ public class Topics {
                         .queueUrl(sqsQueueUrl)
                         .attributeNames(sqsAttrNames)
                         .build())
-                        .attributesStrings();
+                        .attributesAsStrings();
         String sqsQueueArn = sqsAttrs.get(QueueAttributeName.QUEUE_ARN.toString());
 
         String policyJson = sqsAttrs.get(QueueAttributeName.POLICY.toString());

@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.sts;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.junit.BeforeClass;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**

@@ -21,7 +21,7 @@ import java.util.UUID;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbTableMapper;

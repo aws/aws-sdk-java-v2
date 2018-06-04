@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.applicationautoscaling;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalingPoliciesRequest;
 import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalingPoliciesResponse;
 import software.amazon.awssdk.services.applicationautoscaling.model.ServiceNamespace;

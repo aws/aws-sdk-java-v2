@@ -25,7 +25,7 @@ final class SwfHttpConfigurationOptions {
 
     static final AttributeMap OPTIONS = AttributeMap
             .builder()
-            .put(SdkHttpConfigurationOption.SOCKET_TIMEOUT, Duration.ofMillis(90_000))
+            .put(SdkHttpConfigurationOption.READ_TIMEOUT, Duration.ofMillis(90_000))
             .put(SdkHttpConfigurationOption.MAX_CONNECTIONS, 1000)
             .build();
 

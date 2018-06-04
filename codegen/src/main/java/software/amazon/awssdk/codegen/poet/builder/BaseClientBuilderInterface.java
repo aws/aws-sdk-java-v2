@@ -24,10 +24,10 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.client.builder.ClientBuilder;
 
 
 public class BaseClientBuilderInterface implements ClassSpec {
@@ -46,12 +46,12 @@ public class BaseClientBuilderInterface implements ClassSpec {
         TypeSpec.Builder builder = PoetUtils.createInterfaceBuilder(builderInterfaceName)
                         .addTypeVariable(PoetUtils.createBoundedTypeVariableName("B", builderInterfaceName, "B", "C"))
                         .addTypeVariable(TypeVariableName.get("C"))
-                        .addSuperinterface(PoetUtils.createParameterizedTypeName(ClientBuilder.class, "B", "C"))
+                        .addSuperinterface(PoetUtils.createParameterizedTypeName(AwsClientBuilder.class, "B", "C"))
                         .addJavadoc(getJavadoc());
 
         if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
-            builder.addMethod(advancedConfigurationMethod());
-            builder.addMethod(advancedConfigurationConsumerBuilderMethod());
+            builder.addMethod(serviceConfigurationMethod());
+            builder.addMethod(serviceConfigurationConsumerBuilderMethod());
         }
 
         return builder.build();
@@ -64,27 +64,27 @@ public class BaseClientBuilderInterface implements ClassSpec {
                             ClassName.get(basePackage, model.getMetadata().getAsyncBuilderInterface()));
     }
 
-    private MethodSpec advancedConfigurationMethod() {
-        ClassName advancedConfiguration = ClassName.get(basePackage,
+    private MethodSpec serviceConfigurationMethod() {
+        ClassName serviceConfiguration = ClassName.get(basePackage,
                                                         model.getCustomizationConfig().getServiceSpecificClientConfigClass());
-        return MethodSpec.methodBuilder("advancedConfiguration")
+        return MethodSpec.methodBuilder("serviceConfiguration")
                          .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
                          .returns(TypeVariableName.get("B"))
-                         .addParameter(advancedConfiguration, "advancedConfiguration")
+                         .addParameter(serviceConfiguration, "serviceConfiguration")
                          .build();
     }
 
-    private MethodSpec advancedConfigurationConsumerBuilderMethod() {
-        ClassName advancedConfiguration = ClassName.get(basePackage,
+    private MethodSpec serviceConfigurationConsumerBuilderMethod() {
+        ClassName serviceConfiguration = ClassName.get(basePackage,
                                                         model.getCustomizationConfig().getServiceSpecificClientConfigClass());
         TypeName consumerBuilder = ParameterizedTypeName.get(ClassName.get(Consumer.class),
-                                                             advancedConfiguration.nestedClass("Builder"));
-        return MethodSpec.methodBuilder("advancedConfiguration")
+                                                             serviceConfiguration.nestedClass("Builder"));
+        return MethodSpec.methodBuilder("serviceConfiguration")
                          .addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
                          .returns(TypeVariableName.get("B"))
-                         .addParameter(consumerBuilder, "advancedConfiguration")
-                         .addStatement("return advancedConfiguration($T.builder().apply(advancedConfiguration).build())",
-                                       advancedConfiguration)
+                         .addParameter(consumerBuilder, "serviceConfiguration")
+                         .addStatement("return serviceConfiguration($T.builder().apply(serviceConfiguration).build())",
+                                       serviceConfiguration)
                          .build();
     }
 

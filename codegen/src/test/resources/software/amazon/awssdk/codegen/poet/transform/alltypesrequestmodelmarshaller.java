@@ -77,15 +77,15 @@ public class AllTypesRequestModelMarshaller {
                                                                                            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("TimestampMember").isBinary(false).build();
 
     private static final MarshallingInfo<StructuredPojo> STRUCTWITHNESTEDTIMESTAMPMEMBER_BINDING = MarshallingInfo
-        .builder(MarshallingType.STRUCTURED).marshallLocation(MarshallLocation.PAYLOAD)
-        .marshallLocationName("StructWithNestedTimestampMember").isBinary(false).build();
+            .builder(MarshallingType.STRUCTURED).marshallLocation(MarshallLocation.PAYLOAD)
+            .marshallLocationName("StructWithNestedTimestampMember").isBinary(false).build();
 
     private static final MarshallingInfo<ByteBuffer> BLOBARG_BINDING = MarshallingInfo.builder(MarshallingType.BYTE_BUFFER)
                                                                                       .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("BlobArg").isBinary(false).build();
 
     private static final MarshallingInfo<StructuredPojo> STRUCTWITHNESTEDBLOB_BINDING = MarshallingInfo
-        .builder(MarshallingType.STRUCTURED).marshallLocation(MarshallLocation.PAYLOAD)
-        .marshallLocationName("StructWithNestedBlob").isBinary(false).build();
+            .builder(MarshallingType.STRUCTURED).marshallLocation(MarshallLocation.PAYLOAD)
+            .marshallLocationName("StructWithNestedBlob").isBinary(false).build();
 
     private static final MarshallingInfo<Map> BLOBMAP_BINDING = MarshallingInfo.builder(MarshallingType.MAP)
                                                                                .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("BlobMap").isBinary(false).build();
@@ -94,16 +94,16 @@ public class AllTypesRequestModelMarshaller {
                                                                                     .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("ListOfBlobs").isBinary(false).build();
 
     private static final MarshallingInfo<StructuredPojo> RECURSIVESTRUCT_BINDING = MarshallingInfo
-        .builder(MarshallingType.STRUCTURED).marshallLocation(MarshallLocation.PAYLOAD)
-        .marshallLocationName("RecursiveStruct").isBinary(false).build();
+            .builder(MarshallingType.STRUCTURED).marshallLocation(MarshallLocation.PAYLOAD)
+            .marshallLocationName("RecursiveStruct").isBinary(false).build();
 
     private static final MarshallingInfo<StructuredPojo> POLYMORPHICTYPEWITHSUBTYPES_BINDING = MarshallingInfo
-        .builder(MarshallingType.STRUCTURED).marshallLocation(MarshallLocation.PAYLOAD)
-        .marshallLocationName("PolymorphicTypeWithSubTypes").isBinary(false).build();
+            .builder(MarshallingType.STRUCTURED).marshallLocation(MarshallLocation.PAYLOAD)
+            .marshallLocationName("PolymorphicTypeWithSubTypes").isBinary(false).build();
 
     private static final MarshallingInfo<StructuredPojo> POLYMORPHICTYPEWITHOUTSUBTYPES_BINDING = MarshallingInfo
-        .builder(MarshallingType.STRUCTURED).marshallLocation(MarshallLocation.PAYLOAD)
-        .marshallLocationName("PolymorphicTypeWithoutSubTypes").isBinary(false).build();
+            .builder(MarshallingType.STRUCTURED).marshallLocation(MarshallLocation.PAYLOAD)
+            .marshallLocationName("PolymorphicTypeWithoutSubTypes").isBinary(false).build();
 
     private static final MarshallingInfo<String> ENUMTYPE_BINDING = MarshallingInfo.builder(MarshallingType.STRING)
                                                                                    .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("EnumType").isBinary(false).build();
@@ -131,16 +131,16 @@ public class AllTypesRequestModelMarshaller {
             protocolMarshaller.marshall(allTypesRequest.doubleMember(), DOUBLEMEMBER_BINDING);
             protocolMarshaller.marshall(allTypesRequest.longMember(), LONGMEMBER_BINDING);
             protocolMarshaller.marshall(allTypesRequest.simpleList(), SIMPLELIST_BINDING);
-            protocolMarshaller.marshall(allTypesRequest.listOfEnumsStrings(), LISTOFENUMS_BINDING);
+            protocolMarshaller.marshall(allTypesRequest.listOfEnumsAsStrings(), LISTOFENUMS_BINDING);
             protocolMarshaller.marshall(allTypesRequest.listOfMaps(), LISTOFMAPS_BINDING);
             protocolMarshaller.marshall(allTypesRequest.listOfStructs(), LISTOFSTRUCTS_BINDING);
             protocolMarshaller.marshall(allTypesRequest.mapOfStringToIntegerList(), MAPOFSTRINGTOINTEGERLIST_BINDING);
             protocolMarshaller.marshall(allTypesRequest.mapOfStringToString(), MAPOFSTRINGTOSTRING_BINDING);
             protocolMarshaller.marshall(allTypesRequest.mapOfStringToSimpleStruct(), MAPOFSTRINGTOSIMPLESTRUCT_BINDING);
-            protocolMarshaller.marshall(allTypesRequest.mapOfEnumToEnumStrings(), MAPOFENUMTOENUM_BINDING);
-            protocolMarshaller.marshall(allTypesRequest.mapOfEnumToStringStrings(), MAPOFENUMTOSTRING_BINDING);
-            protocolMarshaller.marshall(allTypesRequest.mapOfStringToEnumStrings(), MAPOFSTRINGTOENUM_BINDING);
-            protocolMarshaller.marshall(allTypesRequest.mapOfEnumToSimpleStructStrings(), MAPOFENUMTOSIMPLESTRUCT_BINDING);
+            protocolMarshaller.marshall(allTypesRequest.mapOfEnumToEnumAsStrings(), MAPOFENUMTOENUM_BINDING);
+            protocolMarshaller.marshall(allTypesRequest.mapOfEnumToStringAsStrings(), MAPOFENUMTOSTRING_BINDING);
+            protocolMarshaller.marshall(allTypesRequest.mapOfStringToEnumAsStrings(), MAPOFSTRINGTOENUM_BINDING);
+            protocolMarshaller.marshall(allTypesRequest.mapOfEnumToSimpleStructAsStrings(), MAPOFENUMTOSIMPLESTRUCT_BINDING);
             protocolMarshaller.marshall(allTypesRequest.timestampMember(), TIMESTAMPMEMBER_BINDING);
             protocolMarshaller.marshall(allTypesRequest.structWithNestedTimestampMember(),
                                         STRUCTWITHNESTEDTIMESTAMPMEMBER_BINDING);
@@ -151,7 +151,7 @@ public class AllTypesRequestModelMarshaller {
             protocolMarshaller.marshall(allTypesRequest.recursiveStruct(), RECURSIVESTRUCT_BINDING);
             protocolMarshaller.marshall(allTypesRequest.polymorphicTypeWithSubTypes(), POLYMORPHICTYPEWITHSUBTYPES_BINDING);
             protocolMarshaller.marshall(allTypesRequest.polymorphicTypeWithoutSubTypes(), POLYMORPHICTYPEWITHOUTSUBTYPES_BINDING);
-            protocolMarshaller.marshall(allTypesRequest.enumTypeString(), ENUMTYPE_BINDING);
+            protocolMarshaller.marshall(allTypesRequest.enumTypeAsString(), ENUMTYPE_BINDING);
         } catch (Exception e) {
             throw new SdkClientException("Unable to marshall request to JSON: " + e.getMessage(), e);
         }

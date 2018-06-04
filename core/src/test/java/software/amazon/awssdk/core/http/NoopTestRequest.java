@@ -15,19 +15,22 @@
 
 package software.amazon.awssdk.core.http;
 
-import software.amazon.awssdk.core.SdkRequestOverrideConfig;
-import software.amazon.awssdk.core.SdkRequest;
-
 import java.util.Optional;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
 
 public class NoopTestRequest extends SdkRequest {
-    private NoopTestRequest() {
+
+    private final SdkRequestOverrideConfiguration requestOverrideConfig;
+
+    private NoopTestRequest(Builder builder) {
+        this.requestOverrideConfig = builder.overrideConfiguration();
 
     }
 
     @Override
-    public Optional<? extends SdkRequestOverrideConfig> requestOverrideConfig() {
-        return Optional.empty();
+    public Optional<SdkRequestOverrideConfiguration> overrideConfiguration() {
+        return Optional.ofNullable(requestOverrideConfig);
     }
 
     @Override
@@ -42,18 +45,29 @@ public class NoopTestRequest extends SdkRequest {
     public interface Builder extends SdkRequest.Builder {
         @Override
         NoopTestRequest build();
-    }
-
-    private static class BuilderImpl implements SdkRequest.Builder, Builder {
 
         @Override
-        public SdkRequestOverrideConfig requestOverrideConfig() {
-            return null;
+        SdkRequestOverrideConfiguration overrideConfiguration();
+
+        Builder overrideConfiguration(SdkRequestOverrideConfiguration requestOverrideConfig);
+    }
+
+    private static class BuilderImpl implements Builder {
+        private SdkRequestOverrideConfiguration requestOverrideConfig;
+
+        @Override
+        public SdkRequestOverrideConfiguration overrideConfiguration() {
+            return requestOverrideConfig;
+        }
+
+        public Builder overrideConfiguration(SdkRequestOverrideConfiguration requestOverrideConfig) {
+            this.requestOverrideConfig = requestOverrideConfig;
+            return this;
         }
 
         @Override
         public NoopTestRequest build() {
-            return new NoopTestRequest();
+            return new NoopTestRequest(this);
         }
     }
 }

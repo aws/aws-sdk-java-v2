@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import software.amazon.awssdk.core.RequestExecutionContext;
-import software.amazon.awssdk.core.config.ClientConfiguration;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.HttpClientDependencies;
 import software.amazon.awssdk.core.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -33,7 +33,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  */
 public class MergeCustomHeadersStage implements MutableRequestToRequestPipeline {
 
-    private final ClientConfiguration config;
+    private final SdkClientConfiguration config;
 
     public MergeCustomHeadersStage(HttpClientDependencies dependencies) {
         this.config = dependencies.clientConfiguration();

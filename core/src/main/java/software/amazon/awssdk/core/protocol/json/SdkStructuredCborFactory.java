@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
+import java.util.function.BiFunction;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.SimpleTypeCborUnmarshallers;
@@ -33,15 +34,18 @@ import software.amazon.awssdk.core.util.ImmutableMapParameter;
  * Creates generators and protocol handlers for CBOR wire format.
  */
 @SdkInternalApi
-final class SdkStructuredCborFactory {
+public abstract class SdkStructuredCborFactory {
 
-    private static final JsonFactory CBOR_FACTORY = new CBORFactory();
+    protected static final JsonFactory CBOR_FACTORY = new CBORFactory();
+
+    protected static final CborGeneratorSupplier CBOR_GENERATOR_SUPPLIER =
+        SdkCborGenerator::new;
 
     /**
      * cbor unmarshallers for scalar types.
      */
-    private static final Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> CBOR_SCALAR_UNMARSHALLERS =
-            new ImmutableMapParameter.Builder<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>>()
+    protected static final Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> CBOR_SCALAR_UNMARSHALLERS =
+        new ImmutableMapParameter.Builder<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>>()
             .put(String.class, SimpleTypeCborUnmarshallers.StringCborUnmarshaller.getInstance())
             .put(Double.class, SimpleTypeCborUnmarshallers.DoubleCborUnmarshaller.getInstance())
             .put(Integer.class, SimpleTypeCborUnmarshallers.IntegerCborUnmarshaller.getInstance())
@@ -56,15 +60,12 @@ final class SdkStructuredCborFactory {
             .put(Instant.class, SimpleTypeCborUnmarshallers.InstantCborUnmarshaller.getInstance())
             .put(Short.class, SimpleTypeCborUnmarshallers.ShortCborUnmarshaller.getInstance()).build();
 
-    public static final SdkStructuredJsonFactory SDK_CBOR_FACTORY = new SdkStructuredJsonFactoryImpl(
-            CBOR_FACTORY, CBOR_SCALAR_UNMARSHALLERS) {
-        @Override
-        protected StructuredJsonGenerator createWriter(JsonFactory jsonFactory,
-                                                       String contentType) {
-            return new SdkCborGenerator(jsonFactory, contentType);
-        }
-    };
+    protected SdkStructuredCborFactory() {
+    }
 
-    private SdkStructuredCborFactory() {
+    @FunctionalInterface
+    protected interface CborGeneratorSupplier extends BiFunction<JsonFactory, String, StructuredJsonGenerator> {
+        @Override
+        StructuredJsonGenerator apply(JsonFactory jsonFactory, String contentType);
     }
 }

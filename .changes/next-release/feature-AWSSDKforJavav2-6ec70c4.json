@@ -1,5 +1,0 @@
-{
-    "category": "AWS SDK for Java v2",
-    "type": "feature",
-    "description": "Include root causes in the exception message from AWSCredentialsProviderChain to ease troubleshooting."
-}

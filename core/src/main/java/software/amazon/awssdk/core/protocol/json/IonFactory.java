@@ -26,7 +26,7 @@ import java.io.Reader;
 import java.net.URL;
 import software.amazon.ion.IonSystem;
 
-class IonFactory extends JsonFactory {
+final class IonFactory extends JsonFactory {
     private static final long serialVersionUID = 1;
 
     private static final boolean SHOULD_CLOSE_READER_YES = true;

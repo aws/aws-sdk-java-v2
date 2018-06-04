@@ -32,9 +32,9 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.core.auth.AwsCredentials;
-import software.amazon.awssdk.core.auth.StaticCredentialsProvider;
-import software.amazon.awssdk.core.regions.Region;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.util.Mimetypes;
 import software.amazon.awssdk.services.glacier.model.UploadArchiveRequest;
@@ -91,7 +91,7 @@ public class UploadArchiveHeaderTest {
                                     .withStatus(200)
                                     .withBody("{}")));
 
-        request = (UploadArchiveRequest) request.toBuilder().requestOverrideConfig(b -> b.header(CONTENT_TYPE, "test")).build();
+        request = (UploadArchiveRequest) request.toBuilder().overrideConfiguration(b -> b.header(CONTENT_TYPE, "test")).build();
         glacier.uploadArchive(request, RequestBody.fromBytes("test".getBytes()));
         verify(postRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo("test")));
     }

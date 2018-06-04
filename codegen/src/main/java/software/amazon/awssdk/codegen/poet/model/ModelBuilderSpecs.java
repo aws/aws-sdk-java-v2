@@ -21,17 +21,15 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
-
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
-import software.amazon.awssdk.core.AwsRequestOverrideConfig;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 
 /**
@@ -84,17 +82,17 @@ class ModelBuilderSpecs {
         }
 
         if (isRequest()) {
-            builder.addMethod(MethodSpec.methodBuilder("requestOverrideConfig")
+            builder.addMethod(MethodSpec.methodBuilder("overrideConfiguration")
                     .returns(builderInterfaceName())
                     .addAnnotation(Override.class)
-                    .addParameter(AwsRequestOverrideConfig.class, "awsRequestOverrideConfig")
+                    .addParameter(AwsRequestOverrideConfiguration.class, "overrideConfiguration")
                     .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                     .build());
 
-            builder.addMethod(MethodSpec.methodBuilder("requestOverrideConfig")
+            builder.addMethod(MethodSpec.methodBuilder("overrideConfiguration")
                     .addAnnotation(Override.class)
                     .returns(builderInterfaceName())
-                    .addParameter(ParameterizedTypeName.get(Consumer.class, AwsRequestOverrideConfig.Builder.class),
+                    .addParameter(ParameterizedTypeName.get(Consumer.class, AwsRequestOverrideConfiguration.Builder.class),
                             "builderConsumer")
                     .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                     .build());
@@ -153,6 +151,10 @@ class ModelBuilderSpecs {
                 .addModifiers(Modifier.PRIVATE)
                 .addParameter(classToBuild(), "model");
 
+        if (isRequest() || isResponse()) {
+            copyBuilderCtor.addCode("super(model);");
+        }
+
         shapeModel.getNonStreamingMembers().forEach(m -> {
             String name = m.getVariable().getVariableName();
             copyBuilderCtor.addStatement("$N(model.$N)", m.getFluentSetterMethodName(), name);
@@ -181,22 +183,22 @@ class ModelBuilderSpecs {
         }
 
         if (isRequest()) {
-            accessors.add(MethodSpec.methodBuilder("requestOverrideConfig")
+            accessors.add(MethodSpec.methodBuilder("overrideConfiguration")
                     .addAnnotation(Override.class)
                     .returns(builderInterfaceName())
-                    .addParameter(AwsRequestOverrideConfig.class, "awsRequestOverrideConfig")
+                    .addParameter(AwsRequestOverrideConfiguration.class, "overrideConfiguration")
                     .addModifiers(Modifier.PUBLIC)
-                    .addStatement("super.requestOverrideConfig(awsRequestOverrideConfig)")
+                    .addStatement("super.overrideConfiguration(overrideConfiguration)")
                     .addStatement("return this")
                     .build());
 
-            accessors.add(MethodSpec.methodBuilder("requestOverrideConfig")
+            accessors.add(MethodSpec.methodBuilder("overrideConfiguration")
                     .addAnnotation(Override.class)
                     .returns(builderInterfaceName())
-                    .addParameter(ParameterizedTypeName.get(Consumer.class, AwsRequestOverrideConfig.Builder.class),
+                    .addParameter(ParameterizedTypeName.get(Consumer.class, AwsRequestOverrideConfiguration.Builder.class),
                             "builderConsumer")
                     .addModifiers(Modifier.PUBLIC)
-                    .addStatement("super.requestOverrideConfig(builderConsumer)")
+                    .addStatement("super.overrideConfiguration(builderConsumer)")
                     .addStatement("return this")
                     .build());
         }
