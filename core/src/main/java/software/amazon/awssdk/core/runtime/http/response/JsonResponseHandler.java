@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.Map;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.SdkStandardLoggers;
+import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.exception.Crc32MismatchException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -90,7 +90,7 @@ public class JsonResponseHandler<T> implements HttpResponseHandler<T> {
      * @see HttpResponseHandler#handle(HttpResponse, ExecutionAttributes)
      */
     public T handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
-        SdkStandardLoggers.REQUEST_LOGGER.trace(() -> "Parsing service response JSON.");
+        SdkStandardLogger.REQUEST_LOGGER.trace(() -> "Parsing service response JSON.");
 
         JsonParser jsonParser = null;
 
@@ -111,7 +111,7 @@ public class JsonResponseHandler<T> implements HttpResponseHandler<T> {
                 IoUtils.drainInputStream(response.getContent());
             }
 
-            SdkStandardLoggers.REQUEST_LOGGER.trace(() -> "Done parsing service response.");
+            SdkStandardLogger.REQUEST_LOGGER.trace(() -> "Done parsing service response.");
             return result;
         } finally {
             if (shouldParsePayloadAsJson()) {

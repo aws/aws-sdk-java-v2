@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.protocol.json.ErrorMessageParser;
 import software.amazon.awssdk.core.protocol.json.JsonContent;
 import software.amazon.awssdk.core.protocol.json.SdkJsonErrorUnmarshaller;
@@ -63,7 +63,7 @@ public class SdkJsonErrorResponseHandler extends JsonErrorResponseHandler<SdkSer
             exception.errorMessage(errorMessageParser.parseErrorMessage(response, jsonContent.getJsonNode()));
         }
 
-        exception.serviceName(executionAttributes.getAttribute(SdkExecutionAttributes.SERVICE_NAME));
+        exception.serviceName(executionAttributes.getAttribute(SdkExecutionAttribute.SERVICE_NAME));
         exception.statusCode(response.getStatusCode());
         exception.errorType(getErrorType(response.getStatusCode()));
         exception.rawResponse(jsonContent.getRawContent());

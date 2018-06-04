@@ -71,12 +71,12 @@ public class JsonPolicyReader {
         try {
             policyNode = JacksonUtils.jsonNodeOf(jsonString);
 
-            idNode = policyNode.get(JsonDocumentFields.POLICY_ID);
+            idNode = policyNode.get(JsonDocumentField.POLICY_ID);
             if (isNotNull(idNode)) {
                 policy.setId(idNode.asText());
             }
 
-            statementNodes = policyNode.get(JsonDocumentFields.STATEMENT);
+            statementNodes = policyNode.get(JsonDocumentField.STATEMENT);
             if (isNotNull(statementNodes)) {
                 for (JsonNode node : statementNodes) {
                     statements.add(statementOf(node));
@@ -116,7 +116,7 @@ public class JsonPolicyReader {
      */
     private Statement statementOf(JsonNode jStatement) {
 
-        JsonNode effectNode = jStatement.get(JsonDocumentFields.STATEMENT_EFFECT);
+        JsonNode effectNode = jStatement.get(JsonDocumentField.STATEMENT_EFFECT);
 
         final Statement.Effect effect = isNotNull(effectNode)
                                         ? Statement.Effect.valueOf(effectNode.asText())
@@ -124,27 +124,27 @@ public class JsonPolicyReader {
 
         Statement statement = new Statement(effect);
 
-        JsonNode id = jStatement.get(JsonDocumentFields.STATEMENT_ID);
+        JsonNode id = jStatement.get(JsonDocumentField.STATEMENT_ID);
         if (isNotNull(id)) {
             statement.setId(id.asText());
         }
 
-        JsonNode actionNodes = jStatement.get(JsonDocumentFields.ACTION);
+        JsonNode actionNodes = jStatement.get(JsonDocumentField.ACTION);
         if (isNotNull(actionNodes)) {
             statement.setActions(actionsOf(actionNodes));
         }
 
-        JsonNode resourceNodes = jStatement.get(JsonDocumentFields.RESOURCE);
+        JsonNode resourceNodes = jStatement.get(JsonDocumentField.RESOURCE);
         if (isNotNull(resourceNodes)) {
             statement.setResources(resourcesOf(resourceNodes));
         }
 
-        JsonNode conditionNodes = jStatement.get(JsonDocumentFields.CONDITION);
+        JsonNode conditionNodes = jStatement.get(JsonDocumentField.CONDITION);
         if (isNotNull(conditionNodes)) {
             statement.setConditions(conditionsOf(conditionNodes));
         }
 
-        JsonNode principalNodes = jStatement.get(JsonDocumentFields.PRINCIPAL);
+        JsonNode principalNodes = jStatement.get(JsonDocumentField.PRINCIPAL);
         if (isNotNull(principalNodes)) {
             statement.setPrincipals(principalOf(principalNodes));
         }
@@ -248,9 +248,9 @@ public class JsonPolicyReader {
         } else if (schema.equalsIgnoreCase(PRINCIPAL_SCHEMA_SERVICE)) {
             return new Principal(schema, principalNode.asText());
         } else if (schema.equalsIgnoreCase(PRINICIPAL_SCHEMA_FEDERATED)) {
-            if (Principal.WebIdentityProviders.fromString(principalNode.asText()) != null) {
+            if (Principal.WebIdentityProvider.fromString(principalNode.asText()) != null) {
                 return new Principal(
-                        Principal.WebIdentityProviders.fromString(principalNode.asText()));
+                        Principal.WebIdentityProvider.fromString(principalNode.asText()));
             } else {
                 return new Principal(PRINICIPAL_SCHEMA_FEDERATED, principalNode.asText());
             }

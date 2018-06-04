@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.DefaultSdkHttpResponse;
 import software.amazon.awssdk.core.internal.http.response.SdkErrorResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -58,7 +58,7 @@ public abstract class BaseClientHandler {
         Request<InputT> request = executionParams.getMarshaller().marshall(inputT);
         request.setEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT));
 
-        executionContext.executionAttributes().putAttribute(SdkExecutionAttributes.SERVICE_NAME,
+        executionContext.executionAttributes().putAttribute(SdkExecutionAttribute.SERVICE_NAME,
                                                             request.getServiceName());
 
         addHttpRequest(executionContext, SdkHttpFullRequestAdapter.toHttpFullRequest(request));
@@ -147,17 +147,17 @@ public abstract class BaseClientHandler {
 
     protected ExecutionContext createExecutionContext(SdkRequest originalRequest) {
         ExecutionAttributes executionAttributes = new ExecutionAttributes()
-            .putAttribute(SdkExecutionAttributes.REQUEST_CONFIG, originalRequest.overrideConfiguration()
-                                                                                .filter(c -> c instanceof
+            .putAttribute(SdkExecutionAttribute.REQUEST_CONFIG, originalRequest.overrideConfiguration()
+                                                                               .filter(c -> c instanceof
                                                                                         SdkRequestOverrideConfiguration)
-                                                                                .map(c -> (RequestOverrideConfiguration) c)
-                                                                                .orElse(SdkRequestOverrideConfiguration.builder()
+                                                                               .map(c -> (RequestOverrideConfiguration) c)
+                                                                               .orElse(SdkRequestOverrideConfiguration.builder()
                                                                                                                        .build()))
-            .putAttribute(SdkExecutionAttributes.SERVICE_CONFIG,
+            .putAttribute(SdkExecutionAttribute.SERVICE_CONFIG,
                           clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION))
-            .putAttribute(SdkExecutionAttributes.REQUEST_CONFIG, originalRequest.overrideConfiguration()
-                                                                                .map(c -> (SdkRequestOverrideConfiguration) c)
-                                                                                .orElse(SdkRequestOverrideConfiguration.builder()
+            .putAttribute(SdkExecutionAttribute.REQUEST_CONFIG, originalRequest.overrideConfiguration()
+                                                                               .map(c -> (SdkRequestOverrideConfiguration) c)
+                                                                               .orElse(SdkRequestOverrideConfiguration.builder()
                                                                                                                        .build()));
 
         ExecutionInterceptorChain interceptorChain =

@@ -18,15 +18,15 @@ package software.amazon.awssdk.core.retry.conditions;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.core.retry.RetryUtils;
-import software.amazon.awssdk.core.retry.SdkDefaultRetrySettings;
+import software.amazon.awssdk.core.retry.SdkDefaultRetrySetting;
 
 @SdkPublicApi
 @FunctionalInterface
 public interface RetryCondition {
 
     RetryCondition DEFAULT = OrRetryCondition.create(
-        RetryOnStatusCodeCondition.create(SdkDefaultRetrySettings.RETRYABLE_STATUS_CODES),
-        RetryOnExceptionsCondition.create(SdkDefaultRetrySettings.RETRYABLE_EXCEPTIONS),
+        RetryOnStatusCodeCondition.create(SdkDefaultRetrySetting.RETRYABLE_STATUS_CODES),
+        RetryOnExceptionsCondition.create(SdkDefaultRetrySetting.RETRYABLE_EXCEPTIONS),
         c -> RetryUtils.isClockSkewException(c.exception()),
         c -> RetryUtils.isThrottlingException(c.exception()));
     RetryCondition NONE = MaxNumberOfRetriesCondition.create(0);

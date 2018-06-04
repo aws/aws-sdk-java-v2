@@ -92,7 +92,7 @@ public class ListModel {
 
     public boolean isMap() {
         return memberType.startsWith(TypeUtils
-                                             .getDataTypeMapping(TypeUtils.MAP_INTERFACE));
+                                             .getDataTypeMapping(TypeUtils.TypeKey.MAP_INTERFACE));
     }
 
     public String getTemplateType() {

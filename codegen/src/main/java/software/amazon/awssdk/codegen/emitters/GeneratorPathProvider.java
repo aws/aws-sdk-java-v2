@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.emitters;
 
-import software.amazon.awssdk.codegen.internal.Constants;
+import software.amazon.awssdk.codegen.internal.Constant;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 
@@ -63,7 +63,7 @@ public class GeneratorPathProvider {
     }
 
     public String getPolicyEnumDirectory() {
-        return sourceDirectory + "/" + Constants.AUTH_POLICY_ENUM_CLASS_DIR;
+        return sourceDirectory + "/" + Constant.AUTH_POLICY_ENUM_CLASS_DIR;
     }
 
     public String getAuthorizerDirectory() {

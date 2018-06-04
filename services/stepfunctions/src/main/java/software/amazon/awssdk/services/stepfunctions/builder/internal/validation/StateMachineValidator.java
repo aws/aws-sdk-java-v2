@@ -19,13 +19,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.services.stepfunctions.builder.ErrorCodes;
+import software.amazon.awssdk.services.stepfunctions.builder.ErrorCode;
 import software.amazon.awssdk.services.stepfunctions.builder.StateMachine;
 import software.amazon.awssdk.services.stepfunctions.builder.conditions.BinaryCondition;
 import software.amazon.awssdk.services.stepfunctions.builder.conditions.Condition;
 import software.amazon.awssdk.services.stepfunctions.builder.conditions.NAryCondition;
 import software.amazon.awssdk.services.stepfunctions.builder.conditions.NotCondition;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 import software.amazon.awssdk.services.stepfunctions.builder.states.Branch;
 import software.amazon.awssdk.services.stepfunctions.builder.states.Catcher;
 import software.amazon.awssdk.services.stepfunctions.builder.states.Choice;
@@ -69,15 +69,15 @@ public class StateMachineValidator {
                                                      .identifier("Root")
                                                      .location(Location.StateMachine)
                                                      .build();
-        context.assertStringNotEmpty(stateMachine.getStartAt(), PropertyNames.START_AT);
-        context.assertIsPositiveIfPresent(stateMachine.getTimeoutSeconds(), PropertyNames.TIMEOUT_SECONDS);
-        context.assertNotEmpty(stateMachine.getStates(), PropertyNames.STATES);
+        context.assertStringNotEmpty(stateMachine.getStartAt(), PropertyName.START_AT);
+        context.assertIsPositiveIfPresent(stateMachine.getTimeoutSeconds(), PropertyName.TIMEOUT_SECONDS);
+        context.assertNotEmpty(stateMachine.getStates(), PropertyName.STATES);
 
         validateStates(context, stateMachine.getStates());
 
         if (!stateMachine.getStates().containsKey(stateMachine.getStartAt())) {
             problemReporter.report(new Problem(context,
-                                               String.format("%s state does not exist.", PropertyNames.START_AT)));
+                                               String.format("%s state does not exist.", PropertyName.START_AT)));
         }
 
         // If basic validation failed then the graph may not be in a good state to be able to validate
@@ -214,11 +214,11 @@ public class StateMachineValidator {
             currentContext.assertIsValidInputPath(choiceState.getInputPath());
             currentContext.assertIsValidOutputPath(choiceState.getOutputPath());
             if (choiceState.getDefaultStateName() != null) {
-                currentContext.assertStringNotEmpty(choiceState.getDefaultStateName(), PropertyNames.DEFAULT_STATE);
+                currentContext.assertStringNotEmpty(choiceState.getDefaultStateName(), PropertyName.DEFAULT_STATE);
                 assertContainsState(choiceState.getDefaultStateName());
             }
 
-            currentContext.assertNotEmpty(choiceState.getChoices(), PropertyNames.CHOICES);
+            currentContext.assertNotEmpty(choiceState.getChoices(), PropertyName.CHOICES);
             int index = 0;
             for (Choice choice : choiceState.getChoices()) {
                 ValidationContext choiceContext = currentContext.choice(index);
@@ -250,14 +250,14 @@ public class StateMachineValidator {
         }
 
         private void validateBinaryCondition(ValidationContext context, BinaryCondition condition) {
-            context.assertStringNotEmpty(condition.getVariable(), PropertyNames.VARIABLE);
-            context.assertIsValidJsonPath(condition.getVariable(), PropertyNames.VARIABLE);
+            context.assertStringNotEmpty(condition.getVariable(), PropertyName.VARIABLE);
+            context.assertIsValidJsonPath(condition.getVariable(), PropertyName.VARIABLE);
             context.assertNotNull(condition.getExpectedValue(), "ExpectedValue");
         }
 
         @Override
         public Void visit(FailState failState) {
-            currentContext.assertStringNotEmpty(failState.getCause(), PropertyNames.CAUSE);
+            currentContext.assertStringNotEmpty(failState.getCause(), PropertyName.CAUSE);
             return null;
         }
 
@@ -274,14 +274,14 @@ public class StateMachineValidator {
         }
 
         private void validateBranches(ParallelState parallelState) {
-            currentContext.assertNotEmpty(parallelState.getBranches(), PropertyNames.BRANCHES);
+            currentContext.assertNotEmpty(parallelState.getBranches(), PropertyName.BRANCHES);
             int index = 0;
             for (Branch branch : parallelState.getBranches()) {
                 ValidationContext branchContext = currentContext.branch(index);
                 validateStates(branchContext, branch.getStates());
                 if (!branch.getStates().containsKey(branch.getStartAt())) {
                     problemReporter.report(new Problem(branchContext, String.format("%s references a non existent state.",
-                                                                                    PropertyNames.START_AT)));
+                                                                                    PropertyName.START_AT)));
                 }
                 index++;
             }
@@ -308,17 +308,17 @@ public class StateMachineValidator {
             currentContext.assertIsValidInputPath(taskState.getInputPath());
             currentContext.assertIsValidOutputPath(taskState.getOutputPath());
             currentContext.assertIsValidResultPath(taskState.getResultPath());
-            currentContext.assertIsPositiveIfPresent(taskState.getTimeoutSeconds(), PropertyNames.TIMEOUT_SECONDS);
-            currentContext.assertIsPositiveIfPresent(taskState.getHeartbeatSeconds(), PropertyNames.HEARTBEAT_SECONDS);
+            currentContext.assertIsPositiveIfPresent(taskState.getTimeoutSeconds(), PropertyName.TIMEOUT_SECONDS);
+            currentContext.assertIsPositiveIfPresent(taskState.getHeartbeatSeconds(), PropertyName.HEARTBEAT_SECONDS);
             if (taskState.getTimeoutSeconds() != null && taskState.getHeartbeatSeconds() != null) {
                 if (taskState.getHeartbeatSeconds() >= taskState.getTimeoutSeconds()) {
                     problemReporter.report(new Problem(currentContext, String.format("%s must be smaller than %s",
-                                                                                     PropertyNames.HEARTBEAT_SECONDS,
-                                                                                     PropertyNames.TIMEOUT_SECONDS)));
+                                                                                     PropertyName.HEARTBEAT_SECONDS,
+                                                                                     PropertyName.TIMEOUT_SECONDS)));
                 }
             }
 
-            currentContext.assertStringNotEmpty(taskState.getResource(), PropertyNames.RESOURCE);
+            currentContext.assertStringNotEmpty(taskState.getResource(), PropertyName.RESOURCE);
             validateRetriers(taskState.getRetriers());
             validateCatchers(taskState.getCatchers());
             validateTransition(taskState.getTransition());
@@ -333,14 +333,14 @@ public class StateMachineValidator {
                 if (hasRetryAll) {
                     problemReporter.report(
                             new Problem(retrierContext,
-                                        String.format("When %s is used in must be in the last Retrier", ErrorCodes.ALL)));
+                                        String.format("When %s is used in must be in the last Retrier", ErrorCode.ALL)));
                 }
                 // MaxAttempts may be zero
-                retrierContext.assertIsNotNegativeIfPresent(retrier.getMaxAttempts(), PropertyNames.MAX_ATTEMPTS);
-                retrierContext.assertIsPositiveIfPresent(retrier.getIntervalSeconds(), PropertyNames.INTERVAL_SECONDS);
+                retrierContext.assertIsNotNegativeIfPresent(retrier.getMaxAttempts(), PropertyName.MAX_ATTEMPTS);
+                retrierContext.assertIsPositiveIfPresent(retrier.getIntervalSeconds(), PropertyName.INTERVAL_SECONDS);
                 if (retrier.getBackoffRate() != null && retrier.getBackoffRate() < 1.0) {
                     problemReporter.report(new Problem(retrierContext, String.format("%s must be greater than or equal to 1.0",
-                                                                                     PropertyNames.BACKOFF_RATE)));
+                                                                                     PropertyName.BACKOFF_RATE)));
                 }
                 hasRetryAll = validateErrorEquals(retrierContext, retrier.getErrorEquals());
                 index++;
@@ -357,7 +357,7 @@ public class StateMachineValidator {
                 if (hasCatchAll) {
                     problemReporter.report(
                             new Problem(catcherContext,
-                                        String.format("When %s is used in must be in the last Catcher", ErrorCodes.ALL)));
+                                        String.format("When %s is used in must be in the last Catcher", ErrorCode.ALL)));
                 }
                 validateTransition(catcherContext, catcher.getTransition());
                 hasCatchAll = validateErrorEquals(catcherContext, catcher.getErrorEquals());
@@ -366,12 +366,12 @@ public class StateMachineValidator {
         }
 
         private boolean validateErrorEquals(ValidationContext currentContext, List<String> errorEquals) {
-            currentContext.assertNotEmpty(errorEquals, PropertyNames.ERROR_EQUALS);
-            if (errorEquals.contains(ErrorCodes.ALL)) {
+            currentContext.assertNotEmpty(errorEquals, PropertyName.ERROR_EQUALS);
+            if (errorEquals.contains(ErrorCode.ALL)) {
                 if (errorEquals.size() != 1) {
                     problemReporter.report(new Problem(currentContext, String.format(
                             "When %s is used in %s, it must be the only error code in the array",
-                            ErrorCodes.ALL, PropertyNames.ERROR_EQUALS)));
+                            ErrorCode.ALL, PropertyName.ERROR_EQUALS)));
                 }
                 return true;
             }
@@ -390,13 +390,13 @@ public class StateMachineValidator {
         private void validateWaitFor(WaitFor waitFor) {
             currentContext.assertNotNull(waitFor, "WaitFor");
             if (waitFor instanceof WaitForSeconds) {
-                currentContext.assertIsPositiveIfPresent(((WaitForSeconds) waitFor).getSeconds(), PropertyNames.SECONDS);
+                currentContext.assertIsPositiveIfPresent(((WaitForSeconds) waitFor).getSeconds(), PropertyName.SECONDS);
             } else if (waitFor instanceof WaitForSecondsPath) {
-                assertWaitForPath(((WaitForSecondsPath) waitFor).getSecondsPath(), PropertyNames.SECONDS_PATH);
+                assertWaitForPath(((WaitForSecondsPath) waitFor).getSecondsPath(), PropertyName.SECONDS_PATH);
             } else if (waitFor instanceof WaitForTimestamp) {
-                currentContext.assertNotNull(((WaitForTimestamp) waitFor).getTimestamp(), PropertyNames.TIMESTAMP);
+                currentContext.assertNotNull(((WaitForTimestamp) waitFor).getTimestamp(), PropertyName.TIMESTAMP);
             } else if (waitFor instanceof WaitForTimestampPath) {
-                assertWaitForPath(((WaitForTimestampPath) waitFor).getTimestampPath(), PropertyNames.TIMESTAMP_PATH);
+                assertWaitForPath(((WaitForTimestampPath) waitFor).getTimestampPath(), PropertyName.TIMESTAMP_PATH);
             } else if (waitFor != null) {
                 throw new RuntimeException("Unsupported WaitFor strategy: " + waitFor.getClass());
             }
@@ -418,7 +418,7 @@ public class StateMachineValidator {
             context.assertNotNull(transition, "Transition");
             if (transition instanceof NextStateTransition) {
                 final String nextStateName = ((NextStateTransition) transition).getNextStateName();
-                context.assertNotNull(nextStateName, PropertyNames.NEXT);
+                context.assertNotNull(nextStateName, PropertyName.NEXT);
                 assertContainsState(context, nextStateName);
             }
         }

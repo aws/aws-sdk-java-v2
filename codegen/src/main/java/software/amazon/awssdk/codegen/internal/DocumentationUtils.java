@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.internal;
 
-import static software.amazon.awssdk.codegen.internal.Constants.AWS_DOCS_HOST;
+import static software.amazon.awssdk.codegen.internal.Constant.AWS_DOCS_HOST;
 import static software.amazon.awssdk.codegen.model.intermediate.ShapeType.Model;
 import static software.amazon.awssdk.codegen.model.intermediate.ShapeType.Request;
 import static software.amazon.awssdk.codegen.model.intermediate.ShapeType.Response;
@@ -28,15 +28,15 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 
 public final class DocumentationUtils {
 
-    public static final String DEFAULT_SETTER = "Sets the value of the %s property for this object.";
+    private static final String DEFAULT_SETTER = "Sets the value of the %s property for this object.";
 
-    public static final String DEFAULT_SETTER_PARAM = "The new value for the %s property for this object.";
+    private static final String DEFAULT_SETTER_PARAM = "The new value for the %s property for this object.";
 
-    public static final String DEFAULT_GETTER = "Returns the value of the %s property for this object.";
+    private static final String DEFAULT_GETTER = "Returns the value of the %s property for this object.";
 
-    public static final String DEFAULT_GETTER_PARAM = "The value of the %s property for this object.";
+    private static final String DEFAULT_GETTER_PARAM = "The value of the %s property for this object.";
 
-    public static final String DEFAULT_FLUENT_RETURN =
+    private static final String DEFAULT_FLUENT_RETURN =
             "Returns a reference to this object so that method calls can be chained together.";
 
     //TODO kylthoms@: probably should move this to a custom config in each service
@@ -143,5 +143,25 @@ public final class DocumentationUtils {
     private static boolean isCrossLinkingEnabledForService(Metadata metadata) {
         return metadata.getUid() != null && metadata.getEndpointPrefix() != null &&
                !SERVICES_EXCLUDED_FROM_CROSS_LINKING.contains(metadata.getEndpointPrefix());
+    }
+
+    public static String defaultSetter() {
+        return DEFAULT_SETTER;
+    }
+
+    public static String defaultSetterParam() {
+        return DEFAULT_SETTER_PARAM;
+    }
+
+    public static String defaultGetter() {
+        return DEFAULT_GETTER;
+    }
+
+    public static String defaultGetterParam() {
+        return DEFAULT_GETTER_PARAM;
+    }
+
+    public static String defaultFluentReturn() {
+        return DEFAULT_FLUENT_RETURN;
     }
 }

@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.stepfunctions.builder.conditions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * Binary condition for String equality comparison.
@@ -26,10 +26,10 @@ import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNa
  */
 public final class StringEqualsCondition implements BinaryCondition<String> {
 
-    @JsonProperty(PropertyNames.VARIABLE)
+    @JsonProperty(PropertyName.VARIABLE)
     private final String variable;
 
-    @JsonProperty(PropertyNames.STRING_EQUALS)
+    @JsonProperty(PropertyName.STRING_EQUALS)
     private final String expectedValue;
 
     private StringEqualsCondition(Builder builder) {
@@ -65,10 +65,10 @@ public final class StringEqualsCondition implements BinaryCondition<String> {
      */
     public static final class Builder extends BinaryStringConditionBuilder {
 
-        @JsonProperty(PropertyNames.VARIABLE)
+        @JsonProperty(PropertyName.VARIABLE)
         private String variable;
 
-        @JsonProperty(PropertyNames.STRING_EQUALS)
+        @JsonProperty(PropertyName.STRING_EQUALS)
         private String expectedValue;
 
         private Builder() {
@@ -99,7 +99,7 @@ public final class StringEqualsCondition implements BinaryCondition<String> {
 
         @Override
         String type() {
-            return PropertyNames.STRING_EQUALS;
+            return PropertyName.STRING_EQUALS;
         }
 
         /**

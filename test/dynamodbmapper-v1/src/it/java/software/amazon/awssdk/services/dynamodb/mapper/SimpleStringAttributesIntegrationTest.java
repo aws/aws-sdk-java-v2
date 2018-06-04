@@ -29,7 +29,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDBMapperIntegrationTestBas
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbHashKey;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig;
-import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.ConsistentReads;
+import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.ConsistentRead;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.SaveBehavior;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbTable;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -148,7 +148,8 @@ public class SimpleStringAttributesIntegrationTest extends DynamoDBMapperIntegra
         DynamoDbMapper mapper = new DynamoDbMapper(dynamo);
         mapper.save(obj);
 
-        KeyOnly loaded = mapper.load(KeyOnly.class, obj.getKey(), new DynamoDbMapperConfig(ConsistentReads.CONSISTENT));
+        KeyOnly loaded = mapper.load(KeyOnly.class, obj.getKey(), new DynamoDbMapperConfig(
+                DynamoDbMapperConfig.ConsistentRead.CONSISTENT));
         assertEquals(obj, loaded);
 
         // saving again shouldn't be an error
@@ -162,7 +163,7 @@ public class SimpleStringAttributesIntegrationTest extends DynamoDBMapperIntegra
         DynamoDbMapper mapper = new DynamoDbMapper(dynamo);
         mapper.save(obj, new DynamoDbMapperConfig(SaveBehavior.CLOBBER));
 
-        KeyOnly loaded = mapper.load(KeyOnly.class, obj.getKey(), new DynamoDbMapperConfig(ConsistentReads.CONSISTENT));
+        KeyOnly loaded = mapper.load(KeyOnly.class, obj.getKey(), new DynamoDbMapperConfig(ConsistentRead.CONSISTENT));
         assertEquals(obj, loaded);
 
         // saving again shouldn't be an error

@@ -33,7 +33,7 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.signer.SigningAlgorithm;
-import software.amazon.awssdk.core.RequestClientOptions;
+import software.amazon.awssdk.core.RequestOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.io.SdkDigestInputStream;
 import software.amazon.awssdk.core.signer.Signer;
@@ -236,7 +236,7 @@ public abstract class AbstractAwsSigner implements Signer {
 
     @ReviewBeforeRelease("Do we still want to make read limit user-configurable as in V1?")
     protected static int getReadLimit() {
-        return RequestClientOptions.DEFAULT_STREAM_BUFFER_SIZE;
+        return RequestOption.DEFAULT_STREAM_BUFFER_SIZE;
 
     }
 

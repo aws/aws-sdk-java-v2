@@ -24,9 +24,9 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.core.RequestClientOptions;
+import software.amazon.awssdk.core.RequestOption;
 import software.amazon.awssdk.core.Response;
-import software.amazon.awssdk.core.SdkStandardLoggers;
+import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.config.options.SdkClientOption;
 import software.amazon.awssdk.core.exception.ResetException;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -158,8 +158,8 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
 
             request.content().ifPresent(this::markInputStream);
 
-            SdkStandardLoggers.REQUEST_LOGGER.debug(() -> (retryHandler.isRetry() ? "Retrying " : "Sending ") +
-                                                          "Request: " + request);
+            SdkStandardLogger.REQUEST_LOGGER.debug(() -> (retryHandler.isRetry() ? "Retrying " : "Sending ") +
+                                                         "Request: " + request);
 
             return requestPipeline.execute(retryHandler.addRetryInfoHeader(request, requestCount), context);
         }
@@ -196,7 +196,7 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
          */
         @ReviewBeforeRelease("Do we still want to make read limit user-configurable as in V1?")
         private int readLimit() {
-            return RequestClientOptions.DEFAULT_STREAM_BUFFER_SIZE;
+            return RequestOption.DEFAULT_STREAM_BUFFER_SIZE;
         }
     }
 }

@@ -27,11 +27,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
-import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.ConsistentReads;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.TableNameOverride;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.dynamodb.model.TableStatus;
@@ -57,7 +55,7 @@ public class JsonIntegrationTest extends AwsTestBase {
                         .withConversionSchema(ConversionSchemas.V2)
                         .withTableNameOverride(TableNameOverride
                                                        .withTableNameReplacement(TABLE_NAME))
-                        .withConsistentReads(ConsistentReads.CONSISTENT)
+                        .withConsistentReads(DynamoDbMapperConfig.ConsistentRead.CONSISTENT)
                         .build());
 
         CreateTableRequest request = mapper

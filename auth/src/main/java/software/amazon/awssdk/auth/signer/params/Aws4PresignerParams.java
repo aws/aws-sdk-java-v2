@@ -16,7 +16,7 @@
 package software.amazon.awssdk.auth.signer.params;
 
 import java.time.Instant;
-import software.amazon.awssdk.auth.signer.SignerConstants;
+import software.amazon.awssdk.auth.signer.SignerConstant;
 
 public final class Aws4PresignerParams extends Aws4SignerParams {
 
@@ -40,7 +40,7 @@ public final class Aws4PresignerParams extends Aws4SignerParams {
 
         /**
          * Sets an expiration time for the presigned url. If this value is not specified,
-         * {@link SignerConstants#PRESIGN_URL_MAX_EXPIRATION_SECONDS} is used.
+         * {@link SignerConstant#PRESIGN_URL_MAX_EXPIRATION_SECONDS} is used.
          *
          * @param expirationTime Expiration time for the presigned url expressed in {@link Instant}.
          */

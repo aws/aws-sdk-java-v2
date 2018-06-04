@@ -59,7 +59,7 @@ class MemberCopierSpec implements ClassSpec {
     public TypeSpec poetSpec() {
         TypeSpec.Builder builder = TypeSpec.classBuilder(className())
                 .addModifiers(Modifier.FINAL)
-                .addAnnotation(PoetUtils.GENERATED)
+                .addAnnotation(PoetUtils.generatedAnnotation())
                 .addMethod(copyMethod());
 
         if (serviceModelCopiers.requiresBuilderCopier(memberModel)) {

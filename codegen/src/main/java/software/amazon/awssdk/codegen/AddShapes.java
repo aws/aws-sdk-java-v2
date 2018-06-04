@@ -15,10 +15,6 @@
 
 package software.amazon.awssdk.codegen;
 
-import static software.amazon.awssdk.codegen.internal.TypeUtils.LIST_DEFAULT_IMPL;
-import static software.amazon.awssdk.codegen.internal.TypeUtils.LIST_INTERFACE;
-import static software.amazon.awssdk.codegen.internal.TypeUtils.MAP_DEFAULT_IMPL;
-import static software.amazon.awssdk.codegen.internal.TypeUtils.MAP_INTERFACE;
 import static software.amazon.awssdk.codegen.internal.TypeUtils.getDataTypeMapping;
 import static software.amazon.awssdk.codegen.internal.Utils.capitialize;
 import static software.amazon.awssdk.codegen.internal.Utils.isListShape;
@@ -301,11 +297,11 @@ abstract class AddShapes {
 
             MemberModel listMemberModel = generateMemberModel("member", listMemberDefinition, protocol,
                                                               memberC2jShape, c2jShapes);
-            final String listImpl = getDataTypeMapping(LIST_DEFAULT_IMPL);
+            final String listImpl = getDataTypeMapping(TypeUtils.TypeKey.LIST_DEFAULT_IMPL);
             memberModel.setListModel(
                     new ListModel(getTypeUtils().getJavaDataType(c2jShapes, listMemberC2jShapeName),
                                   memberC2jShape.getListMember().getLocationName(), listImpl,
-                                  getDataTypeMapping(LIST_INTERFACE), listMemberModel));
+                                  getDataTypeMapping(TypeUtils.TypeKey.LIST_INTERFACE), listMemberModel));
         } else if (isMapShape(memberC2jShape)) {
             Member mapKeyMemberDefinition = memberC2jShape.getMapKeyType();
             String mapKeyShapeName = mapKeyMemberDefinition.getShape();
@@ -320,7 +316,7 @@ abstract class AddShapes {
                                                           memberC2jShape, c2jShapes);
             MemberModel mapValueModel = generateMemberModel("value", mapValueMemberDefinition, protocol,
                                                             memberC2jShape, c2jShapes);
-            final String mapImpl = getDataTypeMapping(MAP_DEFAULT_IMPL);
+            final String mapImpl = getDataTypeMapping(TypeUtils.TypeKey.MAP_DEFAULT_IMPL);
 
             String keyLocation = memberC2jShape.getMapKeyType().getLocationName() != null ?
                     memberC2jShape.getMapKeyType().getLocationName() : "key";
@@ -329,7 +325,7 @@ abstract class AddShapes {
                     memberC2jShape.getMapValueType().getLocationName() : "value";
 
             memberModel.setMapModel(new MapModel(mapImpl,
-                                                 getDataTypeMapping(MAP_INTERFACE),
+                                                 getDataTypeMapping(TypeUtils.TypeKey.MAP_INTERFACE),
                                                  keyLocation,
                                                  mapKeyModel,
                                                  valueLocation,

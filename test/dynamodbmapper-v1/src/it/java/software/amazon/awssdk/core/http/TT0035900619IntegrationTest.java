@@ -27,7 +27,7 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.retry.SdkDefaultRetrySettings;
+import software.amazon.awssdk.core.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
@@ -118,7 +118,7 @@ public class TT0035900619IntegrationTest {
     public void testFakeIOException_MaxRetries() {
         AmazonSyncHttpClient.configUnreliableTestConditions(
                 new UnreliableTestConfig()
-                .withMaxNumErrors(SdkDefaultRetrySettings.DEFAULT_MAX_RETRIES)
+                .withMaxNumErrors(SdkDefaultRetrySetting.DEFAULT_MAX_RETRIES)
                 .withBytesReadBeforeException(10)
                 .withFakeIoException(true)
                 .withResetIntervalBeforeException(2)
@@ -130,7 +130,7 @@ public class TT0035900619IntegrationTest {
     public void testFakeIOException_OneTooMany() {
         AmazonSyncHttpClient.configUnreliableTestConditions(
                 new UnreliableTestConfig()
-                .withMaxNumErrors(SdkDefaultRetrySettings.DEFAULT_MAX_RETRIES + 1)
+                .withMaxNumErrors(SdkDefaultRetrySetting.DEFAULT_MAX_RETRIES + 1)
                 .withBytesReadBeforeException(10)
                 .withFakeIoException(true)
                 .withResetIntervalBeforeException(2)
