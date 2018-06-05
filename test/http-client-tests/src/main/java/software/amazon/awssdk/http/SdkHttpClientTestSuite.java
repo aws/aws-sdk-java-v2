@@ -106,6 +106,15 @@ public abstract class SdkHttpClientTestSuite {
         validateResponse(response, returnCode);
     }
 
+    protected void testForResponseCodeUsingHttps(SdkHttpClient client, int returnCode) throws Exception {
+        stubForMockRequest(returnCode);
+
+        SdkHttpFullRequest request = mockSdkRequest("https://localhost:" + mockServer.httpsPort());
+        SdkHttpFullResponse response = client.prepareRequest(request, requestContext).call();
+
+        validateResponse(response, returnCode);
+    }
+
     private void stubForMockRequest(int returnCode) {
         stubFor(any(urlPathEqualTo("/")).willReturn(
                 aResponse().withStatus(returnCode).withHeader("Some-Header", "With Value").withBody("hello")));
@@ -152,7 +161,6 @@ public abstract class SdkHttpClientTestSuite {
      * The options that should be considered when creating the client via {@link #createSdkHttpClient(SdkHttpClientOptions)}.
      */
     protected static final class SdkHttpClientOptions {
-        // TODO: Add option for disabling certificate validation. This should probably be supported by all HTTP implementations
-        // because it is necessary for testing that HTTPS functions correctly.
+
     }
 }
