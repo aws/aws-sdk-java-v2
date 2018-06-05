@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.auth;
 
-import java.util.Date;
+import java.time.Instant;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
@@ -59,10 +59,9 @@ public final class AwsExecutionAttributes extends SdkExecutionAttributes {
     public static final ExecutionAttribute<Boolean> SIGNER_DOUBLE_URL_ENCODE = new ExecutionAttribute<>("DoubleUrlEncode");
 
     /**
-     * The key to specify the expiration date when pre-signing aws requests.
+     * The key to specify the expiration time when pre-signing aws requests.
      */
-    public static final ExecutionAttribute<Date> AWS_PRESIGNER_EXPIRATION_DATE =
-        new ExecutionAttribute<>("PresignerExpirationDate");
+    public static final ExecutionAttribute<Instant> PRESIGNER_EXPIRATION = new ExecutionAttribute<>("PresignerExpiration");
 
     private AwsExecutionAttributes() {
     }
