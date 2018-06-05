@@ -29,7 +29,6 @@ import io.netty.util.concurrent.Promise;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import software.amazon.awssdk.http.Protocol;
-import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 
 /**
  * Contains a {@link Future} for the actual socket channel and tracks available
@@ -72,7 +71,7 @@ public final class MultiplexedChannelRecord {
      */
     private void createChildChannel(Promise<Channel> channelPromise, Channel parentChannel) {
         doInEventLoop(parentChannel.eventLoop(),
-                      () -> createChildChannel0(channelPromise, parentChannel),
+            () -> createChildChannel0(channelPromise, parentChannel),
                       channelPromise);
     }
 

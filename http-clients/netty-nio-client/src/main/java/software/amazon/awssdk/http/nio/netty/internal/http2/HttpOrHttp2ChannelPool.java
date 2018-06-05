@@ -145,7 +145,7 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
     @Override
     public Future<Void> release(Channel channel, Promise<Void> promise) {
         doInEventLoop(eventLoop,
-                      () -> release0(channel, promise),
+            () -> release0(channel, promise),
                       promise);
         return promise;
     }

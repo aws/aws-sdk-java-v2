@@ -207,10 +207,12 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
 
         @Override
         public void onError(Throwable throwable) {
+            subscriberRef.get().onError(throwable);
         }
 
         @Override
         public void onComplete() {
+            subscriberRef.get().onComplete();
         }
     }
 
