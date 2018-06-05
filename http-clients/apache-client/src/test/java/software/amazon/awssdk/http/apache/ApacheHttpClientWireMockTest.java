@@ -15,12 +15,30 @@
 
 package software.amazon.awssdk.http.apache;
 
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
+
+import java.net.HttpURLConnection;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientTestSuite;
+import software.amazon.awssdk.utils.AttributeMap;
 
+@RunWith(MockitoJUnitRunner.class)
 public class ApacheHttpClientWireMockTest extends SdkHttpClientTestSuite {
     @Override
     protected SdkHttpClient createSdkHttpClient(SdkHttpClientOptions options) {
         return ApacheHttpClient.builder().build();
+    }
+
+    @Test
+    public void noSslException_WhenCertCheckingDisabled() throws Exception {
+        SdkHttpClient client = ApacheHttpClient.builder()
+                                               .buildWithDefaults(AttributeMap.builder()
+                                                                              .put(TRUST_ALL_CERTIFICATES, Boolean.TRUE)
+                                                                              .build());
+
+        testForResponseCodeUsingHttps(client, HttpURLConnection.HTTP_OK);
     }
 }
