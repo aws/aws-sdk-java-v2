@@ -21,8 +21,12 @@
     <#local listVariable = shapeName?uncap_first + member.name + "List"/>
     <#local loopVariable = listVariable + "Value"/>
 
-  ${listModel.templateType} ${listVariable} = ${getMember}();
-  if (${listVariable} != null) {
+      ${listModel.templateType} ${listVariable} = ${getMember}();
+  <#if customConfig.useAutoConstructList>
+      if (!${listVariable}.isEmpty() || !(${listVariable} instanceof software.amazon.awssdk.core.util.SdkAutoConstructList)) {
+  <#else>
+      if (${listVariable} != null) {
+  </#if>
   <#if member.http.flattened>
       for (${listModel.memberType} ${loopVariable} : ${listVariable}) {
           <#local memberLocationName = listModel.memberLocationName!http.marshallLocationName />
