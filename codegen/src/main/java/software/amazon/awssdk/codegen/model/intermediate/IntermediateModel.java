@@ -211,4 +211,9 @@ public final class IntermediateModel {
     public boolean getHasPaginators() {
         return paginators.size() > 0;
     }
+
+    public boolean getHasValidPaginators() {
+        return paginators.values().stream().anyMatch(PaginatorDefinition::isValid);
+    }
+
 }

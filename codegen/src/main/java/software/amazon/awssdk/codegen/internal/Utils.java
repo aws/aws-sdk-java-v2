@@ -114,18 +114,18 @@ public final class Utils {
 
     public static String getModelPackageName(String serviceName, CustomizationConfig customizationConfig) {
         // Share transform package classes if we are sharing models.
-        if (customizationConfig.getShareModelsWith() != null) {
-            serviceName = customizationConfig.getShareModelsWith();
-        }
+//        if (customizationConfig.getShareModelsWith() != null) {
+//            serviceName = customizationConfig.getShareModelsWith();
+//        }
         return getCustomizedPackageName(serviceName,
                                         Constants.PACKAGE_NAME_MODEL_PATTERN);
     }
 
     public static String getTransformPackageName(String serviceName, CustomizationConfig customizationConfig) {
         // Share transform package classes if we are sharing models.
-        if (customizationConfig.getShareModelsWith() != null) {
-            serviceName = customizationConfig.getShareModelsWith();
-        }
+//        if (customizationConfig.getShareModelsWith() != null) {
+//            serviceName = customizationConfig.getShareModelsWith();
+//        }
         return getRequestTransformPackageName(serviceName, customizationConfig);
     }
 

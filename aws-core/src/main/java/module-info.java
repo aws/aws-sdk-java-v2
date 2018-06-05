@@ -23,14 +23,15 @@ module software.amazon.awssdk.awscore {
     requires ion.java;
     requires com.fasterxml.jackson.core;
 
+    exports software.amazon.awssdk.awscore;
     exports software.amazon.awssdk.awscore.protocol.json;
     exports software.amazon.awssdk.awscore.exception;
     exports software.amazon.awssdk.awscore.client.handler;
     exports software.amazon.awssdk.awscore.config;
-    exports software.amazon.awssdk.awscore;
     exports software.amazon.awssdk.awscore.http.response;
     exports software.amazon.awssdk.awscore.protocol.xml;
     exports software.amazon.awssdk.awscore.client.builder;
     exports software.amazon.awssdk.awscore.config.defaults;
+    exports software.amazon.awssdk.awscore.endpoint;
 
 }

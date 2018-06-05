@@ -87,6 +87,7 @@
         <module>importexport</module>
         <module>inspector</module>
         <module>iot</module>
+        <module>iotdata</module>
         <module>kinesis</module>
         <module>kinesisanalytics</module>
         <module>kinesisfirehose</module>
@@ -110,6 +111,7 @@
         <module>rekognition</module>
         <module>resourcegroupstaggingapi</module>
         <module>route53</module>
+        <module>route53domains</module>
         <module>s3</module>
         <module>servermigration</module>
         <module>servicecatalog</module>
@@ -126,6 +128,7 @@
         <module>sts</module>
         <module>support</module>
         <module>waf</module>
+        <module>waf-regional</module>
         <module>workdocs</module>
         <module>workspaces</module>
         <module>xray</module>
