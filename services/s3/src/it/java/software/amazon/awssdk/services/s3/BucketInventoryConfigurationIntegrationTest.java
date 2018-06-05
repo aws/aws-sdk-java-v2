@@ -125,7 +125,7 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
                                                         .bucket(BUCKET_NAME)
                                                         .build())
                                                         .inventoryConfigurationList();
-        assertNull(configurations);
+        assertTrue(configurations.isEmpty());
     }
 
     @Test
