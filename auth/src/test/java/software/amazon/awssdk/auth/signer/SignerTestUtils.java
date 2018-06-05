@@ -16,7 +16,7 @@
 package software.amazon.awssdk.auth.signer;
 
 import java.time.Clock;
-import java.util.Date;
+import java.time.Instant;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
@@ -44,13 +44,13 @@ public class SignerTestUtils {
     public static SdkHttpFullRequest presignRequest(Aws4Signer presigner,
                                                     SdkHttpFullRequest request,
                                                     AwsCredentials credentials,
-                                                    Date expiration,
+                                                    Instant expiration,
                                                     String signingName,
                                                     Clock signingDateOverride,
                                                     String region) {
         Aws4PresignerParams signerParams = Aws4PresignerParams.builder()
                                                               .awsCredentials(credentials)
-                                                              .expirationDate(expiration)
+                                                              .expirationTime(expiration)
                                                               .signingName(signingName)
                                                               .signingClockOverride(signingDateOverride)
                                                               .signingRegion(Region.of(region))

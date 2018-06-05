@@ -21,9 +21,9 @@ import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -105,7 +105,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
         SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
 
-        long expirationInSeconds = generateExpirationDate(signingParams.expirationDate());
+        long expirationInSeconds = generateExpirationTime(signingParams.expirationTime());
         addHostHeader(mutableRequest);
 
         AwsCredentials sanitizedCredentials = sanitizeCredentials(signingParams.awsCredentials());
@@ -375,21 +375,20 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     }
 
     /**
-     * Generates an expiration date for the presigned url. If user has specified
-     * an expiration date, check if it is in the given limit.
+     * Generates an expiration time for the presigned url. If user has specified
+     * an expiration time, check if it is in the given limit.
      */
-    private long generateExpirationDate(Date expirationDate) {
+    private long generateExpirationTime(Instant expirationTime) {
 
-        long expirationInSeconds = expirationDate != null
-                                   ? (expirationDate.getTime() / 1000L)
+        long expirationInSeconds = expirationTime != null
+                                   ? expirationTime.getEpochSecond()
                                    : SignerConstants.PRESIGN_URL_MAX_EXPIRATION_SECONDS;
 
         if (expirationInSeconds > SignerConstants.PRESIGN_URL_MAX_EXPIRATION_SECONDS) {
             throw new SdkClientException(
                 "Requests that are pre-signed by SigV4 algorithm are valid for at most 7 days. "
                 + "The expiration date set on the current request ["
-                + Aws4SignerUtils.formatTimestamp(expirationDate
-                                                      .getTime()) + "] has exceeded this limit.");
+                + Aws4SignerUtils.formatTimestamp(expirationInSeconds * 1000L) + "] has exceeded this limit.");
         }
         return expirationInSeconds;
     }
@@ -411,7 +410,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     protected <B extends Aws4PresignerParams.Builder> B extractPresignerParams(B builder,
                                                                                ExecutionAttributes executionAttributes) {
         builder = extractSignerParams(builder, executionAttributes);
-        builder.expirationDate(executionAttributes.getAttribute(AwsExecutionAttributes.AWS_PRESIGNER_EXPIRATION_DATE));
+        builder.expirationTime(executionAttributes.getAttribute(AwsExecutionAttributes.PRESIGNER_EXPIRATION));
 
         return builder;
     }
