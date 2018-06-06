@@ -21,17 +21,19 @@ import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.signer.internal.AbstractAwsSigner;
 import software.amazon.awssdk.auth.signer.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.auth.signer.internal.Aws4SignerUtils;
 import software.amazon.awssdk.auth.signer.internal.FifoCache;
@@ -51,12 +53,16 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  * @param <T> Type of the signing params class that is used for signing the request
  * @param <U>Type of the signing params class that is used for pre signing the request
  */
+@SdkProtectedApi
 public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends Aws4PresignerParams>
     extends AbstractAwsSigner implements Presigner {
 
+    public static final String EMPTY_STRING_SHA256_HEX = BinaryUtils.toHex(hash(""));
+
     private static final Logger LOG = LoggerFactory.getLogger(Aws4Signer.class);
     private static final int SIGNER_CACHE_MAX_SIZE = 300;
-    private static final FifoCache<SignerKey> SIGNER_CACHE = new FifoCache<>(SIGNER_CACHE_MAX_SIZE);
+    private static final FifoCache<SignerKey> SIGNER_CACHE =
+        new FifoCache<>(SIGNER_CACHE_MAX_SIZE);
     private static final List<String> LIST_OF_HEADERS_TO_IGNORE_IN_LOWER_CASE = Arrays.asList("connection", "x-amzn-trace-id");
 
     protected SdkHttpFullRequest.Builder doSign(SdkHttpFullRequest request,
@@ -99,7 +105,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
         SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
 
-        long expirationInSeconds = generateExpirationDate(signingParams.expirationDate());
+        long expirationInSeconds = generateExpirationTime(signingParams.expirationTime());
         addHostHeader(mutableRequest);
 
         AwsCredentials sanitizedCredentials = sanitizeCredentials(signingParams.awsCredentials());
@@ -369,21 +375,20 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     }
 
     /**
-     * Generates an expiration date for the presigned url. If user has specified
-     * an expiration date, check if it is in the given limit.
+     * Generates an expiration time for the presigned url. If user has specified
+     * an expiration time, check if it is in the given limit.
      */
-    private long generateExpirationDate(Date expirationDate) {
+    private long generateExpirationTime(Instant expirationTime) {
 
-        long expirationInSeconds = expirationDate != null
-                                   ? (expirationDate.getTime() / 1000L)
+        long expirationInSeconds = expirationTime != null
+                                   ? expirationTime.getEpochSecond()
                                    : SignerConstants.PRESIGN_URL_MAX_EXPIRATION_SECONDS;
 
         if (expirationInSeconds > SignerConstants.PRESIGN_URL_MAX_EXPIRATION_SECONDS) {
             throw new SdkClientException(
                 "Requests that are pre-signed by SigV4 algorithm are valid for at most 7 days. "
                 + "The expiration date set on the current request ["
-                + Aws4SignerUtils.formatTimestamp(expirationDate
-                                                      .getTime()) + "] has exceeded this limit.");
+                + Aws4SignerUtils.formatTimestamp(expirationInSeconds * 1000L) + "] has exceeded this limit.");
         }
         return expirationInSeconds;
     }
@@ -405,7 +410,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     protected <B extends Aws4PresignerParams.Builder> B extractPresignerParams(B builder,
                                                                                ExecutionAttributes executionAttributes) {
         builder = extractSignerParams(builder, executionAttributes);
-        builder.expirationDate(executionAttributes.getAttribute(AwsExecutionAttributes.AWS_PRESIGNER_EXPIRATION_DATE));
+        builder.expirationTime(executionAttributes.getAttribute(AwsExecutionAttributes.PRESIGNER_EXPIRATION));
 
         return builder;
     }

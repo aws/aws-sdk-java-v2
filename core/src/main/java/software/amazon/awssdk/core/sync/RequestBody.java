@@ -28,6 +28,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
+import software.amazon.awssdk.core.runtime.io.ReleasableInputStream;
 import software.amazon.awssdk.core.util.Mimetypes;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -98,16 +99,16 @@ public final class RequestBody {
      * Creates a {@link RequestBody} from an input stream. {@value software.amazon.awssdk.http.Headers#CONTENT_LENGTH} must
      * be provided so that the SDK does not have to make two passes of the data.
      *
-     * <p>This stream will be consumed and closed by the SDK. It should NOT be re-used after making an API call with it. It
-     * should also not be read outside of the SDK (by another thread) as it will change the state of the {@link InputStream} and
+     * <p>The stream will not be closed by the SDK. It is upto to caller of this method to close the stream. The stream
+     * should not be read outside of the SDK (by another thread) as it will change the state of the {@link InputStream} and
      * could tamper with the sending of the request.</p>
      *
-     * @param inputStream   Input stream to send to the service.
+     * @param inputStream   Input stream to send to the service. The stream will not be closed by the SDK.
      * @param contentLength Content length of data in input stream.
      * @return RequestBody instance.
      */
     public static RequestBody fromInputStream(InputStream inputStream, long contentLength) {
-        return new RequestBody(inputStream, contentLength, Mimetypes.MIMETYPE_OCTET_STREAM);
+        return new RequestBody(nonCloseableInputStream(inputStream), contentLength, Mimetypes.MIMETYPE_OCTET_STREAM);
     }
 
     /**
@@ -174,5 +175,10 @@ public final class RequestBody {
      */
     private static RequestBody fromBytesDirect(byte[] bytes, String mimetype) {
         return new RequestBody(new ByteArrayInputStream(bytes), bytes.length, mimetype);
+    }
+
+    private static InputStream nonCloseableInputStream(InputStream inputStream) {
+        return inputStream != null ? ReleasableInputStream.wrap(inputStream).disableClose()
+                                   : null;
     }
 }

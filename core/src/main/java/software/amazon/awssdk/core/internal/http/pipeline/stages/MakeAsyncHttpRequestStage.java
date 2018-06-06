@@ -17,13 +17,17 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.Response;
+import software.amazon.awssdk.core.config.options.SdkAdvancedAsyncClientOption;
+import software.amazon.awssdk.core.config.options.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponse;
-import software.amazon.awssdk.core.internal.http.HttpAsyncClientDependencies;
+import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.SdkHttpResponseAdapter;
@@ -51,13 +55,16 @@ public class MakeAsyncHttpRequestStage<OutputT>
     private final SdkAsyncHttpClient sdkAsyncHttpClient;
     private final SdkHttpResponseHandler<OutputT> responseHandler;
     private final SdkHttpResponseHandler<? extends SdkException> errorResponseHandler;
+    private final Executor futureCompletionExecutor;
 
     public MakeAsyncHttpRequestStage(SdkHttpResponseHandler<OutputT> responseHandler,
                                      SdkHttpResponseHandler<? extends SdkException> errorResponseHandler,
-                                     HttpAsyncClientDependencies dependencies) {
+                                     HttpClientDependencies dependencies) {
         this.responseHandler = responseHandler;
         this.errorResponseHandler = errorResponseHandler;
-        this.sdkAsyncHttpClient = dependencies.asyncClientConfiguration().asyncHttpClient();
+        this.futureCompletionExecutor =
+                dependencies.clientConfiguration().option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
+        this.sdkAsyncHttpClient = dependencies.clientConfiguration().option(SdkClientOption.ASYNC_HTTP_CLIENT);
     }
 
     /**
@@ -65,16 +72,14 @@ public class MakeAsyncHttpRequestStage<OutputT>
      */
     public CompletableFuture<Response<OutputT>> execute(SdkHttpFullRequest request,
                                                         RequestExecutionContext context) throws Exception {
-
         InterruptMonitor.checkInterrupted();
         return executeHttpRequest(request, context);
     }
 
     private CompletableFuture<Response<OutputT>> executeHttpRequest(SdkHttpFullRequest request,
                                                                     RequestExecutionContext context) throws Exception {
-        CompletableFuture<Response<OutputT>> future = new CompletableFuture<>();
-
-        SdkHttpResponseHandler<Response<OutputT>> handler = new ResponseHandler(request, future);
+        Completable completable = new Completable();
+        SdkHttpResponseHandler<Response<OutputT>> handler = new ResponseHandler(request, completable);
 
         SdkHttpRequestProvider requestProvider = context.requestProvider() == null
                 ? new SimpleRequestProvider(request, context.executionAttributes())
@@ -89,7 +94,7 @@ public class MakeAsyncHttpRequestStage<OutputT>
 
         // TODO client execution timer
         //        context.clientExecutionTrackerTask().setCurrentHttpRequest(requestCallable);
-        return future;
+        return completable.completableFuture;
     }
 
     private SdkHttpFullRequest getRequestWithContentLength(SdkHttpFullRequest request, SdkHttpRequestProvider requestProvider) {
@@ -129,19 +134,18 @@ public class MakeAsyncHttpRequestStage<OutputT>
      */
     private class ResponseHandler implements SdkHttpResponseHandler<Response<OutputT>> {
         private final SdkHttpFullRequest request;
-        private final CompletableFuture<Response<OutputT>> future;
+        private final Completable completable;
 
         private volatile SdkHttpResponse response;
         private volatile boolean isSuccess = false;
 
         /**
          * @param request  Request being made
-         * @param future   Future to notify when response has been handled.
+         * @param completable   Future to notify when response has been handled.
          */
-        private ResponseHandler(SdkHttpFullRequest request,
-                                CompletableFuture<Response<OutputT>> future) {
+        private ResponseHandler(SdkHttpFullRequest request, Completable completable) {
             this.request = request;
-            this.future = future;
+            this.completable = completable;
         }
 
         @Override
@@ -169,7 +173,7 @@ public class MakeAsyncHttpRequestStage<OutputT>
         public void exceptionOccurred(Throwable throwable) {
             runAndLogError("SdkHttpResponseHandler threw an exception.",
                 () -> responseHandler.exceptionOccurred(throwable));
-            future.completeExceptionally(throwable);
+            completable.completeExceptionally(throwable);
         }
 
         @Override
@@ -178,10 +182,10 @@ public class MakeAsyncHttpRequestStage<OutputT>
                 SdkHttpFullResponse httpFullResponse = (SdkHttpFullResponse) this.response;
                 final HttpResponse httpResponse = SdkHttpResponseAdapter.adapt(false, request, httpFullResponse);
                 Response<OutputT> toReturn = handleResponse(httpResponse);
-                future.complete(toReturn);
+                completable.complete(toReturn);
                 return toReturn;
             } catch (Exception e) {
-                future.completeExceptionally(e);
+                completable.completeExceptionally(e);
                 throw e;
             }
         }
@@ -195,5 +199,38 @@ public class MakeAsyncHttpRequestStage<OutputT>
             }
         }
 
+    }
+
+    /**
+     * An interface similar to {@link CompletableFuture} that may or may not dispatch completion of the future to an executor
+     * service, depending on the client's configuration.
+     */
+    private class Completable {
+        private final CompletableFuture<Response<OutputT>> completableFuture = new CompletableFuture<>();
+
+        public void complete(Response<OutputT> result) {
+            try {
+                futureCompletionExecutor.execute(() -> completableFuture.complete(result));
+            } catch (RejectedExecutionException e) {
+                completableFuture.completeExceptionally(explainRejection(e));
+            }
+        }
+
+        public void completeExceptionally(Throwable exception) {
+            try {
+                futureCompletionExecutor.execute(() -> completableFuture.completeExceptionally(exception));
+            } catch (RejectedExecutionException e) {
+                completableFuture.completeExceptionally(explainRejection(e));
+            }
+        }
+
+        private RejectedExecutionException explainRejection(RejectedExecutionException e) {
+            return new RejectedExecutionException("The SDK was unable to complete the async future to provide you with a " +
+                                                  "response. This may be caused by too-few threads in the response executor, " +
+                                                  "too-short of a queue or too long of an operation in your future completion " +
+                                                  "chain. You can provide a larger executor service to the SDK via the " +
+                                                  "client's async configuration setting or you can reduce the amount of work " +
+                                                  "performed on the async execution thread.", e);
+        }
     }
 }

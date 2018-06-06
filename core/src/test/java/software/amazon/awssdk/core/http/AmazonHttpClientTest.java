@@ -32,10 +32,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.config.SdkAdvancedClientOption;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.config.SdkMutableClientConfiguration;
-import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.config.options.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.config.options.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.http.AbortableCallable;
@@ -122,16 +121,13 @@ public class AmazonHttpClientTest {
         Request<?> request = ValidSdkObjects.legacyRequest();
 
         HttpResponseHandler<?> handler = mock(HttpResponseHandler.class);
-        ClientOverrideConfiguration overrideConfig =
-                ClientOverrideConfiguration.builder()
-                                           .advancedOption(SdkAdvancedClientOption.USER_AGENT_PREFIX, prefix)
-                                           .advancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX, suffix)
-                                           .build();
-        SdkMutableClientConfiguration config = new SdkMutableClientConfiguration().overrideConfiguration(overrideConfig)
-                                                                                  .httpClient(sdkHttpClient)
-                                                                                  .endpoint(URI.create("http://example.com"));
 
-        new GlobalClientConfigurationDefaults().applySyncDefaults(config);
+        SdkClientConfiguration config = HttpTestUtils.testClientConfiguration().toBuilder()
+                                                     .option(SdkAdvancedClientOption.USER_AGENT_PREFIX, prefix)
+                                                     .option(SdkAdvancedClientOption.USER_AGENT_SUFFIX, suffix)
+                                                     .option(SdkClientOption.SYNC_HTTP_CLIENT, sdkHttpClient)
+                                                     .option(SdkClientOption.ENDPOINT, URI.create("http://example.com"))
+                                                     .build();
 
         AmazonSyncHttpClient client = new AmazonSyncHttpClient(config);
 

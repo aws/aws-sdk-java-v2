@@ -45,7 +45,7 @@ public abstract class PaginationSubscription<ResponseT> implements Subscription 
         }
 
         if (n <= 0) {
-            throw new IllegalArgumentException("Non-positive request signals are illegal");
+            subscriber.onError(new IllegalArgumentException("Non-positive request signals are illegal"));
         }
 
         AtomicBoolean startTask = new AtomicBoolean(false);

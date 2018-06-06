@@ -48,11 +48,16 @@ import software.amazon.awssdk.core.util.json.JacksonUtils;
  * add a new customer at any time, simply create a bucket for the customer, add
  * their content, and launch your AMI.<br>
  *
+ * <P>
+ * If {@link SdkSystemSetting#AWS_EC2_METADATA_DISABLED} is set to true, EC2 metadata usage
+ * will be disabled and {@link SdkClientException} will be thrown for any metadata retrieval attempt.
+ *
+ * <p>
  * More information about Amazon EC2 Metadata
  *
  * @see <a
- *      href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AESDG-chapter-instancedata.html">Amazon
- *      EC2 User Guide: Instance Metadata</a>
+ * href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AESDG-chapter-instancedata.html">Amazon
+ * EC2 User Guide: Instance Metadata</a>
  */
 @ReviewBeforeRelease("Cleanup")
 public final class EC2MetadataUtils {
@@ -72,11 +77,8 @@ public final class EC2MetadataUtils {
     private EC2MetadataUtils() {}
 
     static {
-        MAPPER.configure(
-                DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-        MAPPER
-                .setPropertyNamingStrategy(PropertyNamingStrategy.PASCAL_CASE_TO_CAMEL_CASE);
+        MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        MAPPER.setPropertyNamingStrategy(PropertyNamingStrategy.PASCAL_CASE_TO_CAMEL_CASE);
     }
 
     /**
@@ -373,6 +375,10 @@ public final class EC2MetadataUtils {
                     "Unable to contact EC2 metadata service.");
         }
 
+        if (SdkSystemSetting.AWS_EC2_METADATA_DISABLED.getBooleanValueOrThrow()) {
+            throw new SdkClientException("EC2 metadata usage is disabled.");
+        }
+
         List<String> items;
         try {
             String hostAddress = SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
@@ -404,6 +410,10 @@ public final class EC2MetadataUtils {
     }
 
     private static String fetchData(String path, boolean force) {
+        if (SdkSystemSetting.AWS_EC2_METADATA_DISABLED.getBooleanValueOrThrow()) {
+            throw new SdkClientException("EC2 metadata usage is disabled.");
+        }
+
         try {
             if (force || !cache.containsKey(path)) {
                 cache.put(path, getData(path));

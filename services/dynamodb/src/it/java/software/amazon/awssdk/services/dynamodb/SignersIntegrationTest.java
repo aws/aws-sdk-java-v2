@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.dynamodb;
 
 import static org.junit.Assert.assertEquals;
-import static software.amazon.awssdk.core.config.SdkAdvancedClientOption.SIGNER;
+import static software.amazon.awssdk.core.config.options.SdkAdvancedClientOption.SIGNER;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayInputStream;
@@ -107,13 +107,11 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
 
     @Test
     public void test_UsingSdkClient_WithSignerSetInConfig() {
-        DynamoDBClient client = DynamoDBClient.builder()
-                                              .region(REGION)
-                                              .overrideConfiguration(
-                                                  ClientOverrideConfiguration.builder()
-                                                                             .advancedOption(SIGNER, Aws4Signer.create())
-                                                                             .build())
-                                              .build();
+        DynamoDBClient client = getClientBuilder()
+            .overrideConfiguration(ClientOverrideConfiguration.builder()
+                                                              .advancedOption(SIGNER, Aws4Signer.create())
+                                                              .build())
+            .build();
 
         getItemAndAssertValues(client);
     }
@@ -231,5 +229,11 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
             .putAttribute(AwsExecutionAttributes.SERVICE_SIGNING_NAME, SIGNING_NAME)
             .putAttribute(AwsExecutionAttributes.SIGNING_REGION, REGION)
             .putAttribute(AwsExecutionAttributes.SIGNER_DOUBLE_URL_ENCODE, Boolean.TRUE);
+    }
+
+    private static DynamoDBClientBuilder getClientBuilder() {
+        return DynamoDBClient.builder()
+                             .region(REGION)
+                             .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
     }
 }

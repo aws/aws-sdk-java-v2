@@ -24,12 +24,14 @@ import com.squareup.javapoet.TypeSpec;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 
 /**
@@ -130,10 +132,20 @@ class ModelBuilderSpecs {
     }
 
     private List<FieldSpec> fields() {
-        List<FieldSpec> fields = new ArrayList<>(shapeModelSpec.fields(Modifier.PRIVATE));
+        List<FieldSpec> fields = shapeModel.getNonStreamingMembers().stream()
+                .map(m -> {
+                    FieldSpec fieldSpec = typeProvider.asField(m, Modifier.PRIVATE);
+                    if (m.isList() && typeProvider.useAutoConstructLists()) {
+                        fieldSpec = fieldSpec.toBuilder()
+                                .initializer("$T.getInstance()", DefaultSdkAutoConstructList.class)
+                                .build();
+                    }
+                    return fieldSpec;
+                }).collect(Collectors.toList());
 
         // Inject a message member for the isException message
         if (isException()) {
+            fields = new ArrayList<>(fields);
             fields.add(FieldSpec.builder(String.class, "message", Modifier.PRIVATE).build());
         }
 

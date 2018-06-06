@@ -13,16 +13,21 @@
 
 package software.amazon.awssdk.services.kinesis;
 
+import java.util.List;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
-import software.amazon.awssdk.awscore.config.defaults.AwsClientConfigurationDefaults;
-import software.amazon.awssdk.awscore.config.defaults.ServiceBuilderConfigurationDefaults;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.config.options.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.config.options.SdkClientOption;
+import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 /**
  * Internal base class for {@link DefaultKinesisClientBuilder} and {@link DefaultKinesisAsyncClientBuilder}.
@@ -37,14 +42,23 @@ abstract class DefaultKinesisBaseClientBuilder<B extends KinesisBaseClientBuilde
     }
 
     @Override
-    protected final AwsClientConfigurationDefaults serviceDefaults() {
-        return ServiceBuilderConfigurationDefaults.builder().defaultSigner(this::defaultSigner)
-                                                  .addRequestHandlerPath("software/amazon/awssdk/services/kinesis/execution.interceptors")
-                                                  .crc32FromCompressedDataEnabled(false).build();
+    protected SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration configuration) {
+        return configuration.merge(c -> c.option(SdkAdvancedClientOption.SIGNER, defaultSigner())
+                                         .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
     }
 
     @Override
-    protected AttributeMap serviceSpecificHttpConfig() {
+    protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
+        ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
+        List<ExecutionInterceptor> interceptors = interceptorFactory
+            .getInterceptors("software/amazon/awssdk/services/kinesis/execution.interceptors");
+        interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
+        return config.toBuilder().option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).build();
+    }
+
+
+    @Override
+    protected AttributeMap serviceHttpConfig() {
         return AttributeMap.builder()
                            .put(SdkHttpConfigurationOption.PROTOCOL, Protocol.HTTP2)
                            .build();

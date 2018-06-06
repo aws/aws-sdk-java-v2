@@ -18,13 +18,13 @@ package software.amazon.awssdk.awscore.client.handler;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.awscore.config.AwsSyncClientConfiguration;
+import software.amazon.awssdk.awscore.config.options.AwsClientOptionValidation;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
 import software.amazon.awssdk.core.client.SdkSyncClientHandler;
 import software.amazon.awssdk.core.client.SyncClientHandler;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 
@@ -36,14 +36,12 @@ import software.amazon.awssdk.core.sync.ResponseTransformer;
 @ReviewBeforeRelease("This looks identical to the Sdk version, revisit when we add APIG back")
 public class AwsSyncClientHandler extends SdkSyncClientHandler implements SyncClientHandler {
 
-    private final AwsSyncClientConfiguration clientConfiguration;
-    private final ServiceConfiguration serviceConfiguration;
+    private final SdkClientConfiguration clientConfiguration;
 
-    public AwsSyncClientHandler(AwsSyncClientConfiguration clientConfiguration,
-                                ServiceConfiguration serviceConfiguration) {
-        super(clientConfiguration, serviceConfiguration);
+    public AwsSyncClientHandler(SdkClientConfiguration clientConfiguration) {
+        super(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceConfiguration = serviceConfiguration;
+        AwsClientOptionValidation.validateSyncClientOptions(clientConfiguration);
     }
 
     @Override
@@ -61,6 +59,6 @@ public class AwsSyncClientHandler extends SdkSyncClientHandler implements SyncCl
 
     @Override
     protected ExecutionContext createExecutionContext(SdkRequest originalRequest) {
-        return AwsClientHandlerUtils.createExecutionContext(originalRequest, clientConfiguration, serviceConfiguration);
+        return AwsClientHandlerUtils.createExecutionContext(originalRequest, clientConfiguration);
     }
 }

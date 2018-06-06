@@ -15,20 +15,20 @@
 
 package software.amazon.awssdk.auth.signer.params;
 
-import java.util.Date;
+import java.time.Instant;
 import software.amazon.awssdk.auth.signer.SignerConstants;
 
 public final class Aws4PresignerParams extends Aws4SignerParams {
 
-    private final Date expirationDate;
+    private final Instant expirationTime;
 
     private Aws4PresignerParams(Builder builder) {
         super(builder);
-        this.expirationDate = builder.expirationDate;
+        this.expirationTime = builder.expirationTime;
     }
 
-    public Date expirationDate() {
-        return expirationDate;
+    public Instant expirationTime() {
+        return expirationTime;
     }
 
     public static Builder builder() {
@@ -36,16 +36,16 @@ public final class Aws4PresignerParams extends Aws4SignerParams {
     }
 
     public static final class Builder extends Aws4SignerParams.Builder<Builder> {
-        private Date expirationDate;
+        private Instant expirationTime;
 
         /**
-         * Sets an expiration date for the presigned url. If this value is not specified,
+         * Sets an expiration time for the presigned url. If this value is not specified,
          * {@link SignerConstants#PRESIGN_URL_MAX_EXPIRATION_SECONDS} is used.
          *
-         * @param expirationDate Expiration date for the presigned url.
+         * @param expirationTime Expiration time for the presigned url expressed in {@link Instant}.
          */
-        public Builder expirationDate(Date expirationDate) {
-            this.expirationDate = expirationDate;
+        public Builder expirationTime(Instant expirationTime) {
+            this.expirationTime = expirationTime;
             return this;
         }
 

@@ -21,6 +21,7 @@ import java.util.TimeZone;
 import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.signer.internal.AbstractAwsSigner;
 import software.amazon.awssdk.auth.util.CredentialUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -34,8 +35,21 @@ import software.amazon.awssdk.utils.StringUtils;
 public final class QueryStringSigner extends AbstractAwsSigner {
     /**
      * Date override for testing only.
+     * Using Date instead of Clock as signature uses this value in SimpleDateFormat.
      */
-    private Date overriddenDate;
+    private final Date overriddenDate;
+
+    private QueryStringSigner(Builder builder) {
+        this.overriddenDate = builder.overriddenDate;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static QueryStringSigner create() {
+        return builder().build();
+    }
 
     /**
      * This signer will add "Signature" parameter to the request. Default
@@ -111,15 +125,28 @@ public final class QueryStringSigner extends AbstractAwsSigner {
         }
     }
 
-    /**
-     * For testing purposes only, to control the date used in signing.
-     */
-    void overrideDate(Date date) {
-        this.overriddenDate = date;
-    }
-
     @Override
     protected void addSessionCredentials(SdkHttpFullRequest.Builder request, AwsSessionCredentials credentials) {
         request.rawQueryParameter("SecurityToken", credentials.sessionToken());
+    }
+
+    /**
+     * Builder to create a {@link QueryStringSigner} object.
+     */
+    public static final class Builder  {
+
+        private Date overriddenDate;
+
+        /**
+         * Used for testing purposes to control the date used in signing.
+         */
+        Builder overriddenDate(Date overriddenDate) {
+            this.overriddenDate = overriddenDate;
+            return this;
+        }
+
+        public QueryStringSigner build() {
+            return new QueryStringSigner(this);
+        }
     }
 }

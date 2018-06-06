@@ -17,13 +17,13 @@ import java.util.concurrent.CompletableFuture;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
-import software.amazon.awssdk.awscore.config.AwsAsyncClientConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocol;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.core.client.AsyncClientHandler;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.flow.FlowResponseTransformer;
 import software.amazon.awssdk.core.flow.UnmarshallingFlowAsyncResponseTransformer;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -175,8 +175,8 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
 
     private final AwsJsonProtocolFactory protocolFactory;
 
-    protected DefaultKinesisAsyncClient(AwsAsyncClientConfiguration clientConfiguration) {
-        this.clientHandler = new AwsAsyncClientHandler(clientConfiguration, null);
+    protected DefaultKinesisAsyncClient(SdkClientConfiguration clientConfiguration) {
+        this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.protocolFactory = init();
     }
 

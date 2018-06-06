@@ -27,10 +27,10 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.RequestClientOptions;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkStandardLoggers;
+import software.amazon.awssdk.core.config.options.SdkClientOption;
 import software.amazon.awssdk.core.exception.ResetException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.internal.http.HttpAsyncClientDependencies;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
@@ -54,12 +54,12 @@ public class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFull
     private final CapacityManager retryCapacity;
     private final RetryPolicy retryPolicy;
 
-    public AsyncRetryableStage(HttpAsyncClientDependencies dependencies,
+    public AsyncRetryableStage(HttpClientDependencies dependencies,
                                RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> requestPipeline) {
         this.dependencies = dependencies;
-        this.retrySubmitter = dependencies.asyncClientConfiguration().asyncExecutorService();
+        this.retrySubmitter = dependencies.clientConfiguration().option(SdkClientOption.ASYNC_RETRY_EXECUTOR_SERVICE);
+        this.retryPolicy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_POLICY);
         this.retryCapacity = dependencies.retryCapacity();
-        this.retryPolicy = dependencies.asyncClientConfiguration().overrideConfiguration().retryPolicy();
         this.requestPipeline = requestPipeline;
     }
 

@@ -15,32 +15,25 @@
 
 package software.amazon.awssdk.awscore.client.builder;
 
-import static software.amazon.awssdk.awscore.config.AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION;
-
 import java.net.URI;
 import java.util.Optional;
-import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
-import software.amazon.awssdk.awscore.config.AwsAdvancedClientOption;
-import software.amazon.awssdk.awscore.config.AwsImmutableAsyncClientConfiguration;
-import software.amazon.awssdk.awscore.config.AwsImmutableSyncClientConfiguration;
-import software.amazon.awssdk.awscore.config.AwsMutableClientConfiguration;
-import software.amazon.awssdk.awscore.config.defaults.AwsClientConfigurationDefaults;
-import software.amazon.awssdk.awscore.config.defaults.AwsGlobalClientConfigurationDefaults;
+import software.amazon.awssdk.awscore.config.options.AwsAdvancedClientOption;
+import software.amazon.awssdk.awscore.config.options.AwsClientOption;
 import software.amazon.awssdk.awscore.internal.EndpointUtils;
-import software.amazon.awssdk.core.client.builder.ExecutorProvider;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.config.options.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.utils.AttributeMap;
 
 /**
  * An SDK-internal implementation of the methods in {@link AwsClientBuilder}, {@link AwsAsyncClientBuilder} and
@@ -66,10 +59,6 @@ public abstract class AwsDefaultClientBuilder<B extends AwsClientBuilder<B, C>, 
     private static final String DEFAULT_ENDPOINT_PROTOCOL = "https";
     private static final AwsRegionProvider DEFAULT_REGION_PROVIDER = new DefaultAwsRegionProviderChain();
 
-    private AwsMutableClientConfiguration awsMutableClientConfiguration = new AwsMutableClientConfiguration();
-
-    private Region region;
-
     protected AwsDefaultClientBuilder() {
         super();
     }
@@ -88,162 +77,97 @@ public abstract class AwsDefaultClientBuilder<B extends AwsClientBuilder<B, C>, 
      */
     protected abstract String serviceEndpointPrefix();
 
+    /**
+     * Implemented by child classes to define the signing-name that should be used when signing requests when communicating with
+     * AWS.
+     */
     protected abstract String signingName();
 
-    /**
-     * An optional hook that can be overridden by service client builders to set service-specific defaults.
-     *
-     * @return The service defaults that should be applied.
-     */
     @Override
-    protected AwsClientConfigurationDefaults serviceDefaults() {
-        return new AwsClientConfigurationDefaults() {
-        };
+    protected final AttributeMap childHttpConfig() {
+        return serviceHttpConfig();
     }
 
     /**
-     * Used by child classes to get the signing region configured on this builder. This is usually used when generating the child
-     * class's signer. This will never return null.
+     * Optionally overridden by child classes to define service-specific HTTP configuration defaults.
      */
-    protected final Region signingRegion() {
-        return ServiceMetadata.of(serviceEndpointPrefix()).signingRegion(
-            resolveRegion().orElseThrow(() -> new IllegalStateException("The signing region could not be determined.")));
-    }
-
-    /**
-     * Return a sync client configuration object, populated with the following chain of priorities.
-     * <ol>
-     * <li>Customer Configuration</li>
-     * <li>Builder-Specific Default Configuration</li>
-     * <li>Service-Specific Default Configuration</li>
-     * <li>Global Default Configuration</li>
-     * </ol>
-     */
-    @Override
-    protected final AwsImmutableSyncClientConfiguration syncClientConfiguration() {
-        AwsMutableClientConfiguration configuration = awsMutableClientConfiguration.clone();
-        builderDefaults().applySyncDefaults(configuration);
-        serviceDefaults().applySyncDefaults(configuration);
-        new AwsGlobalClientConfigurationDefaults().applySyncDefaults(configuration);
-        applySdkHttpClient(configuration);
-        return new AwsImmutableSyncClientConfiguration(configuration);
-    }
-
-    /**
-     * Return an async client configuration object, populated with the following chain of priorities.
-     * <ol>
-     * <li>Customer Configuration</li>
-     * <li>Builder-Specific Default Configuration</li>
-     * <li>Service-Specific Default Configuration</li>
-     * <li>Global Default Configuration</li>
-     * </ol>
-     */
-    @Override
-    protected final AwsImmutableAsyncClientConfiguration asyncClientConfiguration() {
-        AwsMutableClientConfiguration configuration = awsMutableClientConfiguration.clone();
-        builderDefaults().applyAsyncDefaults(configuration);
-        serviceDefaults().applyAsyncDefaults(configuration);
-        new AwsGlobalClientConfigurationDefaults().applyAsyncDefaults(configuration);
-        applySdkAsyncHttpClient(configuration);
-        return new AwsImmutableAsyncClientConfiguration(configuration);
-    }
-
-    /**
-     * Add builder-specific configuration on top of the customer-defined configuration, if needed. Specifically, if the customer
-     * has specified a region in place of an endpoint, this will determine the endpoint to be used for AWS communication.
-     */
-    @Override
-    protected final AwsClientConfigurationDefaults builderDefaults() {
-        return new AwsClientConfigurationDefaults() {
-            /**
-             * If the customer did not specify an endpoint themselves, attempt to generate one automatically.
-             */
-            @Override
-            protected URI getEndpointDefault() {
-                return resolveEndpoint().orElse(null);
-            }
-
-            /**
-             * If the customer did not specify a region provider themselves, use the default chain.
-             */
-            @Override
-            protected AwsCredentialsProvider getCredentialsDefault() {
-                return DefaultCredentialsProvider.create();
-            }
-
-            /**
-             * Create the async executor service that should be used for async client executions.
-             */
-            @Override
-            protected ScheduledExecutorService getAsyncExecutorDefault() {
-                return Optional.ofNullable(asyncExecutorProvider).map(ExecutorProvider::get).orElse(null);
-            }
-
-            @Override
-            protected void applyOverrideDefaults(ClientOverrideConfiguration.Builder builder) {
-                builder.advancedOption(AwsAdvancedClientOption.AWS_REGION,
-                                       resolveRegion().orElseThrow(() -> new SdkClientException("AWS region not provided")));
-                builder.advancedOption(AwsAdvancedClientOption.SERVICE_SIGNING_NAME, signingName());
-                builder.advancedOption(AwsAdvancedClientOption.SIGNING_REGION, signingRegion());
-            }
-        };
-    }
-
-    /**
-     * Resolve the service endpoint that should be used based on the customer's configuration.
-     */
-    @Override
-    protected Optional<URI> resolveEndpoint() {
-        URI configuredEndpoint = awsMutableClientConfiguration.endpoint();
-        return configuredEndpoint != null ? Optional.of(configuredEndpoint) : endpointFromRegion();
-    }
-
-    /**
-     * Load the region from the default region provider if enabled.
-     */
-    private Optional<Region> regionFromDefaultProvider() {
-        return useRegionProviderChain() ? Optional.ofNullable(DEFAULT_REGION_PROVIDER.getRegion()) : Optional.empty();
-    }
-
-    /**
-     * Determine whether loading the region from the region provider chain is allowed by the options. True by default.
-     */
-    private boolean useRegionProviderChain() {
-        Boolean configuredToUseRegionProviderChain;
-        configuredToUseRegionProviderChain = awsMutableClientConfiguration.overrideConfiguration()
-                                                                          .advancedOption(ENABLE_DEFAULT_REGION_DETECTION);
-        return configuredToUseRegionProviderChain != null ? configuredToUseRegionProviderChain : true;
+    protected AttributeMap serviceHttpConfig() {
+        return AttributeMap.empty();
     }
 
     @Override
-    public B endpointOverride(URI endpointOverride) {
-        awsMutableClientConfiguration.endpoint(endpointOverride);
-        return thisBuilder();
+    protected final SdkClientConfiguration mergeChildDefaults(SdkClientConfiguration configuration) {
+        SdkClientConfiguration config = mergeServiceDefaults(configuration);
+        return config.merge(c -> c.option(AwsClientOption.AWS_REGION, resolveRegion(config))
+                                  .option(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION, true)
+                                  .option(AwsClientOption.CREDENTIALS_PROVIDER, DefaultCredentialsProvider.create())
+                                  .option(AwsClientOption.SERVICE_SIGNING_NAME, signingName()));
+    }
+
+    /**
+     * Optionally overridden by child classes to define service-specific default configuration.
+     */
+    protected SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration configuration) {
+        return configuration;
     }
 
     @Override
-    public final B overrideConfiguration(ClientOverrideConfiguration overrideConfiguration) {
-        awsMutableClientConfiguration.overrideConfiguration(overrideConfiguration);
-        return thisBuilder();
+    protected final SdkClientConfiguration finalizeChildConfiguration(SdkClientConfiguration configuration) {
+        SdkClientConfiguration config = configuration.toBuilder()
+                                                     .option(SdkClientOption.ENDPOINT, resolveEndpoint(configuration))
+                                                     .option(AwsClientOption.SIGNING_REGION, resolveSigningRegion(configuration))
+                                                     .build();
+        return finalizeServiceConfiguration(config);
+    }
+
+    /**
+     * Optionally overridden by child classes to derive service-specific configuration from the default-applied configuration.
+     */
+    protected SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration configuration) {
+        return configuration;
+    }
+
+    /**
+     * Resolve the signing region from the default-applied configuration.
+     */
+    private Region resolveSigningRegion(SdkClientConfiguration config) {
+        return ServiceMetadata.of(serviceEndpointPrefix())
+                              .signingRegion(config.option(AwsClientOption.AWS_REGION));
+    }
+
+    /**
+     * Resolve the endpoint from the default-applied configuration.
+     */
+    private URI resolveEndpoint(SdkClientConfiguration config) {
+        return Optional.ofNullable(config.option(SdkClientOption.ENDPOINT))
+                       .orElseGet(() -> EndpointUtils.buildEndpoint(DEFAULT_ENDPOINT_PROTOCOL,
+                                                                    serviceEndpointPrefix(),
+                                                                    config.option(AwsClientOption.AWS_REGION)));
     }
 
     /**
      * Resolve the region that should be used based on the customer's configuration.
      */
-    private Optional<Region> resolveRegion() {
-        return region != null ? Optional.of(region) : regionFromDefaultProvider();
+    private Region resolveRegion(SdkClientConfiguration config) {
+        return config.option(AwsClientOption.AWS_REGION) != null
+               ? config.option(AwsClientOption.AWS_REGION)
+               : regionFromDefaultProvider(config);
     }
 
     /**
-     * Load the endpoint from the resolved region.
+     * Load the region from the default region provider if enabled.
      */
-    private Optional<URI> endpointFromRegion() {
-        return resolveRegion().map(r -> EndpointUtils.buildEndpoint(DEFAULT_ENDPOINT_PROTOCOL, serviceEndpointPrefix(), r));
+    private Region regionFromDefaultProvider(SdkClientConfiguration config) {
+        Boolean defaultRegionDetectionEnabled = config.option(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION);
+        if (defaultRegionDetectionEnabled != null && !defaultRegionDetectionEnabled) {
+            throw new IllegalStateException("No region was configured, and use-region-provider-chain was disabled.");
+        }
+        return DEFAULT_REGION_PROVIDER.getRegion();
     }
 
     @Override
     public final B region(Region region) {
-        this.region = region;
+        clientConfiguration.option(AwsClientOption.AWS_REGION, region);
         return thisBuilder();
     }
 
@@ -253,7 +177,7 @@ public abstract class AwsDefaultClientBuilder<B extends AwsClientBuilder<B, C>, 
 
     @Override
     public final B credentialsProvider(AwsCredentialsProvider credentialsProvider) {
-        awsMutableClientConfiguration.credentialsProvider(credentialsProvider);
+        clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER, credentialsProvider);
         return thisBuilder();
     }
 

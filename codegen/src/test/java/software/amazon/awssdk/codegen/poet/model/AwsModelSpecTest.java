@@ -38,6 +38,7 @@ import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
 @RunWith(Parameterized.class)
 public class AwsModelSpecTest {
     private static IntermediateModel intermediateModel;
+
     private final ShapeModel shapeModel;
 
     @Parameterized.Parameters(name = "{0}")
@@ -64,11 +65,13 @@ public class AwsModelSpecTest {
         File customizationConfigFile = new File(AwsModelSpecTest.class
                                                     .getResource("customization.config")
                                                     .getFile());
+        ServiceModel serviceModel = ModelLoaderUtils.loadModel(ServiceModel.class, serviceModelFile);
+        CustomizationConfig basicConfig = ModelLoaderUtils.loadModel(CustomizationConfig.class, customizationConfigFile);
 
         intermediateModel = new IntermediateModelBuilder(
             C2jModels.builder()
-                     .serviceModel(ModelLoaderUtils.loadModel(ServiceModel.class, serviceModelFile))
-                     .customizationConfig(ModelLoaderUtils.loadModel(CustomizationConfig.class, customizationConfigFile))
+                     .serviceModel(serviceModel)
+                     .customizationConfig(basicConfig)
                      .build())
             .build();
     }

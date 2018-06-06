@@ -15,21 +15,44 @@
 
 package software.amazon.awssdk.core.client.builder;
 
+import static software.amazon.awssdk.core.config.options.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
+import static software.amazon.awssdk.core.config.options.SdkAdvancedClientOption.SIGNER;
+import static software.amazon.awssdk.core.config.options.SdkAdvancedClientOption.USER_AGENT_PREFIX;
+import static software.amazon.awssdk.core.config.options.SdkAdvancedClientOption.USER_AGENT_SUFFIX;
+import static software.amazon.awssdk.core.config.options.SdkClientOption.ADDITIONAL_HTTP_HEADERS;
+import static software.amazon.awssdk.core.config.options.SdkClientOption.ASYNC_HTTP_CLIENT;
+import static software.amazon.awssdk.core.config.options.SdkClientOption.ASYNC_RETRY_EXECUTOR_SERVICE;
+import static software.amazon.awssdk.core.config.options.SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
+import static software.amazon.awssdk.core.config.options.SdkClientOption.EXECUTION_INTERCEPTORS;
+import static software.amazon.awssdk.core.config.options.SdkClientOption.GZIP_ENABLED;
+import static software.amazon.awssdk.core.config.options.SdkClientOption.RETRY_POLICY;
+import static software.amazon.awssdk.utils.CollectionUtils.mergeLists;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.core.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.config.SdkImmutableAsyncClientConfiguration;
-import software.amazon.awssdk.core.config.SdkImmutableSyncClientConfiguration;
-import software.amazon.awssdk.core.config.SdkMutableClientConfiguration;
-import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
-import software.amazon.awssdk.core.config.defaults.SdkClientConfigurationDefaults;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.config.options.SdkClientOption;
+import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
+import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.util.UserAgentUtils;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
@@ -43,6 +66,7 @@ import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
+import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -67,16 +91,12 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     private static final SdkHttpClient.Builder DEFAULT_HTTP_CLIENT_BUILDER = new DefaultSdkHttpClientBuilder();
     private static final SdkAsyncHttpClient.Builder DEFAULT_ASYNC_HTTP_CLIENT_BUILDER = new DefaultSdkAsyncHttpClientBuilder();
 
-    protected ExecutorProvider asyncExecutorProvider;
+    protected final SdkClientConfiguration.Builder clientConfiguration = SdkClientConfiguration.builder();
 
     private final SdkHttpClient.Builder defaultHttpClientBuilder;
     private final SdkAsyncHttpClient.Builder defaultAsyncHttpClientBuilder;
 
-    private SdkMutableClientConfiguration mutableClientConfiguration = new SdkMutableClientConfiguration();
-
-    private SdkHttpClient httpClient;
     private SdkHttpClient.Builder httpClientBuilder;
-    private SdkAsyncHttpClient asyncHttpClient;
     private SdkAsyncHttpClient.Builder asyncHttpClientBuilder;
 
     protected SdkDefaultClientBuilder() {
@@ -109,150 +129,205 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     protected abstract C buildClient();
 
     /**
-     * An optional hook that can be overridden by service client builders to set service-specific defaults.
-     *
-     * @return The service defaults that should be applied.
+     * Return a client configuration object, populated with the following chain of priorities.
+     * <ol>
+     * <li>Customer Configuration</li>
+     * <li>Service-Specific Defaults</li>
+     * <li>Global Defaults</li>
+     * </ol>
      */
-    protected SdkClientConfigurationDefaults serviceDefaults() {
-        return new SdkClientConfigurationDefaults() {
-        };
+    protected final SdkClientConfiguration syncClientConfiguration() {
+        SdkClientConfiguration configuration = clientConfiguration.build();
+
+        // Apply defaults
+        configuration = mergeChildDefaults(configuration);
+        configuration = mergeGlobalDefaults(configuration);
+
+        // Create additional configuration from the default-applied configuration
+        configuration = finalizeChildConfiguration(configuration);
+        configuration = finalizeSyncConfiguration(configuration);
+        configuration = finalizeConfiguration(configuration);
+
+        return configuration;
     }
 
     /**
-     * An optional hook that can be overridden by service client builders to supply service-specific defaults for HTTP related
-     * configuraton.
-     *
-     * @return The service defaults that should be applied.
+     * Return a client configuration object, populated with the following chain of priorities.
+     * <ol>
+     * <li>Customer Configuration</li>
+     * <li>Implementation/Service-Specific Configuration</li>
+     * <li>Global Default Configuration</li>
+     * </ol>
      */
-    protected AttributeMap serviceSpecificHttpConfig() {
+    protected final SdkClientConfiguration asyncClientConfiguration() {
+        SdkClientConfiguration configuration = clientConfiguration.build();
+
+        // Apply defaults
+        configuration = mergeChildDefaults(configuration);
+        configuration = mergeGlobalDefaults(configuration);
+
+        // Create additional configuration from the default-applied configuration
+        configuration = finalizeChildConfiguration(configuration);
+        configuration = finalizeAsyncConfiguration(configuration);
+        configuration = finalizeConfiguration(configuration);
+
+        return configuration;
+    }
+
+    /**
+     * Optionally overridden by child implementations to apply implementation-specific default configuration.
+     * (eg. AWS's default credentials providers)
+     */
+    protected SdkClientConfiguration mergeChildDefaults(SdkClientConfiguration configuration) {
+        return configuration;
+    }
+
+    /**
+     * Apply global default configuration
+     */
+    private SdkClientConfiguration mergeGlobalDefaults(SdkClientConfiguration configuration) {
+        return configuration.merge(c -> c.option(GZIP_ENABLED, false)
+                                         .option(EXECUTION_INTERCEPTORS, new ArrayList<>())
+                                         .option(ADDITIONAL_HTTP_HEADERS, new LinkedHashMap<>())
+                                         .option(RETRY_POLICY, RetryPolicy.DEFAULT)
+                                         .option(USER_AGENT_PREFIX, UserAgentUtils.getUserAgent())
+                                         .option(USER_AGENT_SUFFIX, "")
+                                         .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+    }
+
+    /**
+     * Optionally overidden by child implementations to derive implementation-specific configuration from the default-applied
+     * configuration. (eg. AWS's endpoint, derived from the region).
+     */
+    protected SdkClientConfiguration finalizeChildConfiguration(SdkClientConfiguration configuration) {
+        return configuration;
+    }
+
+    /**
+     * Finalize sync-specific configuration from the default-applied configuration.
+     */
+    private SdkClientConfiguration finalizeSyncConfiguration(SdkClientConfiguration config) {
+        return config.toBuilder()
+                     .option(SdkClientOption.SYNC_HTTP_CLIENT, resolveSyncHttpClient(config))
+                     .build();
+    }
+
+    /**
+     * Finalize async-specific configuration from the default-applied configuration.
+     */
+    private SdkClientConfiguration finalizeAsyncConfiguration(SdkClientConfiguration config) {
+        return config.toBuilder()
+                     .option(FUTURE_COMPLETION_EXECUTOR, resolveAsyncFutureCompletionExecutor(config))
+                     .option(ASYNC_RETRY_EXECUTOR_SERVICE, resolveAsyncRetryExecutorService(config))
+                     .option(ASYNC_HTTP_CLIENT, resolveAsyncHttpClient(config))
+                     .build();
+    }
+
+    /**
+     * Finalize global configuration from the default-applied configuration.
+     */
+    private SdkClientConfiguration finalizeConfiguration(SdkClientConfiguration config) {
+        return config.toBuilder()
+                     .option(EXECUTION_INTERCEPTORS, resolveExecutionInterceptors(config))
+                     .build();
+    }
+
+    /**
+     * Finalize which sync HTTP client will be used for the created client.
+     */
+    private SdkHttpClient resolveSyncHttpClient(SdkClientConfiguration config) {
+        Validate.isTrue(config.option(SdkClientOption.SYNC_HTTP_CLIENT) == null || httpClientBuilder == null,
+                        "The httpClient and the httpClientBuilder can't both be configured.");
+
+        return Either.fromNullable(config.option(SdkClientOption.SYNC_HTTP_CLIENT), httpClientBuilder)
+                     .map(e -> e.map(NonManagedSdkHttpClient::new, b -> b.buildWithDefaults(childHttpConfig())))
+                     .orElseGet(() -> defaultHttpClientBuilder.buildWithDefaults(childHttpConfig()));
+    }
+
+    /**
+     * Finalize which async HTTP client will be used for the created client.
+     */
+    private SdkAsyncHttpClient resolveAsyncHttpClient(SdkClientConfiguration config) {
+        Validate.isTrue(config.option(ASYNC_HTTP_CLIENT) == null || asyncHttpClientBuilder == null,
+                        "The asyncHttpClient and the asyncHttpClientBuilder can't both be configured.");
+        return Either.fromNullable(config.option(ASYNC_HTTP_CLIENT), asyncHttpClientBuilder)
+                     .map(e -> e.map(NonManagedSdkAsyncHttpClient::new, b -> b.buildWithDefaults(childHttpConfig())))
+                     .orElseGet(() -> defaultAsyncHttpClientBuilder.buildWithDefaults(childHttpConfig()));
+    }
+
+    /**
+     * Optionally overridden by child implementations to provide implementation-specific default HTTP configuration.
+     */
+    protected AttributeMap childHttpConfig() {
         return AttributeMap.empty();
     }
 
     /**
-     * Return a sync client configuration object, populated with the following chain of priorities.
-     * <ol>
-     * <li>Customer Configuration</li>
-     * <li>Builder-Specific Default Configuration</li>
-     * <li>Service-Specific Default Configuration</li>
-     * <li>Global Default Configuration</li>
-     * </ol>
+     * Finalize which async executor service will be used for the created client.
      */
-    protected SdkImmutableSyncClientConfiguration syncClientConfiguration() {
-        SdkMutableClientConfiguration configuration = mutableClientConfiguration.clone();
-        builderDefaults().applySyncDefaults(configuration);
-        serviceDefaults().applySyncDefaults(configuration);
-        new GlobalClientConfigurationDefaults().applySyncDefaults(configuration);
-        applySdkHttpClient(configuration);
-        return new SdkImmutableSyncClientConfiguration(configuration);
+    private Executor resolveAsyncFutureCompletionExecutor(SdkClientConfiguration config) {
+        Supplier<Executor> defaultExecutor = () ->
+                new ThreadPoolExecutor(0, 50,
+                                       10, TimeUnit.SECONDS,
+                                       new LinkedBlockingQueue<>(10_000),
+                                       new ThreadFactoryBuilder().threadNamePrefix("sdk-async-response").build());
+
+        return Optional.ofNullable(config.option(FUTURE_COMPLETION_EXECUTOR))
+                       .orElseGet(defaultExecutor);
     }
 
     /**
-     * Return an async client configuration object, populated with the following chain of priorities.
-     * <ol>
-     * <li>Customer Configuration</li>
-     * <li>Builder-Specific Default Configuration</li>
-     * <li>Service-Specific Default Configuration</li>
-     * <li>Global Default Configuration</li>
-     * </ol>
+     * Finalize which async executor service will be used for retries in the created client.
      */
-    protected SdkImmutableAsyncClientConfiguration asyncClientConfiguration() {
-        SdkMutableClientConfiguration configuration = mutableClientConfiguration.clone();
-        builderDefaults().applyAsyncDefaults(configuration);
-        serviceDefaults().applyAsyncDefaults(configuration);
-        new GlobalClientConfigurationDefaults().applyAsyncDefaults(configuration);
-        applySdkAsyncHttpClient(configuration);
-        return new SdkImmutableAsyncClientConfiguration(configuration);
-    }
-
-    protected void applySdkHttpClient(SdkMutableClientConfiguration config) {
-        config.httpClient(resolveSdkHttpClient());
-    }
-
-    private SdkHttpClient resolveSdkHttpClient() {
-        Validate.isTrue(httpClient == null || httpClientBuilder == null,
-                        "The httpClient and the httpClientBuilder can't both be configured.");
-        return Either.fromNullable(httpClient, httpClientBuilder)
-                     .map(e -> e.map(NonManagedSdkHttpClient::new, b -> b.buildWithDefaults(serviceSpecificHttpConfig())))
-                     .orElseGet(() -> defaultHttpClientBuilder.buildWithDefaults(serviceSpecificHttpConfig()));
-    }
-
-    protected void applySdkAsyncHttpClient(SdkMutableClientConfiguration config) {
-        config.asyncHttpClient(resolveSdkAsyncHttpClient());
-    }
-
-    private SdkAsyncHttpClient resolveSdkAsyncHttpClient() {
-        Validate.isTrue(asyncHttpClient == null || asyncHttpClientBuilder == null,
-                        "The asyncHttpClient and the asyncHttpClientBuilder can't both be configured.");
-        return Either.fromNullable(asyncHttpClient, asyncHttpClientBuilder)
-                     .map(e -> e.map(NonManagedSdkAsyncHttpClient::new, b -> b.buildWithDefaults(serviceSpecificHttpConfig())))
-                     .orElseGet(() -> defaultAsyncHttpClientBuilder.buildWithDefaults(serviceSpecificHttpConfig()));
+    private ScheduledExecutorService resolveAsyncRetryExecutorService(SdkClientConfiguration config) {
+        return Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().threadNamePrefix("sdk-retry").build());
     }
 
     /**
-     * Add builder-specific configuration on top of the customer-defined configuration, if needed. Specifically, if the customer
-     * has specified a region in place of an endpoint, this will determine the endpoint to be used for AWS communication.
+     * Finalize which execution interceptors will be used for the created client.
      */
-    protected SdkClientConfigurationDefaults builderDefaults() {
-        return new SdkClientConfigurationDefaults() {
-            /**
-             * If the customer did not specify an endpoint themselves, attempt to generate one automatically.
-             */
-            @Override
-            protected URI getEndpointDefault() {
-                return resolveEndpoint().orElse(null);
-            }
-
-            /**
-             * Create the async executor service that should be used for async client executions.
-             */
-            @Override
-            protected ScheduledExecutorService getAsyncExecutorDefault() {
-                return Optional.ofNullable(asyncExecutorProvider).map(ExecutorProvider::get).orElse(null);
-            }
-        };
-    }
-
-    /**
-     * Resolve the service endpoint that should be used based on the customer's configuration.
-     */
-    protected Optional<URI> resolveEndpoint() {
-        URI configuredEndpoint = mutableClientConfiguration.endpoint();
-        return configuredEndpoint != null ? Optional.of(configuredEndpoint) : Optional.empty();
+    private List<ExecutionInterceptor> resolveExecutionInterceptors(SdkClientConfiguration config) {
+        List<ExecutionInterceptor> globalInterceptors = new ClasspathInterceptorChainFactory().getGlobalInterceptors();
+        return mergeLists(globalInterceptors, config.option(EXECUTION_INTERCEPTORS));
     }
 
     @Override
-    public B endpointOverride(URI endpointOverride) {
-        mutableClientConfiguration.endpoint(endpointOverride);
+    public final B endpointOverride(URI endpointOverride) {
+        clientConfiguration.option(SdkClientOption.ENDPOINT, endpointOverride);
         return thisBuilder();
     }
 
-    public void setEndpointOverride(URI endpointOverride) {
+    public final void setEndpointOverride(URI endpointOverride) {
         endpointOverride(endpointOverride);
     }
 
-    public B asyncExecutorProvider(ExecutorProvider asyncExecutorProvider) {
-        this.asyncExecutorProvider = asyncExecutorProvider;
+    public final B asyncConfiguration(ClientAsyncConfiguration asyncConfiguration) {
+        clientConfiguration.option(FUTURE_COMPLETION_EXECUTOR, asyncConfiguration.advancedOption(FUTURE_COMPLETION_EXECUTOR));
         return thisBuilder();
     }
 
-    public void setAsyncExecutorProvider(ExecutorProvider asyncExecutorProvider) {
-        asyncExecutorProvider(asyncExecutorProvider);
+    public final void setAsyncConfiguration(ClientAsyncConfiguration asyncConfiguration) {
+        asyncConfiguration(asyncConfiguration);
     }
-
-    // Getters and setters that just delegate to the mutable client configuration
 
     @Override
-    public B overrideConfiguration(ClientOverrideConfiguration overrideConfiguration) {
-        mutableClientConfiguration.overrideConfiguration(overrideConfiguration);
+    public final B overrideConfiguration(ClientOverrideConfiguration overrideConfig) {
+        clientConfiguration.option(EXECUTION_INTERCEPTORS, overrideConfig.executionInterceptors());
+        clientConfiguration.option(RETRY_POLICY, overrideConfig.retryPolicy());
+        clientConfiguration.option(ADDITIONAL_HTTP_HEADERS, overrideConfig.additionalHttpHeaders());
+        clientConfiguration.option(GZIP_ENABLED, overrideConfig.gzipEnabled());
+        clientConfiguration.option(SIGNER, overrideConfig.advancedOption(SIGNER));
+        clientConfiguration.option(USER_AGENT_SUFFIX, overrideConfig.advancedOption(USER_AGENT_SUFFIX));
+        clientConfiguration.option(USER_AGENT_PREFIX, overrideConfig.advancedOption(USER_AGENT_PREFIX));
         return thisBuilder();
     }
 
-    public void setOverrideConfiguration(ClientOverrideConfiguration overrideConfiguration) {
+    public final void setOverrideConfiguration(ClientOverrideConfiguration overrideConfiguration) {
         overrideConfiguration(overrideConfiguration);
     }
 
     public final B httpClient(SdkHttpClient httpClient) {
-        this.httpClient = httpClient;
+        clientConfiguration.option(SdkClientOption.SYNC_HTTP_CLIENT, httpClient);
         return thisBuilder();
     }
 
@@ -262,7 +337,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     }
 
     public final B asyncHttpClient(SdkAsyncHttpClient httpClient) {
-        this.asyncHttpClient = httpClient;
+        clientConfiguration.option(ASYNC_HTTP_CLIENT, httpClient);
         return thisBuilder();
     }
 
@@ -284,7 +359,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * an already built client in which case they are responsible for the lifecycle of it.
      */
     @SdkTestInternalApi
-    public static class NonManagedSdkHttpClient implements SdkHttpClient {
+    public static final class NonManagedSdkHttpClient implements SdkHttpClient {
 
         private final SdkHttpClient delegate;
 
@@ -314,7 +389,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * an already built client in which case they are responsible for the lifecycle of it.
      */
     @SdkTestInternalApi
-    public static class NonManagedSdkAsyncHttpClient implements SdkAsyncHttpClient {
+    public static final class NonManagedSdkAsyncHttpClient implements SdkAsyncHttpClient {
 
         private final SdkAsyncHttpClient delegate;
 

@@ -48,7 +48,7 @@ public class Aws4SignerTest {
     private Aws4Signer signer = Aws4Signer.create();
 
     @Mock
-    private Clock signingDateOverrideClock;
+    private Clock signingOverrideClock;
 
     @Before
     public void setupCase() {
@@ -73,7 +73,7 @@ public class Aws4SignerTest {
         SdkHttpFullRequest.Builder request = generateBasicRequest();
 
         SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.build(), credentials,
-                                                                "demo", signingDateOverrideClock, "us-east-1");
+                                                                "demo", signingOverrideClock, "us-east-1");
         assertThat(signed.firstMatchingHeader("Authorization"))
                 .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
 
@@ -82,7 +82,7 @@ public class Aws4SignerTest {
         request = generateBasicRequest();
         request.header("x-amz-sha256", "required");
 
-        signed = SignerTestUtils.signRequest(signer, request.build(), credentials, "demo", signingDateOverrideClock, "us-east-1");
+        signed = SignerTestUtils.signRequest(signer, request.build(), credentials, "demo", signingOverrideClock, "us-east-1");
         assertThat(signed.firstMatchingHeader("Authorization")).hasValue(expectedAuthorizationHeaderWithSha256Header);
     }
 
@@ -98,7 +98,7 @@ public class Aws4SignerTest {
         SdkHttpFullRequest.Builder request = generateBasicRequest().rawQueryParameter("Foo", (String) null);
 
         SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.build(), credentials,
-                                                                "demo", signingDateOverrideClock, "us-east-1");
+                                                                "demo", signingOverrideClock, "us-east-1");
         assertThat(signed.firstMatchingHeader("Authorization"))
                 .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
     }
@@ -116,7 +116,7 @@ public class Aws4SignerTest {
         SdkHttpFullRequest request = generateBasicRequest().build();
 
         SdkHttpFullRequest signed = SignerTestUtils.presignRequest(signer, request, credentials, null, "demo",
-                                                                   signingDateOverrideClock, "us-east-1");
+                                                                   signingOverrideClock, "us-east-1");
         assertEquals(expectedAmzSignature, signed.rawQueryParameters().get("X-Amz-Signature").get(0));
         assertEquals(expectedAmzCredentials, signed.rawQueryParameters().get("X-Amz-Credential").get(0));
         assertEquals(expectedAmzHeader, signed.rawQueryParameters().get("X-Amz-Date").get(0));
@@ -131,7 +131,7 @@ public class Aws4SignerTest {
         AwsCredentials credentials = AnonymousCredentialsProvider.create().getCredentials();
         SdkHttpFullRequest request = generateBasicRequest().build();
 
-        SignerTestUtils.signRequest(signer, request, credentials, "demo", signingDateOverrideClock, "us-east-1");
+        SignerTestUtils.signRequest(signer, request, credentials, "demo", signingOverrideClock, "us-east-1");
 
         assertNull(request.headers().get("Authorization"));
     }
@@ -145,7 +145,7 @@ public class Aws4SignerTest {
         SdkHttpFullRequest.Builder request = generateBasicRequest();
         request.header("X-Amzn-Trace-Id", " Root=1-584b150a-708479cb060007ffbf3ee1da;Parent=36d3dbcfd150aac9;Sampled=1");
 
-        SdkHttpFullRequest actual = SignerTestUtils.signRequest(signer, request.build(), credentials, "demo", signingDateOverrideClock, "us-east-1");
+        SdkHttpFullRequest actual = SignerTestUtils.signRequest(signer, request.build(), credentials, "demo", signingOverrideClock, "us-east-1");
 
         assertThat(actual.firstMatchingHeader("Authorization"))
                 .hasValue("AWS4-HMAC-SHA256 Credential=akid/19810216/us-east-1/demo/aws4_request, " +
@@ -169,7 +169,7 @@ public class Aws4SignerTest {
         c.set(1981, 1, 16, 6, 30, 0);
         c.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        when(signingDateOverrideClock.millis()).thenReturn(c.getTimeInMillis());
+        when(signingOverrideClock.millis()).thenReturn(c.getTimeInMillis());
     }
 
     private String getOldTimeStamp(Date date) {

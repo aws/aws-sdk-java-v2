@@ -16,17 +16,20 @@
 package software.amazon.awssdk.http.apache.internal;
 
 import java.time.Duration;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 
 /**
  * Default configuration values.
  */
-@ReviewBeforeRelease("These values")
 public final class Defaults {
 
+    /**
+     * The default maximum idle time (in milliseconds) for a connection to be idle in the connection pool and
+     * still be eligible for reuse.
+     */
     public static final Duration MAX_IDLE_CONNECTION_TIME = Duration.ofSeconds(60);
 
     /**
+     * The default expiration time for a connection in the connection pool.
      * A value of -1 means infinite TTL in Apache.
      */
     public static final Duration CONNECTION_POOL_TTL = Duration.ofMillis(-1);

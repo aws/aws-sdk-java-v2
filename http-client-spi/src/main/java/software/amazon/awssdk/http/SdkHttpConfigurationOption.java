@@ -94,7 +94,6 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
 
     private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP1_1;
 
-    @ReviewBeforeRelease("Confirm defaults")
     public static final AttributeMap GLOBAL_HTTP_DEFAULTS = AttributeMap
             .builder()
             .put(READ_TIMEOUT, DEFAULT_SOCKET_READ_TIMEOUT)

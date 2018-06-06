@@ -76,10 +76,9 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_REGION("aws.region", null),
 
     /**
-     * Whether the default configuration applied to AWS clients should be optimized for services within the same region.
-     * This will usually include lower request timeouts because requests do not need to travel outside of the AWS network.
+     * Whether to load information such as credentials, regions from EC2 Metadata instance service.
      */
-    AWS_IN_REGION_OPTIMIZATION_ENABLED("aws.inRegionOptimizationEnabled", "false"),
+    AWS_EC2_METADATA_DISABLED("aws.disableEc2Metadata", "false"),
 
     /**
      * The EC2 instance metadata service endpoint.

@@ -180,37 +180,41 @@ public final class RunnableRequest implements AbortableRunnable {
 
     private String getMessageForAcquireTimeoutException() {
         return "Acquire operation took longer than the configured maximum time. This indicates that a request cannot get a "
-               + "connection from the pool within the specified maximum time. This can be due to high request rate.\n" +
-               "Consider taking any of the following actions to mitigate the issue: increase max connections, "
-               + "increase acquire timeout, or slowing the request rate.\n" +
-               "Increasing the max connections can increase client throughput (unless the network interface is already "
-               + "fully utilized), but can eventually start to hit operation system limitations on the number of file "
-               + "descriptors used by the process. If you already are fully utilizing your network interface or cannot "
-               + "further increase your connection count, increasing the acquire timeout gives extra time for requests to "
-               + "acquire a connection before timing out. If the connections doesn't free up, the subsequent requests "
-               + "will still timeout.\n" +
-               "If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
-               + "traffic bursts cannot overload the client, being more efficient with the number of times you need to "
-               + "call AWS, or by increasing the number of hosts sending requests.";
+                + "connection from the pool within the specified maximum time. This can be due to high request rate.\n"
 
+                + "Consider taking any of the following actions to mitigate the issue: increase max connections, "
+                + "increase acquire timeout, or slowing the request rate.\n"
+
+                + "Increasing the max connections can increase client throughput (unless the network interface is already "
+                + "fully utilized), but can eventually start to hit operation system limitations on the number of file "
+                + "descriptors used by the process. If you already are fully utilizing your network interface or cannot "
+                + "further increase your connection count, increasing the acquire timeout gives extra time for requests to "
+                + "acquire a connection before timing out. If the connections doesn't free up, the subsequent requests "
+                + "will still timeout.\n"
+
+                + "If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
+                + "traffic bursts cannot overload the client, being more efficient with the number of times you need to "
+                + "call AWS, or by increasing the number of hosts sending requests.";
     }
 
     private String getMessageForTooManyAcquireOperationsError() {
-        return "Maximum pending connection acquisitions exceeded. The request rate is too high for the client to keep up.\n" +
-               "Consider taking any of the following actions to mitigate the issue: increase max connections, "
-               + "increase max pending acquire count, decrease pool lease timeout, or slowing the request rate.\n" +
-               "Increasing the max connections can increase client throughput (unless the network interface is already "
-               + "fully utilized), but can eventually start to hit operation system limitations on the number of file "
-               + "descriptors used by the process. If you already are fully utilizing your network interface or cannot "
-               + "further increase your connection count, increasing the pending acquire count allows extra requests to be "
-               + "buffered by the client, but can cause additional request latency and higher memory usage. If your request"
-               + " latency or memory usage is already too high, decreasing the lease timeout will allow requests to fail "
-               + "more quickly, reducing the number of pending connection acquisitions, but likely won't decrease the total "
-               + "number of failed requests.\n" +
-               "If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
-               + "traffic bursts cannot overload the client, being more efficient with the number of times you need to call "
-               + "AWS, or by increasing the number of hosts sending requests.";
+        return "Maximum pending connection acquisitions exceeded. The request rate is too high for the client to keep up.\n"
 
+                + "Consider taking any of the following actions to mitigate the issue: increase max connections, "
+                + "increase max pending acquire count, decrease pool lease timeout, or slowing the request rate.\n"
+
+                + "Increasing the max connections can increase client throughput (unless the network interface is already "
+                + "fully utilized), but can eventually start to hit operation system limitations on the number of file "
+                + "descriptors used by the process. If you already are fully utilizing your network interface or cannot "
+                + "further increase your connection count, increasing the pending acquire count allows extra requests to be "
+                + "buffered by the client, but can cause additional request latency and higher memory usage. If your request"
+                + " latency or memory usage is already too high, decreasing the lease timeout will allow requests to fail "
+                + "more quickly, reducing the number of pending connection acquisitions, but likely won't decrease the total "
+                + "number of failed requests.\n"
+
+                + "If the above mechanisms are not able to fix the issue, try smoothing out your requests so that large "
+                + "traffic bursts cannot overload the client, being more efficient with the number of times you need to call "
+                + "AWS, or by increasing the number of hosts sending requests.";
     }
 
     private static void closeAndRelease(Channel channel) {

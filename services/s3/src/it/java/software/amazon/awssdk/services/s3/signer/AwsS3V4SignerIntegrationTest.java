@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.s3.signer;
 
 import static org.junit.Assert.assertEquals;
-import static software.amazon.awssdk.core.config.SdkAdvancedClientOption.SIGNER;
+import static software.amazon.awssdk.core.config.options.SdkAdvancedClientOption.SIGNER;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.IOException;
@@ -44,9 +44,9 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.AwsS3V4Signer;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -55,7 +55,6 @@ import software.amazon.awssdk.utils.IoUtils;
 public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
 
     private static final AwsCredentials awsCredentials = CREDENTIALS_PROVIDER_CHAIN.getCredentials();
-    private static final Region REGION = Region.US_WEST_2;
     private static final String SIGNING_NAME = "s3";
     private static final String BUCKET_NAME = temporaryBucketName("s3-signer-integ-test");
     private static final String KEY = "test-key";
@@ -86,13 +85,11 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
 
     @Test (expected = S3Exception.class)
     public void test_UsingSdkClient_WithIncorrectSigner_SetInConfig() {
-        S3Client customClient = S3Client.builder()
-                                        .region(Region.US_WEST_2)
-                                        .overrideConfiguration(
-                                            ClientOverrideConfiguration.builder()
-                                                                       .advancedOption(SIGNER, Aws4Signer.create())
-                                                                       .build())
-                                        .build();
+        S3Client customClient = getClientBuilder()
+            .overrideConfiguration(ClientOverrideConfiguration.builder()
+                                                              .advancedOption(SIGNER, Aws4Signer.create())
+                                                              .build())
+            .build();
 
        customClient.getObjectAsBytes(req -> req.bucket(BUCKET_NAME).key(KEY))
                    .asString(StandardCharsets.UTF_8);
@@ -100,13 +97,11 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
 
     @Test
     public void test_UsingSdkClient_WithCorrectSigner_SetInConfig() {
-        S3Client customClient = S3Client.builder()
-                                        .region(Region.US_WEST_2)
-                                        .overrideConfiguration(
-                                            ClientOverrideConfiguration.builder()
-                                                                       .advancedOption(SIGNER, AwsS3V4Signer.create())
-                                                                       .build())
-                                        .build();
+        S3Client customClient = getClientBuilder()
+            .overrideConfiguration(ClientOverrideConfiguration.builder()
+                                                              .advancedOption(SIGNER, AwsS3V4Signer.create())
+                                                              .build())
+            .build();
 
         String response = customClient.getObjectAsBytes(req -> req.bucket(BUCKET_NAME).key(KEY))
                                       .asString(StandardCharsets.UTF_8);
@@ -195,7 +190,7 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
     }
 
     private String getHost() {
-        return String.format("%s.s3-%s.amazonaws.com", BUCKET_NAME, REGION.value());
+        return String.format("%s.s3-%s.amazonaws.com", BUCKET_NAME, DEFAULT_REGION.value());
     }
 
     private String getPath() {
@@ -207,7 +202,7 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
                                   .doubleUrlEncode(Boolean.FALSE)
                                   .awsCredentials(awsCredentials)
                                   .signingName(SIGNING_NAME)
-                                  .signingRegion(REGION)
+                                  .signingRegion(DEFAULT_REGION)
                                   .build();
     }
 
@@ -216,7 +211,7 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
                                   .doubleUrlEncode(Boolean.FALSE)
                                   .awsCredentials(awsCredentials)
                                   .signingName(SIGNING_NAME)
-                                  .signingRegion(REGION)
+                                  .signingRegion(DEFAULT_REGION)
                                   .build();
     }
 
@@ -224,6 +219,12 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
         return new ExecutionAttributes()
             .putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, awsCredentials)
             .putAttribute(AwsExecutionAttributes.SERVICE_SIGNING_NAME, SIGNING_NAME)
-            .putAttribute(AwsExecutionAttributes.SIGNING_REGION, REGION);
+            .putAttribute(AwsExecutionAttributes.SIGNING_REGION, DEFAULT_REGION);
+    }
+
+    private static S3ClientBuilder getClientBuilder() {
+        return S3Client.builder()
+                       .region(DEFAULT_REGION)
+                       .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
     }
 }

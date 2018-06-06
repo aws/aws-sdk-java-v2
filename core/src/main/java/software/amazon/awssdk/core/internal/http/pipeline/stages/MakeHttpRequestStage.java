@@ -15,7 +15,8 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
-import software.amazon.awssdk.core.internal.http.HttpSyncClientDependencies;
+import software.amazon.awssdk.core.config.options.SdkClientOption;
+import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
@@ -34,8 +35,8 @@ public class MakeHttpRequestStage
 
     private final SdkHttpClient sdkHttpClient;
 
-    public MakeHttpRequestStage(HttpSyncClientDependencies dependencies) {
-        this.sdkHttpClient = dependencies.syncClientConfiguration().httpClient();
+    public MakeHttpRequestStage(HttpClientDependencies dependencies) {
+        this.sdkHttpClient = dependencies.clientConfiguration().option(SdkClientOption.SYNC_HTTP_CLIENT);
     }
 
     /**

@@ -99,6 +99,13 @@
             <artifactId>assertj-core</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.reactivestreams</groupId>
+            <artifactId>reactive-streams-tck</artifactId>
+            <version>${reactive-streams.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

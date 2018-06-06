@@ -6,18 +6,18 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.Generated;
+import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
 
 @Generated("software.amazon.awssdk:codegen")
 final class ListOfListOfListOfStringsCopier {
     static List<List<List<String>>> copy(
             Collection<? extends Collection<? extends Collection<String>>> listOfListOfListOfStringsParam) {
-        if (listOfListOfListOfStringsParam == null) {
-            return null;
+        if (listOfListOfListOfStringsParam == null || listOfListOfListOfStringsParam instanceof SdkAutoConstructList) {
+            return DefaultSdkAutoConstructList.getInstance();
         }
         List<List<List<String>>> listOfListOfListOfStringsParamCopy = listOfListOfListOfStringsParam.stream()
-                                                                                                    .map(ListOfListOfStringsCopier::copy)
-                                                                                                    .collect(toList());
+                .map(ListOfListOfStringsCopier::copy).collect(toList());
         return Collections.unmodifiableList(listOfListOfListOfStringsParamCopy);
     }
 }
-

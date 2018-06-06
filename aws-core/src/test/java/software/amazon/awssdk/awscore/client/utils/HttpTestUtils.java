@@ -15,15 +15,18 @@
 
 package software.amazon.awssdk.awscore.client.utils;
 
-import java.time.Duration;
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.config.SdkMutableClientConfiguration;
-import software.amazon.awssdk.core.config.defaults.GlobalClientConfigurationDefaults;
+import java.util.concurrent.Executors;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.config.options.SdkAdvancedAsyncClientOption;
+import software.amazon.awssdk.core.config.options.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.config.options.SdkClientOption;
 import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -42,11 +45,25 @@ public class HttpTestUtils {
         return new TestClientBuilder();
     }
 
+    public static SdkClientConfiguration testClientConfiguration() {
+        return SdkClientConfiguration.builder()
+                                     .option(SdkClientOption.EXECUTION_INTERCEPTORS, new ArrayList<>())
+                                     .option(SdkClientOption.ENDPOINT, URI.create("http://localhost:8080"))
+                                     .option(SdkClientOption.RETRY_POLICY, RetryPolicy.DEFAULT)
+                                     .option(SdkClientOption.GZIP_ENABLED, false)
+                                     .option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, new HashMap<>())
+                                     .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+                                     .option(SdkAdvancedClientOption.SIGNER, new NoOpSigner())
+                                     .option(SdkAdvancedClientOption.USER_AGENT_PREFIX, "")
+                                     .option(SdkAdvancedClientOption.USER_AGENT_SUFFIX, "")
+                                     .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, Runnable::run)
+                                     .option(SdkClientOption.ASYNC_RETRY_EXECUTOR_SERVICE, Executors.newScheduledThreadPool(1))
+                                     .build();
+    }
+
     public static class TestClientBuilder {
         private RetryPolicy retryPolicy;
         private SdkHttpClient httpClient;
-        private Map<String, String> additionalHeaders = new HashMap<>();
-        private Duration clientExecutionTimeout = Duration.ofSeconds(5);
 
         public TestClientBuilder retryPolicy(RetryPolicy retryPolicy) {
             this.retryPolicy = retryPolicy;
@@ -58,43 +75,18 @@ public class HttpTestUtils {
             return this;
         }
 
-        public TestClientBuilder additionalHeader(String key, String value) {
-            this.additionalHeaders.put(key, value);
-            return this;
-        }
-
-        public TestClientBuilder clientExecutionTimeout(Duration clientExecutionTimeout) {
-            this.clientExecutionTimeout = clientExecutionTimeout;
-            return this;
-        }
-
         public AmazonSyncHttpClient build() {
             SdkHttpClient sdkHttpClient = this.httpClient != null ? this.httpClient : testSdkHttpClient();
-            ClientOverrideConfiguration overrideConfiguration =
-                    ClientOverrideConfiguration.builder()
-                                               .apply(this::configureRetryPolicy)
-                                               .apply(this::configureAdditionalHeaders)
-                                               .build();
-
-            SdkMutableClientConfiguration clientConfig = new SdkMutableClientConfiguration()
-                    .httpClient(sdkHttpClient)
-                    .overrideConfiguration(overrideConfiguration);
-
-            new GlobalClientConfigurationDefaults().applySyncDefaults(clientConfig);
-
-            return new AmazonSyncHttpClient(clientConfig);
+            return new AmazonSyncHttpClient(testClientConfiguration().toBuilder()
+                                                                     .option(SdkClientOption.SYNC_HTTP_CLIENT, sdkHttpClient)
+                                                                     .apply(this::configureRetryPolicy)
+                                                                     .build());
         }
 
-        private ClientOverrideConfiguration.Builder configureAdditionalHeaders(ClientOverrideConfiguration.Builder builder) {
-            this.additionalHeaders.forEach(builder::addAdditionalHttpHeader);
-            return builder;
-        }
-
-        private ClientOverrideConfiguration.Builder configureRetryPolicy(ClientOverrideConfiguration.Builder builder) {
+        private void configureRetryPolicy(SdkClientConfiguration.Builder builder) {
             if (retryPolicy != null) {
-                builder.retryPolicy(retryPolicy);
+                builder.option(SdkClientOption.RETRY_POLICY, retryPolicy);
             }
-            return builder;
         }
     }
 }

@@ -74,6 +74,7 @@
         <module>test/protocol-tests-core</module>
         <module>test/service-test-utils</module>
         <module>test/test-utils</module>
+        <module>test/codegen-generated-classes-test</module>
         <module>annotations</module>
         <module>utils</module>
         <module>flow</module>
@@ -112,10 +113,15 @@
         <!-- These properties are used by cucumber tests related code -->
         <unitils.version>3.3</unitils.version>
 
+        <!-- Reactive Streams version -->
+        <reactive-streams.version>1.0.2</reactive-streams.version>
+
         <!-- Sonar -->
         <root.offset>..</root.offset>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.jacoco.reportPath>${basedir}/${root.offset}/target/jacoco.exec</sonar.jacoco.reportPath>
+
+        <jimfs.version>1.1</jimfs.version>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
     </properties>
@@ -264,6 +270,23 @@
                 <artifactId>rxjava</artifactId>
                 <version>2.1.9</version>
             </dependency>
+            <dependency>
+                <groupId>org.reactivestreams</groupId>
+                <artifactId>reactive-streams</artifactId>
+                <version>${reactive-streams.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.reactivestreams</groupId>
+                <artifactId>reactive-streams-tck</artifactId>
+                <version>${reactive-streams.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.jimfs</groupId>
+                <artifactId>jimfs</artifactId>
+                <version>${jimfs.version}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -302,7 +325,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.0.2</version>
+                    <version>3.1.1</version>
                 </plugin>
 
                 <plugin>

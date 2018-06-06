@@ -25,6 +25,7 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.RequestClientOptions;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkStandardLoggers;
+import software.amazon.awssdk.core.config.options.SdkClientOption;
 import software.amazon.awssdk.core.exception.ResetException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -58,7 +59,7 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
                           RequestPipeline<SdkHttpFullRequest, Response<OutputT>> requestPipeline) {
         this.dependencies = dependencies;
         this.retryCapacity = dependencies.retryCapacity();
-        this.retryPolicy = dependencies.clientConfiguration().overrideConfiguration().retryPolicy();
+        this.retryPolicy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_POLICY);
         this.requestPipeline = requestPipeline;
     }
 

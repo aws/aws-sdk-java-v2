@@ -18,8 +18,8 @@ package software.amazon.awssdk.core.client;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.ServiceConfiguration;
-import software.amazon.awssdk.core.config.SdkAsyncClientConfiguration;
+import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.config.options.SdkClientOptionValidation;
 import software.amazon.awssdk.core.http.AmazonAsyncHttpClient;
 
 /**
@@ -30,8 +30,8 @@ import software.amazon.awssdk.core.http.AmazonAsyncHttpClient;
 @SdkProtectedApi
 public class SdkAsyncClientHandler extends BaseAsyncClientHandler implements AsyncClientHandler {
 
-    protected SdkAsyncClientHandler(SdkAsyncClientConfiguration asyncClientConfiguration,
-                          ServiceConfiguration serviceConfiguration) {
-        super(asyncClientConfiguration, serviceConfiguration, new AmazonAsyncHttpClient(asyncClientConfiguration));
+    protected SdkAsyncClientHandler(SdkClientConfiguration clientConfiguration) {
+        super(clientConfiguration, new AmazonAsyncHttpClient(clientConfiguration));
+        SdkClientOptionValidation.validateAsyncClientOptions(clientConfiguration);
     }
 }
