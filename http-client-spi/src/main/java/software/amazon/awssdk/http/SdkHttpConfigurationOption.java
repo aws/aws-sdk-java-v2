@@ -87,7 +87,6 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     private static final Boolean DEFAULT_USE_STRICT_HOSTNAME_VERIFICATION = Boolean.TRUE;
     private static final Boolean DEFAULT_TRUST_ALL_CERTIFICATES = Boolean.FALSE;
 
-    @ReviewBeforeRelease("Confirm defaults")
     public static final AttributeMap GLOBAL_HTTP_DEFAULTS = AttributeMap
             .builder()
             .put(READ_TIMEOUT, DEFAULT_SOCKET_READ_TIMEOUT)
