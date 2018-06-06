@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.awscore.config.options;
 
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration.Builder;
@@ -31,7 +30,6 @@ import software.amazon.awssdk.regions.Region;
  *
  * @param <T> The type of value associated with the option.
  */
-@ReviewBeforeRelease("Ensure that all of these options are actually advanced.")
 @SdkPublicApi
 public final class AwsAdvancedClientOption<T> extends SdkAdvancedClientOption<T> {
 
