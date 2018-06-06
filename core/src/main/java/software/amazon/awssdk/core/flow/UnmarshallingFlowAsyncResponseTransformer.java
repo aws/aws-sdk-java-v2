@@ -33,6 +33,7 @@ import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.pagination.async.SdkPublisher;
+import software.amazon.awssdk.core.util.Throwables;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.eventstream.Message;
 import software.amazon.eventstream.MessageDecoder;
@@ -84,6 +85,17 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
      */
     private ResponseT response;
 
+    /**
+     * Tracks whether we have delivered a terminal notification to the subscriber/flow response handler
+     * (i.e. exception or completion).
+     */
+    private volatile boolean isDone = false;
+
+    /**
+     * Holds a reference to any exception delivered to exceptionOccurred.
+     */
+    private final AtomicReference<Throwable> error = new AtomicReference<>();
+
     public UnmarshallingFlowAsyncResponseTransformer(FlowResponseTransformer<ResponseT, EventT, ReturnT> flowResponseTransformer,
                                                      HttpResponseHandler<EventT> eventUnmarshaller) {
         this.flowResponseTransformer = flowResponseTransformer;
@@ -105,12 +117,37 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
 
     @Override
     public void exceptionOccurred(Throwable throwable) {
-        flowResponseTransformer.exceptionOccurred(throwable);
+        synchronized (this) {
+            if (!isDone) {
+                isDone = true;
+                error.set(throwable);
+                // If we have a Subscriber at this point notify it as well
+                if (subscriberRef.get() != null) {
+                    runAndLogError(log, "Error thrown from Subscriber#onError, ignoring.",
+                        () -> subscriberRef.get().onError(throwable));
+                }
+                flowResponseTransformer.exceptionOccurred(throwable);
+            }
+        }
     }
 
     @Override
     public ReturnT complete() {
-        return flowResponseTransformer.complete();
+        synchronized (this) {
+            if (!isDone) {
+                isDone = true;
+                // If we have a Subscriber at this point notify it as well
+                if (subscriberRef.get() != null) {
+                    runAndLogError(log, "Error thrown from Subscriber#onComplete, ignoring.",
+                        () -> subscriberRef.get().onComplete());
+                }
+                return flowResponseTransformer.complete();
+            } else {
+                // Need to propagate the failure up so the future is completed exceptionally. This should only happen
+                // when there is a frame level exception that the upper layers don't know about.
+                throw Throwables.failure(error.get());
+            }
+        }
     }
 
     /**
@@ -136,11 +173,8 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
             } else if (isError(m)) {
                 FlowException flowException = FlowException.create(m.getHeaders().get(":error-message").getString(),
                                                                    m.getHeaders().get(":error-code").getString());
-                // TODO prevent connection reset exception from propagating
-                runAndLogError(log, "Error thrown from Subscriber#onError, ignoring.",
-                    () -> subscriberRef.get().onError(flowException));
                 runAndLogError(log, "Error thrown from FlowResponseTransformer#exceptionOccurred, ignoring.",
-                    () -> flowResponseTransformer.exceptionOccurred(flowException));
+                    () -> exceptionOccurred(flowException));
             }
         });
     }
@@ -207,12 +241,14 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
 
         @Override
         public void onError(Throwable throwable) {
-            subscriberRef.get().onError(throwable);
+            // Notified in response handler exceptionOccurred because we have more context on what we've delivered to
+            // the flow subscriber there.
         }
 
         @Override
         public void onComplete() {
-            subscriberRef.get().onComplete();
+            // Notified in response handler complete method because we have more context on what we've delivered to
+            // the flow subscriber there.
         }
     }
 
