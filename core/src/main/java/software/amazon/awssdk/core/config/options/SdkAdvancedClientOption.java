@@ -29,7 +29,6 @@ import software.amazon.awssdk.core.signer.Signer;
  *
  * @param <T> The type of value associated with the option.
  */
-@ReviewBeforeRelease("Ensure that all of these options are actually advanced.")
 @SdkPublicApi
 public class SdkAdvancedClientOption<T> extends ClientOption<T> {
     /**
