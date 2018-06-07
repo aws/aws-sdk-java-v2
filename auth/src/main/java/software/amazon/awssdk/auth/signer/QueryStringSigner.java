@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.signer;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.TimeZone;
 import software.amazon.awssdk.auth.AwsExecutionAttributes;
@@ -123,6 +124,17 @@ public final class QueryStringSigner extends AbstractAwsSigner {
         } else {
             return df.format(getSignatureDate(offset));
         }
+    }
+
+    /**
+     * Returns the current time minus the given offset in seconds.
+     * The intent is to adjust the current time in the running JVM to the
+     * corresponding wall clock time at AWS for request signing purposes.
+     *
+     * @param offsetInSeconds offset in seconds
+     */
+    private Date getSignatureDate(int offsetInSeconds) {
+        return Date.from(Instant.now().minusSeconds(offsetInSeconds));
     }
 
     @Override
