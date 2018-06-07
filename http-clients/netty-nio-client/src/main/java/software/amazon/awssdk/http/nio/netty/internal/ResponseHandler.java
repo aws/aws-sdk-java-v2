@@ -245,14 +245,14 @@ class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                 @Override
                 public void request(long l) {
                     if (l <= 0 && running) {
-                        subscriber.onError(new IllegalArgumentException("Demand must be positive!"));
                         running = false;
+                        subscriber.onError(new IllegalArgumentException("Demand must be positive!"));
                     } else if (running) {
+                        running = false;
                         subscriber.onNext(fullContent);
                         subscriber.onComplete();
                         channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY)
                             .set(subscriber);
-                        running = false;
                     }
                 }
 
