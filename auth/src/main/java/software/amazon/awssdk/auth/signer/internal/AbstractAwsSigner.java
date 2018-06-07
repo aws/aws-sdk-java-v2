@@ -23,7 +23,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -302,17 +301,6 @@ public abstract class AbstractAwsSigner implements Signer {
         }
 
         return AwsCredentials.create(accessKeyId, secretKey);
-    }
-
-    /**
-     * Returns the current time minus the given offset in seconds.
-     * The intent is to adjust the current time in the running JVM to the
-     * corresponding wall clock time at AWS for request signing purposes.
-     *
-     * @param offsetInSeconds offset in seconds
-     */
-    protected Date getSignatureDate(int offsetInSeconds) {
-        return new Date(System.currentTimeMillis() - (1000L * offsetInSeconds));
     }
 
     /**
