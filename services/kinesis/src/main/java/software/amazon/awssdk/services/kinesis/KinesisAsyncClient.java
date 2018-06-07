@@ -13,9 +13,8 @@
 
 package software.amazon.awssdk.services.kinesis;
 
-import java.util.function.Consumer;
-import software.amazon.awssdk.core.flow.FlowResponseTransformer;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import javax.annotation.Generated;
 import software.amazon.awssdk.services.kinesis.model.AddTagsToStreamRequest;
 import software.amazon.awssdk.services.kinesis.model.AddTagsToStreamResponse;
@@ -61,7 +60,6 @@ import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
 import software.amazon.awssdk.services.kinesis.model.PutRecordResponse;
 import software.amazon.awssdk.services.kinesis.model.PutRecordsRequest;
 import software.amazon.awssdk.services.kinesis.model.PutRecordsResponse;
-import software.amazon.awssdk.services.kinesis.model.SubscribeToShardEvent;
 import software.amazon.awssdk.services.kinesis.model.RegisterStreamConsumerRequest;
 import software.amazon.awssdk.services.kinesis.model.RegisterStreamConsumerResponse;
 import software.amazon.awssdk.services.kinesis.model.RemoveTagsFromStreamRequest;
@@ -74,6 +72,7 @@ import software.amazon.awssdk.services.kinesis.model.StopStreamEncryptionRequest
 import software.amazon.awssdk.services.kinesis.model.StopStreamEncryptionResponse;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardRequest;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardResponse;
+import software.amazon.awssdk.services.kinesis.model.SubscribeToShardResponseTransformer;
 import software.amazon.awssdk.services.kinesis.model.UpdateShardCountRequest;
 import software.amazon.awssdk.services.kinesis.model.UpdateShardCountResponse;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -114,8 +113,8 @@ public interface KinesisAsyncClient extends SdkAutoCloseable {
         throw new UnsupportedOperationException();
     }
 
-    default  <ReturnT> CompletableFuture<ReturnT> subscribeToShard(SubscribeToShardRequest subscribeToShardRequest,
-                                                                   FlowResponseTransformer<SubscribeToShardResponse, SubscribeToShardEvent, ReturnT> flowResponseHandler) {
+    default <ReturnT> CompletableFuture<ReturnT> subscribeToShard(SubscribeToShardRequest subscribeToShardRequest,
+                                                                  SubscribeToShardResponseTransformer<ReturnT> flowResponseHandler) {
         throw new UnsupportedOperationException();
     }
 

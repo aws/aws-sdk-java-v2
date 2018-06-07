@@ -22,12 +22,14 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.BaseAsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -39,15 +41,16 @@ import software.amazon.eventstream.Message;
 import software.amazon.eventstream.MessageDecoder;
 
 /**
- * Unmarshalling layer on top of the {@link AsyncResponseTransformer} to decode flow events and deliver them to the
+ * Unmarshalling layer on top of the {@link AsyncResponseTransformer} to decode event stream messages and deliver them to the
  * subscriber.
  *
- * @param <ResponseT> Initial response type of flow operation.
- * @param <EventT> Type of flow event in payload frames.
- * @param <ReturnT> Transformed result type of {@link FlowResponseTransformer}.
+ * @param <ResponseT> Initial response type of event stream operation.
+ * @param <EventT> Base type of event stream message frames.
+ * @param <ReturnT> Transformed result type.
+ * @param <PublisherT> {@link SdkPublisher} subtype for the API.
  */
 @SdkProtectedApi
-public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, ReturnT>
+public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, ReturnT, PublisherT extends SdkPublisher<EventT>>
     implements AsyncResponseTransformer<ResponseT, ReturnT> {
 
     private static final Logger log = LoggerFactory.getLogger(UnmarshallingFlowAsyncResponseTransformer.class);
@@ -55,14 +58,16 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
     private static final ExecutionAttributes EMPTY_EXECUTION_ATTRIBUTES = new ExecutionAttributes();
 
     /**
-     * {@link FlowResponseTransformer} provided by customer.
+     * {@link BaseAsyncResponseTransformer} provided by customer.
      */
-    private final FlowResponseTransformer<ResponseT, EventT, ReturnT> flowResponseTransformer;
+    private final BaseAsyncResponseTransformer<ResponseT, PublisherT, ReturnT> flowResponseTransformer;
 
     /**
      * Unmarshalls the event POJO.
      */
-    private final HttpResponseHandler<EventT> eventUnmarshaller;
+    private final HttpResponseHandler<? extends EventT> eventUnmarshaller;
+
+    private final Function<SdkPublisher<EventT>, PublisherT> publisherSupplier;
 
     /**
      * Remaining demand (i.e number of unmarshalled flow events) we need to provide to the customers subscriber.
@@ -96,10 +101,19 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
      */
     private final AtomicReference<Throwable> error = new AtomicReference<>();
 
-    public UnmarshallingFlowAsyncResponseTransformer(FlowResponseTransformer<ResponseT, EventT, ReturnT> flowResponseTransformer,
-                                                     HttpResponseHandler<EventT> eventUnmarshaller) {
+    /**
+     * @param flowResponseTransformer Response transformer provided by customer.
+     * @param eventUnmarshaller Unmarshaller for the various event types.
+     * @param publisherSupplier Factory for creating the API specific publisher subtype.
+     */
+    public UnmarshallingFlowAsyncResponseTransformer(
+        BaseAsyncResponseTransformer<ResponseT, PublisherT, ReturnT> flowResponseTransformer,
+        HttpResponseHandler<? extends EventT> eventUnmarshaller,
+        Function<SdkPublisher<EventT>, PublisherT> publisherSupplier) {
+
         this.flowResponseTransformer = flowResponseTransformer;
         this.eventUnmarshaller = eventUnmarshaller;
+        this.publisherSupplier = publisherSupplier;
     }
 
     @Override
@@ -111,8 +125,9 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
         CompletableFuture<Subscription> dataSubscriptionFuture = new CompletableFuture<>();
         publisher.subscribe(new ByteSubscriber(dataSubscriptionFuture));
-        dataSubscriptionFuture.thenAccept(dataSubscription ->
-                                              flowResponseTransformer.onStream(new FlowEventPublisher(dataSubscription)));
+        dataSubscriptionFuture.thenAccept(dataSubscription -> {
+            flowResponseTransformer.onStream(publisherSupplier.apply(new FlowEventPublisher(dataSubscription)));
+        });
     }
 
     @Override

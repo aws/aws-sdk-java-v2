@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
+import software.amazon.awssdk.core.pagination.async.SdkPublisher;
 
 /**
  * Callback interface to handle a streaming asynchronous response.
@@ -29,7 +30,7 @@ import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
  * @param <ReturnT>   Type this response handler produces. I.E. the type you are transforming the response into.
  */
 public interface AsyncResponseTransformer<ResponseT, ReturnT>
-    extends BaseAsyncResponseTransformer<ResponseT, ByteBuffer, ReturnT> {
+    extends BaseAsyncResponseTransformer<ResponseT, SdkPublisher<ByteBuffer>, ReturnT> {
 
     /**
      * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error,

@@ -17,16 +17,14 @@ package software.amazon.awssdk.core.async;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.core.pagination.async.SdkPublisher;
 
 /**
  * Callback interface to handle a streaming asynchronous response that produces a certain type of event.
  *
  * @param <ResponseT> POJO response type.
- * @param <PublishedT> Type of object being published.
  * @param <ReturnT> Type this response handler produces. I.E. the type you are transforming the response into.
  */
-public interface BaseAsyncResponseTransformer<ResponseT, PublishedT, ReturnT> {
+public interface BaseAsyncResponseTransformer<ResponseT, PublisherT, ReturnT> {
 
     /**
      * Called when the initial response has been received and the POJO response has
@@ -57,7 +55,8 @@ public interface BaseAsyncResponseTransformer<ResponseT, PublishedT, ReturnT> {
      * automatic retry is performed.
      * </p>
      */
-    void onStream(SdkPublisher<PublishedT> publisher);
+    void onStream(PublisherT publisher);
+
 
     /**
      * Called when an exception occurs while establishing the connection or streaming the response. Implementations

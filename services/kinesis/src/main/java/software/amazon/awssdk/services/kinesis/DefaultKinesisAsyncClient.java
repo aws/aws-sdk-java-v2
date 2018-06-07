@@ -14,6 +14,7 @@
 package software.amazon.awssdk.services.kinesis;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
@@ -24,9 +25,9 @@ import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.core.client.AsyncClientHandler;
 import software.amazon.awssdk.core.client.ClientExecutionParams;
 import software.amazon.awssdk.core.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.flow.FlowResponseTransformer;
 import software.amazon.awssdk.core.flow.UnmarshallingFlowAsyncResponseTransformer;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.pagination.async.SdkPublisher;
 import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorShapeMetadata;
@@ -98,9 +99,10 @@ import software.amazon.awssdk.services.kinesis.model.StartStreamEncryptionReques
 import software.amazon.awssdk.services.kinesis.model.StartStreamEncryptionResponse;
 import software.amazon.awssdk.services.kinesis.model.StopStreamEncryptionRequest;
 import software.amazon.awssdk.services.kinesis.model.StopStreamEncryptionResponse;
-import software.amazon.awssdk.services.kinesis.model.SubscribeToShardEvent;
+import software.amazon.awssdk.services.kinesis.model.SubscribeToShardBaseEvent;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardRequest;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardResponse;
+import software.amazon.awssdk.services.kinesis.model.SubscribeToShardResponseTransformer;
 import software.amazon.awssdk.services.kinesis.model.UpdateShardCountRequest;
 import software.amazon.awssdk.services.kinesis.model.UpdateShardCountResponse;
 import software.amazon.awssdk.services.kinesis.transform.AddTagsToStreamRequestMarshaller;
@@ -217,7 +219,7 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
     }
 
     public <ReturnT> CompletableFuture<ReturnT> subscribeToShard(SubscribeToShardRequest subscribeToShardRequest,
-                                                                 FlowResponseTransformer<SubscribeToShardResponse, SubscribeToShardEvent, ReturnT> flowResponseHandler) {
+                                                                 SubscribeToShardResponseTransformer<ReturnT> flowResponseHandler) {
 
         HttpResponseHandler<SubscribeToShardResponse> responseHandler = protocolFactory.createResponseHandler(
             new JsonOperationMetadata()
@@ -225,11 +227,18 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
                 .withHasStreamingSuccessResponse(true),
             new SubscribeToShardResponseUnmarshaller());
 
-        HttpResponseHandler<SubscribeToShardEvent> eventResponseHandler = protocolFactory.createResponseHandler(
+        HttpResponseHandler<? extends SubscribeToShardBaseEvent> eventResponseHandler = protocolFactory.createResponseHandler(
             new JsonOperationMetadata()
                 .withPayloadJson(true)
                 .withHasStreamingSuccessResponse(false),
-            new SubscribeToShardEventUnmarshaller());
+            (r) -> {
+                switch (r.getHeader(":event-type")) {
+                    case "SubscribeToShardEvent":
+                        return SubscribeToShardEventUnmarshaller.getInstance().unmarshall(r);
+                    default:
+                        return SubscribeToShardBaseEvent.UNKNOWN;
+                }
+            });
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
@@ -238,7 +247,9 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
                                          .withResponseHandler(responseHandler)
                                          .withErrorResponseHandler(errorResponseHandler)
                                          .withInput(subscribeToShardRequest),
-                                     new UnmarshallingFlowAsyncResponseTransformer<>(flowResponseHandler, eventResponseHandler));
+                                     new UnmarshallingFlowAsyncResponseTransformer<>(flowResponseHandler,
+                                                                                     eventResponseHandler,
+                                                                                     SubscribeToShardResponseTransformer.Publisher::create));
     }
 
     /**
