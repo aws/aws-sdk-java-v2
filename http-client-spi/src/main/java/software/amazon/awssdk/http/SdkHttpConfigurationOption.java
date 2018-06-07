@@ -78,9 +78,9 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     public static final SdkHttpConfigurationOption<Boolean> TRUST_ALL_CERTIFICATES =
             new SdkHttpConfigurationOption<>("TrustAllCertificates", Boolean.class);
 
-    private static final Duration DEFAULT_SOCKET_READ_TIMEOUT = Duration.ofSeconds(50);
-    private static final Duration DEFAULT_SOCKET_WRITE_TIMEOUT = Duration.ofSeconds(50);
-    private static final Duration DEFAULT_CONNECTION_TIMEOUT = Duration.ofSeconds(10);
+    private static final Duration DEFAULT_SOCKET_READ_TIMEOUT = Duration.ofSeconds(30);
+    private static final Duration DEFAULT_SOCKET_WRITE_TIMEOUT = Duration.ofSeconds(30);
+    private static final Duration DEFAULT_CONNECTION_TIMEOUT = Duration.ofSeconds(2);
     private static final Duration DEFAULT_CONNECTION_ACQUIRE_TIMEOUT = Duration.ofSeconds(10);
     private static final int DEFAULT_MAX_CONNECTIONS = 50;
     private static final int DEFAULT_MAX_CONNECTION_ACQUIRES = 10_000;
