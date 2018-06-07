@@ -45,6 +45,7 @@
         <module>cloudfront</module>
         <module>cloudhsm</module>
         <module>cloudsearch</module>
+        <module>cloudsearchdomain</module>
         <module>cloudtrail</module>
         <module>cloudwatch</module>
         <module>codebuild</module>
@@ -85,7 +86,10 @@
         <module>importexport</module>
         <module>inspector</module>
         <module>iot</module>
+        <module>iotdata</module>
         <module>kinesis</module>
+        <module>kinesisanalytics</module>
+        <module>kinesisfirehose</module>
         <module>kms</module>
         <module>lambda</module>
         <module>lightsail</module>
@@ -106,6 +110,7 @@
         <module>rekognition</module>
         <module>resourcegroupstaggingapi</module>
         <module>route53</module>
+        <module>route53domains</module>
         <module>s3</module>
         <module>servermigration</module>
         <module>servicecatalog</module>
