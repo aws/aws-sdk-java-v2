@@ -234,7 +234,7 @@ final class FileAsyncRequestBody implements AsyncRequestBody {
                         closeFile();
                     }
 
-                    synchronized (this) {
+                    synchronized (FileSubscription.this) {
                         writeInProgress = false;
                     }
                 }
