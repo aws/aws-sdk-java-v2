@@ -30,12 +30,4 @@
         Gateway
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 </project>

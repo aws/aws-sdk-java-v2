@@ -29,6 +29,7 @@ import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.profiles.internal.ProfileFileLocations;
 import software.amazon.awssdk.profiles.internal.ProfileFileReader;
 import software.amazon.awssdk.utils.FunctionalUtils;
@@ -82,8 +83,8 @@ public class ProfileFile {
     /**
      * Get the default profile file, using the credentials file from "~/.aws/credentials", the config file from "~/.aws/config"
      * and the "default" profile. This default behavior can be customized using the
-     * {@link ProfileSystemSettings#AWS_SHARED_CREDENTIALS_FILE}, {@link ProfileSystemSettings#AWS_CONFIG_FILE} and
-     * {@link ProfileSystemSettings#AWS_PROFILE} settings or by specifying a different profile file and profile name
+     * {@link SdkSystemSetting#AWS_SHARED_CREDENTIALS_FILE}, {@link SdkSystemSetting#AWS_CONFIG_FILE} and
+     * {@link SdkSystemSetting#AWS_PROFILE} settings or by specifying a different profile file and profile name
      */
     public static ProfileFile defaultProfileFile() {
         return ProfileFile.aggregator()
