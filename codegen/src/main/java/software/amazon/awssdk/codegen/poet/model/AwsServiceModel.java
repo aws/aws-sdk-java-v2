@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet.model;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.codegen.docs.DocumentationBuilder;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MapModel;
@@ -73,20 +75,99 @@ public class AwsServiceModel implements ClassSpec {
 
     @Override
     public TypeSpec poetSpec() {
-        TypeSpec.Builder specBuilder = TypeSpec.classBuilder(shapeModel.getShapeName())
-                                               .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                                               .addAnnotation(PoetUtils.GENERATED)
-                                               .addSuperinterfaces(modelSuperInterfaces())
-                                               .superclass(modelSuperClass())
-                                               .addMethods(modelClassMethods())
-                                               .addFields(shapeModelSpec.fields())
-                                               .addTypes(nestedModelClassTypes());
+        if (shapeModel.isEventStream()) {
+            String operationName = eventStreamOperationName(shapeModel);
+            ClassName modelClass = poetExtensions.getModelClass(shapeModel.getShapeName());
+            ClassName responseHandlerClass = poetExtensions.getModelClass(operationName + "ResponseHandler");
+            return TypeSpec.interfaceBuilder(shapeModel.getShapeName())
+                           .addModifiers(Modifier.PUBLIC)
+                           .addJavadoc("Base interface for all event types of the $L API.", operationName)
+                           .addField(FieldSpec.builder(modelClass, "UNKNOWN")
+                                              .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                                              .initializer(CodeBlock.builder()
+                                                                    .add("new $T() {\n"
+                                                                         + "        @Override\n"
+                                                                         + "        public void accept($T.Visitor visitor) {\n"
+                                                                         + "            visitor.visitDefault(this);\n"
+                                                                         + "        }\n"
+                                                                         + "    };\n", modelClass, responseHandlerClass
+                                                                    )
+                                                                    .build())
+                                              .addJavadoc("Special type of {@link $T} for unknown types of events that this "
+                                                          + "version of the SDK does not know about", modelClass)
+                                              .build())
+                           .addMethod(acceptMethodSpec(modelClass, responseHandlerClass)
+                                          .addModifiers(Modifier.ABSTRACT)
+                                          .build())
+                           .build();
+        } else {
+            TypeSpec.Builder specBuilder = TypeSpec.classBuilder(this.shapeModel.getShapeName())
+                                                   .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                                                   .addAnnotation(PoetUtils.GENERATED)
+                                                   .addSuperinterfaces(modelSuperInterfaces())
+                                                   .superclass(modelSuperClass())
+                                                   .addMethods(modelClassMethods())
+                                                   .addFields(shapeModelSpec.fields())
+                                                   .addTypes(nestedModelClassTypes());
 
-        if (shapeModel.getDocumentation() != null) {
-            specBuilder.addJavadoc("$L", shapeModel.getDocumentation());
+            if (this.shapeModel.isEvent()) {
+                ShapeModel parentEventStreamShape =
+                    intermediateModel.getShapes().values()
+                                     .stream()
+                                     .filter(s -> s.getMembers() != null)
+                                     .filter(ShapeModel::isEventStream)
+                                     .filter(s -> s.getMembers().stream().anyMatch(m -> m.getShape().equals(this.shapeModel)))
+                                     .findFirst()
+                                     .orElseThrow(() -> new IllegalStateException(
+                                         String.format("Event shape %s not referenced in model by eventstream shape",
+                                                       shapeModel.getC2jName())));
+                ClassName modelClass = poetExtensions.getModelClass(shapeModel.getShapeName());
+                ClassName responseHandlerClass = poetExtensions.getModelClass(
+                    eventStreamOperationName(parentEventStreamShape) + "ResponseHandler");
+                specBuilder.addSuperinterface(poetExtensions.getModelClass(parentEventStreamShape.getShapeName()));
+                specBuilder.addMethod(acceptMethodSpec(modelClass, responseHandlerClass)
+                                          .addAnnotation(Override.class)
+                                          .addCode(CodeBlock.builder()
+                                                            .addStatement("visitor.visit(this)")
+                                                            .build())
+                                          .build());
+            }
+
+            if (this.shapeModel.getDocumentation() != null) {
+                specBuilder.addJavadoc("$L", this.shapeModel.getDocumentation());
+            }
+
+            return specBuilder.build();
         }
+    }
 
-        return specBuilder.build();
+    private String eventStreamOperationName(ShapeModel eventStreamShape) {
+        return Utils.capitialize(
+                    intermediateModel.getOperations().values()
+                                     .stream()
+                                     .filter(o -> o.getOutputShape() != null && o.getOutputShape().getMembers() != null)
+                                     .filter(o -> o.getOutputShape().getMembers()
+                                                   .stream()
+                                                   .filter(m -> m.getShape() != null)
+                                                   .filter(m -> m.getShape().equals(eventStreamShape))
+                                                   .anyMatch(m -> m.getShape().isEventStream()))
+                                     .findFirst()
+                                     .orElseThrow(() -> new IllegalArgumentException(String.format(
+                                         "%s is an eventstream shape but has no corresponding operation in the model",
+                                         shapeModel.getC2jName())))
+                                     .getOperationName());
+    }
+
+    private MethodSpec.Builder acceptMethodSpec(ClassName modelClass, ClassName responseHandlerClass) {
+        return MethodSpec.methodBuilder("accept")
+                         .addModifiers(Modifier.PUBLIC)
+                         .addJavadoc(new DocumentationBuilder()
+                                             .description("Calls the appropriate visit method depending on "
+                                                          + "the subtype of {@link $T}.")
+                                             .param("visitor", "Visitor to invoke.")
+                                             .build(), modelClass)
+                         .addParameter(responseHandlerClass
+                                               .nestedClass("Visitor"), "visitor");
     }
 
     @Override

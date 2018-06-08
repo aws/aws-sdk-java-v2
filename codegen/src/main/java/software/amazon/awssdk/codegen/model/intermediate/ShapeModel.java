@@ -61,6 +61,10 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
 
     private ShapeCustomizationInfo customization = new ShapeCustomizationInfo();
 
+    private boolean isEventStream;
+
+    private boolean isEvent;
+
     public ShapeModel(@JsonProperty("c2jName") String c2jName) {
         this.c2jName = c2jName;
     }
@@ -274,7 +278,7 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
      */
     public List<MemberModel> getNonStreamingMembers() {
         return getMembers().stream()
-                           .filter(m -> !m.getHttp().getIsStreaming())
+                           .filter(m -> !m.getHttp().getIsStreaming() && (m.getShape() == null || !m.getShape().isEventStream))
                            .collect(Collectors.toList());
     }
 
@@ -467,4 +471,27 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
         this.requestSignerClassFqcn = authorizerClass;
     }
 
+    public boolean isEventStream() {
+        return this.isEventStream;
+    }
+
+    public ShapeModel withIsEventStream(boolean isEventStream) {
+        this.isEventStream = isEventStream;
+        return this;
+    }
+
+    public boolean hasEventStreamMember() {
+        return members != null && members.stream()
+                                         .filter(m -> m.getShape() != null)
+                                         .anyMatch(m -> m.getShape().isEventStream());
+    }
+
+    public boolean isEvent() {
+        return this.isEvent;
+    }
+
+    public ShapeModel withIsEvent(boolean isEvent) {
+        this.isEvent = isEvent;
+        return this;
+    }
 }

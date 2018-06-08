@@ -41,6 +41,16 @@ public final class FunctionalUtils {
         }
     }
 
+    public static <T> Consumer<T> noOpConsumer() {
+        return ignored -> {
+        };
+    }
+
+    public static Runnable noOpRunnable() {
+        return () -> {
+        };
+    }
+
     /**
      * A wrapper around a Consumer that throws a checked exception.
      *

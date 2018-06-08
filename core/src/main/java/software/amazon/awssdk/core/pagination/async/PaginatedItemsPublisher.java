@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.pagination.async;
 import java.util.Iterator;
 import java.util.function.Function;
 import org.reactivestreams.Subscriber;
+import software.amazon.awssdk.core.async.SdkPublisher;
 
 /**
  * A publisher to request for a stream of paginated items. The class can be used to request data for paginated items

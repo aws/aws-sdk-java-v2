@@ -26,7 +26,9 @@
         <#else>
             if (token == FIELD_NAME || token == START_OBJECT) {
                 <#list shape.unboundMembers as payloadMember>
+                <#if !payloadMember.shape?? || !payloadMember.shape.isEventStream() >
                     <@MemberUnmarshallerInvocationMacro.content shape.variable.variableName payloadMember />
+                </#if>
                 </#list>
             } else if (token == END_ARRAY || token == END_OBJECT) {
                 if (context.getLastParsedParentElement() == null || context.getLastParsedParentElement().equals(currentParentElement)) {

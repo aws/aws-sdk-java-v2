@@ -84,6 +84,8 @@ abstract class AddShapes {
         shapeModel.setRequired(shape.getRequired());
         shapeModel.setDeprecated(shape.isDeprecated());
         shapeModel.setWrapper(shape.isWrapper());
+        shapeModel.withIsEventStream(shape.isEventStream());
+        shapeModel.withIsEvent(shape.isEvent());
 
         boolean hasHeaderMember = false;
         boolean hasStatusCodeMember = false;

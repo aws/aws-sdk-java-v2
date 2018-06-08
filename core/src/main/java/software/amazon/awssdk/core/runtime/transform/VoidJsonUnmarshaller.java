@@ -16,14 +16,43 @@
 package software.amazon.awssdk.core.runtime.transform;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkResponse;
 
 /**
  * Simple unmarshaller that iterates through the JSON events but always
  * returns null.
  */
 @SdkInternalApi
-public class VoidJsonUnmarshaller<T> implements Unmarshaller<T, JsonUnmarshallerContext> {
-    public T unmarshall(JsonUnmarshallerContext context) throws Exception {
-        return null;
+public class VoidJsonUnmarshaller implements Unmarshaller<SdkResponse, JsonUnmarshallerContext> {
+
+    public SdkResponse unmarshall(JsonUnmarshallerContext context) throws Exception {
+        return EmptySdkResponse.builder().build();
+    }
+
+    private static final class EmptySdkResponse extends SdkResponse {
+
+        protected EmptySdkResponse(Builder builder) {
+            super(builder);
+        }
+
+        @Override
+        public Builder toBuilder() {
+            return builder();
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public static final class Builder extends SdkResponse.BuilderImpl {
+
+            private Builder() {
+            }
+
+            @Override
+            public SdkResponse build() {
+                return new EmptySdkResponse(this);
+            }
+        }
     }
 }

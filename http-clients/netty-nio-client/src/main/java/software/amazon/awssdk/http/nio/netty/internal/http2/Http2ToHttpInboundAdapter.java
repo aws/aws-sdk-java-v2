@@ -53,6 +53,8 @@ public class Http2ToHttpInboundAdapter extends SimpleChannelInboundHandler<Http2
             onRstStreamRead((Http2ResetFrame) frame, ctx);
         } else if (frame instanceof Http2GoAwayFrame) {
             onGoAwayRead((Http2GoAwayFrame) frame, ctx);
+        } else {
+            ctx.channel().parent().read();
         }
     }
 

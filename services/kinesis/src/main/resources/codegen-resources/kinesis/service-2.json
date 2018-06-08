@@ -5,7 +5,10 @@
     "endpointPrefix":"kinesis",
     "jsonVersion":"1.1",
     "protocol":"json",
-    "serviceAbbreviation":"Kinesis",
+    "protocolSettings": {
+      "h2": "eventstream"
+    },
+    "serviceAbbreviation": "Kinesis",
     "serviceFullName":"Amazon Kinesis",
     "serviceId":"Kinesis",
     "signatureVersion":"v4",

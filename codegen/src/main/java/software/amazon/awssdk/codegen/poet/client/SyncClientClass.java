@@ -101,18 +101,24 @@ public class SyncClientClass implements ClassSpec {
     }
 
     private MethodSpec constructor() {
-        return MethodSpec.constructorBuilder()
-                         .addModifiers(Modifier.PROTECTED)
-                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
-                         .addStatement("this.clientHandler = new $T(clientConfiguration)",
-                                       protocolSpec.getClientHandlerClass())
-                         .addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name)
-                         .addStatement("this.clientConfiguration = clientConfiguration")
-                         .build();
+        MethodSpec.Builder builder = MethodSpec.constructorBuilder()
+                                               .addModifiers(Modifier.PROTECTED)
+                                               .addParameter(SdkClientConfiguration.class, "clientConfiguration")
+                                               .addStatement("this.clientHandler = new $T(clientConfiguration)",
+                                                             protocolSpec.getClientHandlerClass())
+                                               .addStatement("this.clientConfiguration = clientConfiguration");
+        if (model.getMetadata().isJsonProtocol()) {
+            builder.addStatement("this.$N = init($L)", protocolSpec.protocolFactory(model).name,
+                                 model.getMetadata().isCborProtocol());
+        } else {
+            builder.addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name);
+        }
+        return builder.build();
     }
 
     private List<MethodSpec> operations() {
         return model.getOperations().values().stream()
+                    .filter(SyncClientInterface.hasEventStreamOutput())
                     .map(this::operationMethodSpecs)
                     .flatMap(List::stream)
                     .collect(Collectors.toList());

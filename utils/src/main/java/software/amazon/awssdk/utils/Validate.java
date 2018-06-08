@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
@@ -648,5 +649,22 @@ public final class Validate {
         }
 
         return duration;
+    }
+
+    public static <T> T getOrDefault(T param, Supplier<T> defaultValue) {
+        return param != null ? param : defaultValue.get();
+    }
+
+    public static void mutuallyExclusive(String message, Object... objs) {
+        boolean oneProvided = false;
+        for (Object o : objs) {
+            if (o != null) {
+                if (oneProvided) {
+                    throw new IllegalArgumentException(message);
+                } else {
+                    oneProvided = true;
+                }
+            }
+        }
     }
 }

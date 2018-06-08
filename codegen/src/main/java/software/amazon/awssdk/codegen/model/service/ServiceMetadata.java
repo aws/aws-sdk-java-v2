@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.model.service;
 
+import java.util.Map;
+
 public class ServiceMetadata {
 
     private String apiVersion;
@@ -40,6 +42,8 @@ public class ServiceMetadata {
     private String targetPrefix;
 
     private String uid;
+
+    private Map<String, String> protocolSettings;
 
     public String getApiVersion() {
         return apiVersion;
@@ -138,5 +142,13 @@ public class ServiceMetadata {
 
     public void setUid(String uid) {
         this.uid = uid;
+    }
+
+    public Map<String, String> getProtocolSettings() {
+        return protocolSettings;
+    }
+
+    public void setProtocolSettings(Map<String, String> protocolSettings) {
+        this.protocolSettings = protocolSettings;
     }
 }

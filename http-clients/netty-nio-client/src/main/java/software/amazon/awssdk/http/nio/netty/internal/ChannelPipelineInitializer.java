@@ -27,23 +27,21 @@ import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http2.Http2MultiplexCodecBuilder;
+import io.netty.handler.codec.http2.Http2Settings;
 import io.netty.handler.codec.http2.Http2SettingsFrame;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.ssl.SslContext;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.nio.netty.internal.http2.MultiplexedChannelRecord;
 import software.amazon.awssdk.http.nio.netty.internal.http2.SdkHttp2FrameLogger;
 
 /**
  * Configures the client pipeline to support HTTP/2 frames with multiplexed streams.
  */
 public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
-
-    private static final Logger log = LoggerFactory.getLogger(ChannelPipelineInitializer.class);
 
     private final Protocol protocol;
     private final SslContext sslCtx;
@@ -84,6 +82,7 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
                                  String lowerName = name.toString().toLowerCase();
                                  return lowerName.equals("authorization");
                              })
+                             .initialSettings(Http2Settings.defaultSettings())
                              .build());
         pipeline.addLast(new SimpleChannelInboundHandler<Http2SettingsFrame>() {
             @Override
@@ -95,12 +94,23 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
 
             @Override
             public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-                try {
-                    ch.attr(PROTOCOL_FUTURE).get().completeExceptionally(cause);
-                    ch.close();
-                } finally {
-                    channelPoolRef.get().release(ch);
+                ch.attr(PROTOCOL_FUTURE).get().completeExceptionally(cause);
+                MultiplexedChannelRecord record = ch.attr(ChannelAttributeKeys.CHANNEL_POOL_RECORD).get();
+                // Deliver the exception to any child channels registered to this connection.
+                if (record != null) {
+                    record.shutdownChildChannels(cause);
                 }
+                // Channel status may still be active at this point even if it's not so queue up the close so that status is
+                // accurately updated
+                ch.eventLoop().submit(() -> {
+                    try {
+                        if (ch.isActive()) {
+                            ch.close();
+                        }
+                    } finally {
+                        channelPoolRef.get().release(ch);
+                    }
+                });
             }
         });
     }

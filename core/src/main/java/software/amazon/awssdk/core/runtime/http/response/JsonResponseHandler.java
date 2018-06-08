@@ -29,7 +29,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContextImpl;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.core.runtime.transform.VoidJsonUnmarshaller;
 import software.amazon.awssdk.core.util.ValidationUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -67,15 +66,7 @@ public class JsonResponseHandler<T> implements HttpResponseHandler<T> {
                                Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> simpleTypeUnmarshallers,
                                JsonFactory jsonFactory, boolean needsConnectionLeftOpen,
                                boolean isPayloadJson) {
-        /*
-         * Even if the invoked operation just returns null, we still need an
-         * unmarshaller to run so we can pull out response metadata.
-         *
-         * We might want to pass this in through the client class so that we
-         * don't have to do this check here.
-         */
-        this.responseUnmarshaller =
-                responseUnmarshaller != null ? responseUnmarshaller : new VoidJsonUnmarshaller<T>();
+        this.responseUnmarshaller = responseUnmarshaller;
 
         this.needsConnectionLeftOpen = needsConnectionLeftOpen;
         this.isPayloadJson = isPayloadJson;

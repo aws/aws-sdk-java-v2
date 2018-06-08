@@ -24,7 +24,7 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.pagination.async.SdkPublisher;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**

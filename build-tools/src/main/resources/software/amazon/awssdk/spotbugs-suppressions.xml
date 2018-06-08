@@ -63,7 +63,7 @@
 
     <!-- NP_NONNULL_PARAM_VIOLATION false postive - https://github.com/spotbugs/spotbugs/issues/484 -->
     <Match>
-        <Class name="software.amazon.awssdk.core.pagination.async.SequentialSubscriber" />
+        <Class name="software.amazon.awssdk.core.async.internal.SequentialSubscriber" />
         <Method name="onComplete" />
         <Bug pattern="NP_NONNULL_PARAM_VIOLATION" />
     </Match>

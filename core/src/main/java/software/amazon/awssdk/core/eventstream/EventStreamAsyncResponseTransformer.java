@@ -22,19 +22,19 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.BaseAsyncResponseTransformer;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.pagination.async.SdkPublisher;
 import software.amazon.awssdk.core.util.Throwables;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.eventstream.Message;
@@ -46,12 +46,10 @@ import software.amazon.eventstream.MessageDecoder;
  *
  * @param <ResponseT> Initial response type of event stream operation.
  * @param <EventT> Base type of event stream message frames.
- * @param <ReturnT> Transformed result type.
- * @param <PublisherT> {@link SdkPublisher} subtype for the API.
  */
 @SdkProtectedApi
-public class EventStreamAsyncResponseTransformer<ResponseT, EventT, ReturnT, PublisherT extends SdkPublisher<EventT>>
-    implements AsyncResponseTransformer<ResponseT, ReturnT> {
+public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
+    implements AsyncResponseTransformer<SdkResponse, Void> {
 
     private static final Logger log = LoggerFactory.getLogger(EventStreamAsyncResponseTransformer.class);
 
@@ -60,14 +58,12 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT, ReturnT, Pub
     /**
      * {@link BaseAsyncResponseTransformer} provided by customer.
      */
-    private final BaseAsyncResponseTransformer<ResponseT, PublisherT, ReturnT> eventStreamResponseTransformer;
+    private final EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseTransformer;
 
     /**
      * Unmarshalls the event POJO.
      */
     private final HttpResponseHandler<? extends EventT> eventUnmarshaller;
-
-    private final Function<SdkPublisher<EventT>, PublisherT> publisherSupplier;
 
     /**
      * Remaining demand (i.e number of unmarshalled events) we need to provide to the customers subscriber.
@@ -86,11 +82,6 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT, ReturnT, Pub
     private final MessageDecoder decoder = createDecoder();
 
     /**
-     * Initial unmarshalled response of API.
-     */
-    private ResponseT response;
-
-    /**
      * Tracks whether we have delivered a terminal notification to the subscriber and response handler
      * (i.e. exception or completion).
      */
@@ -104,29 +95,27 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT, ReturnT, Pub
     /**
      * @param eventStreamResponseTransformer Response transformer provided by customer.
      * @param eventUnmarshaller Unmarshaller for the various event types.
-     * @param publisherSupplier Factory for creating the API specific publisher subtype.
      */
     public EventStreamAsyncResponseTransformer(
-        BaseAsyncResponseTransformer<ResponseT, PublisherT, ReturnT> eventStreamResponseTransformer,
-        HttpResponseHandler<? extends EventT> eventUnmarshaller,
-        Function<SdkPublisher<EventT>, PublisherT> publisherSupplier) {
+        EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseTransformer,
+        HttpResponseHandler<? extends EventT> eventUnmarshaller) {
 
         this.eventStreamResponseTransformer = eventStreamResponseTransformer;
         this.eventUnmarshaller = eventUnmarshaller;
-        this.publisherSupplier = publisherSupplier;
     }
 
     @Override
-    public void responseReceived(ResponseT response) {
-        this.response = response;
+    public void responseReceived(SdkResponse response) {
     }
 
     @Override
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
         CompletableFuture<Subscription> dataSubscriptionFuture = new CompletableFuture<>();
         publisher.subscribe(new ByteSubscriber(dataSubscriptionFuture));
-        dataSubscriptionFuture.thenAccept(dataSubscription -> eventStreamResponseTransformer.onStream(
-            publisherSupplier.apply(new EventPublisher(dataSubscription))));
+        dataSubscriptionFuture.thenAccept(dataSubscription -> {
+            SdkPublisher<EventT> eventPublisher = new EventPublisher(dataSubscription);
+            eventStreamResponseTransformer.onEventStream(eventPublisher);
+        });
     }
 
     @Override
@@ -146,7 +135,7 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT, ReturnT, Pub
     }
 
     @Override
-    public ReturnT complete() {
+    public Void complete() {
         synchronized (this) {
             if (!isDone) {
                 isDone = true;
@@ -155,7 +144,8 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT, ReturnT, Pub
                     runAndLogError(log, "Error thrown from Subscriber#onComplete, ignoring.",
                         () -> subscriberRef.get().onComplete());
                 }
-                return eventStreamResponseTransformer.complete();
+                eventStreamResponseTransformer.complete();
+                return null;
             } else {
                 // Need to propagate the failure up so the future is completed exceptionally. This should only happen
                 // when there is a frame level exception that the upper layers don't know about.
@@ -174,7 +164,7 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT, ReturnT, Pub
             if (isEvent(m)) {
                 if (m.getHeaders().get(":event-type").getString().equals("initial-response")) {
                     // TODO unmarshall initial response and call responseRecieved.
-                    eventStreamResponseTransformer.responseReceived(response);
+                    eventStreamResponseTransformer.responseReceived(null);
                 } else {
                     try {
                         remainingDemand.decrementAndGet();

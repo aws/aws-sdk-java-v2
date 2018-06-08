@@ -6,7 +6,7 @@ import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.pagination.async.AsyncPageFetcher;
 import software.amazon.awssdk.core.pagination.async.EmptySubscription;
 import software.amazon.awssdk.core.pagination.async.ResponsesSubscription;
-import software.amazon.awssdk.core.pagination.async.SdkPublisher;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.services.jsonprotocoltests.JsonProtocolTestsAsyncClient;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithoutResultKeyRequest;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithoutResultKeyResponse;

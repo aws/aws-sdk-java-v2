@@ -277,9 +277,13 @@ public class AsyncClientInterface implements ClassSpec {
         }
         if (opModel.hasStreamingOutput()) {
             builder.addTypeVariable(STREAMING_TYPE_VARIABLE);
-            final ParameterizedTypeName asyncResponseHandlerType = ParameterizedTypeName
-                    .get(ClassName.get(AsyncResponseTransformer.class), responsePojoType, STREAMING_TYPE_VARIABLE);
+            ParameterizedTypeName asyncResponseHandlerType = ParameterizedTypeName
+                .get(ClassName.get(AsyncResponseTransformer.class), responsePojoType, STREAMING_TYPE_VARIABLE);
             builder.addParameter(asyncResponseHandlerType, "asyncResponseTransformer");
+        } else if (opModel.hasEventStreamOutput()) {
+            ClassName responseHandlerClass =
+                poetExtensions.getResponseHandlerClassForEventStreamOperation(opModel.getOperationName());
+            builder.addParameter(responseHandlerClass, "asyncResponseHandler");
         }
         return operationBody(builder, opModel).build();
     }
@@ -368,6 +372,8 @@ public class AsyncClientInterface implements ClassSpec {
     private TypeName getAsyncReturnType(OperationModel opModel, ClassName responsePojoType) {
         if (opModel.hasStreamingOutput()) {
             return completableFutureType(STREAMING_TYPE_VARIABLE);
+        } else if (opModel.hasEventStreamOutput()) {
+            return completableFutureType(ClassName.get(Void.class));
         } else {
             return completableFutureType(responsePojoType);
         }

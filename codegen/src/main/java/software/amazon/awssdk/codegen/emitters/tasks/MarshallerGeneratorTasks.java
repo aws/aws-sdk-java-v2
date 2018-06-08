@@ -61,11 +61,9 @@ public class MarshallerGeneratorTasks extends BaseGeneratorTasks {
             info("Skip generating marshaller class for " + shapeModel.getShapeName());
             return false;
         }
-        return shouldGenerate(shapeModel.getShapeType());
-    }
-
-    private boolean shouldGenerate(ShapeType shapeType) {
-        return ShapeType.Request == shapeType || (ShapeType.Model == shapeType && metadata.isJsonProtocol());
+        ShapeType shapeType = shapeModel.getShapeType();
+        return (ShapeType.Request == shapeType || (ShapeType.Model == shapeType && metadata.isJsonProtocol()))
+               && !shapeModel.isEventStream();
     }
 
     private Stream<GeneratorTask> createTask(String javaShapeName, ShapeModel shapeModel) throws Exception {

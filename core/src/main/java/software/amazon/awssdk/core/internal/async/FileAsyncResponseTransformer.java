@@ -29,7 +29,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.pagination.async.SdkPublisher;
+import software.amazon.awssdk.core.async.SdkPublisher;
 
 /**
  * {@link AsyncResponseTransformer} that writes the data to the specified file.

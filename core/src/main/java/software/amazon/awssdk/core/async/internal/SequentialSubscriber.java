@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.pagination.async;
+package software.amazon.awssdk.core.async.internal;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -31,7 +31,8 @@ public class SequentialSubscriber<T> implements Subscriber<T> {
     private final CompletableFuture<?> future;
     private Subscription subscription;
 
-    public SequentialSubscriber(Consumer<T> consumer, CompletableFuture<Void> future) {
+    public SequentialSubscriber(Consumer<T> consumer,
+                                CompletableFuture<Void> future) {
         this.consumer = consumer;
         this.future = future;
     }

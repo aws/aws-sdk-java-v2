@@ -188,4 +188,9 @@ public class OperationModel extends DocumentationModel {
     public void setPaginated(boolean paginated) {
         isPaginated = paginated;
     }
+
+    public boolean hasEventStreamOutput() {
+        return outputShape != null && outputShape.hasEventStreamMember();
+    }
+
 }

@@ -217,7 +217,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                 public void onComplete() {
                     try {
                         runAndLogError(String.format("Subscriber %s threw an exception in onComplete.", subscriber.toString()),
-                                subscriber::onComplete);
+                                       subscriber::onComplete);
                         requestContext.handler().complete();
                     } finally {
                         finalizeRequest(requestContext, channelContext);
@@ -275,6 +275,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
 
     private static class LastHttpContentSwallower extends SimpleChannelInboundHandler<HttpObject> {
+
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, HttpObject obj) throws Exception {
             if (obj instanceof LastHttpContent) {

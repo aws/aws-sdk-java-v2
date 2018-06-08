@@ -35,7 +35,7 @@ import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.pagination.async.SdkPublisher;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.util.ImmutableMapParameter;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;

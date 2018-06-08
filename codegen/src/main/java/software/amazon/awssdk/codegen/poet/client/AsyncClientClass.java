@@ -25,6 +25,7 @@ import com.squareup.javapoet.TypeSpec;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
+import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -66,19 +67,32 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                         .addMethods(protocolSpec.additionalMethods())
                                         .addMethod(protocolSpec.initProtocolFactory(model));
 
+        // Kinesis doesn't support CBOR for STS yet so need another protocol factory for JSON
+        if (model.getMetadata().isCborProtocol()) {
+            classBuilder.addField(AwsJsonProtocolFactory.class, "jsonProtocolFactory", Modifier.PRIVATE, Modifier.FINAL);
+        }
+
         protocolSpec.createErrorResponseHandler().ifPresent(classBuilder::addMethod);
 
         return classBuilder.build();
     }
 
     private MethodSpec constructor() {
-        return MethodSpec.constructorBuilder()
-                         .addModifiers(Modifier.PROTECTED)
-                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
-                         .addStatement("this.clientHandler = new $T(clientConfiguration)",
-                                       AwsAsyncClientHandler.class) // TODO this will likely differ for APIG clients
-                         .addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name)
-                         .build();
+        MethodSpec.Builder builder = MethodSpec.constructorBuilder()
+                                               .addModifiers(Modifier.PROTECTED)
+                                               .addParameter(SdkClientConfiguration.class, "clientConfiguration")
+                                               .addStatement("this.clientHandler = new $T(clientConfiguration)",
+                                                             AwsAsyncClientHandler.class);
+        if (model.getMetadata().isJsonProtocol()) {
+            builder.addStatement("this.$N = init($L)", protocolSpec.protocolFactory(model).name,
+                                 model.getMetadata().isCborProtocol());
+        } else {
+            builder.addStatement("this.$N = init()", protocolSpec.protocolFactory(model).name);
+        }
+        if (model.getMetadata().isCborProtocol()) {
+            builder.addStatement("this.jsonProtocolFactory = init(false)");
+        }
+        return builder.build();
     }
 
     private MethodSpec nameMethod() {
