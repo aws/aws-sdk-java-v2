@@ -22,8 +22,8 @@ import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
-import software.amazon.awssdk.http.HttpStatusCodes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.http.HttpStatusCode;
 import software.amazon.awssdk.http.HttpStatusFamily;
 
 /**
@@ -43,7 +43,7 @@ public class SdkErrorResponseHandler implements HttpResponseHandler<SdkException
                                       ExecutionAttributes executionAttributes) throws Exception {
         final SdkServiceException exception = (SdkServiceException) handleServiceException(response, executionAttributes);
         exception.statusCode(response.getStatusCode());
-        exception.serviceName(executionAttributes.getAttribute(SdkExecutionAttributes.SERVICE_NAME));
+        exception.serviceName(executionAttributes.getAttribute(SdkExecutionAttribute.SERVICE_NAME));
         return exception;
     }
 
@@ -55,7 +55,7 @@ public class SdkErrorResponseHandler implements HttpResponseHandler<SdkException
             throw e;
         } catch (Exception e) {
             // If the errorResponseHandler doesn't work, then check for error responses that don't have any content
-            if (statusCode == HttpStatusCodes.REQUEST_TOO_LONG) {
+            if (statusCode == HttpStatusCode.REQUEST_TOO_LONG) {
                 SdkServiceException exception = new SdkServiceException("Request entity too large");
                 exception.statusCode(statusCode);
                 exception.errorCode("Request entity too large");

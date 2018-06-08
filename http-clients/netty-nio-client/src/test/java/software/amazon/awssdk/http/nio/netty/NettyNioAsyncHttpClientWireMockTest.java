@@ -64,12 +64,14 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
+import software.amazon.awssdk.utils.AttributeMap;
 
 @RunWith(MockitoJUnitRunner.class)
 public class NettyNioAsyncHttpClientWireMockTest {
@@ -81,8 +83,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
     private SdkRequestContext requestContext;
 
     private static SdkAsyncHttpClient client = NettyNioAsyncHttpClient.builder()
-                                                                      .trustAllCertificates(true)
-                                                                      .build();
+                                                                      .buildWithDefaults(mapWithTrustAllCerts());
 
     @AfterClass
     public static void tearDown() throws Exception {
@@ -94,7 +95,6 @@ public class NettyNioAsyncHttpClientWireMockTest {
         ThreadFactory threadFactory = spy(new CustomThreadFactory());
         SdkAsyncHttpClient customClient =
                 NettyNioAsyncHttpClient.builder()
-                                       .trustAllCertificates(true)
                                        .eventLoopGroupFactory(DefaultEventLoopGroupFactory.builder()
                                                                                           .threadFactory(threadFactory)
                                                                                           .build())
@@ -123,7 +123,6 @@ public class NettyNioAsyncHttpClientWireMockTest {
         ThreadFactory threadFactory = spy(new CustomThreadFactory());
         SdkAsyncHttpClient customClient =
                 NettyNioAsyncHttpClient.builder()
-                                       .trustAllCertificates(true)
                                        .eventLoopGroupFactory(DefaultEventLoopGroupFactory.builder()
                                                                                           .threadFactory(threadFactory)
                                                                                           .numberOfThreads(threadCount)
@@ -149,7 +148,6 @@ public class NettyNioAsyncHttpClientWireMockTest {
         EventLoopGroup eventLoopGroup = spy(new NioEventLoopGroup(0, threadFactory));
         SdkAsyncHttpClient customClient =
                 NettyNioAsyncHttpClient.builder()
-                                       .trustAllCertificates(true)
                                        .eventLoopGroup(eventLoopGroup)
                                        .build();
 
@@ -374,5 +372,11 @@ public class NettyNioAsyncHttpClientWireMockTest {
         RecordingResponseHandler recorder = new RecordingResponseHandler();
         client.prepareRequest(request, requestContext, createProvider(""), recorder).run();
         return recorder;
+    }
+
+    private static AttributeMap mapWithTrustAllCerts() {
+        return AttributeMap.builder()
+                           .put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, true)
+                           .build();
     }
 }

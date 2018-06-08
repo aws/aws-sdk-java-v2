@@ -16,7 +16,7 @@
 package software.amazon.awssdk.awscore.client.handler;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.AwsExecutionAttributes;
+import software.amazon.awssdk.auth.AwsExecutionAttribute;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -54,16 +54,16 @@ final class AwsClientHandlerUtils {
         Validate.validState(credentials != null, "Credential providers must never return null.");
 
         ExecutionAttributes executionAttributes = new ExecutionAttributes()
-            .putAttribute(AwsExecutionAttributes.SERVICE_CONFIG, clientConfig.option(SdkClientOption.SERVICE_CONFIGURATION))
-            .putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, credentials)
-            .putAttribute(AwsExecutionAttributes.REQUEST_CONFIG, originalRequest.overrideConfiguration()
-                                                                                .map(c -> (RequestOverrideConfiguration) c)
-                                                                                .orElse(AwsRequestOverrideConfiguration.builder()
+            .putAttribute(AwsExecutionAttribute.SERVICE_CONFIG, clientConfig.option(SdkClientOption.SERVICE_CONFIGURATION))
+            .putAttribute(AwsExecutionAttribute.AWS_CREDENTIALS, credentials)
+            .putAttribute(AwsExecutionAttribute.REQUEST_CONFIG, originalRequest.overrideConfiguration()
+                                                                               .map(c -> (RequestOverrideConfiguration) c)
+                                                                               .orElse(AwsRequestOverrideConfiguration.builder()
                                                                                                                        .build()))
-            .putAttribute(AwsExecutionAttributes.SERVICE_SIGNING_NAME,
+            .putAttribute(AwsExecutionAttribute.SERVICE_SIGNING_NAME,
                           clientConfig.option(AwsClientOption.SERVICE_SIGNING_NAME))
-            .putAttribute(AwsExecutionAttributes.AWS_REGION, clientConfig.option(AwsClientOption.AWS_REGION))
-            .putAttribute(AwsExecutionAttributes.SIGNING_REGION, clientConfig.option(AwsClientOption.SIGNING_REGION));
+            .putAttribute(AwsExecutionAttribute.AWS_REGION, clientConfig.option(AwsClientOption.AWS_REGION))
+            .putAttribute(AwsExecutionAttribute.SIGNING_REGION, clientConfig.option(AwsClientOption.SIGNING_REGION));
 
         ExecutionInterceptorChain executionInterceptorChain =
                 new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));

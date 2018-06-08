@@ -27,7 +27,7 @@ import software.amazon.awssdk.codegen.model.service.ServiceModel;
 
 public final class ModelLoaderUtils {
 
-    public static final Logger log = LoggerFactory.getLogger(ModelLoaderUtils.class);
+    private static final Logger log = LoggerFactory.getLogger(ModelLoaderUtils.class);
 
     private ModelLoaderUtils() {
     }

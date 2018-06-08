@@ -21,7 +21,6 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_PENDING_CONNECTION_ACQUIRES;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.READ_TIMEOUT;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.WRITE_TIMEOUT;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.SocketChannelResolver.resolveSocketChannelClass;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
@@ -58,6 +57,7 @@ import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
 import software.amazon.awssdk.http.nio.netty.internal.SharedEventLoopGroup;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -67,6 +67,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
+    private static final Logger log = Logger.loggerFor(NettyNioAsyncHttpClient.class);
     private final EventLoopGroup group;
     private final RequestAdapter requestAdapter = new RequestAdapter();
     private final ChannelPoolMap<URI, ChannelPool> pools;
@@ -146,6 +147,8 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         if (scheme.equalsIgnoreCase("https")) {
             SslContextBuilder builder = SslContextBuilder.forClient().sslProvider(defaultClientProvider());
             if (configuration.trustAllCertificates()) {
+                log.warn(() -> "SSL Certificate verification is disabled. This is not a safe setting and should only be "
+                               + "used for testing.");
                 builder.trustManager(InsecureTrustManagerFactory.INSTANCE);
             }
             return invokeSafely(builder::build);
@@ -209,16 +212,6 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * @return this builder for method chaining.
          */
         Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout);
-
-        /**
-         * Forces the HTTP client to trust all certificates, even invalid or self signed certificates. This should only ever
-         * be used for testing purposes.
-         *
-         * @param trustAllCertificates Whether to trust all certificates. The default is false and only valid certificates
-         *                             whose trust can be verified via the trust store will be trusted.
-         * @return This builder for method chaining.
-         */
-        Builder trustAllCertificates(Boolean trustAllCertificates);
 
         /**
          * Sets the {@link EventLoopGroup} to use for the Netty HTTP client. This event loop group may be shared
@@ -365,24 +358,6 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         public void setConnectionAcquisitionTimeout(Duration connectionAcquisitionTimeout) {
             connectionAcquisitionTimeout(connectionAcquisitionTimeout);
-        }
-
-        /**
-         * Forces the HTTP client to trust all certificates, even invalid or self signed certificates. This should only ever
-         * be used for testing purposes.
-         *
-         * @param trustAllCertificates Whether to trust all certificates. The default is false and only valid certificates
-         *                             whose trust can be verified via the trust store will be trusted.
-         * @return This builder for method chaining.
-         */
-        @Override
-        public Builder trustAllCertificates(Boolean trustAllCertificates) {
-            standardOptions.put(TRUST_ALL_CERTIFICATES, trustAllCertificates);
-            return this;
-        }
-
-        public void setTrustAllCertificates(Boolean trustAllCertificates) {
-            trustAllCertificates(trustAllCertificates);
         }
 
         /**

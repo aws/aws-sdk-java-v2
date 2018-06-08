@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import software.amazon.awssdk.services.stepfunctions.builder.internal.Buildable;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * A single branch of parallel execution in a state machine. See {@link ParallelState}.
@@ -28,13 +28,13 @@ import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNa
  */
 public final class Branch {
 
-    @JsonProperty(PropertyNames.START_AT)
+    @JsonProperty(PropertyName.START_AT)
     private final String startAt;
 
-    @JsonProperty(PropertyNames.COMMENT)
+    @JsonProperty(PropertyName.COMMENT)
     private final String comment;
 
-    @JsonProperty(PropertyNames.STATES)
+    @JsonProperty(PropertyName.STATES)
     private final Map<String, State> states;
 
     private Branch(Builder builder) {
@@ -76,13 +76,13 @@ public final class Branch {
      */
     public static final class Builder implements Buildable<Branch> {
 
-        @JsonProperty(PropertyNames.START_AT)
+        @JsonProperty(PropertyName.START_AT)
         private String startAt;
 
-        @JsonProperty(PropertyNames.COMMENT)
+        @JsonProperty(PropertyName.COMMENT)
         private String comment;
 
-        @JsonProperty(PropertyNames.STATES)
+        @JsonProperty(PropertyName.STATES)
         private Map<String, State.Builder> stateBuilders = new LinkedHashMap<String, State.Builder>();
 
         private Builder() {

@@ -26,12 +26,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Clock;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import org.junit.Test;
 import org.mockito.Mockito;
-import software.amazon.awssdk.auth.AwsExecutionAttributes;
+import software.amazon.awssdk.auth.AwsExecutionAttribute;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
@@ -175,9 +174,9 @@ public class PresignRequestHandlerTest {
     }
 
     private ExecutionAttributes executionAttributes(RDSRequest request) {
-        return new ExecutionAttributes().putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, CREDENTIALS)
-                                        .putAttribute(AwsExecutionAttributes.REQUEST_CONFIG, request.overrideConfiguration()
-                                                .orElse(AwsRequestOverrideConfiguration.builder().build()));
+        return new ExecutionAttributes().putAttribute(AwsExecutionAttribute.AWS_CREDENTIALS, CREDENTIALS)
+                                        .putAttribute(AwsExecutionAttribute.REQUEST_CONFIG, request.overrideConfiguration()
+                                                                                                   .orElse(AwsRequestOverrideConfiguration.builder().build()));
     }
 
     private CopyDBSnapshotRequest makeTestRequest() {

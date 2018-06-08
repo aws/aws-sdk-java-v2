@@ -22,8 +22,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.ServiceConfiguration;
-import software.amazon.awssdk.core.client.builder.ExecutorProvider;
-import software.amazon.awssdk.core.client.builder.SdkAsyncClientBuilder;
 import software.amazon.awssdk.core.client.builder.SdkClientBuilder;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.config.SdkClientConfiguration;
@@ -78,9 +76,9 @@ public class SdkClientOption<T> extends ClientOption<T> {
         new SdkClientOption<>(Boolean.class);
 
     /**
-     * The executor service created by the configured {@link SdkAsyncClientBuilder#asyncExecutorProvider(ExecutorProvider)}
+     * The executor used for scheduling async retry attempts.
      */
-    public static final SdkClientOption<ScheduledExecutorService> ASYNC_EXECUTOR_SERVICE =
+    public static final SdkClientOption<ScheduledExecutorService> ASYNC_RETRY_EXECUTOR_SERVICE =
             new SdkClientOption<>(ScheduledExecutorService.class);
 
     /**

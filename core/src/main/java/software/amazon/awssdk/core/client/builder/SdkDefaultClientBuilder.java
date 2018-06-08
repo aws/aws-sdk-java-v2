@@ -15,10 +15,13 @@
 
 package software.amazon.awssdk.core.client.builder;
 
+import static software.amazon.awssdk.core.config.options.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
 import static software.amazon.awssdk.core.config.options.SdkAdvancedClientOption.SIGNER;
 import static software.amazon.awssdk.core.config.options.SdkAdvancedClientOption.USER_AGENT_PREFIX;
 import static software.amazon.awssdk.core.config.options.SdkAdvancedClientOption.USER_AGENT_SUFFIX;
 import static software.amazon.awssdk.core.config.options.SdkClientOption.ADDITIONAL_HTTP_HEADERS;
+import static software.amazon.awssdk.core.config.options.SdkClientOption.ASYNC_HTTP_CLIENT;
+import static software.amazon.awssdk.core.config.options.SdkClientOption.ASYNC_RETRY_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.core.config.options.SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
 import static software.amazon.awssdk.core.config.options.SdkClientOption.EXECUTION_INTERCEPTORS;
 import static software.amazon.awssdk.core.config.options.SdkClientOption.GZIP_ENABLED;
@@ -31,10 +34,16 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.core.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.config.options.SdkClientOption;
@@ -57,6 +66,7 @@ import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
+import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -88,7 +98,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     private SdkHttpClient.Builder httpClientBuilder;
     private SdkAsyncHttpClient.Builder asyncHttpClientBuilder;
-    private ExecutorProvider asyncExecutorProvider;
 
     protected SdkDefaultClientBuilder() {
         this(DEFAULT_HTTP_CLIENT_BUILDER, DEFAULT_ASYNC_HTTP_CLIENT_BUILDER);
@@ -208,8 +217,9 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      */
     private SdkClientConfiguration finalizeAsyncConfiguration(SdkClientConfiguration config) {
         return config.toBuilder()
-                     .option(SdkClientOption.ASYNC_EXECUTOR_SERVICE, resolveAsyncExecutorService(config))
-                     .option(SdkClientOption.ASYNC_HTTP_CLIENT, resolveAsyncHttpClient(config))
+                     .option(FUTURE_COMPLETION_EXECUTOR, resolveAsyncFutureCompletionExecutor(config))
+                     .option(ASYNC_RETRY_EXECUTOR_SERVICE, resolveAsyncRetryExecutorService(config))
+                     .option(ASYNC_HTTP_CLIENT, resolveAsyncHttpClient(config))
                      .build();
     }
 
@@ -238,9 +248,9 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * Finalize which async HTTP client will be used for the created client.
      */
     private SdkAsyncHttpClient resolveAsyncHttpClient(SdkClientConfiguration config) {
-        Validate.isTrue(config.option(SdkClientOption.ASYNC_HTTP_CLIENT) == null || asyncHttpClientBuilder == null,
+        Validate.isTrue(config.option(ASYNC_HTTP_CLIENT) == null || asyncHttpClientBuilder == null,
                         "The asyncHttpClient and the asyncHttpClientBuilder can't both be configured.");
-        return Either.fromNullable(config.option(SdkClientOption.ASYNC_HTTP_CLIENT), asyncHttpClientBuilder)
+        return Either.fromNullable(config.option(ASYNC_HTTP_CLIENT), asyncHttpClientBuilder)
                      .map(e -> e.map(NonManagedSdkAsyncHttpClient::new, b -> b.buildWithDefaults(childHttpConfig())))
                      .orElseGet(() -> defaultAsyncHttpClientBuilder.buildWithDefaults(childHttpConfig()));
     }
@@ -255,8 +265,22 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     /**
      * Finalize which async executor service will be used for the created client.
      */
-    private ScheduledExecutorService resolveAsyncExecutorService(SdkClientConfiguration config) {
-        return asyncExecutorProvider != null ? asyncExecutorProvider.get() : Executors.newScheduledThreadPool(1);
+    private Executor resolveAsyncFutureCompletionExecutor(SdkClientConfiguration config) {
+        Supplier<Executor> defaultExecutor = () ->
+                new ThreadPoolExecutor(0, 50,
+                                       10, TimeUnit.SECONDS,
+                                       new LinkedBlockingQueue<>(10_000),
+                                       new ThreadFactoryBuilder().threadNamePrefix("sdk-async-response").build());
+
+        return Optional.ofNullable(config.option(FUTURE_COMPLETION_EXECUTOR))
+                       .orElseGet(defaultExecutor);
+    }
+
+    /**
+     * Finalize which async executor service will be used for retries in the created client.
+     */
+    private ScheduledExecutorService resolveAsyncRetryExecutorService(SdkClientConfiguration config) {
+        return Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().threadNamePrefix("sdk-retry").build());
     }
 
     /**
@@ -277,13 +301,13 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         endpointOverride(endpointOverride);
     }
 
-    public final B asyncExecutorProvider(ExecutorProvider asyncExecutorProvider) {
-        this.asyncExecutorProvider = asyncExecutorProvider;
+    public final B asyncConfiguration(ClientAsyncConfiguration asyncConfiguration) {
+        clientConfiguration.option(FUTURE_COMPLETION_EXECUTOR, asyncConfiguration.advancedOption(FUTURE_COMPLETION_EXECUTOR));
         return thisBuilder();
     }
 
-    public final void setAsyncExecutorProvider(ExecutorProvider asyncExecutorProvider) {
-        asyncExecutorProvider(asyncExecutorProvider);
+    public final void setAsyncConfiguration(ClientAsyncConfiguration asyncConfiguration) {
+        asyncConfiguration(asyncConfiguration);
     }
 
     @Override
@@ -313,7 +337,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     }
 
     public final B asyncHttpClient(SdkAsyncHttpClient httpClient) {
-        clientConfiguration.option(SdkClientOption.ASYNC_HTTP_CLIENT, httpClient);
+        clientConfiguration.option(ASYNC_HTTP_CLIENT, httpClient);
         return thisBuilder();
     }
 

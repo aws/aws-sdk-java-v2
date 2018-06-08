@@ -66,7 +66,7 @@ public class Principal {
      * @param service
      *            An AWS service.
      */
-    public Principal(Services service) {
+    public Principal(Service service) {
         if (service == null) {
             throw new IllegalArgumentException("Null AWS service name specified");
         }
@@ -115,7 +115,7 @@ public class Principal {
      * @param webIdentityProvider
      *            An web identity provider.
      */
-    public Principal(WebIdentityProviders webIdentityProvider) {
+    public Principal(WebIdentityProvider webIdentityProvider) {
         if (webIdentityProvider == null) {
             throw new IllegalArgumentException("Null web identity provider specified");
         }
@@ -183,7 +183,7 @@ public class Principal {
      * role's policy. The returned credentials consist of an Access Key ID, a
      * Secret Access Key, and a security token.
      */
-    public enum Services {
+    public enum Service {
 
         AWSDataPipeline("datapipeline.amazonaws.com"),
         AmazonElasticTranscoder("elastictranscoder.amazonaws.com"),
@@ -196,16 +196,16 @@ public class Principal {
         /**
          * The service which has the right to assume the role.
          */
-        Services(String serviceId) {
+        Service(String serviceId) {
             this.serviceId = serviceId;
         }
 
         /**
          * Construct the Services object from a string representing the service id.
          */
-        public static Services fromString(String serviceId) {
+        public static Service fromString(String serviceId) {
             if (serviceId != null) {
-                for (Services s : Services.values()) {
+                for (Service s : Service.values()) {
                     if (s.getServiceId().equalsIgnoreCase(serviceId)) {
                         return s;
                     }
@@ -225,7 +225,7 @@ public class Principal {
     /**
      * Web identity providers, such as Login with Amazon, Facebook, or Google.
      */
-    public enum WebIdentityProviders {
+    public enum WebIdentityProvider {
 
         Facebook("graph.facebook.com"),
         Google("accounts.google.com"),
@@ -237,16 +237,16 @@ public class Principal {
         /**
          * The web identity provider which has the right to assume the role.
          */
-        WebIdentityProviders(String webIdentityProvider) {
+        WebIdentityProvider(String webIdentityProvider) {
             this.webIdentityProvider = webIdentityProvider;
         }
 
         /**
          * Construct the Services object from a string representing web identity provider.
          */
-        public static WebIdentityProviders fromString(String webIdentityProvider) {
+        public static WebIdentityProvider fromString(String webIdentityProvider) {
             if (webIdentityProvider != null) {
-                for (WebIdentityProviders provider : WebIdentityProviders.values()) {
+                for (WebIdentityProvider provider : WebIdentityProvider.values()) {
                     if (provider.getWebIdentityProvider().equalsIgnoreCase(webIdentityProvider)) {
                         return provider;
                     }

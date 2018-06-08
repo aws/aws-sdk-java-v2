@@ -66,7 +66,7 @@ public class JsonModelMarshallerSpec implements ClassSpec {
     public TypeSpec poetSpec() {
         return TypeSpec.classBuilder(className)
                        .addModifiers(Modifier.PUBLIC)
-                       .addAnnotation(PoetUtils.GENERATED)
+                       .addAnnotation(PoetUtils.generatedAnnotation())
                        .addAnnotation(SdkInternalApi.class)
                        .addJavadoc("{@link $T} Marshaller", requestClassName)
                        .addFields(memberVariables())

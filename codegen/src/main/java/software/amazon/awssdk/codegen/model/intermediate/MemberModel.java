@@ -15,12 +15,12 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
-import static software.amazon.awssdk.codegen.internal.Constants.LF;
-import static software.amazon.awssdk.codegen.internal.DocumentationUtils.DEFAULT_FLUENT_RETURN;
-import static software.amazon.awssdk.codegen.internal.DocumentationUtils.DEFAULT_GETTER;
-import static software.amazon.awssdk.codegen.internal.DocumentationUtils.DEFAULT_GETTER_PARAM;
-import static software.amazon.awssdk.codegen.internal.DocumentationUtils.DEFAULT_SETTER;
-import static software.amazon.awssdk.codegen.internal.DocumentationUtils.DEFAULT_SETTER_PARAM;
+import static software.amazon.awssdk.codegen.internal.Constant.LF;
+import static software.amazon.awssdk.codegen.internal.DocumentationUtils.defaultFluentReturn;
+import static software.amazon.awssdk.codegen.internal.DocumentationUtils.defaultGetter;
+import static software.amazon.awssdk.codegen.internal.DocumentationUtils.defaultGetterParam;
+import static software.amazon.awssdk.codegen.internal.DocumentationUtils.defaultSetter;
+import static software.amazon.awssdk.codegen.internal.DocumentationUtils.defaultSetterParam;
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.stripHtmlTags;
 import static software.amazon.awssdk.utils.StringUtils.upperCase;
 
@@ -29,7 +29,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
-import software.amazon.awssdk.core.runtime.transform.PathMarshallers;
+import software.amazon.awssdk.core.runtime.transform.PathMarshaller;
 import software.amazon.awssdk.utils.StringUtils;
 
 public class MemberModel extends DocumentationModel {
@@ -314,7 +314,7 @@ public class MemberModel extends DocumentationModel {
     public String getSetterDocumentation() {
         StringBuilder docBuilder = new StringBuilder();
 
-        docBuilder.append(StringUtils.isNotBlank(documentation) ? documentation : DEFAULT_SETTER.replace("%s", name) + "\n");
+        docBuilder.append(StringUtils.isNotBlank(documentation) ? documentation : defaultSetter().replace("%s", name) + "\n");
 
         if (returnTypeIs(ByteBuffer.class)) {
             appendParagraph(docBuilder, "To preserve immutability, the remaining bytes in the provided buffer will be copied "
@@ -329,7 +329,7 @@ public class MemberModel extends DocumentationModel {
 
     public String getGetterDocumentation() {
         StringBuilder docBuilder = new StringBuilder();
-        docBuilder.append(StringUtils.isNotBlank(documentation) ? documentation : DEFAULT_GETTER.replace("%s", name))
+        docBuilder.append(StringUtils.isNotBlank(documentation) ? documentation : defaultGetter().replace("%s", name))
                 .append(LF);
 
         if (returnTypeIs(ByteBuffer.class)) {
@@ -362,7 +362,7 @@ public class MemberModel extends DocumentationModel {
             }
         }
 
-        String variableDesc = StringUtils.isNotBlank(documentation) ? documentation : DEFAULT_GETTER_PARAM.replace("%s", name);
+        String variableDesc = StringUtils.isNotBlank(documentation) ? documentation : defaultGetterParam().replace("%s", name);
 
         docBuilder.append("@return ")
                   .append(stripHtmlTags(variableDesc))
@@ -379,12 +379,12 @@ public class MemberModel extends DocumentationModel {
     public String getFluentSetterDocumentation() {
         return getSetterDocumentation()
                + LF
-               + "@return " + stripHtmlTags(DEFAULT_FLUENT_RETURN)
+               + "@return " + stripHtmlTags(defaultFluentReturn())
                + getEnumDoc();
     }
 
     public String getDefaultConsumerFluentSetterDocumentation() {
-        return (StringUtils.isNotBlank(documentation) ? documentation : DEFAULT_SETTER.replace("%s", name) + "\n")
+        return (StringUtils.isNotBlank(documentation) ? documentation : defaultSetter().replace("%s", name) + "\n")
                + LF
                + "This is a convenience that creates an instance of the {@link "
                + variable.getSimpleType()
@@ -405,7 +405,7 @@ public class MemberModel extends DocumentationModel {
                + " a consumer that will call methods on {@link "
                + variable.getSimpleType() + ".Builder}"
                + LF
-               + "@return " + stripHtmlTags(DEFAULT_FLUENT_RETURN)
+               + "@return " + stripHtmlTags(defaultFluentReturn())
                + LF
                + "@see #"
                + getFluentSetterMethodName()
@@ -419,7 +419,7 @@ public class MemberModel extends DocumentationModel {
                + "@param "
                + variable.getVariableName()
                + " "
-               + stripHtmlTags(StringUtils.isNotBlank(documentation) ? documentation : DEFAULT_SETTER_PARAM.replace("%s", name));
+               + stripHtmlTags(StringUtils.isNotBlank(documentation) ? documentation : defaultSetterParam().replace("%s", name));
     }
 
     private String getEnumDoc() {
@@ -455,7 +455,7 @@ public class MemberModel extends DocumentationModel {
         if (!http.isUri()) {
             throw new IllegalStateException("Only members bound to the URI have a path marshaller");
         }
-        final String prefix = PathMarshallers.class.getName();
+        final String prefix = PathMarshaller.class.getName();
         if (http.isGreedy()) {
             return prefix + ".GREEDY";
         } else if (isIdempotencyToken()) {

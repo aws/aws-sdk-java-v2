@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -177,7 +178,7 @@ public final class XpathUtils {
 
     public static Document documentFrom(String xml) throws SAXException,
                                                            IOException, ParserConfigurationException {
-        return documentFrom(new ByteArrayInputStream(xml.getBytes(StringUtils.UTF8)));
+        return documentFrom(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
     }
 
     public static Document documentFrom(URL url) throws SAXException,

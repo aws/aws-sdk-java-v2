@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.stepfunctions.builder.conditions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * Binary condition for Boolean equality comparison.
@@ -27,10 +27,10 @@ import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNa
  */
 public final class BooleanEqualsCondition implements BinaryCondition<Boolean> {
 
-    @JsonProperty(PropertyNames.VARIABLE)
+    @JsonProperty(PropertyName.VARIABLE)
     private final String variable;
 
-    @JsonProperty(PropertyNames.BOOLEAN_EQUALS)
+    @JsonProperty(PropertyName.BOOLEAN_EQUALS)
     private final Boolean expectedValue;
 
     private BooleanEqualsCondition(Builder builder) {
@@ -66,10 +66,10 @@ public final class BooleanEqualsCondition implements BinaryCondition<Boolean> {
      */
     public static final class Builder extends BinaryConditionBuilder {
 
-        @JsonProperty(PropertyNames.VARIABLE)
+        @JsonProperty(PropertyName.VARIABLE)
         private String variable;
 
-        @JsonProperty(PropertyNames.BOOLEAN_EQUALS)
+        @JsonProperty(PropertyName.BOOLEAN_EQUALS)
         private Boolean expectedValue;
 
         private Builder() {
@@ -105,7 +105,7 @@ public final class BooleanEqualsCondition implements BinaryCondition<Boolean> {
 
         @Override
         String type() {
-            return PropertyNames.BOOLEAN_EQUALS;
+            return PropertyName.BOOLEAN_EQUALS;
         }
 
         /**

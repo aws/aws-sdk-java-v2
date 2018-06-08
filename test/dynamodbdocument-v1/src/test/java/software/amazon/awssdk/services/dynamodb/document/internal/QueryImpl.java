@@ -21,7 +21,7 @@ import java.util.Map;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.document.ItemCollection;
 import software.amazon.awssdk.services.dynamodb.document.KeyAttribute;
-import software.amazon.awssdk.services.dynamodb.document.KeyConditions;
+import software.amazon.awssdk.services.dynamodb.document.KeyCondition;
 import software.amazon.awssdk.services.dynamodb.document.QueryFilter;
 import software.amazon.awssdk.services.dynamodb.document.QueryOutcome;
 import software.amazon.awssdk.services.dynamodb.document.RangeKeyCondition;
@@ -118,7 +118,7 @@ public class QueryImpl extends AbstractImpl implements QueryApi {
         // range key condition
         RangeKeyCondition rangeKeyCond = spec.getRangeKeyCondition();
         if (rangeKeyCond != null) {
-            KeyConditions keyCond = rangeKeyCond.getKeyCondition();
+            KeyCondition keyCond = rangeKeyCond.getKeyCondition();
             if (keyCond == null) {
                 throw new IllegalArgumentException("key condition not specified in range key condition");
             }

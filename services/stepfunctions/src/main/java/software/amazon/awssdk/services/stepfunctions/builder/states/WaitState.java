@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import java.util.Date;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * A Wait state causes the interpreter to delay the machine from continuing for a specified time. The time can be specified as a
@@ -30,16 +30,16 @@ import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNa
  */
 public final class WaitState extends TransitionState {
 
-    @JsonProperty(PropertyNames.COMMENT)
+    @JsonProperty(PropertyName.COMMENT)
     private final String comment;
 
     @JsonUnwrapped
     private final WaitFor waitFor;
 
-    @JsonProperty(PropertyNames.INPUT_PATH)
+    @JsonProperty(PropertyName.INPUT_PATH)
     private final String inputPath;
 
-    @JsonProperty(PropertyNames.OUTPUT_PATH)
+    @JsonProperty(PropertyName.OUTPUT_PATH)
     private final String outputPath;
 
     @JsonUnwrapped
@@ -111,15 +111,15 @@ public final class WaitState extends TransitionState {
      */
     public static final class Builder extends TransitionStateBuilder {
 
-        @JsonProperty(PropertyNames.COMMENT)
+        @JsonProperty(PropertyName.COMMENT)
         private String comment;
 
         private WaitFor.Builder waitFor = WaitFor.NULL_BUILDER;
 
-        @JsonProperty(PropertyNames.INPUT_PATH)
+        @JsonProperty(PropertyName.INPUT_PATH)
         private String inputPath;
 
-        @JsonProperty(PropertyNames.OUTPUT_PATH)
+        @JsonProperty(PropertyName.OUTPUT_PATH)
         private String outputPath;
 
         @JsonProperty
@@ -140,25 +140,25 @@ public final class WaitState extends TransitionState {
         }
 
         // Needed for deserialization
-        @JsonProperty(PropertyNames.SECONDS)
+        @JsonProperty(PropertyName.SECONDS)
         private Builder seconds(Integer seconds) {
             return waitFor(WaitForSeconds.builder().seconds(seconds));
         }
 
         // Needed for deserialization
-        @JsonProperty(PropertyNames.TIMESTAMP)
+        @JsonProperty(PropertyName.TIMESTAMP)
         private Builder timestamp(Date timestamp) {
             return waitFor(WaitForTimestamp.builder().timestamp(timestamp));
         }
 
         // Needed for deserialization
-        @JsonProperty(PropertyNames.TIMESTAMP_PATH)
+        @JsonProperty(PropertyName.TIMESTAMP_PATH)
         private Builder timestampPath(String timestampPath) {
             return waitFor(WaitForTimestampPath.builder().timestampPath(timestampPath));
         }
 
         // Needed for deserialization
-        @JsonProperty(PropertyNames.SECONDS_PATH)
+        @JsonProperty(PropertyName.SECONDS_PATH)
         private Builder secondsPath(String secondsPath) {
             return waitFor(WaitForSecondsPath.builder().secondsPath(secondsPath));
         }

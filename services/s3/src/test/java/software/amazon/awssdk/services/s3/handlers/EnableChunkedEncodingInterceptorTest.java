@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.s3.handlers;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.services.s3.auth.S3ExecutionAttributes.ENABLE_CHUNKED_ENCODING;
+import static software.amazon.awssdk.services.s3.auth.S3ExecutionAttribute.ENABLE_CHUNKED_ENCODING;
 
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkRequest;

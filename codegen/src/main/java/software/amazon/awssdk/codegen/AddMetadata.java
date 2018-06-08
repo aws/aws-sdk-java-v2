@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen;
 
-import software.amazon.awssdk.codegen.internal.Constants;
+import software.amazon.awssdk.codegen.internal.Constant;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.BasicCodeGenConfig;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
@@ -65,12 +65,12 @@ final class AddMetadata {
         }
 
         metadata.withApiVersion(serviceMetadata.getApiVersion())
-                .withAsyncClient(String.format(Constants.ASYNC_CLIENT_CLASS_NAME_PATTERN, serviceName))
-                .withAsyncInterface(String.format(Constants.ASYNC_CLIENT_INTERFACE_NAME_PATTERN, serviceName))
-                .withAsyncBuilder(String.format(Constants.ASYNC_BUILDER_CLASS_NAME_PATTERN, serviceName))
-                .withAsyncBuilderInterface(String.format(Constants.ASYNC_BUILDER_INTERFACE_NAME_PATTERN, serviceName))
-                .withBaseBuilderInterface(String.format(Constants.BASE_BUILDER_INTERFACE_NAME_PATTERN, serviceName))
-                .withBaseBuilder(String.format(Constants.BASE_BUILDER_CLASS_NAME_PATTERN, serviceName))
+                .withAsyncClient(String.format(Constant.ASYNC_CLIENT_CLASS_NAME_PATTERN, serviceName))
+                .withAsyncInterface(String.format(Constant.ASYNC_CLIENT_INTERFACE_NAME_PATTERN, serviceName))
+                .withAsyncBuilder(String.format(Constant.ASYNC_BUILDER_CLASS_NAME_PATTERN, serviceName))
+                .withAsyncBuilderInterface(String.format(Constant.ASYNC_BUILDER_INTERFACE_NAME_PATTERN, serviceName))
+                .withBaseBuilderInterface(String.format(Constant.BASE_BUILDER_INTERFACE_NAME_PATTERN, serviceName))
+                .withBaseBuilder(String.format(Constant.BASE_BUILDER_CLASS_NAME_PATTERN, serviceName))
                 .withDocumentation(serviceModel.getDocumentation())
                 .withRootPackageName(rootPackageName)
                 .withClientPackageName(Utils.getClientPackageName(serviceName, customizationConfig))
@@ -81,13 +81,13 @@ final class AddMetadata {
                 .withSmokeTestsPackageName(Utils.getSmokeTestPackageName(serviceName, customizationConfig))
                 .withServiceAbbreviation(serviceMetadata.getServiceAbbreviation())
                 .withServiceFullName(serviceMetadata.getServiceFullName())
-                .withSyncClient(String.format(Constants.SYNC_CLIENT_CLASS_NAME_PATTERN, serviceName))
-                .withSyncInterface(String.format(Constants.SYNC_CLIENT_INTERFACE_NAME_PATTERN, serviceName))
-                .withSyncBuilder(String.format(Constants.SYNC_BUILDER_CLASS_NAME_PATTERN, serviceName))
-                .withSyncBuilderInterface(String.format(Constants.SYNC_BUILDER_INTERFACE_NAME_PATTERN, serviceName))
-                .withBaseExceptionName(String.format(Constants.BASE_EXCEPTION_NAME_PATTERN, serviceName))
-                .withBaseRequestName(String.format(Constants.BASE_REQUEST_NAME_PATTERN, serviceName))
-                .withBaseResponseName(String.format(Constants.BASE_RESPONSE_NAME_PATTERN, serviceName))
+                .withSyncClient(String.format(Constant.SYNC_CLIENT_CLASS_NAME_PATTERN, serviceName))
+                .withSyncInterface(String.format(Constant.SYNC_CLIENT_INTERFACE_NAME_PATTERN, serviceName))
+                .withSyncBuilder(String.format(Constant.SYNC_BUILDER_CLASS_NAME_PATTERN, serviceName))
+                .withSyncBuilderInterface(String.format(Constant.SYNC_BUILDER_INTERFACE_NAME_PATTERN, serviceName))
+                .withBaseExceptionName(String.format(Constant.BASE_EXCEPTION_NAME_PATTERN, serviceName))
+                .withBaseRequestName(String.format(Constant.BASE_REQUEST_NAME_PATTERN, serviceName))
+                .withBaseResponseName(String.format(Constant.BASE_RESPONSE_NAME_PATTERN, serviceName))
                 .withProtocol(Protocol.fromValue(serviceMetadata.getProtocol()))
                 .withJsonVersion(serviceMetadata.getJsonVersion())
                 .withEndpointPrefix(serviceMetadata.getEndpointPrefix())

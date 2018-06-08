@@ -123,24 +123,9 @@ public final class StringUtils {
     // (not sure who tested this)
 
     /**
-     * A String for a space character.
-     */
-    public static final String SPACE = " ";
-
-    /**
      * The empty String {@code ""}.
      */
-    public static final String EMPTY = "";
-
-    /**
-     * Represents a failed index search.
-     */
-    public static final int INDEX_NOT_FOUND = -1;
-
-    /**
-     * <p>The maximum size to which the padding constant(s) can expand.</p>
-     */
-    private static final int PAD_LIMIT = 8192;
+    private static final String EMPTY = "";
 
     /**
      * <p>{@code StringUtils} instances should NOT be constructed in

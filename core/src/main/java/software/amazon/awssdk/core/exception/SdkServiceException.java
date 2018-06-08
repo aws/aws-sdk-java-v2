@@ -19,7 +19,7 @@ import java.util.Collections;
 import java.util.Map;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.HttpStatusCodes;
+import software.amazon.awssdk.http.HttpStatusCode;
 
 /**
  * Extension of SdkException that represents an error response returned by
@@ -240,7 +240,7 @@ public class SdkServiceException extends SdkException {
      * @return true if the status code is 429, otherwise false.
      */
     public boolean isThrottlingException() {
-        return statusCode() == HttpStatusCodes.THROTTLING;
+        return statusCode() == HttpStatusCode.THROTTLING;
     }
 
 }

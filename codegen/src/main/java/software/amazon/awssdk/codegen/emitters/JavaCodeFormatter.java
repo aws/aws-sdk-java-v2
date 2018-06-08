@@ -24,7 +24,7 @@ import org.eclipse.jdt.core.formatter.DefaultCodeFormatterConstants;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.text.edits.TextEdit;
-import software.amazon.awssdk.codegen.internal.Constants;
+import software.amazon.awssdk.codegen.internal.Constant;
 
 /**
  * Formats the generated java source code. Uses Eclipse JDT core plugin from the Eclipse SDK.
@@ -92,7 +92,7 @@ public class JavaCodeFormatter implements CodeTransformer {
         final TextEdit edit = codeFormatter.format(
                 CodeFormatter.K_COMPILATION_UNIT
                 | CodeFormatter.F_INCLUDE_COMMENTS, contents, 0,
-                contents.length(), 0, Constants.LF);
+                contents.length(), 0, Constant.LF);
 
         if (edit == null) {
             // TODO log a fatal or warning here. Throwing an exception is causing the actual freemarker error to be lost

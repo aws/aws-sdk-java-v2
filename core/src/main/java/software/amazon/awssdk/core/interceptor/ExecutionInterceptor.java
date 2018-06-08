@@ -106,7 +106,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
  * {@link ExecutionAttributes} are unique to an execution (the process of an SDK processing a {@link SdkRequest}). This mutable
  * collection of attributes is created when a call to a service client is made and can be mutated throughout the course of the
  * client call. These attributes are made available to every interceptor hook and is available for storing data between method
- * calls. The SDK provides some attributes automatically, available via {@link SdkExecutionAttributes}.
+ * calls. The SDK provides some attributes automatically, available via {@link SdkExecutionAttribute}.
  * </p>
  *
  * <p>

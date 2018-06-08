@@ -23,11 +23,11 @@ public class HttpStatusFamilyTest {
     @Test
     public void statusFamiliesAreMappedCorrectly() {
         assertThat(HttpStatusFamily.of(-1)).isEqualTo(HttpStatusFamily.OTHER);
-        assertThat(HttpStatusFamily.of(HttpStatusCodes.CONTINUE)).isEqualTo(HttpStatusFamily.INFORMATIONAL);
-        assertThat(HttpStatusFamily.of(HttpStatusCodes.OK)).isEqualTo(HttpStatusFamily.SUCCESSFUL);
-        assertThat(HttpStatusFamily.of(HttpStatusCodes.MOVED_PERMANENTLY)).isEqualTo(HttpStatusFamily.REDIRECTION);
-        assertThat(HttpStatusFamily.of(HttpStatusCodes.NOT_FOUND)).isEqualTo(HttpStatusFamily.CLIENT_ERROR);
-        assertThat(HttpStatusFamily.of(HttpStatusCodes.INTERNAL_SERVER_ERROR)).isEqualTo(HttpStatusFamily.SERVER_ERROR);
+        assertThat(HttpStatusFamily.of(HttpStatusCode.CONTINUE)).isEqualTo(HttpStatusFamily.INFORMATIONAL);
+        assertThat(HttpStatusFamily.of(HttpStatusCode.OK)).isEqualTo(HttpStatusFamily.SUCCESSFUL);
+        assertThat(HttpStatusFamily.of(HttpStatusCode.MOVED_PERMANENTLY)).isEqualTo(HttpStatusFamily.REDIRECTION);
+        assertThat(HttpStatusFamily.of(HttpStatusCode.NOT_FOUND)).isEqualTo(HttpStatusFamily.CLIENT_ERROR);
+        assertThat(HttpStatusFamily.of(HttpStatusCode.INTERNAL_SERVER_ERROR)).isEqualTo(HttpStatusFamily.SERVER_ERROR);
     }
 
     @Test

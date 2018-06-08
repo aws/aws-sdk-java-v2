@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.services.stepfunctions.builder.internal.Buildable;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * State that allows for parallel execution of {@link Branch}s. A Parallel state causes the interpreter to execute each branch
@@ -31,28 +31,28 @@ import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNa
  */
 public final class ParallelState extends TransitionState {
 
-    @JsonProperty(PropertyNames.COMMENT)
+    @JsonProperty(PropertyName.COMMENT)
     private final String comment;
 
-    @JsonProperty(PropertyNames.BRANCHES)
+    @JsonProperty(PropertyName.BRANCHES)
     private final List<Branch> branches;
 
-    @JsonProperty(PropertyNames.INPUT_PATH)
+    @JsonProperty(PropertyName.INPUT_PATH)
     private final String inputPath;
 
-    @JsonProperty(PropertyNames.RESULT_PATH)
+    @JsonProperty(PropertyName.RESULT_PATH)
     private final String resultPath;
 
-    @JsonProperty(PropertyNames.OUTPUT_PATH)
+    @JsonProperty(PropertyName.OUTPUT_PATH)
     private final String outputPath;
 
     @JsonUnwrapped
     private final Transition transition;
 
-    @JsonProperty(PropertyNames.RETRY)
+    @JsonProperty(PropertyName.RETRY)
     private final List<Retrier> retriers;
 
-    @JsonProperty(PropertyNames.CATCH)
+    @JsonProperty(PropertyName.CATCH)
     private final List<Catcher> catchers;
 
     private ParallelState(Builder builder) {
@@ -147,27 +147,27 @@ public final class ParallelState extends TransitionState {
      */
     public static final class Builder extends TransitionStateBuilder {
 
-        @JsonProperty(PropertyNames.COMMENT)
+        @JsonProperty(PropertyName.COMMENT)
         private String comment;
 
-        @JsonProperty(PropertyNames.BRANCHES)
+        @JsonProperty(PropertyName.BRANCHES)
         private List<Branch.Builder> branches = new ArrayList<Branch.Builder>();
 
-        @JsonProperty(PropertyNames.INPUT_PATH)
+        @JsonProperty(PropertyName.INPUT_PATH)
         private String inputPath;
 
-        @JsonProperty(PropertyNames.RESULT_PATH)
+        @JsonProperty(PropertyName.RESULT_PATH)
         private String resultPath;
 
-        @JsonProperty(PropertyNames.OUTPUT_PATH)
+        @JsonProperty(PropertyName.OUTPUT_PATH)
         private String outputPath;
 
         private Transition.Builder transition = Transition.NULL_BUILDER;
 
-        @JsonProperty(PropertyNames.RETRY)
+        @JsonProperty(PropertyName.RETRY)
         private List<Retrier.Builder> retriers = new ArrayList<Retrier.Builder>();
 
-        @JsonProperty(PropertyNames.CATCH)
+        @JsonProperty(PropertyName.CATCH)
         private List<Catcher.Builder> catchers = new ArrayList<Catcher.Builder>();
 
         private Builder() {

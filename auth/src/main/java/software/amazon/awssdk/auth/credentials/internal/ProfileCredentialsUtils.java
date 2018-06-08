@@ -29,7 +29,7 @@ import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.ChildProfileCredentialsProviderFactory;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.profiles.Profile;
-import software.amazon.awssdk.profiles.ProfileProperties;
+import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 
@@ -85,15 +85,15 @@ public final class ProfileCredentialsUtils {
      * @param children The child profiles that source credentials from this profile.
      */
     private Optional<AwsCredentialsProvider> credentialsProvider(Set<String> children) {
-        if (properties.containsKey(ProfileProperties.ROLE_ARN)) {
+        if (properties.containsKey(ProfileProperty.ROLE_ARN)) {
             return Optional.ofNullable(roleBasedProfileCredentialsProvider(children));
         }
 
-        if (properties.containsKey(ProfileProperties.AWS_SESSION_TOKEN)) {
+        if (properties.containsKey(ProfileProperty.AWS_SESSION_TOKEN)) {
             return Optional.of(sessionProfileCredentialsProvider());
         }
 
-        if (properties.containsKey(ProfileProperties.AWS_ACCESS_KEY_ID)) {
+        if (properties.containsKey(ProfileProperty.AWS_ACCESS_KEY_ID)) {
             return Optional.of(basicProfileCredentialsProvider());
         }
 
@@ -104,10 +104,10 @@ public final class ProfileCredentialsUtils {
      * Load a basic set of credentials that have been configured in this profile.
      */
     private AwsCredentialsProvider basicProfileCredentialsProvider() {
-        requireProperties(ProfileProperties.AWS_ACCESS_KEY_ID,
-                          ProfileProperties.AWS_SECRET_ACCESS_KEY);
-        AwsCredentials credentials = AwsCredentials.create(properties.get(ProfileProperties.AWS_ACCESS_KEY_ID),
-                                                           properties.get(ProfileProperties.AWS_SECRET_ACCESS_KEY));
+        requireProperties(ProfileProperty.AWS_ACCESS_KEY_ID,
+                          ProfileProperty.AWS_SECRET_ACCESS_KEY);
+        AwsCredentials credentials = AwsCredentials.create(properties.get(ProfileProperty.AWS_ACCESS_KEY_ID),
+                                                           properties.get(ProfileProperty.AWS_SECRET_ACCESS_KEY));
         return StaticCredentialsProvider.create(credentials);
     }
 
@@ -115,12 +115,12 @@ public final class ProfileCredentialsUtils {
      * Load a set of session credentials that have been configured in this profile.
      */
     private AwsCredentialsProvider sessionProfileCredentialsProvider() {
-        requireProperties(ProfileProperties.AWS_ACCESS_KEY_ID,
-                          ProfileProperties.AWS_SECRET_ACCESS_KEY,
-                          ProfileProperties.AWS_SESSION_TOKEN);
-        AwsCredentials credentials = AwsSessionCredentials.create(properties.get(ProfileProperties.AWS_ACCESS_KEY_ID),
-                                                                  properties.get(ProfileProperties.AWS_SECRET_ACCESS_KEY),
-                                                                  properties.get(ProfileProperties.AWS_SESSION_TOKEN));
+        requireProperties(ProfileProperty.AWS_ACCESS_KEY_ID,
+                          ProfileProperty.AWS_SECRET_ACCESS_KEY,
+                          ProfileProperty.AWS_SESSION_TOKEN);
+        AwsCredentials credentials = AwsSessionCredentials.create(properties.get(ProfileProperty.AWS_ACCESS_KEY_ID),
+                                                                  properties.get(ProfileProperty.AWS_SECRET_ACCESS_KEY),
+                                                                  properties.get(ProfileProperty.AWS_SESSION_TOKEN));
         return StaticCredentialsProvider.create(credentials);
     }
 
@@ -131,7 +131,7 @@ public final class ProfileCredentialsUtils {
      * @param children The child profiles that source credentials from this profile.
      */
     private AwsCredentialsProvider roleBasedProfileCredentialsProvider(Set<String> children) {
-        requireProperties(ProfileProperties.SOURCE_PROFILE);
+        requireProperties(ProfileProperty.SOURCE_PROFILE);
 
         Validate.validState(!children.contains(name),
                             "Invalid profile file: Circular relationship detected with profiles %s.", children);
@@ -140,7 +140,7 @@ public final class ProfileCredentialsUtils {
 
         children.add(name);
         AwsCredentialsProvider sourceCredentialsProvider =
-            credentialsSourceResolver.apply(properties.get(ProfileProperties.SOURCE_PROFILE))
+            credentialsSourceResolver.apply(properties.get(ProfileProperty.SOURCE_PROFILE))
                                      .flatMap(p -> new ProfileCredentialsUtils(p, credentialsSourceResolver)
                                          .credentialsProvider(children))
                                      .orElseThrow(this::noSourceCredentialsException);
@@ -159,7 +159,7 @@ public final class ProfileCredentialsUtils {
 
     private IllegalStateException noSourceCredentialsException() {
         String error = String.format("The source profile of '%s' was configured to be '%s', but that source profile has no "
-                                     + "credentials configured.", name, properties.get(ProfileProperties.SOURCE_PROFILE));
+                                     + "credentials configured.", name, properties.get(ProfileProperty.SOURCE_PROFILE));
         return new IllegalStateException(error);
     }
 

@@ -19,7 +19,7 @@ import com.jayway.jsonpath.InvalidPathException;
 import com.jayway.jsonpath.JsonPath;
 import java.util.Collection;
 import java.util.Map;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -145,7 +145,7 @@ final class ValidationContext {
      * @param path Path expression to validate.
      */
     public void assertIsValidInputPath(String path) {
-        assertIsValidJsonPath(path, PropertyNames.INPUT_PATH);
+        assertIsValidJsonPath(path, PropertyName.INPUT_PATH);
     }
 
     /**
@@ -154,7 +154,7 @@ final class ValidationContext {
      * @param path Path expression to validate.
      */
     public void assertIsValidOutputPath(String path) {
-        assertIsValidJsonPath(path, PropertyNames.OUTPUT_PATH);
+        assertIsValidJsonPath(path, PropertyName.OUTPUT_PATH);
     }
 
     /**
@@ -163,7 +163,7 @@ final class ValidationContext {
      * @param path Path expression to validate.
      */
     public void assertIsValidResultPath(String path) {
-        assertIsValidReferencePath(path, PropertyNames.RESULT_PATH);
+        assertIsValidReferencePath(path, PropertyName.RESULT_PATH);
     }
 
     /**

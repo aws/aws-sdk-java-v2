@@ -43,7 +43,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDBMapperIntegrationTestBase;
-import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.ConsistentReads;
+import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.ConsistentRead;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.SaveBehavior;
 import software.amazon.awssdk.services.dynamodb.mapper.NumberSetAttributeClass;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
@@ -60,7 +60,7 @@ public class BatchLoadIntegrationTest extends DynamoDBMapperIntegrationTestBase 
     private static int startKeyDebug = 1;
     DynamoDbMapper mapper = new DynamoDbMapper(dynamo, DynamoDbMapperConfig.builder()
                                                                            .withSaveBehavior(SaveBehavior.UPDATE)
-                                                                           .withConsistentReads(ConsistentReads.CONSISTENT)
+                                                                           .withConsistentReads(ConsistentRead.CONSISTENT)
                                                                            .build());
 
     @BeforeClass

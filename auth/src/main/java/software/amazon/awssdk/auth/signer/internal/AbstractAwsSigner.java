@@ -23,7 +23,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -34,7 +33,7 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.signer.SigningAlgorithm;
-import software.amazon.awssdk.core.RequestClientOptions;
+import software.amazon.awssdk.core.RequestOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.io.SdkDigestInputStream;
 import software.amazon.awssdk.core.signer.Signer;
@@ -237,7 +236,7 @@ public abstract class AbstractAwsSigner implements Signer {
 
     @ReviewBeforeRelease("Do we still want to make read limit user-configurable as in V1?")
     protected static int getReadLimit() {
-        return RequestClientOptions.DEFAULT_STREAM_BUFFER_SIZE;
+        return RequestOption.DEFAULT_STREAM_BUFFER_SIZE;
 
     }
 
@@ -302,17 +301,6 @@ public abstract class AbstractAwsSigner implements Signer {
         }
 
         return AwsCredentials.create(accessKeyId, secretKey);
-    }
-
-    /**
-     * Returns the current time minus the given offset in seconds.
-     * The intent is to adjust the current time in the running JVM to the
-     * corresponding wall clock time at AWS for request signing purposes.
-     *
-     * @param offsetInSeconds offset in seconds
-     */
-    protected Date getSignatureDate(int offsetInSeconds) {
-        return new Date(System.currentTimeMillis() - (1000L * offsetInSeconds));
     }
 
     /**

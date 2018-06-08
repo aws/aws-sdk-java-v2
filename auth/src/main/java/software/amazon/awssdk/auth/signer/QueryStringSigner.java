@@ -16,9 +16,10 @@
 package software.amazon.awssdk.auth.signer;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.TimeZone;
-import software.amazon.awssdk.auth.AwsExecutionAttributes;
+import software.amazon.awssdk.auth.AwsExecutionAttribute;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.signer.internal.AbstractAwsSigner;
@@ -60,8 +61,8 @@ public final class QueryStringSigner extends AbstractAwsSigner {
      */
     @Override
     public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
-        final AwsCredentials awsCredentials = executionAttributes.getAttribute(AwsExecutionAttributes.AWS_CREDENTIALS);
-        final Integer offset = executionAttributes.getAttribute(AwsExecutionAttributes.TIME_OFFSET);
+        final AwsCredentials awsCredentials = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_CREDENTIALS);
+        final Integer offset = executionAttributes.getAttribute(AwsExecutionAttribute.TIME_OFFSET);
 
         // anonymous credentials, don't sign
         if (CredentialUtils.isAnonymous(awsCredentials)) {
@@ -123,6 +124,17 @@ public final class QueryStringSigner extends AbstractAwsSigner {
         } else {
             return df.format(getSignatureDate(offset));
         }
+    }
+
+    /**
+     * Returns the current time minus the given offset in seconds.
+     * The intent is to adjust the current time in the running JVM to the
+     * corresponding wall clock time at AWS for request signing purposes.
+     *
+     * @param offsetInSeconds offset in seconds
+     */
+    private Date getSignatureDate(int offsetInSeconds) {
+        return Date.from(Instant.now().minusSeconds(offsetInSeconds));
     }
 
     @Override

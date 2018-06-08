@@ -22,9 +22,9 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.nullValue;
-import static software.amazon.awssdk.core.util.StringUtils.UTF8;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import org.junit.Test;
 
@@ -60,7 +60,7 @@ public class StringUtilsTest {
 
     @Test
     public void testUTF8Charset() {
-        assertThat(UTF8.displayName(), equalTo("UTF-8"));
+        assertThat(StandardCharsets.UTF_8.displayName(), equalTo("UTF-8"));
     }
 
     /**

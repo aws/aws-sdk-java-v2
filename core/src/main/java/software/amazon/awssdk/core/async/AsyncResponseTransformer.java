@@ -21,6 +21,8 @@ import java.nio.file.Path;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
+import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
 
 /**
  * Callback interface to handle a streaming asynchronous response.

@@ -18,7 +18,7 @@ package software.amazon.awssdk.core.retry;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.http.HttpStatusCodes;
+import software.amazon.awssdk.http.HttpStatusCode;
 
 @SdkProtectedApi
 public final class RetryUtils {
@@ -33,7 +33,7 @@ public final class RetryUtils {
      * @return True if the exception resulted from a request entity too large error message from a service, otherwise false.
      */
     public static boolean isRequestEntityTooLargeException(SdkException exception) {
-        return isServiceException(exception) && toServiceException(exception).statusCode() == HttpStatusCodes.REQUEST_TOO_LONG;
+        return isServiceException(exception) && toServiceException(exception).statusCode() == HttpStatusCode.REQUEST_TOO_LONG;
     }
 
     public static boolean isServiceException(SdkException e) {

@@ -357,7 +357,7 @@ public interface IDynamoDbMapper {
      *            set.
      * @param config
      *            Only {@link DynamoDbMapperConfig#getTableNameOverride()} and
-     *            {@link DynamoDbMapperConfig#getConsistentReads()} are considered.
+     *            {@link DynamoDbMapperConfig#getConsistentRead()} are considered.
      * @return A map of the loaded objects. Each key in the map is the name of a DynamoDB table.
      *         Each value in the map is a list of objects that have been loaded from that table. All
      *         objects for each table can be cast to the associated user defined type that is
@@ -391,7 +391,7 @@ public interface IDynamoDbMapper {
      *            Map from class to load to list of primary key attributes.
      * @param config
      *            Only {@link DynamoDbMapperConfig#getTableNameOverride()} and
-     *            {@link DynamoDbMapperConfig#getConsistentReads()} are considered.
+     *            {@link DynamoDbMapperConfig#getConsistentRead()} are considered.
      * @return A map of the loaded objects. Each key in the map is the name of a DynamoDB table.
      *         Each value in the map is a list of objects that have been loaded from that table. All
      *         objects for each table can be cast to the associated user defined type that is

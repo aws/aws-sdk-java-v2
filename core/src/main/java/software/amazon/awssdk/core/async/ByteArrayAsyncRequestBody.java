@@ -16,8 +16,10 @@
 package software.amazon.awssdk.core.async;
 
 import java.nio.ByteBuffer;
+
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
@@ -43,20 +45,42 @@ final class ByteArrayAsyncRequestBody implements AsyncRequestBody {
     }
 
     @Override
-    public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-        subscriber.onSubscribe(
-                new Subscription() {
-                    @Override
-                    public void request(long n) {
-                        if (n > 0) {
-                            subscriber.onNext(ByteBuffer.wrap(bytes));
-                            subscriber.onComplete();
+    public void subscribe(Subscriber<? super ByteBuffer> s) {
+        // As per rule 1.9 we must throw NullPointerException if the subscriber parameter is null
+        if (s == null) {
+            throw new NullPointerException("Subscription MUST NOT be null.");
+        }
+
+        // As per 2.13, this method must return normally (i.e. not throw).
+        try {
+            s.onSubscribe(
+                    new Subscription() {
+                        boolean done = false;
+
+                        @Override
+                        public void request(long n) {
+                            if (n > 0) {
+                                if (!done) {
+                                    s.onNext(ByteBuffer.wrap(bytes));
+                                    done = true;
+                                    s.onComplete();
+                                }
+                            } else {
+                                s.onError(new IllegalArgumentException("§3.9: non-positive requests are not allowed!"));
+                            }
+                        }
+
+                        @Override
+                        public void cancel() {
                         }
                     }
-
-                    @Override
-                    public void cancel() {
-                    }
-                });
+            );
+        } catch (Throwable ex) {
+            new IllegalStateException(s + " violated the Reactive Streams rule 2.13 " +
+                    "by throwing an exception from onSubscribe.", ex)
+                    // When onSubscribe fails this way, we don't know what state the
+                    // s is thus calling onError may cause more crashes.
+                    .printStackTrace();
+        }
     }
 }

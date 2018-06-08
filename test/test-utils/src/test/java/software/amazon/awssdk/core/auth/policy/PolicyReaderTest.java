@@ -22,7 +22,7 @@ import static org.junit.Assert.assertThat;
 import java.util.LinkedList;
 import java.util.List;
 import org.junit.Test;
-import software.amazon.awssdk.core.auth.policy.Principal.Services;
+import software.amazon.awssdk.core.auth.policy.Principal.Service;
 import software.amazon.awssdk.core.auth.policy.Statement.Effect;
 import software.amazon.awssdk.core.auth.policy.conditions.ConditionFactory;
 import software.amazon.awssdk.core.auth.policy.conditions.IpAddressCondition;
@@ -59,7 +59,8 @@ public class PolicyReaderTest {
         assertEquals("accountId2", statements.get(0).getPrincipals().get(1).getId());
 
         policy = new Policy();
-        policy.withStatements(new Statement(Effect.Allow).withResources(new Resource("resource")).withPrincipals(new Principal(Services.AmazonEC2), new Principal(Services.AmazonElasticTranscoder))
+        policy.withStatements(new Statement(Effect.Allow).withResources(new Resource("resource")).withPrincipals(new Principal(
+                Principal.Service.AmazonEC2), new Principal(Service.AmazonElasticTranscoder))
                                                          .withActions(new Action("action")));
         policy = Policy.fromJson(policy.toJson());
         assertEquals(1, policy.getStatements().size());
@@ -70,9 +71,9 @@ public class PolicyReaderTest {
         assertEquals("action", statements.get(0).getActions().get(0).getActionName());
         assertEquals(2, statements.get(0).getPrincipals().size());
         assertEquals("Service", statements.get(0).getPrincipals().get(0).getProvider());
-        assertEquals(Services.AmazonEC2.getServiceId(), statements.get(0).getPrincipals().get(0).getId());
+        assertEquals(Principal.Service.AmazonEC2.getServiceId(), statements.get(0).getPrincipals().get(0).getId());
         assertEquals("Service", statements.get(0).getPrincipals().get(1).getProvider());
-        assertEquals(Services.AmazonElasticTranscoder.getServiceId(), statements.get(0).getPrincipals().get(1).getId());
+        assertEquals(Principal.Service.AmazonElasticTranscoder.getServiceId(), statements.get(0).getPrincipals().get(1).getId());
 
         policy = new Policy();
         policy.withStatements(new Statement(Effect.Allow).withResources(new Resource("resource")).withPrincipals(Principal.ALL)
@@ -317,7 +318,7 @@ public class PolicyReaderTest {
         assertEquals("sts:AssumeRole", statements.get(0).getActions().get(0).getActionName());
         assertEquals(0, statements.get(0).getConditions().size());
         assertEquals(1, statements.get(0).getPrincipals().size());
-        assertEquals(Services.AWSCloudHSM.getServiceId(), statements.get(0).getPrincipals().get(0).getId());
+        assertEquals(Service.AWSCloudHSM.getServiceId(), statements.get(0).getPrincipals().get(0).getId());
         assertEquals("Service", statements.get(0).getPrincipals().get(0).getProvider());
     }
 
