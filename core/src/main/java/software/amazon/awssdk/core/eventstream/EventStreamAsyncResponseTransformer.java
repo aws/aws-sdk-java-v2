@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.flow;
+package software.amazon.awssdk.core.eventstream;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
@@ -50,17 +50,17 @@ import software.amazon.eventstream.MessageDecoder;
  * @param <PublisherT> {@link SdkPublisher} subtype for the API.
  */
 @SdkProtectedApi
-public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, ReturnT, PublisherT extends SdkPublisher<EventT>>
+public class EventStreamAsyncResponseTransformer<ResponseT, EventT, ReturnT, PublisherT extends SdkPublisher<EventT>>
     implements AsyncResponseTransformer<ResponseT, ReturnT> {
 
-    private static final Logger log = LoggerFactory.getLogger(UnmarshallingFlowAsyncResponseTransformer.class);
+    private static final Logger log = LoggerFactory.getLogger(EventStreamAsyncResponseTransformer.class);
 
     private static final ExecutionAttributes EMPTY_EXECUTION_ATTRIBUTES = new ExecutionAttributes();
 
     /**
      * {@link BaseAsyncResponseTransformer} provided by customer.
      */
-    private final BaseAsyncResponseTransformer<ResponseT, PublisherT, ReturnT> flowResponseTransformer;
+    private final BaseAsyncResponseTransformer<ResponseT, PublisherT, ReturnT> eventStreamResponseTransformer;
 
     /**
      * Unmarshalls the event POJO.
@@ -70,28 +70,28 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
     private final Function<SdkPublisher<EventT>, PublisherT> publisherSupplier;
 
     /**
-     * Remaining demand (i.e number of unmarshalled flow events) we need to provide to the customers subscriber.
+     * Remaining demand (i.e number of unmarshalled events) we need to provide to the customers subscriber.
      */
     private final AtomicLong remainingDemand = new AtomicLong(0);
 
     /**
-     * Reference to customers subscriber to flow events.
+     * Reference to customers subscriber to events.
      */
     private final AtomicReference<Subscriber<? super EventT>> subscriberRef = new AtomicReference<>();
 
     /**
-     * Flow message decoder that decodes the binary data into "frames". These frames are then passed to the
+     * Event stream message decoder that decodes the binary data into "frames". These frames are then passed to the
      * unmarshaller to produce the event POJO.
      */
     private final MessageDecoder decoder = createDecoder();
 
     /**
-     * Initial unmarshalled response of flow operation.
+     * Initial unmarshalled response of API.
      */
     private ResponseT response;
 
     /**
-     * Tracks whether we have delivered a terminal notification to the subscriber/flow response handler
+     * Tracks whether we have delivered a terminal notification to the subscriber and response handler
      * (i.e. exception or completion).
      */
     private volatile boolean isDone = false;
@@ -102,16 +102,16 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
     private final AtomicReference<Throwable> error = new AtomicReference<>();
 
     /**
-     * @param flowResponseTransformer Response transformer provided by customer.
+     * @param eventStreamResponseTransformer Response transformer provided by customer.
      * @param eventUnmarshaller Unmarshaller for the various event types.
      * @param publisherSupplier Factory for creating the API specific publisher subtype.
      */
-    public UnmarshallingFlowAsyncResponseTransformer(
-        BaseAsyncResponseTransformer<ResponseT, PublisherT, ReturnT> flowResponseTransformer,
+    public EventStreamAsyncResponseTransformer(
+        BaseAsyncResponseTransformer<ResponseT, PublisherT, ReturnT> eventStreamResponseTransformer,
         HttpResponseHandler<? extends EventT> eventUnmarshaller,
         Function<SdkPublisher<EventT>, PublisherT> publisherSupplier) {
 
-        this.flowResponseTransformer = flowResponseTransformer;
+        this.eventStreamResponseTransformer = eventStreamResponseTransformer;
         this.eventUnmarshaller = eventUnmarshaller;
         this.publisherSupplier = publisherSupplier;
     }
@@ -125,9 +125,8 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
         CompletableFuture<Subscription> dataSubscriptionFuture = new CompletableFuture<>();
         publisher.subscribe(new ByteSubscriber(dataSubscriptionFuture));
-        dataSubscriptionFuture.thenAccept(dataSubscription -> {
-            flowResponseTransformer.onStream(publisherSupplier.apply(new FlowEventPublisher(dataSubscription)));
-        });
+        dataSubscriptionFuture.thenAccept(dataSubscription -> eventStreamResponseTransformer.onStream(
+            publisherSupplier.apply(new EventPublisher(dataSubscription))));
     }
 
     @Override
@@ -141,7 +140,7 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
                     runAndLogError(log, "Error thrown from Subscriber#onError, ignoring.",
                         () -> subscriberRef.get().onError(throwable));
                 }
-                flowResponseTransformer.exceptionOccurred(throwable);
+                eventStreamResponseTransformer.exceptionOccurred(throwable);
             }
         }
     }
@@ -156,7 +155,7 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
                     runAndLogError(log, "Error thrown from Subscriber#onComplete, ignoring.",
                         () -> subscriberRef.get().onComplete());
                 }
-                return flowResponseTransformer.complete();
+                return eventStreamResponseTransformer.complete();
             } else {
                 // Need to propagate the failure up so the future is completed exceptionally. This should only happen
                 // when there is a frame level exception that the upper layers don't know about.
@@ -166,7 +165,7 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
     }
 
     /**
-     * Create the flow {@link MessageDecoder} which will decode the raw bytes into {@link Message} frames.
+     * Create the event stream {@link MessageDecoder} which will decode the raw bytes into {@link Message} frames.
      *
      * @return Decoder.
      */
@@ -175,7 +174,7 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
             if (isEvent(m)) {
                 if (m.getHeaders().get(":event-type").getString().equals("initial-response")) {
                     // TODO unmarshall initial response and call responseRecieved.
-                    flowResponseTransformer.responseReceived(response);
+                    eventStreamResponseTransformer.responseReceived(response);
                 } else {
                     try {
                         remainingDemand.decrementAndGet();
@@ -186,10 +185,10 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
                     }
                 }
             } else if (isError(m)) {
-                FlowException flowException = FlowException.create(m.getHeaders().get(":error-message").getString(),
-                                                                   m.getHeaders().get(":error-code").getString());
-                runAndLogError(log, "Error thrown from FlowResponseTransformer#exceptionOccurred, ignoring.",
-                    () -> exceptionOccurred(flowException));
+                EventStreamException exception = EventStreamException.create(m.getHeaders().get(":error-message").getString(),
+                                                                             m.getHeaders().get(":error-code").getString());
+                runAndLogError(log, "Error thrown from exceptionOccurred, ignoring.",
+                    () -> exceptionOccurred(exception));
             }
         });
     }
@@ -211,7 +210,7 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
     }
 
     /**
-     * Transforms a flow message into a {@link HttpResponse} so we can reuse our existing generated unmarshallers.
+     * Transforms an event stream message into a {@link HttpResponse} so we can reuse our existing generated unmarshallers.
      *
      * @param m Message to transform.
      */
@@ -257,24 +256,25 @@ public class UnmarshallingFlowAsyncResponseTransformer<ResponseT, EventT, Return
         @Override
         public void onError(Throwable throwable) {
             // Notified in response handler exceptionOccurred because we have more context on what we've delivered to
-            // the flow subscriber there.
+            // the event stream subscriber there.
         }
 
         @Override
         public void onComplete() {
             // Notified in response handler complete method because we have more context on what we've delivered to
-            // the flow subscriber there.
+            // the event stream subscriber there.
         }
     }
 
     /**
-     * Publisher of flow events. Tracks outstanding demand and requests raw data from the stream until that demand is fulfiled.
+     * Publisher of event stream events. Tracks outstanding demand and requests raw data from the stream until that demand is
+     * fulfilled.
      */
-    private class FlowEventPublisher implements SdkPublisher<EventT> {
+    private class EventPublisher implements SdkPublisher<EventT> {
 
         private final Subscription dataSubscription;
 
-        private FlowEventPublisher(Subscription dataSubscription) {
+        private EventPublisher(Subscription dataSubscription) {
             this.dataSubscription = dataSubscription;
         }
 

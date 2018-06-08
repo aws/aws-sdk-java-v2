@@ -114,7 +114,7 @@ public interface KinesisAsyncClient extends SdkAutoCloseable {
     }
 
     default <ReturnT> CompletableFuture<ReturnT> subscribeToShard(SubscribeToShardRequest subscribeToShardRequest,
-                                                                  SubscribeToShardResponseTransformer<ReturnT> flowResponseHandler) {
+                                                                  SubscribeToShardResponseTransformer<ReturnT> responseTransformer) {
         throw new UnsupportedOperationException();
     }
 

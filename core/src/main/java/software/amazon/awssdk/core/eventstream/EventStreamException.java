@@ -13,31 +13,31 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.flow;
+package software.amazon.awssdk.core.eventstream;
 
 import software.amazon.awssdk.core.exception.SdkException;
 
 /**
- * Exception thrown during the processing of a flow stream.
+ * Exception thrown during the processing of an event stream.
  */
-public final class FlowException extends SdkException {
+public final class EventStreamException extends SdkException {
 
     private final String errorCode;
 
-    private FlowException(String errorMessage, String errorCode) {
+    private EventStreamException(String errorMessage, String errorCode) {
         super(errorMessage);
         this.errorCode = errorCode;
     }
 
     /**
-     * Creates a new {@link FlowException}.
+     * Creates a new {@link EventStreamException}.
      *
      * @param errorMessage Error message returned by the service.
      * @param errorCode Error code returned by the service.
-     * @return New {@link FlowException}.
+     * @return New {@link EventStreamException}.
      */
-    static FlowException create(String errorMessage, String errorCode) {
-        return new FlowException(errorMessage, errorCode);
+    static EventStreamException create(String errorMessage, String errorCode) {
+        return new EventStreamException(errorMessage, errorCode);
     }
 
     /**
