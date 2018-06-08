@@ -34,6 +34,7 @@ import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.Future;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
@@ -277,16 +278,23 @@ public final class RunnableRequest implements AbortableRunnable {
     /**
      * Decorator around {@link StreamedHttpRequest} to adapt a publisher of {@link ByteBuffer} (i.e. {@link
      * software.amazon.awssdk.http.async.SdkHttpRequestProvider}) to a publisher of {@link HttpContent}.
+     * <p />
+     * This publisher also prevents the adapted publisher from publishing more content to the subscriber than
+     * the specified 'Content-Length' of the request.
      */
     private static class StreamedRequest extends DelegateHttpRequest implements StreamedHttpRequest {
-
         private final Publisher<ByteBuffer> publisher;
         private final Channel channel;
+        private final Optional<Long> requestContentLength;
+        private long written = 0L;
+        private boolean done;
+        private Subscription subscription;
 
         StreamedRequest(HttpRequest request, Publisher<ByteBuffer> publisher, Channel channel) {
             super(request);
             this.publisher = publisher;
             this.channel = channel;
+            this.requestContentLength = contentLength(request);
         }
 
         @Override
@@ -294,27 +302,72 @@ public final class RunnableRequest implements AbortableRunnable {
             publisher.subscribe(new Subscriber<ByteBuffer>() {
                 @Override
                 public void onSubscribe(Subscription subscription) {
+                    StreamedRequest.this.subscription = subscription;
                     subscriber.onSubscribe(subscription);
                 }
 
                 @Override
                 public void onNext(ByteBuffer byteBuffer) {
+                    if (done) {
+                        return;
+                    }
+
+                    int newLimit = clampedBufferLimit(byteBuffer.remaining());
+                    byteBuffer.limit(newLimit);
                     ByteBuf buffer = channel.alloc().buffer(byteBuffer.remaining());
                     buffer.writeBytes(byteBuffer);
                     HttpContent content = new DefaultHttpContent(buffer);
+
                     subscriber.onNext(content);
+                    written += newLimit;
+
+                    if (!shouldContinuePublishing()) {
+                        done = true;
+                        subscription.cancel();
+                        subscriber.onComplete();
+                    }
                 }
 
                 @Override
                 public void onError(Throwable t) {
-                    subscriber.onError(t);
+                    if (!done) {
+                        done = true;
+                        subscriber.onError(t);
+
+                    }
                 }
 
                 @Override
                 public void onComplete() {
-                    subscriber.onComplete();
+                    if (!done) {
+                        done = true;
+                        subscriber.onComplete();
+                    }
                 }
             });
         }
+
+        private int clampedBufferLimit(int bufLen) {
+            return requestContentLength.map(cl ->
+                (int) Math.min(cl - written, bufLen)
+            ).orElse(bufLen);
+        }
+
+        private boolean shouldContinuePublishing() {
+            return requestContentLength.map(cl -> written < cl).orElse(true);
+        }
+
+        private static Optional<Long> contentLength(HttpRequest request) {
+            String value = request.headers().get("Content-Length");
+            if (value != null) {
+                try {
+                    return Optional.of(Long.parseLong(value));
+                } catch (NumberFormatException e) {
+                    log.warn("Unable  to parse 'Content-Length' header. Treating it as non existent.");
+                }
+            }
+            return Optional.empty();
+        }
+
     }
 }
