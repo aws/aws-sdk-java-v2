@@ -39,11 +39,16 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 
+import com.github.tomakehurst.wiremock.http.trafficlistener.WiremockNetworkTrafficListener;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+
+import java.io.IOException;
+import java.net.Socket;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,11 +56,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 import org.assertj.core.api.Condition;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -76,14 +84,23 @@ import software.amazon.awssdk.utils.AttributeMap;
 @RunWith(MockitoJUnitRunner.class)
 public class NettyNioAsyncHttpClientWireMockTest {
 
+    private final RecordingNetworkTrafficListener wiremockTrafficListener = new RecordingNetworkTrafficListener();
+
     @Rule
-    public WireMockRule mockServer = new WireMockRule(wireMockConfig().dynamicPort().dynamicHttpsPort());
+    public WireMockRule mockServer = new WireMockRule(wireMockConfig()
+            .dynamicPort()
+            .dynamicHttpsPort()
+            .networkTrafficListener(wiremockTrafficListener));
 
     @Mock
     private SdkRequestContext requestContext;
 
-    private static SdkAsyncHttpClient client = NettyNioAsyncHttpClient.builder()
-                                                                      .buildWithDefaults(mapWithTrustAllCerts());
+    private static SdkAsyncHttpClient client = NettyNioAsyncHttpClient.builder().buildWithDefaults(mapWithTrustAllCerts());
+
+    @Before
+    public void methodSetup() {
+        wiremockTrafficListener.reset();
+    }
 
     @AfterClass
     public static void tearDown() throws Exception {
@@ -227,6 +244,30 @@ public class NettyNioAsyncHttpClientWireMockTest {
         assertThat(recorder.fullResponseAsString()).isEqualTo(reverse(body));
     }
 
+    @Test
+    public void requestContentOnlyEqualToContentLengthHeaderFromProvider() throws InterruptedException, ExecutionException, TimeoutException, IOException {
+        final String content = randomAlphabetic(32);
+        final String streamContent = content + reverse(content);
+        stubFor(any(urlEqualTo("/echo?reversed=true"))
+                .withRequestBody(equalTo(content))
+                .willReturn(aResponse().withBody(reverse(content))));
+        URI uri = URI.create("http://localhost:" + mockServer.port());
+
+        SdkHttpFullRequest request = createRequest(uri, "/echo", streamContent, SdkHttpMethod.POST, singletonMap("reversed", "true"));
+        request = request.toBuilder().header("Content-Length", Integer.toString(content.length())).build();
+        RecordingResponseHandler recorder = new RecordingResponseHandler();
+
+
+        client.prepareRequest(request, requestContext, createProvider(streamContent), recorder).run();
+
+        recorder.completeFuture.get(5, TimeUnit.SECONDS);
+
+        // HTTP servers will stop processing the request as soon as it reads
+        // bytes equal to 'Content-Length' so we need to inspect the raw
+        // traffic to ensure that there wasn't anything after that.
+        assertThat(wiremockTrafficListener.requests.toString()).endsWith(content);
+    }
+
     private void assertCanReceiveBasicRequest(URI uri, String body) throws Exception {
         stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withHeader("Some-Header", "With Value").withBody(body)));
 
@@ -275,11 +316,11 @@ public class NettyNioAsyncHttpClientWireMockTest {
         };
     }
 
-    private SdkHttpRequest createRequest(URI uri) {
+    private SdkHttpFullRequest createRequest(URI uri) {
         return createRequest(uri, "/", null, SdkHttpMethod.GET, emptyMap());
     }
 
-    private SdkHttpRequest createRequest(URI uri,
+    private SdkHttpFullRequest createRequest(URI uri,
                                          String resourcePath,
                                          String body,
                                          SdkHttpMethod method,
@@ -378,5 +419,34 @@ public class NettyNioAsyncHttpClientWireMockTest {
         return AttributeMap.builder()
                            .put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, true)
                            .build();
+    }
+
+    private static class RecordingNetworkTrafficListener implements WiremockNetworkTrafficListener {
+        private final StringBuilder requests = new StringBuilder();
+
+
+        @Override
+        public void opened(Socket socket) {
+
+        }
+
+        @Override
+        public void incoming(Socket socket, ByteBuffer byteBuffer) {
+            requests.append(StandardCharsets.UTF_8.decode(byteBuffer));
+        }
+
+        @Override
+        public void outgoing(Socket socket, ByteBuffer byteBuffer) {
+
+        }
+
+        @Override
+        public void closed(Socket socket) {
+
+        }
+
+        public void reset() {
+            requests.setLength(0);
+        }
     }
 }
