@@ -25,7 +25,7 @@ import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
  * Dependencies needed by implementations of {@link JsonMarshaller}.
  */
 @SdkInternalApi
-public class JsonMarshallerContext {
+public final class JsonMarshallerContext {
 
     private final StructuredJsonGenerator jsonGenerator;
     private final JsonProtocolMarshaller protocolHandler;

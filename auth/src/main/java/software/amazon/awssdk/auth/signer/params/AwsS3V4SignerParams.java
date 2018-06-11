@@ -92,6 +92,7 @@ public final class AwsS3V4SignerParams extends Aws4SignerParams {
             return this;
         }
 
+        @Override
         public AwsS3V4SignerParams build() {
             return new AwsS3V4SignerParams(this);
         }

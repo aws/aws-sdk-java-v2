@@ -24,7 +24,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * and additional directives about how to transform it (i.e. is it binary data, should it be auto generated, etc).
  */
 @SdkProtectedApi
-public class MarshallingInfo<T> {
+public final class MarshallingInfo<T> {
 
     private final MarshallingType<T> marshallingType;
     private final String marshallLocationName;

@@ -32,7 +32,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @NotThreadSafe
 @SdkProtectedApi
-public class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Builder, ExecutionContext> {
+public final class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Builder, ExecutionContext> {
     private final Signer signer;
     private InterceptorContext interceptorContext;
     private final ExecutionInterceptorChain interceptorChain;

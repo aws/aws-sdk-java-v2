@@ -15,14 +15,13 @@
 
 package software.amazon.awssdk.core.sync;
 
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 import static software.amazon.awssdk.utils.Validate.validState;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -82,13 +81,9 @@ public final class RequestBody {
      * @return RequestBody instance.
      */
     public static RequestBody fromFile(Path path) {
-        try {
-            return new RequestBody(Files.newInputStream(path),
-                                   Files.size(path),
-                                   Mimetype.getInstance().getMimetype(path));
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        return new RequestBody(invokeSafely(() -> Files.newInputStream(path)),
+                               invokeSafely(() -> Files.size(path)),
+                               Mimetype.getInstance().getMimetype(path));
     }
 
     /**

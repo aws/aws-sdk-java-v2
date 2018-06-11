@@ -170,7 +170,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                                                       Function<HttpResponseAdapter, SdkHttpResponseHandler<ReturnT>> {
     }
 
-    private static class InterceptorCallingHttpResponseHandler<T> implements SdkHttpResponseHandler<T> {
+    private static final class InterceptorCallingHttpResponseHandler<T> implements SdkHttpResponseHandler<T> {
         private final SdkHttpResponseHandler<T> delegate;
         private final ExecutionContext context;
 
@@ -279,7 +279,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
      * provide the request content in a non-blocking manner. This adapts that interface to the
      * {@link SdkHttpRequestProvider} which the HTTP client SPI expects.
      */
-    private static class SdkHttpRequestProviderAdapter implements SdkHttpRequestProvider {
+    private static final class SdkHttpRequestProviderAdapter implements SdkHttpRequestProvider {
 
         private final AsyncRequestBody asyncRequestBody;
 
