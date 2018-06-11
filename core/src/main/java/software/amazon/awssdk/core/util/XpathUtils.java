@@ -65,6 +65,11 @@ public final class XpathUtils {
 
     private static final Logger log = LoggerFactory.getLogger(XpathUtils.class);
 
+    /**
+     * Shared factory for creating XML Factory
+     */
+    private static final ThreadLocal<XPathFactory> X_PATH_FACTORY = ThreadLocal.withInitial(XPathFactory::newInstance);
+
     private static final ErrorHandler ERROR_HANDLER = new ErrorHandler() {
 
         @Override
@@ -156,7 +161,7 @@ public final class XpathUtils {
      * reentrant.
      */
     public static XPath xpath() {
-        return XPathFactory.newInstance().newXPath();
+        return X_PATH_FACTORY.get().newXPath();
     }
 
     /**
