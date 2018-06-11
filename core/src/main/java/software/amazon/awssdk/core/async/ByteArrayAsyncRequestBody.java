@@ -55,7 +55,7 @@ final class ByteArrayAsyncRequestBody implements AsyncRequestBody {
         try {
             s.onSubscribe(
                     new Subscription() {
-                        boolean done = false;
+                        private boolean done = false;
 
                         @Override
                         public void request(long n) {
