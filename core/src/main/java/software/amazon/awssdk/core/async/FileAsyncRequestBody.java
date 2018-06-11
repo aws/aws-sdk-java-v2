@@ -16,9 +16,11 @@
 package software.amazon.awssdk.core.async;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.atomic.AtomicLong;
@@ -57,7 +59,11 @@ final class FileAsyncRequestBody implements AsyncRequestBody {
 
     @Override
     public long contentLength() {
-        return path.toFile().length();
+        try {
+            return Files.size(path);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     @Override

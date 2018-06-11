@@ -15,17 +15,18 @@
 
 package software.amazon.awssdk.core.sync;
 
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 import static software.amazon.awssdk.utils.Validate.validState;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import software.amazon.awssdk.core.runtime.io.ReleasableInputStream;
@@ -81,7 +82,13 @@ public final class RequestBody {
      * @return RequestBody instance.
      */
     public static RequestBody fromFile(Path path) {
-        return fromFile(path.toFile());
+        try {
+            return new RequestBody(Files.newInputStream(path),
+                                   Files.size(path),
+                                   Mimetype.getInstance().getMimetype(path));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     /**
@@ -91,9 +98,7 @@ public final class RequestBody {
      * @return RequestBody instance.
      */
     public static RequestBody fromFile(File file) {
-        return new RequestBody(invokeSafely(() -> new FileInputStream(file)),
-                               file.length(),
-                               Mimetype.getInstance().getMimetype(file));
+        return fromFile(file.toPath());
     }
 
     /**
