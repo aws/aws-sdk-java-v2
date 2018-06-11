@@ -17,7 +17,14 @@ package software.amazon.awssdk.core.sync;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
 import org.junit.Test;
 import software.amazon.awssdk.core.util.Mimetype;
 import software.amazon.awssdk.core.util.StringInputStream;
@@ -38,6 +45,15 @@ public class RequestBodyTest {
     public void stringConstructorHasCorrectContentType() {
         RequestBody requestBody = RequestBody.fromString("hello world");
         assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_TEXT_PLAIN);
+    }
+
+    @Test
+    public void fileConstructorHasCorrectContentType() throws IOException {
+        FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
+        Path path = fs.getPath("./test");
+        Files.write(path, "hello world".getBytes());
+        RequestBody requestBody = RequestBody.fromFile(path);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     @Test
