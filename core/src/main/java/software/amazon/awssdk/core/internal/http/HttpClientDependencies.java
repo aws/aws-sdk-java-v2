@@ -32,7 +32,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * RequestPipeline} implementations by {@link RequestPipelineBuilder}.
  */
 @SdkInternalApi
-public class HttpClientDependencies implements SdkAutoCloseable {
+public final class HttpClientDependencies implements SdkAutoCloseable {
     private final SdkClientConfiguration clientConfiguration;
     private final CapacityManager capacityManager;
     private final ClientExecutionTimer clientExecutionTimer;
@@ -87,7 +87,7 @@ public class HttpClientDependencies implements SdkAutoCloseable {
     }
 
     @Override
-    public final void close() {
+    public void close() {
         this.clientConfiguration.close();
         this.clientExecutionTimer.close();
     }

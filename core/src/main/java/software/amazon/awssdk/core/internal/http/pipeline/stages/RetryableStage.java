@@ -45,7 +45,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 /**
  * Wrapper around the pipeline for a single request to provide retry functionality.
  */
-public class RetryableStage<OutputT> implements RequestToResponsePipeline<OutputT> {
+public final class RetryableStage<OutputT> implements RequestToResponsePipeline<OutputT> {
 
     private static final Logger log = LoggerFactory.getLogger(RetryableStage.class);
 

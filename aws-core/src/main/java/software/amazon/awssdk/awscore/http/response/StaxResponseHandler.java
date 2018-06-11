@@ -82,6 +82,7 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
     /**
      * @see HttpResponseHandler#handle(HttpResponse, ExecutionAttributes)
      */
+    @Override
     public T handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
         SdkStandardLogger.REQUEST_LOGGER.trace(() -> "Parsing service response XML.");
         InputStream content = response.getContent();
@@ -136,6 +137,7 @@ public class StaxResponseHandler<T> implements HttpResponseHandler<T> {
      *
      * @see HttpResponseHandler#needsConnectionLeftOpen()
      */
+    @Override
     public boolean needsConnectionLeftOpen() {
         return false;
     }

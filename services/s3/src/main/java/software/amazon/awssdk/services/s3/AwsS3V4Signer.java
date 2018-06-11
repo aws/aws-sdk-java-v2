@@ -46,7 +46,7 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
     private static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
     private static final String CONTENT_LENGTH = "Content-Length";
 
-    private AwsS3V4Signer(Builder builder) {
+    private AwsS3V4Signer() {
     }
 
     public static AwsS3V4Signer create() {
@@ -148,7 +148,7 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
 
     @Override
     protected String calculateContentHashPresign(SdkHttpFullRequest.Builder mutableRequest, Aws4PresignerParams signerParams) {
-        return "UNSIGNED-PAYLOAD";
+        return UNSIGNED_PAYLOAD;
     }
 
     /**
@@ -257,7 +257,7 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
 
     public static final class Builder {
         public AwsS3V4Signer build() {
-            return new AwsS3V4Signer(this);
+            return new AwsS3V4Signer();
         }
     }
 }

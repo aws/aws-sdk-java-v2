@@ -40,7 +40,6 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 class ModelBuilderSpecs {
     private final IntermediateModel intermediateModel;
     private final ShapeModel shapeModel;
-    private final ShapeModelSpec shapeModelSpec;
     private final TypeProvider typeProvider;
     private final PoetExtensions poetExtensions;
     private final AccessorsFactory accessorsFactory;
@@ -51,7 +50,6 @@ class ModelBuilderSpecs {
                       TypeProvider typeProvider) {
         this.intermediateModel = intermediateModel;
         this.shapeModel = shapeModel;
-        this.shapeModelSpec = shapeModelSpec;
         this.typeProvider = typeProvider;
         this.poetExtensions = new PoetExtensions(this.intermediateModel);
         this.accessorsFactory = new AccessorsFactory(this.shapeModel, this.intermediateModel, this.typeProvider, poetExtensions);

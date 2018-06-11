@@ -22,7 +22,7 @@ import software.amazon.awssdk.core.config.options.SdkClientOptionValidation;
  * A set of static methods used to validate that a {@link SdkClientConfiguration} contains all of
  * the values required for the AWS client handlers to function.
  */
-public class AwsClientOptionValidation extends SdkClientOptionValidation {
+public final class AwsClientOptionValidation extends SdkClientOptionValidation {
     private AwsClientOptionValidation() {}
 
     public static void validateAsyncClientOptions(SdkClientConfiguration c) {

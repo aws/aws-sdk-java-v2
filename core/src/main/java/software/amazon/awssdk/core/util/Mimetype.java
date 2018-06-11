@@ -29,6 +29,7 @@ import java.util.StringTokenizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Utility class that maintains a listing of known Mimetypes, and determines the
@@ -120,7 +121,13 @@ public final class Mimetype {
      * <code>application/octet-stream</code> if a mime type value cannot be found.
      */
     public String getMimetype(Path path) {
-        return getMimetype(path.getFileName().toString());
+        Validate.notNull(path, "path");
+        Path file = path.getFileName();
+
+        if (file != null) {
+            return getMimetype(file.toString());
+        }
+        return null;
     }
 
     /**

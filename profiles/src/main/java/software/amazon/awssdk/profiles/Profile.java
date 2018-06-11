@@ -20,7 +20,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -126,7 +125,6 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
     public static class Builder implements CopyableBuilder<Builder, Profile> {
         private String name;
         private Map<String, String> properties;
-        private Function<String, Optional<Profile>> credentialsSourceResolver;
 
         /**
          * @see #builder()
