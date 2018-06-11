@@ -40,13 +40,11 @@ public class ClientExecutionTimedStage<OutputT> implements RequestToResponsePipe
 
     private final RequestPipeline<SdkHttpFullRequest, Response<OutputT>> wrapped;
     private final ClientExecutionTimer clientExecutionTimer;
-    private final SdkClientConfiguration clientConfig;
 
     public ClientExecutionTimedStage(HttpClientDependencies dependencies,
                                      RequestPipeline<SdkHttpFullRequest, Response<OutputT>> wrapped) {
         this.wrapped = wrapped;
         this.clientExecutionTimer = dependencies.clientExecutionTimer();
-        this.clientConfig = dependencies.clientConfiguration();
     }
 
     @Override

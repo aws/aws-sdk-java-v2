@@ -468,10 +468,9 @@
                         </execution>
                     </executions>
                     <configuration>
-                        <!-- TODO: fix this-->
-                        <failOnError>false</failOnError>
+                        <failOnError>true</failOnError>
                         <fork>false</fork>
-                        <findbugsXmlOutput>true</findbugsXmlOutput>
+                        <spotbugsXmlOutput>true</spotbugsXmlOutput>
                         <excludeFilterFile>software/amazon/awssdk/spotbugs-suppressions.xml</excludeFilterFile>
                         <threshold>Low</threshold>
                         <effort>Max</effort>

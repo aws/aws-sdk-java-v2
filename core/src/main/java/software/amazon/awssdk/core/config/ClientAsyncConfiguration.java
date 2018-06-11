@@ -94,11 +94,6 @@ public final class ClientAsyncConfiguration
             return this;
         }
 
-        private Builder advancedOptions(AttributeMap.Builder attributeMap) {
-            this.advancedOptions = attributeMap;
-            return this;
-        }
-
         public void setAdvancedOptions(Map<SdkAdvancedAsyncClientOption<?>, Object> advancedOptions) {
             advancedOptions(advancedOptions);
         }

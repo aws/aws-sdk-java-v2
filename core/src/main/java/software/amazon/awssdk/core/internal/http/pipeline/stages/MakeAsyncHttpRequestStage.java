@@ -47,7 +47,7 @@ import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 /**
  * Delegate to the HTTP implementation to make an HTTP request and receive the response.
  */
-public class MakeAsyncHttpRequestStage<OutputT>
+public final class MakeAsyncHttpRequestStage<OutputT>
     implements RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> {
 
     private static final Logger log = LoggerFactory.getLogger(MakeAsyncHttpRequestStage.class);

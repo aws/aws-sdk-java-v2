@@ -29,7 +29,7 @@ import software.amazon.awssdk.utils.Base64Utils;
 /**
  * Collection of StAX unmarshallers for simple data types.
  */
-public class SimpleTypeStaxUnmarshallers {
+public final class SimpleTypeStaxUnmarshallers {
     /** Shared logger. */
     private static Logger log = LoggerFactory.getLogger(SimpleTypeStaxUnmarshallers.class);
 

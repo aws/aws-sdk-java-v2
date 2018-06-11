@@ -26,7 +26,7 @@ import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.protocol.StructuredPojo;
 
 @SdkInternalApi
-public class MarshallerRegistry {
+public final class MarshallerRegistry {
 
     private final Map<MarshallLocation, Map<MarshallingType, JsonMarshaller<?>>> marshallers;
     private final Set<MarshallingType<?>> marshallingTypes;

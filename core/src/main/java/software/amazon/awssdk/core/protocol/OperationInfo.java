@@ -23,7 +23,7 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
  * Static information about an API operation used to marshall it correctly.
  */
 @SdkProtectedApi
-public class OperationInfo {
+public final class OperationInfo {
 
     private final String requestUri;
     private final HttpMethodName httpMethodName;

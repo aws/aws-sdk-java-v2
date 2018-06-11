@@ -67,4 +67,40 @@
         <Method name="onComplete" />
         <Bug pattern="NP_NONNULL_PARAM_VIOLATION" />
     </Match>
+
+    <!-- False positive -->
+    <Match>
+        <Class name="software.amazon.awssdk.core.ResponseBytes" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <!-- False positive Unconfirmed cast-->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.core.client.BaseAsyncClientHandler$InterceptorCallingHttpResponseHandler" />
+            <Class name="software.amazon.awssdk.core.client.BaseAsyncClientHandler$UnmarshallingSdkHttpResponseHandler" />
+            <Class name="software.amazon.awssdk.core.internal.http.async.SyncResponseHandlerAdapter" />
+        </Or>
+        <Bug pattern="BC_UNCONFIRMED_CAST" />
+    </Match>
+
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.awscore.protocol.xml.StandardErrorUnmarshaller" />
+            <Class name="software.amazon.awssdk.awscore.protocol.xml.LegacyErrorUnmarshaller" />
+        </Or>
+        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
+    </Match>
+
+    <!-- Currently they look the same and we will revisit this when we add APIG -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.core.client.SdkAsyncClientHandler" />
+            <Class name="software.amazon.awssdk.core.client.SdkSyncClientHandler" />
+            <Class name="software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler" />
+            <Class name="software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler" />
+        </Or>
+        <Bug pattern="RI_REDUNDANT_INTERFACES" />
+    </Match>
+
 </FindBugsFilter>

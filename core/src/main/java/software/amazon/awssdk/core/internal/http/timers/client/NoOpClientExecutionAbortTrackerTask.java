@@ -21,7 +21,7 @@ import software.amazon.awssdk.http.Abortable;
  * Dummy implementation of {@link ClientExecutionAbortTrackerTask} used when the timer is disabled
  * for a request
  */
-public class NoOpClientExecutionAbortTrackerTask implements ClientExecutionAbortTrackerTask {
+public final class NoOpClientExecutionAbortTrackerTask implements ClientExecutionAbortTrackerTask {
 
     public static final NoOpClientExecutionAbortTrackerTask INSTANCE = new NoOpClientExecutionAbortTrackerTask();
 
