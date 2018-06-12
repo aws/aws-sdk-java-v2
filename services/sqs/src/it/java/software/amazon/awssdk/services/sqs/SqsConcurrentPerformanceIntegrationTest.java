@@ -36,7 +36,7 @@ public class SqsConcurrentPerformanceIntegrationTest extends IntegrationTestBase
 
     /** Total number of worker threads to hit SQS. */
     private static final int TOTAL_WORKER_THREADS = 30;
-    private SQSAsyncClient sqs;
+    private SqsAsyncClient sqs;
 
     /**
      * Spins up a pool of threads to make concurrent requests and thus grow the runtime's HTTP
@@ -48,8 +48,8 @@ public class SqsConcurrentPerformanceIntegrationTest extends IntegrationTestBase
     @Test
     @Ignore
     public void testIdleConnectionReaping() throws Exception {
-        sqs = SQSAsyncClient.builder().credentialsProvider(getCredentialsProvider()).build();
-        sqs = SQSAsyncClient.builder().credentialsProvider(getCredentialsProvider()).build();
+        sqs = SqsAsyncClient.builder().credentialsProvider(getCredentialsProvider()).build();
+        sqs = SqsAsyncClient.builder().credentialsProvider(getCredentialsProvider()).build();
 
         List<WorkerThread> workers = new ArrayList<WorkerThread>();
         for (int i = 0; i < TOTAL_WORKER_THREADS; i++) {

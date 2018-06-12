@@ -26,14 +26,14 @@ import software.amazon.awssdk.services.ecr.model.DescribeRepositoriesRequest;
 import software.amazon.awssdk.services.ecr.model.Repository;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
-public class ECRIntegrationTest extends AwsIntegrationTestBase {
+public class EcrIntegrationTest extends AwsIntegrationTestBase {
 
     private static final String REPO_NAME = "java-sdk-test-repo-" + System.currentTimeMillis();
-    private static ECRClient ecr;
+    private static EcrClient ecr;
 
     @BeforeClass
     public static void setUpClient() throws Exception {
-        ecr = ECRClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        ecr = EcrClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 
     @AfterClass

@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.dynamodb.document.internal;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.Item;
 import software.amazon.awssdk.services.dynamodb.document.ItemCollection;
 import software.amazon.awssdk.services.dynamodb.document.Page;
@@ -28,11 +28,11 @@ import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 
 class QueryCollection extends ItemCollection<QueryOutcome> {
-    private final DynamoDBClient client;
+    private final DynamoDbClient client;
     private final QuerySpec spec;
     private final Map<String, AttributeValue> startKey;
 
-    QueryCollection(DynamoDBClient client, QuerySpec spec) {
+    QueryCollection(DynamoDbClient client, QuerySpec spec) {
         this.client = client;
         this.spec = spec;
         Map<String, AttributeValue> startKey =

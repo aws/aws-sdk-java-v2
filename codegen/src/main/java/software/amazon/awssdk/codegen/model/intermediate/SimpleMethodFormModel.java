@@ -55,7 +55,7 @@ public class SimpleMethodFormModel {
 
         for (ArgumentModel arg : arguments) {
             builder.append(".with")
-                   .append(Utils.capitialize(arg.getName()))
+                   .append(Utils.capitalize(arg.getName()))
                    .append("(")
                    .append(arg.getName())
                    .append(")");

@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.Item;
 import software.amazon.awssdk.services.dynamodb.document.Page;
 import software.amazon.awssdk.services.dynamodb.document.ScanOutcome;
@@ -32,14 +32,14 @@ import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 
 class ScanPage extends Page<Item, ScanOutcome> {
 
-    private final DynamoDBClient client;
+    private final DynamoDbClient client;
     private final ScanSpec spec;
     private ScanRequest request;
     private final int index;
     private final Map<String, AttributeValue> lastEvaluatedKey;
 
     ScanPage(
-        DynamoDBClient client,
+        DynamoDbClient client,
         ScanSpec spec,
         ScanRequest request,
         int index,

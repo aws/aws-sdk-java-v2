@@ -29,12 +29,12 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
 public abstract class IntegrationTestBase extends AwsTestBase {
 
     /** The shared STS client for all tests to use. */
-    protected static STSClient sts;
+    protected static StsClient sts;
 
     @BeforeClass
     public static void setUp() throws FileNotFoundException, IOException {
         setUpCredentials();
-        sts = STSClient.builder()
+        sts = StsClient.builder()
                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                        .region(Region.AWS_GLOBAL)
                        .build();

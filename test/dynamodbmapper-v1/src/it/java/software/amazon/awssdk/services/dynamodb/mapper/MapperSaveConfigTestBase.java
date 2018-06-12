@@ -21,7 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import java.util.Set;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbAttribute;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbHashKey;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
@@ -74,7 +74,7 @@ public class MapperSaveConfigTestBase extends DynamoDBIntegrationTestBase {
     @BeforeClass
     public static void setUp() throws Exception {
         setUpCredentials();
-        dynamo = DynamoDBClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        dynamo = DynamoDbClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
         dynamoMapper = new DynamoDbMapper(dynamo);
 
         createTestTable(DEFAULT_PROVISIONED_THROUGHPUT);

@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.document.internal;
 
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.Table;
 
 /**
@@ -23,9 +23,9 @@ import software.amazon.awssdk.services.dynamodb.document.Table;
  */
 abstract class AbstractImpl {
     private final Table table;
-    private final DynamoDBClient client;
+    private final DynamoDbClient client;
 
-    protected AbstractImpl(DynamoDBClient client, Table table) {
+    protected AbstractImpl(DynamoDbClient client, Table table) {
         this.client = client;
         this.table = table;
     }
@@ -37,7 +37,7 @@ abstract class AbstractImpl {
         return table;
     }
 
-    final DynamoDBClient getClient() {
+    final DynamoDbClient getClient() {
         return client;
     }
 }

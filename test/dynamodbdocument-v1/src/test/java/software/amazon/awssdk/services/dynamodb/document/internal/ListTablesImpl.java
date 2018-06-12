@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.document.internal;
 
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.TableCollection;
 import software.amazon.awssdk.services.dynamodb.document.api.ListTablesApi;
 import software.amazon.awssdk.services.dynamodb.document.spec.ListTablesSpec;
@@ -25,9 +25,9 @@ import software.amazon.awssdk.services.dynamodb.model.ListTablesResponse;
  * The implementation for <code>ListTablesApi</code>.
  */
 public class ListTablesImpl implements ListTablesApi {
-    private final DynamoDBClient client;
+    private final DynamoDbClient client;
 
-    public ListTablesImpl(DynamoDBClient client) {
+    public ListTablesImpl(DynamoDbClient client) {
         this.client = client;
     }
 

@@ -20,12 +20,12 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class IntegrationTestBase extends AwsTestBase {
 
-    protected static SSMClient ssm;
+    protected static SsmClient ssm;
 
     @BeforeClass
     public static void setup() throws Exception {
         setUpCredentials();
-        ssm = SSMClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        ssm = SsmClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 
 }
