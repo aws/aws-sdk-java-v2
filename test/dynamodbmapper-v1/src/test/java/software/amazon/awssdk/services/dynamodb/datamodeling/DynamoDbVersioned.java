@@ -21,7 +21,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.math.BigInteger;
 import java.util.Arrays;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.StandardTypeConverters.Scalar;
 
 /**
@@ -44,7 +44,7 @@ import software.amazon.awssdk.services.dynamodb.datamodeling.StandardTypeConvert
  *
  * <p>Note that for batchWrite, and by extension batchSave and batchDelete,
  * <b>no version checks are performed</b>, as required by the
- * {@link DynamoDBClient#batchWriteItem(BatchWriteItemRequest)}
+ * {@link DynamoDbClient#batchWriteItem(BatchWriteItemRequest)}
  * API.</p>
  *
  * <p>May be used as a meta-annotation.</p>

@@ -22,7 +22,7 @@ import software.amazon.awssdk.core.auth.policy.Resource;
  * <p>
  * This is an older style of referencing an Amazon SQS queue. You can also use the queue's Amazon
  * Resource Name (ARN), which you can obtain by calling
- * {@link software.amazon.awssdk.services.sqs.SQSClient#getQueueAttributes(
+ * {@link software.amazon.awssdk.services.sqs.SqsClient#getQueueAttributes(
  * software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest)}
  * and requesting the "QueueArn" attribute.
  */

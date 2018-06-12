@@ -17,13 +17,13 @@ package software.amazon.awssdk.services.directory;
 
 import org.junit.BeforeClass;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.ec2.EC2Client;
+import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class IntegrationTestBase extends AwsIntegrationTestBase {
 
     protected static DirectoryClient dsClient;
-    protected static EC2Client ec2Client;
+    protected static Ec2Client ec2Client;
 
     @BeforeClass
     public static void baseSetupFixture() {
@@ -31,7 +31,7 @@ public class IntegrationTestBase extends AwsIntegrationTestBase {
                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                 .region(Region.US_EAST_1)
                 .build();
-        ec2Client = EC2Client.builder()
+        ec2Client = Ec2Client.builder()
                 .region(Region.US_EAST_1)
                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                 .build();

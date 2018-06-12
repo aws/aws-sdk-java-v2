@@ -41,7 +41,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDBMapperIntegrationTestBase;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.ConsistentRead;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.SaveBehavior;
@@ -188,7 +188,7 @@ public class BatchLoadIntegrationTest extends DynamoDBMapperIntegrationTestBase 
         List<Object> objs = new ArrayList<Object>();
         NumberSetAttributeClass obj = getUniqueNumericObject();
         objs.add(obj);
-        DynamoDBClient mockClient = mock(DynamoDBClient.class);
+        DynamoDbClient mockClient = mock(DynamoDbClient.class);
         when(mockClient.batchGetItem(any(BatchGetItemRequest.class))).thenAnswer(new Answer<BatchGetItemResponse>() {
             @Override
             public BatchGetItemResponse answer(InvocationOnMock invocation) throws Throwable {

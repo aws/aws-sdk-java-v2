@@ -23,7 +23,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.BatchWriteItemOutcome;
 import software.amazon.awssdk.services.dynamodb.document.Item;
 import software.amazon.awssdk.services.dynamodb.document.PrimaryKey;
@@ -40,9 +40,9 @@ import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
  * The implementation for <code>BatchWriteItemApi</code>.
  */
 public class BatchWriteItemImpl implements BatchWriteItemApi {
-    private final DynamoDBClient client;
+    private final DynamoDbClient client;
 
-    public BatchWriteItemImpl(DynamoDBClient client) {
+    public BatchWriteItemImpl(DynamoDbClient client) {
         this.client = client;
     }
 

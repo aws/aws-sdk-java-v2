@@ -38,7 +38,7 @@ public class TypeConvertedJsonTest {
     private static final String HASH_KEY = "1234";
 
     @Mock
-    private DynamoDBClient ddb;
+    private DynamoDbClient ddb;
 
     @Test
     public void responseWithUnmappedField_IgnoresUnknownFieldAndUnmarshallsCorrectly() {

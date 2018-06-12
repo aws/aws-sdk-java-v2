@@ -239,7 +239,7 @@ public class SNSIntegrationTest extends IntegrationTestBase {
      *            Client
      * @return List of all subscriptions
      */
-    private List<Subscription> getAllSubscriptions(SNSClient sns) {
+    private List<Subscription> getAllSubscriptions(SnsClient sns) {
         ListSubscriptionsResponse result = sns.listSubscriptions(ListSubscriptionsRequest.builder().build());
         List<Subscription> subscriptions = new ArrayList<>(result.subscriptions());
         while (result.nextToken() != null) {

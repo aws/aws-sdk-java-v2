@@ -43,7 +43,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.core.util.VersionInfo;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.BatchLoadRetryStrategy;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.BatchWriteRetryStrategy;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.ConsistentRead;
@@ -159,7 +159,7 @@ import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
  * {@link CreateTableRequest} for the table represented by your annotated class.
  *
  * <pre class="brush: java">
- * DynamoDBClient dynamoDBClient = new AmazonDynamoDBClient();
+ * DynamoDbClient dynamoDBClient = new AmazonDynamoDbClient();
  * DynamoDBMapper mapper = new DynamoDBMapper(dynamoDBClient);
  * CreateTableRequest req = mapper.generateCreateTableRequest(TestClass.class);
  * // Table provision throughput is still required since it cannot be specified in your POJO
@@ -211,7 +211,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
     private static final String USER_AGENT_BATCH_OPERATION_NAME =
             DynamoDbMapper.class.getName() + "_batch_operation";
     private static final Logger log = LoggerFactory.getLogger(DynamoDbMapper.class);
-    private final DynamoDBClient db;
+    private final DynamoDbClient db;
     private final DynamoDbMapperModelFactory models;
     private final S3Link.Factory s3Links;
     private final AttributeTransformer transformer;
@@ -224,7 +224,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
      *            The service object to use for all service calls.
      * @see DynamoDbMapperConfig#DEFAULT
      */
-    public DynamoDbMapper(final DynamoDBClient dynamoDb) {
+    public DynamoDbMapper(final DynamoDbClient dynamoDb) {
         this(dynamoDb, DynamoDbMapperConfig.DEFAULT, null, null);
     }
 
@@ -239,7 +239,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
      *            be overridden on a per-operation basis.
      */
     public DynamoDbMapper(
-            final DynamoDBClient dynamoDb,
+            final DynamoDbClient dynamoDb,
             final DynamoDbMapperConfig config) {
 
         this(dynamoDb, config, null, null);
@@ -257,7 +257,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
      * @see DynamoDbMapperConfig#DEFAULT
      */
     public DynamoDbMapper(
-            final DynamoDBClient ddb,
+            final DynamoDbClient ddb,
             final AwsCredentialsProvider s3CredentialProvider) {
 
         this(ddb, DynamoDbMapperConfig.DEFAULT, s3CredentialProvider);
@@ -277,7 +277,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
      *            deserializing an object.
      */
     public DynamoDbMapper(
-            final DynamoDBClient dynamoDb,
+            final DynamoDbClient dynamoDb,
             final DynamoDbMapperConfig config,
             final AttributeTransformer transformer) {
 
@@ -298,7 +298,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
      *            Relevant only if {@link S3Link} is involved.
      */
     public DynamoDbMapper(
-            final DynamoDBClient dynamoDb,
+            final DynamoDbClient dynamoDb,
             final DynamoDbMapperConfig config,
             final AwsCredentialsProvider s3CredentialProvider) {
 
@@ -321,7 +321,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
      *            Relevant only if {@link S3Link} is involved.
      */
     public DynamoDbMapper(
-            final DynamoDBClient dynamoDb,
+            final DynamoDbClient dynamoDb,
             final DynamoDbMapperConfig config,
             final AttributeTransformer transformer,
             final AwsCredentialsProvider s3CredentialsProvider) {

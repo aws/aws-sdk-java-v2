@@ -19,7 +19,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.junit.BeforeClass;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.iam.IAMClient;
+import software.amazon.awssdk.services.iam.IamClient;
 
 /**
  * Base class for all STS integration tests that also need IAM
@@ -27,12 +27,12 @@ import software.amazon.awssdk.services.iam.IAMClient;
 public abstract class IntegrationTestBaseWithIAM extends IntegrationTestBase {
 
     /** The shared IAM client for all tests to use. */
-    protected static IAMClient iam;
+    protected static IamClient iam;
 
     @BeforeClass
     public static void setUp() throws FileNotFoundException, IOException {
         IntegrationTestBase.setUp();
-        iam = IAMClient.builder()
+        iam = IamClient.builder()
                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                        .region(Region.AWS_GLOBAL)
                        .build();

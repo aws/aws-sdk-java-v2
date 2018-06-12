@@ -25,6 +25,8 @@ import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
+import software.amazon.awssdk.codegen.naming.DefaultNamingStrategy;
+import software.amazon.awssdk.codegen.naming.NamingStrategy;
 
 /**
  * Constructs the metadata that is required for generating the java client from the service meta data.
@@ -42,6 +44,7 @@ final class AddMetadata {
 
         final Metadata metadata = new Metadata();
 
+        final NamingStrategy namingStrategy = new DefaultNamingStrategy(serviceModel, customizationConfig);
         final ServiceMetadata serviceMetadata = serviceModel.getMetadata();
 
         final String serviceName;
@@ -60,7 +63,7 @@ final class AddMetadata {
                             Utils.getDefaultEndpointWithoutHttpProtocol(codeGenConfig.getEndpoint()))
                     .withDefaultRegion(codeGenConfig.getDefaultRegion());
         } else {
-            serviceName = Utils.getServiceName(serviceMetadata, customizationConfig);
+            serviceName = namingStrategy.getServiceName();
             rootPackageName = AWS_PACKAGE_PREFIX;
         }
 
@@ -73,12 +76,12 @@ final class AddMetadata {
                 .withBaseBuilder(String.format(Constant.BASE_BUILDER_CLASS_NAME_PATTERN, serviceName))
                 .withDocumentation(serviceModel.getDocumentation())
                 .withRootPackageName(rootPackageName)
-                .withClientPackageName(Utils.getClientPackageName(serviceName, customizationConfig))
-                .withModelPackageName(Utils.getModelPackageName(serviceName, customizationConfig))
-                .withTransformPackageName(Utils.getTransformPackageName(serviceName, customizationConfig))
-                .withRequestTransformPackageName(Utils.getRequestTransformPackageName(serviceName, customizationConfig))
-                .withPaginatorsPackageName(Utils.getPaginatorsPackageName(serviceName, customizationConfig))
-                .withSmokeTestsPackageName(Utils.getSmokeTestPackageName(serviceName, customizationConfig))
+                .withClientPackageName(namingStrategy.getClientPackageName(serviceName))
+                .withModelPackageName(namingStrategy.getModelPackageName(serviceName))
+                .withTransformPackageName(namingStrategy.getTransformPackageName(serviceName))
+                .withRequestTransformPackageName(namingStrategy.getRequestTransformPackageName(serviceName))
+                .withPaginatorsPackageName(namingStrategy.getPaginatorsPackageName(serviceName))
+                .withSmokeTestsPackageName(namingStrategy.getSmokeTestPackageName(serviceName))
                 .withServiceAbbreviation(serviceMetadata.getServiceAbbreviation())
                 .withServiceFullName(serviceMetadata.getServiceFullName())
                 .withSyncClient(String.format(Constant.SYNC_CLIENT_CLASS_NAME_PATTERN, serviceName))

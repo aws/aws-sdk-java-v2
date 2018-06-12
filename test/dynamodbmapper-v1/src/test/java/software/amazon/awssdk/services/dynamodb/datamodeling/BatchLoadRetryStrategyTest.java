@@ -35,13 +35,13 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper.BatchGetItemException;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.BatchLoadRetryStrategy;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
-import software.amazon.awssdk.services.dynamodb.model.DynamoDBRequest;
+import software.amazon.awssdk.services.dynamodb.model.DynamoDbRequest;
 import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 import software.amazon.awssdk.services.dynamodb.model.PutRequest;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
@@ -75,7 +75,7 @@ public class BatchLoadRetryStrategyTest {
 //    public final ExpectedException thrown = ExpectedException.none();
 //
 //    @Mock
-//    private DynamoDBClient ddbMock;
+//    private DynamoDbClient ddbMock;
 //    @Mock
 //    private BatchGetItemRequest mockItemRequest;
 //    @Mock
@@ -83,7 +83,7 @@ public class BatchLoadRetryStrategyTest {
 //
 //    @Test
 //    public void testBatchReadCallFailure_NoRetry() {
-//        when(ddbMock.batchGetItem(any(DynamoDBRequest.class)))
+//        when(ddbMock.batchGetItem(any(DynamoDbRequest.class)))
 //            .thenReturn(buildDefaultGetItemResponse().toBuilder().unprocessedKeys(buildUnprocessedKeysMap(1)).build());
 //        DynamoDbMapperConfig config =
 //                getConfigWithCustomBatchLoadRetryStrategy(new DynamoDbMapperConfig.NoRetryBatchLoadRetryStrategy());

@@ -263,8 +263,8 @@ class MemberCopierSpec implements ClassSpec {
 
     private String memberParamName() {
         if (memberModel.isSimple()) {
-            return Utils.unCapitialize(memberModel.getVariable().getSimpleType()) + "Param";
+            return Utils.unCapitalize(memberModel.getVariable().getSimpleType()) + "Param";
         }
-        return Utils.unCapitialize(memberModel.getC2jShape()) + "Param";
+        return Utils.unCapitalize(memberModel.getC2jShape()) + "Param";
     }
 }

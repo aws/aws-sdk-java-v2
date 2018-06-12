@@ -28,7 +28,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.retry.SdkDefaultRetrySetting;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
@@ -42,13 +42,13 @@ import software.amazon.awssdk.services.dynamodb.model.TableDescription;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class TT0035900619IntegrationTest {
-    private static DynamoDBClient client;
+    private static DynamoDbClient client;
     private static final long SLEEP_TIME_MILLIS = 5000;
     protected static String TABLE_NAME = "TT0035900619IntegrationTest-" + UUID.randomUUID();
 
     @BeforeClass
     public static void setup() throws InterruptedException {
-        client = DynamoDBClient.builder().credentialsProvider(StaticCredentialsProvider.create(awsTestCredentials())).build();
+        client = DynamoDbClient.builder().credentialsProvider(StaticCredentialsProvider.create(awsTestCredentials())).build();
         List<AttributeDefinition> attributeDefinitions = new ArrayList<AttributeDefinition>();
         attributeDefinitions.add(AttributeDefinition.builder().attributeName("hashKey").attributeType(ScalarAttributeType.S).build());
         List<KeySchemaElement> keySchema = new ArrayList<KeySchemaElement>();

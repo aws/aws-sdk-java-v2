@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.document.internal;
 
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.Index;
 import software.amazon.awssdk.services.dynamodb.document.ItemCollection;
 import software.amazon.awssdk.services.dynamodb.document.ScanOutcome;
@@ -27,7 +27,7 @@ import software.amazon.awssdk.services.dynamodb.document.spec.ScanSpec;
 public class IndexScanImpl extends ScanImpl {
     private final Index index;
 
-    public IndexScanImpl(DynamoDBClient client, Index index) {
+    public IndexScanImpl(DynamoDbClient client, Index index) {
         super(client, index.getTable());
         this.index = index;
     }

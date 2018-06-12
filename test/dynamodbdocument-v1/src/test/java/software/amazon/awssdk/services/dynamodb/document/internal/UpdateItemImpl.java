@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.dynamodb.document.internal;
 
 import java.util.Collection;
 import java.util.Map;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.AttributeUpdate;
 import software.amazon.awssdk.services.dynamodb.document.Expected;
 import software.amazon.awssdk.services.dynamodb.document.PrimaryKey;
@@ -34,9 +34,9 @@ import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 public class UpdateItemImpl implements UpdateItemApi {
 
     private final Table table;
-    private final DynamoDBClient client;
+    private final DynamoDbClient client;
 
-    public UpdateItemImpl(DynamoDBClient client, Table table) {
+    public UpdateItemImpl(DynamoDbClient client, Table table) {
         this.client = client;
         this.table = table;
     }

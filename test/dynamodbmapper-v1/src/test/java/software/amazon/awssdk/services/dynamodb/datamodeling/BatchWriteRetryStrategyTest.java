@@ -31,7 +31,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper.FailedBatch;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.BatchWriteRetryStrategy;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -63,7 +63,7 @@ public class BatchWriteRetryStrategyTest {
     }
 
     @Mock
-    private DynamoDBClient ddbMock;
+    private DynamoDbClient ddbMock;
 
     private DynamoDbMapper mapper;
 

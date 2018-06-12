@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.dynamodb.document.internal;
 
 import java.util.Map;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.Expected;
 import software.amazon.awssdk.services.dynamodb.document.Item;
 import software.amazon.awssdk.services.dynamodb.document.PutItemOutcome;
@@ -32,7 +32,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
  * The implementation for <code>PutItemApi</code>.
  */
 public class PutItemImpl extends AbstractImpl implements PutItemApi {
-    public PutItemImpl(DynamoDBClient client, Table table) {
+    public PutItemImpl(DynamoDbClient client, Table table) {
         super(client, table);
     }
 

@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.document.internal;
 
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.Page;
 import software.amazon.awssdk.services.dynamodb.document.Table;
 import software.amazon.awssdk.services.dynamodb.document.TableCollection;
@@ -25,11 +25,11 @@ import software.amazon.awssdk.services.dynamodb.model.ListTablesResponse;
 
 class ListTablesCollection extends TableCollection<ListTablesResponse> {
 
-    private final DynamoDBClient client;
+    private final DynamoDbClient client;
     private final ListTablesSpec spec;
     private final String startKey;
 
-    ListTablesCollection(DynamoDBClient client, ListTablesSpec spec) {
+    ListTablesCollection(DynamoDbClient client, ListTablesSpec spec) {
         this.client = client;
         this.spec = spec;
         this.startKey = spec.getExclusiveStartTableName();

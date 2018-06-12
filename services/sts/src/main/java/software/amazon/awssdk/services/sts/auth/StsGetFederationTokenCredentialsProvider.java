@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.services.sts.STSClient;
+import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.services.sts.model.GetFederationTokenRequest;
 import software.amazon.awssdk.utils.ToString;
@@ -59,7 +59,7 @@ public class StsGetFederationTokenCredentialsProvider extends StsCredentialsProv
     }
 
     @Override
-    protected Credentials getUpdatedCredentials(STSClient stsClient) {
+    protected Credentials getUpdatedCredentials(StsClient stsClient) {
         return stsClient.getFederationToken(getFederationTokenRequest).credentials();
     }
 

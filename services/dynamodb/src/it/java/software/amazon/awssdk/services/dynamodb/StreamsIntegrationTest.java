@@ -18,17 +18,17 @@ package software.amazon.awssdk.services.dynamodb;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.services.dynamodb.model.ListStreamsRequest;
-import software.amazon.awssdk.services.dynamodbstreams.DynamoDBStreamsClient;
+import software.amazon.awssdk.services.dynamodbstreams.DynamoDbStreamsClient;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class StreamsIntegrationTest extends AwsTestBase {
 
-    private DynamoDBStreamsClient streams;
+    private DynamoDbStreamsClient streams;
 
     @Before
     public void setup() throws Exception {
         setUpCredentials();
-        streams = DynamoDBStreamsClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        streams = DynamoDbStreamsClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 
     @Test
