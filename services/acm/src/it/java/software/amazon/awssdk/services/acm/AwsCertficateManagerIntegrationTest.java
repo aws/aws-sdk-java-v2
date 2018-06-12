@@ -27,11 +27,11 @@ import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class AwsCertficateManagerIntegrationTest extends AwsIntegrationTestBase {
 
-    private static ACMClient client;
+    private static AcmClient client;
 
     @BeforeClass
     public static void setUp() {
-        client = ACMClient.builder().credentialsProvider(StaticCredentialsProvider.create(getCredentials())).build();
+        client = AcmClient.builder().credentialsProvider(StaticCredentialsProvider.create(getCredentials())).build();
     }
 
     @Test

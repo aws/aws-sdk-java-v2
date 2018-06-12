@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.dynamodb.document;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.api.QueryApi;
 import software.amazon.awssdk.services.dynamodb.document.api.ScanApi;
 import software.amazon.awssdk.services.dynamodb.document.internal.IndexQueryImpl;
@@ -49,7 +49,7 @@ public class Index implements QueryApi, ScanApi {
     private final QueryApi queryDelegate;
     private final ScanImpl scanDelegate;
 
-    Index(DynamoDBClient client, String indexName, Table table) {
+    Index(DynamoDbClient client, String indexName, Table table) {
         if (client == null) {
             throw new IllegalArgumentException("client must be specified");
         }

@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
@@ -66,7 +66,7 @@ import software.amazon.awssdk.services.dynamodb.model.TableDescription;
  *
  * Initialize the DynamoDB mapper,
  * <pre class="brush: java">
- * DynamoDBClient dbClient = new AmazonDynamoDBClient();
+ * DynamoDbClient dbClient = new AmazonDynamoDbClient();
  * DynamoDBMapper dbMapper = new DynamoDBMapper(dbClient);
  * </pre>
  *
@@ -129,7 +129,7 @@ import software.amazon.awssdk.services.dynamodb.model.TableDescription;
  * @param <R> The range key value type; use <code>?</code> if no range key.
  *
  * @see DynamoDbMapper
- * @see DynamoDBClient
+ * @see DynamoDbClient
  */
 public final class DynamoDbTableMapper<T extends Object, H extends Object, R extends Object> {
 
@@ -140,7 +140,7 @@ public final class DynamoDbTableMapper<T extends Object, H extends Object, R ext
     private final DynamoDbMapperFieldModel<T, R> rk;
     private final DynamoDbMapperConfig config;
     private final DynamoDbMapper mapper;
-    private final DynamoDBClient db;
+    private final DynamoDbClient db;
 
     /**
      * Constructs a new table mapper for the given class.
@@ -148,7 +148,7 @@ public final class DynamoDbTableMapper<T extends Object, H extends Object, R ext
      * @param mapper The DynamoDB mapper.
      * @param db The service object to use for all service calls.
      */
-    protected DynamoDbTableMapper(DynamoDBClient db, DynamoDbMapper mapper, final DynamoDbMapperConfig config,
+    protected DynamoDbTableMapper(DynamoDbClient db, DynamoDbMapper mapper, final DynamoDbMapperConfig config,
                                   final DynamoDbMapperTableModel<T> model) {
         this.rk = model.rangeKeyIfExists();
         this.hk = model.hashKey();
@@ -432,7 +432,7 @@ public final class DynamoDbTableMapper<T extends Object, H extends Object, R ext
      * table, when it was created, the primary key schema, and any indexes on
      * the table.
      * @return The describe table results.
-     * @see DynamoDBClient#describeTable
+     * @see DynamoDbClient#describeTable
      */
     public TableDescription describeTable() {
         return db.describeTable(DescribeTableRequest.builder()
@@ -446,7 +446,7 @@ public final class DynamoDbTableMapper<T extends Object, H extends Object, R ext
      * throughput for all global secondary indexes.
      * @param throughput The provisioned throughput.
      * @return The table decription.
-     * @see DynamoDBClient#createTable
+     * @see DynamoDbClient#createTable
      * @see software.amazon.awssdk.services.dynamodb.model.CreateTableRequest
      */
     public TableDescription createTable(ProvisionedThroughput throughput) {
@@ -469,7 +469,7 @@ public final class DynamoDbTableMapper<T extends Object, H extends Object, R ext
      * ialready exists.
      * @param throughput The provisioned throughput.
      * @return True if created, or false if the table already existed.
-     * @see DynamoDBClient#createTable
+     * @see DynamoDbClient#createTable
      * @see software.amazon.awssdk.services.dynamodb.model.CreateTableRequest
      */
     public boolean createTableIfNotExists(ProvisionedThroughput throughput) {
@@ -487,7 +487,7 @@ public final class DynamoDbTableMapper<T extends Object, H extends Object, R ext
     /**
      * Deletes the table.
      * @return The table decription.
-     * @see DynamoDBClient#deleteTable
+     * @see DynamoDbClient#deleteTable
      * @see software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest
      */
     public TableDescription deleteTable() {
@@ -500,7 +500,7 @@ public final class DynamoDbTableMapper<T extends Object, H extends Object, R ext
      * Deletes the table and ignores the {@code ResourceNotFoundException} if
      * it does not already exist.
      * @return True if the table was deleted, or false if the table did not exist.
-     * @see DynamoDBClient#deleteTable
+     * @see DynamoDbClient#deleteTable
      * @see software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest
      */
     public boolean deleteTableIfExists() {

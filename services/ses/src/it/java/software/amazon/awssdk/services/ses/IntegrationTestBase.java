@@ -37,7 +37,7 @@ public abstract class IntegrationTestBase extends AwsTestBase {
     protected static final String RAW_MESSAGE_FILE_PATH = "/software/amazon/awssdk/services/email/rawMimeMessage.txt";
     public static String DESTINATION;
     public static String SOURCE;
-    protected static SESClient email;
+    protected static SesClient email;
 
     /**
      * Loads the AWS account info for the integration tests and creates client objects for tests to
@@ -53,7 +53,7 @@ public abstract class IntegrationTestBase extends AwsTestBase {
             SOURCE = DESTINATION;
         }
 
-        email = SESClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        email = SesClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 
     protected static void sendVerificationEmail() {

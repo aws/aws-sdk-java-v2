@@ -69,7 +69,7 @@ public class MessageAttributesIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void sendMessage_InvalidMd5_ThrowsException() {
-        try (SQSClient tamperingClient = SQSClient.builder()
+        try (SqsClient tamperingClient = SqsClient.builder()
                                                   .credentialsProvider(getCredentialsProvider())
                                                   .overrideConfiguration(ClientOverrideConfiguration
                                                                                  .builder()

@@ -26,7 +26,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.TableNameOverride;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
@@ -41,13 +41,13 @@ public class JsonIntegrationTest extends AwsTestBase {
     private static final String TABLE_NAME = "test-table-"
                                              + UUID.randomUUID().toString();
 
-    private static DynamoDBClient client;
+    private static DynamoDbClient client;
     private static DynamoDbMapper mapper;
 
     @BeforeClass
     public static void setup() throws Exception {
         setUpCredentials();
-        client = DynamoDBClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.US_WEST_2).build();
+        client = DynamoDbClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.US_WEST_2).build();
 
         mapper = new DynamoDbMapper(
                 client,

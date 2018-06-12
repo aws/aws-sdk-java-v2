@@ -39,14 +39,14 @@ public class EC2ContainerServiceIntegrationTest extends AwsTestBase {
     private static final String CLUSTER_NAME =
             "java-sdk-test-cluster-" + System.currentTimeMillis();
 
-    private static ECSClient client;
+    private static EcsClient client;
     private static String clusterArn;
 
     @BeforeClass
     public static void setup() throws Exception {
         setUpCredentials();
 
-        client = ECSClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        client = EcsClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
 
         CreateClusterResponse result = client.createCluster(CreateClusterRequest.builder()
                 .clusterName(CLUSTER_NAME)

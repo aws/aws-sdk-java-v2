@@ -19,7 +19,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.api.DeleteItemApi;
 import software.amazon.awssdk.services.dynamodb.document.api.GetItemApi;
 import software.amazon.awssdk.services.dynamodb.document.api.PutItemApi;
@@ -66,7 +66,7 @@ public class Table implements PutItemApi, GetItemApi, QueryApi, ScanApi,
                               UpdateItemApi, DeleteItemApi {
     private static final long SLEEP_TIME_MILLIS = 5000;
     private final String tableName;
-    private final DynamoDBClient client;
+    private final DynamoDbClient client;
     private final PutItemImpl putItemDelegate;
     private final GetItemImpl getItemDelegate;
     private final UpdateItemImpl updateItemDelegate;
@@ -75,11 +75,11 @@ public class Table implements PutItemApi, GetItemApi, QueryApi, ScanApi,
     private final ScanImpl scanDelegate;
     private volatile TableDescription tableDescription;
 
-    public Table(DynamoDBClient client, String tableName) {
+    public Table(DynamoDbClient client, String tableName) {
         this(client, tableName, null);
     }
 
-    public Table(DynamoDBClient client, String tableName,
+    public Table(DynamoDbClient client, String tableName,
                  TableDescription tableDescription) {
         if (client == null) {
             throw new IllegalArgumentException("client must be specified");
@@ -473,9 +473,9 @@ public class Table implements PutItemApi, GetItemApi, QueryApi, ScanApi,
      *     if the table has been deleted.
      *
      * @deprecated If this method is called immediately after
-     *     {@link DynamoDBClient#createTable(CreateTableRequest)} or
-     *     {@link DynamoDBClient#deleteTable(DeleteTableRequest)} operation,
-     *     the result might be incorrect as all {@link DynamoDBClient}
+     *     {@link DynamoDbClient#createTable(CreateTableRequest)} or
+     *     {@link DynamoDbClient#deleteTable(DeleteTableRequest)} operation,
+     *     the result might be incorrect as all {@link DynamoDbClient}
      *     operations are eventually consistent and might have a few seconds delay before the status is changed.
      */
     @Deprecated
@@ -505,9 +505,9 @@ public class Table implements PutItemApi, GetItemApi, QueryApi, ScanApi,
      *         become active; or null if the table has been deleted.
      *
      * @deprecated If this method is called immediately after
-     *     {@link DynamoDBClient#createTable(CreateTableRequest)} or
-     *     {@link DynamoDBClient#deleteTable(DeleteTableRequest)} operation,
-     *     the result might be incorrect as all {@link DynamoDBClient}
+     *     {@link DynamoDbClient#createTable(CreateTableRequest)} or
+     *     {@link DynamoDbClient#deleteTable(DeleteTableRequest)} operation,
+     *     the result might be incorrect as all {@link DynamoDbClient}
      *     operations are eventually consistent and might have a few seconds delay before the status is changed.
      */
     @Deprecated

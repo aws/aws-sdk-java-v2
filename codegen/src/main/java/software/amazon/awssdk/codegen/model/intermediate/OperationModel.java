@@ -59,7 +59,7 @@ public class OperationModel extends DocumentationModel {
     }
 
     public String getMethodName() {
-        return Utils.unCapitialize(operationName);
+        return Utils.unCapitalize(operationName);
     }
 
     public boolean isDeprecated() {

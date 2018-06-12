@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.dynamodb.document.internal;
 
 import java.util.Collection;
 import java.util.Map;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.DeleteItemOutcome;
 import software.amazon.awssdk.services.dynamodb.document.Expected;
 import software.amazon.awssdk.services.dynamodb.document.KeyAttribute;
@@ -34,7 +34,7 @@ import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
  * The implementation for <code>DeleteItemApi</code>.
  */
 public class DeleteItemImpl extends AbstractImpl implements DeleteItemApi {
-    public DeleteItemImpl(DynamoDBClient client, Table table) {
+    public DeleteItemImpl(DynamoDbClient client, Table table) {
         super(client, table);
     }
 

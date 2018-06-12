@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen;
 
-import static software.amazon.awssdk.codegen.internal.Utils.unCapitialize;
+import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -163,7 +163,7 @@ final class AddOperations {
                 String documentation = input.getDocumentation() != null ? input.getDocumentation() :
                                        c2jShapes.get(originalShapeName).getDocumentation();
 
-                operationModel.setInput(new VariableModel(unCapitialize(inputShape), inputShape)
+                operationModel.setInput(new VariableModel(unCapitalize(inputShape), inputShape)
                                                 .withDocumentation(documentation));
 
             }
