@@ -20,12 +20,17 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.asyncPromiseNotifyingBiConsumer;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.doInEventLoop;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.promiseNotifyingListener;
+import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelId;
+import io.netty.handler.codec.http2.Http2StreamChannel;
 import io.netty.handler.codec.http2.Http2StreamChannelBootstrap;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import software.amazon.awssdk.http.Protocol;
@@ -37,6 +42,7 @@ import software.amazon.awssdk.http.Protocol;
 public final class MultiplexedChannelRecord {
 
     private final Future<Channel> connectionFuture;
+    private final Map<ChannelId, Channel> childChannels;
     private final AtomicLong availableStreams;
 
     private volatile Channel connection;
@@ -44,6 +50,7 @@ public final class MultiplexedChannelRecord {
     MultiplexedChannelRecord(Future<Channel> connectionFuture, long maxConcurrencyPerConnection) {
         this.connectionFuture = connectionFuture;
         this.availableStreams = new AtomicLong(maxConcurrencyPerConnection);
+        this.childChannels = new ConcurrentHashMap<>(saturatedCast(maxConcurrencyPerConnection));
     }
 
     MultiplexedChannelRecord acquire(Promise<Channel> channelPromise) {
@@ -61,6 +68,17 @@ public final class MultiplexedChannelRecord {
             });
         }
         return this;
+    }
+
+    /**
+     * Delivers the exception to all registered child channels.
+     *
+     * @param t Exception to deliver.
+     */
+    public void shutdownChildChannels(Throwable t) {
+        for (Channel childChannel : childChannels.values()) {
+            childChannel.pipeline().fireExceptionCaught(t);
+        }
     }
 
     /**
@@ -92,11 +110,18 @@ public final class MultiplexedChannelRecord {
     private BiConsumer<Protocol, Promise<Channel>> bootstrapChildChannel(Channel parentChannel) {
         return (s, p) -> new Http2StreamChannelBootstrap(parentChannel)
             .open()
-            .addListener(promiseNotifyingListener(p));
+            .addListener(promiseNotifyingListener(p))
+            .addListener((GenericFutureListener<Future<Http2StreamChannel>>) future -> {
+                if (future.isSuccess()) {
+                    Http2StreamChannel channel = future.getNow();
+                    childChannels.put(channel.id(), channel);
+                }
+            });
     }
 
-    MultiplexedChannelRecord release() {
+    MultiplexedChannelRecord release(Channel channel) {
         availableStreams.incrementAndGet();
+        childChannels.remove(channel.id());
         return this;
     }
 

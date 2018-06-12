@@ -105,7 +105,7 @@ public class Http2MultiplexedChannelPool implements ChannelPool {
         } else {
             Channel parentChannel = channel.parent();
             MultiplexedChannelRecord channelRecord = parentChannel.attr(CHANNEL_POOL_RECORD).get();
-            channelRecord.release();
+            channelRecord.release(channel);
             channel.close();
             promise.setSuccess(null);
         }

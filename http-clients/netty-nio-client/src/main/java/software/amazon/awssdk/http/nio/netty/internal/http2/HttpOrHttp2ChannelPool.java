@@ -18,7 +18,6 @@ package software.amazon.awssdk.http.nio.netty.internal.http2;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.MAX_CONCURRENT_STREAMS;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.doInEventLoop;
-import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.promiseNotifyingBiConsumer;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -99,14 +98,27 @@ public class HttpOrHttp2ChannelPool implements ChannelPool {
                              if (future.isSuccess()) {
                                  Channel newChannel = future.getNow();
                                  newChannel.attr(PROTOCOL_FUTURE).get()
-                                           .whenComplete(promiseNotifyingBiConsumer(s -> configureProtocol(newChannel, s),
-                                                                                    protocolImplPromise));
+                                           .whenComplete((r, e) -> {
+                                               if (e != null) {
+                                                   failProtocolImplPromise(e);
+                                               } else {
+                                                   protocolImplPromise.setSuccess(configureProtocol(newChannel, r));
+                                               }
+                                           });
                              } else {
-                                 protocolImplPromise.setFailure(future.cause());
-                                 // Next acquire will attempt to renegotiate protocol
-                                 protocolImplPromise = null;
+                                 failProtocolImplPromise(future.cause());
                              }
                          });
+    }
+
+    /**
+     * Fail the current protocolImplPromise and null it out so the next acquire will attempt to re-initialize it.
+     *
+     * @param e Cause of failure.
+     */
+    private void failProtocolImplPromise(Throwable e) {
+        protocolImplPromise.setFailure(e);
+        protocolImplPromise = null;
     }
 
     private ChannelPool configureProtocol(Channel newChannel, Protocol protocol) {
