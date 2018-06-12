@@ -30,11 +30,4 @@
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 </project>
