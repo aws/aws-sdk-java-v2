@@ -84,7 +84,17 @@
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
+                <artifactId>sagemaker</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
                 <artifactId>route53</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>route53domains</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
@@ -239,6 +249,21 @@
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>
+                <artifactId>kinesisfirehose</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>kinesisanalytics</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>kinesisvideo</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
                 <artifactId>opsworks</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
@@ -255,6 +280,11 @@
             </dependency>
             <dependency>
                 <artifactId>cloudsearch</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>cloudsearchdomain</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
@@ -355,6 +385,11 @@
             </dependency>
             <dependency>
                 <artifactId>iot</artifactId>
+                <groupId>software.amazon.awssdk</groupId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <artifactId>iotdata</artifactId>
                 <groupId>software.amazon.awssdk</groupId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
