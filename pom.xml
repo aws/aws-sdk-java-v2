@@ -307,6 +307,7 @@
                         <fork>false</fork>
                         <compilerArgument>-proc:none</compilerArgument>
                         <excludes>
+                            <exclude>software/amazon/awssdk/services/kinesis/model/SubscribeToShardEvent.java</exclude>
                             <exclude>software/amazon/awssdk/services/kinesis/KinesisAsyncClient.java</exclude>
                             <exclude>software/amazon/awssdk/services/kinesis/DefaultKinesisAsyncClient.java</exclude>
                             <exclude>software/amazon/awssdk/services/kinesis/DefaultKinesisBaseClientBuilder.java</exclude>
