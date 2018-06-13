@@ -17,7 +17,9 @@ package software.amazon.awssdk.core.retry.conditions;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 
 /**
@@ -42,40 +44,20 @@ public final class RetryOnExceptionsCondition implements RetryCondition {
      */
     @Override
     public boolean shouldRetry(RetryPolicyContext context) {
-        if (context.exception() != null) {
-            for (Class exceptionClass : exceptionsToRetryOn) {
-                if (exceptionMatches(context, exceptionClass)) {
-                    return true;
-                }
-                // Note that we check the wrapped exception too because for things like SocketException or IOException
-                // we wrap them in an SdkClientException before throwing.
-                if (wrappedCauseMatches(context, exceptionClass)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 
-    /**
-     * @param context        Context containing exception.
-     * @param exceptionClass Expected exception class.
-     * @return True if the exception in the context matches the provided class.
-     */
-    private boolean exceptionMatches(RetryPolicyContext context, Class exceptionClass) {
-        return context.exception().getClass().equals(exceptionClass);
-    }
-
-    /**
-     * @param context        Context containing exception.
-     * @param exceptionClass Expected exception class.
-     * @return True if the cause of the exception in the context matches the provided class.
-     */
-    private boolean wrappedCauseMatches(RetryPolicyContext context, Class exceptionClass) {
-        if (context.exception().getCause() == null) {
+        SdkException exception = context.exception();
+        if (exception == null) {
             return false;
         }
-        return context.exception().getCause().getClass().equals(exceptionClass);
+
+        //TODO: update equals to isAssignableFrom to match all sub classes of IOException
+        Predicate<Class<? extends Exception>> isRetryableException =
+            ex -> ex.equals(exception.getClass());
+
+        Predicate<Class<? extends Exception>> hasRetrableCause =
+            ex -> exception.getCause() != null && ex.equals(exception.getCause().getClass());
+
+        return exceptionsToRetryOn.stream().anyMatch(isRetryableException.or(hasRetrableCause));
     }
 
     /**
