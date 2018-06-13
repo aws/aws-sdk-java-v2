@@ -20,7 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -76,7 +76,7 @@ public class ResponseTransformerTest {
 
     @Test
     public void byteMethodDownloadFailureRetries() {
-        stubForRetries();
+        stubForRetriesTimeoutReadingFromStreams();
 
         ResponseBytes<StreamingOutputOperationResponse> response =
                 testClient().streamingOutputOperationAsBytes(StreamingOutputOperationRequest.builder().build());
@@ -86,7 +86,7 @@ public class ResponseTransformerTest {
 
     @Test
     public void downloadToFileRetriesCorrectly() throws IOException {
-        stubForRetries();
+        stubForRetriesTimeoutReadingFromStreams();
 
         Path tmpDirectory = Files.createTempDirectory("streaming-response-handler-test");
         tmpDirectory.toFile().deleteOnExit();
@@ -101,15 +101,15 @@ public class ResponseTransformerTest {
 
     @Test
     public void downloadToOutputStreamDoesNotRetry() throws IOException {
-        stubForRetries();
+        stubForRetriesTimeoutReadingFromStreams();
 
         assertThatThrownBy(() -> testClient().streamingOutputOperation(StreamingOutputOperationRequest.builder().build(),
                                                                        ResponseTransformer
-                                                                               .toOutputStream(new ByteArrayOutputStream())))
-                .isInstanceOf(SdkClientException.class);
+                                                                           .toOutputStream(new ByteArrayOutputStream())))
+            .isInstanceOf(SdkClientException.class);
     }
 
-    private void stubForRetries() {
+    private void stubForRetriesTimeoutReadingFromStreams() {
         stubFor(post(urlPathEqualTo(STREAMING_OUTPUT_PATH)).inScenario("retries")
                                                            .whenScenarioStateIs(STARTED)
                                                            .willReturn(aResponse().withStatus(200).withBody("first")
