@@ -34,7 +34,7 @@ public interface RequestPipeline<InputT, OutputT> {
      *                between stages.
      * @return Output of pipeline.
      * @throws Exception If any error occurs. This will be thrown out of the pipeline, if exceptions must be handled see
-     *                   {@link RequestPipelineBuilder#wrap(BiFunction)}.
+     *                   {@link RequestPipelineBuilder#wrappedWith(BiFunction)}.
      */
     OutputT execute(InputT input, RequestExecutionContext context) throws Exception;
 }

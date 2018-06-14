@@ -272,11 +272,11 @@ public class AmazonSyncHttpClient implements SdkAutoCloseable {
                                              .then(() -> new HandleResponseStage<>(
                                                  getNonNullResponseHandler(responseHandler),
                                                  getNonNullResponseHandler(errorResponseHandler)))
-                                             .wrap(RetryableStage::new)::build)
-                                   .wrap(StreamManagingStage::new)::build)
+                                             .wrappedWith(RetryableStage::new)::build)
+                                   .wrappedWith(StreamManagingStage::new)::build)
                     .then(() -> new UnwrapResponseContainer<>())
                     .then(() -> new AfterExecutionInterceptorsStage<>())
-                    .wrap(ExecutionFailureExceptionReportingStage::new)
+                    .wrappedWith(ExecutionFailureExceptionReportingStage::new)
                     .build(httpClientDependencies)
                     .execute(request, createRequestExecutionDependencies());
             } catch (RuntimeException e) {

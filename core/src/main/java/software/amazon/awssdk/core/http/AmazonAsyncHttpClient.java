@@ -201,11 +201,11 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                       .first(SigningStage::new)
                                       .then(BeforeTransmissionExecutionInterceptorsStage::new)
                                       .then(d -> new MakeAsyncHttpRequestStage<>(responseHandler, errorResponseHandler, d))
-                                      .wrap(AsyncRetryableStage::new)
+                                      .wrappedWith(AsyncRetryableStage::new)
                                       ::build)
                                 .then(async(() -> new UnwrapResponseContainer<>()))
                                 .then(async(() -> new AfterExecutionInterceptorsStage<>()))::build)
-                        .wrap(AsyncExecutionFailureExceptionReportingStage::new)
+                        .wrappedWith(AsyncExecutionFailureExceptionReportingStage::new)
                         .build(httpClientDependencies)
                         .execute(request, createRequestExecutionDependencies());
             } catch (RuntimeException e) {
