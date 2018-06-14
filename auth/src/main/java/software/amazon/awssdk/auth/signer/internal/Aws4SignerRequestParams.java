@@ -27,7 +27,7 @@ public final class Aws4SignerRequestParams {
     /**
      * The signing algorithm to be used for computing the signature.
      */
-    private final String signingAlgorithm = SignerConstant.AWS4_SIGNING_ALGORITHM;
+    private static final String SIGNING_ALGORITHM = SignerConstant.AWS4_SIGNING_ALGORITHM;
 
     /**
      * The datetime in milliseconds for which the signature needs to be
@@ -144,6 +144,6 @@ public final class Aws4SignerRequestParams {
      * Returns the signing algorithm used for computing the signature.
      */
     public String getSigningAlgorithm() {
-        return signingAlgorithm;
+        return SIGNING_ALGORITHM;
     }
 }

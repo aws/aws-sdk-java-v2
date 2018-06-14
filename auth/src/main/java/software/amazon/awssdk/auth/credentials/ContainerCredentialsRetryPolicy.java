@@ -38,11 +38,7 @@ final class ContainerCredentialsRetryPolicy implements ResourcesEndpointRetryPol
             return true;
         }
 
-        if (retryParams.getException() != null && retryParams.getException() instanceof IOException) {
-            return true;
-        }
-
-        return false;
+        return retryParams.getException() instanceof IOException;
     }
 
 }

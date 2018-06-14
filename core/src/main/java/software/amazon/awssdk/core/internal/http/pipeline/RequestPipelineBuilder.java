@@ -25,7 +25,6 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
-import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 
 /**
@@ -36,11 +35,11 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
  */
 @Immutable
 @SdkInternalApi
-public class RequestPipelineBuilder<InputT, OutputT> {
+public final class RequestPipelineBuilder<InputT, OutputT> {
 
     private final Function<HttpClientDependencies, RequestPipeline<InputT, OutputT>> pipelineFactory;
 
-    RequestPipelineBuilder(Function<HttpClientDependencies, RequestPipeline<InputT, OutputT>> pipelineFactory) {
+    private RequestPipelineBuilder(Function<HttpClientDependencies, RequestPipeline<InputT, OutputT>> pipelineFactory) {
         this.pipelineFactory = pipelineFactory;
     }
 

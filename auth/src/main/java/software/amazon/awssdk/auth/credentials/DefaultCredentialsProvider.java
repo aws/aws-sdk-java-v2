@@ -35,7 +35,7 @@ import software.amazon.awssdk.utils.ToString;
  * @see ContainerCredentialsProvider
  * @see InstanceProfileCredentialsProvider
  */
-public class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
+public final class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
 
     private static final DefaultCredentialsProvider DEFAULT_CREDENTIALS_PROVIDER = new DefaultCredentialsProvider(builder());
 

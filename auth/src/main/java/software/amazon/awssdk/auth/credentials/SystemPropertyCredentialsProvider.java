@@ -23,7 +23,7 @@ import software.amazon.awssdk.utils.ToString;
  * {@link AwsCredentialsProvider} implementation that loads credentials from the aws.accessKeyId, aws.secretAccessKey and
  * aws.sessionToken system properties.
  */
-public class SystemPropertyCredentialsProvider extends SystemSettingsCredentialsProvider {
+public final class SystemPropertyCredentialsProvider extends SystemSettingsCredentialsProvider {
 
     private SystemPropertyCredentialsProvider() {
     }

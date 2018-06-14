@@ -23,7 +23,7 @@ import software.amazon.awssdk.utils.Logger;
  * just these loggers to get the type of that they want instead of having to enable all logging.
  */
 @SdkInternalApi
-public class SdkStandardLogger {
+public final class SdkStandardLogger {
     /**
      * Logger providing detailed information on requests/responses. Users can enable this logger to get access to AWS request IDs
      * for responses, individual requests and parameters sent to AWS, etc.

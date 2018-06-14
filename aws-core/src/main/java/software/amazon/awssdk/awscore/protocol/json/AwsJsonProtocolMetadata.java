@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * Provides additional metadata about AWS Json protocol.
  */
 @SdkProtectedApi
-public class AwsJsonProtocolMetadata {
+public final class AwsJsonProtocolMetadata {
 
     private final AwsJsonProtocol protocol;
     private final String protocolVersion;

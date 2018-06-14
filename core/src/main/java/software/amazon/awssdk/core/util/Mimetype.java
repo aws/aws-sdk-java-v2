@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -28,6 +29,7 @@ import java.util.StringTokenizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Utility class that maintains a listing of known Mimetypes, and determines the
@@ -114,12 +116,36 @@ public final class Mimetype {
      * If a file has no extension,
      * Guesses the mimetype of file data based on the file's extension.
      *
+     * @param path the file whose extension may match a known mimetype.
+     * @return the file's mimetype based on its extension, or a default value of
+     * <code>application/octet-stream</code> if a mime type value cannot be found.
+     */
+    public String getMimetype(Path path) {
+        Validate.notNull(path, "path");
+        Path file = path.getFileName();
+
+        if (file != null) {
+            return getMimetype(file.toString());
+        }
+        return null;
+    }
+
+    /**
+     * Determines the mimetype of a file by looking up the file's extension in an internal listing
+     * to find the corresponding mime type. If the file has no extension, or the extension is not
+     * available in the listing contained in this class, the default mimetype
+     * <code>application/octet-stream</code> is returned.
+     * <p>
+     * A file extension is one or more characters that occur after the last period (.) in the file's name.
+     * If a file has no extension,
+     * Guesses the mimetype of file data based on the file's extension.
+     *
      * @param file the file whose extension may match a known mimetype.
      * @return the file's mimetype based on its extension, or a default value of
      * <code>application/octet-stream</code> if a mime type value cannot be found.
      */
     public String getMimetype(File file) {
-        return getMimetype(file.getName());
+        return getMimetype(file.toPath());
     }
 
     /**

@@ -21,11 +21,11 @@ import static software.amazon.awssdk.utils.Validate.validState;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import software.amazon.awssdk.core.runtime.io.ReleasableInputStream;
@@ -81,7 +81,9 @@ public final class RequestBody {
      * @return RequestBody instance.
      */
     public static RequestBody fromFile(Path path) {
-        return fromFile(path.toFile());
+        return new RequestBody(invokeSafely(() -> Files.newInputStream(path)),
+                               invokeSafely(() -> Files.size(path)),
+                               Mimetype.getInstance().getMimetype(path));
     }
 
     /**
@@ -91,9 +93,7 @@ public final class RequestBody {
      * @return RequestBody instance.
      */
     public static RequestBody fromFile(File file) {
-        return new RequestBody(invokeSafely(() -> new FileInputStream(file)),
-                               file.length(),
-                               Mimetype.getInstance().getMimetype(file));
+        return fromFile(file.toPath());
     }
 
     /**
