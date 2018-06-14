@@ -34,6 +34,7 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.SdkHttpResponseAdapter;
 import software.amazon.awssdk.core.internal.http.async.SyncResponseHandlerAdapter;
+import software.amazon.awssdk.core.util.CompletableFutures;
 import software.amazon.awssdk.core.util.Throwables;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -85,32 +86,36 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
         ExecutionContext executionContext,
         ResponseHandlerFactory<ReturnT> sdkHttpResponseHandlerFactory) {
 
-        InputT inputT = finalizeSdkRequest(executionContext);
+        try {
+            InputT inputT = finalizeSdkRequest(executionContext);
 
-        SdkHttpFullRequest marshalled = finalizeSdkHttpFullRequest(executionParams, executionContext, inputT,
-                                                                   clientConfiguration);
+            SdkHttpFullRequest marshalled = finalizeSdkHttpFullRequest(executionParams, executionContext, inputT,
+                    clientConfiguration);
 
-        SdkHttpRequestProvider requestProvider = executionParams.getAsyncRequestBody() == null
-                                                 ? null
-                                                 : new SdkHttpRequestProviderAdapter(executionParams.getAsyncRequestBody());
+            SdkHttpRequestProvider requestProvider = executionParams.getAsyncRequestBody() == null
+                    ? null
+                    : new SdkHttpRequestProviderAdapter(executionParams.getAsyncRequestBody());
 
-        HttpResponseAdapter responseAdapter
-            = r -> SdkHttpResponseAdapter.adapt(isCalculateCrc32FromCompressedData(), marshalled, r);
+            HttpResponseAdapter responseAdapter
+                    = r -> SdkHttpResponseAdapter.adapt(isCalculateCrc32FromCompressedData(), marshalled, r);
 
-        SdkHttpResponseHandler<ReturnT> successResponseHandler = new InterceptorCallingHttpResponseHandler<>(
-            sdkHttpResponseHandlerFactory.apply(responseAdapter), executionContext);
+            SdkHttpResponseHandler<ReturnT> successResponseHandler = new InterceptorCallingHttpResponseHandler<>(
+                    sdkHttpResponseHandlerFactory.apply(responseAdapter), executionContext);
 
-        SdkHttpResponseHandler<? extends SdkException> errorHandler =
-            resolveErrorResponseHandler(executionParams, responseAdapter, executionContext);
+            SdkHttpResponseHandler<? extends SdkException> errorHandler =
+                    resolveErrorResponseHandler(executionParams, responseAdapter, executionContext);
 
-        return invoke(marshalled, requestProvider, inputT,
-                      executionContext, successResponseHandler, errorHandler)
-            .handle((resp, err) -> {
-                if (err != null) {
-                    throw Throwables.failure(err);
-                }
-                return resp;
-            });
+            return invoke(marshalled, requestProvider, inputT,
+                    executionContext, successResponseHandler, errorHandler)
+                    .handle((resp, err) -> {
+                        if (err != null) {
+                            throw Throwables.failure(err);
+                        }
+                        return resp;
+                    });
+        } catch (Throwable t) {
+            return CompletableFutures.failedFuture(t);
+        }
     }
 
     @Override
