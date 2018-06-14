@@ -32,7 +32,7 @@ public class SessionBasedAuthenticationIntegrationTest extends AwsTestBase {
 
         // RenewableAWSSessionCredentials sessionCredentials = new
         // STSSessionCredentials(credentials);
-        // AmazonSNSClient sns = new AmazonSNSClient(sessionCredentials);
+        // AmazonSnsClient sns = new AmazonSnsClient(sessionCredentials);
         //
         // sns.createTopic(new CreateTopicRequest().withName("java" +
         // this.getClass().getSimpleName()

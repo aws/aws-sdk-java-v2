@@ -52,12 +52,12 @@ public class NestedJsonDocumentIntegrationTest extends AwsTestBase {
      * http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Limits.html
      */
     private static final int MAX_JSON_PATH_DEPTH = 32;
-    private static DynamoDBClient ddb;
+    private static DynamoDbClient ddb;
 
     @BeforeClass
     public static void setup() throws Exception {
         setUpCredentials();
-        ddb = DynamoDBClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        ddb = DynamoDbClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
 
         ddb.createTable(CreateTableRequest.builder()
                 .tableName(TABLE)

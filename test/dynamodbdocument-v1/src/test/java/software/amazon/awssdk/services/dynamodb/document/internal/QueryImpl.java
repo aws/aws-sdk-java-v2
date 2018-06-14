@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.dynamodb.document.internal;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.ItemCollection;
 import software.amazon.awssdk.services.dynamodb.document.KeyAttribute;
 import software.amazon.awssdk.services.dynamodb.document.KeyCondition;
@@ -37,7 +37,7 @@ import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
  * The implementation for <code>QueryApi</code> of a table.
  */
 public class QueryImpl extends AbstractImpl implements QueryApi {
-    public QueryImpl(DynamoDBClient client, Table table) {
+    public QueryImpl(DynamoDbClient client, Table table) {
         super(client, table);
     }
 

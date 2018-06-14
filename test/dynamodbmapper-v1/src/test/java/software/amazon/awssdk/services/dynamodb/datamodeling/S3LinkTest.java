@@ -23,7 +23,7 @@ import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 @Ignore // FIXME: Setup fails with "region cannot be null"
 public class S3LinkTest {
@@ -32,7 +32,7 @@ public class S3LinkTest {
     @Before
     public void setUp() {
         AwsCredentials credentials = AwsCredentials.create("mock", "mock");
-        DynamoDBClient db = DynamoDBClient.builder()
+        DynamoDbClient db = DynamoDbClient.builder()
                                           .credentialsProvider(StaticCredentialsProvider.create(credentials))
                                           .region(Region.US_WEST_2)
                                           .build();

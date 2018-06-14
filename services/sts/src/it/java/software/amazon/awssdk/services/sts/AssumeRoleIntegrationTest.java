@@ -163,7 +163,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
                                                                .roleSessionName("Name")
                                                                .build();
 
-        STSClient sts = STSClient.builder().credentialsProvider(StaticCredentialsProvider.create(userCredentials)).build();
+        StsClient sts = StsClient.builder().credentialsProvider(StaticCredentialsProvider.create(userCredentials)).build();
         AssumeRoleResponse assumeRoleResult = sts.assumeRole(assumeRoleRequest);
         assertNotNull(assumeRoleResult.assumedRoleUser());
         assertNotNull(assumeRoleResult.assumedRoleUser().arn());

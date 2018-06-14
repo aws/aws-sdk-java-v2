@@ -39,7 +39,7 @@ public class GlobalRequestHandlerTest {
     @Ignore // FIXME: Fails with "region cannot be null"
     public void clientCreatedWithConstructor_RegistersGlobalHandlers() {
         assertFalse(TestGlobalExecutionInterceptor.wasCalled());
-        DynamoDBClient client = DynamoDBClient.builder()
+        DynamoDbClient client = DynamoDbClient.builder()
                 .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
                 .region(Region.US_WEST_2)
                 .build();
@@ -51,7 +51,7 @@ public class GlobalRequestHandlerTest {
     @Ignore // FIXME: Fails with "region cannot be null"
     public void clientCreatedWithBuilder_RegistersGlobalHandlers() {
         assertFalse(TestGlobalExecutionInterceptor.wasCalled());
-        DynamoDBClient client = DynamoDBClient.builder()
+        DynamoDbClient client = DynamoDbClient.builder()
                 .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
                 .region(Region.US_WEST_2)
                 .build();
@@ -59,7 +59,7 @@ public class GlobalRequestHandlerTest {
         assertTrue(TestGlobalExecutionInterceptor.wasCalled());
     }
 
-    private void callApi(DynamoDBClient client) {
+    private void callApi(DynamoDbClient client) {
         try {
             client.listTables(ListTablesRequest.builder().build());
         } catch (SdkException expected) {

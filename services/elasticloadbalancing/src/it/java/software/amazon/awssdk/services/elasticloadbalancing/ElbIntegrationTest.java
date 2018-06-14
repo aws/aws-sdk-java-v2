@@ -31,7 +31,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.ec2.EC2Client;
+import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.Placement;
 import software.amazon.awssdk.services.ec2.model.RunInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest;
@@ -66,7 +66,7 @@ import software.amazon.awssdk.services.elasticloadbalancing.model.PolicyTypeDesc
 import software.amazon.awssdk.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest;
 import software.amazon.awssdk.services.elasticloadbalancing.model.SetLoadBalancerListenerSSLCertificateRequest;
 import software.amazon.awssdk.services.elasticloadbalancing.model.SetLoadBalancerPoliciesOfListenerRequest;
-import software.amazon.awssdk.services.iam.IAMClient;
+import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.ListServerCertificatesRequest;
 import software.amazon.awssdk.services.iam.model.ServerCertificateMetadata;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
@@ -97,10 +97,10 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
     private static ElasticLoadBalancingClient elb;
 
     /** The EC2 client used to start an instance for the tests requiring one. */
-    private static EC2Client ec2;
+    private static Ec2Client ec2;
 
     /** IAM client used to retrieve certificateArn. */
-    private static IAMClient iam;
+    private static IamClient iam;
 
     /** Existing SSL certificate ARN in IAM. */
     private static String certificateArn;
@@ -126,11 +126,11 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                 .region(REGION)
                 .build();
-        ec2 = EC2Client.builder()
+        ec2 = Ec2Client.builder()
                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                 .region(REGION)
                 .build();
-        iam = IAMClient.builder()
+        iam = IamClient.builder()
                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                 .region(Region.AWS_GLOBAL)
                 .build();

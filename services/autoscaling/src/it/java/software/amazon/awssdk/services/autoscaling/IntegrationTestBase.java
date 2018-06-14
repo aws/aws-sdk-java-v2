@@ -19,7 +19,7 @@ import java.io.IOException;
 import org.junit.BeforeClass;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.autoscaling.model.CreateLaunchConfigurationRequest;
-import software.amazon.awssdk.services.sns.SNSClient;
+import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
@@ -47,7 +47,7 @@ public abstract class IntegrationTestBase extends AwsTestBase {
     /** Shared Autoscaling async client for tests to use. */
     protected static AutoScalingAsyncClient autoscalingAsync;
     /** Shared SNS client for tests to use. */
-    protected static SNSClient sns;
+    protected static SnsClient sns;
 
     /**
      * Loads the AWS account info for the integration tests and creates an AutoScaling client for
@@ -64,7 +64,7 @@ public abstract class IntegrationTestBase extends AwsTestBase {
                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                 .region(REGION)
                 .build();
-        sns = SNSClient.builder()
+        sns = SnsClient.builder()
                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                 .region(REGION)
                 .build();

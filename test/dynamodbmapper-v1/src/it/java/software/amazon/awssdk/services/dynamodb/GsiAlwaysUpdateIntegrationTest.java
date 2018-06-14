@@ -36,12 +36,12 @@ public class GsiAlwaysUpdateIntegrationTest extends DynamoDBMapperIntegrationTes
     private static final String TABLE_NAME =
             GsiAlwaysUpdateIntegrationTest.class.getSimpleName() + "-" + System.currentTimeMillis();
 
-    private DynamoDBClient ddb;
+    private DynamoDbClient ddb;
     private DynamoDbTableMapper<GsiWithAlwaysUpdateTimestamp, String, String> mapper;
 
     @Before
     public void setup() {
-        ddb = DynamoDBClient.builder()
+        ddb = DynamoDbClient.builder()
                 .region(Region.US_WEST_2)
                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                 .build();

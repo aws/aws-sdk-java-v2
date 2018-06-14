@@ -16,7 +16,7 @@
 package software.amazon.awssdk.codegen;
 
 import static software.amazon.awssdk.codegen.internal.TypeUtils.getDataTypeMapping;
-import static software.amazon.awssdk.codegen.internal.Utils.capitialize;
+import static software.amazon.awssdk.codegen.internal.Utils.capitalize;
 import static software.amazon.awssdk.codegen.internal.Utils.isListShape;
 import static software.amazon.awssdk.codegen.internal.Utils.isMapShape;
 import static software.amazon.awssdk.codegen.internal.Utils.isScalar;
@@ -158,7 +158,7 @@ abstract class AddShapes {
 
         memberModel.withC2jName(c2jMemberName)
                    .withC2jShape(c2jShapeName)
-                   .withName(capitialize(c2jMemberName))
+                   .withName(capitalize(c2jMemberName))
                    .withVariable(new VariableModel(variableName, variableType, variableDeclarationType)
                                          .withDocumentation(c2jMemberDefinition.getDocumentation()))
                    .withSetterModel(new VariableModel(variableName, variableType, variableDeclarationType))

@@ -24,7 +24,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.util.ImmutableMapParameter;
 import software.amazon.awssdk.core.util.ImmutableMapParameter.Builder;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
@@ -55,7 +55,7 @@ public class DynamoDbMapperExpressionsIntegrationTest extends AwsTestBase {
     /**
      * Reference to the client being used by the mapper.
      */
-    protected static DynamoDBClient client;
+    protected static DynamoDbClient client;
 
     /**
      * Table name to be used for this testing
@@ -100,7 +100,7 @@ public class DynamoDbMapperExpressionsIntegrationTest extends AwsTestBase {
     public static void setUp() throws FileNotFoundException, IOException,
                                       InterruptedException {
         setUpCredentials();
-        client = DynamoDBClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        client = DynamoDbClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
         mapper = new DynamoDbMapper(client);
         try {
             client.createTable(CreateTableRequest.builder()

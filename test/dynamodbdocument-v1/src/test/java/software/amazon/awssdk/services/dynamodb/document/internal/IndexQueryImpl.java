@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.document.internal;
 
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.Index;
 import software.amazon.awssdk.services.dynamodb.document.ItemCollection;
 import software.amazon.awssdk.services.dynamodb.document.QueryOutcome;
@@ -27,7 +27,7 @@ import software.amazon.awssdk.services.dynamodb.document.spec.QuerySpec;
 public class IndexQueryImpl extends QueryImpl {
     private final Index index;
 
-    public IndexQueryImpl(DynamoDBClient client, Index index) {
+    public IndexQueryImpl(DynamoDbClient client, Index index) {
         super(client, index.getTable());
         this.index = index;
     }

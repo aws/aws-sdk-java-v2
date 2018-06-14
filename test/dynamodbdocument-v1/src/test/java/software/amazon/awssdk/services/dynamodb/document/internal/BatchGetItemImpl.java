@@ -21,7 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.BatchGetItemOutcome;
 import software.amazon.awssdk.services.dynamodb.document.PrimaryKey;
 import software.amazon.awssdk.services.dynamodb.document.TableKeysAndAttributes;
@@ -37,9 +37,9 @@ import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
  * The implementation for <code>BatchGetItemApi</code>.
  */
 public class BatchGetItemImpl implements BatchGetItemApi {
-    private final DynamoDBClient client;
+    private final DynamoDbClient client;
 
-    public BatchGetItemImpl(DynamoDBClient client) {
+    public BatchGetItemImpl(DynamoDbClient client) {
         this.client = client;
     }
 

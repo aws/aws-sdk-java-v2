@@ -23,7 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.PaginationLoadingStrategy;
 
 /**
@@ -57,7 +57,7 @@ public abstract class PaginatedList<T> implements List<T> {
     protected final Class<T> clazz;
 
     /** The client for working with DynamoDB. */
-    protected final DynamoDBClient dynamo;
+    protected final DynamoDbClient dynamo;
 
     /** Tracks if all results have been loaded yet or not. */
     protected boolean allResultsLoaded = false;
@@ -82,7 +82,7 @@ public abstract class PaginatedList<T> implements List<T> {
     /**
      * Constructs a PaginatedList instance using the default PaginationLoadingStrategy
      */
-    public PaginatedList(DynamoDbMapper mapper, Class<T> clazz, DynamoDBClient dynamo) {
+    public PaginatedList(DynamoDbMapper mapper, Class<T> clazz, DynamoDbClient dynamo) {
         this(mapper, clazz, dynamo, null);
     }
 
@@ -101,7 +101,7 @@ public abstract class PaginatedList<T> implements List<T> {
      *            set in the mapper is not accessible here. If null value is
      *            provided, LAZY_LOADING will be set by default.
      */
-    public PaginatedList(DynamoDbMapper mapper, Class<T> clazz, DynamoDBClient dynamo,
+    public PaginatedList(DynamoDbMapper mapper, Class<T> clazz, DynamoDbClient dynamo,
                          PaginationLoadingStrategy paginationLoadingStrategy) {
         this.mapper = mapper;
         this.clazz = clazz;

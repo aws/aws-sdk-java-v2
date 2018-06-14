@@ -107,7 +107,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
 
     @Test
     public void test_UsingSdkClient_WithSignerSetInConfig() {
-        DynamoDBClient client = getClientBuilder()
+        DynamoDbClient client = getClientBuilder()
             .overrideConfiguration(ClientOverrideConfiguration.builder()
                                                               .advancedOption(SIGNER, Aws4Signer.create())
                                                               .build())
@@ -201,7 +201,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
         return result.replaceAll("\\s", "");
     }
 
-    private void getItemAndAssertValues(DynamoDBClient client) {
+    private void getItemAndAssertValues(DynamoDbClient client) {
         Map<String, AttributeValue> item =
             client.getItem(GetItemRequest.builder()
                                          .tableName(TABLE_NAME)
@@ -231,8 +231,8 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
             .putAttribute(AwsExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE, Boolean.TRUE);
     }
 
-    private static DynamoDBClientBuilder getClientBuilder() {
-        return DynamoDBClient.builder()
+    private static DynamoDbClientBuilder getClientBuilder() {
+        return DynamoDbClient.builder()
                              .region(REGION)
                              .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
     }

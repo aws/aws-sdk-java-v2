@@ -27,7 +27,7 @@ import java.nio.charset.StandardCharsets;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.iotdataplane.IoTDataPlaneClient;
+import software.amazon.awssdk.services.iotdataplane.IotDataPlaneClient;
 import software.amazon.awssdk.services.iotdataplane.model.DeleteThingShadowRequest;
 import software.amazon.awssdk.services.iotdataplane.model.DeleteThingShadowResponse;
 import software.amazon.awssdk.services.iotdataplane.model.GetThingShadowRequest;
@@ -46,7 +46,7 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
     private static final String THING_NAME = "foo";
     private static final String INVALID_THING_NAME = "INVALID_THING_NAME";
 
-    private IoTDataPlaneClient iot;
+    private IotDataPlaneClient iot;
 
     private static ByteBuffer getPayloadAsByteBuffer(String payloadString) {
         return ByteBuffer.wrap(payloadString.getBytes(StandardCharsets.UTF_8));
@@ -78,7 +78,7 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
 
     @Before
     public void setup() throws Exception {
-        iot = IoTDataPlaneClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.US_EAST_1).build();
+        iot = IotDataPlaneClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.US_EAST_1).build();
     }
 
     @Test

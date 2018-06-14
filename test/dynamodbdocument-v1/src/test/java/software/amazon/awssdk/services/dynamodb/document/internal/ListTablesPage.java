@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.Page;
 import software.amazon.awssdk.services.dynamodb.document.Table;
 import software.amazon.awssdk.services.dynamodb.document.spec.ListTablesSpec;
@@ -27,14 +27,14 @@ import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
 import software.amazon.awssdk.services.dynamodb.model.ListTablesResponse;
 
 class ListTablesPage extends Page<Table, ListTablesResponse> {
-    private final DynamoDBClient client;
+    private final DynamoDbClient client;
     private final ListTablesSpec spec;
     private ListTablesRequest request;
     private final int index;
     private final String lastEvaluatedKey;
 
     ListTablesPage(
-        DynamoDBClient client,
+        DynamoDbClient client,
         ListTablesSpec spec,
         ListTablesRequest request,
         int index,
@@ -54,7 +54,7 @@ class ListTablesPage extends Page<Table, ListTablesResponse> {
         }
     }
 
-    private static List<Table> toTableList(DynamoDBClient client, List<String> tableNames) {
+    private static List<Table> toTableList(DynamoDbClient client, List<String> tableNames) {
         if (tableNames == null) {
             return null;
         }

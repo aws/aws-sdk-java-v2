@@ -23,7 +23,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.services.sts.STSClient;
+import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
@@ -34,7 +34,7 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 /**
  * An implementation of {@link AwsCredentialsProvider} that is extended within this package to provide support for periodically-
  * updating session credentials. When credentials get close to expiration, this class will attempt to update them asynchronously
- * using {@link #getUpdatedCredentials(STSClient)}. If the credentials end up expiring, this class will block all calls to
+ * using {@link #getUpdatedCredentials(StsClient)}. If the credentials end up expiring, this class will block all calls to
  * {@link #getCredentials()} until the credentials can be updated.
  */
 @ThreadSafe
@@ -43,7 +43,7 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
     /**
      * The STS client that should be used for periodically updating the session credentials in the background.
      */
-    private final STSClient stsClient;
+    private final StsClient stsClient;
 
     /**
      * The session cache that will update the credentials asynchronously in the background when they get close to expiring.
@@ -86,7 +86,7 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
     /**
      * Implemented by a child class to call STS and get a new set of credentials to be used by this provider.
      */
-    protected abstract Credentials getUpdatedCredentials(STSClient stsClient);
+    protected abstract Credentials getUpdatedCredentials(StsClient stsClient);
 
     /**
      * Extended by child class's builders to share configuration across credential providers.
@@ -96,21 +96,21 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
         private final Function<B, T> providerConstructor;
 
         private Boolean asyncCredentialUpdateEnabled = false;
-        private STSClient stsClient;
+        private StsClient stsClient;
 
         protected BaseBuilder(Function<B, T> providerConstructor) {
             this.providerConstructor = providerConstructor;
         }
 
         /**
-         * Configure the {@link STSClient} to use when calling STS to update the session. This client should not be shut down
+         * Configure the {@link StsClient} to use when calling STS to update the session. This client should not be shut down
          * as long as this credentials provider is in use.
          *
          * @param stsClient The STS client to use for communication with STS.
          * @return This object for chained calls.
          */
         @SuppressWarnings("unchecked")
-        public B stsClient(STSClient stsClient) {
+        public B stsClient(StsClient stsClient) {
             this.stsClient = stsClient;
             return (B) this;
         }

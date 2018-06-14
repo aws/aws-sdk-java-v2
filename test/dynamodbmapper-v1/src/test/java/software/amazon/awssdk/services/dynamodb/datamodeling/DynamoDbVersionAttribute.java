@@ -19,7 +19,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 /**
  * Annotation for marking a property as an optimistic locking version attribute.
@@ -38,7 +38,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
  * <p>
  * Note that for batchWrite, and by extension batchSave and batchDelete, <b>no
  * version checks are performed</b>, as required by the
- * {@link DynamoDBClient#batchWriteItem(BatchWriteItemRequest)}
+ * {@link DynamoDbClient#batchWriteItem(BatchWriteItemRequest)}
  * API.
  *
  * @see DynamoDbVersioned
