@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core;
 
+import java.util.Optional;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.http.AmazonAsyncHttpClient;
@@ -56,8 +57,8 @@ public final class RequestExecutionContext {
         return new Builder();
     }
 
-    public SdkHttpRequestProvider requestProvider() {
-        return requestProvider;
+    public Optional<SdkHttpRequestProvider> requestProvider() {
+        return Optional.ofNullable(requestProvider);
     }
 
     /**

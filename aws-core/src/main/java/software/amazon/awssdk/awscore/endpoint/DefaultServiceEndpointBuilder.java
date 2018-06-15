@@ -21,6 +21,7 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadata;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Uses service metadata and the request region to construct an endpoint for a specific service
@@ -34,8 +35,8 @@ public final class DefaultServiceEndpointBuilder {
     private Region region;
 
     public DefaultServiceEndpointBuilder(String serviceName, String protocol) {
-        this.serviceName = serviceName;
-        this.protocol = protocol;
+        this.serviceName = Validate.paramNotNull(serviceName, "serviceName");
+        this.protocol = Validate.paramNotNull(protocol, "protocol");
     }
 
     public DefaultServiceEndpointBuilder withRegion(Region region) {

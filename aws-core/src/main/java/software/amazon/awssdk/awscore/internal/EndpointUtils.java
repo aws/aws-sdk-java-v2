@@ -19,6 +19,7 @@ import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * A collection of utility methods centered around generating service endpoints from various pieces of information.
@@ -37,6 +38,9 @@ public final class EndpointUtils {
      * @return The AWS endpoint to use for communication.
      */
     public static URI buildEndpoint(String protocol, String serviceEndpointPrefix, Region region) {
+        Validate.paramNotNull(protocol, "protocol");
+        Validate.paramNotNull(serviceEndpointPrefix, "serviceEndpointPrefix");
+        Validate.paramNotNull(region, "region");
         return new DefaultServiceEndpointBuilder(serviceEndpointPrefix, protocol).withRegion(region).getServiceEndpoint();
     }
 }
