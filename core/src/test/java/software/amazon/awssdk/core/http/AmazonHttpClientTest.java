@@ -128,7 +128,6 @@ public class AmazonHttpClientTest {
                                                      .option(SdkClientOption.SYNC_HTTP_CLIENT, sdkHttpClient)
                                                      .option(SdkClientOption.ENDPOINT, URI.create("http://example.com"))
                                                      .build();
-
         AmazonSyncHttpClient client = new AmazonSyncHttpClient(config);
 
         client.requestExecutionBuilder()
@@ -143,7 +142,6 @@ public class AmazonHttpClientTest {
         final String userAgent = httpRequestCaptor.getValue().firstMatchingHeader("User-Agent")
                                                   .orElseThrow(() -> new AssertionError("User-Agent header was not found"));
 
-        System.out.println("User Agent: " + userAgent);
         Assert.assertTrue(userAgent.startsWith(prefix));
         Assert.assertTrue(userAgent.endsWith(suffix));
     }

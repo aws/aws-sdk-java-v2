@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.signer.params;
 
 import java.time.Instant;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.signer.SignerConstant;
 
@@ -29,8 +30,8 @@ public final class Aws4PresignerParams extends Aws4SignerParams {
         this.expirationTime = builder.expirationTime;
     }
 
-    public Instant expirationTime() {
-        return expirationTime;
+    public Optional<Instant> expirationTime() {
+        return Optional.ofNullable(expirationTime);
     }
 
     public static Builder builder() {

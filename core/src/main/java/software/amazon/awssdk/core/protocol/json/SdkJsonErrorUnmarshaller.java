@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.protocol.json;
 
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.exception.SdkServiceException;
@@ -27,7 +26,7 @@ import software.amazon.awssdk.core.exception.SdkServiceException;
 @ThreadSafe
 public class SdkJsonErrorUnmarshaller extends JsonErrorUnmarshaller<SdkServiceException> {
 
-    private final Optional<Integer> httpStatusCode;
+    private final Integer httpStatusCode;
 
     /**
      * @param exceptionClass Exception class this unmarshaller will attempt to deserialize error
@@ -35,7 +34,7 @@ public class SdkJsonErrorUnmarshaller extends JsonErrorUnmarshaller<SdkServiceEx
      * @param httpStatusCode HTTP status code associated with this modeled exception. A value of
      *                       null will match all http status codes.
      */
-    public SdkJsonErrorUnmarshaller(Class<? extends SdkServiceException> exceptionClass, Optional<Integer> httpStatusCode) {
+    SdkJsonErrorUnmarshaller(Class<? extends SdkServiceException> exceptionClass, Integer httpStatusCode) {
         super(exceptionClass);
         this.httpStatusCode = httpStatusCode;
     }
@@ -45,8 +44,9 @@ public class SdkJsonErrorUnmarshaller extends JsonErrorUnmarshaller<SdkServiceEx
      * @return True if the http status can be handled by this unmarshaller, false otherwise
      */
     public boolean matches(int actualHttpStatusCode) {
-        return httpStatusCode
-            .map(sc -> sc == actualHttpStatusCode)
-            .orElse(true);
+        if (httpStatusCode == null) {
+            return true;
+        }
+        return httpStatusCode == actualHttpStatusCode;
     }
 }

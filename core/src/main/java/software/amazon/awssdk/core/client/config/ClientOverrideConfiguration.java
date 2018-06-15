@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -88,27 +89,26 @@ public final class ClientOverrideConfiguration
      *
      * @see Builder#gzipEnabled(Boolean)
      */
-    public Boolean gzipEnabled() {
-        return gzipEnabled;
+    public Optional<Boolean> gzipEnabled() {
+        return Optional.ofNullable(gzipEnabled);
     }
 
     /**
-     * The retry policy that should be used when handling failure cases.
+     * The optional retry policy that should be used when handling failure cases.
      *
      * @see Builder#retryPolicy(RetryPolicy)
      */
-    public RetryPolicy retryPolicy() {
-        return retryPolicy;
+    public Optional<RetryPolicy> retryPolicy() {
+        return Optional.ofNullable(retryPolicy);
     }
 
     /**
-     * Load the requested advanced option that was configured on the client builder. This will return null if the value was not
-     * configured.
+     * Load the optional requested advanced option that was configured on the client builder.
      *
      * @see Builder#advancedOption(SdkAdvancedClientOption, Object)
      */
-    public <T> T advancedOption(SdkAdvancedClientOption<T> option) {
-        return advancedOptions.get(option);
+    public <T> Optional<T> advancedOption(SdkAdvancedClientOption<T> option) {
+        return Optional.ofNullable(advancedOptions.get(option));
     }
 
     /**
