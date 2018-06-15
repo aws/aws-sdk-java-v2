@@ -23,6 +23,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.services.dynamodb.DynamoDBMapperIntegrationTestBase;
+import software.amazon.awssdk.services.dynamodb.TableUtils;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbHashKey;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbIndexHashKey;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbIndexRangeKey;
@@ -43,7 +44,6 @@ import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
-import software.amazon.awssdk.services.dynamodb.TableUtils;
 import utils.test.util.DynamoDBTestBase;
 
 /**

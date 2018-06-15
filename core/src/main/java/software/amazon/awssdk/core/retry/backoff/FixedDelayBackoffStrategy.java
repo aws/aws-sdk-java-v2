@@ -18,11 +18,13 @@ package software.amazon.awssdk.core.retry.backoff;
 import static software.amazon.awssdk.utils.Validate.isNotNegative;
 
 import java.time.Duration;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 
 /**
  * Simple backoff strategy that always uses a fixed delay for the delay before the next retry attempt.
  */
+@SdkPublicApi
 public final class FixedDelayBackoffStrategy implements BackoffStrategy {
 
     private final Duration fixedBackoff;

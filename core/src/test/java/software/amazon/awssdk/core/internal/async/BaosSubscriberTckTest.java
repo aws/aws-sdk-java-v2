@@ -17,12 +17,10 @@ package software.amazon.awssdk.core.internal.async;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
-
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.SubscriberWhiteboxVerification;
 import org.reactivestreams.tck.TestEnvironment;
-
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer.BaosSubscriber;
 
 /**

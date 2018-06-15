@@ -15,9 +15,12 @@
 
 package software.amazon.awssdk.http;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+
 /**
  * Constants for commonly used HTTP headers.
  */
+@SdkProtectedApi
 public final class Header {
 
     public static final String CONTENT_LENGTH = "Content-Length";

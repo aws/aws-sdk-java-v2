@@ -15,6 +15,11 @@
 
 package software.amazon.awssdk.codegen.poet.model;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
+
+import java.io.File;
+import java.io.IOException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.codegen.C2jModels;
@@ -23,12 +28,6 @@ import software.amazon.awssdk.codegen.model.config.customization.CustomizationCo
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
-
-import java.io.File;
-import java.io.IOException;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
 public class AwsServiceBaseResponseSpecTest {
     private static IntermediateModel intermediateModel;

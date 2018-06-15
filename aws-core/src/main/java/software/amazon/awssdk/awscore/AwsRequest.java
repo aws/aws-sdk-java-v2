@@ -17,11 +17,13 @@ package software.amazon.awssdk.awscore;
 
 import java.util.Optional;
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkRequest;
 
 /**
  * Base class for all AWS Service requests.
  */
+@SdkPublicApi
 public abstract class AwsRequest extends SdkRequest {
     private final AwsRequestOverrideConfiguration requestOverrideConfig;
 

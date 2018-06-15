@@ -17,11 +17,14 @@ package software.amazon.awssdk.core;
 
 import static software.amazon.awssdk.utils.Validate.notNull;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
+
 /**
  * Encapsulates the API name and version of a library built using the AWS SDK.
  *
  * See {@link RequestOverrideConfiguration.Builder#addApiName(ApiName)}.
  */
+@SdkPublicApi
 public final class ApiName {
     private final String name;
     private final String version;

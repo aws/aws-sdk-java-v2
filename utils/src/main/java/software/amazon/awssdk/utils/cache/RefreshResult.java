@@ -17,11 +17,13 @@ package software.amazon.awssdk.utils.cache;
 
 import java.time.Instant;
 import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * A wrapper for the value returned by the {@link Supplier} underlying a {@link CachedSupplier}. The underlying {@link Supplier}
  * returns this to specify when the underlying value should be refreshed.
  */
+@SdkProtectedApi
 public final class RefreshResult<T> {
     private final T value;
     private final Instant staleTime;

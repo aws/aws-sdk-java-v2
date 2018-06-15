@@ -15,13 +15,15 @@
 
 package software.amazon.awssdk.awscore.config.options;
 
-import software.amazon.awssdk.core.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.config.options.SdkClientOptionValidation;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.client.config.SdkClientOptionValidation;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 
 /**
  * A set of static methods used to validate that a {@link SdkClientConfiguration} contains all of
  * the values required for the AWS client handlers to function.
  */
+@SdkInternalApi
 public final class AwsClientOptionValidation extends SdkClientOptionValidation {
     private AwsClientOptionValidation() {}
 

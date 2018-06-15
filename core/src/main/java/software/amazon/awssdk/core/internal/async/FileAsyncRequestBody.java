@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.async;
+package software.amazon.awssdk.core.internal.async;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -27,14 +27,18 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.util.async.NoopSubscription;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
  * Implementation of {@link AsyncRequestBody} that reads data from a file.
+ *
+ * @see AsyncRequestBody#fromFile(Path)
+ * @see AsyncRequestBody#fromFile(java.io.File)
  */
 @SdkInternalApi
-final class FileAsyncRequestBody implements AsyncRequestBody {
+public final class FileAsyncRequestBody implements AsyncRequestBody {
 
     /**
      * Default size (in bytes) of ByteBuffer chunks read from the file and delivered to the subscriber.
@@ -50,7 +54,6 @@ final class FileAsyncRequestBody implements AsyncRequestBody {
      * Size (in bytes) of ByteBuffer chunks read from the file and delivered to the subscriber.
      */
     private final int chunkSizeInBytes;
-
 
     private FileAsyncRequestBody(DefaultBuilder builder) {
         this.path = builder.path;

@@ -1,14 +1,13 @@
 package software.amazon.awssdk.core.internal.http.async;
 
+import java.io.ByteArrayInputStream;
+import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.PublisherVerification;
 import org.reactivestreams.tck.TestEnvironment;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
-
-import java.io.ByteArrayInputStream;
-import java.nio.ByteBuffer;
 
 /**
  * TCK verification test for {@link SimpleRequestProvider}.

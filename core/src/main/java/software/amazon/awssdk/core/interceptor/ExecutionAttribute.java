@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.interceptor;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
+
 /**
  * An attribute attached to a particular execution, stored in {@link ExecutionAttributes}.
  *
@@ -39,6 +41,7 @@ package software.amazon.awssdk.core.interceptor;
  *
  * @param <T> The type of data associated with this attribute.
  */
+@SdkPublicApi
 public class ExecutionAttribute<T> {
 
     private final String name;

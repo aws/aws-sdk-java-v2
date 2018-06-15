@@ -19,8 +19,8 @@ import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkGlobalTime;
-import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
 import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;

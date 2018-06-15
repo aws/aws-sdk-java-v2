@@ -24,6 +24,7 @@ import java.lang.annotation.Target;
  * miss anything we intended to review.
  */
 @Target({ElementType.PACKAGE, ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD})
+@SdkProtectedApi
 public @interface ReviewBeforeRelease {
     /**
      * An explanation of why we should review this before general availability. Will it definitely change? Are we just testing

@@ -24,10 +24,11 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOption;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkStandardLogger;
-import software.amazon.awssdk.core.config.options.SdkClientOption;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.ResetException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -44,6 +45,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 /**
  * Wrapper around the pipeline for a single request to provide retry functionality.
  */
+@SdkInternalApi
 public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHttpFullRequest,
     CompletableFuture<Response<OutputT>>> {
 

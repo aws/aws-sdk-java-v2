@@ -21,10 +21,10 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
@@ -38,8 +38,8 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.ExecutionFailur
 import software.amazon.awssdk.core.internal.http.pipeline.stages.HandleResponseStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.HttpResponseAdaptingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeHttpRequestStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestImmutable;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestMutable;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestImmutableStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestMutableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomHeadersStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomQueryParamsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MoveParametersToBodyStage;
@@ -254,13 +254,13 @@ public class AmazonSyncHttpClient implements SdkAutoCloseable {
                 return RequestPipelineBuilder
                     // Start of mutating request
                     .first(RequestPipelineBuilder
-                                   .first(MakeRequestMutable::new)
+                                   .first(MakeRequestMutableStage::new)
                                    .then(ApplyTransactionIdStage::new)
                                    .then(ApplyUserAgentStage::new)
                                    .then(MergeCustomHeadersStage::new)
                                    .then(MergeCustomQueryParamsStage::new)
                                    .then(MoveParametersToBodyStage::new)
-                                   .then(MakeRequestImmutable::new)
+                                   .then(MakeRequestImmutableStage::new)
                                    // End of mutating request
                                    .then(RequestPipelineBuilder
                                              .first(SigningStage::new)

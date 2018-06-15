@@ -27,5 +27,6 @@ import java.lang.annotation.Target;
  * {@code @InternalApi} classes.
  */
 @Target({ElementType.PACKAGE, ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD})
+@SdkProtectedApi
 public @interface SdkProtectedApi {
 }

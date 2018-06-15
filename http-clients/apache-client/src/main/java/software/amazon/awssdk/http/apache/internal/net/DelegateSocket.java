@@ -23,11 +23,13 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.nio.channels.SocketChannel;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Socket delegate class. Subclasses could extend this class, so that
  * they only need to override methods they are interested in enhancing.
  */
+@SdkInternalApi
 public class DelegateSocket extends Socket {
 
     protected final Socket sock;

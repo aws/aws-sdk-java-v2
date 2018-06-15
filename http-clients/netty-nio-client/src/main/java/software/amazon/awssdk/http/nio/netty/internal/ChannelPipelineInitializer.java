@@ -28,10 +28,12 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import java.util.ArrayList;
 import java.util.List;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
 import software.amazon.awssdk.http.nio.netty.internal.utils.LoggingHandler;
 import software.amazon.awssdk.utils.Logger;
 
+@SdkInternalApi
 public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
     private static final Logger log = Logger.loggerFor(ChannelPipelineInitializer.class);
 

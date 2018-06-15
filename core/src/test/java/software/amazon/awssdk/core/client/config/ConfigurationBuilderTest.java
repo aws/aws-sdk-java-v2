@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.config;
+package software.amazon.awssdk.core.client.config;
 
 import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.Test;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 
 /**
  * Validate the functionality of the Client*Configuration classes

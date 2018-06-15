@@ -17,6 +17,7 @@ package software.amazon.awssdk.utils;
 
 import java.util.Arrays;
 import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * A class to standardize implementations of {@link Object#toString()} across the SDK.
@@ -29,6 +30,7 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
  * }</pre>
  */
 @NotThreadSafe
+@SdkProtectedApi
 public final class ToString {
     private final StringBuilder result;
     private final int startingLength;

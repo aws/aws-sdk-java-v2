@@ -15,10 +15,13 @@
 
 package software.amazon.awssdk.core;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+
 /**
  * Used for clock skew adjustment between the client JVM where the SDK is run,
  * and the server side.
  */
+@SdkProtectedApi
 public final class SdkGlobalTime {
 
     /**

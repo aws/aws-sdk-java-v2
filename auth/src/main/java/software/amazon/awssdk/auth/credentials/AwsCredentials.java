@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.StringUtils.trimToNull;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
@@ -34,6 +35,7 @@ import software.amazon.awssdk.utils.Validate;
  * @see AwsCredentialsProvider
  */
 @Immutable
+@SdkPublicApi
 public class AwsCredentials {
     /**
      * A set of AWS credentials without an access key or secret access key, indicating that anonymous access should be used.

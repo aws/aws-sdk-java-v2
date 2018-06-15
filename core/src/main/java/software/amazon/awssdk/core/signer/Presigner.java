@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.signer;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
@@ -22,6 +23,8 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  * Interface for the signer used for pre-signing the requests. All SDK signer implementations that support pre-signing
  * will implement this interface.
  */
+@SdkPublicApi
+@FunctionalInterface
 public interface Presigner {
     /**
      * Method that takes in an request and returns a pre signed version of the request.

@@ -18,6 +18,7 @@ package software.amazon.awssdk.awscore.protocol.json;
 import com.fasterxml.jackson.core.JsonFactory;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.http.response.AwsJsonErrorResponseHandler;
 import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
  * JSON. See {@link AwsStructuredPlainJsonFactory#SDK_JSON_FACTORY} and {@link
  * AwsStructuredCborFactory#SDK_CBOR_FACTORY}.
  */
+@SdkInternalApi
 abstract class BaseAwsStructuredJsonFactory implements AwsStructuredJsonFactory {
 
     private final JsonFactory jsonFactory;

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.async;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
@@ -30,6 +31,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
  * </p>
  */
 @ThreadSafe
+@SdkProtectedApi
 public interface SdkAsyncHttpService {
 
     /**

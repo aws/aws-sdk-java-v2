@@ -44,5 +44,6 @@ import java.lang.annotation.Target;
 @Documented
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.CLASS) // The original version used RUNTIME
+@SdkProtectedApi
 public @interface Immutable {
 }

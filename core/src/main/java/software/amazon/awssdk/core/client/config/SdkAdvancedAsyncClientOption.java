@@ -13,15 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.config.options;
+package software.amazon.awssdk.core.client.config;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * A collection of advanced options that can be configured on an async AWS client via
- * {@link software.amazon.awssdk.core.config.ClientAsyncConfiguration.Builder#advancedOption(SdkAdvancedAsyncClientOption,
+ * {@link ClientAsyncConfiguration.Builder#advancedOption(SdkAdvancedAsyncClientOption,
  * Object)}.
  *
  * <p>These options are usually not required outside of testing or advanced libraries, so most users should not need to configure
@@ -29,6 +30,7 @@ import java.util.concurrent.ExecutorService;
  *
  * @param <T> The type of value associated with the option.
  */
+@SdkPublicApi
 public class SdkAdvancedAsyncClientOption<T> extends ClientOption<T> {
     /**
      * Configure the executor that should be used to complete the {@link CompletableFuture} that is returned by the service

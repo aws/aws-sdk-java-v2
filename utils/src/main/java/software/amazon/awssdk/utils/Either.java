@@ -18,6 +18,7 @@ package software.amazon.awssdk.utils;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Represents a value that can be one of two types.
@@ -25,6 +26,7 @@ import java.util.function.Function;
  * @param <L> Left type
  * @param <R> Right type
  */
+@SdkProtectedApi
 public final class Either<L, R> {
 
     private final Optional<L> left;

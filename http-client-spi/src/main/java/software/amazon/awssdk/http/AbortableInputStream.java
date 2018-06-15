@@ -19,12 +19,14 @@ import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import java.io.FilterInputStream;
 import java.io.InputStream;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Input stream that can be aborted. Abort typically means to destroy underlying HTTP connection
  * without reading more data. This may be desirable when the cost of reading the rest of the data
  * exceeds that of establishing a new connection.
  */
+@SdkProtectedApi
 public final class AbortableInputStream extends FilterInputStream implements Abortable {
 
     private final Abortable abortable;

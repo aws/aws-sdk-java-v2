@@ -17,10 +17,12 @@ package software.amazon.awssdk.http.async;
 
 import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * A {@link Publisher} of HTTP content data that allows streaming operations for asynchronous HTTP clients.
  */
+@SdkProtectedApi
 public interface SdkHttpRequestProvider extends Publisher<ByteBuffer> {
 
     /**

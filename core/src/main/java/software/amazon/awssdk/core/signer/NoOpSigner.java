@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.signer;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
@@ -22,6 +23,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  * A No op implementation of Signer and Presigner interfaces that returns the
  * input {@link SdkHttpFullRequest} without modifications.
  */
+@SdkPublicApi
 public class NoOpSigner implements Signer, Presigner {
 
     @Override

@@ -77,8 +77,8 @@
     <!-- False positive Unconfirmed cast-->
     <Match>
         <Or>
-            <Class name="software.amazon.awssdk.core.client.BaseAsyncClientHandler$InterceptorCallingHttpResponseHandler" />
-            <Class name="software.amazon.awssdk.core.client.BaseAsyncClientHandler$UnmarshallingSdkHttpResponseHandler" />
+            <Class name="software.amazon.awssdk.core.client.handler.BaseAsyncClientHandler$InterceptorCallingHttpResponseHandler" />
+            <Class name="software.amazon.awssdk.core.client.handler.BaseAsyncClientHandler$UnmarshallingSdkHttpResponseHandler" />
             <Class name="software.amazon.awssdk.core.internal.http.async.SyncResponseHandlerAdapter" />
         </Or>
         <Bug pattern="BC_UNCONFIRMED_CAST" />
@@ -95,8 +95,8 @@
     <!-- Currently they look the same and we will revisit this when we add APIG -->
     <Match>
         <Or>
-            <Class name="software.amazon.awssdk.core.client.SdkAsyncClientHandler" />
-            <Class name="software.amazon.awssdk.core.client.SdkSyncClientHandler" />
+            <Class name="software.amazon.awssdk.core.client.handler.SdkAsyncClientHandler" />
+            <Class name="software.amazon.awssdk.core.client.handler.SdkSyncClientHandler" />
             <Class name="software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler" />
             <Class name="software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler" />
         </Or>

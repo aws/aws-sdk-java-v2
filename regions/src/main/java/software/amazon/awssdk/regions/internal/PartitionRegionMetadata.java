@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.regions.internal;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.regions.RegionMetadata;
 import software.amazon.awssdk.regions.internal.model.Partition;
 import software.amazon.awssdk.utils.Validate;
@@ -22,6 +23,7 @@ import software.amazon.awssdk.utils.Validate;
 /**
  * A region implementation backed by the partition.
  */
+@SdkInternalApi
 public class PartitionRegionMetadata implements RegionMetadata {
 
     /**

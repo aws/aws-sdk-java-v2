@@ -20,10 +20,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Simple subscriber that does no backpressure and doesn't care about errors or completion.
  */
+@SdkProtectedApi
 public class SimpleSubscriber implements Subscriber<ByteBuffer> {
 
     private final Consumer<ByteBuffer> consumer;

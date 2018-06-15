@@ -20,6 +20,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.exception.RetryableException;
@@ -38,6 +39,7 @@ import software.amazon.awssdk.utils.IoUtils;
  * @param <OutputT> Type of successful unmarshalled POJO.
  */
 @ReviewBeforeRelease("Should this be broken up? It's doing quite a lot...")
+@SdkInternalApi
 public class HandleResponseStage<OutputT> implements RequestPipeline<HttpResponse, Response<OutputT>> {
     private static final Logger log = LoggerFactory.getLogger(HandleResponseStage.class);
 

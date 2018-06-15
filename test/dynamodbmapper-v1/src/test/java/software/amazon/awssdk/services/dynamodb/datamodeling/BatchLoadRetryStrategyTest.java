@@ -15,36 +15,9 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper.BatchGetItemException;
-import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.BatchLoadRetryStrategy;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
-import software.amazon.awssdk.services.dynamodb.model.DynamoDbRequest;
-import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
-import software.amazon.awssdk.services.dynamodb.model.PutRequest;
-import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 
 // Commenting out the test class as its broken and we don't support mapper yet
 @RunWith(MockitoJUnitRunner.class)

@@ -23,12 +23,14 @@ import java.net.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.util.json.JacksonUtils;
 import software.amazon.awssdk.utils.IoUtils;
 
 @SdkInternalApi
+@SdkProtectedApi
 public final class HttpResourcesUtils {
 
     private static final Logger log = LoggerFactory.getLogger(HttpResourcesUtils.class);

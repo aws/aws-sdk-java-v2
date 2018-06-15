@@ -15,8 +15,11 @@
 
 package software.amazon.awssdk.http.apache.internal.conn;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
+
 /**
  * An internal marker interface to defend against accidental recursive wrappings.
  */
+@SdkInternalApi
 public interface Wrapped {
 }

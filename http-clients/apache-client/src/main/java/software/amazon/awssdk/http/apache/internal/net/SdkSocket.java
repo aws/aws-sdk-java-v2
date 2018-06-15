@@ -20,7 +20,9 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
+@SdkInternalApi
 public class SdkSocket extends DelegateSocket {
     private static final Logger log = LoggerFactory.getLogger(SdkSocket.class);
 

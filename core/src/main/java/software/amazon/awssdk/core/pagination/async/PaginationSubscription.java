@@ -19,7 +19,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
+@SdkInternalApi
 public abstract class PaginationSubscription<ResponseT> implements Subscription {
 
     protected AtomicLong outstandingRequests = new AtomicLong(0);

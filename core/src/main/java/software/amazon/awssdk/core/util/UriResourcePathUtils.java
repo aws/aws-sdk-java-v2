@@ -15,8 +15,10 @@
 
 package software.amazon.awssdk.core.util;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.Request;
 
+@SdkProtectedApi
 public final class UriResourcePathUtils {
 
     private UriResourcePathUtils() {

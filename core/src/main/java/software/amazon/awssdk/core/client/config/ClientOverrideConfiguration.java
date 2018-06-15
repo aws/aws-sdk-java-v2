@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.config;
+package software.amazon.awssdk.core.client.config;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.config.options.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.utils.AttributeMap;

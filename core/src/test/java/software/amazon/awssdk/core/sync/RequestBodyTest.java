@@ -17,14 +17,13 @@ package software.amazon.awssdk.core.sync;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
 import org.junit.Test;
 import software.amazon.awssdk.core.util.Mimetype;
 import software.amazon.awssdk.core.util.StringInputStream;

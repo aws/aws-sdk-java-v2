@@ -28,10 +28,12 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.ion.IonReader;
 import software.amazon.ion.IonType;
 
+@SdkInternalApi
 final class IonParser extends JsonParser {
     private final IonReader reader;
     private final boolean shouldCloseReader;

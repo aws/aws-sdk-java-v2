@@ -22,7 +22,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
-import static software.amazon.awssdk.core.config.options.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
