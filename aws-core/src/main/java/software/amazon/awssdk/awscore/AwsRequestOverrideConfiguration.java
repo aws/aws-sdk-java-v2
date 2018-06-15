@@ -16,13 +16,14 @@
 package software.amazon.awssdk.awscore;
 
 import java.util.Optional;
-
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 
 /**
  * Request-specific configuration overrides for AWS service clients.
  */
+@SdkPublicApi
 public final class AwsRequestOverrideConfiguration extends RequestOverrideConfiguration {
     private final AwsCredentialsProvider credentialsProvider;
 

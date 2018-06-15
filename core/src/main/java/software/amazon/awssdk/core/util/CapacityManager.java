@@ -15,10 +15,13 @@
 
 package software.amazon.awssdk.core.util;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
+
 /**
  * Manages capacity of a finite resource.  Capacity can be acquired and
  * released.
  */
+@SdkInternalApi
 public class CapacityManager {
 
     private final int maxCapacity;

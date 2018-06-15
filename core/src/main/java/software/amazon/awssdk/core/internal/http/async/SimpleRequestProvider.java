@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.internal.http.async;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.nio.ByteBuffer;
-
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;

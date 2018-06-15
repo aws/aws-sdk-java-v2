@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.config.options;
+package software.amazon.awssdk.core.client.config;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -22,7 +22,7 @@ import software.amazon.awssdk.core.signer.Signer;
 
 /**
  * A collection of advanced options that can be configured on an AWS client via
- * {@link software.amazon.awssdk.core.config.ClientOverrideConfiguration.Builder#advancedOption(SdkAdvancedClientOption, Object)}.
+ * {@link ClientOverrideConfiguration.Builder#advancedOption(SdkAdvancedClientOption, Object)}.
  *
  * <p>These options are usually not required outside of testing or advanced libraries, so most users should not need to configure
  * them.</p>

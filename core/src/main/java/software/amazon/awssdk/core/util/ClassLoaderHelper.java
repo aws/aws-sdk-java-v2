@@ -18,7 +18,9 @@ package software.amazon.awssdk.core.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
+@SdkProtectedApi
 public final class ClassLoaderHelper {
 
     private ClassLoaderHelper() {

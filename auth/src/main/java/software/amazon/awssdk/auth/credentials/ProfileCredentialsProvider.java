@@ -18,6 +18,7 @@ package software.amazon.awssdk.auth.credentials;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.internal.ProfileCredentialsUtils;
 import software.amazon.awssdk.core.SdkSystemSetting;
@@ -38,6 +39,7 @@ import software.amazon.awssdk.utils.ToString;
  *
  * @see ProfileFile
  */
+@SdkPublicApi
 public final class ProfileCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
     private final AwsCredentialsProvider credentialsProvider;
     private final RuntimeException loadException;

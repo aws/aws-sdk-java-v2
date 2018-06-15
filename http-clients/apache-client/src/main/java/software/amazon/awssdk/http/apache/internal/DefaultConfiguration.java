@@ -16,10 +16,12 @@
 package software.amazon.awssdk.http.apache.internal;
 
 import java.time.Duration;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Default configuration values.
  */
+@SdkInternalApi
 public final class DefaultConfiguration {
 
     /**

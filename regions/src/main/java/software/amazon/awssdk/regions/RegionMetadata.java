@@ -15,9 +15,12 @@
 
 package software.amazon.awssdk.regions;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
+
 /**
  * A collection of metadata about a region. This can be loaded using the {@link #of(Region)} method.
  */
+@SdkPublicApi
 public interface RegionMetadata {
 
     /**

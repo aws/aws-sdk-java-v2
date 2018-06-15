@@ -20,10 +20,12 @@ import static software.amazon.awssdk.utils.OptionalUtils.firstPresent;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * A set of static utility methods for shared code in {@link SystemSetting}.
  */
+@SdkInternalApi
 final class SystemSettingUtils {
     private static final Logger LOG = LoggerFactory.getLogger(SystemSettingUtils.class);
 

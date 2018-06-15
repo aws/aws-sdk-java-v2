@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.function.Function;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * An implementation of the {@link Subscription} interface that can be used to signal and cancel demand for
@@ -27,6 +28,7 @@ import org.reactivestreams.Subscription;
  * @param <ResponseT> The type of a single response page
  * @param <ItemT> The type of paginated member in a response page
  */
+@SdkInternalApi
 public class ItemsSubscription<ResponseT, ItemT> extends PaginationSubscription<ResponseT> {
     private final Function<ResponseT, Iterator<ItemT>> getIteratorFunction;
     private volatile Iterator<ItemT> singlePageItemsIterator;

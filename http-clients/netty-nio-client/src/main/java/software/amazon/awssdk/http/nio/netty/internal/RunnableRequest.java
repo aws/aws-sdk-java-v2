@@ -43,10 +43,12 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.async.AbortableRunnable;
 import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 
+@SdkInternalApi
 public final class RunnableRequest implements AbortableRunnable {
 
     private static final Logger log = LoggerFactory.getLogger(RunnableRequest.class);

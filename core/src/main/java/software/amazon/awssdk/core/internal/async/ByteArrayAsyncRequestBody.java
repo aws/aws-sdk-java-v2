@@ -13,14 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.async;
+package software.amazon.awssdk.core.internal.async;
 
 import java.nio.ByteBuffer;
-
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 
 /**
  * An implementation of {@link AsyncRequestBody} for providing data from memory. This is created using static
@@ -31,11 +30,11 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * @see AsyncRequestBody#fromString(String)
  */
 @SdkInternalApi
-final class ByteArrayAsyncRequestBody implements AsyncRequestBody {
+public final class ByteArrayAsyncRequestBody implements AsyncRequestBody {
 
     private final byte[] bytes;
 
-    ByteArrayAsyncRequestBody(byte[] bytes) {
+    public ByteArrayAsyncRequestBody(byte[] bytes) {
         this.bytes = bytes.clone();
     }
 

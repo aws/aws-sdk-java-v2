@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.credentials;
 
 import java.util.Objects;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
@@ -24,6 +25,7 @@ import software.amazon.awssdk.utils.Validate;
  * tokens are typically provided by a token broker service, like AWS Security Token Service, and provide temporary access to an
  * AWS service.
  */
+@SdkPublicApi
 public final class AwsSessionCredentials extends AwsCredentials {
     private final String sessionToken;
 

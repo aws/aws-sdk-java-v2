@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.signer.params;
 
 import java.time.Clock;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.Validate;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.utils.Validate;
  * Required parameters vary based on signer implementations. Signer implementations might only use a
  * subset of params in this class.
  */
+@SdkPublicApi
 public class Aws4SignerParams {
     private final Boolean doubleUrlEncode;
     private final AwsCredentials awsCredentials;

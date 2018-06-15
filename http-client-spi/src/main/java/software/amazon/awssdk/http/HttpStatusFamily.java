@@ -16,10 +16,12 @@
 package software.amazon.awssdk.http;
 
 import java.util.stream.Stream;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * The set of HTTP status families defined by the standard. A code can be converted to its family with {@link #of(int)}.
  */
+@SdkProtectedApi
 public enum HttpStatusFamily {
     /**
      * 1xx response family.

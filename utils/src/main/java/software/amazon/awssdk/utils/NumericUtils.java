@@ -16,7 +16,9 @@
 package software.amazon.awssdk.utils;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
+@SdkProtectedApi
 public final class NumericUtils {
 
     private NumericUtils() {

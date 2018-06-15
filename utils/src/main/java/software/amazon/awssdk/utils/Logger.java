@@ -19,7 +19,9 @@ import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.util.function.Supplier;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
+@SdkProtectedApi
 public final class Logger {
     private final org.slf4j.Logger log;
 

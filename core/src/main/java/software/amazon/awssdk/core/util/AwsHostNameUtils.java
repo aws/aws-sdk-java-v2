@@ -18,7 +18,9 @@ package software.amazon.awssdk.core.util;
 import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
+@SdkProtectedApi
 public final class AwsHostNameUtils {
 
     private static final Pattern S3_ENDPOINT_PATTERN =

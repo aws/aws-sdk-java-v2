@@ -25,6 +25,7 @@ import software.amazon.awssdk.utils.JavaSystemSetting;
 /**
  * @see http://www.oracle.com/technetwork/java/javase/versioning-naming-139433.html
  */
+@SdkInternalApi
 public class JavaVersionParser {
 
     public static final String JAVA_VERSION_PROPERTY = "java.version";

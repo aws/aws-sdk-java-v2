@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.runtime.io.ReleasableInputStream;
 import software.amazon.awssdk.core.util.Mimetype;
 import software.amazon.awssdk.http.Header;
@@ -38,6 +39,7 @@ import software.amazon.awssdk.utils.BinaryUtils;
  * Offers various convenience factory methods from common sources of data (File, String, byte[], etc). Body contents
  * are made reproducible where possible to facilitate automatic retries.
  */
+@SdkPublicApi
 public final class RequestBody {
 
     // TODO reproducible content

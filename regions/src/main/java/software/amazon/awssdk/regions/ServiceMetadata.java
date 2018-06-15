@@ -17,6 +17,7 @@ package software.amazon.awssdk.regions;
 
 import java.net.URI;
 import java.util.List;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * Metadata about a service, like S3, DynamoDB, etc.
@@ -27,6 +28,7 @@ import java.util.List;
  * <p>This is usually created by calling the {@code serviceMetadata} method on the service client's interface, but can also be
  * created by calling the {@link #of(String)} method and providing the service's unique endpoint prefix.</p>
  */
+@SdkPublicApi
 public interface ServiceMetadata {
     /**
      * Retrieve the AWS endpoint that should be used for this service in the provided region.

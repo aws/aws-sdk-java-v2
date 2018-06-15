@@ -25,7 +25,6 @@ import software.amazon.awssdk.services.ecs.model.ContainerDefinition;
 import software.amazon.awssdk.services.ecs.model.CreateClusterRequest;
 import software.amazon.awssdk.services.ecs.model.CreateClusterResponse;
 import software.amazon.awssdk.services.ecs.model.DeleteClusterRequest;
-import software.amazon.awssdk.services.ecs.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.ecs.model.ListClustersRequest;
 import software.amazon.awssdk.services.ecs.model.ListTaskDefinitionsRequest;
 import software.amazon.awssdk.services.ecs.model.PortMapping;

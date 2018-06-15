@@ -16,8 +16,8 @@
 package software.amazon.awssdk.auth.credentials;
 
 import java.util.Optional;
-import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkRequest;
 
 public class NoopTestRequest extends SdkRequest {
     private NoopTestRequest() {

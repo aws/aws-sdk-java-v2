@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponse;
 
@@ -24,6 +25,7 @@ import software.amazon.awssdk.core.http.HttpResponse;
  *
  * @param <T> the underlying AWS response type.
  */
+@SdkInternalApi
 public final class Response<T> {
     private final boolean isSuccess;
     private final T response;

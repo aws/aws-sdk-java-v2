@@ -17,8 +17,6 @@ package software.amazon.awssdk.utils;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.mockito.Mockito.*;
 
 import java.util.HashMap;
 import java.util.Map;

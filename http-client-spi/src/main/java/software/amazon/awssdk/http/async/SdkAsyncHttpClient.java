@@ -17,7 +17,7 @@ package software.amazon.awssdk.http.async;
 
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.ConfigurationProvider;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
@@ -36,7 +36,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  */
 @Immutable
 @ThreadSafe
-@SdkInternalApi
+@SdkProtectedApi
 public interface SdkAsyncHttpClient extends SdkAutoCloseable, ConfigurationProvider {
     /**
      * Create an {@link AbortableRunnable} that can be used to execute the HTTP request.

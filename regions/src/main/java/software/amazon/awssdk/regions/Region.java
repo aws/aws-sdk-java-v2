@@ -18,6 +18,7 @@ package software.amazon.awssdk.regions;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.AbstractEnum;
 import software.amazon.awssdk.utils.Validate;
 
@@ -40,6 +41,7 @@ import software.amazon.awssdk.utils.Validate;
  * override is available in {@link RegionMetadata}. This value will also be used to construct the endpoint for accessing a
  * service unless an explicit endpoint is available for that region in {@link RegionMetadata}.</p>
  */
+@SdkPublicApi
 public class Region extends AbstractEnum {
     // AWS Partition Regions
 

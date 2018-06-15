@@ -19,10 +19,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.jar.JarFile;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Classes related utilities.
  */
+@SdkInternalApi
 public final class Classes {
 
     private Classes() {

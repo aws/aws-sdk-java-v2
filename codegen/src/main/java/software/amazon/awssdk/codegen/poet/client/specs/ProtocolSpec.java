@@ -24,7 +24,7 @@ import java.util.Optional;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
-import software.amazon.awssdk.core.client.SyncClientHandler;
+import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 
 public interface ProtocolSpec {
 

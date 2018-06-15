@@ -24,8 +24,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.ion.IonSystem;
 
+@SdkInternalApi
 final class IonFactory extends JsonFactory {
     private static final long serialVersionUID = 1;
 

@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.utils;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * An implementation of {@link AutoCloseable} that does not throw any checked exceptions. The SDK does not throw checked
  * exceptions in its close() methods, so users of the SDK should not need to handle them.
  */
-@SdkProtectedApi
+@SdkPublicApi
 // CHECKSTYLE:OFF - This is the only place we're allowed to use AutoCloseable
 public interface SdkAutoCloseable extends AutoCloseable {
     // CHECKSTYLE:ON

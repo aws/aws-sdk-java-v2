@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.utils.CollectionUtils;
 /**
  * Merge customer supplied query params into the marshalled request.
  */
+@SdkInternalApi
 public class MergeCustomQueryParamsStage implements MutableRequestToRequestPipeline {
 
     @Override

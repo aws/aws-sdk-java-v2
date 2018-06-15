@@ -24,10 +24,12 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Utilities that make it easier to create, use and destroy {@link ExecutorService}s.
  */
+@SdkProtectedApi
 public final class ExecutorUtils {
     private static Logger LOG = LoggerFactory.getLogger(ExecutorUtils.class);
 
