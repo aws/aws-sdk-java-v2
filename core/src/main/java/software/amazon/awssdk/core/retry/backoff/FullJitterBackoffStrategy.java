@@ -19,6 +19,7 @@ import static software.amazon.awssdk.utils.Validate.isNotNegative;
 
 import java.time.Duration;
 import java.util.Random;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -35,6 +36,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * This is in contrast to {@link EqualJitterBackoffStrategy} that computes a new random delay where the final
  * computed delay before the next retry will be at least half of the computed exponential delay.
  */
+@SdkPublicApi
 public final class FullJitterBackoffStrategy implements BackoffStrategy,
                                                         ToCopyableBuilder<FullJitterBackoffStrategy.Builder,
                                                             FullJitterBackoffStrategy> {

@@ -24,11 +24,13 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * Base per-request override configuration for all SDK requests.
  */
 @Immutable
+@SdkPublicApi
 public abstract class RequestOverrideConfiguration {
 
     private final Map<String, List<String>> headers;

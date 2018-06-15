@@ -19,12 +19,14 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.runtime.io.SdkFilterInputStream;
 
 /**
  * FilterInputStream implementation that wraps an InputStream containing an XML
  * document, and removes the XML namespace attribute from the XML document.
  */
+@SdkInternalApi
 class NamespaceRemovingInputStream extends SdkFilterInputStream {
 
     /** look ahead buffer. */

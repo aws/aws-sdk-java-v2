@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.regions.providers;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.regions.util.EC2MetadataUtils;
  * If {@link SdkSystemSetting#AWS_EC2_METADATA_DISABLED} is set to true, it will not try to load
  * region from EC2 metadata service and will return null.
  */
+@SdkProtectedApi
 public class InstanceProfileRegionProvider implements AwsRegionProvider {
 
     /**

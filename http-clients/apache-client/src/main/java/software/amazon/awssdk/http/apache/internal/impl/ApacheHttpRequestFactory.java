@@ -33,6 +33,7 @@ import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -44,6 +45,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 /**
  * Responsible for creating Apache HttpClient 4 request objects.
  */
+@SdkInternalApi
 public class ApacheHttpRequestFactory {
 
     private static final String DEFAULT_ENCODING = "UTF-8";

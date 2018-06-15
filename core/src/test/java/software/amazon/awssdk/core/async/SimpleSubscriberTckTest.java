@@ -15,11 +15,10 @@
 
 package software.amazon.awssdk.core.async;
 
+import java.nio.ByteBuffer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.tck.TestEnvironment;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
-
-import java.nio.ByteBuffer;
 
 /**
  * TCK verifiation test for {@link SimpleSubscriber}.

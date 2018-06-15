@@ -16,6 +16,7 @@
 package software.amazon.awssdk.utils.builder;
 
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * A mutable object that can be used to create an immutable object of type T.
@@ -23,6 +24,7 @@ import java.util.function.Consumer;
  * @param <T> the type that the builder will build
  * @param <B> the builder type (this)
  */
+@SdkPublicApi
 public interface SdkBuilder<B extends SdkBuilder<B, T>, T> {
 
     /**

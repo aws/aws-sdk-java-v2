@@ -18,10 +18,12 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import io.netty.util.AttributeKey;
 import java.nio.ByteBuffer;
 import org.reactivestreams.Subscriber;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Keys for attributes attached via {@link io.netty.channel.Channel#attr(AttributeKey)}.
  */
+@SdkInternalApi
 final class ChannelAttributeKey {
 
     /**

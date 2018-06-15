@@ -15,12 +15,14 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
  * Pipeline stage that takes in a mutable {@link SdkHttpFullRequest.Builder} and returns the same builder. Useful
  * for long chains of mutating stages where going to and from builder each stage is inefficient.
  */
+@SdkInternalApi
 public interface MutableRequestToRequestPipeline
         extends RequestPipeline<SdkHttpFullRequest.Builder, SdkHttpFullRequest.Builder> {
 }

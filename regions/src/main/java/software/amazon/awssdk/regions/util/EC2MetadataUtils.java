@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.json.JacksonUtils;
@@ -60,6 +61,7 @@ import software.amazon.awssdk.core.util.json.JacksonUtils;
  * EC2 User Guide: Instance Metadata</a>
  */
 @ReviewBeforeRelease("Cleanup")
+@SdkInternalApi
 public final class EC2MetadataUtils {
 
     /** Default resource path for credentials in the Amazon EC2 Instance Metadata Service. */

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.auth.signer.internal;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.signer.SignerConstant;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.regions.Region;
@@ -22,6 +23,7 @@ import software.amazon.awssdk.regions.Region;
 /**
  * Parameters that are used for computing a AWS 4 signature for a request.
  */
+@SdkProtectedApi
 public final class Aws4SignerRequestParams {
 
     /**

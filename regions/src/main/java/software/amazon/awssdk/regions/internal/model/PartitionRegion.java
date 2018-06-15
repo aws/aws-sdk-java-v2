@@ -16,11 +16,13 @@
 package software.amazon.awssdk.regions.internal.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Validate;
 
 /**
  * Metadata about a region in partition.
  */
+@SdkInternalApi
 public class PartitionRegion {
 
     /**

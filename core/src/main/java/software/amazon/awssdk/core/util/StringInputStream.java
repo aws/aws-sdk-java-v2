@@ -17,11 +17,13 @@ package software.amazon.awssdk.core.util;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Simple wrapper for ByteArrayInputStream that will automatically encode the
  * string as UTF-8 data, and still allows access to the original string.
  */
+@SdkProtectedApi
 public class StringInputStream extends ByteArrayInputStream {
 
     private final String string;

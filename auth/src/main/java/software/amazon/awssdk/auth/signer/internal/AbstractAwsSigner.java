@@ -30,6 +30,7 @@ import java.util.TreeMap;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.signer.SigningAlgorithm;
@@ -49,6 +50,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  * <p>
  * Not intended to be sub-classed by developers.
  */
+@SdkInternalApi
 public abstract class AbstractAwsSigner implements Signer {
 
     private static final ThreadLocal<MessageDigest> SHA256_MESSAGE_DIGEST;

@@ -13,11 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.config;
+package software.amazon.awssdk.core.internal.client.config;
 
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.config.options.ClientOption;
+import software.amazon.awssdk.core.client.config.ClientOption;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;

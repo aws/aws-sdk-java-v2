@@ -22,8 +22,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.util.json.JacksonUtils;
 
@@ -34,6 +34,7 @@ import software.amazon.awssdk.core.util.json.JacksonUtils;
  * Callers shouldn't ever interact directly with objects of this class.
  */
 @NotThreadSafe
+@SdkProtectedApi
 public class DefaultRequest<T> implements Request<T> {
     /**
      * The original, user facing request object which this internal request

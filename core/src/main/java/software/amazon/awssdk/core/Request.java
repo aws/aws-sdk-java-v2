@@ -15,9 +15,11 @@
 
 package software.amazon.awssdk.core;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpMethodName;
 
@@ -34,7 +36,99 @@ import software.amazon.awssdk.core.http.HttpMethodName;
  *            The type of original, user facing request represented by this
  *            request.
  */
-public interface Request<T> extends SignableRequest<T> {
+@SdkProtectedApi
+public interface Request<T> {
+    /**
+     * Returns a map of all the headers included in this request.
+     *
+     * @return A map of all the headers included in this request.
+     */
+    Map<String, String> getHeaders();
+
+    /**
+     * Returns the path to the resource being requested.
+     *
+     * @return The path to the resource being requested.
+     */
+    String getResourcePath();
+
+    /**
+     * Returns a map of all parameters in this request.
+     *
+     * @return A map of all parameters in this request.
+     */
+    Map<String, List<String>> getParameters();
+
+    /**
+     * Returns the service endpoint (ex: "https://ec2.amazonaws.com") to which
+     * this request should be sent.
+     *
+     * @return The service endpoint to which this request should be sent.
+     */
+    URI getEndpoint();
+
+    /**
+     * Returns the HTTP method (GET, POST, etc) to use when sending this
+     * request.
+     *
+     * @return The HTTP method to use when sending this request.
+     */
+    HttpMethodName getHttpMethod();
+
+    /**
+     * Returns the optional value for time offset for this request.  This
+     * will be used by the signer to adjust for potential clock skew.
+     * Value is in seconds, positive values imply the current clock is "fast",
+     * negative values imply clock is slow.
+     *
+     * @return The optional value for time offset (in seconds) for this request.
+     */
+    int getTimeOffset();
+
+    /**
+     * Returns the optional stream containing the payload data to include for
+     * this request. Not all requests will contain payload data.
+     *
+     * @return The optional stream containing the payload data to include for
+     *         this request.
+     */
+    InputStream getContent();
+
+    /**
+     * request object is representing.
+     */
+    T getOriginalRequest();
+
+    /**
+     * Sets the specified header for this request.
+     *
+     * @param name
+     *            The name of the header to set.
+     * @param value
+     *            The header's value.
+     */
+    void addHeader(String name, String value);
+
+    /**
+     * Adds the specified request parameter to this request.
+     *
+     * @param name
+     *            The name of the request parameter.
+     * @param value
+     *            The value of the request parameter.
+     */
+    void addParameter(String name, String value);
+
+    /**
+     * Sets the optional stream containing the payload data to include for this
+     * request. This is used, for example, for S3 chunk encoding.
+     *
+     * @param content
+     *            The optional stream containing the payload data to include for
+     *            this request.
+     */
+    void setContent(InputStream content);
+
     /**
      * Sets all headers, clearing any existing ones.
      */

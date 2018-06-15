@@ -16,8 +16,8 @@
 package software.amazon.awssdk.services.iam;
 
 import java.util.UUID;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.model.AccessKeyMetadata;
 import software.amazon.awssdk.services.iam.model.CreateUserRequest;
 import software.amazon.awssdk.services.iam.model.DeleteAccessKeyRequest;

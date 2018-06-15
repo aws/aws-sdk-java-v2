@@ -17,8 +17,10 @@ package software.amazon.awssdk.core.util;
 
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @ReviewBeforeRelease("We should consider migrating this and other related util classes to the utils package.")
+@SdkProtectedApi
 public final class ComparableUtils {
     private ComparableUtils() {}
 

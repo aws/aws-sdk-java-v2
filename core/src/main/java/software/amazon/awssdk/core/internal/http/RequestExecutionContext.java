@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
@@ -36,6 +37,7 @@ import software.amazon.awssdk.utils.Validate;
  * {@link AmazonAsyncHttpClient}.
  * Provided to the {@link RequestPipeline#execute(Object, RequestExecutionContext)} method.
  */
+@SdkInternalApi
 public final class RequestExecutionContext {
     private static final RequestOverrideConfiguration EMPTY_CONFIG = SdkRequestOverrideConfiguration.builder().build();
     private final SdkHttpRequestProvider requestProvider;

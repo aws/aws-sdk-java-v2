@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core.internal.async;
 
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
@@ -23,15 +25,10 @@ import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.UUID;
-
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
-
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.SubscriberWhiteboxVerification;
 import org.reactivestreams.tck.TestEnvironment;
-
 import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer.FileSubscriber;
 
 /**

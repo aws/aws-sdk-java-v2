@@ -16,11 +16,13 @@
 package software.amazon.awssdk.core;
 
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * Base per-request override configuration for all SDK requests.
  */
 @Immutable
+@SdkPublicApi
 public final class SdkRequestOverrideConfiguration extends RequestOverrideConfiguration {
 
     private SdkRequestOverrideConfiguration(Builder builder) {

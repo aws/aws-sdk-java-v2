@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.interceptor;
 
 import java.util.Optional;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkRequest;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 /**
  * A wrapper for the immutable context objects that are visible to the {@link ExecutionInterceptor}s.
  */
+@SdkProtectedApi
 public final class Context {
     private Context() {}
 

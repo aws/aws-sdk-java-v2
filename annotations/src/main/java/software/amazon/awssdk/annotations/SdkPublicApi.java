@@ -22,5 +22,6 @@ import java.lang.annotation.Target;
  * Marker interface for 'public' APIs.
  */
 @Target({ElementType.PACKAGE, ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD})
+@SdkProtectedApi
 public @interface SdkPublicApi {
 }

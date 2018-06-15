@@ -18,7 +18,7 @@ package software.amazon.awssdk.awscore.config.options;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
-import software.amazon.awssdk.core.config.options.ClientOption;
+import software.amazon.awssdk.core.client.config.ClientOption;
 import software.amazon.awssdk.regions.Region;
 
 @SdkProtectedApi

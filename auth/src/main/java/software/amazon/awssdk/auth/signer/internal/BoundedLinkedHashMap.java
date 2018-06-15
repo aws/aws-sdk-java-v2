@@ -17,11 +17,13 @@ package software.amazon.awssdk.auth.signer.internal;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * A bounded linked hash map that would remove the eldest entry when the map
  * size exceeds a configurable maximum.
  */
+@SdkInternalApi
 final class BoundedLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
     private static final long serialVersionUID = 1L;
     private final int maxSize;

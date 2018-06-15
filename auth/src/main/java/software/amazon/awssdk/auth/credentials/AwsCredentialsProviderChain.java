@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -43,6 +44,7 @@ import software.amazon.awssdk.utils.Validate;
  * <p>This chain implements {@link AutoCloseable}. When closed, it will call the {@link AutoCloseable#close()} on any credential
  * providers in the chain that need to be closed.</p>
  */
+@SdkPublicApi
 public final class AwsCredentialsProviderChain implements AwsCredentialsProvider, SdkAutoCloseable {
     private static final Logger log = LoggerFactory.getLogger(AwsCredentialsProviderChain.class);
 

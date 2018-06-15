@@ -19,6 +19,7 @@ import static software.amazon.awssdk.utils.IoUtils.closeQuietly;
 
 import java.io.Closeable;
 import org.slf4j.Logger;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Used for releasing a resource.
@@ -35,6 +36,7 @@ import org.slf4j.Logger;
  * <code>ResettableInputStream#disableClose()</code>, so that the release method
  * becomes the only way to truly close the opened file.
  */
+@SdkInternalApi
 public interface Releasable {
     /**
      * Releases the allocated resource. This method should not be called except

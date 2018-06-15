@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.runtime.io;
 import java.io.IOException;
 import java.io.InputStream;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.internal.io.Releasable;
 import software.amazon.awssdk.core.util.SdkRuntime;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.utils.IoUtils;
 /**
  * Base class for AWS Java SDK specific {@link InputStream}.
  */
+@SdkInternalApi
 public abstract class SdkInputStream extends InputStream implements Releasable {
     /**
      * Returns the underlying input stream, if any, from the subclass; or null

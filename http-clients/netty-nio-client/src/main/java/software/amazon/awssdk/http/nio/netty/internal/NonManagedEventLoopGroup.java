@@ -17,11 +17,13 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.Future;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Decorator around {@link EventLoopGroup} that prevents it from being shutdown. Used when the customer passes in a
  * custom {@link EventLoopGroup} that may be shared and thus is not managed by the SDK.
  */
+@SdkInternalApi
 public final class NonManagedEventLoopGroup extends DelegatingEventLoopGroup {
 
     public NonManagedEventLoopGroup(EventLoopGroup delegate) {

@@ -15,9 +15,12 @@
 
 package software.amazon.awssdk.http;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+
 /**
  * Constants for common HTTP status codes.
  */
+@SdkProtectedApi
 public final class HttpStatusCode {
 
     // --- 1xx Informational ---

@@ -17,8 +17,8 @@ package software.amazon.awssdk.awscore.config.options;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration.Builder;
-import software.amazon.awssdk.core.config.options.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration.Builder;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.regions.Region;
 
 /**

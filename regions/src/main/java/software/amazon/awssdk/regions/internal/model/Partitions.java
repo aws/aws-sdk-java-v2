@@ -17,11 +17,13 @@ package software.amazon.awssdk.regions.internal.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.util.ValidationUtils;
 
 /**
  * Metadata of all partitions.
  */
+@SdkInternalApi
 public class Partitions {
 
     /**

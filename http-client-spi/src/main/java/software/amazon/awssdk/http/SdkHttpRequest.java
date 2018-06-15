@@ -19,14 +19,14 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * An immutable HTTP request without access to the request body. {@link SdkHttpFullRequest} should be used when access to a
  * request body stream is required.
  */
-@SdkPublicApi
+@SdkProtectedApi
 @Immutable
 public interface SdkHttpRequest extends SdkHttpHeaders {
     /**

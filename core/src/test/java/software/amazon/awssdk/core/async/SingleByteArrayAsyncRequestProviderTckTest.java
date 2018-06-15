@@ -15,10 +15,9 @@
 
 package software.amazon.awssdk.core.async;
 
+import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.TestEnvironment;
-
-import java.nio.ByteBuffer;
 
 public class SingleByteArrayAsyncRequestProviderTckTest extends org.reactivestreams.tck.PublisherVerification<ByteBuffer> {
 

@@ -19,9 +19,9 @@ import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@SdkInternalApi
+@SdkProtectedApi
 public abstract class AbstractEnum {
 
     private static final ConcurrentHashMap<Entry<Class, String>, Object> VALUES = new ConcurrentHashMap<>();

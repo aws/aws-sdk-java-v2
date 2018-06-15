@@ -20,7 +20,6 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import software.amazon.awssdk.core.http.NoopTestRequest;

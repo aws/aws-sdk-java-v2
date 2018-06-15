@@ -15,17 +15,17 @@
 
 package software.amazon.awssdk.core.client.builder;
 
-import static software.amazon.awssdk.core.config.options.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
-import static software.amazon.awssdk.core.config.options.SdkAdvancedClientOption.SIGNER;
-import static software.amazon.awssdk.core.config.options.SdkAdvancedClientOption.USER_AGENT_PREFIX;
-import static software.amazon.awssdk.core.config.options.SdkAdvancedClientOption.USER_AGENT_SUFFIX;
-import static software.amazon.awssdk.core.config.options.SdkClientOption.ADDITIONAL_HTTP_HEADERS;
-import static software.amazon.awssdk.core.config.options.SdkClientOption.ASYNC_HTTP_CLIENT;
-import static software.amazon.awssdk.core.config.options.SdkClientOption.ASYNC_RETRY_EXECUTOR_SERVICE;
-import static software.amazon.awssdk.core.config.options.SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
-import static software.amazon.awssdk.core.config.options.SdkClientOption.EXECUTION_INTERCEPTORS;
-import static software.amazon.awssdk.core.config.options.SdkClientOption.GZIP_ENABLED;
-import static software.amazon.awssdk.core.config.options.SdkClientOption.RETRY_POLICY;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.SIGNER;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_PREFIX;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_SUFFIX;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.ADDITIONAL_HTTP_HEADERS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HTTP_CLIENT;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_RETRY_EXECUTOR_SERVICE;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.GZIP_ENABLED;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
 import static software.amazon.awssdk.utils.CollectionUtils.mergeLists;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
@@ -43,12 +43,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
-import software.amazon.awssdk.core.config.ClientAsyncConfiguration;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.config.options.SdkClientOption;
+import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.core.retry.RetryPolicy;

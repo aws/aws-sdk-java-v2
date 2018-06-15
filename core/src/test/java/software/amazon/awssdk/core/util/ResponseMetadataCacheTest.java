@@ -21,8 +21,8 @@ import static org.junit.Assert.assertNull;
 import java.util.HashMap;
 import java.util.Random;
 import org.junit.Test;
-import software.amazon.awssdk.core.SdkResponseMetadata;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkResponseMetadata;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 
 /** Tests for the response metadata cache class. */

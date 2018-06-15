@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.http.AmazonAsyncHttpClient;
 import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
@@ -33,6 +34,7 @@ import software.amazon.awssdk.utils.Validate;
  * {@link AmazonAsyncHttpClient}.
  * Provided to the {@link RequestPipeline#execute(Object, RequestExecutionContext)} method.
  */
+@SdkInternalApi
 public final class RequestExecutionContext {
     private static final RequestOverrideConfiguration EMPTY_CONFIG = SdkRequestOverrideConfiguration.builder().build();
     private final SdkHttpRequestProvider requestProvider;

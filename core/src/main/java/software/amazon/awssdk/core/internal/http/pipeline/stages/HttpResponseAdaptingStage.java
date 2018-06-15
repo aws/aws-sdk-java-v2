@@ -15,8 +15,9 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
-import static software.amazon.awssdk.core.config.options.SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.utils.Pair;
 /**
  * Adapt our new {@link SdkHttpFullResponse} representation, to the legacy {@link HttpResponse} representation.
  */
+@SdkInternalApi
 public class HttpResponseAdaptingStage
     implements RequestPipeline<Pair<SdkHttpFullRequest, SdkHttpFullResponse>, Pair<SdkHttpFullRequest, HttpResponse>> {
 

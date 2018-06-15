@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.runtime.transform;
 
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Simple implementation of the Map.Entry interface.
@@ -25,6 +26,7 @@ import java.util.Map;
  * @param <V>
  *            The type of the value held in this map entry.
  */
+@SdkProtectedApi
 public class MapEntry<K, V> implements Map.Entry<K, V> {
     private K key;
     private V value;

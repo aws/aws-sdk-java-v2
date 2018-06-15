@@ -20,7 +20,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * The class to which this annotation is applied is not thread-safe.
@@ -37,5 +36,6 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 @Documented
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.CLASS) // The original version used RUNTIME
+@SdkProtectedApi
 public @interface NotThreadSafe {
 }

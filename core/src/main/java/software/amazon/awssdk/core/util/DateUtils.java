@@ -27,6 +27,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
@@ -34,6 +35,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
  * Utilities for parsing and formatting dates.
  */
 @ThreadSafe
+@SdkProtectedApi
 public final class DateUtils {
 
     /** Alternate ISO 8601 format without fractional seconds. */

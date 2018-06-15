@@ -15,6 +15,16 @@
 
 package software.amazon.awssdk.codegen.poet.model;
 
+import static java.util.stream.Collectors.toList;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Collection;
+import java.util.Locale;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -25,17 +35,6 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Collection;
-import java.util.Locale;
-
-import static java.util.stream.Collectors.toList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 /**
  * Similar to {@link ModelCopierSpecTest} but tests correct generation when auto construct containers are disabled.

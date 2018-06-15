@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.StringTokenizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -48,6 +49,7 @@ import software.amazon.awssdk.utils.Validate;
  *
  * @see <a href="https://github.com/apache/httpd/blob/trunk/docs/conf/mime.types">mime.types</a>
  */
+@SdkProtectedApi
 public final class Mimetype {
 
     /** The default XML mimetype: application/xml */

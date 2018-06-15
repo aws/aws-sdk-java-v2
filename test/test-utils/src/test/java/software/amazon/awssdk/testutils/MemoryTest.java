@@ -16,7 +16,6 @@
 package software.amazon.awssdk.testutils;
 
 import org.junit.Test;
-import software.amazon.awssdk.testutils.Memory;
 
 public class MemoryTest {
 

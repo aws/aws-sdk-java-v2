@@ -19,6 +19,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.RegionMetadata;
 import software.amazon.awssdk.regions.ServiceMetadata;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.regions.internal.model.Endpoint;
 import software.amazon.awssdk.regions.internal.model.Partition;
 import software.amazon.awssdk.regions.internal.model.Service;
 
+@SdkInternalApi
 public class PartitionServiceMetadata implements ServiceMetadata {
 
     private static final String SERVICE = "{service}";

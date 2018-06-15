@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.async;
 import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.SdkHttpResponse;
 
 /**
@@ -25,6 +26,7 @@ import software.amazon.awssdk.http.SdkHttpResponse;
  *
  * @param <T> Type of result returned in {@link #complete()}. May be {@link Void}.
  */
+@SdkProtectedApi
 public interface SdkHttpResponseHandler<T> {
 
     /**

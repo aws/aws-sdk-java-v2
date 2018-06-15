@@ -15,14 +15,15 @@
 
 package software.amazon.awssdk.http.nio.netty;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpService;
 
 /**
  * Service binding for the Netty default implementation. Allows SDK to pick this up automatically from the classpath.
  */
+@SdkProtectedApi
 public class NettySdkAsyncHttpService implements SdkAsyncHttpService {
-
     @Override
     public SdkAsyncHttpClient.Builder createAsyncHttpClientFactory() {
         return NettyNioAsyncHttpClient.builder();

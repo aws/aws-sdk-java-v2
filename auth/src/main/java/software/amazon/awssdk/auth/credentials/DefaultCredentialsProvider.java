@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.auth.credentials;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
 
@@ -35,6 +36,7 @@ import software.amazon.awssdk.utils.ToString;
  * @see ContainerCredentialsProvider
  * @see InstanceProfileCredentialsProvider
  */
+@SdkPublicApi
 public final class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
 
     private static final DefaultCredentialsProvider DEFAULT_CREDENTIALS_PROVIDER = new DefaultCredentialsProvider(builder());

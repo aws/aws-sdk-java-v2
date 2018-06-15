@@ -41,8 +41,8 @@ import software.amazon.awssdk.codegen.poet.client.specs.JsonProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryXmlProtocolSpec;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
-import software.amazon.awssdk.core.client.SyncClientHandler;
-import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.handler.SyncClientHandler;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 
 public class SyncClientClass implements ClassSpec {
 

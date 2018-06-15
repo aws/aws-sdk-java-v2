@@ -17,6 +17,7 @@ package software.amazon.awssdk.auth;
 
 import java.time.Instant;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.regions.Region;
  */
 @ReviewBeforeRelease("We should also consider making some of the SDK/AWS-owned set of attributes part of the immutable context"
                      + "if we don't want the interceptors to modify them.")
+@SdkProtectedApi
 public final class AwsExecutionAttribute extends SdkExecutionAttribute {
     /**
      * The key under which the request credentials are set.
