@@ -280,7 +280,5 @@ public abstract class RequestOverrideConfiguration {
             addApiName(b.build());
             return (B) this;
         }
-
-        public abstract RequestOverrideConfiguration build();
     }
 }

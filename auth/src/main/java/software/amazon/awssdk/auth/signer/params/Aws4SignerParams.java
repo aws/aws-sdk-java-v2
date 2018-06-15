@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.signer.params;
 
 import java.time.Clock;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.regions.Region;
@@ -36,7 +37,7 @@ public class Aws4SignerParams {
     private final Integer timeOffset;
     private final Clock signingClockOverride;
 
-    protected Aws4SignerParams(Builder builder) {
+    Aws4SignerParams(Builder builder) {
         this.doubleUrlEncode = Validate.paramNotNull(builder.doubleUrlEncode, "Double Url encode");
         this.awsCredentials = Validate.paramNotNull(builder.awsCredentials, "Credentials");
         this.signingName = Validate.paramNotNull(builder.signingName, "service signing name");
@@ -65,12 +66,12 @@ public class Aws4SignerParams {
         return signingRegion;
     }
 
-    public Integer timeOffset() {
-        return timeOffset;
+    public Optional<Integer> timeOffset() {
+        return Optional.ofNullable(timeOffset);
     }
 
-    public Clock signingClockOverride() {
-        return signingClockOverride;
+    public Optional<Clock> signingClockOverride() {
+        return Optional.ofNullable(signingClockOverride);
     }
 
     public static class Builder<T extends Builder> {

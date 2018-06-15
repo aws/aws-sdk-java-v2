@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.protocol.json;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -93,7 +92,7 @@ public class SdkJsonProtocolFactory extends BaseJsonProtocolFactory<SdkRequest, 
         // exception class.
         errorUnmarshallers.add(new SdkJsonErrorUnmarshaller(
             (Class<? extends SdkServiceException>) jsonClientMetadata.getBaseServiceExceptionClass(),
-            Optional.empty()));
+            null));
         return errorUnmarshallers;
     }
 
@@ -101,6 +100,6 @@ public class SdkJsonProtocolFactory extends BaseJsonProtocolFactory<SdkRequest, 
     private SdkJsonErrorUnmarshaller createErrorUnmarshaller(JsonErrorShapeMetadata errorShape) {
         return new SdkJsonErrorUnmarshaller(
             errorShape.getModeledClass(),
-            Optional.of(errorShape.getHttpStatusCode()));
+            errorShape.getHttpStatusCode());
     }
 }
