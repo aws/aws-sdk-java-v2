@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.credentials;
+package software.amazon.awssdk.auth.credentials.internal;
 
 import java.io.IOException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -22,7 +22,7 @@ import software.amazon.awssdk.regions.internal.util.ResourcesEndpointRetryParame
 import software.amazon.awssdk.regions.internal.util.ResourcesEndpointRetryPolicy;
 
 @SdkInternalApi
-final class ContainerCredentialsRetryPolicy implements ResourcesEndpointRetryPolicy {
+public final class ContainerCredentialsRetryPolicy implements ResourcesEndpointRetryPolicy {
 
     /** Max number of times a request is retried before failing. */
     private static final int MAX_RETRIES = 5;

@@ -17,6 +17,7 @@ package software.amazon.awssdk.auth.credentials;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.auth.credentials.internal.SystemSettingsCredentialsProvider;
 import software.amazon.awssdk.utils.SystemSetting;
 import software.amazon.awssdk.utils.ToString;
 

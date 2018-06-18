@@ -21,7 +21,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
-import software.amazon.awssdk.auth.AwsExecutionAttribute;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -47,7 +48,7 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
         SdkRequest sdkRequest = context.request();
 
         S3Configuration serviceConfiguration =
-                (S3Configuration) executionAttributes.getAttribute(AwsExecutionAttribute.SERVICE_CONFIG);
+                (S3Configuration) executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG);
         SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
 
         URI endpoint = resolveEndpoint(request, sdkRequest,
