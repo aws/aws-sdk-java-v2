@@ -50,11 +50,7 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
     }
 
     public static AwsS3V4Signer create() {
-        return builder().build();
-    }
-
-    public static Builder builder() {
-        return new Builder();
+        return new AwsS3V4Signer();
     }
 
     @Override
@@ -253,11 +249,5 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
             throw new ResetException("Failed to reset the input stream", ex);
         }
         return contentLength;
-    }
-
-    public static final class Builder {
-        public AwsS3V4Signer build() {
-            return new AwsS3V4Signer();
-        }
     }
 }
