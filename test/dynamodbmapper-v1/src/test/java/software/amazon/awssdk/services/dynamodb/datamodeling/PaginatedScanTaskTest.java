@@ -94,7 +94,7 @@ public class PaginatedScanTaskTest {
             // Ignored or expected.
         }
 
-        executorService.awaitTermination(5, TimeUnit.SECONDS);
+        executorService.awaitTermination(10, TimeUnit.SECONDS);
         assertTrue(executorService.isShutdown());
     }
 
