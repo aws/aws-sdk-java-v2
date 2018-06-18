@@ -19,7 +19,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Date;
 import java.util.TimeZone;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.AwsExecutionAttribute;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
@@ -33,8 +33,11 @@ import software.amazon.awssdk.utils.StringUtils;
 /**
  * Signer implementation responsible for signing an AWS query string request
  * according to the various signature versions and hashing algorithms.
+ *
+ * @deprecated in favor of {@link Aws4Signer}
  */
-@SdkPublicApi
+@SdkProtectedApi
+@Deprecated
 public final class QueryStringSigner extends AbstractAwsSigner {
     /**
      * Date override for testing only.
