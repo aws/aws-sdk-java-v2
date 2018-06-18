@@ -16,8 +16,8 @@
 package software.amazon.awssdk.core;
 
 import java.util.Optional;
-
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * The base class for all SDK requests.
@@ -27,6 +27,7 @@ import software.amazon.awssdk.annotations.Immutable;
  * @see SdkResponse
  */
 @Immutable
+@SdkPublicApi
 public abstract class SdkRequest {
     /**
     * @return The optional client configuration overrides for this request.

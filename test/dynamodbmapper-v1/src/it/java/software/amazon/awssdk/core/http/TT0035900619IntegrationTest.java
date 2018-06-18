@@ -15,18 +15,17 @@
 
 package software.amazon.awssdk.core.http;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
@@ -50,23 +49,26 @@ public class TT0035900619IntegrationTest {
     public static void setup() throws InterruptedException {
         client = DynamoDbClient.builder().credentialsProvider(StaticCredentialsProvider.create(awsTestCredentials())).build();
         List<AttributeDefinition> attributeDefinitions = new ArrayList<AttributeDefinition>();
-        attributeDefinitions.add(AttributeDefinition.builder().attributeName("hashKey").attributeType(ScalarAttributeType.S).build());
+        attributeDefinitions.add(AttributeDefinition.builder().attributeName("hashKey").attributeType(ScalarAttributeType.S)
+                                                    .build());
         List<KeySchemaElement> keySchema = new ArrayList<KeySchemaElement>();
         keySchema.add(KeySchemaElement.builder().attributeName("hashKey").keyType(KeyType.HASH).build());
 
         client.createTable(CreateTableRequest.builder().attributeDefinitions(attributeDefinitions)
-                .tableName(TABLE_NAME)
-                .keySchema(keySchema)
-                .provisionedThroughput(ProvisionedThroughput.builder().readCapacityUnits(1L).writeCapacityUnits(1L).build()).build());
+                                             .tableName(TABLE_NAME)
+                                             .keySchema(keySchema)
+                                             .provisionedThroughput(ProvisionedThroughput.builder().readCapacityUnits(1L)
+                                                                                         .writeCapacityUnits(1L).build()).build
+                ());
         waitForActiveTable(TABLE_NAME);
     }
 
     public static TableDescription waitForActiveTable(String tableName)
-            throws InterruptedException {
+        throws InterruptedException {
         DescribeTableResponse result = client.describeTable(DescribeTableRequest.builder().tableName(tableName).build());
         TableDescription desc = result.table();
         String status = desc.tableStatusAsString();
-        for (;; status = desc.tableStatusAsString()) {
+        for (; ; status = desc.tableStatusAsString()) {
             if ("ACTIVE".equals(status)) {
                 return desc;
             } else if ("CREATING".equals(status) || "UPDATING".equals(status)) {
@@ -75,7 +77,7 @@ public class TT0035900619IntegrationTest {
                 desc = result.table();
             } else {
                 throw new IllegalArgumentException("Table " + tableName
-                        + " is not being created (with status=" + status + ")");
+                                                   + " is not being created (with status=" + status + ")");
             }
         }
     }
@@ -97,50 +99,46 @@ public class TT0035900619IntegrationTest {
                 .withFakeIoException(false)
                 .withResetIntervalBeforeException(2)
         );
-        System.out.println(client.describeTable(DescribeTableRequest.builder().tableName(TABLE_NAME).build()));
+        client.describeTable(DescribeTableRequest.builder().tableName(TABLE_NAME).build());
     }
 
     @Test
     public void testFakeIOException_Once() {
         AmazonSyncHttpClient.configUnreliableTestConditions(
-                new UnreliableTestConfig()
+            new UnreliableTestConfig()
                 .withMaxNumErrors(1)
                 .withBytesReadBeforeException(10)
                 .withFakeIoException(true)
                 .withResetIntervalBeforeException(2)
         );
-        System.out.println(client.describeTable(DescribeTableRequest.builder().tableName(TABLE_NAME).build()));
+        assertThat(client.describeTable(DescribeTableRequest.builder().tableName(TABLE_NAME).build())).isNotNull();
     }
 
     @Test
-    @ReviewBeforeRelease("Custom retry policy not yet implemented in code generator")
-    @Ignore // TODO
-    public void testFakeIOException_MaxRetries() {
+    public void fakeIOExceptionsExceedsSdkMaxRetries_shouldSucceed() {
         AmazonSyncHttpClient.configUnreliableTestConditions(
-                new UnreliableTestConfig()
+            new UnreliableTestConfig()
                 .withMaxNumErrors(SdkDefaultRetrySetting.DEFAULT_MAX_RETRIES)
                 .withBytesReadBeforeException(10)
                 .withFakeIoException(true)
                 .withResetIntervalBeforeException(2)
         );
-        System.out.println(client.describeTable(DescribeTableRequest.builder().tableName(TABLE_NAME).build()));
+
+        DescribeTableResponse describeTableResponse = client.describeTable(DescribeTableRequest.builder().tableName(TABLE_NAME)
+                                                                                               .build());
+        assertThat(describeTableResponse).isNotNull();
     }
 
-    @Test
-    public void testFakeIOException_OneTooMany() {
+    @Test(expected = SdkClientException.class)
+    public void fakeIOExceptionsExceedsDynamoMaxRetries_shouldFail() {
         AmazonSyncHttpClient.configUnreliableTestConditions(
-                new UnreliableTestConfig()
+            new UnreliableTestConfig()
                 .withMaxNumErrors(SdkDefaultRetrySetting.DEFAULT_MAX_RETRIES + 1)
                 .withBytesReadBeforeException(10)
                 .withFakeIoException(true)
                 .withResetIntervalBeforeException(2)
         );
-        try {
-            System.out.println(client.describeTable(DescribeTableRequest.builder().tableName(TABLE_NAME).build()));
-            Assert.fail();
-        } catch(SdkClientException expected) {
-            expected.printStackTrace();
-        }
+        client.describeTable(DescribeTableRequest.builder().tableName(TABLE_NAME).build());
     }
 
     protected static AwsCredentials awsTestCredentials() {

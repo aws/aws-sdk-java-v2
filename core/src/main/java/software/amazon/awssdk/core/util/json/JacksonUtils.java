@@ -24,8 +24,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import java.io.IOException;
 import java.io.Writer;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
+@SdkProtectedApi
 public final class JacksonUtils {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final ObjectWriter WRITER = OBJECT_MAPPER.writer();

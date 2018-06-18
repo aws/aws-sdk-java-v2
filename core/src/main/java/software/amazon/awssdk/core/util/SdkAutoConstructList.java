@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.util;
 
 import java.util.List;
-
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**

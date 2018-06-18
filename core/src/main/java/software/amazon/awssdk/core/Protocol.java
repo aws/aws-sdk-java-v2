@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.core;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+
 /**
  * Represents the communication protocol to use when sending requests to AWS.
  * <p>
@@ -23,6 +25,7 @@ package software.amazon.awssdk.core;
  * resources because of the extra work to encrypt network traffic, so the option
  * to use HTTP is available in case users need it.
  */
+@SdkProtectedApi
 public enum Protocol {
 
     /**

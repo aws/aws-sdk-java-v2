@@ -43,7 +43,6 @@ import com.github.tomakehurst.wiremock.http.trafficlistener.WiremockNetworkTraff
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URI;

@@ -15,9 +15,12 @@
 
 package software.amazon.awssdk.utils;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+
 /**
  * The system properties usually provided by the Java runtime.
  */
+@SdkProtectedApi
 public enum JavaSystemSetting implements SystemSetting {
     JAVA_VERSION("java.version"),
     TEMP_DIRECTORY("java.io.tmpdir"),

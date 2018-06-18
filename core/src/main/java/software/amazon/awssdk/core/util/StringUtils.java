@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.text.Collator;
 import java.time.Instant;
 import java.util.Locale;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Base64Utils;
 
 /**
@@ -28,6 +29,7 @@ import software.amazon.awssdk.utils.Base64Utils;
  * @deprecated Use utils module instead.
  */
 @Deprecated
+@SdkProtectedApi
 public class StringUtils {
 
     private static final String DEFAULT_ENCODING = "UTF-8";

@@ -16,7 +16,9 @@
 package software.amazon.awssdk.core.util;
 
 import java.util.Collection;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
+@SdkInternalApi
 public final class CollectionUtils {
 
     private CollectionUtils() {

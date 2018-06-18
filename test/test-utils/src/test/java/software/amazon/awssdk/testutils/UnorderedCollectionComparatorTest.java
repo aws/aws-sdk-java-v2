@@ -21,7 +21,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Test;
-import software.amazon.awssdk.testutils.UnorderedCollectionComparator;
 
 public class UnorderedCollectionComparatorTest {
 

@@ -18,12 +18,14 @@ package software.amazon.awssdk.core.pagination.async;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * A NoOp implementation of {@link Subscription} interface.
  *
  * This subscription calls {@link Subscriber#onComplete()} on first request for data and then terminates the subscription.
  */
+@SdkProtectedApi
 public class EmptySubscription implements Subscription {
 
     private final AtomicBoolean isTerminated = new AtomicBoolean(false);

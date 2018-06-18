@@ -16,12 +16,14 @@
 package software.amazon.awssdk.core.util;
 
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
 /**
  * Utility for use with errors or exceptions.
  */
+@SdkInternalApi
 public final class Throwables {
 
     private Throwables() {

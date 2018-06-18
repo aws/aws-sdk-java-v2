@@ -34,7 +34,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.TestPreConditions;
-import software.amazon.awssdk.core.config.options.SdkClientOption;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.http.UnresponsiveMockServerTestBase;

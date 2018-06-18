@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
@@ -33,7 +33,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  * <p>All implementations of this interface MUST be immutable. Instead of implementing this interface, consider using
  * {@link #builder()} to create an instance.</p>
  */
-@SdkPublicApi
+@SdkProtectedApi
 @Immutable
 public interface SdkHttpFullResponse
         extends SdkHttpResponse, ToCopyableBuilder<SdkHttpFullResponse.Builder, SdkHttpFullResponse> {

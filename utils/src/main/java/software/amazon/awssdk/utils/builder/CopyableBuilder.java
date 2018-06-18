@@ -15,9 +15,12 @@
 
 package software.amazon.awssdk.utils.builder;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
+
 /**
  * A special type of {@link SdkBuilder} that can be used when the built type implements {@link ToCopyableBuilder}.
  */
+@SdkPublicApi
 public interface CopyableBuilder<B extends CopyableBuilder<B, T>, T extends ToCopyableBuilder<B, T>> extends SdkBuilder<B, T> {
     /**
      * A shallow copy of this object created by building an immutable T and then transforming it back to a builder.

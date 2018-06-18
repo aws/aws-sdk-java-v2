@@ -15,12 +15,14 @@
 
 package software.amazon.awssdk.core.internal.http.timers.client;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Abortable;
 
 /**
  * Dummy implementation of {@link ClientExecutionAbortTrackerTask} used when the timer is disabled
  * for a request
  */
+@SdkInternalApi
 public final class NoOpClientExecutionAbortTrackerTask implements ClientExecutionAbortTrackerTask {
 
     public static final NoOpClientExecutionAbortTrackerTask INSTANCE = new NoOpClientExecutionAbortTrackerTask();

@@ -30,12 +30,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
  * A set of utilities that assist with HTTP message-related interactions.
  */
+@SdkProtectedApi
 public final class SdkHttpUtils {
     private static final String DEFAULT_ENCODING = "UTF-8";
 

@@ -33,9 +33,9 @@ import java.util.Date;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.DateUtils;
+import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.utils.IoUtils;
 
 public class HttpCredentialsProviderTest {

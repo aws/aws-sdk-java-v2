@@ -28,5 +28,6 @@ import java.lang.annotation.Target;
  * with this method
  */
 @Target({ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.FIELD, ElementType.TYPE})
+@SdkProtectedApi
 public @interface SdkTestInternalApi {
 }

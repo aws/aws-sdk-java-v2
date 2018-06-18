@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.auth.signer;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.signer.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
@@ -25,6 +26,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 /**
  * Signer implementation that signs requests with the AWS4 signing protocol.
  */
+@SdkPublicApi
 public final class Aws4Signer extends AbstractAws4Signer<Aws4SignerParams, Aws4PresignerParams> {
 
     private Aws4Signer(Builder builder) {

@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.s3.signer;
 
 import static org.junit.Assert.assertEquals;
-import static software.amazon.awssdk.core.config.options.SdkAdvancedClientOption.SIGNER;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.SIGNER;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.IOException;
@@ -35,7 +35,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.auth.signer.params.AwsS3V4SignerParams;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpClient;

@@ -44,11 +44,13 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 
 @Sharable
+@SdkInternalApi
 class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     private static final Logger log = LoggerFactory.getLogger(ResponseHandler.class);

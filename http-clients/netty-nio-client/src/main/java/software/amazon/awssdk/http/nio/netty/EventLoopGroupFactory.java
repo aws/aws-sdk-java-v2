@@ -16,12 +16,14 @@
 package software.amazon.awssdk.http.nio.netty;
 
 import io.netty.channel.EventLoopGroup;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * Factory interface for creating an {@link EventLoopGroup}.
  *
  * @see DefaultEventLoopGroupFactory
  */
+@SdkPublicApi
 public interface EventLoopGroupFactory {
 
     /**

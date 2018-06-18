@@ -17,10 +17,12 @@ package software.amazon.awssdk.http;
 
 import java.util.Locale;
 import java.util.stream.Stream;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Enum for available HTTP methods.
  */
+@SdkProtectedApi
 public enum SdkHttpMethod {
 
     GET,

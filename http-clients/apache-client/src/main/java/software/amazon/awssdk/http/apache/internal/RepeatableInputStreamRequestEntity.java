@@ -23,6 +23,7 @@ import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
@@ -32,6 +33,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  * report that it is repeatable and will reset the stream on all subsequent
  * attempts to write out the request.
  */
+@SdkInternalApi
 public class RepeatableInputStreamRequestEntity extends BasicHttpEntity {
 
     private static final Logger log = LoggerFactory.getLogger(RepeatableInputStreamRequestEntity.class);

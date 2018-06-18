@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.regions.providers;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
@@ -25,7 +25,7 @@ import software.amazon.awssdk.regions.Region;
 /**
  * Loads region information from the {@link ProfileFile#defaultProfileFile()} using the default profile name.
  */
-@SdkInternalApi
+@SdkProtectedApi
 class AwsProfileRegionProvider implements AwsRegionProvider {
 
     private final String profileName = SdkSystemSetting.AWS_PROFILE.getStringValueOrThrow();

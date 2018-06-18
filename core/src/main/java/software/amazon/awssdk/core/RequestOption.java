@@ -15,9 +15,12 @@
 
 package software.amazon.awssdk.core;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+
 /**
  * Client option defaults for individual {@link SdkRequest}s.
  */
+@SdkProtectedApi
 public final class RequestOption {
     public static final int DEFAULT_STREAM_BUFFER_SIZE = (1 << 17) + 1;
 

@@ -25,8 +25,10 @@ import io.netty.channel.ChannelPromise;
 import java.net.SocketAddress;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @Sharable
+@SdkInternalApi
 public final class LoggingHandler extends ChannelDuplexHandler {
 
     private final Consumer<Supplier<String>> logger;

@@ -18,11 +18,13 @@ package software.amazon.awssdk.auth.signer.internal;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Utility methods that is used by the different AWS Signer implementations.
  * This class is strictly internal and is subjected to change.
  */
+@SdkInternalApi
 public final class Aws4SignerUtils {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter

@@ -15,14 +15,14 @@
 
 package software.amazon.awssdk.core;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Logger;
 
 /**
  * A centralized set of loggers that used across the SDK to log particular types of events. SDK users can then specifically enable
  * just these loggers to get the type of that they want instead of having to enable all logging.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class SdkStandardLogger {
     /**
      * Logger providing detailed information on requests/responses. Users can enable this logger to get access to AWS request IDs

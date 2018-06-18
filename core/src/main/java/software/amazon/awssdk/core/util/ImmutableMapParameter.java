@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * An immutable map that could be built by convenient constructors.
@@ -54,6 +55,7 @@ import java.util.Set;
  * @param <V>
  *            Class of the value for the map.
  */
+@SdkProtectedApi
 public class ImmutableMapParameter<K, V> implements Map<K, V> {
 
     private static final String UNMODIFIABLE_MESSAGE = "This is an immutable map.";

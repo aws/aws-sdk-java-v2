@@ -24,12 +24,12 @@ import software.amazon.awssdk.awscore.config.options.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.config.options.AwsClientOption;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.config.options.SdkClientOption;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi

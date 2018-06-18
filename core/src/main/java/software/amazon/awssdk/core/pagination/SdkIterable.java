@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.pagination;
 
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * A custom iterable used in paginated responses.
@@ -26,6 +27,7 @@ import java.util.stream.StreamSupport;
  *
  * @param <T> the type of elements returned by the iterator
  */
+@SdkPublicApi
 public interface SdkIterable<T> extends Iterable<T> {
 
     default Stream<T> stream() {

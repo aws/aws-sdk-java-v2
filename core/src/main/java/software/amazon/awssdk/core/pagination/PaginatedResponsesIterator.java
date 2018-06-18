@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.pagination;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Iterator for all response pages in a paginated operation.
@@ -26,6 +27,7 @@ import java.util.NoSuchElementException;
  *
  * @param <ResponseT> The type of a single response page
  */
+@SdkProtectedApi
 public class PaginatedResponsesIterator<ResponseT> implements Iterator<ResponseT> {
 
     private final SyncPageFetcher<ResponseT> nextPageFetcher;

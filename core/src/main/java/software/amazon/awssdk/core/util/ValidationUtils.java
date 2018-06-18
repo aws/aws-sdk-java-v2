@@ -17,12 +17,14 @@ package software.amazon.awssdk.core.util;
 
 import java.time.Duration;
 import java.util.Collection;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Useful utilities to validate dependencies
  * @deprecated By utils module.
  */
 @Deprecated
+@SdkProtectedApi
 public final class ValidationUtils {
 
     private ValidationUtils() {

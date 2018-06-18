@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.auth.credentials;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * Interface for loading {@link AwsCredentials} that are used for authentication.
@@ -25,6 +26,7 @@ package software.amazon.awssdk.auth.credentials;
  * AWS STS.</p>
  */
 @FunctionalInterface
+@SdkPublicApi
 public interface AwsCredentialsProvider {
     /**
      * Returns {@link AwsCredentials} that can be used to authorize an AWS request. Each implementation of AWSCredentialsProvider

@@ -38,6 +38,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Base64Utils;
 import software.amazon.awssdk.utils.XmlUtils;
 
@@ -45,6 +46,7 @@ import software.amazon.awssdk.utils.XmlUtils;
  * Utility methods for extracting data from XML documents using Xpath
  * expressions.
  */
+@SdkProtectedApi
 public final class XpathUtils {
 
     /** The default property name to load the Xalan DTM manager. */

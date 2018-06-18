@@ -21,7 +21,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * <p>This class assists in validating arguments. The validation methods are
@@ -47,7 +47,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * @see java.lang.String#format(String, Object...)
  */
 @ReviewBeforeRelease("Remove the methods we don't end up using (and software.amazon.awssdk.core.util.ValidationUtils).")
-@SdkInternalApi
+@SdkProtectedApi
 public final class Validate {
     private static final String DEFAULT_IS_NULL_EX_MESSAGE = "The validated object is null";
 

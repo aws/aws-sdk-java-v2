@@ -37,7 +37,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
-import software.amazon.awssdk.core.client.ClientExecutionParams;
+import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;

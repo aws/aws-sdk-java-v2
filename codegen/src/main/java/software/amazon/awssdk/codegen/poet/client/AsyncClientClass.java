@@ -31,8 +31,8 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
-import software.amazon.awssdk.core.client.AsyncClientHandler;
-import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 
 public final class AsyncClientClass extends AsyncClientInterface {
     private final IntermediateModel model;

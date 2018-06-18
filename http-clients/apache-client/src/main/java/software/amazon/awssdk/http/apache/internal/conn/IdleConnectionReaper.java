@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Daemon thread to periodically check connection pools for idle connections.
@@ -42,6 +43,7 @@ import org.slf4j.LoggerFactory;
  * stale connections (i.e. closed on the AWS side) are left in the connection
  * pool, and requests grab one of them to begin executing a request.
  */
+@SdkInternalApi
 public final class IdleConnectionReaper extends Thread {
 
     /**

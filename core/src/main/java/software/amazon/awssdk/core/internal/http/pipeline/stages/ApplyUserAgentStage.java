@@ -18,10 +18,11 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.core.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.config.options.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.utils.StringUtils;
 /**
  * Apply any custom user agent supplied, otherwise instrument the user agent with info about the SDK and environment.
  */
+@SdkInternalApi
 public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     private static final String COMMA = ", ";
     private static final String SPACE = " ";

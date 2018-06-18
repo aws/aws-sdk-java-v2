@@ -16,12 +16,14 @@
 package software.amazon.awssdk.utils;
 
 import java.util.Optional;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * An interface implemented by enums in other packages in order to define the system settings the want loaded. An enum
  * is expected to implement this interface, and then have values loaded from the {@link System} using methods like
  * {@link #getStringValue()}.
  */
+@SdkProtectedApi
 public interface SystemSetting {
     /**
      * The system property of the setting (or null if there is no property for this setting).
