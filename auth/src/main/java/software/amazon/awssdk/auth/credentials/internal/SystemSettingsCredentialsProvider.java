@@ -13,12 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.credentials;
+package software.amazon.awssdk.auth.credentials.internal;
 
 import static software.amazon.awssdk.utils.StringUtils.trim;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.SystemPropertyCredentialsProvider;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.StringUtils;
@@ -36,7 +41,7 @@ import software.amazon.awssdk.utils.SystemSetting;
  * @see SystemPropertyCredentialsProvider
  */
 @SdkInternalApi
-abstract class SystemSettingsCredentialsProvider implements AwsCredentialsProvider {
+public abstract class SystemSettingsCredentialsProvider implements AwsCredentialsProvider {
     @Override
     public AwsCredentials getCredentials() {
         String accessKey = trim(loadSetting(SdkSystemSetting.AWS_ACCESS_KEY_ID).orElse(null));

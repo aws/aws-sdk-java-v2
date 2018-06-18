@@ -16,9 +16,10 @@
 package software.amazon.awssdk.awscore.internal.client.handler;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.AwsExecutionAttribute;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
@@ -54,16 +55,16 @@ public final class AwsClientHandlerUtils {
         Validate.validState(credentials != null, "Credential providers must never return null.");
 
         ExecutionAttributes executionAttributes = new ExecutionAttributes()
-            .putAttribute(AwsExecutionAttribute.SERVICE_CONFIG, clientConfig.option(SdkClientOption.SERVICE_CONFIGURATION))
-            .putAttribute(AwsExecutionAttribute.AWS_CREDENTIALS, credentials)
-            .putAttribute(AwsExecutionAttribute.REQUEST_CONFIG, originalRequest.overrideConfiguration()
-                                                                               .map(c -> (RequestOverrideConfiguration) c)
-                                                                               .orElse(AwsRequestOverrideConfiguration.builder()
-                                                                                                                       .build()))
-            .putAttribute(AwsExecutionAttribute.SERVICE_SIGNING_NAME,
+            .putAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG, clientConfig.option(SdkClientOption.SERVICE_CONFIGURATION))
+            .putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentials)
+            .putAttribute(AwsSignerExecutionAttribute.REQUEST_CONFIG,
+                          originalRequest.overrideConfiguration()
+                                         .map(c -> (RequestOverrideConfiguration) c)
+                                         .orElse(AwsRequestOverrideConfiguration.builder().build()))
+            .putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME,
                           clientConfig.option(AwsClientOption.SERVICE_SIGNING_NAME))
             .putAttribute(AwsExecutionAttribute.AWS_REGION, clientConfig.option(AwsClientOption.AWS_REGION))
-            .putAttribute(AwsExecutionAttribute.SIGNING_REGION, clientConfig.option(AwsClientOption.SIGNING_REGION));
+            .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, clientConfig.option(AwsClientOption.SIGNING_REGION));
 
         ExecutionInterceptorChain executionInterceptorChain =
                 new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth;
+package software.amazon.awssdk.auth.signer;
 
 import java.time.Instant;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
@@ -26,27 +26,21 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.regions.Region;
 
 /**
- * AWS-specific attributes attached to the execution. This information is available to {@link ExecutionInterceptor}s and
+ * AWS-specific signing attributes attached to the execution. This information is available to {@link ExecutionInterceptor}s and
  * {@link Signer}s.
  */
 @ReviewBeforeRelease("We should also consider making some of the SDK/AWS-owned set of attributes part of the immutable context"
                      + "if we don't want the interceptors to modify them.")
 @SdkProtectedApi
-public final class AwsExecutionAttribute extends SdkExecutionAttribute {
+public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
     /**
      * The key under which the request credentials are set.
      */
     public static final ExecutionAttribute<AwsCredentials> AWS_CREDENTIALS = new ExecutionAttribute<>("AwsCredentials");
 
     /**
-     * The AWS {@link Region} the client was configured with. This is not always same as {@link #SIGNING_REGION} for
-     * global services like IAM.
-     */
-    public static final ExecutionAttribute<Region> AWS_REGION = new ExecutionAttribute<>("AwsRegion");
-
-    /**
-     * The AWS {@link Region} that is used for signing a request. This is not always same as {@link #AWS_REGION} for
-     * global services like IAM.
+     * The AWS {@link Region} that is used for signing a request. This is not always same as the region configured on the client
+     * for global services like IAM.
      */
     public static final ExecutionAttribute<Region> SIGNING_REGION = new ExecutionAttribute<>("SigningRegion");
 
@@ -65,6 +59,6 @@ public final class AwsExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<Instant> PRESIGNER_EXPIRATION = new ExecutionAttribute<>("PresignerExpiration");
 
-    private AwsExecutionAttribute() {
+    private AwsSignerExecutionAttribute() {
     }
 }
