@@ -46,7 +46,6 @@ public class SdkClientOptionValidation {
 
         require("overrideConfiguration.additionalHttpHeaders", c.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS));
         require("overrideConfiguration.executionInterceptors", c.option(SdkClientOption.EXECUTION_INTERCEPTORS));
-        require("overrideConfiguration.gzipEnabled", c.option(SdkClientOption.GZIP_ENABLED));
         require("overrideConfiguration.retryPolicy", c.option(SdkClientOption.RETRY_POLICY));
 
         require("overrideConfiguration.advancedOption[SIGNER]", c.option(SdkAdvancedClientOption.SIGNER));

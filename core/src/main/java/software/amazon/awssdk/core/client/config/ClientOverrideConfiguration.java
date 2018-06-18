@@ -42,7 +42,6 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class ClientOverrideConfiguration
     implements ToCopyableBuilder<ClientOverrideConfiguration.Builder, ClientOverrideConfiguration> {
     private final Map<String, List<String>> additionalHttpHeaders;
-    private final Boolean gzipEnabled;
     private final RetryPolicy retryPolicy;
     private final List<ExecutionInterceptor> executionInterceptors;
     private final AttributeMap advancedOptions;
@@ -52,7 +51,6 @@ public final class ClientOverrideConfiguration
      */
     private ClientOverrideConfiguration(DefaultClientOverrideConfigurationBuilder builder) {
         this.additionalHttpHeaders = CollectionUtils.deepUnmodifiableMap(builder.additionalHttpHeaders);
-        this.gzipEnabled = builder.gzipEnabled;
         this.retryPolicy = builder.retryPolicy;
         this.executionInterceptors = Collections.unmodifiableList(new ArrayList<>(builder.executionInterceptors));
         this.advancedOptions = builder.advancedOptions.build();
@@ -62,7 +60,6 @@ public final class ClientOverrideConfiguration
     public Builder toBuilder() {
         return new DefaultClientOverrideConfigurationBuilder().advancedOptions(advancedOptions.toBuilder())
                                                               .additionalHttpHeaders(additionalHttpHeaders)
-                                                              .gzipEnabled(gzipEnabled)
                                                               .retryPolicy(retryPolicy)
                                                               .executionInterceptors(executionInterceptors);
     }
@@ -82,15 +79,6 @@ public final class ClientOverrideConfiguration
      */
     public Map<String, List<String>> additionalHttpHeaders() {
         return additionalHttpHeaders;
-    }
-
-    /**
-     * Whether GZIP should be used when communication with AWS.
-     *
-     * @see Builder#gzipEnabled(Boolean)
-     */
-    public Optional<Boolean> gzipEnabled() {
-        return Optional.ofNullable(gzipEnabled);
     }
 
     /**
@@ -125,7 +113,6 @@ public final class ClientOverrideConfiguration
     public String toString() {
         return ToString.builder("ClientOverrideConfiguration")
                        .add("additionalHttpHeaders", additionalHttpHeaders)
-                       .add("gzipEnabled", gzipEnabled)
                        .add("retryPolicy", retryPolicy)
                        .add("executionInterceptors", executionInterceptors)
                        .add("advancedOptions", advancedOptions)
@@ -160,14 +147,6 @@ public final class ClientOverrideConfiguration
          * @see ClientOverrideConfiguration#additionalHttpHeaders()
          */
         Builder addAdditionalHttpHeader(String header, String... values);
-
-        /**
-         * Configure whether GZIP should be used when communicating with AWS. Enabling GZIP increases CPU utilization and memory
-         * usage, while decreasing the amount of data sent over the network.
-         *
-         * @see ClientOverrideConfiguration#gzipEnabled()
-         */
-        Builder gzipEnabled(Boolean gzipEnabled);
 
         /**
          * Configure the retry policy that should be used when handling failure cases.
@@ -235,7 +214,6 @@ public final class ClientOverrideConfiguration
      */
     private static final class DefaultClientOverrideConfigurationBuilder implements Builder {
         private Map<String, List<String>> additionalHttpHeaders = new HashMap<>();
-        private Boolean gzipEnabled;
         private RetryPolicy retryPolicy;
         private List<ExecutionInterceptor> executionInterceptors = new ArrayList<>();
         private AttributeMap.Builder advancedOptions = AttributeMap.builder();
@@ -255,16 +233,6 @@ public final class ClientOverrideConfiguration
 
         public void setAdditionalHttpHeaders(Map<String, List<String>> additionalHttpHeaders) {
             additionalHttpHeaders(additionalHttpHeaders);
-        }
-
-        @Override
-        public Builder gzipEnabled(Boolean gzipEnabled) {
-            this.gzipEnabled = gzipEnabled;
-            return this;
-        }
-
-        public void setGzipEnabled(Boolean gzipEnabled) {
-            gzipEnabled(gzipEnabled);
         }
 
         @Override
