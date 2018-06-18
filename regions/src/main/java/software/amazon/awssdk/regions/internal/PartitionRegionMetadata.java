@@ -42,17 +42,17 @@ public class PartitionRegionMetadata implements RegionMetadata {
     }
 
     @Override
-    public String getName() {
+    public String name() {
         return region;
     }
 
     @Override
-    public String getDomain() {
+    public String domain() {
         return partition.getDnsSuffix();
     }
 
     @Override
-    public String getPartition() {
+    public String partition() {
         return partition.getPartition();
     }
 

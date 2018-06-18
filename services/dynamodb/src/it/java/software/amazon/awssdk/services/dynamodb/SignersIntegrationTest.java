@@ -171,7 +171,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
     }
 
     private String getHost() {
-        return String.format("dynamodb.%s.amazonaws.com", REGION.value());
+        return String.format("dynamodb.%s.amazonaws.com", REGION.id());
     }
 
     private String getInputContent() {

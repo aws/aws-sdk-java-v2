@@ -126,7 +126,7 @@ public class S3Link {
     }
 
     private static String convertRegionToString(Region region, String bucketName) {
-        return region.value();
+        return region.id();
     }
 
     public String getKey() {
