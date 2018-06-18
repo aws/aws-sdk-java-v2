@@ -18,9 +18,12 @@ package software.amazon.awssdk.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import org.junit.Test;
 
 public class AttributeMapTest {
@@ -29,6 +32,13 @@ public class AttributeMapTest {
     };
 
     private static final AttributeMap.Key<Integer> INTEGER_KEY = new AttributeMap.Key<Integer>(Integer.class) {
+    };
+
+    private static final AttributeMap.Key<AutoCloseable> CLOSEABLE_KEY = new AttributeMap.Key<AutoCloseable>(AutoCloseable.class) {
+    };
+
+    private static final AttributeMap.Key<ExecutorService> EXECUTOR_SERVICE_KEY =
+            new AttributeMap.Key<ExecutorService>(ExecutorService.class) {
     };
 
     @Test
@@ -77,6 +87,21 @@ public class AttributeMapTest {
         AttributeMap.builder()
                     .putAll(attributes)
                     .build();
+    }
+
+    @Test
+    public void close_closesAll() {
+        SdkAutoCloseable closeable = mock(SdkAutoCloseable.class);
+        ExecutorService executor = mock(ExecutorService.class);
+
+        AttributeMap.builder()
+                    .put(CLOSEABLE_KEY, closeable)
+                    .put(EXECUTOR_SERVICE_KEY, executor)
+                    .build()
+                    .close();
+
+        verify(closeable).close();
+        verify(executor).shutdown();
     }
 
 }
