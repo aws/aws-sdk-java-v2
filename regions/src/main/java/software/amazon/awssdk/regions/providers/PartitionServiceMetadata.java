@@ -50,38 +50,37 @@ public class PartitionServiceMetadata implements ServiceMetadata {
         Endpoint endpoint = computeEndpoint(service, region);
         return URI.create(endpoint.getHostname()
                                   .replace(SERVICE, service)
-                                  .replace(REGION, region.value())
-                                  .replace(DNS_SUFFIX, regionMetadata.getDomain()));
+                                  .replace(REGION, region.id())
+                                  .replace(DNS_SUFFIX, regionMetadata.domain()));
     }
 
     @Override
     public Region signingRegion(Region region) {
         CredentialScope credentialScope = computeEndpoint(service, region).getCredentialScope();
         return Region.of(credentialScope != null && credentialScope.getRegion() != null ?
-                                 credentialScope.getRegion() : region.value());
+                                 credentialScope.getRegion() : region.id());
     }
 
     private Endpoint computeEndpoint(String serviceName, Region region) {
         RegionMetadata regionMetadata = RegionMetadata.of(region);
-        Partition partitionData = servicePartitionData.get(regionMetadata.getPartition());
+        Partition partitionData = servicePartitionData.get(regionMetadata.partition());
         Service service = partitionData.getServices().get(serviceName);
 
         return partitionData.getDefaults()
                             .merge(service != null ? service.getDefaults() : null)
                             .merge(service != null && service.getEndpoints() != null ?
-                                           service.getEndpoints().get(region.value()) : null);
+                                   service.getEndpoints().get(region.id()) : null);
     }
 
     @Override
     public List<Region> regions() {
         List<Region> regions = new ArrayList<>();
-        servicePartitionData.entrySet().stream()
-                                   .forEach(p -> {
-                                       Service serviceData = p.getValue().getServices().get(service);
-                                       if (serviceData != null) {
-                                           serviceData.getEndpoints().keySet().stream().forEach(r -> regions.add(Region.of(r)));
-                                       }
-                                   });
+        servicePartitionData.forEach((key, value) -> {
+            Service serviceData = value.getServices().get(service);
+            if (serviceData != null) {
+                serviceData.getEndpoints().keySet().forEach(r -> regions.add(Region.of(r)));
+            }
+        });
 
         return regions;
     }

@@ -141,7 +141,7 @@ public class PresignRequestHandlerTest {
         final SdkHttpFullRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshalled);
 
         final URI presignedUrl = new URI(presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
-        assertTrue(presignedUrl.toString().contains("DestinationRegion=" + destination.value()));
+        assertTrue(presignedUrl.toString().contains("DestinationRegion=" + destination.id()));
     }
 
     @Test
