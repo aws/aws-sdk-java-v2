@@ -52,7 +52,7 @@ public class CreateBucketInterceptor implements ExecutionInterceptor {
             return null;
         }
         return CreateBucketConfiguration.builder()
-                                        .locationConstraint(region.value())
+                                        .locationConstraint(region.id())
                                         .build();
     }
 
