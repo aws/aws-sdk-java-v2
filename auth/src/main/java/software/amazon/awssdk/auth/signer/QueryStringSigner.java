@@ -20,11 +20,10 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.TimeZone;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.auth.AwsExecutionAttribute;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.internal.AbstractAwsSigner;
-import software.amazon.awssdk.auth.util.CredentialUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -66,8 +65,8 @@ public final class QueryStringSigner extends AbstractAwsSigner {
      */
     @Override
     public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
-        final AwsCredentials awsCredentials = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_CREDENTIALS);
-        final Integer offset = executionAttributes.getAttribute(AwsExecutionAttribute.TIME_OFFSET);
+        final AwsCredentials awsCredentials = executionAttributes.getAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS);
+        final Integer offset = executionAttributes.getAttribute(AwsSignerExecutionAttribute.TIME_OFFSET);
 
         // anonymous credentials, don't sign
         if (CredentialUtils.isAnonymous(awsCredentials)) {

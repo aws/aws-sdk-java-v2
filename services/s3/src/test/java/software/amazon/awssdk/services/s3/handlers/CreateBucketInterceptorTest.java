@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.s3.handlers;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
-import software.amazon.awssdk.auth.AwsExecutionAttribute;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
