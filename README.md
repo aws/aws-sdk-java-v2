@@ -13,7 +13,7 @@ HTTP implementation to further customize your applications. You can get started 
 * [SDK Blog][blog]
 * [Giving Feedback](#giving-feedback)
 
-## Getting Started
+## Getting Started ##
 
 #### Sign up for AWS ####
 
