@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions.util;
+package software.amazon.awssdk.regions.internal.util;
 
 import java.io.IOException;
 import java.net.ServerSocket;

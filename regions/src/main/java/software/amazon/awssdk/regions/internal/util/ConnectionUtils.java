@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions.util;
+package software.amazon.awssdk.regions.internal.util;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -26,13 +26,13 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 @ReviewBeforeRelease("Refactor to use SDK HTTP client instead of URL connection, also consider putting EC2MetadataClient into "
                      + "its own module")
-class ConnectionUtils {
+public class ConnectionUtils {
 
-    static ConnectionUtils create() {
+    public static ConnectionUtils create() {
         return new ConnectionUtils();
     }
 
-    HttpURLConnection connectToEndpoint(URI endpoint, Map<String, String> headers) throws IOException {
+    public HttpURLConnection connectToEndpoint(URI endpoint, Map<String, String> headers) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) endpoint.toURL().openConnection(Proxy.NO_PROXY);
         connection.setConnectTimeout(1000 * 2);
         connection.setReadTimeout(1000 * 5);
