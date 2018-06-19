@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.signer.AbstractAws4Signer;
 import software.amazon.awssdk.auth.signer.SigningAlgorithm;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.runtime.io.SdkInputStream;
+import software.amazon.awssdk.core.io.SdkInputStream;
 import software.amazon.awssdk.services.s3.AwsS3V4Signer;
 import software.amazon.awssdk.utils.BinaryUtils;
 

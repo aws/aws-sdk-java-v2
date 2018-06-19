@@ -19,12 +19,12 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
-import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.AbortedException;
+import software.amazon.awssdk.core.exception.ClientExecutionTimeoutException;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
-import software.amazon.awssdk.core.http.exception.SdkInterruptedException;
+import software.amazon.awssdk.core.exception.SdkInterruptedException;
+import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;

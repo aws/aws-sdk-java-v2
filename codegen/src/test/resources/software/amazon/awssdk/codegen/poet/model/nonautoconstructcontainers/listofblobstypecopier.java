@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.Generated;
-import software.amazon.awssdk.core.runtime.StandardMemberCopier;
+import software.amazon.awssdk.core.internal.StandardMemberCopier;
 
 @Generated("software.amazon.awssdk:codegen")
 final class ListOfBlobsTypeCopier {

@@ -26,6 +26,7 @@ import org.junit.Test;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.server.MockServer;
+import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
 import software.amazon.awssdk.core.internal.http.response.EmptySdkResponseHandler;
 import software.amazon.awssdk.core.retry.RetryPolicy;

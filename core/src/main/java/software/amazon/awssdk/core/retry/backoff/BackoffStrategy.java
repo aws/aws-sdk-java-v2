@@ -17,8 +17,8 @@ package software.amazon.awssdk.core.retry.backoff;
 
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
-import software.amazon.awssdk.core.retry.SdkDefaultRetrySetting;
 
 @SdkPublicApi
 @FunctionalInterface

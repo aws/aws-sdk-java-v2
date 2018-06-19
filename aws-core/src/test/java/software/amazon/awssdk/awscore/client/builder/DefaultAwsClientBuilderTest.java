@@ -22,9 +22,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static software.amazon.awssdk.awscore.config.options.AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION;
-import static software.amazon.awssdk.awscore.config.options.AwsClientOption.SERVICE_SIGNING_NAME;
-import static software.amazon.awssdk.awscore.config.options.AwsClientOption.SIGNING_REGION;
+import static software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION;
+import static software.amazon.awssdk.awscore.client.config.AwsClientOption.SERVICE_SIGNING_NAME;
+import static software.amazon.awssdk.awscore.client.config.AwsClientOption.SIGNING_REGION;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.SIGNER;
 
 import java.beans.BeanInfo;

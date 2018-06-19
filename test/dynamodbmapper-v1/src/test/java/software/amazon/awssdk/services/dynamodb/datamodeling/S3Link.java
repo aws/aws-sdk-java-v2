@@ -125,7 +125,7 @@ public class S3Link {
         return new S3Link(s3cc, id);
     }
 
-    private static String convertRegionToString(Region region, String bucketName) {
+    private static String convertRegionToString(Region region) {
         return region.id();
     }
 
@@ -421,7 +421,7 @@ public class S3Link {
         }
 
         public S3Link createS3Link(Region s3region, String bucketName, String key) {
-            return createS3Link(convertRegionToString(s3region, bucketName), bucketName, key);
+            return createS3Link(convertRegionToString(s3region), bucketName, key);
         }
 
         public S3Link createS3Link(String s3region, String bucketName, String key) {
