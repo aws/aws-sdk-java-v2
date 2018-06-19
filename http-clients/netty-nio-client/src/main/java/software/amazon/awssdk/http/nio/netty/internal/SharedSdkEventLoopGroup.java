@@ -20,40 +20,41 @@ import io.netty.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
-import software.amazon.awssdk.http.nio.netty.DefaultEventLoopGroupFactory;
+import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 
 /**
- * Provides access and manages a shared {@link EventLoopGroup}. Uses reference counting to keep track of how many HTTP
+ * Provides access and manages a shared {@link SdkEventLoopGroup}. Uses reference counting to keep track of how many HTTP
  * clients are using the shared event loop group and will automatically close it when that count reaches zero. Event loop
  * group is lazily initialized for the first time and and subsequent requests after the count reaches zero.
  */
 @SdkInternalApi
-public final class SharedEventLoopGroup {
+public final class SharedSdkEventLoopGroup {
 
     /**
      * Lazily initialized shared default event loop group.
      */
-    private static EventLoopGroup sharedEventLoopGroup;
+    private static SdkEventLoopGroup sharedSdkEventLoopGroup;
 
     /**
      * Reference count of clients using the shared event loop group.
      */
     private static int referenceCount = 0;
 
-    private SharedEventLoopGroup() {
+    private SharedSdkEventLoopGroup() {
     }
 
     /**
-     * @return The default {@link EventLoopGroup} that will be shared across all service clients. This is used when the customer
-     * does not specify a custom {@link EventLoopGroup} or {@link DefaultEventLoopGroupFactory}.
+     * @return The default {@link SdkEventLoopGroup} that will be shared across all service clients.
+     * This is used when the customer does not specify a custom {@link SdkEventLoopGroup} or {@link SdkEventLoopGroup.Builder}.
      */
     @SdkInternalApi
-    public static synchronized EventLoopGroup get() {
-        if (sharedEventLoopGroup == null) {
-            sharedEventLoopGroup = DefaultEventLoopGroupFactory.builder().build().create();
+    public static synchronized SdkEventLoopGroup get() {
+        if (sharedSdkEventLoopGroup == null) {
+            sharedSdkEventLoopGroup = SdkEventLoopGroup.builder().build();
         }
         referenceCount++;
-        return new ReferenceCountingEventLoopGroup(sharedEventLoopGroup);
+        return SdkEventLoopGroup.create(new ReferenceCountingEventLoopGroup(sharedSdkEventLoopGroup.eventLoopGroup()),
+                                        sharedSdkEventLoopGroup.channelFactory());
     }
 
     /**
@@ -62,8 +63,8 @@ public final class SharedEventLoopGroup {
     private static synchronized void decrementReference() {
         referenceCount--;
         if (referenceCount == 0) {
-            sharedEventLoopGroup.shutdownGracefully();
-            sharedEventLoopGroup = null;
+            sharedSdkEventLoopGroup.eventLoopGroup().shutdownGracefully();
+            sharedSdkEventLoopGroup = null;
         }
     }
 

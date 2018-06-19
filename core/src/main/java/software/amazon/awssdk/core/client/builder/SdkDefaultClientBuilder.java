@@ -333,12 +333,12 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         return thisBuilder();
     }
 
-    public final B asyncHttpClient(SdkAsyncHttpClient httpClient) {
+    public final B httpClient(SdkAsyncHttpClient httpClient) {
         clientConfiguration.option(ASYNC_HTTP_CLIENT, httpClient);
         return thisBuilder();
     }
 
-    public final B asyncHttpClientBuilder(SdkAsyncHttpClient.Builder httpClientBuilder) {
+    public final B httpClientBuilder(SdkAsyncHttpClient.Builder httpClientBuilder) {
         this.asyncHttpClientBuilder = httpClientBuilder;
         return thisBuilder();
     }
