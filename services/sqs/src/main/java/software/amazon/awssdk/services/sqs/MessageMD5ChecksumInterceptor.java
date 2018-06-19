@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -71,8 +73,8 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
 
     @Override
     public void afterExecution(Context.AfterExecution context, ExecutionAttributes executionAttributes) {
-        Object response = context.response();
-        Object originalRequest = context.request();
+        SdkResponse response = context.response();
+        SdkRequest originalRequest = context.request();
         if (response != null) {
             if (originalRequest instanceof SendMessageRequest) {
                 SendMessageRequest sendMessageRequest = (SendMessageRequest) originalRequest;

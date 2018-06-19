@@ -29,15 +29,11 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 @SdkPublicApi
 public final class Aws4Signer extends AbstractAws4Signer<Aws4SignerParams, Aws4PresignerParams> {
 
-    private Aws4Signer(Builder builder) {
-    }
-
-    public static Builder builder() {
-        return new Builder();
+    private Aws4Signer() {
     }
 
     public static Aws4Signer create() {
-        return builder().build();
+        return new Aws4Signer();
     }
 
     @Override
@@ -104,11 +100,5 @@ public final class Aws4Signer extends AbstractAws4Signer<Aws4SignerParams, Aws4P
     protected String calculateContentHashPresign(SdkHttpFullRequest.Builder mutableRequest,
                                                  Aws4PresignerParams signerParams) {
         return calculateContentHash(mutableRequest, signerParams);
-    }
-
-    public static final class Builder  {
-        public Aws4Signer build() {
-            return new Aws4Signer(this);
-        }
     }
 }

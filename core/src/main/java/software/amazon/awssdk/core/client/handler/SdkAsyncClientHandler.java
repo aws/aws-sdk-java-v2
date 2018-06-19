@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration
 @SdkProtectedApi
 public class SdkAsyncClientHandler extends BaseAsyncClientHandler implements AsyncClientHandler {
 
-    protected SdkAsyncClientHandler(SdkClientConfiguration clientConfiguration) {
+    public SdkAsyncClientHandler(SdkClientConfiguration clientConfiguration) {
         super(clientConfiguration, new AmazonAsyncHttpClient(clientConfiguration));
         SdkClientOptionValidation.validateAsyncClientOptions(clientConfiguration);
     }

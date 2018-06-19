@@ -51,7 +51,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 /**
  * Abstract base class for the AWS SigV4 signer implementations.
  * @param <T> Type of the signing params class that is used for signing the request
- * @param <U>Type of the signing params class that is used for pre signing the request
+ * @param <U> Type of the signing params class that is used for pre signing the request
  */
 @SdkProtectedApi
 public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends Aws4PresignerParams>
@@ -105,7 +105,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
         SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
 
-        long expirationInSeconds = generateExpirationTime(signingParams.expirationTime());
+        long expirationInSeconds = generateExpirationTime(signingParams);
         addHostHeader(mutableRequest);
 
         AwsCredentials sanitizedCredentials = sanitizeCredentials(signingParams.awsCredentials());
@@ -378,11 +378,10 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
      * Generates an expiration time for the presigned url. If user has specified
      * an expiration time, check if it is in the given limit.
      */
-    private long generateExpirationTime(Instant expirationTime) {
+    private long generateExpirationTime(U signingParams) {
 
-        long expirationInSeconds = expirationTime != null
-                                   ? expirationTime.getEpochSecond()
-                                   : SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS;
+        long expirationInSeconds = signingParams.expirationTime().map(Instant::getEpochSecond)
+                                                 .orElse(SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS);
 
         if (expirationInSeconds > SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS) {
             throw new SdkClientException(

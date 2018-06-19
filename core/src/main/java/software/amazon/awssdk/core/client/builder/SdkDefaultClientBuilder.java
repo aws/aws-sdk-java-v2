@@ -24,7 +24,6 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HT
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_RETRY_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
-import static software.amazon.awssdk.core.client.config.SdkClientOption.GZIP_ENABLED;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
 import static software.amazon.awssdk.utils.CollectionUtils.mergeLists;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
@@ -186,8 +185,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * Apply global default configuration
      */
     private SdkClientConfiguration mergeGlobalDefaults(SdkClientConfiguration configuration) {
-        return configuration.merge(c -> c.option(GZIP_ENABLED, false)
-                                         .option(EXECUTION_INTERCEPTORS, new ArrayList<>())
+        return configuration.merge(c -> c.option(EXECUTION_INTERCEPTORS, new ArrayList<>())
                                          .option(ADDITIONAL_HTTP_HEADERS, new LinkedHashMap<>())
                                          .option(RETRY_POLICY, RetryPolicy.DEFAULT)
                                          .option(USER_AGENT_PREFIX, UserAgentUtils.getUserAgent())
@@ -313,12 +311,11 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     @Override
     public final B overrideConfiguration(ClientOverrideConfiguration overrideConfig) {
         clientConfiguration.option(EXECUTION_INTERCEPTORS, overrideConfig.executionInterceptors());
-        clientConfiguration.option(RETRY_POLICY, overrideConfig.retryPolicy());
+        clientConfiguration.option(RETRY_POLICY, overrideConfig.retryPolicy().orElse(null));
         clientConfiguration.option(ADDITIONAL_HTTP_HEADERS, overrideConfig.additionalHttpHeaders());
-        clientConfiguration.option(GZIP_ENABLED, overrideConfig.gzipEnabled());
-        clientConfiguration.option(SIGNER, overrideConfig.advancedOption(SIGNER));
-        clientConfiguration.option(USER_AGENT_SUFFIX, overrideConfig.advancedOption(USER_AGENT_SUFFIX));
-        clientConfiguration.option(USER_AGENT_PREFIX, overrideConfig.advancedOption(USER_AGENT_PREFIX));
+        clientConfiguration.option(SIGNER, overrideConfig.advancedOption(SIGNER).orElse(null));
+        clientConfiguration.option(USER_AGENT_SUFFIX, overrideConfig.advancedOption(USER_AGENT_SUFFIX).orElse(null));
+        clientConfiguration.option(USER_AGENT_PREFIX, overrideConfig.advancedOption(USER_AGENT_PREFIX).orElse(null));
         return thisBuilder();
     }
 

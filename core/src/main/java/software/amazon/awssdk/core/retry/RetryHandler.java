@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.retry;
 import static java.util.Collections.singletonList;
 
 import java.time.Duration;
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponse;
@@ -37,7 +36,7 @@ public final class RetryHandler {
     private Duration lastBackoffDelay = Duration.ZERO;
     private boolean retryCapacityConsumed;
     private RetryPolicyContext retryPolicyContext;
-    private Optional<SdkException> lastRetriedException = Optional.empty();
+    private SdkException lastRetriedException;
 
     public RetryHandler(RetryPolicy retryPolicy,
                         CapacityManager retryCapacity) {
@@ -132,13 +131,13 @@ public final class RetryHandler {
      * @param exception - the last exception seen
      */
     public void setLastRetriedException(SdkException exception) {
-        this.lastRetriedException = Optional.of(exception);
+        this.lastRetriedException = exception;
     }
 
     /**
      * Whether or not the current request is a retry. True if the original request has been retried at least one time.
      */
     public boolean isRetry() {
-        return lastRetriedException.isPresent();
+        return lastRetriedException != null;
     }
 }
