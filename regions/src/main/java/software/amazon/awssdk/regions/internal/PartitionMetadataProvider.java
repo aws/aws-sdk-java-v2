@@ -23,9 +23,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.RegionMetadata;
 import software.amazon.awssdk.regions.ServiceMetadata;
-import software.amazon.awssdk.regions.ServiceMetadataProvider;
 import software.amazon.awssdk.regions.internal.model.Partition;
-import software.amazon.awssdk.regions.providers.PartitionServiceMetadata;
 import software.amazon.awssdk.utils.Validate;
 
 /**

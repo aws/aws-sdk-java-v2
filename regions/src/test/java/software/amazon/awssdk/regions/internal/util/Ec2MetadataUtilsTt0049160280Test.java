@@ -13,10 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions.util;
+package software.amazon.awssdk.regions.internal.util;
 
 import org.junit.Assert;
 import org.junit.Test;
+import software.amazon.awssdk.regions.internal.util.EC2MetadataUtils;
 
 public class Ec2MetadataUtilsTt0049160280Test {
     private static final String JSON = "{"
