@@ -17,6 +17,7 @@ package software.amazon.awssdk.utils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -83,6 +84,14 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
     @Override
     public void close() {
         attributes.values().forEach(v -> IoUtils.closeIfCloseable(v, null));
+        attributes.values().forEach(this::shutdownIfExecutorService);
+    }
+
+    private void shutdownIfExecutorService(Object object) {
+        if (object instanceof ExecutorService) {
+            ExecutorService executor = (ExecutorService) object;
+            executor.shutdown();
+        }
     }
 
     /**
@@ -126,7 +135,7 @@ public final class AttributeMap implements ToCopyableBuilder<AttributeMap.Builde
         /**
          * Validate the provided value is of the correct type and convert it to the proper type for this option.
          */
-        final T convertValue(Object value) {
+        public final T convertValue(Object value) {
             validateValue(value);
 
             @SuppressWarnings("unchecked") // Only actually unchecked if UnsafeValueType is used.

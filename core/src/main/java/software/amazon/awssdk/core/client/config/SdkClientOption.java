@@ -41,11 +41,6 @@ public class SdkClientOption<T> extends ClientOption<T> {
             new SdkClientOption<>(new UnsafeValueType(Map.class));
 
     /**
-     * @see ClientOverrideConfiguration#gzipEnabled()
-     */
-    public static final SdkClientOption<Boolean> GZIP_ENABLED = new SdkClientOption<>(Boolean.class);
-
-    /**
      * @see ClientOverrideConfiguration#retryPolicy()
      */
     public static final SdkClientOption<RetryPolicy> RETRY_POLICY = new SdkClientOption<>(RetryPolicy.class);

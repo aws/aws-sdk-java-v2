@@ -89,7 +89,7 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
     }
 
     private static URI dualstackEndpoint(RegionMetadata metadata) {
-        String serviceEndpoint = String.format("%s.%s.%s.%s", "s3", "dualstack", metadata.getName(), metadata.getDomain());
+        String serviceEndpoint = String.format("%s.%s.%s.%s", "s3", "dualstack", metadata.name(), metadata.domain());
         return toUri(serviceEndpoint);
     }
 
@@ -113,9 +113,9 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
      */
     private static URI accelerateEndpoint(S3Configuration serviceConfiguration, RegionMetadata metadata) {
         if (serviceConfiguration.dualstackEnabled()) {
-            return toUri("s3-accelerate.dualstack." + metadata.getDomain());
+            return toUri("s3-accelerate.dualstack." + metadata.domain());
         }
-        return toUri("s3-accelerate." + metadata.getDomain());
+        return toUri("s3-accelerate." + metadata.domain());
     }
 
     private static URI toUri(String endpoint) throws IllegalArgumentException {

@@ -76,12 +76,12 @@ public class PartitionServiceMetadataTest {
 
     @Test
     public void endpointFor_ReturnsEndpoint_ForAllRegionalizedServices_When_AwsUsGovPartition() {
-        AWS_US_GOV_PARTITION_REGIONALIZED_SERVICES.forEach(s -> ServiceMetadata.of(s).endpointFor(Region.GovCloud.US_GOV_WEST_1));
+        AWS_US_GOV_PARTITION_REGIONALIZED_SERVICES.forEach(s -> ServiceMetadata.of(s).endpointFor(Region.US_GOV_WEST_1));
     }
 
     @Test
     public void endpointFor_ReturnsEndpoint_ForAllGlobalServices_When_AwsUsGovGlobalRegion() {
-        AWS_US_GOV_PARTITION_GLOBAL_SERVICES.forEach(s -> ServiceMetadata.of(s).endpointFor(Region.GovCloud.AWS_US_GOV_GLOBAL));
+        AWS_US_GOV_PARTITION_GLOBAL_SERVICES.forEach(s -> ServiceMetadata.of(s).endpointFor(Region.AWS_US_GOV_GLOBAL));
     }
 
     @Test

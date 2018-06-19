@@ -190,7 +190,7 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
     }
 
     private String getHost() {
-        return String.format("%s.s3-%s.amazonaws.com", BUCKET_NAME, DEFAULT_REGION.value());
+        return String.format("%s.s3-%s.amazonaws.com", BUCKET_NAME, DEFAULT_REGION.id());
     }
 
     private String getPath() {

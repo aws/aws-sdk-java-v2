@@ -18,6 +18,7 @@ package software.amazon.awssdk.utils;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.time.Duration;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -43,6 +44,13 @@ public final class ExecutorUtils {
         return new ThreadPoolExecutor(0, 1, 5, SECONDS,
                                       new LinkedBlockingQueue<>(queueCapacity),
                                       new ThreadFactoryBuilder().daemonThreads(true).threadNamePrefix(threadNameFormat).build());
+    }
+
+    /**
+     * Wrap an executor in a type that cannot be closed, or shut down.
+     */
+    public static Executor unmanagedExecutor(Executor executor) {
+        return new UnmanagedExecutor(executor);
     }
 
     /**
@@ -82,6 +90,19 @@ public final class ExecutorUtils {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             LOG.warn("Interrupted while waiting for the executor service to shut down.");
+        }
+    }
+
+    private static class UnmanagedExecutor implements Executor {
+        private final Executor executor;
+
+        private UnmanagedExecutor(Executor executor) {
+            this.executor = executor;
+        }
+
+        @Override
+        public void execute(Runnable command) {
+            executor.execute(command);
         }
     }
 }

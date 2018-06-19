@@ -69,7 +69,7 @@ public class DynamoDBS3IntegrationTestBase extends DynamoDBIntegrationTestBase {
                          .build();
 
         createBucket(s3East, EAST_BUCKET, null);
-        createBucket(s3West, WEST_BUCKET, Region.US_WEST_2.value());
+        createBucket(s3West, WEST_BUCKET, Region.US_WEST_2.id());
     }
 
     @AfterClass

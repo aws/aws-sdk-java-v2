@@ -15,10 +15,14 @@
 
 package software.amazon.awssdk.core.client.config;
 
+import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
+
 import java.util.Map;
+import java.util.concurrent.Executor;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.ExecutorUtils;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -83,7 +87,12 @@ public final class ClientAsyncConfiguration
 
         @Override
         public <T> Builder advancedOption(SdkAdvancedAsyncClientOption<T> option, T value) {
-            this.advancedOptions.put(option, value);
+            if (option == FUTURE_COMPLETION_EXECUTOR) {
+                Executor executor = FUTURE_COMPLETION_EXECUTOR.convertValue(value);
+                this.advancedOptions.put(FUTURE_COMPLETION_EXECUTOR, ExecutorUtils.unmanagedExecutor(executor));
+            } else {
+                this.advancedOptions.put(option, value);
+            }
             return this;
         }
 
