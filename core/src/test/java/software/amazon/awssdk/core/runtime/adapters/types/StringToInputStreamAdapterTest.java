@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNull;
 import java.io.IOException;
 import java.io.InputStream;
 import org.junit.Test;
+import software.amazon.awssdk.core.adapter.StringToInputStreamAdapter;
 
 public class StringToInputStreamAdapterTest {
 

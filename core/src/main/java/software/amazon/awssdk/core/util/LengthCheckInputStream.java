@@ -20,7 +20,7 @@ import java.io.InputStream;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.runtime.io.SdkFilterInputStream;
+import software.amazon.awssdk.core.io.SdkFilterInputStream;
 
 /**
  * Used to perform length check to ensure the number of bytes read from the

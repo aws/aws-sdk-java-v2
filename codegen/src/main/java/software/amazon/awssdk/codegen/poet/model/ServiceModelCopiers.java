@@ -26,7 +26,7 @@ import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
-import software.amazon.awssdk.core.runtime.StandardMemberCopier;
+import software.amazon.awssdk.core.internal.StandardMemberCopier;
 
 public class ServiceModelCopiers {
     private final IntermediateModel intermediateModel;

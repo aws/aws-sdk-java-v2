@@ -16,8 +16,8 @@
 package software.amazon.awssdk.core.retry.conditions;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.retry.RetryUtils;
-import software.amazon.awssdk.core.retry.SdkDefaultRetrySetting;
 
 /**
  * Contains predefined {@link RetryCondition} provided by SDK.

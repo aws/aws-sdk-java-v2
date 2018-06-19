@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.Crc32MismatchException;
-import software.amazon.awssdk.core.runtime.io.SdkFilterInputStream;
+import software.amazon.awssdk.core.io.SdkFilterInputStream;
 
 /**
  * Wraps the provided input stream with a {@link Crc32ChecksumCalculatingInputStream} and after the stream is closed

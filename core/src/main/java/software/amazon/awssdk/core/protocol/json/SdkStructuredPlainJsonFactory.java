@@ -23,6 +23,8 @@ import java.time.Instant;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.core.internal.protocol.json.BaseSdkStructuredJsonFactory;
+import software.amazon.awssdk.core.internal.protocol.json.SdkJsonGenerator;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.SimpleTypeJsonUnmarshallers;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;

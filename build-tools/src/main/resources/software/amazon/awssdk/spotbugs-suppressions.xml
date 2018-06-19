@@ -27,14 +27,14 @@
     <Match>
         <Or>
             <!-- Container classes do not copy arrays for performance reasons at this time. -->
-            <Class name="software.amazon.awssdk.core.protocol.json.JsonContent" />
+            <Class name="software.amazon.awssdk.core.internal.protocol.json.JsonContent" />
         </Or>
         <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
     </Match>
 
     <!-- Delegate closes input stream. -->
     <Match>
-        <Class name="software.amazon.awssdk.core.protocol.json.IonFactory" />
+        <Class name="software.amazon.awssdk.core.internal.protocol.json.IonFactory" />
         <Method name="createParser" />
         <Bug pattern="OBL_UNSATISFIED_OBLIGATION" />
     </Match>
@@ -44,7 +44,7 @@
     <Match>
         <Or>
             <Class name="software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDBMapper$BatchGetItemException"/>
-            <Class name="software.amazon.awssdk.core.protocol.json.IonFactory"/>
+            <Class name="software.amazon.awssdk.core.internal.protocol.json.IonFactory"/>
         </Or>
         <Bug pattern="SE_TRANSIENT_FIELD_NOT_RESTORED" />
     </Match>
