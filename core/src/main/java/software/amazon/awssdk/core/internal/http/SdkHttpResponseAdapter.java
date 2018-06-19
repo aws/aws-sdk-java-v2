@@ -61,8 +61,16 @@ public final class SdkHttpResponseAdapter {
     private static InputStream getContent(boolean calculateCrc32FromCompressedData,
                                           SdkHttpFullResponse awsHttpResponse,
                                           HttpResponse httpResponse) {
+        return awsHttpResponse.content()
+                              .map(content -> getContent(calculateCrc32FromCompressedData, httpResponse, content))
+                              .orElse(null);
+    }
+
+    private static InputStream getContent(boolean calculateCrc32FromCompressedData,
+                                          HttpResponse httpResponse,
+                                          AbortableInputStream content) {
         final Optional<Long> crc32Checksum = getCrc32Checksum(httpResponse);
-        AbortableInputStream content = awsHttpResponse.content().orElse(null);
+
         if (shouldDecompress(httpResponse)) {
             if (calculateCrc32FromCompressedData && crc32Checksum.isPresent()) {
                 return decompressing(crc32Validating(content, crc32Checksum.get()));
@@ -74,6 +82,7 @@ public final class SdkHttpResponseAdapter {
         } else if (crc32Checksum.isPresent()) {
             return crc32Validating(content, crc32Checksum.get());
         }
+
         return content;
     }
 
