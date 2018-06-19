@@ -20,8 +20,8 @@ import java.net.URI;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.regions.util.HttpResourcesUtils;
-import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
+import software.amazon.awssdk.regions.internal.util.HttpResourcesUtils;
+import software.amazon.awssdk.regions.internal.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.utils.ToString;
 
 /**

@@ -13,12 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions;
+package software.amazon.awssdk.regions.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.regions.ServiceMetadata;
 
 @SdkInternalApi
 public interface ServiceMetadataProvider {
-
     ServiceMetadata getServiceMetadata(String service);
 }
