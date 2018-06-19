@@ -13,14 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions;
+package software.amazon.awssdk.regions.internal;
 
 import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.regions.internal.PartitionMetadataProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.RegionMetadata;
+import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.internal.model.Partitions;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -58,7 +60,7 @@ public final class RegionMetadataLoader {
      * <p/>
      * Builds the {@link RegionMetadata} from the partition files.
      */
-    protected static RegionMetadata getRegionMetadata(Region region) {
+    public static RegionMetadata getRegionMetadata(Region region) {
         if (provider == null) {
             build();
         }
@@ -66,7 +68,7 @@ public final class RegionMetadataLoader {
         return provider.getRegionMetadata(region);
     }
 
-    protected static ServiceMetadata getServiceMetadata(String serviceEndpointPrefix) {
+    public static ServiceMetadata getServiceMetadata(String serviceEndpointPrefix) {
         if (provider == null) {
             build();
         }

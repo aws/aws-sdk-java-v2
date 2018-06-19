@@ -18,8 +18,8 @@ package software.amazon.awssdk.auth.credentials;
 import java.io.IOException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.HttpStatusFamily;
-import software.amazon.awssdk.regions.util.ResourcesEndpointRetryParameters;
-import software.amazon.awssdk.regions.util.ResourcesEndpointRetryPolicy;
+import software.amazon.awssdk.regions.internal.util.ResourcesEndpointRetryParameters;
+import software.amazon.awssdk.regions.internal.util.ResourcesEndpointRetryPolicy;
 
 @SdkInternalApi
 final class ContainerCredentialsRetryPolicy implements ResourcesEndpointRetryPolicy {

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions.providers;
+package software.amazon.awssdk.regions.internal;
 
 import java.net.URI;
 import java.util.ArrayList;

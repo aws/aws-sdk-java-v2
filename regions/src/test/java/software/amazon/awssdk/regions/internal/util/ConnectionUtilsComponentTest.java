@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.regions.util;
+package software.amazon.awssdk.regions.internal.util;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,6 +31,7 @@ import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import software.amazon.awssdk.regions.internal.util.ConnectionUtils;
 
 public class ConnectionUtilsComponentTest {
 
