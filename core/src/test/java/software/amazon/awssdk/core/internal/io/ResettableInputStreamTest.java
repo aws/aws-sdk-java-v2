@@ -30,8 +30,8 @@ import java.util.Optional;
 import org.apache.commons.io.IOUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.runtime.io.ReleasableInputStream;
-import software.amazon.awssdk.core.runtime.io.ResettableInputStream;
+import software.amazon.awssdk.core.io.ReleasableInputStream;
+import software.amazon.awssdk.core.io.ResettableInputStream;
 
 public class ResettableInputStreamTest {
 

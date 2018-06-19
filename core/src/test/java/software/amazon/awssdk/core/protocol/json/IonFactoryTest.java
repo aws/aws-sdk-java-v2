@@ -28,6 +28,8 @@ import java.net.URLConnection;
 import java.net.URLStreamHandler;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.core.internal.protocol.json.IonFactory;
+import software.amazon.awssdk.core.internal.protocol.json.IonParser;
 import software.amazon.ion.system.IonSystemBuilder;
 
 public class IonFactoryTest {

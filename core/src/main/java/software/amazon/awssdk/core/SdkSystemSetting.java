@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.core;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.SystemSetting;
 
 /**
  * System properties to configure the SDK runtime.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public enum SdkSystemSetting implements SystemSetting {
 
     /**

@@ -36,9 +36,9 @@ import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.internal.http.SdkJsonErrorResponseHandler;
+import software.amazon.awssdk.core.internal.protocol.json.SdkJsonErrorUnmarshaller;
 import software.amazon.awssdk.core.protocol.json.SdkJsonErrorMessageParser;
-import software.amazon.awssdk.core.protocol.json.SdkJsonErrorUnmarshaller;
-import software.amazon.awssdk.core.runtime.http.response.SdkJsonErrorResponseHandler;
 import software.amazon.awssdk.core.util.StringInputStream;
 import utils.ValidSdkObjects;
 

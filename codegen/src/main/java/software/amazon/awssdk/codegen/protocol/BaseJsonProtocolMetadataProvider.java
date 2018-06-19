@@ -16,7 +16,7 @@
 package software.amazon.awssdk.codegen.protocol;
 
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
-import software.amazon.awssdk.core.protocol.json.internal.JsonMarshallerContext;
+import software.amazon.awssdk.core.internal.protocol.json.JsonMarshallerContext;
 
 /**
  * Base class for all JSON based protocols. This includes {@link AwsCborProtocolMetadataProvider}.

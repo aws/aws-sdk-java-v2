@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.runtime.io.SdkFilterInputStream;
+import software.amazon.awssdk.core.io.SdkFilterInputStream;
 import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.utils.Validate;
