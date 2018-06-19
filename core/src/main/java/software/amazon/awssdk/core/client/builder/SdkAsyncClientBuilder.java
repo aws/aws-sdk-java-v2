@@ -50,7 +50,7 @@ public interface SdkAsyncClientBuilder<B extends SdkAsyncClientBuilder<B, C>, C>
      * shared between multiple SDK service clients to share a common connection pool. To create a client you must use an
      * implementation specific builder. Note that this method is only recommended when you wish to share an HTTP client across
      * multiple SDK service clients. If you do not wish to share HTTP clients, it is recommended to use
-     * {@link #asyncHttpClientBuilder(SdkAsyncHttpClient.Builder)} so that service specific default configuration may be applied.
+     * {@link #httpClientBuilder(SdkAsyncHttpClient.Builder)} so that service specific default configuration may be applied.
      *
      * <p>
      * <b>This client must be closed by the caller when it is ready to be disposed. The SDK will not close the HTTP client
@@ -59,7 +59,7 @@ public interface SdkAsyncClientBuilder<B extends SdkAsyncClientBuilder<B, C>, C>
      *
      * @return This builder for method chaining.
      */
-    B asyncHttpClient(SdkAsyncHttpClient httpClient);
+    B httpClient(SdkAsyncHttpClient httpClient);
 
     /**
      * Sets a custom HTTP client builder that will be used to obtain a configured instance of {@link SdkAsyncHttpClient}. Any
@@ -73,5 +73,5 @@ public interface SdkAsyncClientBuilder<B extends SdkAsyncClientBuilder<B, C>, C>
      *
      * @return This builder for method chaining.
      */
-    B asyncHttpClientBuilder(SdkAsyncHttpClient.Builder httpClientBuilder);
+    B httpClientBuilder(SdkAsyncHttpClient.Builder httpClientBuilder);
 }

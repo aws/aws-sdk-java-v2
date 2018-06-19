@@ -126,7 +126,7 @@ public class DefaultAwsClientBuilderTest {
     public void clientFactoryProvided_ClientIsManagedBySdk() {
         TestClient client = testClientBuilder()
             .region(Region.US_WEST_2)
-            .httpClientBuilder(serviceDefaults -> {
+            .httpClientBuilder((SdkHttpClient.Builder) serviceDefaults -> {
                 assertThat(serviceDefaults).isEqualTo(MOCK_DEFAULTS);
                 return mock(SdkHttpClient.class);
             })
@@ -140,7 +140,7 @@ public class DefaultAwsClientBuilderTest {
     public void asyncHttpClientFactoryProvided_ClientIsManagedBySdk() {
         TestAsyncClient client = testAsyncClientBuilder()
             .region(Region.US_WEST_2)
-            .asyncHttpClientBuilder(serviceDefaults -> {
+            .httpClientBuilder((SdkAsyncHttpClient.Builder) serviceDefaults -> {
                 assertThat(serviceDefaults).isEqualTo(MOCK_DEFAULTS);
                 return mock(SdkAsyncHttpClient.class);
             })
@@ -165,7 +165,7 @@ public class DefaultAwsClientBuilderTest {
     public void explicitAsyncHttpClientProvided_ClientIsNotManagedBySdk() {
         TestAsyncClient client = testAsyncClientBuilder()
             .region(Region.US_WEST_2)
-            .asyncHttpClient(mock(SdkAsyncHttpClient.class))
+            .httpClient(mock(SdkAsyncHttpClient.class))
             .build();
         assertThat(client.clientConfiguration.option(SdkClientOption.ASYNC_HTTP_CLIENT))
             .isInstanceOf(AwsDefaultClientBuilder.NonManagedSdkAsyncHttpClient.class);
