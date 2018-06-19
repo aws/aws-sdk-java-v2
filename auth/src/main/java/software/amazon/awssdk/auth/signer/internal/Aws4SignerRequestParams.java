@@ -83,7 +83,7 @@ public final class Aws4SignerRequestParams {
     }
 
     private String getRegion(Region region) {
-        return region != null ? region.value() : null;
+        return region != null ? region.id() : null;
     }
 
     /**

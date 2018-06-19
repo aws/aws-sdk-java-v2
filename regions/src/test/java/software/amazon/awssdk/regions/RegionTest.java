@@ -15,7 +15,10 @@
 package software.amazon.awssdk.regions;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertSame;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.Test;
 
 public class RegionTest {
@@ -38,6 +41,23 @@ public class RegionTest {
     @Test
     public void of_ReturnsRegion_WhenValidString() {
         Region region = Region.of("us-east-1");
-        assertThat(region.value()).isEqualTo("us-east-1");
+        assertThat(region.id()).isEqualTo("us-east-1");
+        assertSame(Region.US_EAST_1, region);
+    }
+
+    @Test
+    public void sameValueSameClassAreSameInstance() {
+        Region first = Region.of("first");
+        Region alsoFirst = Region.of("first");
+
+        assertThat(first).isSameAs(alsoFirst);
+    }
+
+    @Test
+    public void canBeUsedAsKeysInMap() {
+        Map<Region, String> someMap = new HashMap<>();
+        someMap.put(Region.of("key"), "A Value");
+
+        assertThat(someMap.get(Region.of("key"))).isEqualTo("A Value");
     }
 }

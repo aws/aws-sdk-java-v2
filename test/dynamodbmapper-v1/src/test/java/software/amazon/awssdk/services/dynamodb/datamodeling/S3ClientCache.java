@@ -65,7 +65,7 @@ public class S3ClientCache {
      *            be detected automatically.
      */
     public void useClient(S3Client client, Region region) {
-        clientsByRegion.put(region.value(), client);
+        clientsByRegion.put(region.id(), client);
     }
 
     /**
@@ -88,7 +88,7 @@ public class S3ClientCache {
         if (region == null) {
             throw new IllegalArgumentException("S3 region must be specified");
         }
-        return getClient(region.value());
+        return getClient(region.id());
     }
 
     /**
