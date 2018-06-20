@@ -39,10 +39,10 @@ public abstract class JsonErrorUnmarshaller<T extends SdkServiceException> exten
 
     @Override
     @ReviewBeforeRelease("Figure out a better way to go from exception class to it's builder class in order to perform the " +
-                         "deserialization")
+                         "deserialization.")
     @SuppressWarnings("unchecked")
     public T unmarshall(JsonNode jsonContent) throws Exception {
-        // FIXME: dirty hack below
+        // FIXME: Generate Unmarshallers for each type instead of using reflection
         try {
             Method builderClassGetter = exceptionClass.getDeclaredMethod("serializableBuilderClass");
             makeAccessible(builderClassGetter);
