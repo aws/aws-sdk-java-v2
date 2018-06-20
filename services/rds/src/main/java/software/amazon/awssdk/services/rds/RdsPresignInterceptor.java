@@ -50,8 +50,6 @@ abstract class RdsPresignInterceptor<T extends RdsRequest> implements ExecutionI
     private static final String PARAM_PRESIGNED_URL = "PreSignedUrl";
 
     protected interface PresignableRequest {
-        void setPreSignedUrl(String preSignedUrl);
-
         String getSourceRegion();
 
         Request<?> marshall();
@@ -105,8 +103,6 @@ abstract class RdsPresignInterceptor<T extends RdsRequest> implements ExecutionI
         requestToPresign = presignRequest(requestToPresign, executionAttributes, sourceRegion);
 
         final String presignedUrl = requestToPresign.getUri().toString();
-
-        presignableRequest.setPreSignedUrl(presignedUrl);
 
         return request.toBuilder()
                       .rawQueryParameter(PARAM_PRESIGNED_URL, presignedUrl)
