@@ -13,13 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.util;
+package software.amazon.awssdk.services.dynamodb;
 
 import java.util.Arrays;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@ReviewBeforeRelease("Remove before GA")
 @SdkProtectedApi
 public final class ImmutableObjectUtils {
 
@@ -28,15 +26,15 @@ public final class ImmutableObjectUtils {
 
     public static <T> void setObjectMember(Object o, String memberName, T value) {
         Arrays.stream(o.getClass().getDeclaredFields())
-                .filter(f -> f.getName().equals(memberName))
-                .findFirst()
-                .ifPresent(f -> {
-                    f.setAccessible(true);
-                    try {
-                        f.set(o, value);
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException("Unable to reflectively set member " + memberName);
-                    }
-                });
+              .filter(f -> f.getName().equals(memberName))
+              .findFirst()
+              .ifPresent(f -> {
+                  f.setAccessible(true);
+                  try {
+                      f.set(o, value);
+                  } catch (IllegalAccessException e) {
+                      throw new RuntimeException("Unable to reflectively set member " + memberName);
+                  }
+              });
     }
 }
