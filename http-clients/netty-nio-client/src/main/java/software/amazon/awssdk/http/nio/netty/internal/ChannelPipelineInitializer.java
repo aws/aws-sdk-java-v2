@@ -26,7 +26,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.codec.http.HttpClientCodec;
-import io.netty.handler.codec.http2.Http2MultiplexCodecBuilder;
+import io.netty.handler.codec.http2.ForkedHttp2MultiplexCodecBuilder;
 import io.netty.handler.codec.http2.Http2SettingsFrame;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.ssl.SslContext;
@@ -73,7 +73,7 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
     }
 
     private void configureHttp2(Channel ch, ChannelPipeline pipeline) {
-        pipeline.addLast(Http2MultiplexCodecBuilder
+        pipeline.addLast(ForkedHttp2MultiplexCodecBuilder
                              .forClient(new NoOpChannelInitializer())
                              // TODO disable frame logging for performance
                              .frameLogger(new SdkHttp2FrameLogger(LogLevel.DEBUG))

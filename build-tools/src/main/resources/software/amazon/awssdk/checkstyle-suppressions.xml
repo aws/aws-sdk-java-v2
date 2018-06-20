@@ -30,6 +30,9 @@
     <suppress checks=".*"
               files=".*BetterFixedChannelPool\.java$"/>
 
+    <suppress checks=".*"
+              files=".*[\\/]io[\\/]netty[\\/]handler[\\/]codec[\\/]http2[\\/].*\.java$"/>
+
     <!-- Kinesis has some generated code in source for H2 which fails checkstyle -->
     <suppress checks=".*"
               files=".*[\\/]software/amazon/awssdk/services/kinesis[\\/].+\.java$"/>
