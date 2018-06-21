@@ -145,7 +145,6 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         return ToString.builder("ProxyConfiguration")
                        .add("endpoint", endpoint)
                        .add("username", username)
-                       .add("password", password)
                        .add("ntlmDomain", ntlmDomain)
                        .add("ntlmWorkstation", ntlmWorkstation)
                        .add("nonProxyHosts", nonProxyHosts)
