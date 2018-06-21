@@ -110,7 +110,7 @@ Please keep the following in mind when considering a code contribution:
 
 ### Your First Code Change
 For detailed information on getting started building and making code changes to
-the SDK, refer to our [Working on the SDK][working-on-the-sdk] wiki page.
+the SDK, refer to our [Working on the SDK](./docs/GettingStarted.md) doc
 
 ### Pull Request Readiness
 Before submitting your pull request, refer to the pull request readiness
@@ -153,7 +153,7 @@ asked to [squash][git-rewriting-history] them into a single commit before it is
 merged in.
 
 ## Additional Resources
-We maintain a [wiki][wiki] where information like design decisions, internal
+We maintain [docs](docs/README.md) where information like design decisions, internal
 architecture, and style conventions are documented that you may find helpful
 when contributing to the SDK.
 
@@ -166,8 +166,6 @@ when contributing to the SDK.
 [issues]: https://github.com/aws/aws-sdk-java-v2/issues
 [pull-requests]: https://github.com/aws/aws-sdk-java-v2/pulls
 [cla]: https://github.com/aws/aws-cla
-[wiki]: https://github.com/aws/aws-sdk-java-v2/wiki
-[working-on-the-sdk]: https://github.com/aws/aws-sdk-java-v2/wiki/Working-on-the-SDK
 [label-bug]: https://github.com/aws/aws-sdk-java-v2/labels/Bug
 [label-doc-issue]: https://github.com/aws/aws-sdk-java-v2/labels/Documentation%20Issue
 [label-feature-request]: https://github.com/aws/aws-sdk-java-v2/labels/Feature%20Request
