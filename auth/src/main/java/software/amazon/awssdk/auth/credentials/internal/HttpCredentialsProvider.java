@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.credentials;
+package software.amazon.awssdk.auth.credentials.internal;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -22,6 +22,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.ComparableUtils;
 import software.amazon.awssdk.core.util.DateUtils;
@@ -39,10 +43,10 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * a container (e.g. an EC2 instance).
  */
 @SdkInternalApi
-abstract class HttpCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
+public abstract class HttpCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
     private final Optional<CachedSupplier<AwsCredentials>> credentialsCache;
 
-    HttpCredentialsProvider(Builder<?, ?> builder) {
+    protected HttpCredentialsProvider(Builder<?, ?> builder) {
         this(builder.asyncCredentialUpdateEnabled, builder.asyncThreadName);
     }
 
@@ -83,7 +87,7 @@ abstract class HttpCredentialsProvider implements AwsCredentialsProvider, SdkAut
             Validate.notNull(secretKey, "Failed to load secret key.");
 
             AwsCredentials credentials =
-                token == null ? new AwsCredentials(accessKey.asText(), secretKey.asText())
+                token == null ? AwsCredentials.create(accessKey.asText(), secretKey.asText())
                               : AwsSessionCredentials.create(accessKey.asText(), secretKey.asText(), token.asText());
 
             Instant expiration = getExpiration(expirationNode).orElse(null);

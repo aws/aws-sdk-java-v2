@@ -13,10 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.util;
+package software.amazon.awssdk.auth.credentials;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
 
 @SdkProtectedApi
 public final class CredentialUtils {

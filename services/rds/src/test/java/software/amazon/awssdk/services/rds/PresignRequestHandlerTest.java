@@ -30,8 +30,8 @@ import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import org.junit.Test;
 import org.mockito.Mockito;
-import software.amazon.awssdk.auth.AwsExecutionAttribute;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.core.Protocol;
@@ -170,9 +170,9 @@ public class PresignRequestHandlerTest {
     }
 
     private ExecutionAttributes executionAttributes(RdsRequest request) {
-        return new ExecutionAttributes().putAttribute(AwsExecutionAttribute.AWS_CREDENTIALS, CREDENTIALS)
-                                        .putAttribute(AwsExecutionAttribute.REQUEST_CONFIG, request.overrideConfiguration()
-                                                                                                   .orElse(AwsRequestOverrideConfiguration.builder().build()));
+        return new ExecutionAttributes().putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, CREDENTIALS)
+                                        .putAttribute(AwsSignerExecutionAttribute.REQUEST_CONFIG, request.overrideConfiguration()
+                                                                                                         .orElse(AwsRequestOverrideConfiguration.builder().build()));
     }
 
     private CopyDBSnapshotRequest makeTestRequest() {
