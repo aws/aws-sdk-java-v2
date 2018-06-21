@@ -114,8 +114,8 @@ public class AsyncResponseClassSpec extends PaginatorsClassSpec {
     private MethodSpec publicConstructor() {
         return MethodSpec.constructorBuilder()
                          .addModifiers(Modifier.PUBLIC)
-                         .addParameter(getAsyncClientInterfaceName(), CLIENT_MEMBER, Modifier.FINAL)
-                         .addParameter(requestType(), REQUEST_MEMBER, Modifier.FINAL)
+                         .addParameter(getAsyncClientInterfaceName(), CLIENT_MEMBER)
+                         .addParameter(requestType(), REQUEST_MEMBER)
                          .addStatement("this($L, $L, false)", CLIENT_MEMBER, REQUEST_MEMBER)
                          .build();
     }
@@ -123,9 +123,9 @@ public class AsyncResponseClassSpec extends PaginatorsClassSpec {
     private MethodSpec privateConstructor() {
         return MethodSpec.constructorBuilder()
                          .addModifiers(Modifier.PRIVATE)
-                         .addParameter(getAsyncClientInterfaceName(), CLIENT_MEMBER, Modifier.FINAL)
-                         .addParameter(requestType(), REQUEST_MEMBER, Modifier.FINAL)
-                         .addParameter(boolean.class, LAST_PAGE_FIELD, Modifier.FINAL)
+                         .addParameter(getAsyncClientInterfaceName(), CLIENT_MEMBER)
+                         .addParameter(requestType(), REQUEST_MEMBER)
+                         .addParameter(boolean.class, LAST_PAGE_FIELD)
                          .addStatement("this.$L = $L", CLIENT_MEMBER, CLIENT_MEMBER)
                          .addStatement("this.$L = $L", REQUEST_MEMBER, REQUEST_MEMBER)
                          .addStatement("this.$L = $L", LAST_PAGE_FIELD, LAST_PAGE_FIELD)

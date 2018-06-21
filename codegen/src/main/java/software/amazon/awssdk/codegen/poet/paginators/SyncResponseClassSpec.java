@@ -100,8 +100,8 @@ public class SyncResponseClassSpec extends PaginatorsClassSpec {
     private MethodSpec constructor() {
         return MethodSpec.constructorBuilder()
                          .addModifiers(Modifier.PUBLIC)
-                         .addParameter(getClientInterfaceName(), CLIENT_MEMBER, Modifier.FINAL)
-                         .addParameter(requestType(), REQUEST_MEMBER, Modifier.FINAL)
+                         .addParameter(getClientInterfaceName(), CLIENT_MEMBER)
+                         .addParameter(requestType(), REQUEST_MEMBER)
                          .addStatement("this.$L = $L", CLIENT_MEMBER, CLIENT_MEMBER)
                          .addStatement("this.$L = $L", REQUEST_MEMBER, REQUEST_MEMBER)
                          .addStatement("this.$L = new $L()", NEXT_PAGE_FETCHER_MEMBER, nextPageFetcherClassName())
