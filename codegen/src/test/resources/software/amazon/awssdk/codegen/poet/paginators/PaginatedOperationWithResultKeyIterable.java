@@ -75,8 +75,8 @@ public class PaginatedOperationWithResultKeyIterable implements SdkIterable<Pagi
 
     private final SyncPageFetcher nextPageFetcher;
 
-    public PaginatedOperationWithResultKeyIterable(final JsonProtocolTestsClient client,
-                                                   final PaginatedOperationWithResultKeyRequest firstRequest) {
+    public PaginatedOperationWithResultKeyIterable(JsonProtocolTestsClient client,
+                                                   PaginatedOperationWithResultKeyRequest firstRequest) {
         this.client = client;
         this.firstRequest = firstRequest;
         this.nextPageFetcher = new PaginatedOperationWithResultKeyResponseFetcher();
@@ -113,7 +113,7 @@ public class PaginatedOperationWithResultKeyIterable implements SdkIterable<Pagi
      * retrieve the consecutive pages that follows the input page.
      * </p>
      */
-    public final PaginatedOperationWithResultKeyIterable resume(final PaginatedOperationWithResultKeyResponse lastSuccessfulPage) {
+    private final PaginatedOperationWithResultKeyIterable resume(PaginatedOperationWithResultKeyResponse lastSuccessfulPage) {
         if (nextPageFetcher.hasNextPage(lastSuccessfulPage)) {
             return new PaginatedOperationWithResultKeyIterable(client, firstRequest.toBuilder()
                                                                                    .nextToken(lastSuccessfulPage.nextToken()).build());
