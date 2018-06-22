@@ -116,7 +116,10 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, properties);
+        int hashCode = 1;
+        hashCode = 31 * hashCode + Objects.hashCode(name());
+        hashCode = 31 * hashCode + Objects.hashCode(properties());
+        return hashCode;
     }
 
     /**

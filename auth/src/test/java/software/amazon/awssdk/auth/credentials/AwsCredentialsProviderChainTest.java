@@ -45,15 +45,15 @@ public class AwsCredentialsProviderChainTest {
         assertEquals(0, provider1.getCredentialsCallCount);
         assertEquals(0, provider2.getCredentialsCallCount);
 
-        chain.getCredentials();
+        chain.resolveCredentials();
         assertEquals(1, provider1.getCredentialsCallCount);
         assertEquals(1, provider2.getCredentialsCallCount);
 
-        chain.getCredentials();
+        chain.resolveCredentials();
         assertEquals(1, provider1.getCredentialsCallCount);
         assertEquals(2, provider2.getCredentialsCallCount);
 
-        chain.getCredentials();
+        chain.resolveCredentials();
         assertEquals(1, provider1.getCredentialsCallCount);
         assertEquals(3, provider2.getCredentialsCallCount);
     }
@@ -75,11 +75,11 @@ public class AwsCredentialsProviderChainTest {
         assertEquals(0, provider1.getCredentialsCallCount);
         assertEquals(0, provider2.getCredentialsCallCount);
 
-        chain.getCredentials();
+        chain.resolveCredentials();
         assertEquals(1, provider1.getCredentialsCallCount);
         assertEquals(1, provider2.getCredentialsCallCount);
 
-        chain.getCredentials();
+        chain.resolveCredentials();
         assertEquals(2, provider1.getCredentialsCallCount);
         assertEquals(2, provider2.getCredentialsCallCount);
     }
@@ -98,7 +98,7 @@ public class AwsCredentialsProviderChainTest {
 
         AwsCredentialsProviderChain chain = AwsCredentialsProviderChain.builder().credentialsProviders(provider, provider2).build();
 
-        chain.getCredentials();
+        chain.resolveCredentials();
         assertEquals(1, provider2.getCredentialsCallCount);
     }
 
@@ -118,7 +118,7 @@ public class AwsCredentialsProviderChainTest {
         thrown.expectMessage(provider1.exceptionMessage);
         thrown.expectMessage(provider2.exceptionMessage);
 
-        chain.getCredentials();
+        chain.resolveCredentials();
     }
 
 
@@ -132,18 +132,18 @@ public class AwsCredentialsProviderChainTest {
         }
 
         private MockCredentialsProvider(String exceptionMessage) {
-            staticCredentialsProvider = StaticCredentialsProvider.create(AwsCredentials.create("accessKey", "secretKey"));
+            staticCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey"));
             this.exceptionMessage = exceptionMessage;
         }
 
         @Override
-        public AwsCredentials getCredentials() {
+        public AwsCredentials resolveCredentials() {
             getCredentialsCallCount++;
 
             if (exceptionMessage != null) {
                 throw new RuntimeException(exceptionMessage);
             } else {
-                return staticCredentialsProvider.getCredentials();
+                return staticCredentialsProvider.resolveCredentials();
             }
         }
     }

@@ -35,7 +35,7 @@ import java.time.Duration;
 import java.util.UUID;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -125,7 +125,7 @@ public class ResponseTransformerTest {
         return ProtocolRestJsonClient.builder()
                                      .region(Region.US_WEST_1)
                                      .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                     .credentialsProvider(() -> AwsCredentials.create("akid", "skid"))
+                                     .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
                                      .httpClientBuilder(ApacheHttpClient.builder().socketTimeout(Duration.ofSeconds(1)))
                                      .build();
     }

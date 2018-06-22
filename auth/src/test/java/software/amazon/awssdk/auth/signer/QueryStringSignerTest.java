@@ -27,6 +27,7 @@ import java.util.TimeZone;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -34,7 +35,7 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 
 public class QueryStringSignerTest {
 
-    private static final AwsCredentials credentials = AwsCredentials.create("123456789", "123456789");
+    private static final AwsBasicCredentials credentials = AwsBasicCredentials.create("123456789", "123456789");
     private static final String EXPECTED_SIGNATURE = "VjYMhf9TWp08zAxXbKDAvUhW9GjJ56QjAuSj3LBsfjM=";
 
     private static QueryStringSigner signer;
@@ -75,7 +76,7 @@ public class QueryStringSignerTest {
                                                        .rawQueryParameter("foo", "bar")
                                                        .build();
 
-        request = signer.sign(request, constructAttributes(AnonymousCredentialsProvider.create().getCredentials()));
+        request = signer.sign(request, constructAttributes(AnonymousCredentialsProvider.create().resolveCredentials()));
 
         assertNull(request.rawQueryParameters().get("Signature"));
     }

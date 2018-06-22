@@ -132,7 +132,7 @@ public class ProfileFile {
 
     @Override
     public int hashCode() {
-        return Objects.hash(profiles);
+        return Objects.hashCode(profiles());
     }
 
     private static void addCredentialsFile(ProfileFile.Aggregator builder) {

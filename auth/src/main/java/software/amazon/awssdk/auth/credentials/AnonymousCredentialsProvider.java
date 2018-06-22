@@ -33,8 +33,8 @@ public final class AnonymousCredentialsProvider implements AwsCredentialsProvide
     }
 
     @Override
-    public AwsCredentials getCredentials() {
-        return AwsCredentials.ANONYMOUS_CREDENTIALS;
+    public AwsCredentials resolveCredentials() {
+        return AwsBasicCredentials.ANONYMOUS_CREDENTIALS;
     }
 
     @Override
