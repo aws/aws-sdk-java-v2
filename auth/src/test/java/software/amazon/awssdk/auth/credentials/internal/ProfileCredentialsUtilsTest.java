@@ -94,7 +94,7 @@ public class ProfileCredentialsUtilsTest {
             assertThat(profile.toString()).contains("default");
             assertThat(profile.property(ProfileProperty.REGION)).isNotPresent();
             assertThat(new ProfileCredentialsUtils(profile, profileFile::profile).credentialsProvider()).hasValueSatisfying(credentialsProvider -> {
-                assertThat(credentialsProvider.getCredentials()).satisfies(credentials -> {
+                assertThat(credentialsProvider.resolveCredentials()).satisfies(credentials -> {
                     assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
                     assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
                 });
@@ -108,7 +108,7 @@ public class ProfileCredentialsUtilsTest {
         assertThat(profileFile.profile("profile-with-session-token")).hasValueSatisfying(profile -> {
             assertThat(profile.property(ProfileProperty.REGION)).isNotPresent();
             assertThat(new ProfileCredentialsUtils(profile, profileFile::profile).credentialsProvider()).hasValueSatisfying(credentialsProvider -> {
-                assertThat(credentialsProvider.getCredentials()).satisfies(credentials -> {
+                assertThat(credentialsProvider.resolveCredentials()).satisfies(credentials -> {
                     assertThat(credentials).isInstanceOf(AwsSessionCredentials.class);
                     assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
                     assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");

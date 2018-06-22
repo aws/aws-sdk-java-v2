@@ -102,11 +102,11 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
     }
 
     @Override
-    public AwsCredentials getCredentials() {
+    public AwsCredentials resolveCredentials() {
         if (loadException != null) {
             throw loadException;
         }
-        return credentialsProvider.getCredentials();
+        return credentialsProvider.resolveCredentials();
     }
 
     @Override

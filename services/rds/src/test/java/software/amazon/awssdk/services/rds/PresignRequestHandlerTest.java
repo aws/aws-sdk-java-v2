@@ -30,7 +30,7 @@ import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import org.junit.Test;
 import org.mockito.Mockito;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
@@ -51,7 +51,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  * Unit Tests for {@link RdsPresignInterceptor}
  */
 public class PresignRequestHandlerTest {
-    private static final AwsCredentials CREDENTIALS = AwsCredentials.create("foo", "bar");
+    private static final AwsBasicCredentials CREDENTIALS = AwsBasicCredentials.create("foo", "bar");
     private static final Region DESTINATION_REGION = Region.of("us-west-2");
 
     private static RdsPresignInterceptor<CopyDBSnapshotRequest> presignInterceptor = new CopyDbSnapshotPresignInterceptor();

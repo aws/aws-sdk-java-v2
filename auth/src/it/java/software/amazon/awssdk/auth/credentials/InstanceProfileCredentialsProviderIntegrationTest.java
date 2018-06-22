@@ -54,7 +54,7 @@ public class InstanceProfileCredentialsProviderIntegrationTest extends LogCaptor
         mockServer.setAvailableSecurityCredentials("aws-dr-tools-test");
 
         InstanceProfileCredentialsProvider credentialsProvider = InstanceProfileCredentialsProvider.create();
-        AwsSessionCredentials credentials = (AwsSessionCredentials) credentialsProvider.getCredentials();
+        AwsSessionCredentials credentials = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
 
         assertEquals("ACCESS_KEY_ID", credentials.accessKeyId());
         assertEquals("SECRET_ACCESS_KEY", credentials.secretAccessKey());
@@ -72,7 +72,7 @@ public class InstanceProfileCredentialsProviderIntegrationTest extends LogCaptor
 
         AwsSessionCredentials credentials;
         try (InstanceProfileCredentialsProvider credentialsProvider = InstanceProfileCredentialsProvider.create()) {
-            credentials = (AwsSessionCredentials) credentialsProvider.getCredentials();
+            credentials = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
         }
 
         assertEquals("ACCESS_KEY_ID", credentials.accessKeyId());
@@ -92,7 +92,7 @@ public class InstanceProfileCredentialsProviderIntegrationTest extends LogCaptor
         try (InstanceProfileCredentialsProvider credentialsProvider = InstanceProfileCredentialsProvider.create()) {
 
             try {
-                credentialsProvider.getCredentials();
+                credentialsProvider.resolveCredentials();
                 fail("Expected an SdkClientException, but wasn't thrown");
             } catch (SdkClientException ace) {
                 assertNotNull(ace.getMessage());
@@ -107,7 +107,7 @@ public class InstanceProfileCredentialsProviderIntegrationTest extends LogCaptor
 
         try (InstanceProfileCredentialsProvider credentialsProvider = InstanceProfileCredentialsProvider.create()) {
             System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.property(), "true");
-            credentialsProvider.getCredentials();
+            credentialsProvider.resolveCredentials();
         } finally {
             System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.property());
         }

@@ -143,7 +143,7 @@ public class TT0035900619IntegrationTest {
 
     protected static AwsCredentials awsTestCredentials() {
         try {
-            return AwsIntegrationTestBase.CREDENTIALS_PROVIDER_CHAIN.getCredentials();
+            return AwsIntegrationTestBase.CREDENTIALS_PROVIDER_CHAIN.resolveCredentials();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

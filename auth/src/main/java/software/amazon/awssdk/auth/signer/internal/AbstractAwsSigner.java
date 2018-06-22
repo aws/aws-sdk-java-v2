@@ -31,6 +31,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.signer.SigningAlgorithm;
@@ -287,7 +288,7 @@ public abstract class AbstractAwsSigner implements Signer {
      * Loads the individual access key ID and secret key from the specified credentials, trimming any extra whitespace from the
      * credentials.
      *
-     * <p>Returns either a {@link AwsSessionCredentials} or a {@link AwsCredentials} object, depending on the input type.
+     * <p>Returns either a {@link AwsSessionCredentials} or a {@link AwsBasicCredentials} object, depending on the input type.
      *
      * @return A new credentials object with the sanitized credentials.
      */
@@ -302,7 +303,7 @@ public abstract class AbstractAwsSigner implements Signer {
                                                 StringUtils.trim(sessionCredentials.sessionToken()));
         }
 
-        return AwsCredentials.create(accessKeyId, secretKey);
+        return AwsBasicCredentials.create(accessKeyId, secretKey);
     }
 
     /**

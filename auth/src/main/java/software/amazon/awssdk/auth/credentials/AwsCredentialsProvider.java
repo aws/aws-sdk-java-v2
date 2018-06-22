@@ -38,5 +38,5 @@ public interface AwsCredentialsProvider {
      *
      * @return AwsCredentials which the caller can use to authorize an AWS request.
      */
-    AwsCredentials getCredentials();
+    AwsCredentials resolveCredentials();
 }

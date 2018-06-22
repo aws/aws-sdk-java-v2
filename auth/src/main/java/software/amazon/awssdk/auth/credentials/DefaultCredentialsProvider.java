@@ -88,8 +88,8 @@ public final class DefaultCredentialsProvider implements AwsCredentialsProvider,
     }
 
     @Override
-    public AwsCredentials getCredentials() {
-        return providerChain.getCredentials();
+    public AwsCredentials resolveCredentials() {
+        return providerChain.resolveCredentials();
     }
 
     @Override
@@ -129,7 +129,7 @@ public final class DefaultCredentialsProvider implements AwsCredentialsProvider,
 
         /**
          * Configure whether this provider should fetch credentials asynchronously in the background. If this is true, threads are
-         * less likely to block when {@link #getCredentials()} is called, but additional resources are used to maintain the
+         * less likely to block when {@link #resolveCredentials()} is called, but additional resources are used to maintain the
          * provider.
          *
          * <p>By default, this is disabled.</p>

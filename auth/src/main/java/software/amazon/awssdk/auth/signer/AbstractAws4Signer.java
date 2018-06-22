@@ -314,7 +314,6 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         final List<String> sortedHeaders = new ArrayList<>(headers.keySet());
         sortedHeaders.sort(String.CASE_INSENSITIVE_ORDER);
 
-        final Map<String, List<String>> requestHeaders = headers;
         StringBuilder buffer = new StringBuilder();
         for (String header : sortedHeaders) {
             if (shouldExcludeHeaderFromSigning(header)) {
@@ -322,7 +321,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
             }
             String key = lowerCase(header);
 
-            for (String headerValue : requestHeaders.get(header)) {
+            for (String headerValue : headers.get(header)) {
                 StringUtils.appendCompactedString(buffer, key);
                 buffer.append(":");
                 if (headerValue != null) {
