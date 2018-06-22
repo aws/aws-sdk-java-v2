@@ -19,7 +19,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -36,7 +35,6 @@ public class GlobalRequestHandlerTest {
     }
 
     @Test
-    @Ignore // FIXME: Fails with "region cannot be null"
     public void clientCreatedWithConstructor_RegistersGlobalHandlers() {
         assertFalse(TestGlobalExecutionInterceptor.wasCalled());
         DynamoDbClient client = DynamoDbClient.builder()
@@ -48,7 +46,6 @@ public class GlobalRequestHandlerTest {
     }
 
     @Test
-    @Ignore // FIXME: Fails with "region cannot be null"
     public void clientCreatedWithBuilder_RegistersGlobalHandlers() {
         assertFalse(TestGlobalExecutionInterceptor.wasCalled());
         DynamoDbClient client = DynamoDbClient.builder()

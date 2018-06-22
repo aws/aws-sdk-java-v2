@@ -16,7 +16,6 @@
 package software.amazon.awssdk.auth.signer;
 
 import java.time.Instant;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
@@ -29,8 +28,6 @@ import software.amazon.awssdk.regions.Region;
  * AWS-specific signing attributes attached to the execution. This information is available to {@link ExecutionInterceptor}s and
  * {@link Signer}s.
  */
-@ReviewBeforeRelease("We should also consider making some of the SDK/AWS-owned set of attributes part of the immutable context"
-                     + "if we don't want the interceptors to modify them.")
 @SdkProtectedApi
 public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
     /**

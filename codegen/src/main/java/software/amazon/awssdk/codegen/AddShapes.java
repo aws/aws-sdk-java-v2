@@ -124,8 +124,6 @@ abstract class AddShapes {
         final List<String> enumValues = shape.getEnumValues();
         if (enumValues != null && !enumValues.isEmpty()) {
             for (String enumValue : enumValues) {
-                // TODO handle useRealName if explicitly mentioned in
-                // the customization.
                 shapeModel.addEnum(
                         new EnumModel(getNamingStrategy().getEnumValueName(enumValue), enumValue));
             }
