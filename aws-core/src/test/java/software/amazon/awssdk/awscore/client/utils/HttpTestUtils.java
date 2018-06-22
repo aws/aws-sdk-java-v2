@@ -78,7 +78,7 @@ public class HttpTestUtils {
             SdkHttpClient sdkHttpClient = this.httpClient != null ? this.httpClient : testSdkHttpClient();
             return new AmazonSyncHttpClient(testClientConfiguration().toBuilder()
                                                                      .option(SdkClientOption.SYNC_HTTP_CLIENT, sdkHttpClient)
-                                                                     .apply(this::configureRetryPolicy)
+                                                                     .applyMutation(this::configureRetryPolicy)
                                                                      .build());
         }
 

@@ -100,7 +100,8 @@ public class StsAssumeRoleWithWebIdentityCredentialsProvider extends StsCredenti
          * {@link AssumeRoleWithWebIdentityRequest#builder()} and {@link AssumeRoleWithWebIdentityRequest.Builder#build()}.
          */
         public Builder refreshRequest(Consumer<AssumeRoleWithWebIdentityRequest.Builder> assumeRoleWithWebIdentityRequest) {
-            return refreshRequest(AssumeRoleWithWebIdentityRequest.builder().apply(assumeRoleWithWebIdentityRequest).build());
+            return refreshRequest(AssumeRoleWithWebIdentityRequest.builder().applyMutation(assumeRoleWithWebIdentityRequest)
+                                                                  .build());
         }
     }
 }

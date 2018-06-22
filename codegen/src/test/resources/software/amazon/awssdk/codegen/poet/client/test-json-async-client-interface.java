@@ -107,7 +107,7 @@ public interface JsonAsyncClient extends SdkClient {
      *      API Documentation</a>
      */
     default CompletableFuture<APostOperationResponse> aPostOperation(Consumer<APostOperationRequest.Builder> aPostOperationRequest) {
-        return aPostOperation(APostOperationRequest.builder().apply(aPostOperationRequest).build());
+        return aPostOperation(APostOperationRequest.builder().applyMutation(aPostOperationRequest).build());
     }
 
     /**
@@ -170,7 +170,7 @@ public interface JsonAsyncClient extends SdkClient {
      */
     default CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
         Consumer<APostOperationWithOutputRequest.Builder> aPostOperationWithOutputRequest) {
-        return aPostOperationWithOutput(APostOperationWithOutputRequest.builder().apply(aPostOperationWithOutputRequest).build());
+        return aPostOperationWithOutput(APostOperationWithOutputRequest.builder().applyMutation(aPostOperationWithOutputRequest).build());
     }
 
     /**
@@ -233,7 +233,7 @@ public interface JsonAsyncClient extends SdkClient {
      */
     default CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
         Consumer<GetWithoutRequiredMembersRequest.Builder> getWithoutRequiredMembersRequest) {
-        return getWithoutRequiredMembers(GetWithoutRequiredMembersRequest.builder().apply(getWithoutRequiredMembersRequest)
+        return getWithoutRequiredMembers(GetWithoutRequiredMembersRequest.builder().applyMutation(getWithoutRequiredMembersRequest)
                                                                          .build());
     }
 
@@ -317,7 +317,7 @@ public interface JsonAsyncClient extends SdkClient {
     default CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey(
         Consumer<PaginatedOperationWithResultKeyRequest.Builder> paginatedOperationWithResultKeyRequest) {
         return paginatedOperationWithResultKey(PaginatedOperationWithResultKeyRequest.builder()
-                                                                                     .apply(paginatedOperationWithResultKeyRequest).build());
+                                                                                     .applyMutation(paginatedOperationWithResultKeyRequest).build());
     }
 
     /**
@@ -541,7 +541,7 @@ public interface JsonAsyncClient extends SdkClient {
     default CompletableFuture<PaginatedOperationWithoutResultKeyResponse> paginatedOperationWithoutResultKey(
         Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest) {
         return paginatedOperationWithoutResultKey(PaginatedOperationWithoutResultKeyRequest.builder()
-                                                                                           .apply(paginatedOperationWithoutResultKeyRequest).build());
+                                                                                           .applyMutation(paginatedOperationWithoutResultKeyRequest).build());
     }
 
     /**
@@ -694,7 +694,7 @@ public interface JsonAsyncClient extends SdkClient {
     default PaginatedOperationWithoutResultKeyPublisher paginatedOperationWithoutResultKeyPaginator(
         Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest) {
         return paginatedOperationWithoutResultKeyPaginator(PaginatedOperationWithoutResultKeyRequest.builder()
-                                                                                                    .apply(paginatedOperationWithoutResultKeyRequest).build());
+                                                                                                    .applyMutation(paginatedOperationWithoutResultKeyRequest).build());
     }
 
     /**
@@ -758,7 +758,7 @@ public interface JsonAsyncClient extends SdkClient {
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
         Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, AsyncRequestBody requestBody) {
-        return streamingInputOperation(StreamingInputOperationRequest.builder().apply(streamingInputOperationRequest).build(),
+        return streamingInputOperation(StreamingInputOperationRequest.builder().applyMutation(streamingInputOperationRequest).build(),
                                        requestBody);
     }
 
@@ -823,7 +823,7 @@ public interface JsonAsyncClient extends SdkClient {
      */
     default CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
         Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, Path sourcePath) {
-        return streamingInputOperation(StreamingInputOperationRequest.builder().apply(streamingInputOperationRequest).build(),
+        return streamingInputOperation(StreamingInputOperationRequest.builder().applyMutation(streamingInputOperationRequest).build(),
                                        sourcePath);
     }
 
@@ -890,7 +890,7 @@ public interface JsonAsyncClient extends SdkClient {
     default <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
         Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest,
         AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
-        return streamingOutputOperation(StreamingOutputOperationRequest.builder().apply(streamingOutputOperationRequest).build(),
+        return streamingOutputOperation(StreamingOutputOperationRequest.builder().applyMutation(streamingOutputOperationRequest).build(),
                                         asyncResponseTransformer);
     }
 
@@ -953,7 +953,7 @@ public interface JsonAsyncClient extends SdkClient {
      */
     default CompletableFuture<StreamingOutputOperationResponse> streamingOutputOperation(
         Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest, Path destinationPath) {
-        return streamingOutputOperation(StreamingOutputOperationRequest.builder().apply(streamingOutputOperationRequest).build(),
+        return streamingOutputOperation(StreamingOutputOperationRequest.builder().applyMutation(streamingOutputOperationRequest).build(),
                                         destinationPath);
     }
 }

@@ -100,7 +100,7 @@ public class StsAssumeRoleWithSamlCredentialsProvider extends StsCredentialsProv
          * and {@link AssumeRoleWithSAMLRequest.Builder#build()}.
          */
         public Builder refreshRequest(Consumer<AssumeRoleWithSAMLRequest.Builder> assumeRoleWithSamlRequest) {
-            return refreshRequest(AssumeRoleWithSAMLRequest.builder().apply(assumeRoleWithSamlRequest).build());
+            return refreshRequest(AssumeRoleWithSAMLRequest.builder().applyMutation(assumeRoleWithSamlRequest).build());
         }
     }
 }

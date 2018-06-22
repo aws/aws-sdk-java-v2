@@ -67,7 +67,7 @@ final class ClientClassUtils {
 
 
         // Parameters
-        StringBuilder methodBody = new StringBuilder("return $L($T.builder().apply($L).build()");
+        StringBuilder methodBody = new StringBuilder("return $L($T.builder().applyMutation($L).build()");
         for (int i = 1; i < spec.parameters.size(); i++) {
             ParameterSpec parameter = spec.parameters.get(i);
             methodBody.append(", ").append(parameter.name);

@@ -108,7 +108,7 @@ public interface JsonClient extends SdkClient {
      */
     default APostOperationResponse aPostOperation(Consumer<APostOperationRequest.Builder> aPostOperationRequest)
             throws InvalidInputException, AwsServiceException, SdkClientException, JsonException {
-        return aPostOperation(APostOperationRequest.builder().apply(aPostOperationRequest).build());
+        return aPostOperation(APostOperationRequest.builder().applyMutation(aPostOperationRequest).build());
     }
 
     /**
@@ -167,7 +167,7 @@ public interface JsonClient extends SdkClient {
     default APostOperationWithOutputResponse aPostOperationWithOutput(
             Consumer<APostOperationWithOutputRequest.Builder> aPostOperationWithOutputRequest) throws InvalidInputException,
                                                                                                       AwsServiceException, SdkClientException, JsonException {
-        return aPostOperationWithOutput(APostOperationWithOutputRequest.builder().apply(aPostOperationWithOutputRequest).build());
+        return aPostOperationWithOutput(APostOperationWithOutputRequest.builder().applyMutation(aPostOperationWithOutputRequest).build());
     }
 
     /**
@@ -251,7 +251,7 @@ public interface JsonClient extends SdkClient {
     default GetWithoutRequiredMembersResponse getWithoutRequiredMembers(
             Consumer<GetWithoutRequiredMembersRequest.Builder> getWithoutRequiredMembersRequest) throws InvalidInputException,
                                                                                                         AwsServiceException, SdkClientException, JsonException {
-        return getWithoutRequiredMembers(GetWithoutRequiredMembersRequest.builder().apply(getWithoutRequiredMembersRequest)
+        return getWithoutRequiredMembers(GetWithoutRequiredMembersRequest.builder().applyMutation(getWithoutRequiredMembersRequest)
                                                                          .build());
     }
 
@@ -324,7 +324,7 @@ public interface JsonClient extends SdkClient {
             Consumer<PaginatedOperationWithResultKeyRequest.Builder> paginatedOperationWithResultKeyRequest)
             throws AwsServiceException, SdkClientException, JsonException {
         return paginatedOperationWithResultKey(PaginatedOperationWithResultKeyRequest.builder()
-                                                                                     .apply(paginatedOperationWithResultKeyRequest).build());
+                                                                                     .applyMutation(paginatedOperationWithResultKeyRequest).build());
     }
 
     /**
@@ -520,7 +520,7 @@ public interface JsonClient extends SdkClient {
             Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest)
             throws AwsServiceException, SdkClientException, JsonException {
         return paginatedOperationWithoutResultKey(PaginatedOperationWithoutResultKeyRequest.builder()
-                                                                                           .apply(paginatedOperationWithoutResultKeyRequest).build());
+                                                                                           .applyMutation(paginatedOperationWithoutResultKeyRequest).build());
     }
 
     /**
@@ -673,7 +673,7 @@ public interface JsonClient extends SdkClient {
             Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest)
             throws AwsServiceException, SdkClientException, JsonException {
         return paginatedOperationWithoutResultKeyPaginator(PaginatedOperationWithoutResultKeyRequest.builder()
-                                                                                                    .apply(paginatedOperationWithoutResultKeyRequest).build());
+                                                                                                    .applyMutation(paginatedOperationWithoutResultKeyRequest).build());
     }
 
     /**
@@ -745,7 +745,7 @@ public interface JsonClient extends SdkClient {
     default StreamingInputOperationResponse streamingInputOperation(
             Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, RequestBody requestBody)
             throws AwsServiceException, SdkClientException, JsonException {
-        return streamingInputOperation(StreamingInputOperationRequest.builder().apply(streamingInputOperationRequest).build(),
+        return streamingInputOperation(StreamingInputOperationRequest.builder().applyMutation(streamingInputOperationRequest).build(),
                                        requestBody);
     }
 
@@ -808,7 +808,7 @@ public interface JsonClient extends SdkClient {
     default StreamingInputOperationResponse streamingInputOperation(
             Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, Path filePath)
             throws AwsServiceException, SdkClientException, JsonException {
-        return streamingInputOperation(StreamingInputOperationRequest.builder().apply(streamingInputOperationRequest).build(),
+        return streamingInputOperation(StreamingInputOperationRequest.builder().applyMutation(streamingInputOperationRequest).build(),
                                        filePath);
     }
 
@@ -874,7 +874,7 @@ public interface JsonClient extends SdkClient {
             Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest,
             ResponseTransformer<StreamingOutputOperationResponse, ReturnT> responseTransformer) throws AwsServiceException,
                                                                                                        SdkClientException, JsonException {
-        return streamingOutputOperation(StreamingOutputOperationRequest.builder().apply(streamingOutputOperationRequest).build(),
+        return streamingOutputOperation(StreamingOutputOperationRequest.builder().applyMutation(streamingOutputOperationRequest).build(),
                                         responseTransformer);
     }
 
@@ -935,7 +935,7 @@ public interface JsonClient extends SdkClient {
     default StreamingOutputOperationResponse streamingOutputOperation(
             Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest, Path filePath)
             throws AwsServiceException, SdkClientException, JsonException {
-        return streamingOutputOperation(StreamingOutputOperationRequest.builder().apply(streamingOutputOperationRequest).build(),
+        return streamingOutputOperation(StreamingOutputOperationRequest.builder().applyMutation(streamingOutputOperationRequest).build(),
                                         filePath);
     }
 
@@ -998,7 +998,7 @@ public interface JsonClient extends SdkClient {
     default ResponseInputStream<StreamingOutputOperationResponse> streamingOutputOperation(
             Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest) throws AwsServiceException,
                                                                                                       SdkClientException, JsonException {
-        return streamingOutputOperation(StreamingOutputOperationRequest.builder().apply(streamingOutputOperationRequest).build());
+        return streamingOutputOperation(StreamingOutputOperationRequest.builder().applyMutation(streamingOutputOperationRequest).build());
     }
 
     /**
@@ -1056,7 +1056,7 @@ public interface JsonClient extends SdkClient {
     default ResponseBytes<StreamingOutputOperationResponse> streamingOutputOperationAsBytes(
             Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest) throws AwsServiceException,
                                                                                                       SdkClientException, JsonException {
-        return streamingOutputOperationAsBytes(StreamingOutputOperationRequest.builder().apply(streamingOutputOperationRequest)
+        return streamingOutputOperationAsBytes(StreamingOutputOperationRequest.builder().applyMutation(streamingOutputOperationRequest)
                                                                               .build());
     }
 

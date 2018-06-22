@@ -101,7 +101,7 @@ public class StsGetSessionTokenCredentialsProvider extends StsCredentialsProvide
          * {@link GetSessionTokenRequest#builder()} and {@link GetSessionTokenRequest.Builder#build()}.
          */
         public Builder refreshRequest(Consumer<GetSessionTokenRequest.Builder> getFederationTokenRequest) {
-            return refreshRequest(GetSessionTokenRequest.builder().apply(getFederationTokenRequest).build());
+            return refreshRequest(GetSessionTokenRequest.builder().applyMutation(getFederationTokenRequest).build());
         }
     }
 }
