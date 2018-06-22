@@ -21,7 +21,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerAdapter;
 
 public class ForkedHttp2MultiplexCodecBuilder
-     extends AbstractHttp2ConnectionHandlerBuilder<ForkedHttp2MultiplexCodec, ForkedHttp2MultiplexCodecBuilder> {
+    extends AbstractHttp2ConnectionHandlerBuilder<ForkedHttp2MultiplexCodec, ForkedHttp2MultiplexCodecBuilder> {
 
     final ChannelHandler childHandler;
 
@@ -42,7 +42,7 @@ public class ForkedHttp2MultiplexCodecBuilder
      * Creates a builder for a HTTP/2 client.
      *
      * @param childHandler the handler added to channels for remotely-created streams. It must be
-     *     {@link ChannelHandler.Sharable}.
+     * {@link ChannelHandler.Sharable}.
      */
     public static ForkedHttp2MultiplexCodecBuilder forClient(ChannelHandler childHandler) {
         return new ForkedHttp2MultiplexCodecBuilder(false, childHandler);
@@ -52,7 +52,7 @@ public class ForkedHttp2MultiplexCodecBuilder
      * Creates a builder for a HTTP/2 server.
      *
      * @param childHandler the handler added to channels for remotely-created streams. It must be
-     *     {@link ChannelHandler.Sharable}.
+     * {@link ChannelHandler.Sharable}.
      */
     public static ForkedHttp2MultiplexCodecBuilder forServer(ChannelHandler childHandler) {
         return new ForkedHttp2MultiplexCodecBuilder(true, childHandler);
@@ -146,7 +146,55 @@ public class ForkedHttp2MultiplexCodecBuilder
 
     @Override
     public ForkedHttp2MultiplexCodec build() {
-        return super.build();
+        Http2Connection connection = connection();
+        if (connection == null) {
+            connection = new DefaultHttp2Connection(this.isServer(), this.maxReservedStreams());
+        }
+        return this.buildFromConnection((Http2Connection) connection);
+    }
+
+    private ForkedHttp2MultiplexCodec buildFromConnection(Http2Connection connection) {
+        Long maxHeaderListSize = initialSettings().maxHeaderListSize();
+        Http2FrameReader reader = new DefaultHttp2FrameReader(
+            new DefaultHttp2HeadersDecoder(this.isValidateHeaders(), 8192L, 32));
+        Http2FrameWriter writer = new DefaultHttp2FrameWriter(this.headerSensitivityDetector());
+        if (frameLogger() != null) {
+            reader = new Http2InboundFrameLogger((Http2FrameReader) reader, frameLogger());
+            writer = new Http2OutboundFrameLogger((Http2FrameWriter) writer, frameLogger());
+        }
+
+        Http2ConnectionEncoder encoder = new DefaultHttp2ConnectionEncoder(connection, (Http2FrameWriter) writer);
+        boolean encoderEnforceMaxConcurrentStreams = this.encoderEnforceMaxConcurrentStreams();
+        if (encoderEnforceMaxConcurrentStreams) {
+            if (connection.isServer()) {
+                ((Http2ConnectionEncoder) encoder).close();
+                ((Http2FrameReader) reader).close();
+                throw new IllegalArgumentException("encoderEnforceMaxConcurrentStreams: " + encoderEnforceMaxConcurrentStreams + " not supported for server");
+            }
+
+            encoder = new StreamBufferingEncoder((Http2ConnectionEncoder) encoder);
+        }
+
+        Http2ConnectionDecoder decoder = new ForkedDefaultHttp2ConnectionDecoder(connection, (Http2ConnectionEncoder) encoder, (Http2FrameReader) reader);
+        return this.buildFromCodec(decoder, (Http2ConnectionEncoder) encoder);
+    }
+
+    private ForkedHttp2MultiplexCodec buildFromCodec(Http2ConnectionDecoder decoder, Http2ConnectionEncoder encoder) {
+        ForkedHttp2MultiplexCodec handler;
+        try {
+            handler = this.build(decoder, encoder, initialSettings());
+        } catch (Throwable var5) {
+            encoder.close();
+            decoder.close();
+            throw new IllegalStateException("failed to build a Http2ConnectionHandler", var5);
+        }
+
+        handler.gracefulShutdownTimeoutMillis(gracefulShutdownTimeoutMillis());
+        if (handler.decoder().frameListener() == null) {
+            handler.decoder().frameListener(frameListener());
+        }
+
+        return handler;
     }
 
     @Override
