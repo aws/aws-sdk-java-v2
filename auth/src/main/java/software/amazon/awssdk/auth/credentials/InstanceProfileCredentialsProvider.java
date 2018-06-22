@@ -36,7 +36,6 @@ import software.amazon.awssdk.utils.ToString;
 @SdkPublicApi
 public final class InstanceProfileCredentialsProvider extends HttpCredentialsProvider {
 
-    //TODO: make this private
     private static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
     private final ResourcesEndpointProvider credentialsEndpointProvider = new InstanceProviderCredentialsEndpointProvider();
 

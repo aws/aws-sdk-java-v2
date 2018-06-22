@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -76,8 +75,6 @@ public class SigningStage implements RequestToRequestPipeline {
      *
      * @return True if request should be signed, false if not.
      */
-    @ReviewBeforeRelease("add back credential check (credentials != null || signer instanceof CanHandleNullCredentials) when "
-                         + "refactoring signer")
     private boolean shouldSign(Signer signer) {
         return signer != null;
     }

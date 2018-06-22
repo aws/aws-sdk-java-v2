@@ -51,7 +51,7 @@ public final class MoveParametersToBodyStage implements MutableRequestToRequestP
                !CollectionUtils.isNullOrEmpty(input.rawQueryParameters());
     }
 
-    // TODO FIXME hacky hack
+    // TODO FIXME
     @ReviewBeforeRelease("SigV2 expects query params to be signed as query params despite being in the body. Moving" +
                          " before signing breaks SimpleDB which still uses SigV2. Probably the best thing to do is" +
                          " make the SigV2 signer be aware that params are being moved into the body and move them back out" +

@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.codegen.utils;
 
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-
 public final class PaginatorUtils {
 
     private PaginatorUtils() {
@@ -26,7 +24,6 @@ public final class PaginatorUtils {
      * @param methodName Name of a method in sync client
      * @return the name of the auto-pagination enabled operation
      */
-    @ReviewBeforeRelease("Naming of paginated APIs")
     public static String getPaginatedMethodName(String methodName) {
         return methodName + "Paginator";
     }

@@ -16,7 +16,6 @@
 package software.amazon.awssdk.codegen.poet;
 
 import com.squareup.javapoet.ClassName;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 
 /**
@@ -69,7 +68,6 @@ public class PoetExtensions {
      * Example: If operationName is "ListTables", then the response type of the paginated operation
      * will be "ListTablesIterable" class.
      */
-    @ReviewBeforeRelease("Naming of response shape for paginated APIs")
     public ClassName getResponseClassForPaginatedSyncOperation(String operationName) {
         return ClassName.get(model.getMetadata().getFullPaginatorsPackageName(), operationName + "Iterable");
     }
@@ -81,7 +79,6 @@ public class PoetExtensions {
      * Example: If operationName is "ListTables", then the async response type of the paginated operation
      * will be "ListTablesPublisher" class.
      */
-    @ReviewBeforeRelease("Naming of response shape for paginated APIs")
     public ClassName getResponseClassForPaginatedAsyncOperation(String operationName) {
         return ClassName.get(model.getMetadata().getFullPaginatorsPackageName(), operationName + "Publisher");
     }
