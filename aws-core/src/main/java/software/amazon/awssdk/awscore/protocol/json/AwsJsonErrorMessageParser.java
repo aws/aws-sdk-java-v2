@@ -18,13 +18,13 @@ package software.amazon.awssdk.awscore.protocol.json;
 import com.fasterxml.jackson.databind.JsonNode;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.http.HttpResponse;
-import software.amazon.awssdk.core.protocol.json.ErrorMessageParser;
+import software.amazon.awssdk.core.internal.protocol.json.ErrorMessageParser;
 import software.amazon.awssdk.core.protocol.json.SdkJsonErrorMessageParser;
 
 @SdkProtectedApi
 public class AwsJsonErrorMessageParser implements ErrorMessageParser {
 
-    static final ErrorMessageParser DEFAULT_ERROR_MESSAGE_PARSER =
+    public static final ErrorMessageParser DEFAULT_ERROR_MESSAGE_PARSER =
         new AwsJsonErrorMessageParser(SdkJsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER);
 
     /**

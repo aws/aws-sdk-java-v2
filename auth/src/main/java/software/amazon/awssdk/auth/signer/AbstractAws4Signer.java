@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.auth.AwsExecutionAttribute;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.signer.internal.AbstractAwsSigner;
@@ -409,20 +408,20 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     protected <B extends Aws4PresignerParams.Builder> B extractPresignerParams(B builder,
                                                                                ExecutionAttributes executionAttributes) {
         builder = extractSignerParams(builder, executionAttributes);
-        builder.expirationTime(executionAttributes.getAttribute(AwsExecutionAttribute.PRESIGNER_EXPIRATION));
+        builder.expirationTime(executionAttributes.getAttribute(AwsSignerExecutionAttribute.PRESIGNER_EXPIRATION));
 
         return builder;
     }
 
     protected <B extends Aws4SignerParams.Builder> B extractSignerParams(B paramsBuilder,
                                                                          ExecutionAttributes executionAttributes) {
-        paramsBuilder.awsCredentials(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_CREDENTIALS))
-                     .signingName(executionAttributes.getAttribute(AwsExecutionAttribute.SERVICE_SIGNING_NAME))
-                     .signingRegion(executionAttributes.getAttribute(AwsExecutionAttribute.SIGNING_REGION))
-                     .timeOffset(executionAttributes.getAttribute(AwsExecutionAttribute.TIME_OFFSET));
+        paramsBuilder.awsCredentials(executionAttributes.getAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS))
+                     .signingName(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME))
+                     .signingRegion(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION))
+                     .timeOffset(executionAttributes.getAttribute(AwsSignerExecutionAttribute.TIME_OFFSET));
 
-        if (executionAttributes.getAttribute(AwsExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE) != null) {
-            paramsBuilder.doubleUrlEncode(executionAttributes.getAttribute(AwsExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE));
+        if (executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE) != null) {
+            paramsBuilder.doubleUrlEncode(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE));
         }
 
         return paramsBuilder;

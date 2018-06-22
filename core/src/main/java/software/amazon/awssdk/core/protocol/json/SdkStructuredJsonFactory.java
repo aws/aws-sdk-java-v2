@@ -17,12 +17,13 @@ package software.amazon.awssdk.core.protocol.json;
 
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.runtime.http.response.SdkJsonErrorResponseHandler;
+import software.amazon.awssdk.core.internal.http.SdkJsonErrorResponseHandler;
+import software.amazon.awssdk.core.internal.protocol.json.SdkJsonErrorUnmarshaller;
 
 /**
  * Common interface for creating generators (writers) and protocol handlers for JSON like protocols.
  * Current implementations include {@link SdkStructuredPlainJsonFactory} and {@link
- * SdkStructuredCborFactory}
+ * software.amazon.awssdk.core.internal.protocol.json.SdkStructuredCborFactory}
  */
 @SdkProtectedApi
 public interface SdkStructuredJsonFactory extends StructuredJsonFactory {

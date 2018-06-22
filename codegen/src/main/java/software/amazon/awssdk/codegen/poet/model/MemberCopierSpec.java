@@ -35,7 +35,7 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.StaticImport;
-import software.amazon.awssdk.core.runtime.StandardMemberCopier;
+import software.amazon.awssdk.core.internal.StandardMemberCopier;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
 

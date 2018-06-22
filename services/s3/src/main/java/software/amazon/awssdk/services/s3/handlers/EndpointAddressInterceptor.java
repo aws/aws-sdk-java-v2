@@ -21,7 +21,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
-import software.amazon.awssdk.auth.AwsExecutionAttribute;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -47,7 +48,7 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
         SdkRequest sdkRequest = context.request();
 
         S3Configuration serviceConfiguration =
-                (S3Configuration) executionAttributes.getAttribute(AwsExecutionAttribute.SERVICE_CONFIG);
+                (S3Configuration) executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG);
         SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
 
         URI endpoint = resolveEndpoint(request, sdkRequest,
@@ -89,7 +90,7 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
     }
 
     private static URI dualstackEndpoint(RegionMetadata metadata) {
-        String serviceEndpoint = String.format("%s.%s.%s.%s", "s3", "dualstack", metadata.getName(), metadata.getDomain());
+        String serviceEndpoint = String.format("%s.%s.%s.%s", "s3", "dualstack", metadata.name(), metadata.domain());
         return toUri(serviceEndpoint);
     }
 
@@ -113,9 +114,9 @@ public class EndpointAddressInterceptor implements ExecutionInterceptor {
      */
     private static URI accelerateEndpoint(S3Configuration serviceConfiguration, RegionMetadata metadata) {
         if (serviceConfiguration.dualstackEnabled()) {
-            return toUri("s3-accelerate.dualstack." + metadata.getDomain());
+            return toUri("s3-accelerate.dualstack." + metadata.domain());
         }
-        return toUri("s3-accelerate." + metadata.getDomain());
+        return toUri("s3-accelerate." + metadata.domain());
     }
 
     private static URI toUri(String endpoint) throws IllegalArgumentException {

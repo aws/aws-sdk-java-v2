@@ -24,6 +24,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.regions.internal.util.EC2MetadataUtils;
+import software.amazon.awssdk.regions.internal.util.EC2MetadataUtilsServer;
 
 public class EC2MetadataUtilsIntegrationTest {
 

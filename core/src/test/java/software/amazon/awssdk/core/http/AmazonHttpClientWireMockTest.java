@@ -28,6 +28,7 @@ import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAn
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
 import utils.HttpTestUtils;
 import utils.http.WireMockTestBase;

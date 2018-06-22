@@ -16,7 +16,6 @@
 package software.amazon.awssdk.services.rds;
 
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.util.ImmutableObjectUtils;
 import software.amazon.awssdk.services.rds.model.CreateDBInstanceReadReplicaRequest;
 import software.amazon.awssdk.services.rds.transform.CreateDBInstanceReadReplicaRequestMarshaller;
 
@@ -31,11 +30,6 @@ public class CreateDbInstanceReadReplicaPresignInterceptor extends RdsPresignInt
     @Override
     protected PresignableRequest adaptRequest(final CreateDBInstanceReadReplicaRequest originalRequest) {
         return new PresignableRequest() {
-            @Override
-            public void setPreSignedUrl(String preSignedUrl) {
-                ImmutableObjectUtils.setObjectMember(originalRequest, "preSignedUrl", preSignedUrl);
-            }
-
             @Override
             public String getSourceRegion() {
                 return originalRequest.sourceRegion();

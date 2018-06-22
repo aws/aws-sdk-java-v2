@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNull;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import org.junit.Test;
+import software.amazon.awssdk.core.adapter.StringToByteBufferAdapter;
 
 public class StringToByteBufferAdapterTest {
 

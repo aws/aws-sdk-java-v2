@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.rds;
 import java.time.Clock;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.util.ImmutableObjectUtils;
 import software.amazon.awssdk.services.rds.model.CopyDBSnapshotRequest;
 import software.amazon.awssdk.services.rds.transform.CopyDBSnapshotRequestMarshaller;
 
@@ -39,11 +38,6 @@ public class CopyDbSnapshotPresignInterceptor extends RdsPresignInterceptor<Copy
     @Override
     protected PresignableRequest adaptRequest(final CopyDBSnapshotRequest originalRequest) {
         return new PresignableRequest() {
-            @Override
-            public void setPreSignedUrl(String preSignedUrl) {
-                ImmutableObjectUtils.setObjectMember(originalRequest, "preSignedUrl", preSignedUrl);
-            }
-
             @Override
             public String getSourceRegion() {
                 return originalRequest.sourceRegion();

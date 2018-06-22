@@ -23,6 +23,7 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.request.EmptyHttpRequest;
 import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
 import software.amazon.awssdk.core.retry.RetryPolicy;

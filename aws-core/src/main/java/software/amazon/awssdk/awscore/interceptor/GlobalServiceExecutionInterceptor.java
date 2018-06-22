@@ -17,7 +17,7 @@ package software.amazon.awssdk.awscore.interceptor;
 
 import java.net.UnknownHostException;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.auth.AwsExecutionAttribute;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;

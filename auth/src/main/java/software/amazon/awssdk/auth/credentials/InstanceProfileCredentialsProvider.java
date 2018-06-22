@@ -18,10 +18,11 @@ package software.amazon.awssdk.auth.credentials;
 import java.io.IOException;
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsProvider;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.regions.util.HttpResourcesUtils;
-import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
+import software.amazon.awssdk.regions.internal.util.HttpResourcesUtils;
+import software.amazon.awssdk.regions.internal.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.utils.ToString;
 
 /**

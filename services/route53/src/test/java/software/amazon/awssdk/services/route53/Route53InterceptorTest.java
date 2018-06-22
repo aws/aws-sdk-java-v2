@@ -22,7 +22,7 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.internal.interceptor.InterceptorContext;
 import software.amazon.awssdk.services.route53.internal.Route53IdInterceptor;
 import software.amazon.awssdk.services.route53.model.CreateHostedZoneRequest;
 import software.amazon.awssdk.services.route53.model.CreateHostedZoneResponse;

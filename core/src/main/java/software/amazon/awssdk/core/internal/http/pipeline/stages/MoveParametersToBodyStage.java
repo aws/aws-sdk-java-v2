@@ -58,7 +58,7 @@ public final class MoveParametersToBodyStage implements MutableRequestToRequestP
                          " and unencode and sign them as query params. We did a similar thing in the V4 signer in 1.11.x" +
                          " but I'd rather have the grossness in the legacy signer implementation")
     private boolean notSimpleDb(RequestExecutionContext context) {
-        return !"SimpleDBClient".equals(context.executionAttributes().getAttribute(SdkExecutionAttribute.SERVICE_NAME));
+        return !"SimpleDbClient".equals(context.executionAttributes().getAttribute(SdkExecutionAttribute.SERVICE_NAME));
     }
 
     @SdkProtectedApi

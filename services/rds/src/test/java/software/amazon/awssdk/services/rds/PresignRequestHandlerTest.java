@@ -30,8 +30,8 @@ import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import org.junit.Test;
 import org.mockito.Mockito;
-import software.amazon.awssdk.auth.AwsExecutionAttribute;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.core.Protocol;
@@ -39,7 +39,7 @@ import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.internal.interceptor.InterceptorContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.model.CopyDBSnapshotRequest;
@@ -141,7 +141,7 @@ public class PresignRequestHandlerTest {
         final SdkHttpFullRequest presignedRequest = modifyHttpRequest(presignInterceptor, request, marshalled);
 
         final URI presignedUrl = new URI(presignedRequest.rawQueryParameters().get("PreSignedUrl").get(0));
-        assertTrue(presignedUrl.toString().contains("DestinationRegion=" + destination.value()));
+        assertTrue(presignedUrl.toString().contains("DestinationRegion=" + destination.id()));
     }
 
     @Test
@@ -170,9 +170,9 @@ public class PresignRequestHandlerTest {
     }
 
     private ExecutionAttributes executionAttributes(RdsRequest request) {
-        return new ExecutionAttributes().putAttribute(AwsExecutionAttribute.AWS_CREDENTIALS, CREDENTIALS)
-                                        .putAttribute(AwsExecutionAttribute.REQUEST_CONFIG, request.overrideConfiguration()
-                                                                                                   .orElse(AwsRequestOverrideConfiguration.builder().build()));
+        return new ExecutionAttributes().putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, CREDENTIALS)
+                                        .putAttribute(AwsSignerExecutionAttribute.REQUEST_CONFIG, request.overrideConfiguration()
+                                                                                                         .orElse(AwsRequestOverrideConfiguration.builder().build()));
     }
 
     private CopyDBSnapshotRequest makeTestRequest() {

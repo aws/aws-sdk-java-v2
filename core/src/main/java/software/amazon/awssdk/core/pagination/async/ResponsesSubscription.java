@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.pagination.async;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.internal.pagination.async.PaginationSubscription;
 
 /**
  * An implementation of the {@link Subscription} interface that can be used to signal and cancel demand for

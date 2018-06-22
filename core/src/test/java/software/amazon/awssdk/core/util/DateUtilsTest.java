@@ -36,7 +36,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import org.junit.Test;
-import software.amazon.awssdk.core.protocol.json.SdkJsonGenerator;
+import software.amazon.awssdk.core.internal.protocol.json.SdkJsonGenerator;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 
 public class DateUtilsTest {

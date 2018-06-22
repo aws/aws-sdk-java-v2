@@ -29,7 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.runtime.io.ReleasableInputStream;
+import software.amazon.awssdk.core.io.ReleasableInputStream;
 import software.amazon.awssdk.core.util.Mimetype;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.utils.BinaryUtils;
