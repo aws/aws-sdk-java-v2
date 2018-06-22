@@ -88,8 +88,8 @@ public class ProfileFile {
      */
     public static ProfileFile defaultProfileFile() {
         return ProfileFile.aggregator()
-                          .apply(ProfileFile::addCredentialsFile)
-                          .apply(ProfileFile::addConfigFile)
+                          .applyMutation(ProfileFile::addCredentialsFile)
+                          .applyMutation(ProfileFile::addConfigFile)
                           .build();
     }
 

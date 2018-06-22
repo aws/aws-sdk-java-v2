@@ -42,6 +42,6 @@ public interface ToCopyableBuilder<B extends CopyableBuilder<B, T>, T extends To
      * @return A new copy of this object with the requested modifications.
      */
     default T copy(Consumer<? super B> modifier) {
-        return toBuilder().apply(modifier::accept).build();
+        return toBuilder().applyMutation(modifier::accept).build();
     }
 }

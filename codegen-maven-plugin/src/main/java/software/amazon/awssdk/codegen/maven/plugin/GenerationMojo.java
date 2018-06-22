@@ -72,7 +72,7 @@ public class GenerationMojo extends AbstractMojo {
             try {
                 getLog().info("Loading from: " + p.toString());
                 generateCode(C2jModels.builder()
-                                      .apply(b -> loadCodeGenConfig(p).ifPresent(b::codeGenConfig))
+                                      .applyMutation(b -> loadCodeGenConfig(p).ifPresent(b::codeGenConfig))
                                       .customizationConfig(loadCustomizationConfig(p))
                                       .serviceModel(loadServiceModel(p))
                                       .waitersModel(loadWaiterModel(p))

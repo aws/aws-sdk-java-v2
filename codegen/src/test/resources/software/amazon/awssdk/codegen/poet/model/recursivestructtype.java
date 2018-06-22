@@ -181,7 +181,7 @@ public final class RecursiveStructType implements StructuredPojo, ToCopyableBuil
          * @see #recursiveStruct(RecursiveStructType)
          */
         default Builder recursiveStruct(Consumer<Builder> recursiveStruct) {
-            return recursiveStruct(RecursiveStructType.builder().apply(recursiveStruct).build());
+            return recursiveStruct(RecursiveStructType.builder().applyMutation(recursiveStruct).build());
         }
 
         /**
@@ -296,7 +296,7 @@ public final class RecursiveStructType implements StructuredPojo, ToCopyableBuil
         @Override
         @SafeVarargs
         public final Builder recursiveList(Consumer<Builder>... recursiveList) {
-            recursiveList(Stream.of(recursiveList).map(c -> RecursiveStructType.builder().apply(c).build())
+            recursiveList(Stream.of(recursiveList).map(c -> RecursiveStructType.builder().applyMutation(c).build())
                     .collect(Collectors.toList()));
             return this;
         }

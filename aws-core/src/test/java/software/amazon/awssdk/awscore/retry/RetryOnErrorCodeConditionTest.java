@@ -47,7 +47,7 @@ public class RetryOnErrorCodeConditionTest {
     }
 
     private boolean shouldRetry(Consumer<RetryPolicyContext.Builder> builder) {
-        return condition.shouldRetry(RetryPolicyContext.builder().apply(builder).build());
+        return condition.shouldRetry(RetryPolicyContext.builder().applyMutation(builder).build());
     }
 
     private Consumer<RetryPolicyContext.Builder> applyErrorCode(String errorCode) {
