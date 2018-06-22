@@ -37,7 +37,7 @@ public class ProfileCredentialsProviderTest {
                                                                                      .build())
                                           .build();
 
-        assertThatThrownBy(provider::getCredentials).isInstanceOf(SdkClientException.class);
+        assertThatThrownBy(provider::resolveCredentials).isInstanceOf(SdkClientException.class);
     }
 
     @Test
@@ -49,7 +49,7 @@ public class ProfileCredentialsProviderTest {
         ProfileCredentialsProvider provider =
                 ProfileCredentialsProvider.builder().profileFile(file).profileName("foo").build();
 
-        assertThatThrownBy(provider::getCredentials).isInstanceOf(SdkClientException.class);
+        assertThatThrownBy(provider::resolveCredentials).isInstanceOf(SdkClientException.class);
     }
 
     @Test
@@ -59,7 +59,7 @@ public class ProfileCredentialsProviderTest {
         ProfileCredentialsProvider provider =
                 ProfileCredentialsProvider.builder().profileFile(file).profileName("default").build();
 
-        assertThatThrownBy(provider::getCredentials).isInstanceOf(SdkClientException.class);
+        assertThatThrownBy(provider::resolveCredentials).isInstanceOf(SdkClientException.class);
     }
 
     @Test
@@ -71,7 +71,7 @@ public class ProfileCredentialsProviderTest {
         ProfileCredentialsProvider provider =
                 ProfileCredentialsProvider.builder().profileFile(file).profileName("default").build();
 
-        assertThat(provider.getCredentials()).satisfies(credentials -> {
+        assertThat(provider.resolveCredentials()).satisfies(credentials -> {
             assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
             assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
         });

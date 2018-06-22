@@ -89,8 +89,8 @@ public final class StsProfileCredentialsProviderFactory implements ChildProfileC
         }
 
         @Override
-        public AwsCredentials getCredentials() {
-            return this.credentialsProvider.getCredentials();
+        public AwsCredentials resolveCredentials() {
+            return this.credentialsProvider.resolveCredentials();
         }
 
         @Override

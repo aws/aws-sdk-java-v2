@@ -81,15 +81,15 @@ public final class AwsCredentialsProviderChain implements AwsCredentialsProvider
     }
 
     @Override
-    public AwsCredentials getCredentials() {
+    public AwsCredentials resolveCredentials() {
         if (reuseLastProviderEnabled && lastUsedProvider != null) {
-            return lastUsedProvider.getCredentials();
+            return lastUsedProvider.resolveCredentials();
         }
 
         List<String> exceptionMessages = null;
         for (AwsCredentialsProvider provider : credentialsProviders) {
             try {
-                AwsCredentials credentials = provider.getCredentials();
+                AwsCredentials credentials = provider.resolveCredentials();
 
                 log.debug("Loading credentials from {}", provider.toString());
 

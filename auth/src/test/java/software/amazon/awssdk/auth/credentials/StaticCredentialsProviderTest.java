@@ -22,16 +22,16 @@ import org.junit.Test;
 public class StaticCredentialsProviderTest {
     @Test
     public void getAwsCredentials_ReturnsSameCredentials() throws Exception {
-        final AwsCredentials credentials = new AwsCredentials("akid", "skid");
+        final AwsCredentials credentials = new AwsBasicCredentials("akid", "skid");
         final AwsCredentials actualCredentials =
-                StaticCredentialsProvider.create(credentials).getCredentials();
+                StaticCredentialsProvider.create(credentials).resolveCredentials();
         assertEquals(credentials, actualCredentials);
     }
 
     @Test
     public void getSessionAwsCredentials_ReturnsSameCredentials() throws Exception {
         final AwsSessionCredentials credentials = AwsSessionCredentials.create("akid", "skid", "token");
-        final AwsCredentials actualCredentials = StaticCredentialsProvider.create(credentials).getCredentials();
+        final AwsCredentials actualCredentials = StaticCredentialsProvider.create(credentials).resolveCredentials();
         assertEquals(credentials, actualCredentials);
     }
 

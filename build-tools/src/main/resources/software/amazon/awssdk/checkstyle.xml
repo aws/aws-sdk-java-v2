@@ -410,6 +410,14 @@
             <property name="ignoreComments" value="true"/>
         </module>
 
+        <!-- Checks that we don't use Objects.hash. Objects.hashCode is preferred-->
+        <module name="Regexp">
+            <property name="format" value="\bObjects.hash\b"/>
+            <property name="illegalPattern" value="true"/>
+            <property name="message" value="Don't use Objects.hashCode, use Objects.hash instead"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
         <!-- Checks that we don't use plural enum names -->
         <module name="software.amazon.awssdk.buildtools.checkstyle.PluralEnumNames"/>
 

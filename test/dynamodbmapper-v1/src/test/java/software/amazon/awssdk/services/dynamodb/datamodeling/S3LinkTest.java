@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -31,7 +32,7 @@ public class S3LinkTest {
 
     @Before
     public void setUp() {
-        AwsCredentials credentials = AwsCredentials.create("mock", "mock");
+        AwsCredentials credentials = AwsBasicCredentials.create("mock", "mock");
         DynamoDbClient db = DynamoDbClient.builder()
                                           .credentialsProvider(StaticCredentialsProvider.create(credentials))
                                           .region(Region.US_WEST_2)

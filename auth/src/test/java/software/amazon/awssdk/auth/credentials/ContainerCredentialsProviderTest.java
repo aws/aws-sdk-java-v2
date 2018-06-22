@@ -70,7 +70,7 @@ public class ContainerCredentialsProviderTest {
         helper.remove(AWS_CONTAINER_CREDENTIALS_RELATIVE_URI);
         ContainerCredentialsProvider.builder()
                                     .build()
-                                    .getCredentials();
+                                    .resolveCredentials();
     }
 
     /**
@@ -82,7 +82,7 @@ public class ContainerCredentialsProviderTest {
 
         stubForSuccessResponse();
 
-        AwsSessionCredentials credentials = (AwsSessionCredentials) credentialsProvider.getCredentials();
+        AwsSessionCredentials credentials = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
 
         assertThat(credentials).isNotNull();
         assertThat(credentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);

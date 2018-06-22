@@ -16,22 +16,28 @@
 package software.amazon.awssdk.auth.credentials;
 
 import java.util.Objects;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * A special type of {@link AwsCredentials} that also provides a session token to be used in service authentication. Session
+ * A special type of {@link AwsCredentials} that provides a session token to be used in service authentication. Session
  * tokens are typically provided by a token broker service, like AWS Security Token Service, and provide temporary access to an
  * AWS service.
  */
+@Immutable
 @SdkPublicApi
-public final class AwsSessionCredentials extends AwsCredentials {
+public final class AwsSessionCredentials implements AwsCredentials {
+
+    private final String accessKeyId;
+    private final String secretAccessKey;
     private final String sessionToken;
 
     private AwsSessionCredentials(String accessKey, String secretKey, String sessionToken) {
-        super(accessKey, secretKey);
-        this.sessionToken = Validate.notNull(sessionToken, "Session token cannot be null.");
+        this.accessKeyId = Validate.paramNotNull(accessKey, "accessKey");
+        this.secretAccessKey = Validate.paramNotNull(secretKey, "secretKey");
+        this.sessionToken = Validate.paramNotNull(sessionToken, "sessionToken");
     }
 
     /**
@@ -40,10 +46,26 @@ public final class AwsSessionCredentials extends AwsCredentials {
      * @param accessKey The AWS access key, used to identify the user interacting with AWS.
      * @param secretKey The AWS secret access key, used to authenticate the user interacting with AWS.
      * @param sessionToken The AWS session token, retrieved from an AWS token service, used for authenticating that this user has
-     *                     received temporary permission to access some resource.
+     * received temporary permission to access some resource.
      */
     public static AwsSessionCredentials create(String accessKey, String secretKey, String sessionToken) {
         return new AwsSessionCredentials(accessKey, secretKey, sessionToken);
+    }
+
+    /**
+     * Retrieve the AWS access key, used to identify the user interacting with AWS.
+     */
+    @Override
+    public String accessKeyId() {
+        return accessKeyId;
+    }
+
+    /**
+     * Retrieve the AWS secret access key, used to authenticate the user interacting with AWS.
+     */
+    @Override
+    public String secretAccessKey() {
+        return secretAccessKey;
     }
 
     /**
@@ -73,11 +95,17 @@ public final class AwsSessionCredentials extends AwsCredentials {
             return false;
         }
         final AwsSessionCredentials that = (AwsSessionCredentials) o;
-        return Objects.equals(sessionToken, that.sessionToken);
+        return Objects.equals(accessKeyId, that.accessKeyId) &&
+               Objects.equals(secretAccessKey, that.secretAccessKey) &&
+               Objects.equals(sessionToken, that.sessionToken);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), sessionToken);
+        int hashCode = 1;
+        hashCode = 31 * hashCode + Objects.hashCode(accessKeyId());
+        hashCode = 31 * hashCode + Objects.hashCode(secretAccessKey());
+        hashCode = 31 * hashCode + Objects.hashCode(sessionToken());
+        return hashCode;
     }
 }
