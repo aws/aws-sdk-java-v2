@@ -19,6 +19,7 @@ import static software.amazon.awssdk.utils.StringUtils.trim;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
@@ -43,7 +44,7 @@ import software.amazon.awssdk.utils.SystemSetting;
 @SdkInternalApi
 public abstract class SystemSettingsCredentialsProvider implements AwsCredentialsProvider {
     @Override
-    public AwsCredentials getCredentials() {
+    public AwsCredentials resolveCredentials() {
         String accessKey = trim(loadSetting(SdkSystemSetting.AWS_ACCESS_KEY_ID).orElse(null));
         String secretKey = trim(loadSetting(SdkSystemSetting.AWS_SECRET_ACCESS_KEY).orElse(null));
         String sessionToken = trim(loadSetting(SdkSystemSetting.AWS_SESSION_TOKEN).orElse(null));
@@ -64,7 +65,7 @@ public abstract class SystemSettingsCredentialsProvider implements AwsCredential
                                   SdkSystemSetting.AWS_SECRET_ACCESS_KEY.property()));
         }
 
-        return sessionToken == null ? AwsCredentials.create(accessKey, secretKey)
+        return sessionToken == null ? AwsBasicCredentials.create(accessKey, secretKey)
                                     : AwsSessionCredentials.create(accessKey, secretKey, sessionToken);
     }
 
