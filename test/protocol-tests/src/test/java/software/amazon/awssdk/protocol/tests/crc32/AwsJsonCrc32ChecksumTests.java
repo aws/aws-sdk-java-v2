@@ -29,9 +29,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocoljsonrpc.ProtocolJsonRpcClient;
 import software.amazon.awssdk.services.protocoljsonrpc.model.AllTypesRequest;
 import software.amazon.awssdk.services.protocoljsonrpc.model.AllTypesResponse;
@@ -68,7 +67,6 @@ public class AwsJsonCrc32ChecksumTests {
                 .credentialsProvider(FAKE_CREDENTIALS_PROVIDER)
                 .region(Region.US_EAST_1)
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
-                .overrideConfiguration(ClientOverrideConfiguration.builder().gzipEnabled(true).build())
                 .build();
 
         SimpleResponse result = jsonRpc.simple(SimpleRequest.builder().build());
@@ -93,7 +91,6 @@ public class AwsJsonCrc32ChecksumTests {
                 .credentialsProvider(FAKE_CREDENTIALS_PROVIDER)
                 .region(Region.US_EAST_1)
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
-                .overrideConfiguration(ClientOverrideConfiguration.builder().gzipEnabled(true).build())
                 .build();
 
         SimpleResponse result = jsonRpc.simple(SimpleRequest.builder().build());
@@ -112,7 +109,6 @@ public class AwsJsonCrc32ChecksumTests {
                 .credentialsProvider(FAKE_CREDENTIALS_PROVIDER)
                 .region(Region.US_EAST_1)
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
-                .overrideConfiguration(ClientOverrideConfiguration.builder().gzipEnabled(true).build())
                 .build();
 
         jsonRpc.simple(SimpleRequest.builder().build());
@@ -130,7 +126,6 @@ public class AwsJsonCrc32ChecksumTests {
                 .credentialsProvider(FAKE_CREDENTIALS_PROVIDER)
                 .region(Region.US_EAST_1)
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
-                .overrideConfiguration(ClientOverrideConfiguration.builder().gzipEnabled(true).build())
                 .build();
 
         AllTypesResponse result =
@@ -150,7 +145,6 @@ public class AwsJsonCrc32ChecksumTests {
                 .credentialsProvider(FAKE_CREDENTIALS_PROVIDER)
                 .region(Region.US_EAST_1)
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
-                .overrideConfiguration(ClientOverrideConfiguration.builder().gzipEnabled(true).build())
                 .build();
 
         jsonRpc.allTypes(AllTypesRequest.builder().build());
@@ -167,7 +161,6 @@ public class AwsJsonCrc32ChecksumTests {
                 .credentialsProvider(FAKE_CREDENTIALS_PROVIDER)
                 .region(Region.US_EAST_1)
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
-                .overrideConfiguration(ClientOverrideConfiguration.builder().gzipEnabled(true).build())
                 .build();
 
         AllTypesResponse result =
@@ -186,7 +179,6 @@ public class AwsJsonCrc32ChecksumTests {
                 .credentialsProvider(FAKE_CREDENTIALS_PROVIDER)
                 .region(Region.US_EAST_1)
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
-                .overrideConfiguration(ClientOverrideConfiguration.builder().gzipEnabled(true).build())
                 .build();
 
         jsonRpc.allTypes(AllTypesRequest.builder().build());

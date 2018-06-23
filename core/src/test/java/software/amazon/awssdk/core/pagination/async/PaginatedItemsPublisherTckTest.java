@@ -15,14 +15,13 @@
 
 package software.amazon.awssdk.core.pagination.async;
 
-import org.reactivestreams.Publisher;
-import org.reactivestreams.tck.PublisherVerification;
-import org.reactivestreams.tck.TestEnvironment;
-
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.tck.PublisherVerification;
+import org.reactivestreams.tck.TestEnvironment;
 
 /**
  * TCK verification test for {@link PaginatedItemsPublisher}.

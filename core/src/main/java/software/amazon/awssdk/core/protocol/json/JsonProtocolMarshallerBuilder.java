@@ -17,10 +17,10 @@ package software.amazon.awssdk.core.protocol.json;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.internal.protocol.json.JsonProtocolMarshaller;
+import software.amazon.awssdk.core.internal.protocol.json.NullAsEmptyBodyProtocolRequestMarshaller;
 import software.amazon.awssdk.core.protocol.OperationInfo;
 import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
-import software.amazon.awssdk.core.protocol.json.internal.JsonProtocolMarshaller;
-import software.amazon.awssdk.core.protocol.json.internal.NullAsEmptyBodyProtocolRequestMarshaller;
 
 /**
  * Builder to create an appropriate implementation of {@link ProtocolMarshaller} for JSON based services.

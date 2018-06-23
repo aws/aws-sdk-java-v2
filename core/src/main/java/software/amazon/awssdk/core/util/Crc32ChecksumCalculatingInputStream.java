@@ -18,12 +18,14 @@ package software.amazon.awssdk.core.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.CRC32;
-import software.amazon.awssdk.core.runtime.io.SdkFilterInputStream;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.io.SdkFilterInputStream;
 
 /**
  * Simple InputStream wrapper that examines the wrapped stream's contents as
  * they are read and calculates and CRC32 checksum.
  */
+@SdkProtectedApi
 public class Crc32ChecksumCalculatingInputStream extends SdkFilterInputStream {
 
     /** The CRC32 being calculated by this input stream. */

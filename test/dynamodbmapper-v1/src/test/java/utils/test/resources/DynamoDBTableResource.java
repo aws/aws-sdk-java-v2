@@ -17,7 +17,8 @@ package utils.test.resources;
 
 import java.util.List;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.TableUtils;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
@@ -28,7 +29,6 @@ import software.amazon.awssdk.services.dynamodb.model.LocalSecondaryIndexDescrip
 import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
 import software.amazon.awssdk.services.dynamodb.model.TableStatus;
-import software.amazon.awssdk.services.dynamodb.TableUtils;
 import software.amazon.awssdk.testutils.UnorderedCollectionComparator;
 import software.amazon.awssdk.utils.Logger;
 import utils.resources.TestResource;
@@ -96,7 +96,7 @@ public abstract class DynamoDBTableResource implements TestResource {
                 fromDescribeTableResponse.nonKeyAttributes());
     }
 
-    protected abstract DynamoDBClient getClient();
+    protected abstract DynamoDbClient getClient();
 
     protected abstract CreateTableRequest getCreateTableRequest();
 

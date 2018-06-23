@@ -17,8 +17,10 @@ package software.amazon.awssdk.auth.signer;
 
 import java.security.NoSuchAlgorithmException;
 import javax.crypto.Mac;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
+@SdkProtectedApi
 public enum SigningAlgorithm {
 
     HmacSHA256;

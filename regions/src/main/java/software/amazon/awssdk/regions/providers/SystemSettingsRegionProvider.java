@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.regions.providers;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
@@ -23,6 +24,7 @@ import software.amazon.awssdk.regions.Region;
  * Loads region information from the 'aws.region' system property or the 'AWS_REGION' environment variable. If both are specified,
  * the system property will be used.
  */
+@SdkProtectedApi
 public class SystemSettingsRegionProvider implements AwsRegionProvider {
     @Override
     public Region getRegion() throws SdkClientException {

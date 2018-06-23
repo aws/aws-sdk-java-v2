@@ -42,7 +42,7 @@ public class ConfigureS3LinksTest {
 
         assertNotNull(obj.s3());
         assertEquals("nonexisting-test-bucketname2", obj.s3().bucketName());
-        assertSame(Region.AP_SOUTHEAST_1.value(), obj.s3().s3Region().value());
+        assertSame(Region.AP_SOUTHEAST_1.id(), obj.s3().s3Region().id());
         assertSame("ap-southeast-1", obj.s3().getRegion());
     }
 

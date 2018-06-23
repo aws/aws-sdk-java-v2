@@ -49,8 +49,6 @@
         </developer>
     </developers>
 
-
-
     <!-- The module section in pom.xml is auto generated. No manual changes are allowed -->
     <modules>
         <module>services</module>
@@ -86,21 +84,48 @@
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
         <jackson.version>2.9.3</jackson.version>
         <ion.java.version>1.0.2</ion.java.version>
-        <junit.version>4.12</junit.version>
         <commons.lang.version>3.4</commons.lang.version>
-        <wiremock.version>2.12.0</wiremock.version>
+        <wiremock.version>2.18.0</wiremock.version>
         <slf4j.version>1.7.25</slf4j.version>
         <log4j.version>1.2.17</log4j.version>
-        <hamcrest.version>1.3</hamcrest.version>
         <commons.io.version>2.5</commons.io.version>
-        <mockito.version>1.10.19</mockito.version>
-        <assertj.version>3.8.0</assertj.version>
         <equalsverifier.version>2.3.3</equalsverifier.version>
         <guava.version>19.0</guava.version>
         <netty.version>4.1.23.Final</netty.version>
         <unitils.version>3.3</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spotbugs.version>3.1.3.1</spotbugs.version>
+        <netty-reactive-streams-http.version>2.0.0</netty-reactive-streams-http.version>
+        <freemarker.version>2.3.24-incubating</freemarker.version>
+        <javapoet.verion>1.11.1</javapoet.verion>
+        <org.eclipse.jdt.version>3.10.0</org.eclipse.jdt.version>
+        <org.eclipse.text.version>3.5.101</org.eclipse.text.version>
+        <rxjava.version>2.1.9</rxjava.version>
+        <commons-codec.verion>1.10</commons-codec.verion>
+
+        <!-- Test dependencies -->
+        <junit.version>4.12</junit.version>
+        <hamcrest.version>1.3</hamcrest.version>
+        <mockito.version>1.10.19</mockito.version>
+        <assertj.version>3.8.0</assertj.version>
+        <guava.version>23.0</guava.version>
+        <jimfs.version>1.1</jimfs.version>
+        <commons-lang.verson>2.3</commons-lang.verson>
+
+        <!-- build plugin dependencies-->
+        <maven.surefire.version>2.21.0</maven.surefire.version>
+        <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
+        <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
+        <maven-failsafe-plugin.version>2.19.1</maven-failsafe-plugin.version>
+        <maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
+        <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
+        <checkstyle.version>7.5.1</checkstyle.version>
+        <jacoco-maven-plugin.version>0.8.1</jacoco-maven-plugin.version>
+        <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
+
+        <!-- These properties are used by Step functions for its dependencies -->
+        <json-path.version>2.4.0</json-path.version>
 
         <!-- These properties are used by SWF for its dependencies -->
         <spring.version>3.0.7.RELEASE</spring.version>
@@ -109,6 +134,7 @@
 
         <jre.version>1.8</jre.version>
         <httpcomponents.httpclient.version>4.5.4</httpcomponents.httpclient.version>
+        <httpcomponents.httpcore.version>4.4.7</httpcomponents.httpcore.version>
 
         <!-- These properties are used by cucumber tests related code -->
         <unitils.version>3.3</unitils.version>
@@ -120,8 +146,6 @@
         <root.offset>..</root.offset>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.jacoco.reportPath>${basedir}/${root.offset}/target/jacoco.exec</sonar.jacoco.reportPath>
-
-        <jimfs.version>1.1</jimfs.version>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
     </properties>
@@ -137,27 +161,6 @@
                 <groupId>xmlunit</groupId>
                 <artifactId>xmlunit</artifactId>
                 <version>${xmlunit.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.tomakehurst</groupId>
-                <artifactId>wiremock</artifactId>
-                <version>${wiremock.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>${junit.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.hamcrest</groupId>
-                <artifactId>hamcrest-all</artifactId>
-                <version>${hamcrest.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.hamcrest</groupId>
-                <artifactId>hamcrest-core</artifactId>
-                <version>${hamcrest.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
@@ -225,6 +228,11 @@
                 <version>${httpcomponents.httpclient.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore</artifactId>
+                <version>${httpcomponents.httpcore.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-codec-http</artifactId>
                 <version>${netty.version}</version>
@@ -237,6 +245,26 @@
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-handler</artifactId>
+                <version>${netty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-codec</artifactId>
+                <version>${netty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-transport</artifactId>
+                <version>${netty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-common</artifactId>
+                <version>${netty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-buffer</artifactId>
                 <version>${netty.version}</version>
             </dependency>
             <dependency>
@@ -263,17 +291,52 @@
             <dependency>
                 <groupId>com.typesafe.netty</groupId>
                 <artifactId>netty-reactive-streams-http</artifactId>
-                <version>2.0.0</version>
+                <version>${netty-reactive-streams-http.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.reactivex.rxjava2</groupId>
                 <artifactId>rxjava</artifactId>
-                <version>2.1.9</version>
+                <version>${rxjava.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.reactivestreams</groupId>
                 <artifactId>reactive-streams</artifactId>
                 <version>${reactive-streams.version}</version>
+            </dependency>
+
+            <!-- Test Dependencies-->
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>test-utils</artifactId>
+                <version>${awsjavasdk.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.github.tomakehurst</groupId>
+                <artifactId>wiremock</artifactId>
+                <version>${wiremock.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-all</artifactId>
+                <version>${hamcrest.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-core</artifactId>
+                <version>${hamcrest.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.reactivestreams</groupId>
@@ -297,7 +360,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.7.0</version>
+                    <version>${maven-compiler-plugin.version}</version>
                     <configuration>
                         <source>${jre.version}</source>
                         <target>${jre.version}</target>
@@ -320,19 +383,19 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.0.0</version>
+                    <version>${maven-javadoc-plugin.version}</version>
                 </plugin>
 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.1.1</version>
+                    <version>${maven-dependency-plugin.version}</version>
                 </plugin>
 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.20.1</version>
+                    <version>${maven.surefire.version}</version>
                     <configuration>
                         <excludes>
                             <exclude>**/*CucumberTest.java</exclude>
@@ -349,6 +412,14 @@
                         </includes>
                         <skipTests>${skip.unit.tests}</skipTests>
                     </configuration>
+                    <!-- Have to explicitly set surefire provider because reactivestreamsTCK is using TestNG-->
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.maven.surefire</groupId>
+                            <artifactId>surefire-junit47</artifactId>
+                            <version>${maven.surefire.version}</version>
+                        </dependency>
+                    </dependencies>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -398,7 +469,7 @@
                 <plugin>
                     <groupId>com.github.spotbugs</groupId>
                     <artifactId>spotbugs-maven-plugin</artifactId>
-                    <version>3.1.1</version>
+                    <version>${spotbugs.version}</version>
                     <dependencies>
                         <dependency>
                             <groupId>software.amazon.awssdk</groupId>
@@ -418,10 +489,44 @@
                     <configuration>
                         <failOnError>true</failOnError>
                         <fork>false</fork>
-                        <findbugsXmlOutput>true</findbugsXmlOutput>
+                        <spotbugsXmlOutput>true</spotbugsXmlOutput>
                         <excludeFilterFile>software/amazon/awssdk/spotbugs-suppressions.xml</excludeFilterFile>
                         <threshold>Low</threshold>
                         <effort>Max</effort>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>${maven-checkstyle-plugin.version}</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.puppycrawl.tools</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>${checkstyle.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>software.amazon.awssdk</groupId>
+                            <artifactId>build-tools</artifactId>
+                            <version>1.0</version>
+                        </dependency>
+                    </dependencies>
+                    <executions>
+                        <execution>
+                            <id>checkstyle</id>
+                            <phase>validate</phase>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <configLocation>software/amazon/awssdk/checkstyle.xml</configLocation>
+                        <suppressionsLocation>software/amazon/awssdk/checkstyle-suppressions.xml</suppressionsLocation>
+                        <consoleOutput>true</consoleOutput>
+                        <failsOnError>true</failsOnError>
+                        <logViolationsToConsole>true</logViolationsToConsole>
+                        <failOnViolation>true</failOnViolation>
                     </configuration>
                 </plugin>
             </plugins>
@@ -440,53 +545,32 @@
                 </executions>
                 <configuration>
                     <failOnWarning>true</failOnWarning>
-                    <ignoredUsedUndeclaredDependencies>
-                        <!-- ultimately we'd remove the line below and resolve these too -->
-                        <ignoredUsedUndeclaredDependency>*</ignoredUsedUndeclaredDependency>
-                    </ignoredUsedUndeclaredDependencies>
                     <ignoreNonCompile>true</ignoreNonCompile>
+                    <ignoredUsedUndeclaredDependencies>
+                        <!--Ignore used undeclared test dependencies -->
+                        <ignoredUsedUndeclaredDependency>junit:*:*</ignoredUsedUndeclaredDependency>
+                        <ignoredUsedUndeclaredDependency>software.amazon.awssdk:test-utils</ignoredUsedUndeclaredDependency>
+                        <ignoredUsedUndeclaredDependency>org.hamcrest:*</ignoredUsedUndeclaredDependency>
+                        <ignoredUsedUndeclaredDependency>org.testng:testng</ignoredUsedUndeclaredDependency>
+                        <ignoredUsedUndeclaredDependency>org.mockito:*</ignoredUsedUndeclaredDependency>
+
+                        <!-- TODO: fix this once we start to generate pom.xml for individual services -->
+                        <ignoredUsedUndeclaredDependency>org.reactivestreams:reactive-streams</ignoredUsedUndeclaredDependency>
+                        <ignoredUsedUndeclaredDependency>com.fasterxml.jackson.core:*</ignoredUsedUndeclaredDependency>
+                        <ignoredUsedUndeclaredDependency>org.slf4j:slf4j-api</ignoredUsedUndeclaredDependency>
+                    </ignoredUsedUndeclaredDependencies>
                 </configuration>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>2.17</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.puppycrawl.tools</groupId>
-                        <artifactId>checkstyle</artifactId>
-                        <version>7.5.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>software.amazon.awssdk</groupId>
-                        <artifactId>build-tools</artifactId>
-                        <version>1.0</version>
-                    </dependency>
-                </dependencies>
-                <executions>
-                    <execution>
-                        <id>checkstyle</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <configLocation>software/amazon/awssdk/checkstyle.xml</configLocation>
-                    <suppressionsLocation>software/amazon/awssdk/checkstyle-suppressions.xml</suppressionsLocation>
-                    <consoleOutput>true</consoleOutput>
-                    <failsOnError>true</failsOnError>
-                    <logViolationsToConsole>true</logViolationsToConsole>
-                    <failOnViolation>true</failOnViolation>
-                </configuration>
             </plugin>
 
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.7.8</version>
+                <version>${jacoco-maven-plugin.version}</version>
                 <configuration>
                     <destFile>${sonar.jacoco.reportPath}</destFile>
                     <append>true</append>
@@ -509,7 +593,7 @@
             </plugin>
 
             <plugin>
-                <groupId>com.github.hazendaz.spotbugs</groupId>
+                <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
             </plugin>
 
@@ -537,7 +621,7 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.8</version>
+                        <version>${nexus-staging-maven-plugin.version}</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>sonatype-nexus-staging</serverId>
@@ -586,7 +670,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>2.19.1</version>
+                        <version>${maven-failsafe-plugin.version}</version>
                         <executions>
                             <execution>
                                 <phase>integration-test</phase>

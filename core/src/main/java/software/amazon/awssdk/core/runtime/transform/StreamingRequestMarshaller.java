@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.core.runtime.transform;
 
-import static software.amazon.awssdk.http.Headers.CONTENT_LENGTH;
-import static software.amazon.awssdk.http.Headers.CONTENT_TYPE;
+import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
+import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 import static software.amazon.awssdk.utils.StringUtils.isBlank;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 

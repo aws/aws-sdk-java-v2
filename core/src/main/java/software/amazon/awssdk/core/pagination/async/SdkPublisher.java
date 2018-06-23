@@ -18,10 +18,12 @@ package software.amazon.awssdk.core.pagination.async;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.reactivestreams.Publisher;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * Interface that is implemented by the Async auto-paginated responses.
  */
+@SdkPublicApi
 public interface SdkPublisher<T> extends Publisher<T> {
 
     // TODO Should we return the last response instead of Void?

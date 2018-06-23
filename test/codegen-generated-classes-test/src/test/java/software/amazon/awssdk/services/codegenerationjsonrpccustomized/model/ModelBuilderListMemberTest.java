@@ -15,13 +15,12 @@
 
 package software.amazon.awssdk.services.codegenerationjsonrpccustomized.model;
 
-import org.junit.Test;
-import software.amazon.awssdk.core.util.SdkAutoConstructList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collection;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Test;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
 
 /**
  * Test for verifying list member behavior for model builders.

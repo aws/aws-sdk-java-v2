@@ -15,10 +15,12 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
  * Pipeline stage that is a transformation on an immutable {@link SdkHttpFullRequest}.
  */
+@SdkInternalApi
 public interface RequestToRequestPipeline extends RequestPipeline<SdkHttpFullRequest, SdkHttpFullRequest> {
 }

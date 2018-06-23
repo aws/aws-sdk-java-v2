@@ -20,6 +20,7 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import java.util.Optional;
 import java.util.concurrent.ThreadFactory;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * Configurable factory for creating {@link EventLoopGroup} instances. Will choose the optimal implementation of
  * {@link EventLoopGroup} per the platform (i.e. if on Linux then {@link EpollEventLoopGroup} will be used).
  */
+@SdkPublicApi
 public final class DefaultEventLoopGroupFactory
         implements ToCopyableBuilder<DefaultEventLoopGroupFactory.Builder, DefaultEventLoopGroupFactory>, EventLoopGroupFactory {
 

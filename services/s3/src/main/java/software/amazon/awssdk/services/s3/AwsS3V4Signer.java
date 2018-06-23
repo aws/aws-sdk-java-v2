@@ -15,27 +15,29 @@
 
 package software.amazon.awssdk.services.s3;
 
-import static software.amazon.awssdk.auth.signer.SignerConstants.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.auth.signer.SignerConstant.X_AMZ_CONTENT_SHA256;
 import static software.amazon.awssdk.utils.Validate.validState;
 
 import java.io.IOException;
 import java.io.InputStream;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.AbstractAws4Signer;
 import software.amazon.awssdk.auth.signer.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.auth.signer.params.AwsS3V4SignerParams;
-import software.amazon.awssdk.auth.util.CredentialUtils;
 import software.amazon.awssdk.core.exception.ResetException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.services.s3.auth.AwsChunkedEncodingInputStream;
-import software.amazon.awssdk.services.s3.auth.S3ExecutionAttributes;
+import software.amazon.awssdk.services.s3.auth.S3ExecutionAttribute;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * AWS4 signer implementation for AWS S3
  */
+@ReviewBeforeRelease("This should be moved to the 'auth' module.")
 public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams, Aws4PresignerParams> {
 
     private static final String CONTENT_SHA_256 = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD";
@@ -46,15 +48,11 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
     private static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
     private static final String CONTENT_LENGTH = "Content-Length";
 
-    private AwsS3V4Signer(Builder builder) {
+    private AwsS3V4Signer() {
     }
 
     public static AwsS3V4Signer create() {
-        return builder().build();
-    }
-
-    public static Builder builder() {
-        return new Builder();
+        return new AwsS3V4Signer();
     }
 
     @Override
@@ -87,11 +85,11 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
         final AwsS3V4SignerParams.Builder signerParams = extractSignerParams(AwsS3V4SignerParams.builder(),
                                                                              executionAttributes);
 
-        if (executionAttributes.getAttribute(S3ExecutionAttributes.ENABLE_CHUNKED_ENCODING) != null) {
-            signerParams.enableChunkedEncoding(executionAttributes.getAttribute(S3ExecutionAttributes.ENABLE_CHUNKED_ENCODING));
+        if (executionAttributes.getAttribute(S3ExecutionAttribute.ENABLE_CHUNKED_ENCODING) != null) {
+            signerParams.enableChunkedEncoding(executionAttributes.getAttribute(S3ExecutionAttribute.ENABLE_CHUNKED_ENCODING));
         }
-        if (executionAttributes.getAttribute(S3ExecutionAttributes.ENABLE_PAYLOAD_SIGNING) != null) {
-            signerParams.enablePayloadSigning(executionAttributes.getAttribute(S3ExecutionAttributes.ENABLE_PAYLOAD_SIGNING));
+        if (executionAttributes.getAttribute(S3ExecutionAttribute.ENABLE_PAYLOAD_SIGNING) != null) {
+            signerParams.enablePayloadSigning(executionAttributes.getAttribute(S3ExecutionAttribute.ENABLE_PAYLOAD_SIGNING));
         }
 
         return signerParams.build();
@@ -148,7 +146,7 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
 
     @Override
     protected String calculateContentHashPresign(SdkHttpFullRequest.Builder mutableRequest, Aws4PresignerParams signerParams) {
-        return "UNSIGNED-PAYLOAD";
+        return UNSIGNED_PAYLOAD;
     }
 
     /**
@@ -253,11 +251,5 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
             throw new ResetException("Failed to reset the input stream", ex);
         }
         return contentLength;
-    }
-
-    public static final class Builder {
-        public AwsS3V4Signer build() {
-            return new AwsS3V4Signer(this);
-        }
     }
 }

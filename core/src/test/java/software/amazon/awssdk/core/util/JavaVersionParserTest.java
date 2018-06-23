@@ -25,7 +25,7 @@ import static software.amazon.awssdk.core.util.JavaVersionParser.JAVA_VERSION_PR
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Test;
 import software.amazon.awssdk.core.util.JavaVersionParser.JavaVersion;
-import software.amazon.awssdk.core.util.JavaVersionParser.KnownJavaVersions;
+import software.amazon.awssdk.core.util.JavaVersionParser.KnownJavaVersion;
 
 public class JavaVersionParserTest {
 
@@ -66,77 +66,77 @@ public class JavaVersionParserTest {
     public void nullVersion_ReturnsUnknownVersion() {
         JavaVersion version = JavaVersionParser.parseJavaVersion(null);
         assertJavaVersionsEqual(jv(null, null, null, null), version);
-        assertEquals(KnownJavaVersions.UNKNOWN, version.getKnownVersion());
+        assertEquals(KnownJavaVersion.UNKNOWN, version.getKnownVersion());
     }
 
     @Test
     public void emptyVersion_ReturnsUnknownVersion() {
         JavaVersion version = JavaVersionParser.parseJavaVersion("");
         assertJavaVersionsEqual(jv(null, null, null, null), version);
-        assertEquals(KnownJavaVersions.UNKNOWN, version.getKnownVersion());
+        assertEquals(KnownJavaVersion.UNKNOWN, version.getKnownVersion());
     }
 
     @Test
     public void garbageVersion_ReturnsUnknownVersion() {
         JavaVersion version = JavaVersionParser.parseJavaVersion("invalid-version");
         assertJavaVersionsEqual(jv(null, null, null, null), version);
-        assertEquals(KnownJavaVersions.UNKNOWN, version.getKnownVersion());
+        assertEquals(KnownJavaVersion.UNKNOWN, version.getKnownVersion());
     }
 
     @Test
     public void validJava6Version_WithUpdateNumber() {
         JavaVersion version = JavaVersionParser.parseJavaVersion("1.6.0_65");
         assertJavaVersionsEqual(jv(1, 6, 0, 65), version);
-        assertEquals(KnownJavaVersions.JAVA_6, version.getKnownVersion());
+        assertEquals(KnownJavaVersion.JAVA_6, version.getKnownVersion());
     }
 
     @Test
     public void validJava6Version_WithMultiDigitMaintenanceNumber() {
         JavaVersion version = JavaVersionParser.parseJavaVersion("1.6.101_65");
         assertJavaVersionsEqual(jv(1, 6, 101, 65), version);
-        assertEquals(KnownJavaVersions.JAVA_6, version.getKnownVersion());
+        assertEquals(KnownJavaVersion.JAVA_6, version.getKnownVersion());
     }
 
     @Test
     public void validJava6Version_WithoutUpdateNumber_WithIdentifier() {
         JavaVersion version = JavaVersionParser.parseJavaVersion("1.6.3-65");
         assertJavaVersionsEqual(jv(1, 6, 3, null), version);
-        assertEquals(KnownJavaVersions.JAVA_6, version.getKnownVersion());
+        assertEquals(KnownJavaVersion.JAVA_6, version.getKnownVersion());
     }
 
     @Test
     public void validJava7Version_WithUpdateNumber() {
         JavaVersion version = JavaVersionParser.parseJavaVersion("1.7.0_1234");
         assertJavaVersionsEqual(jv(1, 7, 0, 1234), version);
-        assertEquals(KnownJavaVersions.JAVA_7, version.getKnownVersion());
+        assertEquals(KnownJavaVersion.JAVA_7, version.getKnownVersion());
     }
 
     @Test
     public void validJava7Version_WithoutUpdateNumber() {
         JavaVersion version = JavaVersionParser.parseJavaVersion("1.7.0");
         assertJavaVersionsEqual(jv(1, 7, 0, null), version);
-        assertEquals(KnownJavaVersions.JAVA_7, version.getKnownVersion());
+        assertEquals(KnownJavaVersion.JAVA_7, version.getKnownVersion());
     }
 
     @Test
     public void validJava8Version_WithUpdateNumberAndIdentifier() {
         JavaVersion version = JavaVersionParser.parseJavaVersion("1.8.0_12-b24");
         assertJavaVersionsEqual(jv(1, 8, 0, 12), version);
-        assertEquals(KnownJavaVersions.JAVA_8, version.getKnownVersion());
+        assertEquals(KnownJavaVersion.JAVA_8, version.getKnownVersion());
     }
 
     @Test
     public void validJava9Version_NonZeroMaintenanceNumber_WithUpdateNumberAndIdentifier() {
         JavaVersion version = JavaVersionParser.parseJavaVersion("1.9.1_00-someIdentifier");
         assertJavaVersionsEqual(jv(1, 9, 1, 0), version);
-        assertEquals(KnownJavaVersions.JAVA_9, version.getKnownVersion());
+        assertEquals(KnownJavaVersion.JAVA_9, version.getKnownVersion());
     }
 
     @Test
     public void doubleDigitMajorVersion_ParsesMajorVersionCorrectly() {
         JavaVersion version = JavaVersionParser.parseJavaVersion("1.10.1_00");
         assertJavaVersionsEqual(jv(1, 10, 1, 0), version);
-        assertEquals(KnownJavaVersions.UNKNOWN, version.getKnownVersion());
+        assertEquals(KnownJavaVersion.UNKNOWN, version.getKnownVersion());
     }
 
     @Test
@@ -224,29 +224,29 @@ public class JavaVersionParserTest {
 
     @Test
     public void knownJavaVersions_Java6() {
-        assertEquals(KnownJavaVersions.JAVA_6, KnownJavaVersions.fromMajorVersion(1, 6));
+        assertEquals(KnownJavaVersion.JAVA_6, KnownJavaVersion.fromMajorVersion(1, 6));
     }
 
     @Test
     public void knownJavaVersions_Java7() {
-        assertEquals(KnownJavaVersions.JAVA_7, KnownJavaVersions.fromMajorVersion(1, 7));
+        assertEquals(KnownJavaVersion.JAVA_7, KnownJavaVersion.fromMajorVersion(1, 7));
     }
 
     @Test
     public void knownJavaVersions_Java8() {
-        assertEquals(KnownJavaVersions.JAVA_8, KnownJavaVersions.fromMajorVersion(1, 8));
+        assertEquals(KnownJavaVersion.JAVA_8, KnownJavaVersion.fromMajorVersion(1, 8));
     }
 
     @Test
     public void knownJavaVersions_Java9() {
-        assertEquals(KnownJavaVersions.JAVA_9, KnownJavaVersions.fromMajorVersion(1, 9));
+        assertEquals(KnownJavaVersion.JAVA_9, KnownJavaVersion.fromMajorVersion(1, 9));
     }
 
     @Test
     public void unknownJavaVersions() {
-        assertEquals(KnownJavaVersions.UNKNOWN, KnownJavaVersions.fromMajorVersion(1, 10));
-        assertEquals(KnownJavaVersions.UNKNOWN, KnownJavaVersions.fromMajorVersion(-8, 0));
-        assertEquals(KnownJavaVersions.UNKNOWN, KnownJavaVersions.fromMajorVersion(1, 91));
-        assertEquals(KnownJavaVersions.UNKNOWN, KnownJavaVersions.fromMajorVersion(2, 0));
+        assertEquals(KnownJavaVersion.UNKNOWN, KnownJavaVersion.fromMajorVersion(1, 10));
+        assertEquals(KnownJavaVersion.UNKNOWN, KnownJavaVersion.fromMajorVersion(-8, 0));
+        assertEquals(KnownJavaVersion.UNKNOWN, KnownJavaVersion.fromMajorVersion(1, 91));
+        assertEquals(KnownJavaVersion.UNKNOWN, KnownJavaVersion.fromMajorVersion(2, 0));
     }
 }

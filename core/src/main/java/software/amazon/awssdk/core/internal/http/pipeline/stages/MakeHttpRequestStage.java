@@ -15,7 +15,8 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
-import software.amazon.awssdk.core.config.options.SdkClientOption;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.utils.Pair;
 /**
  * Delegate to the HTTP implementation to make an HTTP request and receive the response.
  */
+@SdkInternalApi
 public class MakeHttpRequestStage
     implements RequestPipeline<SdkHttpFullRequest, Pair<SdkHttpFullRequest, SdkHttpFullResponse>> {
 

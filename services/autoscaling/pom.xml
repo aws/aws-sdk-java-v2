@@ -33,6 +33,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>${commons-codec.verion}</version>
+        </dependency>
+
+        <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sns</artifactId>
             <version>${awsjavasdk.version}</version>

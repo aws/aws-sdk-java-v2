@@ -15,19 +15,17 @@
 
 package software.amazon.awssdk.auth.signer.internal;
 
-import software.amazon.awssdk.auth.signer.SignerConstants;
+import java.time.Clock;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.auth.signer.SignerConstant;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.regions.Region;
 
 /**
  * Parameters that are used for computing a AWS 4 signature for a request.
  */
+@SdkProtectedApi
 public final class Aws4SignerRequestParams {
-
-    /**
-     * The signing algorithm to be used for computing the signature.
-     */
-    private final String signingAlgorithm = SignerConstants.AWS4_SIGNING_ALGORITHM;
 
     /**
      * The datetime in milliseconds for which the signature needs to be
@@ -65,9 +63,7 @@ public final class Aws4SignerRequestParams {
      * for a request based on the given {@link Aws4SignerParams} for that request.
      */
     public Aws4SignerRequestParams(Aws4SignerParams signerParams) {
-        this.signingDateTimeMilli = signerParams.signingClockOverride() != null
-                                    ? signerParams.signingClockOverride().millis()
-                                    : getSigningDate(signerParams.timeOffset());
+        this.signingDateTimeMilli = getSigningDate(signerParams);
         this.formattedSigningDate = Aws4SignerUtils.formatDateStamp(signingDateTimeMilli);
         this.serviceSigningName = signerParams.signingName();
         this.regionName = getRegion(signerParams.signingRegion());
@@ -78,23 +74,23 @@ public final class Aws4SignerRequestParams {
     /**
      * Returns the signing date from the request.
      */
-    private long getSigningDate(Integer timeOffset) {
-        if (timeOffset == null) {
-            return System.currentTimeMillis();
-        } else {
-            return System.currentTimeMillis() - timeOffset * 1000L;
-        }
+    private long getSigningDate(Aws4SignerParams signerParams) {
+        return signerParams.signingClockOverride()
+                    .map(Clock::millis)
+                    .orElse(signerParams.timeOffset()
+                                        .map(t -> System.currentTimeMillis() - t * 1000L)
+                                        .orElse(System.currentTimeMillis()));
     }
 
     private String getRegion(Region region) {
-        return region != null ? region.value() : null;
+        return region != null ? region.id() : null;
     }
 
     /**
      * Returns the scope to be used for the signing.
      */
     private String generateScope(String dateStamp, String serviceName, String regionName) {
-        return dateStamp + "/" + regionName + "/" + serviceName + "/" + SignerConstants.AWS4_TERMINATOR;
+        return dateStamp + "/" + regionName + "/" + serviceName + "/" + SignerConstant.AWS4_TERMINATOR;
     }
 
     /**
@@ -144,6 +140,6 @@ public final class Aws4SignerRequestParams {
      * Returns the signing algorithm used for computing the signature.
      */
     public String getSigningAlgorithm() {
-        return signingAlgorithm;
+        return SignerConstant.AWS4_SIGNING_ALGORITHM;
     }
 }

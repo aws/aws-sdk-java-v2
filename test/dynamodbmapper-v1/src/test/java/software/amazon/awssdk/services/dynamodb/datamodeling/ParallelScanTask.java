@@ -26,7 +26,7 @@ import java.util.concurrent.Future;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 
@@ -55,20 +55,20 @@ public class ParallelScanTask {
      * Used as the monitor for synchronization.
      */
     private final List<SegmentScanstate> segmentScanstates;
-    private final DynamoDBClient dynamo;
+    private final DynamoDbClient dynamo;
     private ExecutorService executorService;
 
     @Deprecated
-    public ParallelScanTask(DynamoDbMapper mapper, DynamoDBClient dynamo, List<ScanRequest> parallelScanRequests) {
+    public ParallelScanTask(DynamoDbMapper mapper, DynamoDbClient dynamo, List<ScanRequest> parallelScanRequests) {
         this(dynamo, parallelScanRequests);
     }
 
-    ParallelScanTask(DynamoDBClient dynamo, List<ScanRequest> parallelScanRequests) {
+    ParallelScanTask(DynamoDbClient dynamo, List<ScanRequest> parallelScanRequests) {
         this(dynamo, parallelScanRequests, Executors.newCachedThreadPool());
     }
 
     @SdkTestInternalApi
-    ParallelScanTask(DynamoDBClient dynamo, List<ScanRequest> parallelScanRequests,
+    ParallelScanTask(DynamoDbClient dynamo, List<ScanRequest> parallelScanRequests,
                      ExecutorService executorService) {
         this.dynamo = dynamo;
         this.parallelScanRequests = parallelScanRequests;

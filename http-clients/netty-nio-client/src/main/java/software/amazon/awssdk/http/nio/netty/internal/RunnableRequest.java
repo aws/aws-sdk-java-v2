@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_CONTEXT_KEY;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.RESPONSE_COMPLETE_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 
 import com.typesafe.netty.http.HttpStreamsClientHandler;
 import com.typesafe.netty.http.StreamedHttpRequest;
@@ -38,6 +38,7 @@ import io.netty.util.concurrent.Future;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
@@ -46,6 +47,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.async.AbortableRunnable;
 import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ToHttpInboundAdapter;
@@ -53,6 +55,7 @@ import software.amazon.awssdk.http.nio.netty.internal.http2.HttpToHttp2OutboundA
 import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils;
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 
+@SdkInternalApi
 public final class RunnableRequest implements AbortableRunnable {
 
     private static final Logger log = LoggerFactory.getLogger(RunnableRequest.class);
@@ -99,7 +102,7 @@ public final class RunnableRequest implements AbortableRunnable {
     }
 
     private void configurePipeline() {
-        Protocol protocol = ChannelAttributeKeys.getProtocolNow(channel);
+        Protocol protocol = ChannelAttributeKey.getProtocolNow(channel);
         if (Protocol.HTTP2.equals(protocol)) {
             channel.pipeline().addLast(new Http2ToHttpInboundAdapter());
             channel.pipeline().addLast(new HttpToHttp2OutboundAdapter());
@@ -323,16 +326,24 @@ public final class RunnableRequest implements AbortableRunnable {
     /**
      * Decorator around {@link StreamedHttpRequest} to adapt a publisher of {@link ByteBuffer} (i.e. {@link
      * software.amazon.awssdk.http.async.SdkHttpRequestProvider}) to a publisher of {@link HttpContent}.
+     * <p />
+     * This publisher also prevents the adapted publisher from publishing more content to the subscriber than
+     * the specified 'Content-Length' of the request.
      */
-    private class StreamedRequest extends DelegateHttpRequest implements StreamedHttpRequest {
+    private static class StreamedRequest extends DelegateHttpRequest implements StreamedHttpRequest {
 
         private final Publisher<ByteBuffer> publisher;
         private final Channel channel;
+        private final Optional<Long> requestContentLength;
+        private long written = 0L;
+        private boolean done;
+        private Subscription subscription;
 
         StreamedRequest(HttpRequest request, Publisher<ByteBuffer> publisher, Channel channel) {
             super(request);
             this.publisher = publisher;
             this.channel = channel;
+            this.requestContentLength = contentLength(request);
         }
 
         @Override
@@ -340,27 +351,72 @@ public final class RunnableRequest implements AbortableRunnable {
             publisher.subscribe(new Subscriber<ByteBuffer>() {
                 @Override
                 public void onSubscribe(Subscription subscription) {
+                    StreamedRequest.this.subscription = subscription;
                     subscriber.onSubscribe(subscription);
                 }
 
                 @Override
                 public void onNext(ByteBuffer byteBuffer) {
+                    if (done) {
+                        return;
+                    }
+
+                    int newLimit = clampedBufferLimit(byteBuffer.remaining());
+                    byteBuffer.limit(newLimit);
                     ByteBuf buffer = channel.alloc().buffer(byteBuffer.remaining());
                     buffer.writeBytes(byteBuffer);
                     HttpContent content = new DefaultHttpContent(buffer);
+
                     subscriber.onNext(content);
+                    written += newLimit;
+
+                    if (!shouldContinuePublishing()) {
+                        done = true;
+                        subscription.cancel();
+                        subscriber.onComplete();
+                    }
                 }
 
                 @Override
                 public void onError(Throwable t) {
-                    subscriber.onError(t);
+                    if (!done) {
+                        done = true;
+                        subscriber.onError(t);
+
+                    }
                 }
 
                 @Override
                 public void onComplete() {
-                    subscriber.onComplete();
+                    if (!done) {
+                        done = true;
+                        subscriber.onComplete();
+                    }
                 }
             });
         }
+
+        private int clampedBufferLimit(int bufLen) {
+            return requestContentLength.map(cl ->
+                (int) Math.min(cl - written, bufLen)
+            ).orElse(bufLen);
+        }
+
+        private boolean shouldContinuePublishing() {
+            return requestContentLength.map(cl -> written < cl).orElse(true);
+        }
+
+        private static Optional<Long> contentLength(HttpRequest request) {
+            String value = request.headers().get("Content-Length");
+            if (value != null) {
+                try {
+                    return Optional.of(Long.parseLong(value));
+                } catch (NumberFormatException e) {
+                    log.warn("Unable  to parse 'Content-Length' header. Treating it as non existent.");
+                }
+            }
+            return Optional.empty();
+        }
+
     }
 }

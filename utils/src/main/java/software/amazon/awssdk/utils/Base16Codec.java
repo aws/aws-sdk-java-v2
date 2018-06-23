@@ -23,7 +23,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * @author Hanson Char
  */
 @SdkProtectedApi
-class Base16Codec {
+final class Base16Codec {
     private static final int OFFSET_OF_LITTLE_A = 'a' - 10;
     private static final int OFFSET_OF_A = 'A' - 10;
     private static final int MASK_4BITS = (1 << 4) - 1;

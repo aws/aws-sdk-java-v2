@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.stepfunctions.builder.states;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * Non-terminal transition to another state in the state machine.
@@ -25,7 +25,7 @@ import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNa
  */
 public final class NextStateTransition implements Transition {
 
-    @JsonProperty(PropertyNames.NEXT)
+    @JsonProperty(PropertyName.NEXT)
     private final String nextStateName;
 
     private NextStateTransition(Builder builder) {

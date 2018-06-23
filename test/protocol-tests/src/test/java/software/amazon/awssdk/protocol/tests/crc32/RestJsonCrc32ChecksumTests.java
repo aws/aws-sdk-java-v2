@@ -30,9 +30,8 @@ import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesResponse;
@@ -66,7 +65,6 @@ public class RestJsonCrc32ChecksumTests {
                 .credentialsProvider(FAKE_CREDENTIALS_PROVIDER)
                 .region(Region.US_EAST_1)
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
-                .overrideConfiguration(ClientOverrideConfiguration.builder().gzipEnabled(true).build())
                 .build();
 
         SimpleResponse result = client.simple(SimpleRequest.builder().build());
@@ -84,7 +82,6 @@ public class RestJsonCrc32ChecksumTests {
                 .credentialsProvider(FAKE_CREDENTIALS_PROVIDER)
                 .region(Region.US_EAST_1)
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
-                .overrideConfiguration(ClientOverrideConfiguration.builder().gzipEnabled(true).build())
                 .build();
 
         client.simple(SimpleRequest.builder().build());
@@ -101,7 +98,6 @@ public class RestJsonCrc32ChecksumTests {
                 .credentialsProvider(FAKE_CREDENTIALS_PROVIDER)
                 .region(Region.US_EAST_1)
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
-                .overrideConfiguration(ClientOverrideConfiguration.builder().gzipEnabled(true).build())
                 .build();
 
         AllTypesResponse result =
@@ -120,7 +116,6 @@ public class RestJsonCrc32ChecksumTests {
                 .credentialsProvider(FAKE_CREDENTIALS_PROVIDER)
                 .region(Region.US_EAST_1)
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
-                .overrideConfiguration(ClientOverrideConfiguration.builder().gzipEnabled(true).build())
                 .build();
 
         client.allTypes(AllTypesRequest.builder().build());
@@ -136,7 +131,6 @@ public class RestJsonCrc32ChecksumTests {
                 .credentialsProvider(FAKE_CREDENTIALS_PROVIDER)
                 .region(Region.US_EAST_1)
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
-                .overrideConfiguration(ClientOverrideConfiguration.builder().gzipEnabled(true).build())
                 .build();
 
         AllTypesResponse result =
@@ -155,7 +149,6 @@ public class RestJsonCrc32ChecksumTests {
                 .credentialsProvider(FAKE_CREDENTIALS_PROVIDER)
                 .region(Region.US_EAST_1)
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
-                .overrideConfiguration(ClientOverrideConfiguration.builder().gzipEnabled(true).build())
                 .build();
 
         client.allTypes(AllTypesRequest.builder().build());

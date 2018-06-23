@@ -23,7 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static software.amazon.awssdk.http.Headers.CONTENT_TYPE;
+import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
@@ -34,9 +34,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.core.util.Mimetypes;
+import software.amazon.awssdk.core.util.Mimetype;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.glacier.model.UploadArchiveRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
 
@@ -69,7 +69,7 @@ public class UploadArchiveHeaderTest {
                                     .withStatus(200)
                                     .withBody("{}")));
         glacier.uploadArchive(request, RequestBody.fromBytes("test".getBytes()));
-        verify(postRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetypes.MIMETYPE_OCTET_STREAM)));
+        verify(postRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetype.MIMETYPE_OCTET_STREAM)));
     }
 
     @Test

@@ -17,7 +17,9 @@ package software.amazon.awssdk.http.nio.netty.internal.utils;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
+@SdkInternalApi
 public final class ChannelUtils {
     private ChannelUtils() {}
 

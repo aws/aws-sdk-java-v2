@@ -31,8 +31,9 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
-import software.amazon.awssdk.core.client.AsyncClientHandler;
-import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.util.CompletableFutures;
 
 public final class AsyncClientClass extends AsyncClientInterface {
     private final IntermediateModel model;
@@ -104,11 +105,15 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
         return builder.addModifiers(Modifier.PUBLIC)
                       .addAnnotation(Override.class)
-                      .addCode(getCustomResponseHandler(opModel, returnType)
-                                   .orElseGet(() -> protocolSpec.responseHandler(opModel)))
-                      .addCode(protocolSpec.errorResponseHandler(opModel))
-                      .addCode(protocolSpec.asyncExecutionHandler(opModel));
-
+                      .beginControlFlow("try")
+                          .addCode(getCustomResponseHandler(opModel, returnType)
+                                       .orElseGet(() -> protocolSpec.responseHandler(opModel)))
+                          .addCode(protocolSpec.errorResponseHandler(opModel))
+                          .addCode(protocolSpec.asyncExecutionHandler(opModel))
+                      .endControlFlow()
+                      .beginControlFlow("catch ($T t)", Throwable.class)
+                          .addStatement("return $T.failedFuture(t)", CompletableFutures.class)
+                      .endControlFlow();
     }
 
     @Override

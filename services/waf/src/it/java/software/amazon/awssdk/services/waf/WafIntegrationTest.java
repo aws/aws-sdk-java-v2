@@ -22,8 +22,8 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.waf.model.ChangeAction;
 import software.amazon.awssdk.services.waf.model.CreateIPSetRequest;
 import software.amazon.awssdk.services.waf.model.CreateIPSetResponse;
@@ -46,14 +46,14 @@ public class WafIntegrationTest extends AwsTestBase {
 
     private static final String IP_SET_NAME = "java-sdk-ipset-" + System.currentTimeMillis();
     private static final String IP_ADDRESS_RANGE = "192.0.2.0/24";
-    private static WAFClient client = null;
+    private static WafClient client = null;
     private static String ipSetId = null;
 
     @BeforeClass
     public static void setup() throws IOException {
         FixedDelayBackoffStrategy fixedBackoffStrategy = FixedDelayBackoffStrategy.create(Duration.ofSeconds(30));
         setUpCredentials();
-        client = WAFClient.builder()
+        client = WafClient.builder()
                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                           .region(Region.AWS_GLOBAL)
                           .overrideConfiguration(cfg -> cfg.retryPolicy(r -> r.backoffStrategy(fixedBackoffStrategy)))

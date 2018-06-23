@@ -27,7 +27,7 @@ import java.util.Set;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
@@ -40,7 +40,7 @@ public class DynamoDBTestBase extends AwsTestBase {
 
     protected static final Region REGION = Region.US_EAST_1;
 
-    protected static DynamoDBClient dynamo;
+    protected static DynamoDbClient dynamo;
 
     private static final Logger log = Logger.loggerFor(DynamoDBTestBase.class);
 
@@ -51,10 +51,10 @@ public class DynamoDBTestBase extends AwsTestBase {
             throw new SdkClientException("Unable to load credential property file.", e);
         }
 
-        dynamo = DynamoDBClient.builder().region(REGION).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        dynamo = DynamoDbClient.builder().region(REGION).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 
-    public static DynamoDBClient getClient() {
+    public static DynamoDbClient getClient() {
         if (dynamo == null) {
             setUpTestBase();
         }
@@ -65,7 +65,7 @@ public class DynamoDBTestBase extends AwsTestBase {
         waitForTableToBecomeDeleted(dynamo, tableName);
     }
 
-    public static void waitForTableToBecomeDeleted(DynamoDBClient dynamo, String tableName) {
+    public static void waitForTableToBecomeDeleted(DynamoDbClient dynamo, String tableName) {
         log.info(() -> "Waiting for " + tableName + " to become Deleted...");
 
         long startTime = System.currentTimeMillis();

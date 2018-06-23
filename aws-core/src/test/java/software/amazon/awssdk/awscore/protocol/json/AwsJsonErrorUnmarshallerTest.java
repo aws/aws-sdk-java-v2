@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonErrorUnmarshaller;
 
 public class AwsJsonErrorUnmarshallerTest {
 

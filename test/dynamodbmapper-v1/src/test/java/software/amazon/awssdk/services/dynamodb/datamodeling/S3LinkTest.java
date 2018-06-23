@@ -23,7 +23,7 @@ import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 @Ignore // FIXME: Setup fails with "region cannot be null"
 public class S3LinkTest {
@@ -32,7 +32,7 @@ public class S3LinkTest {
     @Before
     public void setUp() {
         AwsCredentials credentials = AwsCredentials.create("mock", "mock");
-        DynamoDBClient db = DynamoDBClient.builder()
+        DynamoDbClient db = DynamoDbClient.builder()
                                           .credentialsProvider(StaticCredentialsProvider.create(credentials))
                                           .region(Region.US_WEST_2)
                                           .build();
@@ -111,7 +111,7 @@ public class S3LinkTest {
                      "{\"s3\":{\"bucket\":\"bucket\",\"key\":\"key\",\"region\":\"us-east-1\"}}",
                      json);
         // Default region changed to GovCloud
-        testLink1 = mapper.createS3Link(Region.GovCloud.US_GOV_WEST_1, "bucket", "key");
+        testLink1 = mapper.createS3Link(Region.US_GOV_WEST_1, "bucket", "key");
         json = testLink1.toJson();
         assertEquals(json,
                      "{\"s3\":{\"bucket\":\"bucket\",\"key\":\"key\",\"region\":\"us-gov-west-1\"}}",
@@ -122,7 +122,7 @@ public class S3LinkTest {
     public void testGetRegion_ReturnsUsEast1_Whens3LinkCreated_WithNullRegion() {
         S3Link s3Link = mapper.createS3Link("bucket", "key");
 
-        assertEquals("us-east-1", s3Link.s3Region().value());
+        assertEquals("us-east-1", s3Link.s3Region().id());
         assertEquals("us-east-1", s3Link.getRegion());
     }
 
@@ -130,7 +130,7 @@ public class S3LinkTest {
     public void testGetRegion_ReturnsUsEast1_WhenS3LinkCreated_WithUsStandardRegion() {
         S3Link s3Link = mapper.createS3Link(Region.US_EAST_1, "bucket", "key");
 
-        assertEquals("us-east-1", s3Link.s3Region().value());
+        assertEquals("us-east-1", s3Link.s3Region().id());
         assertEquals("us-east-1", s3Link.getRegion());
     }
 
@@ -138,7 +138,7 @@ public class S3LinkTest {
     public void testGetRegion_ReturnsUsEast1_Whens3LinkCreated_WithUsEast1Region() {
         S3Link s3Link = mapper.createS3Link("us-east-1", "bucket", "key");
 
-        assertEquals("us-east-1", s3Link.s3Region().value());
+        assertEquals("us-east-1", s3Link.s3Region().id());
         assertEquals("us-east-1", s3Link.getRegion());
     }
 
@@ -147,6 +147,6 @@ public class S3LinkTest {
         S3Link s3Link = mapper.createS3Link(Region.EU_WEST_2, "bucket", "key");
 
         assertEquals(Region.EU_WEST_2, s3Link.s3Region());
-        assertEquals(Region.EU_WEST_2.value(), s3Link.getRegion());
+        assertEquals(Region.EU_WEST_2.id(), s3Link.getRegion());
     }
 }

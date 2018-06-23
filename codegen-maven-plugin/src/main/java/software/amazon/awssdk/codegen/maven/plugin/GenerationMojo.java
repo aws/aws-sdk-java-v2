@@ -25,7 +25,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
@@ -59,7 +58,7 @@ public class GenerationMojo extends AbstractMojo {
     @Parameter(property = "outputDirectory", defaultValue = "${project.build.directory}")
     private String outputDirectory;
 
-    @Component
+    @Parameter(defaultValue = "${project}", readonly = true)
     private MavenProject project;
 
     private Path sourcesDirectory;
@@ -130,15 +129,15 @@ public class GenerationMojo extends AbstractMojo {
     }
 
     private ServiceExamples loadExamplesModel(Path root) {
-        return loadOptionalModel(ServiceExamples.class, root.resolve(EXAMPLES_FILE)).orElse(ServiceExamples.NONE);
+        return loadOptionalModel(ServiceExamples.class, root.resolve(EXAMPLES_FILE)).orElse(ServiceExamples.none());
     }
 
     private Waiters loadWaiterModel(Path root) {
-        return loadOptionalModel(Waiters.class, root.resolve(WAITERS_FILE)).orElse(Waiters.NONE);
+        return loadOptionalModel(Waiters.class, root.resolve(WAITERS_FILE)).orElse(Waiters.none());
     }
 
     private Paginators loadPaginatorModel(Path root) {
-        return loadOptionalModel(Paginators.class, root.resolve(PAGINATORS_FILE)).orElse(Paginators.NONE);
+        return loadOptionalModel(Paginators.class, root.resolve(PAGINATORS_FILE)).orElse(Paginators.none());
     }
 
     /**

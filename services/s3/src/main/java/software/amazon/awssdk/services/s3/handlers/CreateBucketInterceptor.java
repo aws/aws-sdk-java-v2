@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.s3.handlers;
 
-import software.amazon.awssdk.auth.AwsExecutionAttributes;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -36,7 +36,7 @@ public class CreateBucketInterceptor implements ExecutionInterceptor {
             validateBucketNameIsS3Compatible(request.bucket());
 
             if (request.createBucketConfiguration() == null || request.createBucketConfiguration().locationConstraint() == null) {
-                Region region = executionAttributes.getAttribute(AwsExecutionAttributes.AWS_REGION);
+                Region region = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION);
                 sdkRequest = request.toBuilder()
                                     .createBucketConfiguration(toLocationConstraint(region))
                                     .build();
@@ -52,7 +52,7 @@ public class CreateBucketInterceptor implements ExecutionInterceptor {
             return null;
         }
         return CreateBucketConfiguration.builder()
-                                        .locationConstraint(region.value())
+                                        .locationConstraint(region.id())
                                         .build();
     }
 

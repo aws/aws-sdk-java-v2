@@ -24,11 +24,13 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Base64Utils;
 
 /**
  * Utility methods for computing MD5 sums.
  */
+@SdkProtectedApi
 public final class Md5Utils {
     private static final int SIXTEEN_K = 1 << 14;
 

@@ -117,9 +117,9 @@ public class C2jModels {
         }
 
         public C2jModels build() {
-            final Waiters waiters = waitersModel != null ? waitersModel : Waiters.NONE;
-            final Paginators paginators = paginatorsModel != null ? paginatorsModel : Paginators.NONE;
-            final ServiceExamples examples = examplesModel != null ? examplesModel : ServiceExamples.NONE;
+            final Waiters waiters = waitersModel != null ? waitersModel : Waiters.none();
+            final Paginators paginators = paginatorsModel != null ? paginatorsModel : Paginators.none();
+            final ServiceExamples examples = examplesModel != null ? examplesModel : ServiceExamples.none();
             return new C2jModels(serviceModel, waiters, examples, codeGenConfig, customizationConfig, paginators);
         }
     }

@@ -27,6 +27,7 @@ import software.amazon.awssdk.http.nio.netty.DefaultEventLoopGroupFactory;
  * clients are using the shared event loop group and will automatically close it when that count reaches zero. Event loop
  * group is lazily initialized for the first time and and subsequent requests after the count reaches zero.
  */
+@SdkInternalApi
 public final class SharedEventLoopGroup {
 
     /**

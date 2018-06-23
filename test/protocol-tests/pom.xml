@@ -37,6 +37,11 @@
         <!--Normal Dependencies-->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>aws-core</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
@@ -45,6 +50,31 @@
             <artifactId>apache-client</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-client-spi</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>core</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>auth</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>regions</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>utils</artifactId>
+            <version>${awsjavasdk.version}</version>
         </dependency>
 
         <!--Test Dependencies-->
@@ -76,15 +106,19 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>netty-nio-client</artifactId>
             <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -27,14 +27,14 @@
     <Match>
         <Or>
             <!-- Container classes do not copy arrays for performance reasons at this time. -->
-            <Class name="software.amazon.awssdk.core.protocol.json.JsonContent" />
+            <Class name="software.amazon.awssdk.core.internal.protocol.json.JsonContent" />
         </Or>
         <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
     </Match>
 
     <!-- Delegate closes input stream. -->
     <Match>
-        <Class name="software.amazon.awssdk.core.protocol.json.IonFactory" />
+        <Class name="software.amazon.awssdk.core.internal.protocol.json.IonFactory" />
         <Method name="createParser" />
         <Bug pattern="OBL_UNSATISFIED_OBLIGATION" />
     </Match>
@@ -44,7 +44,7 @@
     <Match>
         <Or>
             <Class name="software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDBMapper$BatchGetItemException"/>
-            <Class name="software.amazon.awssdk.core.protocol.json.IonFactory"/>
+            <Class name="software.amazon.awssdk.core.internal.protocol.json.IonFactory"/>
         </Or>
         <Bug pattern="SE_TRANSIENT_FIELD_NOT_RESTORED" />
     </Match>
@@ -67,4 +67,48 @@
         <Method name="onComplete" />
         <Bug pattern="NP_NONNULL_PARAM_VIOLATION" />
     </Match>
+
+    <!-- False positive -->
+    <Match>
+        <Class name="software.amazon.awssdk.core.ResponseBytes" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+
+    <!-- False positive Unconfirmed cast-->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.core.client.handler.BaseAsyncClientHandler$InterceptorCallingHttpResponseHandler" />
+            <Class name="software.amazon.awssdk.core.client.handler.BaseAsyncClientHandler$UnmarshallingSdkHttpResponseHandler" />
+            <Class name="software.amazon.awssdk.core.internal.http.async.SyncResponseHandlerAdapter" />
+        </Or>
+        <Bug pattern="BC_UNCONFIRMED_CAST" />
+    </Match>
+
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.awscore.protocol.xml.StandardErrorUnmarshaller" />
+            <Class name="software.amazon.awssdk.awscore.protocol.xml.LegacyErrorUnmarshaller" />
+        </Or>
+        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
+    </Match>
+
+    <!-- Currently they look the same and we will revisit this when we add APIG -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.core.client.handler.SdkAsyncClientHandler" />
+            <Class name="software.amazon.awssdk.core.client.handler.SdkSyncClientHandler" />
+            <Class name="software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler" />
+            <Class name="software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler" />
+        </Or>
+        <Bug pattern="RI_REDUNDANT_INTERFACES" />
+    </Match>
+
+    <Match>
+        <Or>
+            <Package name="io.netty.handler.codec.http2"/>
+            <Class name="software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPool" />
+        </Or>
+        <Bug pattern="BC_UNCONFIRMED_CAST,SIC_INNER_SHOULD_BE_STATIC_ANON,DLS_DEAD_LOCAL_STORE,DM_CONVERT_CASE,NM_CLASS_NOT_EXCEPTION,NP_NULL_ON_SOME_PATH"/>
+    </Match>
+
 </FindBugsFilter>

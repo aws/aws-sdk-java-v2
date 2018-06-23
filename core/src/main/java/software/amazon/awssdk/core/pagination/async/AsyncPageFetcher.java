@@ -16,13 +16,13 @@
 package software.amazon.awssdk.core.pagination.async;
 
 import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Interface to deal with async paginated responses.
  * @param <ResponseT> Type of Response
  */
-@SdkInternalApi
+@SdkProtectedApi
 public interface AsyncPageFetcher<ResponseT> {
 
     /**

@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -37,6 +38,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Base64Utils;
 import software.amazon.awssdk.utils.XmlUtils;
 
@@ -44,6 +46,7 @@ import software.amazon.awssdk.utils.XmlUtils;
  * Utility methods for extracting data from XML documents using Xpath
  * expressions.
  */
+@SdkProtectedApi
 public final class XpathUtils {
 
     /** The default property name to load the Xalan DTM manager. */
@@ -63,6 +66,11 @@ public final class XpathUtils {
     private static final String DTM_MANAGER_IMPL_CLASS_NAME = "com.sun.org.apache.xml.internal.dtm.ref.DTMManagerDefault";
 
     private static final Logger log = LoggerFactory.getLogger(XpathUtils.class);
+
+    /**
+     * Shared factory for creating XML Factory
+     */
+    private static final ThreadLocal<XPathFactory> X_PATH_FACTORY = ThreadLocal.withInitial(XPathFactory::newInstance);
 
     private static final ErrorHandler ERROR_HANDLER = new ErrorHandler() {
 
@@ -155,7 +163,7 @@ public final class XpathUtils {
      * reentrant.
      */
     public static XPath xpath() {
-        return XPathFactory.newInstance().newXPath();
+        return X_PATH_FACTORY.get().newXPath();
     }
 
     /**
@@ -177,7 +185,7 @@ public final class XpathUtils {
 
     public static Document documentFrom(String xml) throws SAXException,
                                                            IOException, ParserConfigurationException {
-        return documentFrom(new ByteArrayInputStream(xml.getBytes(StringUtils.UTF8)));
+        return documentFrom(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
     }
 
     public static Document documentFrom(URL url) throws SAXException,

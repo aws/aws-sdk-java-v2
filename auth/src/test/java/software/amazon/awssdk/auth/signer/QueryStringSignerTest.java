@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.TimeZone;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -94,6 +93,6 @@ public class QueryStringSignerTest {
     }
 
     private ExecutionAttributes constructAttributes(AwsCredentials awsCredentials) {
-        return new ExecutionAttributes().putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, awsCredentials);
+        return new ExecutionAttributes().putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, awsCredentials);
     }
 }

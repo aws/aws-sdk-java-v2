@@ -15,8 +15,9 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.MAX_CONCURRENT_STREAMS;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.PROTOCOL_FUTURE;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.MAX_CONCURRENT_STREAMS;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
+import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -33,6 +34,7 @@ import io.netty.handler.ssl.SslContext;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.http2.MultiplexedChannelRecord;
 import software.amazon.awssdk.http.nio.netty.internal.http2.SdkHttp2FrameLogger;
@@ -40,6 +42,8 @@ import software.amazon.awssdk.http.nio.netty.internal.http2.SdkHttp2FrameLogger;
 /**
  * Configures the client pipeline to support HTTP/2 frames with multiplexed streams.
  */
+
+@SdkInternalApi
 public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
 
     private final Protocol protocol;
@@ -77,10 +81,7 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
                              .forClient(new NoOpChannelInitializer())
                              // TODO disable frame logging for performance
                              .frameLogger(new SdkHttp2FrameLogger(LogLevel.DEBUG))
-                             .headerSensitivityDetector((name, value) -> {
-                                 String lowerName = name.toString().toLowerCase();
-                                 return lowerName.equals("authorization");
-                             })
+                             .headerSensitivityDetector((name, value) -> lowerCase(name.toString()).equals("authorization"))
                              .build());
         pipeline.addLast(new SimpleChannelInboundHandler<Http2SettingsFrame>() {
             @Override
@@ -93,7 +94,7 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
             @Override
             public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
                 ch.attr(PROTOCOL_FUTURE).get().completeExceptionally(cause);
-                MultiplexedChannelRecord record = ch.attr(ChannelAttributeKeys.CHANNEL_POOL_RECORD).get();
+                MultiplexedChannelRecord record = ch.attr(ChannelAttributeKey.CHANNEL_POOL_RECORD).get();
                 // Deliver the exception to any child channels registered to this connection.
                 if (record != null) {
                     record.shutdownChildChannels(cause);

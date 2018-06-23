@@ -138,6 +138,28 @@ public class SdkHttpFullResponseAdapterTest {
         assertThat(adapted.getContent(), instanceOf(GZIPInputStream.class));
     }
 
+    @Test
+    public void adapt_ResponseWithCrc32Header_And_NoContent_DoesNotThrowNPE() throws UnsupportedEncodingException {
+        SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
+                                                              .statusCode(200)
+                                                              .header("x-amz-crc32", "1234")
+                                                              .build();
+
+        HttpResponse adapted = adapt(httpResponse);
+        assertThat(adapted.getContent(), equalTo(null));
+    }
+
+    @Test
+    public void adapt_ResponseGzipEncoding_And_NoContent_DoesNotThrowNPE() throws IOException {
+        SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
+                                                              .statusCode(200)
+                                                              .header("Content-Encoding", "gzip")
+                                                              .build();
+
+        HttpResponse adapted = adapt(httpResponse);
+        assertThat(adapted.getContent(), equalTo(null));
+    }
+
     private HttpResponse adapt(SdkHttpFullResponse httpResponse) {
         return SdkHttpResponseAdapter.adapt(false, request, httpResponse);
     }

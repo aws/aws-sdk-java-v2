@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.core.pagination;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@SdkInternalApi
+@SdkProtectedApi
 public interface SyncPageFetcher<ResponseT> {
 
     /**

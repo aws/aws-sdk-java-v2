@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.model.config.templates;
 
-import static software.amazon.awssdk.codegen.internal.Constants.PROTOCOL_CONFIG_LOCATION;
+import static software.amazon.awssdk.codegen.internal.Constant.PROTOCOL_CONFIG_LOCATION;
 
 import java.io.InputStream;
 import java.util.Collections;

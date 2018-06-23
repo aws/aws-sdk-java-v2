@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline;
 
 import java.util.function.BiFunction;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 
 /**
@@ -24,6 +25,7 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
  * @param <InputT>  Source type, provided as input param to pipeline.
  * @param <OutputT> Output type returned by the pipeline.
  */
+@SdkInternalApi
 public interface RequestPipeline<InputT, OutputT> {
 
     /**
@@ -34,7 +36,7 @@ public interface RequestPipeline<InputT, OutputT> {
      *                between stages.
      * @return Output of pipeline.
      * @throws Exception If any error occurs. This will be thrown out of the pipeline, if exceptions must be handled see
-     *                   {@link RequestPipelineBuilder#wrap(BiFunction)}.
+     *                   {@link RequestPipelineBuilder#wrappedWith(BiFunction)}.
      */
     OutputT execute(InputT input, RequestExecutionContext context) throws Exception;
 }

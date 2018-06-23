@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.services.stepfunctions.builder.internal.Buildable;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 import software.amazon.awssdk.services.stepfunctions.builder.states.ChoiceState;
 
 /**
@@ -30,7 +30,7 @@ import software.amazon.awssdk.services.stepfunctions.builder.states.ChoiceState;
  */
 public final class OrCondition implements NAryCondition {
 
-    @JsonProperty(PropertyNames.OR)
+    @JsonProperty(PropertyName.OR)
     private final List<Condition> conditions;
 
     private OrCondition(Builder builder) {

@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.http.async;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.Abortable;
 
 /**
  * Runnable that can be aborted.
  */
+@SdkProtectedApi
 public interface AbortableRunnable extends Runnable, Abortable {
 
 }

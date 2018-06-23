@@ -25,8 +25,10 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import java.util.HashMap;
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.nio.netty.internal.DelegatingEventLoopGroup;
 
+@SdkInternalApi
 public final class SocketChannelResolver {
 
     private static final Map<String, String> KNOWN_EL_GROUPS = new HashMap<>();

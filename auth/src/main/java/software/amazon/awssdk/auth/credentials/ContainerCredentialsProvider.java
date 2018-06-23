@@ -26,11 +26,14 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.auth.credentials.internal.ContainerCredentialsRetryPolicy;
+import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsProvider;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
-import software.amazon.awssdk.regions.util.ResourcesEndpointRetryPolicy;
+import software.amazon.awssdk.regions.internal.util.ResourcesEndpointProvider;
+import software.amazon.awssdk.regions.internal.util.ResourcesEndpointRetryPolicy;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.ToString;
 
@@ -50,6 +53,7 @@ import software.amazon.awssdk.utils.ToString;
  * @see <a href="http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html">Amazon Elastic Container
  * Service (ECS)</a>
  */
+@SdkPublicApi
 public final class ContainerCredentialsProvider extends HttpCredentialsProvider {
     private final ResourcesEndpointProvider credentialsEndpointProvider;
 

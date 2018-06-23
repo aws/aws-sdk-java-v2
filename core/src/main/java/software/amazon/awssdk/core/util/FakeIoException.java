@@ -16,10 +16,12 @@
 package software.amazon.awssdk.core.util;
 
 import java.io.IOException;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Used for simulating an IOException for test purposes.
  */
+@SdkInternalApi
 public class FakeIoException extends IOException {
     private static final long serialVersionUID = 1L;
 

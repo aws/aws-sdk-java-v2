@@ -25,7 +25,6 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
-import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 
 /**
@@ -36,11 +35,11 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
  */
 @Immutable
 @SdkInternalApi
-public class RequestPipelineBuilder<InputT, OutputT> {
+public final class RequestPipelineBuilder<InputT, OutputT> {
 
     private final Function<HttpClientDependencies, RequestPipeline<InputT, OutputT>> pipelineFactory;
 
-    RequestPipelineBuilder(Function<HttpClientDependencies, RequestPipeline<InputT, OutputT>> pipelineFactory) {
+    private RequestPipelineBuilder(Function<HttpClientDependencies, RequestPipeline<InputT, OutputT>> pipelineFactory) {
         this.pipelineFactory = pipelineFactory;
     }
 
@@ -149,14 +148,14 @@ public class RequestPipelineBuilder<InputT, OutputT> {
      * @return A new RequestPipelineBuilder that wraps around the pipeline currently being constructed.
      * @see #build(HttpClientDependencies)
      */
-    public <NewInputT, NewOutputT> RequestPipelineBuilder<NewInputT, NewOutputT> wrap(
+    public <NewInputT, NewOutputT> RequestPipelineBuilder<NewInputT, NewOutputT> wrappedWith(
             BiFunction<HttpClientDependencies, RequestPipeline<InputT, OutputT>,
                     RequestPipeline<NewInputT, NewOutputT>> wrappedFactory) {
         return new RequestPipelineBuilder<>(r -> wrappedFactory.apply(r, this.pipelineFactory.apply(r)));
     }
 
     /**
-     * Factory method to wrap the current {@link RequestPipelineBuilder} with another pipeline stage. The argument to wrap is a
+     * Factory method to wrap the current {@link RequestPipelineBuilder} with another pipeline stage. The argument is a
      * factory that takes an inner {@link RequestPipeline} (the current one being built) as an argument and produces a new {@link
      * RequestPipeline} for the wrapper. The wrapper may have entirely different input and output types, typically it will have
      * the same however.
@@ -167,7 +166,7 @@ public class RequestPipelineBuilder<InputT, OutputT> {
      * @return A new RequestPipelineBuilder that wraps around the pipeline currently being constructed.
      * @see #build(HttpClientDependencies)
      */
-    public <NewInputT, NewOutputT> RequestPipelineBuilder<NewInputT, NewOutputT> wrap(
+    public <NewInputT, NewOutputT> RequestPipelineBuilder<NewInputT, NewOutputT> wrappedWith(
             Function<RequestPipeline<InputT, OutputT>,
                     RequestPipeline<NewInputT, NewOutputT>> wrappedFactory) {
         return new RequestPipelineBuilder<>(d -> wrappedFactory.apply(this.pipelineFactory.apply(d)));

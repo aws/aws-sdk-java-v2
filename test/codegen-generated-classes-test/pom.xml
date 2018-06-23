@@ -23,15 +23,34 @@
 
     <dependencies>
         <dependency>
-            <artifactId>aws-core</artifactId>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>annotations</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <artifactId>apache-client</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-client-spi</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>core</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>auth</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>regions</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>aws-core</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <artifactId>netty-nio-client</artifactId>
@@ -146,6 +165,14 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <!-- Disable spotbugs for this test module to speed up the build. -->
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
         </plugins>
     </build>

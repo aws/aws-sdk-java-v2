@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.MAX_CONCURRENT_STREAMS;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.PROTOCOL_FUTURE;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.MAX_CONCURRENT_STREAMS;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.PROTOCOL_FUTURE;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.doInEventLoop;
 
 import io.netty.bootstrap.Bootstrap;

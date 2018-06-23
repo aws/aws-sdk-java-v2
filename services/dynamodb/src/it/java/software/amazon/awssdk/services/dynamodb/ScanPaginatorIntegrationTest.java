@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.dynamodb;
 import static org.junit.Assert.assertEquals;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.Stream;
@@ -183,44 +182,6 @@ public class ScanPaginatorIntegrationTest extends DynamoDBTestBase {
             count += response.count();
         }
         assertEquals(ITEM_COUNT, count);
-    }
-
-    @Test
-    public void test_resume_On_IntermediatePage() {
-        ScanRequest request = ScanRequest.builder().tableName(TABLE_NAME).limit(5).build();
-        ScanIterable scanResponses = dynamo.scanPaginator(request);
-
-        Iterator<ScanResponse> scanResponsesIterator = scanResponses.iterator();
-
-        int scannedCount = 0;
-        scannedCount += scanResponsesIterator.next().count();
-
-        ScanResponse lastResponse = scanResponsesIterator.next();
-        scannedCount += lastResponse.count();
-
-        // Resume from last page
-        assertEquals(ITEM_COUNT, scannedCount + scanResponses.resume(lastResponse).stream()
-                                                                    .flatMap(r -> r.items().stream())
-                                                                    .count());
-
-
-        assertEquals(ITEM_COUNT, scannedCount + scanResponses.resume(lastResponse).items().stream().count());
-    }
-
-
-    @Test
-    public void test_resume_On_LastPage() {
-        ScanRequest request = ScanRequest.builder().tableName(TABLE_NAME).limit(5).build();
-        ScanIterable scanResponses = dynamo.scanPaginator(request);
-
-        ScanResponse lastPage = scanResponses.stream().reduce((first, second) -> second).get();
-
-        // Resume from last page
-        assertEquals(0, scanResponses.resume(lastPage).stream()
-                                     .flatMap(r -> r.items().stream())
-                                     .count());
-
-        assertEquals(0, scanResponses.resume(lastPage).items().stream().count());
     }
 
     private static void putTestData() {

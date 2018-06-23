@@ -20,11 +20,11 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class IntegrationTestBase extends AwsTestBase {
 
-    protected static CloudHSMClient client;
+    protected static CloudHsmClient client;
 
     @BeforeClass
     public static void setup() throws Exception {
         setUpCredentials();
-        client = CloudHSMClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        client = CloudHsmClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 }

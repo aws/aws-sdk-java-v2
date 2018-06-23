@@ -19,11 +19,11 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.Executors;
-import software.amazon.awssdk.core.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.config.options.SdkAdvancedAsyncClientOption;
-import software.amazon.awssdk.core.config.options.SdkAdvancedClientOption;
-import software.amazon.awssdk.core.config.options.SdkClientOption;
-import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
@@ -50,7 +50,6 @@ public class HttpTestUtils {
                                      .option(SdkClientOption.EXECUTION_INTERCEPTORS, new ArrayList<>())
                                      .option(SdkClientOption.ENDPOINT, URI.create("http://localhost:8080"))
                                      .option(SdkClientOption.RETRY_POLICY, RetryPolicy.DEFAULT)
-                                     .option(SdkClientOption.GZIP_ENABLED, false)
                                      .option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, new HashMap<>())
                                      .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
                                      .option(SdkAdvancedClientOption.SIGNER, new NoOpSigner())

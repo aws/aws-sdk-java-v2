@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.awscore;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkResponse;
 
 /**
  * Base class for all AWS Service responses.
  */
+@SdkPublicApi
 public abstract class AwsResponse extends SdkResponse {
 
     protected AwsResponse(Builder builder) {

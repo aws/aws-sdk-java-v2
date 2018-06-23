@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.stepfunctions.builder.conditions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * Binary condition for String less than or equal to comparison.
@@ -26,10 +26,10 @@ import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNa
  */
 public final class StringLessThanOrEqualCondition implements BinaryCondition<String> {
 
-    @JsonProperty(PropertyNames.VARIABLE)
+    @JsonProperty(PropertyName.VARIABLE)
     private final String variable;
 
-    @JsonProperty(PropertyNames.STRING_LESS_THAN_EQUALS)
+    @JsonProperty(PropertyName.STRING_LESS_THAN_EQUALS)
     private final String expectedValue;
 
     private StringLessThanOrEqualCondition(Builder builder) {
@@ -65,10 +65,10 @@ public final class StringLessThanOrEqualCondition implements BinaryCondition<Str
      */
     public static final class Builder extends BinaryStringConditionBuilder {
 
-        @JsonProperty(PropertyNames.VARIABLE)
+        @JsonProperty(PropertyName.VARIABLE)
         private String variable;
 
-        @JsonProperty(PropertyNames.STRING_LESS_THAN_EQUALS)
+        @JsonProperty(PropertyName.STRING_LESS_THAN_EQUALS)
         private String expectedValue;
 
         private Builder() {
@@ -100,7 +100,7 @@ public final class StringLessThanOrEqualCondition implements BinaryCondition<Str
 
         @Override
         String type() {
-            return PropertyNames.STRING_LESS_THAN_EQUALS;
+            return PropertyName.STRING_LESS_THAN_EQUALS;
         }
 
         /**

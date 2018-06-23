@@ -18,6 +18,7 @@ package software.amazon.awssdk.auth.signer.internal;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
@@ -27,6 +28,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
  *            value type
  */
 @ThreadSafe
+@SdkInternalApi
 public final class FifoCache<T> {
     private final BoundedLinkedHashMap<String, T> map;
     private final ReadLock rlock;

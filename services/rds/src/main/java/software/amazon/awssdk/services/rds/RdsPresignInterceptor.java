@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.rds;
 
-import static software.amazon.awssdk.auth.AwsExecutionAttributes.AWS_CREDENTIALS;
+import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.AWS_CREDENTIALS;
 
 import java.net.URI;
 import java.time.Clock;
@@ -34,7 +34,7 @@ import software.amazon.awssdk.core.util.AwsHostNameUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.rds.model.RDSRequest;
+import software.amazon.awssdk.services.rds.model.RdsRequest;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
@@ -43,15 +43,13 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  *
  * @param <T> The request type.
  */
-abstract class RdsPresignInterceptor<T extends RDSRequest> implements ExecutionInterceptor {
+abstract class RdsPresignInterceptor<T extends RdsRequest> implements ExecutionInterceptor {
     private static final String SERVICE_NAME = "rds";
     private static final String PARAM_SOURCE_REGION = "SourceRegion";
     private static final String PARAM_DESTINATION_REGION = "DestinationRegion";
     private static final String PARAM_PRESIGNED_URL = "PreSignedUrl";
 
     protected interface PresignableRequest {
-        void setPreSignedUrl(String preSignedUrl);
-
         String getSourceRegion();
 
         Request<?> marshall();
@@ -105,8 +103,6 @@ abstract class RdsPresignInterceptor<T extends RDSRequest> implements ExecutionI
         requestToPresign = presignRequest(requestToPresign, executionAttributes, sourceRegion);
 
         final String presignedUrl = requestToPresign.getUri().toString();
-
-        presignableRequest.setPreSignedUrl(presignedUrl);
 
         return request.toBuilder()
                       .rawQueryParameter(PARAM_PRESIGNED_URL, presignedUrl)

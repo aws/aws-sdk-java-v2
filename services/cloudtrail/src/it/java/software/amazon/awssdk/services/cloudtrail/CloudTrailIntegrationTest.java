@@ -64,7 +64,7 @@ public class CloudTrailIntegrationTest extends IntegrationTestBase {
                                            .bucket(BUCKET_NAME)
                                            .createBucketConfiguration(
                                                    CreateBucketConfiguration.builder()
-                                                                            .locationConstraint(region.value())
+                                                                            .locationConstraint(region.id())
                                                                             .build())
                                            .build());
     }

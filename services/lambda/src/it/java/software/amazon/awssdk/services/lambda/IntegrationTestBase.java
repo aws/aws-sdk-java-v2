@@ -27,7 +27,7 @@ import java.util.zip.ZipOutputStream;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.iam.IAMClient;
+import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.AttachRolePolicyRequest;
 import software.amazon.awssdk.services.iam.model.CreatePolicyRequest;
 import software.amazon.awssdk.services.iam.model.CreateRoleRequest;
@@ -62,7 +62,7 @@ public class IntegrationTestBase extends AwsTestBase {
     protected static String lambdaServiceRoleArn;
     protected static String streamArn;
     private static String roleExecutionPolicyArn;
-    private static IAMClient iam;
+    private static IamClient iam;
     private static KinesisClient kinesis;
 
     @BeforeClass
@@ -112,7 +112,7 @@ public class IntegrationTestBase extends AwsTestBase {
     }
 
     private static void createLambdaServiceRole() {
-        iam = IAMClient.builder()
+        iam = IamClient.builder()
                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                 .region(Region.AWS_GLOBAL)
                 .build();

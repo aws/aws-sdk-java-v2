@@ -95,8 +95,8 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
 
     protected MethodSpec.Builder resumeMethodBuilder() {
         return MethodSpec.methodBuilder(RESUME_METHOD)
-                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                         .addParameter(responseType(), LAST_SUCCESSFUL_PAGE_LITERAL, Modifier.FINAL)
+                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                         .addParameter(responseType(), LAST_SUCCESSFUL_PAGE_LITERAL)
                          .returns(className())
                          .addCode(CodeBlock.builder()
                                            .beginControlFlow("if ($L.$L($L))", NEXT_PAGE_FETCHER_MEMBER,

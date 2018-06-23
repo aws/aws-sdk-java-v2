@@ -15,9 +15,13 @@
 
 package software.amazon.awssdk.regions;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.regions.internal.RegionMetadataLoader;
+
 /**
  * A collection of metadata about a region. This can be loaded using the {@link #of(Region)} method.
  */
+@SdkPublicApi
 public interface RegionMetadata {
 
     /**
@@ -25,21 +29,21 @@ public interface RegionMetadata {
      *
      * @return The unique system ID for this region.
      */
-    String getName();
+    String name();
 
     /**
      * Returns the domain for this region; ex: &quot;amazonaws.com&quot;.
      *
      * @return The domain for this region.
      */
-    String getDomain();
+    String domain();
 
     /**
      * Returns the partition this region is in. I.E. 'aws' or 'aws-cn'
      *
      * @return The partition this region is in.
      */
-    String getPartition();
+    String partition();
 
     /**
      * Returns the region metadata pertaining to the given region.

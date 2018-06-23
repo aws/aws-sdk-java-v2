@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.dynamodb;
 
 import static org.junit.Assert.assertEquals;
-import static software.amazon.awssdk.core.config.options.SdkAdvancedClientOption.SIGNER;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.SIGNER;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.ByteArrayInputStream;
@@ -27,11 +27,11 @@ import java.util.Map;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -107,7 +107,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
 
     @Test
     public void test_UsingSdkClient_WithSignerSetInConfig() {
-        DynamoDBClient client = getClientBuilder()
+        DynamoDbClient client = getClientBuilder()
             .overrideConfiguration(ClientOverrideConfiguration.builder()
                                                               .advancedOption(SIGNER, Aws4Signer.create())
                                                               .build())
@@ -171,7 +171,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
     }
 
     private String getHost() {
-        return String.format("dynamodb.%s.amazonaws.com", REGION.value());
+        return String.format("dynamodb.%s.amazonaws.com", REGION.id());
     }
 
     private String getInputContent() {
@@ -201,7 +201,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
         return result.replaceAll("\\s", "");
     }
 
-    private void getItemAndAssertValues(DynamoDBClient client) {
+    private void getItemAndAssertValues(DynamoDbClient client) {
         Map<String, AttributeValue> item =
             client.getItem(GetItemRequest.builder()
                                          .tableName(TABLE_NAME)
@@ -225,14 +225,14 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
 
     private ExecutionAttributes constructExecutionAttributes() {
         return new ExecutionAttributes()
-            .putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, awsCredentials)
-            .putAttribute(AwsExecutionAttributes.SERVICE_SIGNING_NAME, SIGNING_NAME)
-            .putAttribute(AwsExecutionAttributes.SIGNING_REGION, REGION)
-            .putAttribute(AwsExecutionAttributes.SIGNER_DOUBLE_URL_ENCODE, Boolean.TRUE);
+            .putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, awsCredentials)
+            .putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, SIGNING_NAME)
+            .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, REGION)
+            .putAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE, Boolean.TRUE);
     }
 
-    private static DynamoDBClientBuilder getClientBuilder() {
-        return DynamoDBClient.builder()
+    private static DynamoDbClientBuilder getClientBuilder() {
+        return DynamoDbClient.builder()
                              .region(REGION)
                              .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
     }

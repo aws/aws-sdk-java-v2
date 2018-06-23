@@ -18,16 +18,19 @@ package software.amazon.awssdk.utils;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.time.Duration;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Utilities that make it easier to create, use and destroy {@link ExecutorService}s.
  */
+@SdkProtectedApi
 public final class ExecutorUtils {
     private static Logger LOG = LoggerFactory.getLogger(ExecutorUtils.class);
 
@@ -41,6 +44,13 @@ public final class ExecutorUtils {
         return new ThreadPoolExecutor(0, 1, 5, SECONDS,
                                       new LinkedBlockingQueue<>(queueCapacity),
                                       new ThreadFactoryBuilder().daemonThreads(true).threadNamePrefix(threadNameFormat).build());
+    }
+
+    /**
+     * Wrap an executor in a type that cannot be closed, or shut down.
+     */
+    public static Executor unmanagedExecutor(Executor executor) {
+        return new UnmanagedExecutor(executor);
     }
 
     /**
@@ -80,6 +90,19 @@ public final class ExecutorUtils {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             LOG.warn("Interrupted while waiting for the executor service to shut down.");
+        }
+    }
+
+    private static class UnmanagedExecutor implements Executor {
+        private final Executor executor;
+
+        private UnmanagedExecutor(Executor executor) {
+            this.executor = executor;
+        }
+
+        @Override
+        public void execute(Runnable command) {
+            executor.execute(command);
         }
     }
 }

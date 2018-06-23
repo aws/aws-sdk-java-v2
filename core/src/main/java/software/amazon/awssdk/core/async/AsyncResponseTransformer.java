@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.async;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.core.pagination.async.SdkPublisher;
  * @param <ResponseT> POJO response type.
  * @param <ReturnT>   Type this response handler produces. I.E. the type you are transforming the response into.
  */
+@SdkPublicApi
 public interface AsyncResponseTransformer<ResponseT, ReturnT>
     extends BaseAsyncResponseTransformer<ResponseT, SdkPublisher<ByteBuffer>, ReturnT> {
 

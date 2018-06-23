@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
-import software.amazon.awssdk.services.sts.STSClient;
+import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleWithSamlCredentialsProvider.Builder;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithSAMLRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithSAMLResponse;
@@ -43,7 +43,7 @@ public class StsAssumeRoleWithSamlCredentialsProviderTest
     }
 
     @Override
-    protected AssumeRoleWithSAMLResponse callClient(STSClient client, AssumeRoleWithSAMLRequest request) {
+    protected AssumeRoleWithSAMLResponse callClient(StsClient client, AssumeRoleWithSAMLRequest request) {
         return client.assumeRoleWithSAML(request);
     }
 }

@@ -18,6 +18,8 @@ package software.amazon.awssdk.core.pagination.async;
 import java.util.Iterator;
 import java.util.function.Function;
 import org.reactivestreams.Subscriber;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.internal.pagination.async.ItemsSubscription;
 
 /**
  * A publisher to request for a stream of paginated items. The class can be used to request data for paginated items
@@ -26,6 +28,7 @@ import org.reactivestreams.Subscriber;
  * @param <ResponseT> The type of a single response page
  * @param <ItemT> The type of paginated member in a response page
  */
+@SdkProtectedApi
 public class PaginatedItemsPublisher<ResponseT, ItemT> implements SdkPublisher<ItemT> {
 
     private final AsyncPageFetcher<ResponseT> nextPageFetcher;

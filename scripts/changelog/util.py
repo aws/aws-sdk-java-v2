@@ -1,7 +1,9 @@
-from datetime import date
-import os
 import json
+import os
+from datetime import date
+
 from model import ReleaseChanges, ChangelogEntry, Version
+
 
 def version_cmp(a,b):
     aa = [a.major, a.minor, a.patch, a.prerelease_version_number()]

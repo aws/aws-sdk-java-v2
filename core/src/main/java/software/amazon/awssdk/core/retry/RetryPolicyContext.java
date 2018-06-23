@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.retry;
 
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * RetryPolicy}.
  */
 @Immutable
+@SdkPublicApi
 public final class RetryPolicyContext implements ToCopyableBuilder<RetryPolicyContext.Builder, RetryPolicyContext> {
 
     private final SdkRequest originalRequest;

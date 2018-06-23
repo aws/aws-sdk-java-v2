@@ -27,11 +27,11 @@ import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class BaseResultIntegrationTest extends AwsIntegrationTestBase {
 
-    private DynamoDBClient dynamoDB;
+    private DynamoDbClient dynamoDB;
 
     @Before
     public void setup() {
-        dynamoDB = DynamoDBClient.builder()
+        dynamoDB = DynamoDbClient.builder()
                 .region(Region.US_WEST_2)
                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                 .build();

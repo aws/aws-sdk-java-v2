@@ -18,11 +18,9 @@ package software.amazon.awssdk.codegen.poet.model;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
-
 import java.util.List;
 import java.util.Objects;
 import javax.lang.model.element.Modifier;
-
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetCollectors;

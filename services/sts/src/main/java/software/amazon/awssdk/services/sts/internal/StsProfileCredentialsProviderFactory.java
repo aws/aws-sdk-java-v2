@@ -20,11 +20,11 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ChildProfileCredentialsProviderFactory;
 import software.amazon.awssdk.profiles.Profile;
-import software.amazon.awssdk.profiles.ProfileProperties;
+import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProviderChain;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
-import software.amazon.awssdk.services.sts.STSClient;
+import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.utils.IoUtils;
@@ -50,15 +50,15 @@ public final class StsProfileCredentialsProviderFactory implements ChildProfileC
      * credentials provider is closed when the assume-role credentials provider is no longer needed.
      */
     private static final class StsProfileCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
-        private final STSClient stsClient;
+        private final StsClient stsClient;
         private final AwsCredentialsProvider parentCredentialsProvider;
         private final StsAssumeRoleCredentialsProvider credentialsProvider;
 
         private StsProfileCredentialsProvider(AwsCredentialsProvider parentCredentialsProvider, Profile profile) {
-            String roleArn = requireProperty(profile, ProfileProperties.ROLE_ARN);
-            String roleSessionName = profile.property(ProfileProperties.ROLE_SESSION_NAME)
+            String roleArn = requireProperty(profile, ProfileProperty.ROLE_ARN);
+            String roleSessionName = profile.property(ProfileProperty.ROLE_SESSION_NAME)
                                             .orElseGet(() -> "aws-sdk-java-" + System.currentTimeMillis());
-            String externalId = profile.property(ProfileProperties.EXTERNAL_ID).orElse(null);
+            String externalId = profile.property(ProfileProperty.EXTERNAL_ID).orElse(null);
 
             // Use the default region chain and if that fails us, fall back to AWS_GLOBAL.
             Region stsRegion =
@@ -70,7 +70,7 @@ public final class StsProfileCredentialsProviderFactory implements ChildProfileC
                                                                    .externalId(externalId)
                                                                    .build();
 
-            this.stsClient = STSClient.builder()
+            this.stsClient = StsClient.builder()
                                       .region(stsRegion)
                                       .credentialsProvider(parentCredentialsProvider)
                                       .build();

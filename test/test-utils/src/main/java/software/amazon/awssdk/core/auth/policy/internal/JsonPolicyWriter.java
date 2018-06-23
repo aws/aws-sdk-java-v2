@@ -96,21 +96,21 @@ public class JsonPolicyWriter {
     private String jsonStringOf(Policy policy) throws IOException {
         generator.writeStartObject();
 
-        writeJsonKeyValue(JsonDocumentFields.VERSION, policy.getVersion());
+        writeJsonKeyValue(JsonDocumentField.VERSION, policy.getVersion());
 
         if (isNotNull(policy.getId())) {
-            writeJsonKeyValue(JsonDocumentFields.POLICY_ID, policy.getId());
+            writeJsonKeyValue(JsonDocumentField.POLICY_ID, policy.getId());
         }
 
-        writeJsonArrayStart(JsonDocumentFields.STATEMENT);
+        writeJsonArrayStart(JsonDocumentField.STATEMENT);
 
         for (Statement statement : policy.getStatements()) {
             generator.writeStartObject();
 
             if (isNotNull(statement.getId())) {
-                writeJsonKeyValue(JsonDocumentFields.STATEMENT_ID, statement.getId());
+                writeJsonKeyValue(JsonDocumentField.STATEMENT_ID, statement.getId());
             }
-            writeJsonKeyValue(JsonDocumentFields.STATEMENT_EFFECT, statement
+            writeJsonKeyValue(JsonDocumentField.STATEMENT_EFFECT, statement
                     .getEffect().toString());
 
             List<Principal> principals = statement.getPrincipals();
@@ -155,7 +155,7 @@ public class JsonPolicyWriter {
     private void writeConditions(List<Condition> conditions) throws IOException {
         Map<String, ConditionsByKey> conditionsByType = groupConditionsByTypeAndKey(conditions);
 
-        writeJsonObjectStart(JsonDocumentFields.CONDITION);
+        writeJsonObjectStart(JsonDocumentField.CONDITION);
 
         ConditionsByKey conditionsByKey;
         for (Map.Entry<String, ConditionsByKey> entry : conditionsByType
@@ -184,7 +184,7 @@ public class JsonPolicyWriter {
         for (Resource resource : resources) {
             resourceStrings.add(resource.getId());
         }
-        writeJsonArray(JsonDocumentFields.RESOURCE, resourceStrings);
+        writeJsonArray(JsonDocumentField.RESOURCE, resourceStrings);
     }
 
     /**
@@ -199,7 +199,7 @@ public class JsonPolicyWriter {
         for (Action action : actions) {
             actionStrings.add(action.getActionName());
         }
-        writeJsonArray(JsonDocumentFields.ACTION, actionStrings);
+        writeJsonArray(JsonDocumentField.ACTION, actionStrings);
     }
 
     /**
@@ -210,9 +210,9 @@ public class JsonPolicyWriter {
      */
     private void writePrincipals(List<Principal> principals) throws IOException {
         if (principals.size() == 1 && principals.get(0).equals(Principal.ALL)) {
-            writeJsonKeyValue(JsonDocumentFields.PRINCIPAL, Principal.ALL.getId());
+            writeJsonKeyValue(JsonDocumentField.PRINCIPAL, Principal.ALL.getId());
         } else {
-            writeJsonObjectStart(JsonDocumentFields.PRINCIPAL);
+            writeJsonObjectStart(JsonDocumentField.PRINCIPAL);
 
             Map<String, List<String>> principalsByScheme = groupPrincipalByScheme(principals);
 

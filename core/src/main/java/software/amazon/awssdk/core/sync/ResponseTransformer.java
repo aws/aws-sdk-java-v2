@@ -24,9 +24,10 @@ import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -71,6 +72,7 @@ import software.amazon.awssdk.utils.Logger;
  *                    whatever transformations are appropriate.
  */
 @FunctionalInterface
+@SdkPublicApi
 public interface ResponseTransformer<ResponseT, ReturnT> {
     /**
      * Process the response contents.
@@ -187,7 +189,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      * Note that the returned stream is not subject to the retry policy or timeout settings (except for socket timeout)
      * of the client. No retries will be performed in the event of a socket read failure or connection reset. Similarly,
      * the total execution timeout (see
-     * {@link software.amazon.awssdk.core.config.ClientOverrideConfiguration#totalExecutionTimeout})
+     * {@link ClientOverrideConfiguration#totalExecutionTimeout})
      * will stop once the input stream has been returned by the SDK.
      * </p>
      *

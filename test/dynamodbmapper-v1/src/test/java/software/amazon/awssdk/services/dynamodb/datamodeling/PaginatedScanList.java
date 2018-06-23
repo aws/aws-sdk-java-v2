@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.dynamodb.datamodeling;
 
 import java.util.List;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.PaginationLoadingStrategy;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
@@ -49,7 +49,7 @@ public class PaginatedScanList<T> extends PaginatedList<T> {
     public PaginatedScanList(
             DynamoDbMapper mapper,
             Class<T> clazz,
-            DynamoDBClient dynamo,
+            DynamoDbClient dynamo,
             ScanRequest scanRequest,
             ScanResponse scanResult,
             PaginationLoadingStrategy paginationLoadingStrategy,

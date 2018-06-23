@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.stepfunctions.builder.states;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * Terminal state that terminates the state machine and marks it as a failure.
@@ -25,13 +25,13 @@ import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNa
  */
 public final class FailState implements State {
 
-    @JsonProperty(PropertyNames.COMMENT)
+    @JsonProperty(PropertyName.COMMENT)
     private final String comment;
 
-    @JsonProperty(PropertyNames.ERROR)
+    @JsonProperty(PropertyName.ERROR)
     private final String error;
 
-    @JsonProperty(PropertyNames.CAUSE)
+    @JsonProperty(PropertyName.CAUSE)
     private final String cause;
 
     private FailState(Builder builder) {
@@ -97,13 +97,13 @@ public final class FailState implements State {
      */
     public static final class Builder implements State.Builder {
 
-        @JsonProperty(PropertyNames.COMMENT)
+        @JsonProperty(PropertyName.COMMENT)
         private String comment;
 
-        @JsonProperty(PropertyNames.ERROR)
+        @JsonProperty(PropertyName.ERROR)
         private String error;
 
-        @JsonProperty(PropertyNames.CAUSE)
+        @JsonProperty(PropertyName.CAUSE)
         private String cause;
 
         private Builder() {

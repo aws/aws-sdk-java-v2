@@ -29,13 +29,4 @@
         Key Management Service
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
-
-    <dependencies>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>test-utils</artifactId>
-            <version>${awsjavasdk.version}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 </project>

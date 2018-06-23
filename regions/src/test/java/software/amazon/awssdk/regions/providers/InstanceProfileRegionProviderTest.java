@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.util.EC2MetadataUtilsServer;
+import software.amazon.awssdk.regions.internal.util.EC2MetadataUtilsServer;
 
 /**
  * Tests broken up by fixture.

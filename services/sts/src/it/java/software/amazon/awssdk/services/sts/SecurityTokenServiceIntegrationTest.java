@@ -70,7 +70,7 @@ public class SecurityTokenServiceIntegrationTest extends IntegrationTestBase {
     public void testClockSkew() {
         SdkGlobalTime.setGlobalTimeOffset(3600);
         assertTrue(SdkGlobalTime.getGlobalTimeOffset() == 3600);
-        sts = STSClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        sts = StsClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
         sts.getSessionToken(GetSessionTokenRequest.builder().build());
         assertTrue("Clockskew is fixed!", SdkGlobalTime.getGlobalTimeOffset() < 3600);
         // subsequent changes to the global time offset won't affect existing client

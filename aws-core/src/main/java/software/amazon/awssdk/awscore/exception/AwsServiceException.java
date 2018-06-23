@@ -17,7 +17,7 @@ package software.amazon.awssdk.awscore.exception;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.awscore.internal.AwsErrorCodes;
+import software.amazon.awssdk.awscore.internal.AwsErrorCode;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 
 /**
@@ -47,7 +47,7 @@ public class AwsServiceException extends SdkServiceException {
     @Override
     public boolean isClockSkewException() {
         return Optional.ofNullable(errorCode())
-                       .map(AwsErrorCodes.CLOCK_SKEW_ERROR_CODES::contains)
+                       .map(AwsErrorCode.CLOCK_SKEW_ERROR_CODES::contains)
                        .orElse(false);
     }
 
@@ -55,7 +55,7 @@ public class AwsServiceException extends SdkServiceException {
     public boolean isThrottlingException() {
         return super.isThrottlingException() ||
                Optional.ofNullable(errorCode())
-                       .map(AwsErrorCodes.THROTTLING_ERROR_CODES::contains)
+                       .map(AwsErrorCode.THROTTLING_ERROR_CODES::contains)
                        .orElse(false);
     }
 

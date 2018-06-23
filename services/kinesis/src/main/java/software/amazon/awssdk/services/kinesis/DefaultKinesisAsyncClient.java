@@ -14,20 +14,20 @@
 package software.amazon.awssdk.services.kinesis;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
+import java.util.concurrent.Executor;
 import javax.annotation.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocol;
+import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonProtocol;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolMetadata;
-import software.amazon.awssdk.core.client.AsyncClientHandler;
-import software.amazon.awssdk.core.client.ClientExecutionParams;
-import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
+import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
+import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.flow.UnmarshallingFlowAsyncResponseTransformer;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.pagination.async.SdkPublisher;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorShapeMetadata;
@@ -242,14 +242,17 @@ final class DefaultKinesisAsyncClient implements KinesisAsyncClient {
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler();
 
-        return clientHandler.execute(new ClientExecutionParams<SubscribeToShardRequest, SubscribeToShardResponse>()
-                                         .withMarshaller(new SubscribeToShardRequestMarshaller(protocolFactory))
-                                         .withResponseHandler(responseHandler)
-                                         .withErrorResponseHandler(errorResponseHandler)
-                                         .withInput(subscribeToShardRequest),
-                                     new UnmarshallingFlowAsyncResponseTransformer<>(flowResponseHandler,
-                                                                                     eventResponseHandler,
-                                                                                     SubscribeToShardResponseTransformer.Publisher::create));
+
+        CompletableFuture<ReturnT> f = new CompletableFuture<>();
+        CompletableFuture<ReturnT> execute = clientHandler.execute(new ClientExecutionParams<SubscribeToShardRequest, SubscribeToShardResponse>()
+                                                                       .withMarshaller(new SubscribeToShardRequestMarshaller(protocolFactory))
+                                                                       .withResponseHandler(responseHandler)
+                                                                       .withErrorResponseHandler(errorResponseHandler)
+                                                                       .withInput(subscribeToShardRequest),
+                                                                   new UnmarshallingFlowAsyncResponseTransformer<>(flowResponseHandler,
+                                                                                                                   eventResponseHandler,
+                                                                                                                   SubscribeToShardResponseTransformer.Publisher::create));
+        return execute;
     }
 
     /**

@@ -15,20 +15,25 @@
 
 package software.amazon.awssdk.codegen.naming;
 
-import static software.amazon.awssdk.codegen.internal.Constants.AUTHORIZER_NAME_PREFIX;
-import static software.amazon.awssdk.codegen.internal.Constants.EXCEPTION_CLASS_SUFFIX;
-import static software.amazon.awssdk.codegen.internal.Constants.FAULT_CLASS_SUFFIX;
-import static software.amazon.awssdk.codegen.internal.Constants.REQUEST_CLASS_SUFFIX;
-import static software.amazon.awssdk.codegen.internal.Constants.RESPONSE_CLASS_SUFFIX;
-import static software.amazon.awssdk.codegen.internal.Constants.VARIABLE_NAME_SUFFIX;
-import static software.amazon.awssdk.codegen.internal.Utils.capitialize;
-import static software.amazon.awssdk.codegen.internal.Utils.unCapitialize;
+import static java.util.stream.Collectors.joining;
+import static software.amazon.awssdk.codegen.internal.Constant.AUTHORIZER_NAME_PREFIX;
+import static software.amazon.awssdk.codegen.internal.Constant.EXCEPTION_CLASS_SUFFIX;
+import static software.amazon.awssdk.codegen.internal.Constant.FAULT_CLASS_SUFFIX;
+import static software.amazon.awssdk.codegen.internal.Constant.REQUEST_CLASS_SUFFIX;
+import static software.amazon.awssdk.codegen.internal.Constant.RESPONSE_CLASS_SUFFIX;
+import static software.amazon.awssdk.codegen.internal.Constant.VARIABLE_NAME_SUFFIX;
+import static software.amazon.awssdk.codegen.internal.Utils.capitalize;
+import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.codegen.internal.Constant;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
@@ -58,10 +63,12 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     private final ServiceModel serviceModel;
+    private final CustomizationConfig customizationConfig;
 
     public DefaultNamingStrategy(ServiceModel serviceModel,
                                  CustomizationConfig customizationConfig) {
         this.serviceModel = serviceModel;
+        this.customizationConfig = customizationConfig;
     }
 
     private static boolean isJavaKeyword(String word) {
@@ -70,34 +77,102 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
-    public String getExceptionName(String errorShapeName) {
+    @ReviewBeforeRelease("Always use service ID as the base.")
+    public String getServiceName() {
+        String baseName = Stream.of(serviceModel.getMetadata().getServiceId(),
+                                    serviceModel.getMetadata().getServiceAbbreviation(),
+                                    serviceModel.getMetadata().getServiceFullName())
+                                .filter(Objects::nonNull)
+                                .findFirst()
+                                .orElseThrow(() -> new IllegalStateException("No non-null service name descriptor."));
 
-        if (errorShapeName.endsWith(FAULT_CLASS_SUFFIX)) {
-            return capitialize(errorShapeName.substring(0, errorShapeName.length() -
-                                                           FAULT_CLASS_SUFFIX.length()) +
-                               EXCEPTION_CLASS_SUFFIX);
-        } else if (errorShapeName.endsWith(EXCEPTION_CLASS_SUFFIX)) {
-            return capitialize(errorShapeName);
+        baseName = pascalCase(splitOnWordBoundaries(baseName));
+
+        // Special cases
+        baseName = Utils.removeLeading(baseName, "Amazon");
+        baseName = Utils.removeLeading(baseName, "Aws");
+        baseName = Utils.removeTrailing(baseName, "Service");
+
+        return baseName;
+    }
+
+    @Override
+    public String getClientPackageName(String serviceName) {
+        return getCustomizedPackageName(serviceName,
+                                        Constant.PACKAGE_NAME_CLIENT_PATTERN);
+    }
+
+    @Override
+    public String getModelPackageName(String serviceName) {
+        // Share transform package classes if we are sharing models.
+        if (customizationConfig.getShareModelsWith() != null) {
+            serviceName = customizationConfig.getShareModelsWith();
         }
-        return capitialize(errorShapeName + EXCEPTION_CLASS_SUFFIX);
+        return getCustomizedPackageName(serviceName,
+                                        Constant.PACKAGE_NAME_MODEL_PATTERN);
+    }
+
+    @Override
+    public String getTransformPackageName(String serviceName) {
+        // Share transform package classes if we are sharing models.
+        if (customizationConfig.getShareModelsWith() != null) {
+            serviceName = customizationConfig.getShareModelsWith();
+        }
+        return getRequestTransformPackageName(serviceName);
+    }
+
+    @Override
+    public String getRequestTransformPackageName(String serviceName) {
+        return getCustomizedPackageName(serviceName,
+                                        Constant.PACKAGE_NAME_TRANSFORM_PATTERN);
+    }
+
+    @Override
+    public String getPaginatorsPackageName(String serviceName) {
+        return getCustomizedPackageName(serviceName, Constant.PACKAGE_NAME_PAGINATORS_PATTERN);
+    }
+
+    @Override
+    public String getSmokeTestPackageName(String serviceName) {
+        return getCustomizedPackageName(serviceName,
+                                        Constant.PACKAGE_NAME_SMOKE_TEST_PATTERN);
+    }
+
+    private String pascalCase(String... words) {
+        return Stream.of(words).map(StringUtils::lowerCase).map(Utils::capitalize).collect(joining());
+    }
+
+    private String getCustomizedPackageName(String serviceName, String defaultPattern) {
+        return String.format(defaultPattern, StringUtils.lowerCase(serviceName));
+    }
+
+    @Override
+    public String getExceptionName(String errorShapeName) {
+        if (errorShapeName.endsWith(FAULT_CLASS_SUFFIX)) {
+            return capitalize(errorShapeName.substring(0, errorShapeName.length() - FAULT_CLASS_SUFFIX.length()) +
+                              EXCEPTION_CLASS_SUFFIX);
+        } else if (errorShapeName.endsWith(EXCEPTION_CLASS_SUFFIX)) {
+            return capitalize(errorShapeName);
+        }
+        return capitalize(errorShapeName + EXCEPTION_CLASS_SUFFIX);
     }
 
     @Override
     public String getRequestClassName(String operationName) {
-        return capitialize(operationName + REQUEST_CLASS_SUFFIX);
+        return capitalize(operationName + REQUEST_CLASS_SUFFIX);
     }
 
     @Override
     public String getResponseClassName(String operationName) {
-        return capitialize(operationName + RESPONSE_CLASS_SUFFIX);
+        return capitalize(operationName + RESPONSE_CLASS_SUFFIX);
     }
 
     @Override
     public String getVariableName(String name) {
         if (isJavaKeyword(name)) {
-            return unCapitialize(name + VARIABLE_NAME_SUFFIX);
+            return unCapitalize(name + VARIABLE_NAME_SUFFIX);
         } else {
-            return unCapitialize(name);
+            return unCapitalize(name);
         }
     }
 
@@ -108,27 +183,10 @@ public class DefaultNamingStrategy implements NamingStrategy {
         // Special cases
         result = result.replaceAll("textORcsv", "TEXT_OR_CSV");
 
-        // Convert non-underscore word boundaries into underscore word boundaries
-        result = result.replaceAll("[:/()-. ]+", "_"); // acm-success -> acm_success
+        // Split into words
+        result = String.join("_", splitOnWordBoundaries(result));
 
-        // If the number had a standalone v in front of it, separate it out (version).
-        result = result.replaceAll("([^a-z]{2,})v([0-9]+)", "$1_v$2_") // TESTv4 -> TEST_v4_
-                       .replaceAll("([^A-Z]{2,})V([0-9]+)", "$1_V$2_"); // TestV4 -> Test_V4_
-
-        // Add an underscore between camelCased words
-        result = result.replaceAll("([a-z])([A-Z][a-zA-Z])", "$1_$2"); // AcmSuccess -> Acm_Success
-
-        // Add an underscore after acronyms
-        result = result.replaceAll("([A-Z]+)([A-Z][a-z])", "$1_$2"); // ACMSuccess -> ACM_Success
-
-        // Add an underscore after a number in the middle of a word
-        result = result.replaceAll("([0-9])([a-zA-Z])", "$1_$2"); // s3ec2 -> s3_ec2
-
-        // Remove extra underscores - multiple consecutive ones or those and the beginning/end of words
-        result = result.replaceAll("_+", "_") // Foo__Bar -> Foo_Bar
-                       .replaceAll("^_*([^_].*[^_])_*$", "$1"); // _Foo_ -> Foo
-
-        // Convert all lower-case words
+        // Enums should be upper-case
         result = StringUtils.upperCase(result);
 
         if (!result.matches("^[A-Z][A-Z0-9_]*$")) {
@@ -142,7 +200,7 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
     @Override
     public String getJavaClassName(String shapeName) {
-        return Arrays.stream(shapeName.split("[._-]|\\W")).map(Utils::capitialize).collect(Collectors.joining());
+        return Arrays.stream(shapeName.split("[._-]|\\W")).map(Utils::capitalize).collect(Collectors.joining());
     }
 
     @Override
@@ -156,7 +214,7 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
     @Override
     public String getFluentGetterMethodName(String memberName, Shape shape) {
-        String getterMethodName = Utils.unCapitialize(memberName);
+        String getterMethodName = Utils.unCapitalize(memberName);
 
         if (Utils.isOrContainsEnumShape(shape, serviceModel.getShapes())) {
             getterMethodName += "AsString";
@@ -175,26 +233,52 @@ public class DefaultNamingStrategy implements NamingStrategy {
             return null;
         }
 
-        return Utils.unCapitialize(memberName);
+        return Utils.unCapitalize(memberName);
     }
 
     @Override
     public String getBeanStyleGetterMethodName(String memberName) {
-        return String.format("get%s", Utils.capitialize(memberName));
+        return String.format("get%s", Utils.capitalize(memberName));
     }
 
     @Override
     public String getSetterMethodName(String memberName) {
-        return Utils.unCapitialize(memberName);
+        return Utils.unCapitalize(memberName);
     }
 
     @Override
     public String getBeanStyleSetterMethodName(String memberName) {
-        return String.format("set%s", Utils.capitialize(memberName));
+        return String.format("set%s", Utils.capitalize(memberName));
     }
 
     @Override
     public String getFluentSetterMethodName(String memberName) {
-        return Utils.unCapitialize(memberName);
+        return Utils.unCapitalize(memberName);
+    }
+
+    private String[] splitOnWordBoundaries(String toSplit) {
+        String result = toSplit;
+
+        // All non-alphanumeric characters are spaces
+        result = result.replaceAll("[^A-Za-z0-9]+", " "); // acm-success -> "acm success"
+
+        // If a number has a standalone v in front of it, separate it out (version).
+        result = result.replaceAll("([^a-z]{2,})v([0-9]+)", "$1 v$2 ") // TESTv4 -> "TEST v4 "
+                       .replaceAll("([^A-Z]{2,})V([0-9]+)", "$1 V$2 "); // TestV4 -> "Test V4 "
+
+        // Add a space between camelCased words
+        result = result.replaceAll("([a-z])([A-Z][a-zA-Z])", "$1 $2"); // AcmSuccess -> "Acm Success"
+
+        // Add a space after acronyms
+        result = result.replaceAll("([A-Z]+)([A-Z][a-z])", "$1 $2"); // ACMSuccess -> "ACM Success"
+
+        // Add space after a number in the middle of a word
+        result = result.replaceAll("([0-9])([a-zA-Z])", "$1 $2"); // s3ec2 -> "s3 ec2"
+
+        // Remove extra spaces - multiple consecutive ones or those and the beginning/end of words
+        result = result.replaceAll(" +", " ") // "Foo  Bar" -> "Foo Bar"
+                       .trim(); // " Foo " -> Foo
+
+        return result.split(" ");
     }
 }

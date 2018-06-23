@@ -19,8 +19,8 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
-import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.internal.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.core.internal.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -32,7 +32,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @NotThreadSafe
 @SdkProtectedApi
-public class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Builder, ExecutionContext> {
+public final class ExecutionContext implements ToCopyableBuilder<ExecutionContext.Builder, ExecutionContext> {
     private final Signer signer;
     private InterceptorContext interceptorContext;
     private final ExecutionInterceptorChain interceptorChain;

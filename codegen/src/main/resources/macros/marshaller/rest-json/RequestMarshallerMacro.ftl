@@ -8,7 +8,7 @@
 ${dataModel.fileHeader}
 package ${metadata.fullRequestTransformPackageName};
 
-import static software.amazon.awssdk.core.util.StringUtils.UTF8;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static software.amazon.awssdk.core.util.StringUtils.COMMA_SEPARATOR;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

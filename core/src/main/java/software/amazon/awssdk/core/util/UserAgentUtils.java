@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.jar.JarInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.JavaSystemSetting;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.utils.JavaSystemSetting;
  * Utility class for accessing AWS SDK versioning information.
  */
 @ThreadSafe
+@SdkInternalApi
 public final class UserAgentUtils {
 
     private static final String UA_STRING = "aws-sdk-{platform}/{version} {os.name}/{os.version} {java.vm.name}/{java.vm"

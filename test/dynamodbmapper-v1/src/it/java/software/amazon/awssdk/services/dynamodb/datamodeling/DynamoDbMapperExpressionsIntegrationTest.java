@@ -24,7 +24,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.util.ImmutableMapParameter;
 import software.amazon.awssdk.core.util.ImmutableMapParameter.Builder;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
@@ -32,8 +32,6 @@ import software.amazon.awssdk.services.dynamodb.model.Condition;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
-import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
 import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
@@ -55,7 +53,7 @@ public class DynamoDbMapperExpressionsIntegrationTest extends AwsTestBase {
     /**
      * Reference to the client being used by the mapper.
      */
-    protected static DynamoDBClient client;
+    protected static DynamoDbClient client;
 
     /**
      * Table name to be used for this testing
@@ -100,7 +98,7 @@ public class DynamoDbMapperExpressionsIntegrationTest extends AwsTestBase {
     public static void setUp() throws FileNotFoundException, IOException,
                                       InterruptedException {
         setUpCredentials();
-        client = DynamoDBClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        client = DynamoDbClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
         mapper = new DynamoDbMapper(client);
         try {
             client.createTable(CreateTableRequest.builder()

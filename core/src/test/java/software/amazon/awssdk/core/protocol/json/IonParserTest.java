@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -36,7 +37,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.core.internal.protocol.json.IonParser;
+import software.amazon.awssdk.core.internal.protocol.json.SdkIonGenerator;
 import software.amazon.ion.IonReader;
 import software.amazon.ion.IonSystem;
 import software.amazon.ion.IonWriter;
@@ -153,7 +155,7 @@ public class IonParserTest {
     public void testClob() throws IOException {
         IonParser parser = parse("{{\"abc123\"}}");
         assertEquals(JsonToken.VALUE_EMBEDDED_OBJECT, parser.nextToken());
-        assertEquals(ByteBuffer.wrap("abc123".getBytes(StringUtils.UTF8)), parser.getEmbeddedObject());
+        assertEquals(ByteBuffer.wrap("abc123".getBytes(StandardCharsets.UTF_8)), parser.getEmbeddedObject());
         assertNull(parser.nextToken());
     }
 

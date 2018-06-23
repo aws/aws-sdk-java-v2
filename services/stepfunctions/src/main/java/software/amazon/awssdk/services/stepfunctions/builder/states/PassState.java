@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * The Pass State simply passes its input to its output, performing no work. Pass States are useful when constructing and
@@ -46,19 +46,19 @@ public final class PassState extends TransitionState {
             .disable(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS)
             .disable(MapperFeature.AUTO_DETECT_FIELDS);
 
-    @JsonProperty(PropertyNames.COMMENT)
+    @JsonProperty(PropertyName.COMMENT)
     private final String comment;
 
-    @JsonProperty(PropertyNames.RESULT)
+    @JsonProperty(PropertyName.RESULT)
     private final JsonNode result;
 
-    @JsonProperty(PropertyNames.INPUT_PATH)
+    @JsonProperty(PropertyName.INPUT_PATH)
     private final String inputPath;
 
-    @JsonProperty(PropertyNames.OUTPUT_PATH)
+    @JsonProperty(PropertyName.OUTPUT_PATH)
     private final String outputPath;
 
-    @JsonProperty(PropertyNames.RESULT_PATH)
+    @JsonProperty(PropertyName.RESULT_PATH)
     private final String resultPath;
 
     @JsonUnwrapped
@@ -145,19 +145,19 @@ public final class PassState extends TransitionState {
      */
     public static final class Builder extends TransitionStateBuilder {
 
-        @JsonProperty(PropertyNames.COMMENT)
+        @JsonProperty(PropertyName.COMMENT)
         private String comment;
 
-        @JsonProperty(PropertyNames.RESULT)
+        @JsonProperty(PropertyName.RESULT)
         private JsonNode result;
 
-        @JsonProperty(PropertyNames.INPUT_PATH)
+        @JsonProperty(PropertyName.INPUT_PATH)
         private String inputPath;
 
-        @JsonProperty(PropertyNames.OUTPUT_PATH)
+        @JsonProperty(PropertyName.OUTPUT_PATH)
         private String outputPath;
 
-        @JsonProperty(PropertyNames.RESULT_PATH)
+        @JsonProperty(PropertyName.RESULT_PATH)
         private String resultPath;
 
         private Transition.Builder transition = Transition.NULL_BUILDER;

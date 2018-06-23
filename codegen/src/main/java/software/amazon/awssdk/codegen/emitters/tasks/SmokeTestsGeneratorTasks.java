@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.emitters.tasks;
 
-import static software.amazon.awssdk.codegen.internal.Constants.PROPERTIES_FILE_NAME_SUFFIX;
+import static software.amazon.awssdk.codegen.internal.Constant.PROPERTIES_FILE_NAME_SUFFIX;
 
 import java.util.Arrays;
 import java.util.List;

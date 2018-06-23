@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +39,8 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -48,6 +52,7 @@ import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLInitializationException;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -55,7 +60,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpRequestExecutor;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -65,7 +69,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
-import software.amazon.awssdk.http.apache.internal.Defaults;
+import software.amazon.awssdk.http.apache.internal.DefaultConfiguration;
 import software.amazon.awssdk.http.apache.internal.SdkProxyRoutePlanner;
 import software.amazon.awssdk.http.apache.internal.conn.ClientConnectionManagerFactory;
 import software.amazon.awssdk.http.apache.internal.conn.SdkConnectionKeepAliveStrategy;
@@ -151,7 +155,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
     private ConnectionKeepAliveStrategy buildKeepAliveStrategy(ApacheHttpClient.DefaultBuilder configuration) {
         final long maxIdle = Optional.ofNullable(configuration.connectionMaxIdleTime)
-                                     .orElse(Defaults.MAX_IDLE_CONNECTION_TIME)
+                                     .orElse(DefaultConfiguration.MAX_IDLE_CONNECTION_TIME)
                                      .toMillis();
         return maxIdle > 0 ? new SdkConnectionKeepAliveStrategy(maxIdle) : null;
     }
@@ -240,7 +244,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
                                       .proxyConfiguration(builder.proxyConfiguration)
                                       .localAddress(Optional.ofNullable(builder.localAddress).orElse(null))
                                       .expectContinueEnabled(Optional.ofNullable(builder.expectContinueEnabled)
-                                                                     .orElse(Defaults.EXPECT_CONTINUE_ENABLED))
+                                                                     .orElse(DefaultConfiguration.EXPECT_CONTINUE_ENABLED))
                                       .build();
     }
 
@@ -416,7 +420,9 @@ public final class ApacheHttpClient implements SdkHttpClient {
                     null,
                     DefaultSchemePortResolver.INSTANCE,
                     null,
-                    Optional.ofNullable(configuration.connectionTimeToLive).orElse(Defaults.CONNECTION_POOL_TTL).toMillis(),
+                    Optional.ofNullable(configuration.connectionTimeToLive)
+                            .orElse(DefaultConfiguration.CONNECTION_POOL_TTL)
+                            .toMillis(),
                     TimeUnit.MILLISECONDS);
 
             cm.setDefaultMaxPerRoute(standardOptions.get(SdkHttpConfigurationOption.MAX_CONNECTIONS));
@@ -428,19 +434,55 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         private ConnectionSocketFactory getPreferredSocketFactory(AttributeMap standardOptions) {
             // TODO v2 custom socket factory
-            return new SdkTlsSocketFactory(getPreferredSslContext(),
-                                           getHostNameVerifier(standardOptions));
+            return new SdkTlsSocketFactory(getSslContext(standardOptions), getHostNameVerifier(standardOptions));
         }
 
-        private static SSLContext getPreferredSslContext() {
+        private HostnameVerifier getHostNameVerifier(AttributeMap standardOptions) {
+            return standardOptions.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES)
+                   ? NoopHostnameVerifier.INSTANCE
+                   : SSLConnectionSocketFactory.getDefaultHostnameVerifier();
+        }
+
+        private SSLContext getSslContext(AttributeMap standardOptions) {
+            TrustManager[] trustManagers = null;
+            if (standardOptions.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES)) {
+                log.warn(() -> "SSL Certificate verification is disabled. This is not a safe setting and should only be "
+                               + "used for testing.");
+                trustManagers = trustAllTrustManager();
+            }
+
             try {
                 final SSLContext sslcontext = SSLContext.getInstance("TLS");
                 // http://download.java.net/jdk9/docs/technotes/guides/security/jsse/JSSERefGuide.html
-                sslcontext.init(null, null, null);
+                sslcontext.init(null, trustManagers, null);
                 return sslcontext;
             } catch (final NoSuchAlgorithmException | KeyManagementException ex) {
                 throw new SSLInitializationException(ex.getMessage(), ex);
             }
+        }
+
+        /**
+         * Insecure trust manager to trust all certs. Should only be used for testing.
+         */
+        private static TrustManager[] trustAllTrustManager() {
+            return new TrustManager[] {
+                new X509TrustManager() {
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+                        log.debug(() -> "Accepting a client certificate: " + x509Certificates[0].getSubjectDN());
+                    }
+
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+                        log.debug(() -> "Accepting a client certificate: " + x509Certificates[0].getSubjectDN());
+                    }
+
+                    @Override
+                    public X509Certificate[] getAcceptedIssuers() {
+                        return new X509Certificate[0];
+                    }
+                }
+            };
         }
 
         private SocketConfig buildSocketConfig(AttributeMap standardOptions) {
@@ -454,23 +496,11 @@ public final class ApacheHttpClient implements SdkHttpClient {
                                .build();
         }
 
-        @ReviewBeforeRelease("Need to have a way to communicate with HTTP impl supports disabling of strict" +
-                             "hostname verification. If it doesn't we either need to fail in S3 or switch to path style" +
-                             "addressing.")
-        private HostnameVerifier getHostNameVerifier(AttributeMap standardOptions) {
-            // TODO Need to find a better way to handle these deprecations.
-            return standardOptions.get(SdkHttpConfigurationOption.USE_STRICT_HOSTNAME_VERIFICATION)
-                   ? SSLConnectionSocketFactory.STRICT_HOSTNAME_VERIFIER
-                   : SSLConnectionSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
-        }
-
         private Registry<ConnectionSocketFactory> createSocketFactoryRegistry(ConnectionSocketFactory sslSocketFactory) {
-            // TODO v2 disable cert checking
             return RegistryBuilder.<ConnectionSocketFactory>create()
                     .register("http", PlainConnectionSocketFactory.getSocketFactory())
                     .register("https", sslSocketFactory)
                     .build();
         }
-
     }
 }

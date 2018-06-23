@@ -32,10 +32,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.config.options.SdkAdvancedClientOption;
-import software.amazon.awssdk.core.config.options.SdkClientOption;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.http.AbortableCallable;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -128,7 +129,6 @@ public class AmazonHttpClientTest {
                                                      .option(SdkClientOption.SYNC_HTTP_CLIENT, sdkHttpClient)
                                                      .option(SdkClientOption.ENDPOINT, URI.create("http://example.com"))
                                                      .build();
-
         AmazonSyncHttpClient client = new AmazonSyncHttpClient(config);
 
         client.requestExecutionBuilder()
@@ -143,7 +143,6 @@ public class AmazonHttpClientTest {
         final String userAgent = httpRequestCaptor.getValue().firstMatchingHeader("User-Agent")
                                                   .orElseThrow(() -> new AssertionError("User-Agent header was not found"));
 
-        System.out.println("User Agent: " + userAgent);
         Assert.assertTrue(userAgent.startsWith(prefix));
         Assert.assertTrue(userAgent.endsWith(suffix));
     }

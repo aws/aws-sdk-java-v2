@@ -28,7 +28,7 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
 public class IntegrationTestBase extends AwsTestBase {
 
     /** The EMR client for all tests to use. */
-    protected static EMRClient emr;
+    protected static EmrClient emr;
 
     /**
      * Loads the AWS account info for the integration tests and creates an
@@ -37,6 +37,6 @@ public class IntegrationTestBase extends AwsTestBase {
     @BeforeClass
     public static void setUp() throws FileNotFoundException, IOException {
         setUpCredentials();
-        emr = EMRClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        emr = EmrClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 }

@@ -55,12 +55,12 @@ public class TableUtilsIntegrationTest extends AwsIntegrationTestBase {
     private static final long WRITE_CAPACITY = 5L;
     private static final String HASH_KEY_NAME = "someHash";
 
-    private static DynamoDBClient ddb;
+    private static DynamoDbClient ddb;
     private String tableName;
 
     @BeforeClass
     public static void setupFixture() {
-        ddb = DynamoDBClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        ddb = DynamoDbClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 
     private CreateTableRequest createTableRequest() {

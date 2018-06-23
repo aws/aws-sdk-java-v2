@@ -26,10 +26,12 @@ import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * An instance of {@link ConnectionManagerAwareHttpClient} that delegates all the requests to the given http client.
  */
+@SdkInternalApi
 public class ApacheSdkHttpClient implements ConnectionManagerAwareHttpClient {
 
     private final HttpClient delegate;

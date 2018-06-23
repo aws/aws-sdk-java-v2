@@ -15,9 +15,12 @@
 
 package software.amazon.awssdk.http;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+
 /**
  * An Abortable task.
  */
+@SdkProtectedApi
 public interface Abortable {
 
     /**

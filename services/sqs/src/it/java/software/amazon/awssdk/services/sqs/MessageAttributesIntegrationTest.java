@@ -30,9 +30,9 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -69,7 +69,7 @@ public class MessageAttributesIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void sendMessage_InvalidMd5_ThrowsException() {
-        try (SQSClient tamperingClient = SQSClient.builder()
+        try (SqsClient tamperingClient = SqsClient.builder()
                                                   .credentialsProvider(getCredentialsProvider())
                                                   .overrideConfiguration(ClientOverrideConfiguration
                                                                                  .builder()

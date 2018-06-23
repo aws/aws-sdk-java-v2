@@ -131,6 +131,11 @@ public class CustomizationConfig {
 
     private boolean useAutoConstructList = true;
 
+    /**
+     * Custom Retry Policy
+     */
+    private String customRetryPolicy;
+
     private CustomizationConfig() {
     }
 
@@ -345,5 +350,14 @@ public class CustomizationConfig {
 
     public void setUseAutoConstructList(boolean useAutoConstructList) {
         this.useAutoConstructList = useAutoConstructList;
+    }
+
+    public String getCustomRetryPolicy() {
+        return customRetryPolicy;
+    }
+
+    public void setCustomRetryPolicy(String customRetryPolicy) {
+        this.customRetryPolicy = customRetryPolicy;
+
     }
 }

@@ -31,14 +31,15 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.config.options.SdkAdvancedClientOption;
-import software.amazon.awssdk.core.config.options.SdkClientOption;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 public class BaseClientBuilderClass implements ClassSpec {
     private final IntermediateModel model;
@@ -113,16 +114,23 @@ public class BaseClientBuilderClass implements ClassSpec {
     private MethodSpec mergeServiceDefaultsMethod() {
         boolean crc32FromCompressedDataEnabled = model.getCustomizationConfig().isCalculateCrc32FromCompressedData();
 
-        return MethodSpec.methodBuilder("mergeServiceDefaults")
-                         .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
-                         .returns(SdkClientConfiguration.class)
-                         .addParameter(SdkClientConfiguration.class, "config")
-                         .addCode("return config.merge(c -> c.option($T.SIGNER, defaultSigner())\n",
-                                  SdkAdvancedClientOption.class)
-                         .addCode("                          .option($T.CRC32_FROM_COMPRESSED_DATA_ENABLED, $L));",
-                                  SdkClientOption.class, crc32FromCompressedDataEnabled)
-                         .build();
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("mergeServiceDefaults")
+                                               .addAnnotation(Override.class)
+                                               .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                                               .returns(SdkClientConfiguration.class)
+                                               .addParameter(SdkClientConfiguration.class, "config")
+                                               .addCode("return config.merge(c -> c.option($T.SIGNER, defaultSigner())\n",
+                                                        SdkAdvancedClientOption.class)
+                                               .addCode("                          .option($T"
+                                                        + ".CRC32_FROM_COMPRESSED_DATA_ENABLED, $L)",
+                                                        SdkClientOption.class, crc32FromCompressedDataEnabled);
+
+        if (StringUtils.isNotBlank(model.getCustomizationConfig().getCustomRetryPolicy())) {
+            builder.addCode(".option($T.RETRY_POLICY, $T.defaultPolicy())", SdkClientOption.class,
+                            PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getCustomRetryPolicy()));
+        }
+        builder.addCode(");");
+        return builder.build();
     }
 
     private MethodSpec finalizeServiceConfigurationMethod() {

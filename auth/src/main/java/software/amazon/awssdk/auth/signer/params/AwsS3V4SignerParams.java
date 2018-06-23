@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.auth.signer.params;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
+
+@SdkPublicApi
 public final class AwsS3V4SignerParams extends Aws4SignerParams {
 
     private final Boolean enableChunkedEncoding;
@@ -92,6 +95,7 @@ public final class AwsS3V4SignerParams extends Aws4SignerParams {
             return this;
         }
 
+        @Override
         public AwsS3V4SignerParams build() {
             return new AwsS3V4SignerParams(this);
         }
