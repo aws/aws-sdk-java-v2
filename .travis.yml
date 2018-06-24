@@ -1,8 +1,9 @@
 language: java
 jdk:
   - oraclejdk8
+  - oraclejdk9
 sudo: true
-dist: precise
+dist: trusty
 install: /bin/true
 notifications:
   email:
