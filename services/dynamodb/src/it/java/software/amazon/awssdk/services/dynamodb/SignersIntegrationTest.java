@@ -29,7 +29,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
-import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
+import software.amazon.awssdk.auth.signer.internal.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;

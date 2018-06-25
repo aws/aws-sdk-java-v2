@@ -13,8 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.auth;
+package software.amazon.awssdk.auth.signer.internal;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
+
+@SdkInternalApi
 class ChunkContentIterator {
 
     private final byte[] signedChunk;

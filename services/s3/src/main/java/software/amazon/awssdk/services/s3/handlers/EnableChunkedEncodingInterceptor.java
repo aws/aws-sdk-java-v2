@@ -16,11 +16,11 @@
 package software.amazon.awssdk.services.s3.handlers;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.services.s3.auth.S3ExecutionAttribute;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 
@@ -37,7 +37,7 @@ public class EnableChunkedEncodingInterceptor implements ExecutionInterceptor {
         SdkRequest sdkRequest = context.request();
 
         if (sdkRequest instanceof PutObjectRequest || sdkRequest instanceof UploadPartRequest) {
-            executionAttributes.putAttribute(S3ExecutionAttribute.ENABLE_CHUNKED_ENCODING, Boolean.TRUE);
+            executionAttributes.putAttribute(S3SignerExecutionAttribute.ENABLE_CHUNKED_ENCODING, Boolean.TRUE);
         }
 
         return sdkRequest;

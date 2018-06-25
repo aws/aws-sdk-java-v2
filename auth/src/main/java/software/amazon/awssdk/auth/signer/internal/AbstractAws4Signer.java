@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.signer;
+package software.amazon.awssdk.auth.signer.internal;
 
 import static software.amazon.awssdk.core.util.DateUtils.numberOfDaysSinceEpoch;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
@@ -29,14 +29,10 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.auth.signer.internal.AbstractAwsSigner;
-import software.amazon.awssdk.auth.signer.internal.Aws4SignerRequestParams;
-import software.amazon.awssdk.auth.signer.internal.Aws4SignerUtils;
-import software.amazon.awssdk.auth.signer.internal.FifoCache;
-import software.amazon.awssdk.auth.signer.internal.SignerKey;
+import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -52,7 +48,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  * @param <T> Type of the signing params class that is used for signing the request
  * @param <U> Type of the signing params class that is used for pre signing the request
  */
-@SdkProtectedApi
+@SdkInternalApi
 public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends Aws4PresignerParams>
     extends AbstractAwsSigner implements Presigner {
 

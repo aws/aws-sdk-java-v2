@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.auth;
+package software.amazon.awssdk.auth.signer.internal;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,16 +26,16 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.auth.signer.AbstractAws4Signer;
-import software.amazon.awssdk.auth.signer.SigningAlgorithm;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.io.SdkInputStream;
-import software.amazon.awssdk.services.s3.AwsS3V4Signer;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * A wrapper class of InputStream that implements chunked-encoding.
  */
+@SdkInternalApi
 public final class AwsChunkedEncodingInputStream extends SdkInputStream {
 
     private static final int DEFAULT_CHUNK_SIZE = 128 * 1024;
