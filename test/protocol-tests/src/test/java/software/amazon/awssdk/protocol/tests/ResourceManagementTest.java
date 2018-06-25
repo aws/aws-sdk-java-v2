@@ -47,7 +47,7 @@ public class ResourceManagementTest {
     @Test
     public void asyncHttpClientNotShutdown() {
         SdkAsyncHttpClient httpClient = mock(SdkAsyncHttpClient.class);
-        asyncClientBuilder().asyncHttpClient(httpClient).build().close();
+        asyncClientBuilder().httpClient(httpClient).build().close();
         verify(httpClient, never()).close();
     }
 
@@ -69,7 +69,7 @@ public class ResourceManagementTest {
 
         when(httpClientBuilder.buildWithDefaults(any())).thenReturn(httpClient);
 
-        asyncClientBuilder().asyncHttpClientBuilder(httpClientBuilder).build().close();
+        asyncClientBuilder().httpClientBuilder(httpClientBuilder).build().close();
         verify(httpClient).close();
     }
 

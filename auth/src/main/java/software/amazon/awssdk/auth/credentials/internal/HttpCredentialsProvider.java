@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
@@ -87,7 +88,7 @@ public abstract class HttpCredentialsProvider implements AwsCredentialsProvider,
             Validate.notNull(secretKey, "Failed to load secret key.");
 
             AwsCredentials credentials =
-                token == null ? AwsCredentials.create(accessKey.asText(), secretKey.asText())
+                token == null ? AwsBasicCredentials.create(accessKey.asText(), secretKey.asText())
                               : AwsSessionCredentials.create(accessKey.asText(), secretKey.asText(), token.asText());
 
             Instant expiration = getExpiration(expirationNode).orElse(null);
@@ -132,7 +133,7 @@ public abstract class HttpCredentialsProvider implements AwsCredentialsProvider,
     }
 
     @Override
-    public AwsCredentials getCredentials() {
+    public AwsCredentials resolveCredentials() {
         if (isLocalCredentialLoadingDisabled()) {
             throw new SdkClientException("Loading credentials from local endpoint is disabled. Unable to load credentials from "
                                          + "service endpoint.");
@@ -158,7 +159,7 @@ public abstract class HttpCredentialsProvider implements AwsCredentialsProvider,
 
         /**
          * Configure whether this provider should fetch credentials asynchronously in the background. If this is true, threads are
-         * less likely to block when {@link #getCredentials()} is called, but additional resources are used to maintain the
+         * less likely to block when {@link #resolveCredentials()} is called, but additional resources are used to maintain the
          * provider.
          *
          * <p>By default, this is disabled.</p>

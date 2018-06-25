@@ -54,7 +54,7 @@ import software.amazon.awssdk.utils.IoUtils;
 
 public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
 
-    private static final AwsCredentials awsCredentials = CREDENTIALS_PROVIDER_CHAIN.getCredentials();
+    private static final AwsCredentials awsCredentials = CREDENTIALS_PROVIDER_CHAIN.resolveCredentials();
     private static final String SIGNING_NAME = "s3";
     private static final String BUCKET_NAME = temporaryBucketName("s3-signer-integ-test");
     private static final String KEY = "test-key";

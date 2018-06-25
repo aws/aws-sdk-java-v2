@@ -18,36 +18,36 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
-import io.netty.channel.EventLoopGroup;
 import org.junit.Test;
+import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 
-public class SharedEventLoopGroupTest {
+public class SharedSdkEventLoopGroupTest {
 
     @Test
     public void referenceCountIsInitiallyZero() {
-        assertThat(SharedEventLoopGroup.referenceCount()).isEqualTo(0);
+        assertThat(SharedSdkEventLoopGroup.referenceCount()).isEqualTo(0);
     }
 
     @Test
     public void referenceCountIsIncrementedOnGet() {
-        EventLoopGroup group = SharedEventLoopGroup.get();
-        assertThat(SharedEventLoopGroup.referenceCount()).isEqualTo(1);
-        group.shutdownGracefully();
+        SdkEventLoopGroup group = SharedSdkEventLoopGroup.get();
+        assertThat(SharedSdkEventLoopGroup.referenceCount()).isEqualTo(1);
+        group.eventLoopGroup().shutdownGracefully();
     }
 
     @Test
     public void referenceCountIsOnceDecrementedOnClose() {
-        EventLoopGroup group = SharedEventLoopGroup.get();
-        group.shutdownGracefully();
-        assertThat(SharedEventLoopGroup.referenceCount()).isEqualTo(0);
-        group.shutdownGracefully();
-        assertThat(SharedEventLoopGroup.referenceCount()).isEqualTo(0);
+        SdkEventLoopGroup group = SharedSdkEventLoopGroup.get();
+        group.eventLoopGroup().shutdownGracefully();
+        assertThat(SharedSdkEventLoopGroup.referenceCount()).isEqualTo(0);
+        group.eventLoopGroup().shutdownGracefully();
+        assertThat(SharedSdkEventLoopGroup.referenceCount()).isEqualTo(0);
     }
 
     @Test
     public void sharedEventLoopGroupIsDeallocatedWhenCountReachesZero() {
-        DelegatingEventLoopGroup group1 = (DelegatingEventLoopGroup) SharedEventLoopGroup.get();
-        DelegatingEventLoopGroup group2 = (DelegatingEventLoopGroup) SharedEventLoopGroup.get();
+        DelegatingEventLoopGroup group1 = (DelegatingEventLoopGroup) SharedSdkEventLoopGroup.get().eventLoopGroup();
+        DelegatingEventLoopGroup group2 = (DelegatingEventLoopGroup) SharedSdkEventLoopGroup.get().eventLoopGroup();
         assertThat(group1.getDelegate()).isEqualTo(group2.getDelegate());
 
         group1.shutdownGracefully();

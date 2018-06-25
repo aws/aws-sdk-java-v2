@@ -38,7 +38,7 @@ public final class StaticCredentialsProvider implements AwsCredentialsProvider {
     }
 
     @Override
-    public AwsCredentials getCredentials() {
+    public AwsCredentials resolveCredentials() {
         return credentials;
     }
 

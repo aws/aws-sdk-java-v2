@@ -34,6 +34,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.internal.Aws4SignerUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -68,7 +69,7 @@ public class Aws4SignerTest {
                 "Signature=e73e20539446307a5dc71252dbd5b97e861f1d1267456abda3ebd8d57e519951";
 
 
-        AwsCredentials credentials = AwsCredentials.create("access", "secret");
+        AwsBasicCredentials credentials = AwsBasicCredentials.create("access", "secret");
         // Test request without 'x-amz-sha256' header
         SdkHttpFullRequest.Builder request = generateBasicRequest();
 
@@ -93,7 +94,7 @@ public class Aws4SignerTest {
                 "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
                 "Signature=c45a3ff1f028e83017f3812c06b4440f0b3240264258f6e18cd683b816990ba4";
 
-        AwsCredentials credentials = AwsCredentials.create("access", "secret");
+        AwsBasicCredentials credentials = AwsBasicCredentials.create("access", "secret");
         // Test request without 'x-amz-sha256' header
         SdkHttpFullRequest.Builder request = generateBasicRequest().rawQueryParameter("Foo", (String) null);
 
@@ -110,7 +111,7 @@ public class Aws4SignerTest {
         final String expectedAmzHeader = "19810216T063000Z";
         final String expectedAmzExpires = "604800";
 
-        AwsCredentials credentials = AwsCredentials.create("access", "secret");
+        AwsBasicCredentials credentials = AwsBasicCredentials.create("access", "secret");
         // Test request without 'x-amz-sha256' header
 
         SdkHttpFullRequest request = generateBasicRequest().build();
@@ -128,7 +129,7 @@ public class Aws4SignerTest {
      */
     @Test
     public void testAnonymous() throws Exception {
-        AwsCredentials credentials = AnonymousCredentialsProvider.create().getCredentials();
+        AwsCredentials credentials = AnonymousCredentialsProvider.create().resolveCredentials();
         SdkHttpFullRequest request = generateBasicRequest().build();
 
         SignerTestUtils.signRequest(signer, request, credentials, "demo", signingOverrideClock, "us-east-1");
@@ -141,7 +142,7 @@ public class Aws4SignerTest {
      */
     @Test
     public void xAmznTraceId_NotSigned() throws Exception {
-        AwsCredentials credentials = AwsCredentials.create("akid", "skid");
+        AwsBasicCredentials credentials = AwsBasicCredentials.create("akid", "skid");
         SdkHttpFullRequest.Builder request = generateBasicRequest();
         request.header("X-Amzn-Trace-Id", " Root=1-584b150a-708479cb060007ffbf3ee1da;Parent=36d3dbcfd150aac9;Sampled=1");
 

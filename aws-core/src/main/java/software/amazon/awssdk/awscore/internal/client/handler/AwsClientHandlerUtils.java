@@ -50,7 +50,7 @@ public final class AwsClientHandlerUtils {
                                                                     .flatMap(AwsRequestOverrideConfiguration::credentialsProvider)
                                                                     .orElse(clientCredentials);
 
-        AwsCredentials credentials = credentialsProvider.getCredentials();
+        AwsCredentials credentials = credentialsProvider.resolveCredentials();
 
         Validate.validState(credentials != null, "Credential providers must never return null.");
 

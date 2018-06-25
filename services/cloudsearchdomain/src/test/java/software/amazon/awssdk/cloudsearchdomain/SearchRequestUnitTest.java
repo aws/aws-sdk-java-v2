@@ -30,7 +30,7 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudsearchdomain.CloudSearchDomainClient;
@@ -40,7 +40,7 @@ import software.amazon.awssdk.services.cloudsearchdomain.model.SearchRequest;
  * Unit tests for {@link SearchRequest}.
  */
 public class SearchRequestUnitTest {
-    private static final AwsCredentials CREDENTIALS = AwsCredentials.create("access", "secret");
+    private static final AwsBasicCredentials CREDENTIALS = AwsBasicCredentials.create("access", "secret");
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(new WireMockConfiguration().port(0).notifier(new ConsoleNotifier(true)));

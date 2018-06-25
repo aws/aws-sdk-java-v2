@@ -61,7 +61,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
     private static final String HASH_KEY_VALUE = "123789";
     private static final String ATTRIBUTE_FOO = "foo";
     private static final String ATTRIBUTE_FOO_VALUE = "bar";
-    private static final AwsCredentials awsCredentials = CREDENTIALS_PROVIDER_CHAIN.getCredentials();
+    private static final AwsCredentials awsCredentials = CREDENTIALS_PROVIDER_CHAIN.resolveCredentials();
     private static final String SIGNING_NAME = "dynamodb";
 
     @BeforeClass

@@ -32,6 +32,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -107,13 +108,10 @@ public class DefaultClientBuilderTest {
 
     @Test
     public void clientFactoryProvided_ClientIsManagedBySdk() {
-        TestClient client = testClientBuilder().httpClientBuilder(new SdkHttpClient.Builder() {
-                    @Override
-                    public SdkHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
-                        assertThat(serviceDefaults).isEqualTo(MOCK_DEFAULTS);
-                        return mock(SdkHttpClient.class);
-                    }
-                })
+        TestClient client = testClientBuilder().httpClientBuilder((SdkHttpClient.Builder) serviceDefaults -> {
+            Assertions.assertThat(serviceDefaults).isEqualTo(MOCK_DEFAULTS);
+            return mock(SdkHttpClient.class);
+        })
                 .build();
         assertThat(client.clientConfiguration.option(SdkClientOption.SYNC_HTTP_CLIENT))
                 .isNotInstanceOf(SdkDefaultClientBuilder.NonManagedSdkHttpClient.class);
@@ -123,7 +121,7 @@ public class DefaultClientBuilderTest {
     @Test
     public void asyncHttpClientFactoryProvided_ClientIsManagedBySdk() {
         TestAsyncClient client = testAsyncClientBuilder()
-                .asyncHttpClientBuilder(serviceDefaults -> {
+                .httpClientBuilder((SdkAsyncHttpClient.Builder) serviceDefaults -> {
                     assertThat(serviceDefaults).isEqualTo(MOCK_DEFAULTS);
                     return mock(SdkAsyncHttpClient.class);
                 })
@@ -147,7 +145,7 @@ public class DefaultClientBuilderTest {
     @Test
     public void explicitAsyncHttpClientProvided_ClientIsNotManagedBySdk() {
         TestAsyncClient client = testAsyncClientBuilder()
-                .asyncHttpClient(mock(SdkAsyncHttpClient.class))
+                .httpClient(mock(SdkAsyncHttpClient.class))
                 .build();
         assertThat(client.clientConfiguration.option(SdkClientOption.ASYNC_HTTP_CLIENT))
                 .isInstanceOf(SdkDefaultClientBuilder.NonManagedSdkAsyncHttpClient.class);

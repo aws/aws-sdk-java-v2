@@ -20,7 +20,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.global.handlers.TestGlobalExecutionInterceptor;
@@ -38,7 +38,7 @@ public class GlobalRequestHandlerTest {
     public void clientCreatedWithConstructor_RegistersGlobalHandlers() {
         assertFalse(TestGlobalExecutionInterceptor.wasCalled());
         DynamoDbClient client = DynamoDbClient.builder()
-                .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
+                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                 .region(Region.US_WEST_2)
                 .build();
         callApi(client);
@@ -49,7 +49,7 @@ public class GlobalRequestHandlerTest {
     public void clientCreatedWithBuilder_RegistersGlobalHandlers() {
         assertFalse(TestGlobalExecutionInterceptor.wasCalled());
         DynamoDbClient client = DynamoDbClient.builder()
-                .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
+                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                 .region(Region.US_WEST_2)
                 .build();
         callApi(client);

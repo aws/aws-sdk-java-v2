@@ -44,7 +44,7 @@ public abstract class AwsIntegrationTestBase {
     /**
      * Shared AWS credentials, loaded from a properties file.
      */
-    private static final AwsCredentials CREDENTIALS = CREDENTIALS_PROVIDER_CHAIN.getCredentials();
+    private static final AwsCredentials CREDENTIALS = CREDENTIALS_PROVIDER_CHAIN.resolveCredentials();
 
     /**
      * @return AWSCredentials to use during tests. Setup by base fixture

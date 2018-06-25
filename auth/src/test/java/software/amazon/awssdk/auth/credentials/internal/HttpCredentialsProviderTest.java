@@ -69,7 +69,7 @@ public class HttpCredentialsProviderTest {
         stubForSuccessResponseWithCustomBody(successResponse);
 
         HttpCredentialsProvider credentialsProvider = testCredentialsProvider();
-        AwsSessionCredentials credentials = (AwsSessionCredentials) credentialsProvider.getCredentials();
+        AwsSessionCredentials credentials = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
 
         assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
         assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
@@ -87,7 +87,7 @@ public class HttpCredentialsProviderTest {
 
         HttpCredentialsProvider credentialsProvider = testCredentialsProvider();
 
-        assertThatExceptionOfType(SdkClientException.class).isThrownBy(credentialsProvider::getCredentials)
+        assertThatExceptionOfType(SdkClientException.class).isThrownBy(credentialsProvider::resolveCredentials)
                                                            .withMessage("Unable to load credentials from service endpoint.");
     }
 
@@ -102,15 +102,15 @@ public class HttpCredentialsProviderTest {
         HttpCredentialsProvider credentialsProvider = testCredentialsProvider();
 
         // When there are no credentials, the provider should throw an exception if we can't connect
-        assertThatExceptionOfType(SdkClientException.class).isThrownBy(credentialsProvider::getCredentials);
+        assertThatExceptionOfType(SdkClientException.class).isThrownBy(credentialsProvider::resolveCredentials);
 
         // When there are valid credentials (but need to be refreshed) and the endpoint returns 404 status,
         // the provider should throw an exception.
         stubForSuccessResonseWithCustomExpirationDate(new Date(System.currentTimeMillis() + ONE_MINUTE * 4));
-        credentialsProvider.getCredentials(); // loads the credentials that will be expired soon
+        credentialsProvider.resolveCredentials(); // loads the credentials that will be expired soon
 
         stubForErrorResponse();  // Behaves as if server is unavailable.
-        assertThatExceptionOfType(SdkClientException.class).isThrownBy(credentialsProvider::getCredentials);
+        assertThatExceptionOfType(SdkClientException.class).isThrownBy(credentialsProvider::resolveCredentials);
     }
 
     @Test
@@ -119,13 +119,13 @@ public class HttpCredentialsProviderTest {
 
         // Successful load
         stubForSuccessResonseWithCustomExpirationDate(Date.from(Instant.now().plus(Duration.ofDays(10))));
-        assertThat(credentialsProvider.getCredentials()).isNotNull();
+        assertThat(credentialsProvider.resolveCredentials()).isNotNull();
 
         // Break the server
         stubForErrorResponse();
 
         // Still successful load
-        assertThat(credentialsProvider.getCredentials()).isNotNull();
+        assertThat(credentialsProvider.resolveCredentials()).isNotNull();
     }
 
     private void stubForSuccessResponseWithCustomBody(String body) {

@@ -23,6 +23,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
@@ -106,8 +107,8 @@ public final class ProfileCredentialsUtils {
     private AwsCredentialsProvider basicProfileCredentialsProvider() {
         requireProperties(ProfileProperty.AWS_ACCESS_KEY_ID,
                           ProfileProperty.AWS_SECRET_ACCESS_KEY);
-        AwsCredentials credentials = AwsCredentials.create(properties.get(ProfileProperty.AWS_ACCESS_KEY_ID),
-                                                           properties.get(ProfileProperty.AWS_SECRET_ACCESS_KEY));
+        AwsCredentials credentials = AwsBasicCredentials.create(properties.get(ProfileProperty.AWS_ACCESS_KEY_ID),
+                                                                     properties.get(ProfileProperty.AWS_SECRET_ACCESS_KEY));
         return StaticCredentialsProvider.create(credentials);
     }
 
