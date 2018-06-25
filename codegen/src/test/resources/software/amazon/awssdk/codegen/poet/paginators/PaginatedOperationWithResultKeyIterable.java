@@ -3,7 +3,7 @@ package software.amazon.awssdk.services.jsonprotocoltests.paginators;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.function.Function;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.pagination.sync.PaginatedItemsIterable;
 import software.amazon.awssdk.core.pagination.sync.PaginatedResponsesIterator;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
