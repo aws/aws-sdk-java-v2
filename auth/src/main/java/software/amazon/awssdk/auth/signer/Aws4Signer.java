@@ -17,6 +17,7 @@ package software.amazon.awssdk.auth.signer;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.CredentialUtils;
+import software.amazon.awssdk.auth.signer.internal.AbstractAws4Signer;
 import software.amazon.awssdk.auth.signer.internal.Aws4SignerRequestParams;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;

@@ -18,6 +18,7 @@ package software.amazon.awssdk.auth.signer;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+import software.amazon.awssdk.auth.signer.internal.AbstractAws4Signer;
 
 public class AbstractAws4SignerTest {
 

@@ -17,7 +17,6 @@ package software.amazon.awssdk.auth.signer.internal;
 
 import java.time.Clock;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.auth.signer.SignerConstant;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.regions.Region;
 

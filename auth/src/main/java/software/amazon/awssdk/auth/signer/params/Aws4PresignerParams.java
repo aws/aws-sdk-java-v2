@@ -18,7 +18,7 @@ package software.amazon.awssdk.auth.signer.params;
 import java.time.Instant;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.auth.signer.SignerConstant;
+import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 
 @SdkPublicApi
 public final class Aws4PresignerParams extends Aws4SignerParams {
