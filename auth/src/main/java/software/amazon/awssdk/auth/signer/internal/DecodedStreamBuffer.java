@@ -13,12 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.auth;
+package software.amazon.awssdk.auth.signer.internal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
+@SdkInternalApi
 class DecodedStreamBuffer {
     private static final Logger log = LoggerFactory.getLogger(DecodedStreamBuffer.class);
 

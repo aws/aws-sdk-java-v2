@@ -13,31 +13,31 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3;
+package software.amazon.awssdk.auth.signer;
 
-import static software.amazon.awssdk.auth.signer.SignerConstant.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.auth.signer.internal.SignerConstant.X_AMZ_CONTENT_SHA256;
 import static software.amazon.awssdk.utils.Validate.validState;
 
 import java.io.IOException;
 import java.io.InputStream;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import java.util.Optional;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.CredentialUtils;
-import software.amazon.awssdk.auth.signer.AbstractAws4Signer;
+import software.amazon.awssdk.auth.signer.internal.AbstractAws4Signer;
 import software.amazon.awssdk.auth.signer.internal.Aws4SignerRequestParams;
+import software.amazon.awssdk.auth.signer.internal.AwsChunkedEncodingInputStream;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.auth.signer.params.AwsS3V4SignerParams;
 import software.amazon.awssdk.core.exception.ResetException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.services.s3.auth.AwsChunkedEncodingInputStream;
-import software.amazon.awssdk.services.s3.auth.S3ExecutionAttribute;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * AWS4 signer implementation for AWS S3
  */
-@ReviewBeforeRelease("This should be moved to the 'auth' module.")
+@SdkPublicApi
 public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams, Aws4PresignerParams> {
 
     private static final String CONTENT_SHA_256 = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD";
@@ -85,21 +85,19 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
         final AwsS3V4SignerParams.Builder signerParams = extractSignerParams(AwsS3V4SignerParams.builder(),
                                                                              executionAttributes);
 
-        if (executionAttributes.getAttribute(S3ExecutionAttribute.ENABLE_CHUNKED_ENCODING) != null) {
-            signerParams.enableChunkedEncoding(executionAttributes.getAttribute(S3ExecutionAttribute.ENABLE_CHUNKED_ENCODING));
-        }
-        if (executionAttributes.getAttribute(S3ExecutionAttribute.ENABLE_PAYLOAD_SIGNING) != null) {
-            signerParams.enablePayloadSigning(executionAttributes.getAttribute(S3ExecutionAttribute.ENABLE_PAYLOAD_SIGNING));
-        }
+        Optional.ofNullable(executionAttributes.getAttribute(S3SignerExecutionAttribute.ENABLE_CHUNKED_ENCODING))
+                .ifPresent(signerParams::enableChunkedEncoding);
+
+        Optional.ofNullable(executionAttributes.getAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING))
+                .ifPresent(signerParams::enablePayloadSigning);
 
         return signerParams.build();
     }
 
     @Override
     public SdkHttpFullRequest presign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
-        Aws4PresignerParams signingParams = extractPresignerParams(Aws4PresignerParams.builder(),
-                                                                   executionAttributes)
-            .build();
+        Aws4PresignerParams signingParams =
+            extractPresignerParams(Aws4PresignerParams.builder(), executionAttributes).build();
 
         return presign(request, signingParams);
     }

@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.signer;
+package software.amazon.awssdk.auth.signer.internal;
 
 import java.time.Instant;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -28,7 +28,7 @@ import software.amazon.awssdk.regions.Region;
  * AWS-specific signing attributes attached to the execution. This information is available to {@link ExecutionInterceptor}s and
  * {@link Signer}s.
  */
-@SdkProtectedApi
+@SdkInternalApi
 public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
     /**
      * The key under which the request credentials are set.

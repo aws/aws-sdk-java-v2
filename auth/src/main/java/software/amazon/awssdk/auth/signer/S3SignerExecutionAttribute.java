@@ -13,15 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.auth;
+package software.amazon.awssdk.auth.signer;
 
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 
 /**
- * S3 specific attributes attached to the execution. This information is available to S3 signer.
+ * S3-specific signing attributes attached to the execution.
  */
-public class S3ExecutionAttribute extends SdkExecutionAttribute {
+@SdkProtectedApi
+public final class S3SignerExecutionAttribute extends SdkExecutionAttribute {
 
     /**
      * The key to specify whether to enable chunked encoding or not
@@ -32,4 +34,7 @@ public class S3ExecutionAttribute extends SdkExecutionAttribute {
      * The key to specify whether to enable payload signing or not
      */
     public static final ExecutionAttribute<Boolean> ENABLE_PAYLOAD_SIGNING = new ExecutionAttribute<>("PayloadSigning");
+
+    private S3SignerExecutionAttribute() {
+    }
 }

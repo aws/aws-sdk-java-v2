@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.signer;
+package software.amazon.awssdk.auth.signer.internal;
 
 import java.security.NoSuchAlgorithmException;
 import javax.crypto.Mac;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
-@SdkProtectedApi
+@SdkInternalApi
 public enum SigningAlgorithm {
 
     HmacSHA256;
