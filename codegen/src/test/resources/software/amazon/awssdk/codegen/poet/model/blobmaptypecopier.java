@@ -5,7 +5,7 @@ import static java.util.stream.Collectors.toMap;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Map;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.internal.StandardMemberCopier;
 
 @Generated("software.amazon.awssdk:codegen")

@@ -3,7 +3,7 @@ package software.amazon.awssdk.services.json;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;

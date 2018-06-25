@@ -27,8 +27,8 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.Arrays;
 import java.util.function.Consumer;
-import javax.annotation.Generated;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.codegen.model.intermediate.DocumentationModel;
 import software.amazon.awssdk.codegen.model.intermediate.HasDeprecation;
 

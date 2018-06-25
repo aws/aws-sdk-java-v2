@@ -1,6 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.transform;
 
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.core.Request;

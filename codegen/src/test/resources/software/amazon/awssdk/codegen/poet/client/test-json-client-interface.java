@@ -2,7 +2,7 @@ package software.amazon.awssdk.services.json;
 
 import java.nio.file.Path;
 import java.util.function.Consumer;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
