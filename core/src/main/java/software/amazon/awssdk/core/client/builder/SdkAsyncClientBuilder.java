@@ -42,7 +42,7 @@ public interface SdkAsyncClientBuilder<B extends SdkAsyncClientBuilder<B, C>, C>
      * and {@link ClientAsyncConfiguration.Builder#build()}.
      */
     default B asyncConfiguration(Consumer<ClientAsyncConfiguration.Builder> clientAsyncConfiguration) {
-        return asyncConfiguration(ClientAsyncConfiguration.builder().apply(clientAsyncConfiguration).build());
+        return asyncConfiguration(ClientAsyncConfiguration.builder().applyMutation(clientAsyncConfiguration).build());
     }
 
     /**

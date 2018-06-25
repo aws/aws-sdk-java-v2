@@ -93,7 +93,7 @@ public class AwsRetryPolicyTest {
     }
 
     private boolean shouldRetry(Consumer<RetryPolicyContext.Builder> builder) {
-        return AWS_DEFAULT_RETRY_CONDITION.shouldRetry(RetryPolicyContext.builder().apply(builder).build());
+        return AWS_DEFAULT_RETRY_CONDITION.shouldRetry(RetryPolicyContext.builder().applyMutation(builder).build());
     }
 
     private Consumer<RetryPolicyContext.Builder> applyErrorCode(String errorCode) {

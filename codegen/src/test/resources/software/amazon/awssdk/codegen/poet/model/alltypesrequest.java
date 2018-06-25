@@ -881,7 +881,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          * @see #structWithNestedTimestampMember(StructWithTimestamp)
          */
         default Builder structWithNestedTimestampMember(Consumer<StructWithTimestamp.Builder> structWithNestedTimestampMember) {
-            return structWithNestedTimestampMember(StructWithTimestamp.builder().apply(structWithNestedTimestampMember).build());
+            return structWithNestedTimestampMember(StructWithTimestamp.builder().applyMutation(structWithNestedTimestampMember).build());
         }
 
         /**
@@ -923,7 +923,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          * @see #structWithNestedBlob(StructWithNestedBlobType)
          */
         default Builder structWithNestedBlob(Consumer<StructWithNestedBlobType.Builder> structWithNestedBlob) {
-            return structWithNestedBlob(StructWithNestedBlobType.builder().apply(structWithNestedBlob).build());
+            return structWithNestedBlob(StructWithNestedBlobType.builder().applyMutation(structWithNestedBlob).build());
         }
 
         /**
@@ -977,7 +977,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          * @see #recursiveStruct(RecursiveStructType)
          */
         default Builder recursiveStruct(Consumer<RecursiveStructType.Builder> recursiveStruct) {
-            return recursiveStruct(RecursiveStructType.builder().apply(recursiveStruct).build());
+            return recursiveStruct(RecursiveStructType.builder().applyMutation(recursiveStruct).build());
         }
 
         /**
@@ -1004,7 +1004,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          * @see #polymorphicTypeWithSubTypes(BaseType)
          */
         default Builder polymorphicTypeWithSubTypes(Consumer<BaseType.Builder> polymorphicTypeWithSubTypes) {
-            return polymorphicTypeWithSubTypes(BaseType.builder().apply(polymorphicTypeWithSubTypes).build());
+            return polymorphicTypeWithSubTypes(BaseType.builder().applyMutation(polymorphicTypeWithSubTypes).build());
         }
 
         /**
@@ -1031,7 +1031,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          * @see #polymorphicTypeWithoutSubTypes(SubTypeOne)
          */
         default Builder polymorphicTypeWithoutSubTypes(Consumer<SubTypeOne.Builder> polymorphicTypeWithoutSubTypes) {
-            return polymorphicTypeWithoutSubTypes(SubTypeOne.builder().apply(polymorphicTypeWithoutSubTypes).build());
+            return polymorphicTypeWithoutSubTypes(SubTypeOne.builder().applyMutation(polymorphicTypeWithoutSubTypes).build());
         }
 
         /**
@@ -1320,7 +1320,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         @Override
         @SafeVarargs
         public final Builder listOfStructs(Consumer<SimpleStruct.Builder>... listOfStructs) {
-            listOfStructs(Stream.of(listOfStructs).map(c -> SimpleStruct.builder().apply(c).build()).collect(Collectors.toList()));
+            listOfStructs(Stream.of(listOfStructs).map(c -> SimpleStruct.builder().applyMutation(c).build()).collect(Collectors.toList()));
             return this;
         }
 

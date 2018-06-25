@@ -150,7 +150,7 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
          * removes the need to called {@link ProfileFile#builder()} and {@link ProfileFile.Builder#build()}.
          */
         public Builder profileFile(Consumer<ProfileFile.Builder> profileFile) {
-            return profileFile(ProfileFile.builder().apply(profileFile).build());
+            return profileFile(ProfileFile.builder().applyMutation(profileFile).build());
         }
 
         /**

@@ -159,7 +159,7 @@ public final class ClientOverrideConfiguration
          * Configure the retry policy the should be used when handling failure cases.
          */
         default Builder retryPolicy(Consumer<RetryPolicy.Builder> retryPolicy) {
-            return retryPolicy(RetryPolicy.builder().apply(retryPolicy).build());
+            return retryPolicy(RetryPolicy.builder().applyMutation(retryPolicy).build());
         }
 
         /**

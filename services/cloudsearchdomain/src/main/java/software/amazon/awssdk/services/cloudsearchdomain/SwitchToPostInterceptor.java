@@ -34,7 +34,7 @@ public class SwitchToPostInterceptor implements ExecutionInterceptor {
         if (originalRequest instanceof SearchRequest && request.method() == SdkHttpMethod.GET) {
             return request.toBuilder()
                           .method(SdkHttpMethod.POST)
-                          .apply(MoveParametersToBodyStage::changeQueryParametersToFormData)
+                          .applyMutation(MoveParametersToBodyStage::changeQueryParametersToFormData)
                           .build();
         }
         return request;

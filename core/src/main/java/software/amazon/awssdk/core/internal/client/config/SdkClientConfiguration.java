@@ -64,7 +64,7 @@ public final class SdkClientConfiguration
     }
 
     public SdkClientConfiguration merge(Consumer<SdkClientConfiguration.Builder> configuration) {
-        return merge(SdkClientConfiguration.builder().apply(configuration).build());
+        return merge(SdkClientConfiguration.builder().applyMutation(configuration).build());
     }
 
     @Override

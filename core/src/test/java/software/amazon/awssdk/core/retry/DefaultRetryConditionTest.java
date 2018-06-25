@@ -73,7 +73,7 @@ public class DefaultRetryConditionTest {
 
     private boolean shouldRetry(Consumer<RetryPolicyContext.Builder> builder) {
         return SdkRetryCondition.DEFAULT.shouldRetry(RetryPolicyContext.builder()
-                                                                       .apply(builder)
+                                                                       .applyMutation(builder)
                                                                        .build());
     }
 

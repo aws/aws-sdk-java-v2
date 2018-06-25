@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -260,11 +259,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
      * .build();
      * </pre>
      */
-    public interface Builder extends SdkHttpClient.Builder {
-        default Builder apply(Consumer<Builder> mutator) {
-            mutator.accept(this);
-            return this;
-        }
+    public interface Builder extends SdkHttpClient.Builder<ApacheHttpClient.Builder> {
 
         /**
          * The amount of time to wait for data to be transferred over an established, open connection before the connection is
