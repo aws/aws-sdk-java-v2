@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.adapter.StringToByteBufferAdapter;
 import software.amazon.awssdk.core.internal.StandardMemberCopier;
 import software.amazon.awssdk.core.runtime.TypeConverter;

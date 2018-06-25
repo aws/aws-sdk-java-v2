@@ -17,4 +17,4 @@
  * AWS Java SDK annotations.
  */
 
-package software.amazon.awssdk.annotation;
+package software.amazon.awssdk.annotations;

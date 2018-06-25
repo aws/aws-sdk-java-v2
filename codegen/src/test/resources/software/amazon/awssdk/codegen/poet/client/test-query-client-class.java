@@ -2,8 +2,8 @@ package software.amazon.awssdk.services.query;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Generated;
 import org.w3c.dom.Node;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
