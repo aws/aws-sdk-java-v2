@@ -49,14 +49,14 @@ public interface SdkBuilder<B extends SdkBuilder<B, T>, T> {
      * This can be done in a statement:
      *
      * <pre><code>
-     * ClassBeingBuilt = ClassBeingBuilt.builder().apply(Util::addSomeDetailToTheBuilder).build();
+     * ClassBeingBuilt = ClassBeingBuilt.builder().applyMutation(Util::addSomeDetailToTheBuilder).build();
      * </code></pre>
      *
      * @param mutator the function that mutates the builder
      * @return B the mutated builder instance
      */
     @SuppressWarnings("unchecked")
-    default B apply(Consumer<B> mutator) {
+    default B applyMutation(Consumer<B> mutator) {
         mutator.accept((B) this);
         return (B) this;
     }

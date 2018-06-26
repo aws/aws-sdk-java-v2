@@ -351,8 +351,8 @@ public class NettyNioAsyncHttpClientWireMockTest {
                                  .port(uri.getPort())
                                  .method(method)
                                  .encodedPath(resourcePath)
-                                 .apply(b -> params.forEach(b::rawQueryParameter))
-                                 .apply(b -> {
+                                 .applyMutation(b -> params.forEach(b::rawQueryParameter))
+                                 .applyMutation(b -> {
                                      b.header("Host", uri.getHost());
                                      if (contentLength != null) {
                                          b.header("Content-Length", contentLength);

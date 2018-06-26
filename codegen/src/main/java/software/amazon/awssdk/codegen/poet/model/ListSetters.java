@@ -157,7 +157,7 @@ class ListSetters extends AbstractMemberSetters {
     }
 
     private CodeBlock consumerBuilderVarargSetterBody() {
-        return CodeBlock.of("$1L($2T.of($1L).map(c -> $3T.builder().apply(c).build()).collect($4T.toList()));",
+        return CodeBlock.of("$1L($2T.of($1L).map(c -> $3T.builder().applyMutation(c).build()).collect($4T.toList()));",
                             fieldName(), Stream.class, listElementType(), Collectors.class);
     }
 

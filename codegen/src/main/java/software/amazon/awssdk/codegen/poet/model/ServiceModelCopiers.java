@@ -71,7 +71,7 @@ public class ServiceModelCopiers {
             return Optional.of(ClassName.get(StandardMemberCopier.class));
         }
 
-        // FIXME: Ugly hack, but some services (Health) have shapes with names
+        // FIXME: Some services (Health) have shapes with names
         // that differ only in the casing of the first letter, and generating
         // classes for them breaks on case insensitive filesystems...
         String shapeName = memberModel.getC2jShape();

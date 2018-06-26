@@ -170,9 +170,9 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
         }
 
         @Override
-        public ReturnT apply(ResponseT response, AbortableInputStream inputStream) throws Exception {
+        public ReturnT transform(ResponseT response, AbortableInputStream inputStream) throws Exception {
             callCount.incrementAndGet();
-            return delegate.apply(response, inputStream);
+            return delegate.transform(response, inputStream);
         }
 
         @Override

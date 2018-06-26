@@ -48,10 +48,10 @@ import software.amazon.awssdk.utils.Logger;
  *
  * <p>
  * <h3>Retries</h3>
- * Exceptions thrown from the transformer's {@link #apply(Object, AbortableInputStream)} method are not automatically retried by
- * the RetryPolicy of the client. Since we can't know if a transformer implementation is idempotent or safe to retry, if you wish
- * to retry on the event of a failure you must throw a {@link SdkException} with retryable set to true from the transformer. This
- * exception can wrap the original exception that was thrown. Note that throwing a {@link
+ * Exceptions thrown from the transformer's {@link #transform(Object, AbortableInputStream)} method are not automatically retried
+ * by the RetryPolicy of the client. Since we can't know if a transformer implementation is idempotent or safe to retry, if you
+ * wish to retry on the event of a failure you must throw a {@link SdkException} with retryable set to true from the transformer.
+ * This exception can wrap the original exception that was thrown. Note that throwing a {@link
  * SdkException} that is marked retryable from the transformer does not guarantee the request will be retried,
  * retries are still limited by the max retry attempts and retry throttling
  * feature of the {@link RetryPolicy}.
@@ -62,14 +62,13 @@ import software.amazon.awssdk.utils.Logger;
  * Implementations should have proper handling of Thread interrupts. For long running, non-interruptible tasks, it is recommended
  * to check the thread interrupt status periodically and throw an {@link InterruptedException} if set. When an {@link
  * InterruptedException} is thrown from a interruptible task, you should either re-interrupt the current thread or throw that
- * {@link InterruptedException} from the {@link #apply(Object, AbortableInputStream)} method. Failure to do these things will
- * prevent the total execution timeout from working (see {@link ClientOverrideConfiguration#totalExecutionTimeout()} and may
+ * {@link InterruptedException} from the {@link #transform(Object, AbortableInputStream)} method. Failure to do these things may
  * prevent the SDK from stopping the request in a timely manner in the event the thread is interrupted externally.
  * </p>
  *
  * @param <ResponseT> Type of unmarshalled POJO response.
- * @param <ReturnT>   Return type of the {@link #apply(Object, AbortableInputStream)} method. Implementations are free to perform
- *                    whatever transformations are appropriate.
+ * @param <ReturnT>   Return type of the {@link #transform(Object, AbortableInputStream)} method. Implementations are free to
+ * perform whatever transformations are appropriate.
  */
 @FunctionalInterface
 @SdkPublicApi
@@ -83,7 +82,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      * @throws Exception if any error occurs during processing of the response. This will be re-thrown by the SDK, possibly
      *                   wrapped in an {@link SdkClientException}.
      */
-    ReturnT apply(ResponseT response, AbortableInputStream inputStream) throws Exception;
+    ReturnT transform(ResponseT response, AbortableInputStream inputStream) throws Exception;
 
     /**
      * Hook to allow connection to be left open after the SDK returns a response. Useful for returning the InputStream to
@@ -213,8 +212,8 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
             ResponseTransformer<ResponseT, ReturnT> transformer) {
         return new ResponseTransformer<ResponseT, ReturnT>() {
             @Override
-            public ReturnT apply(ResponseT response, AbortableInputStream inputStream) throws Exception {
-                return transformer.apply(response, inputStream);
+            public ReturnT transform(ResponseT response, AbortableInputStream inputStream) throws Exception {
+                return transformer.transform(response, inputStream);
             }
 
             @Override

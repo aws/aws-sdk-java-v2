@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
 import software.amazon.awssdk.services.dynamodb.model.ListTablesResponse;
@@ -38,7 +37,6 @@ public class BaseResultIntegrationTest extends AwsIntegrationTestBase {
     }
 
     @Test
-    @ReviewBeforeRelease("Response metadata has been broken by client/interface refactoring. Fix before release")
     public void responseMetadataInBaseResultIsSameAsMetadataCache() {
         ListTablesRequest request = ListTablesRequest.builder().build();
         ListTablesResponse result = dynamoDB.listTables(request);
@@ -46,7 +44,6 @@ public class BaseResultIntegrationTest extends AwsIntegrationTestBase {
     }
 
     @Test
-    @ReviewBeforeRelease("Response metadata has been broken by client/interface refactoring. Fix before release")
     public void httpMetadataInBaseResultIsValid() {
         ListTablesResponse result = dynamoDB.listTables(ListTablesRequest.builder().build());
         assertThat(result.sdkHttpResponse().statusCode()).isEqualTo(200);

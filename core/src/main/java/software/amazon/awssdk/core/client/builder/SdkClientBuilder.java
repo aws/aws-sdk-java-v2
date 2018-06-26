@@ -43,7 +43,7 @@ public interface SdkClientBuilder<B extends SdkClientBuilder<B, C>, C> extends S
      * and {@link ClientOverrideConfiguration.Builder#build()}.
      */
     default B overrideConfiguration(Consumer<ClientOverrideConfiguration.Builder> overrideConfiguration) {
-        return overrideConfiguration(ClientOverrideConfiguration.builder().apply(overrideConfiguration).build());
+        return overrideConfiguration(ClientOverrideConfiguration.builder().applyMutation(overrideConfiguration).build());
     }
 
     /**

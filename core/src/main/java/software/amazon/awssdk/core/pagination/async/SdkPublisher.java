@@ -26,7 +26,6 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 @SdkPublicApi
 public interface SdkPublisher<T> extends Publisher<T> {
 
-    // TODO Should we return the last response instead of Void?
     default CompletableFuture<Void> forEach(Consumer<T> consumer) {
         CompletableFuture<Void> future = new CompletableFuture<>();
         subscribe(new SequentialSubscriber<>(consumer, future));

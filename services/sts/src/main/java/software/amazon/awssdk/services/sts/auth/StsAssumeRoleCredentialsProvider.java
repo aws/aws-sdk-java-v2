@@ -99,7 +99,7 @@ public class StsAssumeRoleCredentialsProvider extends StsCredentialsProvider {
          * {@link AssumeRoleRequest.Builder#build()}.
          */
         public Builder refreshRequest(Consumer<AssumeRoleRequest.Builder> assumeRoleRequest) {
-            return refreshRequest(AssumeRoleRequest.builder().apply(assumeRoleRequest).build());
+            return refreshRequest(AssumeRoleRequest.builder().applyMutation(assumeRoleRequest).build());
         }
     }
 }

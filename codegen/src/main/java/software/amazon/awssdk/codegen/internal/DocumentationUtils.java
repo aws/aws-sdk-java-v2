@@ -39,7 +39,7 @@ public final class DocumentationUtils {
     private static final String DEFAULT_FLUENT_RETURN =
             "Returns a reference to this object so that method calls can be chained together.";
 
-    //TODO kylthoms@: probably should move this to a custom config in each service
+    //TODO probably should move this to a custom config in each service
     private static final Set<String> SERVICES_EXCLUDED_FROM_CROSS_LINKING = new HashSet<>(Arrays.asList(
             "apigateway", "budgets", "cloudsearch", "cloudsearchdomain",
             "discovery", "elastictranscoder", "es", "glacier", "importexport",

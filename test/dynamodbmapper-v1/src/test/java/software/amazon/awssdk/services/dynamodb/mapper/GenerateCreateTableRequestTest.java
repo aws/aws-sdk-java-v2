@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -42,7 +41,6 @@ import utils.test.util.DynamoDBTestBase;
 /**
  * Tests on the DynamoDBMapper.generateCreateTableRequest method.
  */
-@Ignore // FIXME: setup fails with "region cannot be null"
 public class GenerateCreateTableRequestTest extends DynamoDBTestBase {
 
     private static DynamoDbMapper mapper;

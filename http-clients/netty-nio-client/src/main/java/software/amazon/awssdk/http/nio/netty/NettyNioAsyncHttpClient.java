@@ -37,7 +37,6 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Optional;
-import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -166,11 +165,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
      * Builder that allows configuration of the Netty NIO HTTP implementation. Use {@link #builder()} to configure and construct
      * a Netty HTTP client.
      */
-    public interface Builder extends SdkAsyncHttpClient.Builder {
-        default Builder apply(Consumer<Builder> mutator) {
-            mutator.accept(this);
-            return this;
-        }
+    public interface Builder extends SdkAsyncHttpClient.Builder<NettyNioAsyncHttpClient.Builder> {
 
         /**
          * Max allowed connections per endpoint allowed in the connection pool.
