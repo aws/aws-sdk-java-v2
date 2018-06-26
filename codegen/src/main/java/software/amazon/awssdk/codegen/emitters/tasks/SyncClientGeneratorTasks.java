@@ -35,6 +35,11 @@ public class SyncClientGeneratorTasks extends BaseGeneratorTasks {
     }
 
     @Override
+    protected boolean hasTasks() {
+        return !model.getCustomizationConfig().isSkipSyncClientGeneration();
+    }
+
+    @Override
     protected List<GeneratorTask> createTasks() throws Exception {
         info("Emitting Sync client classes");
         List<GeneratorTask> tasks = new ArrayList<>();
