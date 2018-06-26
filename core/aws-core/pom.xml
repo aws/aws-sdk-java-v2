@@ -5,17 +5,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
+        <artifactId>core</artifactId>
         <groupId>software.amazon.awssdk</groupId>
-        <artifactId>aws-sdk-java-pom</artifactId>
         <version>2.0.0-preview-11-SNAPSHOT</version>
     </parent>
 
     <artifactId>aws-core</artifactId>
     <name>AWS Java SDK :: AWS Core</name>
     <description>The AWS SDK for Java - Core runtime module holds the classes that are used by the individual service
-        clients to interact with
-        Amazon Web Services. Users need to depend on aws-java-sdk artifact for accessing individual client classes.
-    </description>
+    clients to interact with
+    Amazon Web Services. Users need to depend on aws-java-sdk artifact for accessing individual client classes.
+</description>
     <url>https://aws.amazon.com/sdkforjava</url>
     <dependencies>
         <dependency>
@@ -34,7 +34,7 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <artifactId>core</artifactId>
+            <artifactId>sdk-core</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
         </dependency>
