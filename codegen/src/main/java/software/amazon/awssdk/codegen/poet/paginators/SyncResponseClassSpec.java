@@ -33,10 +33,10 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.pagination.PaginatedItemsIterable;
-import software.amazon.awssdk.core.pagination.PaginatedResponsesIterator;
-import software.amazon.awssdk.core.pagination.SdkIterable;
-import software.amazon.awssdk.core.pagination.SyncPageFetcher;
+import software.amazon.awssdk.core.pagination.sync.PaginatedItemsIterable;
+import software.amazon.awssdk.core.pagination.sync.PaginatedResponsesIterator;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
+import software.amazon.awssdk.core.pagination.sync.SyncPageFetcher;
 
 /**
  * Java poet {@link ClassSpec} to generate the response class for sync paginated operations.

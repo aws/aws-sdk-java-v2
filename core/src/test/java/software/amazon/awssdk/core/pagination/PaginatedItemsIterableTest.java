@@ -30,6 +30,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.core.pagination.sync.PaginatedItemsIterable;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PaginatedItemsIterableTest {
