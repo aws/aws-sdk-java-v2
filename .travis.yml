@@ -1,6 +1,7 @@
 language: java
 jdk:
   - oraclejdk8
+  - oraclejdk10
 sudo: true
 dist: precise
 install: /bin/true
