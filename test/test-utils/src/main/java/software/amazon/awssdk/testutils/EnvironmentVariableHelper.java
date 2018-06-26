@@ -97,12 +97,12 @@ public class EnvironmentVariableHelper extends ExternalResource {
      *
      * Example use:
      * <pre>
-     * <code>
+     * {@code
      * EnvironmentVariableHelper.run(helper -> {
      *    helper.set("variable", "value");
      *    //run some test that uses "variable"
      * });
-     * </code>
+     * }
      * </pre>
      *
      * Will call {@link #reset} at the end of the block (even if the block exits exceptionally).

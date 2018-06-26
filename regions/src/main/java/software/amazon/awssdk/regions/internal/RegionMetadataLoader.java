@@ -57,7 +57,7 @@ public final class RegionMetadataLoader {
     /**
      * Loads the partition files from the {@link #PARTITIONS_OVERRIDE_RESOURCE_PATH}. If no files are present, then
      * loads the partition files from the {@link #PARTITIONS_RESOURCE_PATH}
-     * <p/>
+     * <p>
      * Builds the {@link RegionMetadata} from the partition files.
      */
     public static RegionMetadata getRegionMetadata(Region region) {

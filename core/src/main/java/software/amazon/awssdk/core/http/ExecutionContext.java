@@ -27,8 +27,7 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * @NotThreadSafe This class should only be accessed by a single thread and be used throughout
- *                a single request lifecycle.
+ * <b>Warning:</b> This class should only be accessed by a single thread and be used throughout a single request lifecycle.
  */
 @NotThreadSafe
 @SdkProtectedApi

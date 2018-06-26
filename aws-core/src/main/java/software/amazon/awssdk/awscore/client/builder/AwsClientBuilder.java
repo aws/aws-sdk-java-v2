@@ -62,7 +62,6 @@ public interface AwsClientBuilder<BuilderT extends AwsClientBuilder<BuilderT, Cl
      *     <li>Check the {user.home}/.aws/credentials and {user.home}/.aws/config files for the region.</li>
      *     <li>If running in EC2, check the EC2 metadata service for the region.</li>
      * </ol>
-     * </p>
      */
     BuilderT region(Region region);
 }

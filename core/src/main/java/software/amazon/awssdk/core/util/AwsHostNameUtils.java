@@ -167,7 +167,7 @@ public final class AwsHostNameUtils {
      * Parses the service name from an endpoint. Can only handle endpoints of
      * the form 'service.[region.]amazonaws.com'.
      *
-     * @Deprecated This method currently doesn't support BJS endpoints. This
+     * @deprecated This method currently doesn't support BJS endpoints. This
      *     method is used only in AWS4Signer to identify the service name from an
      *     endpoint. This method is broken as it no longer returns the service
      *     name to used for signing for all AWS services. This method will be

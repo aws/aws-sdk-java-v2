@@ -21,7 +21,7 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /** An implementation of {@link org.reactivestreams.Subscription} that does nothing.
- * <p />
+ * <p>
  * Useful in situations where a {@link org.reactivestreams.Publisher} needs to
  * signal {@code onError} or {@code onComplete} immediately after
  * {@code subscribe()} but but it needs to signal{@code onSubscription} first.

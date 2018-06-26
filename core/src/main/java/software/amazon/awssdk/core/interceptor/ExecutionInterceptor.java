@@ -18,6 +18,10 @@ package software.amazon.awssdk.core.interceptor;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+// Disable CS to avoid "Unused Import" error. If we use the FQCN in the Javadoc, we'll run into line length issues instead.
+// CHECKSTYLE:OFF
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+// CHECKSTYLE:ON
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -53,7 +57,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
  * </ol>
  * An additional {@link #onExecutionFailure} method is provided that is invoked if an execution fails at any point during the
  * lifecycle of a request, including exceptions being thrown from this or other interceptors.
- * </p>
+ * <p>
  *
  * <p>
  * <b>Interceptor Registration</b>
@@ -75,7 +79,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
  *     {service} is the package name of the service client. Any interceptors listed in these files (new line separated) are
  *     instantiated using their default constructor and loaded into the client.</li>
  * </ol>
- * </p>
+ * <p>
  *
  * <p>
  * <b>Interceptor Order</b>
@@ -91,15 +95,15 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
  *     interceptors later in the classpath. Interceptors earlier within a specific file on the classpath will be placed earlier in
  *     the order than interceptors later in the file.</li>
  *
- *     <li><i>Override Configuration Interceptors</i>. Any interceptors registered using {@link
- *     ClientOverrideConfiguration.Builder#addExecutionInterceptor(ExecutionInterceptor)}
+ *     <li><i>Override Configuration Interceptors</i>. Any interceptors registered using
+ *     {@link ClientOverrideConfiguration.Builder#addExecutionInterceptor(ExecutionInterceptor)}
  *     in the order they were added.</li>
  * </ol>
  * When a request is being processed (up to and including {@link #beforeTransmission}, interceptors are applied in forward-order,
  * according to the order described above. When a response is being processed (after and including {@link #afterTransmission},
  * interceptors are applied in reverse-order from the order described above. This means that the last interceptors to touch the
  * request are the first interceptors to touch the response.
- * </p>
+ * <p>
  *
  * <p>
  * <b>Execution Attributes</b>
@@ -107,11 +111,9 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
  * collection of attributes is created when a call to a service client is made and can be mutated throughout the course of the
  * client call. These attributes are made available to every interceptor hook and is available for storing data between method
  * calls. The SDK provides some attributes automatically, available via {@link SdkExecutionAttribute}.
- * </p>
  *
  * <p>
  * <b><i>Note: This interface will change between SDK versions and should not be implemented by SDK users.</i></b>
- * </p>
  */
 @SdkProtectedApi
 public interface ExecutionInterceptor {
@@ -122,7 +124,7 @@ public interface ExecutionInterceptor {
      *
      * <p>This method is guaranteed to be executed on the thread that is making the client call. This is true even if a non-
      * blocking I/O client is used. This is useful for transferring data that may be stored thread-locally into the execution's
-     * {@link ExecutionAttributes}.</p>
+     * {@link ExecutionAttributes}.
      *
      * @param context The current state of the execution, including the unmodified SDK request from the service client call.
      * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
@@ -183,7 +185,7 @@ public interface ExecutionInterceptor {
      * level wire logging should be trusted over the parameters to this method.
      *
      * <p>Note: Unlike many other lifecycle methods, this one may be invoked multiple times. If the {@link RetryPolicy} determines
-     * a request failure is retriable, this will be invoked for each retry attempt.</p>
+     * a request failure is retriable, this will be invoked for each retry attempt.
      *
      * @param context The current state of the execution, including the SDK and HTTP request (potentially modified by other
      *                interceptors) to be sent to the downstream service.
@@ -199,10 +201,10 @@ public interface ExecutionInterceptor {
      * modifications made by other interceptors.
      *
      * <p>It is possible that the HTTP client could have already modified this response, so debug-level wire logging should be
-     * trusted over the parameters to this method.</p>
+     * trusted over the parameters to this method.
      *
      * <p>Note: Unlike many other lifecycle methods, this one may be invoked multiple times. If the {@link RetryPolicy} determines
-     * the error code returned by the service is retriable, this will be invoked for each response returned by the service.</p>
+     * the error code returned by the service is retriable, this will be invoked for each response returned by the service.
      *
      * @param context The current state of the execution, including the SDK and HTTP requests and the unmodified HTTP response.
      * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
@@ -215,7 +217,7 @@ public interface ExecutionInterceptor {
      * Modify the {@link SdkHttpFullRequest} before it is unmarshalled into an {@link SdkResponse}.
      *
      * <p>Note: Unlike many other lifecycle methods, this one may be invoked multiple times. If the {@link RetryPolicy} determines
-     * the error code returned by the service is retriable, this will be invoked for each response returned by the service.</p>
+     * the error code returned by the service is retriable, this will be invoked for each response returned by the service.
      *
      * @param context The current state of the execution, including the SDK and HTTP requests and the current HTTP response.
      * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
@@ -231,7 +233,7 @@ public interface ExecutionInterceptor {
      * Read the finalized HTTP response as it will be given to the unmarshaller to be converted into an {@link SdkResponse}.
      *
      * <p>Note: Unlike many other lifecycle methods, this one may be invoked multiple times. If the {@link RetryPolicy} determines
-     * the error code returned by the service is retriable, this will be invoked for each response returned by the service.</p>
+     * the error code returned by the service is retriable, this will be invoked for each response returned by the service.
      *
      * @param context The current state of the execution, including the SDK and HTTP requests as well as the (potentially
      *                modified by other interceptors) HTTP response.
@@ -286,7 +288,7 @@ public interface ExecutionInterceptor {
      * exception will be thrown by the service client.
      *
      * <p>This will only be invoked if the entire execution fails. If a retriable error happens (according to the
-     * {@link RetryPolicy}) and a subsequent retry succeeds, this method will not be invoked.</p>
+     * {@link RetryPolicy}) and a subsequent retry succeeds, this method will not be invoked.
      *
      * @param context The context associated with the execution that failed. An SDK request will always be available, but
      *                depending on the time at which the failure happened, the HTTP request, HTTP response and SDK response may

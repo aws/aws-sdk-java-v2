@@ -23,7 +23,7 @@ import software.amazon.awssdk.core.protocol.OperationInfo;
 import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
 
 /**
- * Builder to create an appropriate implementation of {@link ProtocolMarshaller} for JSON based services.
+ * Builder to create an appropriate implementation of {@link ProtocolRequestMarshaller} for JSON based services.
  *
  * @param <T> Type of the original request object.
  */

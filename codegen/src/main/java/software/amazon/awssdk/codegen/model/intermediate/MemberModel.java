@@ -460,8 +460,7 @@ public class MemberModel extends DocumentationModel {
     }
 
     /**
-     * @return Implementation of {@link software.amazon.awssdk.transform.PathMarshallers.PathMarshaller} to use if this
-     *     member is bound the the URI.
+     * @return Implementation of {@link PathMarshaller} to use if this member is bound the the URI.
      * @throws IllegalStateException If this member is not bound to the URI. Templates should first check
      *     {@link ParameterHttpMapping#isUri()} first.
      */
@@ -481,7 +480,7 @@ public class MemberModel extends DocumentationModel {
     }
 
     /**
-     * Used for JSON services. Name of the field containing the {@link MarshallingInfo} for
+     * Used for JSON services. Name of the field containing the {@link software.amazon.awssdk.core.protocol.MarshallingInfo} for
      * this member.
      */
     @JsonIgnore
@@ -503,8 +502,8 @@ public class MemberModel extends DocumentationModel {
     /**
      * Currently used only for JSON services.
      *
-     * @return Marshalling type to use when creating a {@link MarshallingInfo}. Must be a field of {@link
-     * software.amazon.awssdk.core.protocol.MarshallingType}.
+     * @return Marshalling type to use when creating a {@link software.amazon.awssdk.core.protocol.MarshallingInfo}. Must be a
+     * field of {@link software.amazon.awssdk.core.protocol.MarshallingType}.
      */
     public String getMarshallingType() {
         if (isList()) {

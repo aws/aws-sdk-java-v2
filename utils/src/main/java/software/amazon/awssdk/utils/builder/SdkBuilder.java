@@ -45,7 +45,7 @@ public interface SdkBuilder<B extends SdkBuilder<B, T>, T> {
      * builder = Util.addSomeDetailToTheBuilder(builder);
      * ClassBeingBuilt clz = builder.build();
      * </code></pre>
-     * <p/>
+     * <p>
      * This can be done in a statement:
      *
      * <pre><code>

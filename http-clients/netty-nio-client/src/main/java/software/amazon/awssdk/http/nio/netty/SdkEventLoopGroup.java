@@ -29,13 +29,13 @@ import software.amazon.awssdk.utils.Validate;
 
 /**
  * Provides {@link EventLoopGroup} and {@link ChannelFactory} for {@link NettyNioAsyncHttpClient}.
- *
  * <p>
  * There are two ways to create a new instance.
  *
  * <ul>
  * <li>Using {@link #create(EventLoopGroup, ChannelFactory)} to provide a custom {@link EventLoopGroup} and
- * {@link ChannelFactory}</p>.
+ * {@link ChannelFactory}
+ * <p>
  * The {@link EventLoopGroup} <b>MUST</b> be closed by the caller when it is ready to
  * be disposed. The SDK will not close the {@link EventLoopGroup} when the HTTP client is closed. See
  * {@link EventLoopGroup#shutdownGracefully()} to properly close the event loop group.
@@ -136,7 +136,7 @@ public final class SdkEventLoopGroup {
     /**
      * A builder for {@link SdkEventLoopGroup}.
      *
-     * <p>All implementations of this interface are mutable and not thread safe.</p>
+     * <p>All implementations of this interface are mutable and not thread safe.
      */
     public interface Builder {
 

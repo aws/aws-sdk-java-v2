@@ -27,7 +27,7 @@ public final class CompletableFutures {
     /**
      * Convenience method for creating a future that is immediately completed
      * exceptionally with the given {@code Throwable}.
-     * <p />
+     * <p>
      * Similar to {@code CompletableFuture#failedFuture} which was added in
      * Java 9.
      *
