@@ -27,7 +27,6 @@ import java.nio.file.Path;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -45,9 +44,8 @@ import software.amazon.awssdk.utils.Logger;
  * the rest of the data exceeds the cost of establishing a new connection. If callers do not call abort and do not read all
  * of the data in the stream, then the content will be drained by the SDK and the underlying HTTP connection will be returned to
  * the connection pool (if applicable).
- *
- * <p>
  * <h3>Retries</h3>
+ * <p>
  * Exceptions thrown from the transformer's {@link #transform(Object, AbortableInputStream)} method are not automatically retried
  * by the RetryPolicy of the client. Since we can't know if a transformer implementation is idempotent or safe to retry, if you
  * wish to retry on the event of a failure you must throw a {@link SdkException} with retryable set to true from the transformer.
@@ -55,16 +53,14 @@ import software.amazon.awssdk.utils.Logger;
  * SdkException} that is marked retryable from the transformer does not guarantee the request will be retried,
  * retries are still limited by the max retry attempts and retry throttling
  * feature of the {@link RetryPolicy}.
- * </p>
  *
- * <p>
  * <h3>Thread Interrupts</h3>
+ * <p>
  * Implementations should have proper handling of Thread interrupts. For long running, non-interruptible tasks, it is recommended
  * to check the thread interrupt status periodically and throw an {@link InterruptedException} if set. When an {@link
  * InterruptedException} is thrown from a interruptible task, you should either re-interrupt the current thread or throw that
  * {@link InterruptedException} from the {@link #transform(Object, AbortableInputStream)} method. Failure to do these things may
  * prevent the SDK from stopping the request in a timely manner in the event the thread is interrupted externally.
- * </p>
  *
  * @param <ResponseT> Type of unmarshalled POJO response.
  * @param <ReturnT>   Return type of the {@link #transform(Object, AbortableInputStream)} method. Implementations are free to
@@ -183,14 +179,9 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      * Creates a response transformer that returns an unmanaged input stream with the response content. This input stream must
      * be explicitly closed to release the connection. The unmarshalled response object can be obtained via the {@link
      * ResponseInputStream#response} method.
-     *
      * <p>
      * Note that the returned stream is not subject to the retry policy or timeout settings (except for socket timeout)
-     * of the client. No retries will be performed in the event of a socket read failure or connection reset. Similarly,
-     * the total execution timeout (see
-     * {@link ClientOverrideConfiguration#totalExecutionTimeout})
-     * will stop once the input stream has been returned by the SDK.
-     * </p>
+     * of the client. No retries will be performed in the event of a socket read failure or connection reset.
      *
      * @param <ResponseT> Type of unmarshalled response POJO.
      * @return ResponseTransformer instance.

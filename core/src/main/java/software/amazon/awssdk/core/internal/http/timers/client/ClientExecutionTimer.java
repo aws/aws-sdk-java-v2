@@ -27,7 +27,6 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 /**
  * Represents a timer to enforce a timeout on the total client execution time. That is the time
  * spent executing request handlers, any HTTP request including retries, unmarshalling, etc.
- * Essentially all the time spent in {@link AmazonHttpClient}
  */
 // DO NOT override finalize(). The shutdown() method is called from AmazonHttpClient#shutdown()
 // which is called from it's finalize() method.  Since finalize methods can be be called in any
@@ -80,7 +79,7 @@ public class ClientExecutionTimer implements SdkAutoCloseable {
 
     /**
      * Shutdown the underlying {@link ScheduledThreadPoolExecutor}. Should be invoked when
-     * {@link AmazonHttpClient} is shutdown
+     * the client handler is shut down.
      */
     @Override
     public void close() {

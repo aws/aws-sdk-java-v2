@@ -79,9 +79,7 @@ public final class HttpResourcesUtils {
      * Connects to the given endpoint to read the resource
      * and returns the text contents.
      *
-     * @param endpoint The service endpoint to connect to.
-     * @param retryPolicy The custom retry policy that determines whether a
-     * failed request should be retried or not.
+     * @param endpointProvider The endpoint provider.
      * @return The text payload returned from the container metadata endpoint
      * service for the specified resource path.
      * @throws IOException If any problems were encountered while connecting to the

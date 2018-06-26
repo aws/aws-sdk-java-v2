@@ -82,7 +82,7 @@ public final class IoUtils {
 
     /**
      * Closes the given Closeable quietly.
-     * @param is the given closeable
+     * @param maybeCloseable the given closeable
      * @param log logger used to log any failure should the close fail
      */
     public static void closeIfCloseable(Object maybeCloseable, Logger log) {

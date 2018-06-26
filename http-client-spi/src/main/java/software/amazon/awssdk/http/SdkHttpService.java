@@ -23,7 +23,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
  * HTTP implementations on the classpath. HTTP implementations that wish to be discovered by the default HTTP provider chain
  * should implement this interface and declare that implementation as a service in the
  * META-INF/service/software.amazon.awssdk.http.SdkHttpService resource. See
- * <a href="https://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html>Service Loader</a> for more
+ * <a href="https://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html">Service Loader</a> for more
  * information.
  *
  * <p>

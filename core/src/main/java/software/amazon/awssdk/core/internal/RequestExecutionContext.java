@@ -36,7 +36,8 @@ import software.amazon.awssdk.utils.Validate;
 /**
  * Request scoped dependencies and context for an execution of a request by {@link AmazonSyncHttpClient} or
  * {@link AmazonAsyncHttpClient}.
- * Provided to the {@link RequestPipeline#execute(Object, RequestExecutionContext)} method.
+ * Provided to the {@link RequestPipeline#execute(Object, software.amazon.awssdk.core.internal.http.RequestExecutionContext)}
+ * method.
  */
 @SdkInternalApi
 public final class RequestExecutionContext {

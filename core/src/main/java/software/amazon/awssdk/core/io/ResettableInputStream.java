@@ -38,7 +38,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
  * {@link #release()} in a finally block to truly release the underlying
  * resources.
  *
- * @see Releasable
+ * @see ReleasableInputStream
  */
 @NotThreadSafe
 @SdkProtectedApi

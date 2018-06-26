@@ -222,11 +222,7 @@ public final class StringUtils {
      * {@code null}.</p>
      *
      * <p>The String is trimmed using {@link String#trim()}.
-     * Trim removes start and end characters &lt;= 32.
-     * To strip whitespace use {@link #strip(String)}.</p>
-     *
-     * <p>To trim your choice of characters, use the
-     * {@link #strip(String, String)} methods.</p>
+     * Trim removes start and end characters &lt;= 32.</p>
      *
      * <pre>
      * StringUtils.trim(null)          = null
@@ -249,8 +245,7 @@ public final class StringUtils {
      * empty ("") after the trim or if it is {@code null}.
      *
      * <p>The String is trimmed using {@link String#trim()}.
-     * Trim removes start and end characters &lt;= 32.
-     * To strip whitespace use {@link #stripToNull(String)}.</p>
+     * Trim removes start and end characters &lt;= 32.</p>
      *
      * <pre>
      * StringUtils.trimToNull(null)          = null
@@ -276,8 +271,7 @@ public final class StringUtils {
      * is empty ("") after the trim or if it is {@code null}.
      *
      * <p>The String is trimmed using {@link String#trim()}.
-     * Trim removes start and end characters &lt;= 32.
-     * To strip whitespace use {@link #stripToEmpty(String)}.</p>
+     * Trim removes start and end characters &lt;= 32.</p>
      *
      * <pre>
      * StringUtils.trimToEmpty(null)          = ""

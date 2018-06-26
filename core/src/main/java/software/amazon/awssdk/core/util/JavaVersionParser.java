@@ -23,7 +23,9 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.JavaSystemSetting;
 
 /**
- * @see http://www.oracle.com/technetwork/java/javase/versioning-naming-139433.html
+ * See <a href="http://www.oracle.com/technetwork/java/javase/versioning-naming-139433.html">
+ *     http://www.oracle.com/technetwork/java/javase/versioning-naming-139433.html
+ *     </a>
  */
 @SdkInternalApi
 public class JavaVersionParser {
