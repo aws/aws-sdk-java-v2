@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.pagination;
+package software.amazon.awssdk.core.pagination.sync;
 
 import java.util.Collections;
 import java.util.Iterator;
