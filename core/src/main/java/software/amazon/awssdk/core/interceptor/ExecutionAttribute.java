@@ -23,21 +23,19 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * This is typically used as a static final field in an {@link ExecutionInterceptor}:
  * <pre>
  * {@code
- * class MyExecutionInterceptor implements ExecutionInterceptor {
- *     private static final ExecutionAttribute<String> DATA = new ExecutionAttribute<>();
+ *  class MyExecutionInterceptor implements ExecutionInterceptor {
+ *      private static final ExecutionAttribute<String> DATA = new ExecutionAttribute<>();
  *
- *     @Override
- *     public void beforeExecution(Context.BeforeExecution execution, ExecutionAttributes executionAttributes) {
- *         executionAttributes.put(DATA, "Request: " + execution.request());
- *     }
+ *      public void beforeExecution(Context.BeforeExecution execution, ExecutionAttributes executionAttributes) {
+ *          executionAttributes.put(DATA, "Request: " + execution.request());
+ *      }
  *
- *     @Override
- *     public void afterExecution(Context.AfterExecution execution, ExecutionAttributes executionAttributes) {
- *         String data = executionAttributes.get(DATA); // Retrieve the value saved in beforeExecution.
- *     }
+ *      public void afterExecution(Context.AfterExecution execution, ExecutionAttributes executionAttributes) {
+ *          String data = executionAttributes.get(DATA); // Retrieve the value saved in beforeExecution.
+ *      }
+ *  }
  * }
- * }
- * </pre>
+ </pre>
  *
  * @param <T> The type of data associated with this attribute.
  */

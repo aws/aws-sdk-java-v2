@@ -110,9 +110,9 @@ public final class SdkAsserts {
      *
      * @param errmsg
      *            error message to be thrown when the assertion fails.
-     * @param expected
+     * @param expectedInputStream
      *            expected input stream. The stream will be closed at the end.
-     * @param actual
+     * @param inputStream
      *            The stream that will be read, compared to the expected file contents, and finally
      *            closed.
      */
@@ -181,7 +181,7 @@ public final class SdkAsserts {
      *
      * @param expected
      *            The input stream containing the expected contents.
-     * @param inputStream
+     * @param actual
      *            The stream that will be read, compared to the expected file contents, and finally
      *            closed.
      * @return True if the two input streams contain the same data.

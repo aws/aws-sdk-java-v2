@@ -107,7 +107,7 @@ public final class Either<L, R> {
     }
 
     /**
-     * Create a new Optional&lt;Either&rt; from two possibly null values.
+     * Create a new {@code Optional<Either>} from two possibly null values.
      *
      * If both values are null, {@link Optional#empty()} is returned. Only one of the left or right values
      * is allowed to be non-null, otherwise an {@link IllegalArgumentException} is thrown.

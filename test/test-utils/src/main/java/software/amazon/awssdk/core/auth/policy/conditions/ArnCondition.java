@@ -24,7 +24,7 @@ import software.amazon.awssdk.core.auth.policy.Condition;
  * Name (ARN).
  * <p>
  * An Amazon Resource Name (ARN) takes the following format:
- * <b>arn:aws:&lt;vendor>:&lt;region>:&lt;namespace>:&lt;relative-id></b>
+ * <b>{@code arn:aws:<vendor>:<region>:<namespace>:<relative-id>}</b>
  * <p>
  * <ul>
  * <li>vendor identifies the AWS product (e.g., sns)</li>

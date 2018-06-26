@@ -25,7 +25,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
  * Translates an {@link IOException} to an {@link InterruptedException} if that IOException was caused by the
- * {@link software.amazon.awssdk.internal.http.timers.client.ClientExecutionTimer}. This is important for consistent handling
+ * {@link software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer}. This is important for consistent handling
  * of timeouts in {@link ClientExecutionTimedStage}.
  */
 @SdkInternalApi

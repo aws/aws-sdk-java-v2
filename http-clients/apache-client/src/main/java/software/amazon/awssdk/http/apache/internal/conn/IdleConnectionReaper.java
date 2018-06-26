@@ -27,16 +27,16 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Daemon thread to periodically check connection pools for idle connections.
- * <p/>
+ * <p>
  * Connections sitting around idle in the HTTP connection pool for too long will
  * eventually be terminated by the AWS end of the connection, and will go into
  * CLOSE_WAIT. If this happens, sockets will sit around in CLOSE_WAIT, still
  * using resources on the client side to manage that socket. Many sockets stuck
  * in CLOSE_WAIT can prevent the OS from creating new connections.
- * <p/>
+ * <p>
  * This class closes idle connections before they can move into the CLOSE_WAIT
  * state.
- * <p/>
+ * <p>
  * This thread is important because by default, we disable Apache HttpClient's
  * stale connection checking, so without this thread running in the background,
  * cleaning up old/inactive HTTP connections, we'd see more IO exceptions when
@@ -133,7 +133,7 @@ public final class IdleConnectionReaper extends Thread {
 
     /**
      * Shuts down the thread, allowing the class and instance to be collected.
-     * <p/>
+     * <p>
      * Since this is a daemon thread, its running will not prevent JVM shutdown.
      * It will, however, prevent this class from being unloaded or garbage
      * collected, in the context of a long-running application, until it is

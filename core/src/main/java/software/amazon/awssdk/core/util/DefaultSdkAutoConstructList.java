@@ -24,7 +24,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Default implementation of {@link SdkAutoConstructList}.
- * <p />
+ * <p>
  * This is an empty, unmodifiable list.
  *
  * @param <T> The element type.

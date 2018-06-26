@@ -195,7 +195,7 @@ public interface Request<T> {
      *         as the service name set in request metrics and service
      *         exceptions.
      *
-     * @see {@link SdkServiceException#serviceName()}
+     * @see SdkServiceException#serviceName()
      */
     String getServiceName();
 

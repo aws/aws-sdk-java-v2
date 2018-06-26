@@ -20,7 +20,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * A list that was auto constructed by the SDK.
- * <p />
+ * <p>
  * The main purpose of this class is to help distinguish explicitly empty lists
  * set on requests by the user, as some services may treat {@code null} or
  * missing lists and empty list members differently. As such, this class should
