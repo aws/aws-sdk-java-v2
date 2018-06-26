@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.retry.backoff.FullJitterBackoffStrategy;
 public final class DynamoDbRetryPolicy {
 
     /** Default max retry count for DynamoDB client **/
-    private static final int DEFAULT_MAX_ERROR_RETRY = 10;
+    private static final int DEFAULT_MAX_ERROR_RETRY = 8;
 
     /**
      * Default base sleep time for DynamoDB.
