@@ -19,7 +19,9 @@ import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLInputFactory;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
+@SdkProtectedApi
 public final class XmlUtils {
 
     /**

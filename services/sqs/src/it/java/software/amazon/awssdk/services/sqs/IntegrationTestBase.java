@@ -22,9 +22,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import org.junit.Before;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.util.StringUtils;
-import software.amazon.awssdk.services.iam.IAMClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.GetUserRequest;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.CreateQueueResponse;
@@ -47,12 +47,12 @@ public class IntegrationTestBase extends AwsIntegrationTestBase {
     /**
      * The Async SQS client for all tests to use.
      */
-    protected SQSAsyncClient sqsAsync;
+    protected SqsAsyncClient sqsAsync;
 
     /**
      * The Sync SQS client for all tests to use.
      */
-    protected SQSClient sqsSync;
+    protected SqsClient sqsSync;
 
     /**
      * Account ID of the AWS Account identified by the credentials provider setup in AWSTestBase.
@@ -70,14 +70,14 @@ public class IntegrationTestBase extends AwsIntegrationTestBase {
         sqsSync = createSqsSyncClient();
     }
 
-    public static SQSAsyncClient createSqsAyncClient() {
-        return SQSAsyncClient.builder()
+    public static SqsAsyncClient createSqsAyncClient() {
+        return SqsAsyncClient.builder()
                 .credentialsProvider(getCredentialsProvider())
                 .build();
     }
 
-    public static SQSClient createSqsSyncClient() {
-        return SQSClient.builder()
+    public static SqsClient createSqsSyncClient() {
+        return SqsClient.builder()
                 .credentialsProvider(getCredentialsProvider())
                 .build();
     }
@@ -124,7 +124,7 @@ public class IntegrationTestBase extends AwsIntegrationTestBase {
      *
      * @return The queue url for the created queue
      */
-    protected String createQueue(SQSAsyncClient sqsClient) {
+    protected String createQueue(SqsAsyncClient sqsClient) {
         CreateQueueResponse res = sqsClient.createQueue(CreateQueueRequest.builder().queueName(getUniqueQueueName()).build()).join();
         return res.queueUrl();
     }
@@ -141,7 +141,7 @@ public class IntegrationTestBase extends AwsIntegrationTestBase {
      */
     protected String getAccountId() {
         if (accountId == null) {
-            IAMClient iamClient = IAMClient.builder()
+            IamClient iamClient = IamClient.builder()
                     .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                     .region(Region.AWS_GLOBAL)
                     .build();

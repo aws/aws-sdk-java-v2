@@ -18,14 +18,16 @@ package software.amazon.awssdk.core.util;
 import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.runtime.io.SdkFilterInputStream;
+import software.amazon.awssdk.core.io.SdkFilterInputStream;
 
 /**
  * Used to perform length check to ensure the number of bytes read from the
  * underlying input stream is the same as the expected total.
  */
 @NotThreadSafe
+@SdkInternalApi
 public class LengthCheckInputStream extends SdkFilterInputStream {
     public static final boolean INCLUDE_SKIPPED_BYTES = true;
     public static final boolean EXCLUDE_SKIPPED_BYTES = false;

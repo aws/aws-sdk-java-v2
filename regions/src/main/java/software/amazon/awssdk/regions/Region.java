@@ -18,7 +18,8 @@ package software.amazon.awssdk.regions;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import software.amazon.awssdk.utils.AbstractEnum;
+import java.util.concurrent.ConcurrentHashMap;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -36,11 +37,13 @@ import software.amazon.awssdk.utils.Validate;
  * method on the service's client interface. Additional metadata about a region can be discovered using
  * {@link RegionMetadata#of(Region)}.</p>
  *
- * <p>The {@link Region#value()} will be used as the signing region for all requests to AWS services unless an explicit region
- * override is available in {@link RegionMetadata}. This value will also be used to construct the endpoint for accessing a
+ * <p>The {@link Region#id()} will be used as the signing region for all requests to AWS services unless an explicit region
+ * override is available in {@link RegionMetadata}. This id will also be used to construct the endpoint for accessing a
  * service unless an explicit endpoint is available for that region in {@link RegionMetadata}.</p>
  */
-public class Region extends AbstractEnum {
+@SdkPublicApi
+public final class Region {
+
     // AWS Partition Regions
 
     public static final Region AP_NORTHEAST_1 = Region.of("ap-northeast-1");
@@ -70,27 +73,11 @@ public class Region extends AbstractEnum {
     public static final Region CN_NORTHWEST_1 = Region.of("cn-northwest-1");
     public static final Region AWS_CN_GLOBAL = Region.of("aws-cn-global", true);
 
-    /**
-     * AWS Gov Cloud Partition Regions.
-     */
-    public static final class GovCloud {
-        public static final Region US_GOV_WEST_1 = Region.of("us-gov-west-1");
-        public static final Region AWS_US_GOV_GLOBAL = Region.of("aws-us-gov-global", true);
+    // AWS Gov Cloud Partition Regions
+    public static final Region US_GOV_WEST_1 = Region.of("us-gov-west-1");
+    public static final Region AWS_US_GOV_GLOBAL = Region.of("aws-us-gov-global", true);
 
-        public static final List<Region> REGIONS = Collections.unmodifiableList(Arrays.asList(
-                US_GOV_WEST_1,
-                AWS_US_GOV_GLOBAL
-        ));
-
-        /**
-         * Retrieve an unmodifiable list of the gov-cloud regions in this release of the AWS SDK.
-         */
-        public static List<Region> getRegions() {
-            return REGIONS;
-        }
-    }
-
-    public static final List<Region> REGIONS = Collections.unmodifiableList(Arrays.asList(
+    private static final List<Region> REGIONS = Collections.unmodifiableList(Arrays.asList(
             AP_NORTHEAST_1,
             AP_NORTHEAST_2,
             AP_SOUTH_1,
@@ -108,12 +95,15 @@ public class Region extends AbstractEnum {
             AWS_GLOBAL,
             CN_NORTH_1,
             CN_NORTHWEST_1,
-            AWS_CN_GLOBAL));
+            AWS_CN_GLOBAL,
+            US_GOV_WEST_1,
+            AWS_US_GOV_GLOBAL));
 
     private final boolean isGlobalRegion;
+    private final String id;
 
-    private Region(String value, boolean isGlobalRegion) {
-        super(value);
+    private Region(String id, boolean isGlobalRegion) {
+        this.id = id;
         this.isGlobalRegion = isGlobalRegion;
     }
 
@@ -131,19 +121,35 @@ public class Region extends AbstractEnum {
         return of(value, false);
     }
 
+    /**
+     * @return the unique identifier for the region
+     */
+    public String id() {
+        return this.id;
+    }
+
     private static Region of(String value, boolean isGlobalRegion) {
         Validate.paramNotBlank(value, "region");
-        return AbstractEnum.value(value, Region.class, v -> new Region(v, isGlobalRegion));
+        return RegionCache.put(value, isGlobalRegion);
     }
 
     /**
      * Retrieve an unmodifiable list of the public regions in this release of the AWS SDK.
      */
-    public static List<Region> getRegions() {
+    public static List<Region> regions() {
         return REGIONS;
     }
 
     public boolean isGlobalRegion() {
         return isGlobalRegion;
+    }
+
+    private static class RegionCache {
+
+        private static final ConcurrentHashMap<String, Region> VALUES = new ConcurrentHashMap<>();
+
+        private static Region put(String value, boolean isGlobalRegion) {
+            return VALUES.computeIfAbsent(value, v -> new Region(value, isGlobalRegion));
+        }
     }
 }

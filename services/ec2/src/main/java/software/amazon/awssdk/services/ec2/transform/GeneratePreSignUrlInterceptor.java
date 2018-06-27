@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.ec2.transform;
 
-import static software.amazon.awssdk.auth.AwsExecutionAttributes.AWS_CREDENTIALS;
+import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.AWS_CREDENTIALS;
 
 import java.net.URI;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.util.AwsHostNameUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.ec2.EC2Client;
+import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CopySnapshotRequest;
 
 /**
@@ -129,6 +129,6 @@ public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
                                             + "found in region metadata. Update to latest version of SDK and try again.");
         }
 
-        return EC2Client.serviceMetadata().endpointFor(region);
+        return Ec2Client.serviceMetadata().endpointFor(region);
     }
 }

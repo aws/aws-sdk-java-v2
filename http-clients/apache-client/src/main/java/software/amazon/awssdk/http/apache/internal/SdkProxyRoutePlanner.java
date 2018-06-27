@@ -24,12 +24,14 @@ import org.apache.http.HttpRequest;
 import org.apache.http.impl.conn.DefaultRoutePlanner;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.protocol.HttpContext;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * SdkProxyRoutePlanner delegates a Proxy Route Planner from the settings instead of the
  * system properties. It will use the proxy created from proxyHost and proxyPort and
  * filter the hosts who matches nonProxyHosts pattern.
  */
+@SdkInternalApi
 public class SdkProxyRoutePlanner extends DefaultRoutePlanner {
 
     private HttpHost proxy;

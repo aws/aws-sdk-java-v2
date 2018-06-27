@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.core.util.DateUtils;
@@ -29,7 +30,8 @@ import software.amazon.awssdk.utils.Base64Utils;
 /**
  * Collection of StAX unmarshallers for simple data types.
  */
-public class SimpleTypeStaxUnmarshallers {
+@SdkProtectedApi
+public final class SimpleTypeStaxUnmarshallers {
     /** Shared logger. */
     private static Logger log = LoggerFactory.getLogger(SimpleTypeStaxUnmarshallers.class);
 

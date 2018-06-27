@@ -20,7 +20,6 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_PENDING_CONNECTION_ACQUIRES;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.READ_TIMEOUT;
-import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.WRITE_TIMEOUT;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.SocketChannelResolver.resolveSocketChannelClass;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
@@ -43,6 +42,7 @@ import java.util.function.Consumer;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -65,7 +65,13 @@ import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Validate;
 
-public class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
+/**
+ * An implementation of {@link SdkAsyncHttpClient} that uses a Netty non-blocking HTTP client to communicate with the service.
+ *
+ * <p>This can be created via {@link #builder()}</p>
+ */
+@SdkPublicApi
+public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
     private final RequestAdapter requestAdapter = new RequestAdapter();
     private final EventLoopGroup group;
@@ -225,16 +231,6 @@ public class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout);
 
         /**
-         * Forces the HTTP client to trust all certificates, even invalid or self signed certificates. This should only ever
-         * be used for testing purposes.
-         *
-         * @param trustAllCertificates Whether to trust all certificates. The default is false and only valid certificates
-         *                             whose trust can be verified via the trust store will be trusted.
-         * @return This builder for method chaining.
-         */
-        Builder trustAllCertificates(Boolean trustAllCertificates);
-
-        /**
          * Sets the {@link EventLoopGroup} to use for the Netty HTTP client. This event loop group may be shared
          * across multiple HTTP clients for better resource and thread utilization. The preferred way to create
          * an {@link EventLoopGroup} is by using the {@link EventLoopGroupFactory#create()} method which will choose the
@@ -388,24 +384,6 @@ public class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         public void setConnectionAcquisitionTimeout(Duration connectionAcquisitionTimeout) {
             connectionAcquisitionTimeout(connectionAcquisitionTimeout);
-        }
-
-        /**
-         * Forces the HTTP client to trust all certificates, even invalid or self signed certificates. This should only ever
-         * be used for testing purposes.
-         *
-         * @param trustAllCertificates Whether to trust all certificates. The default is false and only valid certificates
-         *                             whose trust can be verified via the trust store will be trusted.
-         * @return This builder for method chaining.
-         */
-        @Override
-        public Builder trustAllCertificates(Boolean trustAllCertificates) {
-            standardOptions.put(TRUST_ALL_CERTIFICATES, trustAllCertificates);
-            return this;
-        }
-
-        public void setTrustAllCertificates(Boolean trustAllCertificates) {
-            trustAllCertificates(trustAllCertificates);
         }
 
         /**

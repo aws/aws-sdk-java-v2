@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.customization.CodegenCustomizationProcessor;
 import software.amazon.awssdk.codegen.customization.processors.DefaultCustomizationProcessor;
-import software.amazon.awssdk.codegen.internal.Constants;
+import software.amazon.awssdk.codegen.internal.Constant;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.BasicCodeGenConfig;
@@ -220,7 +220,7 @@ public class IntermediateModelBuilder {
                 && !(config.getBlacklistedSimpleMethods().size() == 1 && config.getBlacklistedSimpleMethods().get(0).equals("*"))
                 && !m.getValue().hasStreamingInput()
                 && !m.getValue().hasStreamingOutput()) {
-                if (!methodName.matches(Constants.APPROVED_SIMPLE_METHOD_VERBS) &&
+                if (!methodName.matches(Constant.APPROVED_SIMPLE_METHOD_VERBS) &&
                     !config.getVerifiedSimpleMethods().contains(methodName)) {
                     throw new RuntimeException("Simple method encountered that is not approved or blacklisted: " + methodName);
                 }

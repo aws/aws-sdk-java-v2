@@ -17,10 +17,12 @@ package software.amazon.awssdk.auth.credentials;
 
 import java.io.IOException;
 import java.net.URI;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsProvider;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.regions.util.HttpResourcesUtils;
-import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
+import software.amazon.awssdk.regions.internal.util.HttpResourcesUtils;
+import software.amazon.awssdk.regions.internal.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.utils.ToString;
 
 /**
@@ -31,10 +33,11 @@ import software.amazon.awssdk.utils.ToString;
  * credentials from EC2 metadata service and will return null.
  *
  */
+@SdkPublicApi
 public final class InstanceProfileCredentialsProvider extends HttpCredentialsProvider {
 
     //TODO: make this private
-    static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
+    private static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
     private final ResourcesEndpointProvider credentialsEndpointProvider = new InstanceProviderCredentialsEndpointProvider();
 
     /**

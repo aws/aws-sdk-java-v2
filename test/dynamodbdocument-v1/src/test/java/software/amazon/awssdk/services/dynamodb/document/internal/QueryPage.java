@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.Item;
 import software.amazon.awssdk.services.dynamodb.document.Page;
 import software.amazon.awssdk.services.dynamodb.document.QueryOutcome;
@@ -31,14 +31,14 @@ import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 
 class QueryPage extends Page<Item, QueryOutcome> {
-    private final DynamoDBClient client;
+    private final DynamoDbClient client;
     private final QuerySpec spec;
     private QueryRequest request;
     private final int index;
     private final Map<String, AttributeValue> lastEvaluatedKey;
 
     QueryPage(
-        DynamoDBClient client,
+        DynamoDbClient client,
         QuerySpec spec,
         QueryRequest request,
         int index,

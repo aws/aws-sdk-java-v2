@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 
@@ -29,6 +30,7 @@ import software.amazon.awssdk.regions.Region;
  *
  * Throws an {@link SdkClientException} if region could not be find in any of the providers.
  */
+@SdkProtectedApi
 public class AwsRegionProviderChain implements AwsRegionProvider {
 
     private static final Logger log = LoggerFactory.getLogger(AwsRegionProviderChain.class);

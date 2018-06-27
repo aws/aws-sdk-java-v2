@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.Test;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;

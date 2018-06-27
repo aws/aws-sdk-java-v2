@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.signer.internal.AbstractAwsSigner;
@@ -51,7 +50,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 /**
  * Abstract base class for the AWS SigV4 signer implementations.
  * @param <T> Type of the signing params class that is used for signing the request
- * @param <U>Type of the signing params class that is used for pre signing the request
+ * @param <U> Type of the signing params class that is used for pre signing the request
  */
 @SdkProtectedApi
 public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends Aws4PresignerParams>
@@ -79,9 +78,9 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         addDateHeader(mutableRequest, requestParams.getFormattedSigningDateTime());
 
         String contentSha256 = calculateContentHash(mutableRequest, signingParams);
-        mutableRequest.firstMatchingHeader(SignerConstants.X_AMZ_CONTENT_SHA256)
+        mutableRequest.firstMatchingHeader(SignerConstant.X_AMZ_CONTENT_SHA256)
                       .filter(h -> h.equals("required"))
-                      .ifPresent(h -> mutableRequest.header(SignerConstants.X_AMZ_CONTENT_SHA256, contentSha256));
+                      .ifPresent(h -> mutableRequest.header(SignerConstant.X_AMZ_CONTENT_SHA256, contentSha256));
 
         final String canonicalRequest = createCanonicalRequest(mutableRequest, contentSha256, signingParams.doubleUrlEncode());
 
@@ -91,7 +90,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
         final byte[] signature = computeSignature(stringToSign, signingKey);
 
-        mutableRequest.header(SignerConstants.AUTHORIZATION,
+        mutableRequest.header(SignerConstant.AUTHORIZATION,
                               buildAuthorizationHeader(signature, sanitizedCredentials, requestParams, mutableRequest));
 
         processRequestPayload(mutableRequest, signature, signingKey, requestParams, signingParams);
@@ -105,7 +104,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
         SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
 
-        long expirationInSeconds = generateExpirationTime(signingParams.expirationTime());
+        long expirationInSeconds = generateExpirationTime(signingParams);
         addHostHeader(mutableRequest);
 
         AwsCredentials sanitizedCredentials = sanitizeCredentials(signingParams.awsCredentials());
@@ -113,7 +112,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
             // For SigV4 pre-signing URL, we need to add "X-Amz-Security-Token"
             // as a query string parameter, before constructing the canonical
             // request.
-            mutableRequest.rawQueryParameter(SignerConstants.X_AMZ_SECURITY_TOKEN,
+            mutableRequest.rawQueryParameter(SignerConstant.X_AMZ_SECURITY_TOKEN,
                                              ((AwsSessionCredentials) sanitizedCredentials).sessionToken());
         }
 
@@ -132,7 +131,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
         final byte[] signature = computeSignature(stringToSign, signingKey);
 
-        mutableRequest.rawQueryParameter(SignerConstants.X_AMZ_SIGNATURE, BinaryUtils.toHex(signature));
+        mutableRequest.rawQueryParameter(SignerConstant.X_AMZ_SIGNATURE, BinaryUtils.toHex(signature));
 
         return mutableRequest;
     }
@@ -140,7 +139,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     @Override
     protected void addSessionCredentials(SdkHttpFullRequest.Builder mutableRequest,
                                          AwsSessionCredentials credentials) {
-        mutableRequest.header(SignerConstants.X_AMZ_SECURITY_TOKEN, credentials.sessionToken());
+        mutableRequest.header(SignerConstant.X_AMZ_SECURITY_TOKEN, credentials.sessionToken());
     }
 
     /**
@@ -180,16 +179,16 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
                                           String contentSha256,
                                           boolean doubleUrlEncode) {
         final String canonicalRequest = request.method().toString() +
-                                        SignerConstants.LINE_SEPARATOR +
+                                        SignerConstant.LINE_SEPARATOR +
                                         // This would optionally double url-encode the resource path
                                         getCanonicalizedResourcePath(request.encodedPath(), doubleUrlEncode) +
-                                        SignerConstants.LINE_SEPARATOR +
+                                        SignerConstant.LINE_SEPARATOR +
                                         getCanonicalizedQueryString(request.rawQueryParameters()) +
-                                        SignerConstants.LINE_SEPARATOR +
+                                        SignerConstant.LINE_SEPARATOR +
                                         getCanonicalizedHeaderString(request.headers()) +
-                                        SignerConstants.LINE_SEPARATOR +
+                                        SignerConstant.LINE_SEPARATOR +
                                         getSignedHeadersString(request.headers()) +
-                                        SignerConstants.LINE_SEPARATOR +
+                                        SignerConstant.LINE_SEPARATOR +
                                         contentSha256;
 
         if (LOG.isDebugEnabled()) {
@@ -208,11 +207,11 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
                                       Aws4SignerRequestParams requestParams) {
 
         final String stringToSign = requestParams.getSigningAlgorithm() +
-                                    SignerConstants.LINE_SEPARATOR +
+                                    SignerConstant.LINE_SEPARATOR +
                                     requestParams.getFormattedSigningDateTime() +
-                                    SignerConstants.LINE_SEPARATOR +
+                                    SignerConstant.LINE_SEPARATOR +
                                     requestParams.getScope() +
-                                    SignerConstants.LINE_SEPARATOR +
+                                    SignerConstant.LINE_SEPARATOR +
                                     BinaryUtils.toHex(hash(canonicalRequest));
 
         if (LOG.isDebugEnabled()) {
@@ -287,7 +286,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
                                getSignedHeadersString(mutableRequest.headers());
         String signatureHeader = "Signature=" + BinaryUtils.toHex(signature);
 
-        return SignerConstants.AWS4_SIGNING_ALGORITHM + " " + credential + ", " + signerHeaders + ", " + signatureHeader;
+        return SignerConstant.AWS4_SIGNING_ALGORITHM + " " + credential + ", " + signerHeaders + ", " + signatureHeader;
     }
 
     /**
@@ -301,13 +300,13 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
         String signingCredentials = sanitizedCredentials.accessKeyId() + "/" + signerParams.getScope();
 
-        mutableRequest.rawQueryParameter(SignerConstants.X_AMZ_ALGORITHM, SignerConstants.AWS4_SIGNING_ALGORITHM);
-        mutableRequest.rawQueryParameter(SignerConstants.X_AMZ_DATE, timeStamp);
-        mutableRequest.rawQueryParameter(SignerConstants.X_AMZ_SIGNED_HEADER,
+        mutableRequest.rawQueryParameter(SignerConstant.X_AMZ_ALGORITHM, SignerConstant.AWS4_SIGNING_ALGORITHM);
+        mutableRequest.rawQueryParameter(SignerConstant.X_AMZ_DATE, timeStamp);
+        mutableRequest.rawQueryParameter(SignerConstant.X_AMZ_SIGNED_HEADER,
                                          getSignedHeadersString(mutableRequest.headers()));
-        mutableRequest.rawQueryParameter(SignerConstants.X_AMZ_EXPIRES,
+        mutableRequest.rawQueryParameter(SignerConstant.X_AMZ_EXPIRES,
                                          Long.toString(expirationInSeconds));
-        mutableRequest.rawQueryParameter(SignerConstants.X_AMZ_CREDENTIAL, signingCredentials);
+        mutableRequest.rawQueryParameter(SignerConstant.X_AMZ_CREDENTIAL, signingCredentials);
     }
 
 
@@ -367,24 +366,23 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
             hostHeaderBuilder.append(":").append(mutableRequest.port());
         }
 
-        mutableRequest.header(SignerConstants.HOST, hostHeaderBuilder.toString());
+        mutableRequest.header(SignerConstant.HOST, hostHeaderBuilder.toString());
     }
 
     private void addDateHeader(SdkHttpFullRequest.Builder mutableRequest, String dateTime) {
-        mutableRequest.header(SignerConstants.X_AMZ_DATE, dateTime);
+        mutableRequest.header(SignerConstant.X_AMZ_DATE, dateTime);
     }
 
     /**
      * Generates an expiration time for the presigned url. If user has specified
      * an expiration time, check if it is in the given limit.
      */
-    private long generateExpirationTime(Instant expirationTime) {
+    private long generateExpirationTime(U signingParams) {
 
-        long expirationInSeconds = expirationTime != null
-                                   ? expirationTime.getEpochSecond()
-                                   : SignerConstants.PRESIGN_URL_MAX_EXPIRATION_SECONDS;
+        long expirationInSeconds = signingParams.expirationTime().map(Instant::getEpochSecond)
+                                                 .orElse(SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS);
 
-        if (expirationInSeconds > SignerConstants.PRESIGN_URL_MAX_EXPIRATION_SECONDS) {
+        if (expirationInSeconds > SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS) {
             throw new SdkClientException(
                 "Requests that are pre-signed by SigV4 algorithm are valid for at most 7 days. "
                 + "The expiration date set on the current request ["
@@ -404,26 +402,26 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         byte[] kRegion = sign(regionName, kDate, SigningAlgorithm.HmacSHA256);
         byte[] kService = sign(serviceName, kRegion,
                                SigningAlgorithm.HmacSHA256);
-        return sign(SignerConstants.AWS4_TERMINATOR, kService, SigningAlgorithm.HmacSHA256);
+        return sign(SignerConstant.AWS4_TERMINATOR, kService, SigningAlgorithm.HmacSHA256);
     }
 
     protected <B extends Aws4PresignerParams.Builder> B extractPresignerParams(B builder,
                                                                                ExecutionAttributes executionAttributes) {
         builder = extractSignerParams(builder, executionAttributes);
-        builder.expirationTime(executionAttributes.getAttribute(AwsExecutionAttributes.PRESIGNER_EXPIRATION));
+        builder.expirationTime(executionAttributes.getAttribute(AwsSignerExecutionAttribute.PRESIGNER_EXPIRATION));
 
         return builder;
     }
 
     protected <B extends Aws4SignerParams.Builder> B extractSignerParams(B paramsBuilder,
                                                                          ExecutionAttributes executionAttributes) {
-        paramsBuilder.awsCredentials(executionAttributes.getAttribute(AwsExecutionAttributes.AWS_CREDENTIALS))
-                     .signingName(executionAttributes.getAttribute(AwsExecutionAttributes.SERVICE_SIGNING_NAME))
-                     .signingRegion(executionAttributes.getAttribute(AwsExecutionAttributes.SIGNING_REGION))
-                     .timeOffset(executionAttributes.getAttribute(AwsExecutionAttributes.TIME_OFFSET));
+        paramsBuilder.awsCredentials(executionAttributes.getAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS))
+                     .signingName(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME))
+                     .signingRegion(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION))
+                     .timeOffset(executionAttributes.getAttribute(AwsSignerExecutionAttribute.TIME_OFFSET));
 
-        if (executionAttributes.getAttribute(AwsExecutionAttributes.SIGNER_DOUBLE_URL_ENCODE) != null) {
-            paramsBuilder.doubleUrlEncode(executionAttributes.getAttribute(AwsExecutionAttributes.SIGNER_DOUBLE_URL_ENCODE));
+        if (executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE) != null) {
+            paramsBuilder.doubleUrlEncode(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE));
         }
 
         return paramsBuilder;

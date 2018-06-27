@@ -21,8 +21,9 @@ import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
+@SdkInternalApi
 @ReviewBeforeRelease("Might only need to do this for certain protocols - ie query?")
 // TODO how is this going to work with streaming input posts in asyncland
 public final class MoveParametersToBodyStage implements MutableRequestToRequestPipeline {
@@ -56,7 +58,7 @@ public final class MoveParametersToBodyStage implements MutableRequestToRequestP
                          " and unencode and sign them as query params. We did a similar thing in the V4 signer in 1.11.x" +
                          " but I'd rather have the grossness in the legacy signer implementation")
     private boolean notSimpleDb(RequestExecutionContext context) {
-        return !"SimpleDBClient".equals(context.executionAttributes().getAttribute(SdkExecutionAttributes.SERVICE_NAME));
+        return !"SimpleDbClient".equals(context.executionAttributes().getAttribute(SdkExecutionAttribute.SERVICE_NAME));
     }
 
     @SdkProtectedApi

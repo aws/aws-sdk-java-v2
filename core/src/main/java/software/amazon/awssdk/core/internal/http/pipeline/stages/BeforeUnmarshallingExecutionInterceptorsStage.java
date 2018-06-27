@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
@@ -25,6 +26,7 @@ import software.amazon.awssdk.utils.Pair;
  * Invoke the {@link ExecutionInterceptor#beforeUnmarshalling} callback to allow for pre-processing on the {@link HttpResponse}
  * before it is handed off to the unmarshaller.
  */
+@SdkInternalApi
 public class BeforeUnmarshallingExecutionInterceptorsStage
     implements RequestPipeline<Pair<SdkHttpFullRequest, HttpResponse>, HttpResponse> {
 

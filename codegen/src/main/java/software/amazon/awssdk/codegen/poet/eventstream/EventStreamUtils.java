@@ -31,7 +31,7 @@ public class EventStreamUtils {
     }
 
     public String getApiName() {
-        return Utils.capitialize(operation.getOperationName());
+        return Utils.capitalize(operation.getOperationName());
     }
 
     public ShapeModel getEventStreamMember() {

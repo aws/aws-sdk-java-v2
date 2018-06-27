@@ -29,7 +29,7 @@ import org.junit.Test;
 import software.amazon.awssdk.services.dynamodb.DynamoDBMapperIntegrationTestBase;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig;
-import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.ConsistentReads;
+import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.ConsistentRead;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.PaginationLoadingStrategy;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbQueryExpression;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbScanExpression;
@@ -71,7 +71,7 @@ public class MapperLoadingStrategyConfigIntegrationTest extends DynamoDBMapperIn
     }
 
     private static PaginatedList<RangeKeyClass> getTestPaginatedQueryList(PaginationLoadingStrategy paginationLoadingStrategy) {
-        DynamoDbMapperConfig mapperConfig = new DynamoDbMapperConfig(ConsistentReads.CONSISTENT);
+        DynamoDbMapperConfig mapperConfig = new DynamoDbMapperConfig(ConsistentRead.CONSISTENT);
         DynamoDbMapper mapper = new DynamoDbMapper(dynamo, mapperConfig);
 
         // Construct the query expression for the tested hash-key value and any range-key value greater that 1.0
@@ -88,7 +88,7 @@ public class MapperLoadingStrategyConfigIntegrationTest extends DynamoDBMapperIn
     }
 
     private static PaginatedList<RangeKeyClass> getTestPaginatedScanList(PaginationLoadingStrategy paginationLoadingStrategy) {
-        DynamoDbMapperConfig mapperConfig = new DynamoDbMapperConfig(ConsistentReads.CONSISTENT);
+        DynamoDbMapperConfig mapperConfig = new DynamoDbMapperConfig(ConsistentRead.CONSISTENT);
         DynamoDbMapper mapper = new DynamoDbMapper(dynamo, mapperConfig);
 
         // Construct the scan expression with the exact same conditions
@@ -106,7 +106,7 @@ public class MapperLoadingStrategyConfigIntegrationTest extends DynamoDBMapperIn
 
     private static PaginatedList<RangeKeyClass> getTestPaginatedParallelScanList(
             PaginationLoadingStrategy paginationLoadingStrategy) {
-        DynamoDbMapperConfig mapperConfig = new DynamoDbMapperConfig(ConsistentReads.CONSISTENT);
+        DynamoDbMapperConfig mapperConfig = new DynamoDbMapperConfig(ConsistentRead.CONSISTENT);
         DynamoDbMapper mapper = new DynamoDbMapper(dynamo, mapperConfig);
 
         // Construct the scan expression with the exact same conditions

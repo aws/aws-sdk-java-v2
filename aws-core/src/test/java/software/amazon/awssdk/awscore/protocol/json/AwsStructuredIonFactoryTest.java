@@ -28,6 +28,8 @@ import org.junit.Test;
 import software.amazon.awssdk.awscore.client.utils.ValidSdkObjects;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.http.response.AwsJsonErrorResponseHandler;
+import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonErrorUnmarshaller;
+import software.amazon.awssdk.awscore.internal.protocol.json.AwsStructuredIonFactory;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponse;

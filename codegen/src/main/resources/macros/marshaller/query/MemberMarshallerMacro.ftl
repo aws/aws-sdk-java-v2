@@ -56,10 +56,18 @@
         </#if>
     </#if>
 
-    ${listModel.templateType} ${listVariable} = ${getMember}();
-
-    if (${listVariable} != null) {
-        if (!${listVariable}.isEmpty()) {
+    <#if customConfig.useAutoConstructList>
+    if (${getMember}().isEmpty() && !(${getMember}() instanceof software.amazon.awssdk.core.util.SdkAutoConstructList)) {
+            request.addParameter("${parameterRootPath}", "");
+    } else if (!${getMember}().isEmpty() && !(${getMember}() instanceof software.amazon.awssdk.core.util.SdkAutoConstructList)) {
+        ${listModel.templateType} ${listVariable} = ${getMember}();
+    <#else>
+    if (${getMember}() != null) {
+        ${listModel.templateType} ${listVariable} = ${getMember}();
+        if (${listVariable}.isEmpty()) {
+            request.addParameter("${parameterRootPath}", "");
+        } else {
+    </#if>
             int ${listIndex} = 1;
 
             for (${listModel.memberType} ${loopVariable} : ${listVariable}) {
@@ -72,9 +80,9 @@
                 </#if>
                 ${listIndex}++;
             }
-        } else {
-            request.addParameter("${parameterRootPath}", "");
+    <#if !customConfig.useAutoConstructList>
         }
+    </#if>
     }
 <#elseif member.map>
     <#local parameterPath = http.marshallLocationName/>

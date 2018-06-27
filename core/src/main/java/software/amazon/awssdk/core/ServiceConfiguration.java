@@ -15,5 +15,8 @@
 
 package software.amazon.awssdk.core;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
+
+@SdkPublicApi
 public interface ServiceConfiguration {
 }

@@ -20,6 +20,7 @@ import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.Stack;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.Base64Utils;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.utils.BinaryUtils;
 /**
  * Utility for creating easily creating XML documents, one element at a time.
  */
+@SdkProtectedApi
 public class XmlWriter {
 
     /** Standard XML prolog to add to the beginning of each XML document. */

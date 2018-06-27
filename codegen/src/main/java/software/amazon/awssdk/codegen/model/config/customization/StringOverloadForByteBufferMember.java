@@ -17,7 +17,7 @@ package software.amazon.awssdk.codegen.model.config.customization;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import software.amazon.awssdk.core.runtime.adapters.types.StringToByteBufferAdapter;
+import software.amazon.awssdk.core.adapter.StringToByteBufferAdapter;
 
 /**
  * Basically a facade POJO over {@link ConvenienceTypeOverload} that hides (i.e. hard codes) some

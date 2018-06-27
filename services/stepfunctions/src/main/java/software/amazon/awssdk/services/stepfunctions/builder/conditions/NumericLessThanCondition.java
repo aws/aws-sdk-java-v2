@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.LongNode;
 import com.fasterxml.jackson.databind.node.NumericNode;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * Binary condition for Numeric less than comparison. Supports both integral and floating point numeric types.
@@ -31,10 +31,10 @@ import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNa
  */
 public final class NumericLessThanCondition implements BinaryCondition<String> {
 
-    @JsonProperty(PropertyNames.VARIABLE)
+    @JsonProperty(PropertyName.VARIABLE)
     private final String variable;
 
-    @JsonProperty(PropertyNames.NUMERIC_LESS_THAN)
+    @JsonProperty(PropertyName.NUMERIC_LESS_THAN)
     private final NumericNode expectedValue;
 
     private NumericLessThanCondition(Builder builder) {
@@ -71,10 +71,10 @@ public final class NumericLessThanCondition implements BinaryCondition<String> {
      */
     public static final class Builder extends BinaryConditionBuilder {
 
-        @JsonProperty(PropertyNames.VARIABLE)
+        @JsonProperty(PropertyName.VARIABLE)
         private String variable;
 
-        @JsonProperty(PropertyNames.NUMERIC_LESS_THAN)
+        @JsonProperty(PropertyName.NUMERIC_LESS_THAN)
         private NumericNode expectedValue;
 
         private Builder() {
@@ -122,7 +122,7 @@ public final class NumericLessThanCondition implements BinaryCondition<String> {
 
         @Override
         String type() {
-            return PropertyNames.NUMERIC_LESS_THAN;
+            return PropertyName.NUMERIC_LESS_THAN;
         }
 
         /**

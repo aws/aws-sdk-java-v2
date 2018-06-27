@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.dynamodb.document.internal;
 
 import java.util.Collection;
 import java.util.Map;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.ItemCollection;
 import software.amazon.awssdk.services.dynamodb.document.KeyAttribute;
 import software.amazon.awssdk.services.dynamodb.document.ScanFilter;
@@ -32,7 +32,7 @@ import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
  * The implementation for <code>ScanApi</code>.
  */
 public class ScanImpl extends AbstractImpl implements ScanApi {
-    public ScanImpl(DynamoDBClient client, Table table) {
+    public ScanImpl(DynamoDbClient client, Table table) {
         super(client, table);
     }
 

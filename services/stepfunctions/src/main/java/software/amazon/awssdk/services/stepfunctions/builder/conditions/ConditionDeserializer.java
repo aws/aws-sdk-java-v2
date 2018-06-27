@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.stepfunctions.builder.conditions;
 import com.fasterxml.jackson.databind.JsonNode;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * Custom deserializer for a {@link Condition}.
@@ -27,55 +27,55 @@ import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNa
 public class ConditionDeserializer {
 
     public Condition.Builder deserializeCondition(JsonNode node) {
-        if (node.has(PropertyNames.VARIABLE)) {
-            if (node.has(PropertyNames.STRING_EQUALS)) {
+        if (node.has(PropertyName.VARIABLE)) {
+            if (node.has(PropertyName.STRING_EQUALS)) {
                 return deserializeBinaryCondition(StringEqualsCondition.builder(), node);
-            } else if (node.has(PropertyNames.STRING_GREATER_THAN)) {
+            } else if (node.has(PropertyName.STRING_GREATER_THAN)) {
                 return deserializeBinaryCondition(StringGreaterThanCondition.builder(), node);
-            } else if (node.has(PropertyNames.STRING_GREATER_THAN_EQUALS)) {
+            } else if (node.has(PropertyName.STRING_GREATER_THAN_EQUALS)) {
                 return deserializeBinaryCondition(StringGreaterThanOrEqualCondition.builder(), node);
-            } else if (node.has(PropertyNames.STRING_LESS_THAN)) {
+            } else if (node.has(PropertyName.STRING_LESS_THAN)) {
                 return deserializeBinaryCondition(StringLessThanCondition.builder(), node);
-            } else if (node.has(PropertyNames.STRING_LESS_THAN_EQUALS)) {
+            } else if (node.has(PropertyName.STRING_LESS_THAN_EQUALS)) {
                 return deserializeBinaryCondition(StringLessThanOrEqualCondition.builder(), node);
-            } else if (node.has(PropertyNames.TIMESTAMP_EQUALS)) {
+            } else if (node.has(PropertyName.TIMESTAMP_EQUALS)) {
                 return deserializeBinaryCondition(TimestampEqualsCondition.builder(), node);
-            } else if (node.has(PropertyNames.TIMESTAMP_GREATER_THAN)) {
+            } else if (node.has(PropertyName.TIMESTAMP_GREATER_THAN)) {
                 return deserializeBinaryCondition(TimestampGreaterThanCondition.builder(), node);
-            } else if (node.has(PropertyNames.TIMESTAMP_GREATER_THAN_EQUALS)) {
+            } else if (node.has(PropertyName.TIMESTAMP_GREATER_THAN_EQUALS)) {
                 return deserializeBinaryCondition(TimestampGreaterThanOrEqualCondition.builder(), node);
-            } else if (node.has(PropertyNames.TIMESTAMP_LESS_THAN)) {
+            } else if (node.has(PropertyName.TIMESTAMP_LESS_THAN)) {
                 return deserializeBinaryCondition(TimestampLessThanCondition.builder(), node);
-            } else if (node.has(PropertyNames.TIMESTAMP_LESS_THAN_EQUALS)) {
+            } else if (node.has(PropertyName.TIMESTAMP_LESS_THAN_EQUALS)) {
                 return deserializeBinaryCondition(TimestampLessThanOrEqualCondition.builder(), node);
-            } else if (node.has(PropertyNames.NUMERIC_EQUALS)) {
+            } else if (node.has(PropertyName.NUMERIC_EQUALS)) {
                 return deserializeBinaryCondition(NumericEqualsCondition.builder(), node);
-            } else if (node.has(PropertyNames.NUMERIC_GREATER_THAN)) {
+            } else if (node.has(PropertyName.NUMERIC_GREATER_THAN)) {
                 return deserializeBinaryCondition(NumericGreaterThanCondition.builder(), node);
-            } else if (node.has(PropertyNames.NUMERIC_GREATER_THAN_EQUALS)) {
+            } else if (node.has(PropertyName.NUMERIC_GREATER_THAN_EQUALS)) {
                 return deserializeBinaryCondition(NumericGreaterThanOrEqualCondition.builder(), node);
-            } else if (node.has(PropertyNames.NUMERIC_LESS_THAN)) {
+            } else if (node.has(PropertyName.NUMERIC_LESS_THAN)) {
                 return deserializeBinaryCondition(NumericLessThanCondition.builder(), node);
-            } else if (node.has(PropertyNames.NUMERIC_LESS_THAN_EQUALS)) {
+            } else if (node.has(PropertyName.NUMERIC_LESS_THAN_EQUALS)) {
                 return deserializeBinaryCondition(NumericLessThanOrEqualCondition.builder(), node);
-            } else if (node.has(PropertyNames.BOOLEAN_EQUALS)) {
+            } else if (node.has(PropertyName.BOOLEAN_EQUALS)) {
                 return deserializeBinaryCondition(BooleanEqualsCondition.builder(), node);
             }
-        } else if (node.has(PropertyNames.AND)) {
+        } else if (node.has(PropertyName.AND)) {
             AndCondition.Builder builder = AndCondition.builder();
-            for (JsonNode inner : node.get(PropertyNames.AND)) {
+            for (JsonNode inner : node.get(PropertyName.AND)) {
                 builder.condition(deserializeCondition(inner));
             }
             return builder;
-        } else if (node.has((PropertyNames.OR))) {
+        } else if (node.has((PropertyName.OR))) {
             OrCondition.Builder builder = OrCondition.builder();
-            for (JsonNode inner : node.get(PropertyNames.OR)) {
+            for (JsonNode inner : node.get(PropertyName.OR)) {
                 builder.condition(deserializeCondition(inner));
             }
             return builder;
-        } else if (node.has((PropertyNames.NOT))) {
+        } else if (node.has((PropertyName.NOT))) {
             return NotCondition.builder()
-                               .condition(deserializeCondition(node.get(PropertyNames.NOT)));
+                               .condition(deserializeCondition(node.get(PropertyName.NOT)));
         }
         throw new SdkClientException("Condition must be provided");
     }
@@ -84,7 +84,7 @@ public class ConditionDeserializer {
             BinaryConditionBuilder builder,
             JsonNode node) {
         return builder
-                .variable(node.get(PropertyNames.VARIABLE).asText())
+                .variable(node.get(PropertyName.VARIABLE).asText())
                 .expectedValue(node.get(builder.type()));
     }
 

@@ -18,11 +18,13 @@ package software.amazon.awssdk.regions.internal.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 import java.util.regex.Pattern;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.util.ValidationUtils;
 
 /**
  * This class models a AWS partition and contains all metadata about it.
  */
+@SdkInternalApi
 public class Partition {
 
     /**

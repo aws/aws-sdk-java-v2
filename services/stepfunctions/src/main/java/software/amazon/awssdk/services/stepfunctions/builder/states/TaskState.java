@@ -19,9 +19,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.services.stepfunctions.builder.ErrorCodes;
+import software.amazon.awssdk.services.stepfunctions.builder.ErrorCode;
 import software.amazon.awssdk.services.stepfunctions.builder.internal.Buildable;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * The Task State causes the interpreter to execute the work identified by the state’s “Resource” field.
@@ -32,34 +32,34 @@ import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNa
  */
 public final class TaskState extends TransitionState {
 
-    @JsonProperty(PropertyNames.RESOURCE)
+    @JsonProperty(PropertyName.RESOURCE)
     private final String resource;
 
-    @JsonProperty(PropertyNames.INPUT_PATH)
+    @JsonProperty(PropertyName.INPUT_PATH)
     private final String inputPath;
 
-    @JsonProperty(PropertyNames.RESULT_PATH)
+    @JsonProperty(PropertyName.RESULT_PATH)
     private final String resultPath;
 
-    @JsonProperty(PropertyNames.OUTPUT_PATH)
+    @JsonProperty(PropertyName.OUTPUT_PATH)
     private final String outputPath;
 
-    @JsonProperty(PropertyNames.COMMENT)
+    @JsonProperty(PropertyName.COMMENT)
     private final String comment;
 
-    @JsonProperty(PropertyNames.TIMEOUT_SECONDS)
+    @JsonProperty(PropertyName.TIMEOUT_SECONDS)
     private final Integer timeoutSeconds;
 
-    @JsonProperty(PropertyNames.HEARTBEAT_SECONDS)
+    @JsonProperty(PropertyName.HEARTBEAT_SECONDS)
     private final Integer heartbeatSeconds;
 
     @JsonUnwrapped
     private final Transition transition;
 
-    @JsonProperty(PropertyNames.RETRY)
+    @JsonProperty(PropertyName.RETRY)
     private final List<Retrier> retriers;
 
-    @JsonProperty(PropertyNames.CATCH)
+    @JsonProperty(PropertyName.CATCH)
     private final List<Catcher> catchers;
 
     private TaskState(Builder builder) {
@@ -170,23 +170,23 @@ public final class TaskState extends TransitionState {
      */
     public static final class Builder extends TransitionStateBuilder {
 
-        @JsonProperty(PropertyNames.RETRY)
+        @JsonProperty(PropertyName.RETRY)
         private final List<Retrier.Builder> retriers = new ArrayList<Retrier.Builder>();
-        @JsonProperty(PropertyNames.CATCH)
+        @JsonProperty(PropertyName.CATCH)
         private final List<Catcher.Builder> catchers = new ArrayList<Catcher.Builder>();
-        @JsonProperty(PropertyNames.RESOURCE)
+        @JsonProperty(PropertyName.RESOURCE)
         private String resource;
-        @JsonProperty(PropertyNames.INPUT_PATH)
+        @JsonProperty(PropertyName.INPUT_PATH)
         private String inputPath;
-        @JsonProperty(PropertyNames.RESULT_PATH)
+        @JsonProperty(PropertyName.RESULT_PATH)
         private String resultPath;
-        @JsonProperty(PropertyNames.OUTPUT_PATH)
+        @JsonProperty(PropertyName.OUTPUT_PATH)
         private String outputPath;
-        @JsonProperty(PropertyNames.COMMENT)
+        @JsonProperty(PropertyName.COMMENT)
         private String comment;
-        @JsonProperty(PropertyNames.TIMEOUT_SECONDS)
+        @JsonProperty(PropertyName.TIMEOUT_SECONDS)
         private Integer timeoutSeconds;
-        @JsonProperty(PropertyNames.HEARTBEAT_SECONDS)
+        @JsonProperty(PropertyName.HEARTBEAT_SECONDS)
         private Integer heartbeatSeconds;
         private Transition.Builder transition = Transition.NULL_BUILDER;
 
@@ -257,7 +257,7 @@ public final class TaskState extends TransitionState {
 
         /**
          * OPTIONAL. Timeout, in seconds, that a task is allowed to run. If the task execution runs longer than this timeout the
-         * execution fails with a {@link ErrorCodes#TIMEOUT} error.
+         * execution fails with a {@link ErrorCode#TIMEOUT} error.
          *
          * @param timeoutSeconds Timeout value.
          * @return This object for method chaining.
@@ -269,7 +269,7 @@ public final class TaskState extends TransitionState {
 
         /**
          * OPTIONAL. Allowed time between "Heartbeats". If the task does not send "Heartbeats" within the timeout then execution
-         * fails with a {@link ErrorCodes#TIMEOUT}. If not set then no heartbeats are required. Heartbeats are a more granular
+         * fails with a {@link ErrorCode#TIMEOUT}. If not set then no heartbeats are required. Heartbeats are a more granular
          * way
          * for a task to report it's progress to the state machine.
          *

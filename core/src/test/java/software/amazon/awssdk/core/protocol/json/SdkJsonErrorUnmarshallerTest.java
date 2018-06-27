@@ -16,23 +16,22 @@
 package software.amazon.awssdk.core.protocol.json;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Optional;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.internal.protocol.json.SdkJsonErrorUnmarshaller;
 
 public class SdkJsonErrorUnmarshallerTest {
 
     private static final JsonNode JSON = new ObjectMapper().createObjectNode().put("message", "Some error message")
                                                            .put("foo", "value");
 
-    private SdkJsonErrorUnmarshaller unmarshaller = new SdkJsonErrorUnmarshaller(CustomException.class, Optional.of(423));
+    private SdkJsonErrorUnmarshaller unmarshaller = new SdkJsonErrorUnmarshaller(CustomException.class, 423);
 
     @Test
     public void matchingErrorCode_ReturnsTrueForMatches() {
@@ -61,7 +60,7 @@ public class SdkJsonErrorUnmarshallerTest {
     @Test
     public void nullHttpStatusCodeMatchesAllExceptions() {
         SdkJsonErrorUnmarshaller allMatchUnmarshaller = new SdkJsonErrorUnmarshaller(
-            CustomException.class, Optional.empty());
+            CustomException.class, null);
         assertTrue(allMatchUnmarshaller.matches(400));
         assertTrue(allMatchUnmarshaller.matches(500));
     }

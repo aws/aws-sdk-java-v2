@@ -17,10 +17,12 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.codec.http.HttpRequest;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 
+@SdkInternalApi
 public final class RequestContext {
 
     private final ChannelPool channelPool;

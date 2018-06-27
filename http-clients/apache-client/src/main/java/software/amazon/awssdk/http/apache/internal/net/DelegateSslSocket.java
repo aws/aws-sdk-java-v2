@@ -25,7 +25,9 @@ import java.nio.channels.SocketChannel;
 import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
+@SdkInternalApi
 public class DelegateSslSocket extends SSLSocket {
     protected final SSLSocket sock;
 

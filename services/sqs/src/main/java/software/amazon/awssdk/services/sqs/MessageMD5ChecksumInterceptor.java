@@ -15,9 +15,8 @@
 
 package software.amazon.awssdk.services.sqs;
 
-import static software.amazon.awssdk.core.util.StringUtils.UTF8;
-
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -72,8 +73,8 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
 
     @Override
     public void afterExecution(Context.AfterExecution context, ExecutionAttributes executionAttributes) {
-        Object response = context.response();
-        Object originalRequest = context.request();
+        SdkResponse response = context.response();
+        SdkRequest originalRequest = context.request();
         if (response != null) {
             if (originalRequest instanceof SendMessageRequest) {
                 SendMessageRequest sendMessageRequest = (SendMessageRequest) originalRequest;
@@ -192,7 +193,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
         }
         byte[] expectedMd5;
         try {
-            expectedMd5 = Md5Utils.computeMD5Hash(messageBody.getBytes(UTF8));
+            expectedMd5 = Md5Utils.computeMD5Hash(messageBody.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             throw new SdkClientException("Unable to calculate the MD5 hash of the message body. " + e.getMessage(),
                                             e);
@@ -265,7 +266,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
      * input String and the actual utf8-encoded byte values.
      */
     private static void updateLengthAndBytes(MessageDigest digest, String str) {
-        byte[] utf8Encoded = str.getBytes(UTF8);
+        byte[] utf8Encoded = str.getBytes(StandardCharsets.UTF_8);
         ByteBuffer lengthBytes = ByteBuffer.allocate(INTEGER_SIZE_IN_BYTES).putInt(utf8Encoded.length);
         digest.update(lengthBytes.array());
         digest.update(utf8Encoded);

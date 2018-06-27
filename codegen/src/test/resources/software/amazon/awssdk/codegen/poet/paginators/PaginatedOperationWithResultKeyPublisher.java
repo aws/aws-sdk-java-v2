@@ -78,13 +78,13 @@ public class PaginatedOperationWithResultKeyPublisher implements SdkPublisher<Pa
 
     private boolean isLastPage;
 
-    public PaginatedOperationWithResultKeyPublisher(final JsonProtocolTestsAsyncClient client,
-                                                    final PaginatedOperationWithResultKeyRequest firstRequest) {
+    public PaginatedOperationWithResultKeyPublisher(JsonProtocolTestsAsyncClient client,
+                                                    PaginatedOperationWithResultKeyRequest firstRequest) {
         this(client, firstRequest, false);
     }
 
-    private PaginatedOperationWithResultKeyPublisher(final JsonProtocolTestsAsyncClient client,
-                                                     final PaginatedOperationWithResultKeyRequest firstRequest, final boolean isLastPage) {
+    private PaginatedOperationWithResultKeyPublisher(JsonProtocolTestsAsyncClient client,
+                                                     PaginatedOperationWithResultKeyRequest firstRequest, boolean isLastPage) {
         this.client = client;
         this.firstRequest = firstRequest;
         this.isLastPage = isLastPage;
@@ -118,7 +118,7 @@ public class PaginatedOperationWithResultKeyPublisher implements SdkPublisher<Pa
      * retrieve the consecutive pages that follows the input page.
      * </p>
      */
-    public final PaginatedOperationWithResultKeyPublisher resume(final PaginatedOperationWithResultKeyResponse lastSuccessfulPage) {
+    private final PaginatedOperationWithResultKeyPublisher resume(PaginatedOperationWithResultKeyResponse lastSuccessfulPage) {
         if (nextPageFetcher.hasNextPage(lastSuccessfulPage)) {
             return new PaginatedOperationWithResultKeyPublisher(client, firstRequest.toBuilder()
                                                                                     .nextToken(lastSuccessfulPage.nextToken()).build());

@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.protocol.json;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -24,8 +23,9 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.http.JsonResponseHandler;
+import software.amazon.awssdk.core.internal.protocol.json.SdkJsonErrorUnmarshaller;
 import software.amazon.awssdk.core.protocol.OperationInfo;
-import software.amazon.awssdk.core.runtime.http.response.JsonResponseHandler;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
@@ -90,7 +90,7 @@ public class SdkJsonProtocolFactory extends BaseJsonProtocolFactory<SdkRequest, 
         // exception class.
         errorUnmarshallers.add(new SdkJsonErrorUnmarshaller(
             (Class<? extends SdkServiceException>) jsonClientMetadata.getBaseServiceExceptionClass(),
-            Optional.empty()));
+            null));
         return errorUnmarshallers;
     }
 
@@ -98,6 +98,6 @@ public class SdkJsonProtocolFactory extends BaseJsonProtocolFactory<SdkRequest, 
     private SdkJsonErrorUnmarshaller createErrorUnmarshaller(JsonErrorShapeMetadata errorShape) {
         return new SdkJsonErrorUnmarshaller(
             errorShape.getModeledClass(),
-            Optional.of(errorShape.getHttpStatusCode()));
+            errorShape.getHttpStatusCode());
     }
 }

@@ -35,10 +35,10 @@ import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
-import software.amazon.awssdk.core.protocol.json.SdkJsonErrorUnmarshaller;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.internal.http.SdkJsonErrorResponseHandler;
+import software.amazon.awssdk.core.internal.protocol.json.SdkJsonErrorUnmarshaller;
 import software.amazon.awssdk.core.protocol.json.SdkJsonErrorMessageParser;
-import software.amazon.awssdk.core.runtime.http.response.SdkJsonErrorResponseHandler;
 import software.amazon.awssdk.core.util.StringInputStream;
 import utils.ValidSdkObjects;
 
@@ -96,7 +96,7 @@ public class SdkJsonErrorResponseHandlerTest {
         httpResponse.setContent(null);
 
         ExecutionAttributes attributes =
-                new ExecutionAttributes().putAttribute(SdkExecutionAttributes.SERVICE_NAME, SERVICE_NAME);
+                new ExecutionAttributes().putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME);
         SdkServiceException exception = responseHandler.handle(httpResponse, attributes);
 
         // We assert these common properties are set again to make sure that code path is exercised
@@ -144,7 +144,7 @@ public class SdkJsonErrorResponseHandlerTest {
                 .thenReturn(new CustomException(ERROR_MESSAGE));
 
         ExecutionAttributes attributes =
-                new ExecutionAttributes().putAttribute(SdkExecutionAttributes.SERVICE_NAME, SERVICE_NAME);
+                new ExecutionAttributes().putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME);
         SdkServiceException exception = responseHandler.handle(httpResponse, attributes);
 
         assertEquals(ERROR_MESSAGE, exception.errorMessage());

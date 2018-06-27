@@ -17,22 +17,25 @@ package software.amazon.awssdk.awscore.client.handler;
 
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.awscore.config.options.AwsClientOptionValidation;
+import software.amazon.awssdk.awscore.internal.client.config.AwsClientOptionValidation;
+import software.amazon.awssdk.awscore.internal.client.handler.AwsClientHandlerUtils;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.client.AsyncClientHandler;
-import software.amazon.awssdk.core.client.ClientExecutionParams;
-import software.amazon.awssdk.core.client.SdkAsyncClientHandler;
-import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
+import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
+import software.amazon.awssdk.core.client.handler.SdkAsyncClientHandler;
 import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 
 /**
  * Async client handler for AWS SDK clients.
  */
 @ThreadSafe
 @Immutable
+@SdkProtectedApi
 public final class AwsAsyncClientHandler extends SdkAsyncClientHandler implements AsyncClientHandler {
 
     private final SdkClientConfiguration clientConfiguration;

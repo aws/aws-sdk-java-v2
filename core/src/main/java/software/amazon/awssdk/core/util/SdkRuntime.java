@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.core.util;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
+
+@SdkInternalApi
 public final class SdkRuntime {
 
     private SdkRuntime() {

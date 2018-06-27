@@ -73,13 +73,13 @@ public class PaginatedOperationWithoutResultKeyPublisher implements SdkPublisher
 
     private boolean isLastPage;
 
-    public PaginatedOperationWithoutResultKeyPublisher(final JsonProtocolTestsAsyncClient client,
-                                                       final PaginatedOperationWithoutResultKeyRequest firstRequest) {
+    public PaginatedOperationWithoutResultKeyPublisher(JsonProtocolTestsAsyncClient client,
+                                                       PaginatedOperationWithoutResultKeyRequest firstRequest) {
         this(client, firstRequest, false);
     }
 
-    private PaginatedOperationWithoutResultKeyPublisher(final JsonProtocolTestsAsyncClient client,
-                                                        final PaginatedOperationWithoutResultKeyRequest firstRequest, final boolean isLastPage) {
+    private PaginatedOperationWithoutResultKeyPublisher(JsonProtocolTestsAsyncClient client,
+                                                        PaginatedOperationWithoutResultKeyRequest firstRequest, boolean isLastPage) {
         this.client = client;
         this.firstRequest = firstRequest;
         this.isLastPage = isLastPage;
@@ -98,8 +98,8 @@ public class PaginatedOperationWithoutResultKeyPublisher implements SdkPublisher
      * retrieve the consecutive pages that follows the input page.
      * </p>
      */
-    public final PaginatedOperationWithoutResultKeyPublisher resume(
-        final PaginatedOperationWithoutResultKeyResponse lastSuccessfulPage) {
+    private final PaginatedOperationWithoutResultKeyPublisher resume(
+        PaginatedOperationWithoutResultKeyResponse lastSuccessfulPage) {
         if (nextPageFetcher.hasNextPage(lastSuccessfulPage)) {
             return new PaginatedOperationWithoutResultKeyPublisher(client, firstRequest.toBuilder()
                                                                                        .nextToken(lastSuccessfulPage.nextToken()).build());

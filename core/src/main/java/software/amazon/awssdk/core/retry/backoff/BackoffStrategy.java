@@ -17,8 +17,8 @@ package software.amazon.awssdk.core.retry.backoff;
 
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
-import software.amazon.awssdk.core.retry.SdkDefaultRetrySettings;
 
 @SdkPublicApi
 @FunctionalInterface
@@ -39,9 +39,9 @@ public interface BackoffStrategy {
 
     static BackoffStrategy defaultStrategy() {
         return FullJitterBackoffStrategy.builder()
-                                        .baseDelay(SdkDefaultRetrySettings.BASE_DELAY)
-                                        .maxBackoffTime(SdkDefaultRetrySettings.MAX_BACKOFF)
-                                        .numRetries(SdkDefaultRetrySettings.DEFAULT_MAX_RETRIES)
+                                        .baseDelay(SdkDefaultRetrySetting.BASE_DELAY)
+                                        .maxBackoffTime(SdkDefaultRetrySetting.MAX_BACKOFF)
+                                        .numRetries(SdkDefaultRetrySetting.DEFAULT_MAX_RETRIES)
                                         .build();
     }
 

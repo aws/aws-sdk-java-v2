@@ -32,7 +32,7 @@ import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
  * <pre class="brush: java">
  * DynamoDBMapper mapper = new DynamoDBMapper(dynamoDBClient);
  * // Force this read to be consistent
- * DomainClass obj = mapper.load(DomainClass.class, key, ConsistentReads.CONSISTENT.config());
+ * DomainClass obj = mapper.load(DomainClass.class, key, ConsistentRead.CONSISTENT.config());
  * // Force this save operation to use putItem rather than updateItem
  * mapper.save(obj, SaveBehavior.CLOBBER.config());
  * // Save the object into a different table
@@ -48,7 +48,7 @@ public class DynamoDbMapperConfig {
      * when only partial configurations are specified.
      *
      * @see SaveBehavior#UPDATE
-     * @see ConsistentReads#EVENTUAL
+     * @see ConsistentRead#EVENTUAL
      * @see PaginationLoadingStrategy#LAZY_LOADING
      * @see DefaultTableNameResolver#INSTANCE
      * @see DefaultBatchWriteRetryStrategy#INSTANCE
@@ -58,7 +58,7 @@ public class DynamoDbMapperConfig {
      */
     public static final DynamoDbMapperConfig DEFAULT = builder()
             .withSaveBehavior(SaveBehavior.UPDATE)
-            .withConsistentReads(ConsistentReads.EVENTUAL)
+            .withConsistentReads(ConsistentRead.EVENTUAL)
             .withPaginationLoadingStrategy(PaginationLoadingStrategy.LAZY_LOADING)
             .withTableNameResolver(DefaultTableNameResolver.INSTANCE)
             .withBatchWriteRetryStrategy(DefaultBatchWriteRetryStrategy.INSTANCE)
@@ -67,7 +67,7 @@ public class DynamoDbMapperConfig {
             .withConversionSchema(ConversionSchemas.DEFAULT)
             .build();
     private final SaveBehavior saveBehavior;
-    private final ConsistentReads consistentReads;
+    private final ConsistentRead consistentRead;
     private final TableNameOverride tableNameOverride;
     private final TableNameResolver tableNameResolver;
     private final ObjectTableNameResolver objectTableNameResolver;
@@ -82,7 +82,7 @@ public class DynamoDbMapperConfig {
      */
     private DynamoDbMapperConfig(final DynamoDbMapperConfig.Builder builder) {
         this.saveBehavior = builder.saveBehavior;
-        this.consistentReads = builder.consistentReads;
+        this.consistentRead = builder.consistentRead;
         this.tableNameOverride = builder.tableNameOverride;
         this.tableNameResolver = builder.tableNameResolver;
         this.objectTableNameResolver = builder.objectTableNameResolver;
@@ -95,7 +95,7 @@ public class DynamoDbMapperConfig {
 
     private DynamoDbMapperConfig(
             SaveBehavior saveBehavior,
-            ConsistentReads consistentReads,
+            ConsistentRead consistentRead,
             TableNameOverride tableNameOverride,
             TableNameResolver tableNameResolver,
             ObjectTableNameResolver objectTableNameResolver,
@@ -105,7 +105,7 @@ public class DynamoDbMapperConfig {
             BatchLoadRetryStrategy batchLoadRetryStrategy) {
 
         this.saveBehavior = saveBehavior;
-        this.consistentReads = consistentReads;
+        this.consistentRead = consistentRead;
         this.tableNameOverride = tableNameOverride;
         this.tableNameResolver = tableNameResolver;
         this.objectTableNameResolver = objectTableNameResolver;
@@ -129,11 +129,11 @@ public class DynamoDbMapperConfig {
     /**
      * Constructs a new configuration object with the consistent read behavior
      * given.
-     * @see ConsistentReads#config
+     * @see ConsistentRead#config
      */
     @Deprecated
-    public DynamoDbMapperConfig(ConsistentReads consistentReads) {
-        this(null, consistentReads, null, null, null, null,
+    public DynamoDbMapperConfig(ConsistentRead consistentRead) {
+        this(null, consistentRead, null, null, null, null,
              DEFAULT.getConversionSchema(), DEFAULT.batchWriteRetryStrategy(), DEFAULT.batchLoadRetryStrategy());
     }
 
@@ -253,8 +253,8 @@ public class DynamoDbMapperConfig {
     /**
      * Returns the consistent read behavior for this configuration.
      */
-    public ConsistentReads getConsistentReads() {
-        return consistentReads;
+    public ConsistentRead getConsistentRead() {
+        return consistentRead;
     }
 
     /**
@@ -382,7 +382,7 @@ public class DynamoDbMapperConfig {
      * <p>
      * By default, the mapper uses eventual consistency.
      */
-    public enum ConsistentReads {
+    public enum ConsistentRead {
         CONSISTENT,
         EVENTUAL;
 
@@ -554,7 +554,7 @@ public class DynamoDbMapperConfig {
     public static class Builder {
 
         private SaveBehavior saveBehavior;
-        private ConsistentReads consistentReads;
+        private ConsistentRead consistentRead;
         private TableNameOverride tableNameOverride;
         private TableNameResolver tableNameResolver;
         private ObjectTableNameResolver objectTableNameResolver;
@@ -577,7 +577,7 @@ public class DynamoDbMapperConfig {
         private Builder(final boolean defaults) {
             if (defaults == true) {
                 saveBehavior = DEFAULT.saveBehavior();
-                consistentReads = DEFAULT.getConsistentReads();
+                consistentRead = DEFAULT.getConsistentRead();
                 paginationLoadingStrategy = DEFAULT.getPaginationLoadingStrategy();
                 conversionschema = DEFAULT.getConversionSchema();
                 batchWriteRetryStrategy = DEFAULT.batchWriteRetryStrategy();
@@ -595,8 +595,8 @@ public class DynamoDbMapperConfig {
             if (o.saveBehavior != null) {
                 saveBehavior = o.saveBehavior;
             }
-            if (o.consistentReads != null) {
-                consistentReads = o.consistentReads;
+            if (o.consistentRead != null) {
+                consistentRead = o.consistentRead;
             }
             if (o.tableNameOverride != null) {
                 tableNameOverride = o.tableNameOverride;
@@ -655,8 +655,8 @@ public class DynamoDbMapperConfig {
          * DynamoDBMapper.
          * @return the currently-configured consistent read behavior.
          */
-        public ConsistentReads getConsistentReads() {
-            return consistentReads;
+        public ConsistentRead getConsistentRead() {
+            return consistentRead;
         }
 
         /**
@@ -665,8 +665,8 @@ public class DynamoDbMapperConfig {
          * DynamoDBMapper.
          * @param value the new consistent read behavior.
          */
-        public void setConsistentReads(ConsistentReads value) {
-            consistentReads = value;
+        public void setConsistentRead(ConsistentRead value) {
+            consistentRead = value;
         }
 
         /**
@@ -677,8 +677,8 @@ public class DynamoDbMapperConfig {
          * @return this builder.
          *
          */
-        public Builder withConsistentReads(ConsistentReads value) {
-            setConsistentReads(value);
+        public Builder withConsistentReads(ConsistentRead value) {
+            setConsistentRead(value);
             return this;
         }
 

@@ -15,9 +15,12 @@
 
 package software.amazon.awssdk.regions.internal.model;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
+
 /**
  * credential scope associated with an endpoint.
  */
+@SdkInternalApi
 public class CredentialScope {
 
     /**

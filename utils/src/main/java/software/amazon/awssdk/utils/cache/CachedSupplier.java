@@ -22,6 +22,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 
@@ -35,6 +36,7 @@ import software.amazon.awssdk.utils.Validate;
  *
  * This should be created using {@link #builder(Supplier)}.
  */
+@SdkProtectedApi
 public final class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     /**
      * Maximum time to wait for a blocking refresh lock before calling refresh again. This is to rate limit how many times we call

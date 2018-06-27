@@ -15,7 +15,7 @@
 
 package utils.resources.tables;
 
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
@@ -35,7 +35,7 @@ public class BasicTempTable extends DynamoDBTableResource {
             ProvisionedThroughput.builder().readCapacityUnits(READ_CAPACITY).writeCapacityUnits(WRITE_CAPACITY).build();
 
     @Override
-    protected DynamoDBClient getClient() {
+    protected DynamoDbClient getClient() {
         return DynamoDBTestBase.getClient();
     }
 

@@ -31,7 +31,11 @@
             <#local loopVariable = listVariable + "Value"/>
 
             ${listModel.templateType} ${listVariable} = ${getMember}();
-            if (${listVariable} != null) {
+            <#if customConfig.useAutoConstructList>
+                if (!${listVariable}.isEmpty() || !(${listVariable} instanceof software.amazon.awssdk.core.util.SdkAutoConstructList)) {
+            <#else>
+                if (${listVariable} != null) {
+            </#if>
                 int ${listIndex} = 1;
 
                 for (${listModel.memberType} ${loopVariable} : ${listVariable}) {

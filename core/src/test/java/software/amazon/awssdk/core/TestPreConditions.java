@@ -37,6 +37,6 @@ public class TestPreConditions {
      * @return True if the current running JVM is Java6. False otherwise
      */
     private static boolean isJava6() {
-        return JavaVersionParser.getCurrentJavaVersion().getKnownVersion() == JavaVersionParser.KnownJavaVersions.JAVA_6;
+        return JavaVersionParser.getCurrentJavaVersion().getKnownVersion() == JavaVersionParser.KnownJavaVersion.JAVA_6;
     }
 }

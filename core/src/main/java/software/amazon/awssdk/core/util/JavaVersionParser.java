@@ -18,12 +18,14 @@ package software.amazon.awssdk.core.util;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.JavaSystemSetting;
 
 /**
  * @see http://www.oracle.com/technetwork/java/javase/versioning-naming-139433.html
  */
+@SdkInternalApi
 public class JavaVersionParser {
 
     public static final String JAVA_VERSION_PROPERTY = "java.version";
@@ -67,9 +69,10 @@ public class JavaVersionParser {
 
     /**
      * Enum representing all the Java versions we know about and a special enum value
-     * {@link KnownJavaVersions#UNKNOWN} for ones we don't yet know about
+     * {@link KnownJavaVersion#UNKNOWN} for ones we don't yet know about
      */
-    public enum KnownJavaVersions {
+    @ReviewBeforeRelease("This should probably be removed.")
+    public enum KnownJavaVersion {
         JAVA_6(1, 6),
         JAVA_7(1, 7),
         JAVA_8(1, 8),
@@ -79,7 +82,7 @@ public class JavaVersionParser {
         private Integer knownMajorVersionFamily;
         private Integer knownMajorVersion;
 
-        KnownJavaVersions(final int majorVersionFamily, final int majorVersion) {
+        KnownJavaVersion(final int majorVersionFamily, final int majorVersion) {
             this.knownMajorVersionFamily = majorVersionFamily;
             this.knownMajorVersion = Integer.valueOf(majorVersion);
         }
@@ -91,11 +94,11 @@ public class JavaVersionParser {
          *            Major version family of the JVM. Currently only 1 is known (i.e. '1.7')
          * @param majorVersion
          *            Major version of JVM (6, 7, 8, etc)
-         * @return A {@link KnownJavaVersions} or {@link KnownJavaVersions#UNKNOWN} if unable to
+         * @return A {@link KnownJavaVersion} or {@link KnownJavaVersion#UNKNOWN} if unable to
          *         determine
          */
-        public static KnownJavaVersions fromMajorVersion(final Integer majorVersionFamily, final Integer majorVersion) {
-            for (final KnownJavaVersions version : KnownJavaVersions.values()) {
+        public static KnownJavaVersion fromMajorVersion(final Integer majorVersionFamily, final Integer majorVersion) {
+            for (final KnownJavaVersion version : KnownJavaVersion.values()) {
                 if (version.isMajorVersion(majorVersionFamily, majorVersion)) {
                     return version;
                 }
@@ -132,7 +135,7 @@ public class JavaVersionParser {
         private final Integer majorVersion;
         private final Integer maintenanceNumber;
         private final Integer updateNumber;
-        private final KnownJavaVersions knownVersion;
+        private final KnownJavaVersion knownVersion;
 
         public JavaVersion(final Integer majorVersionFamily, final Integer majorVersion,
                            final Integer maintenanceNumber, final Integer updateNumber) {
@@ -140,7 +143,7 @@ public class JavaVersionParser {
             this.majorVersion = majorVersion;
             this.maintenanceNumber = maintenanceNumber;
             this.updateNumber = updateNumber;
-            this.knownVersion = KnownJavaVersions.fromMajorVersion(majorVersionFamily, majorVersion);
+            this.knownVersion = KnownJavaVersion.fromMajorVersion(majorVersionFamily, majorVersion);
             this.tokenizedVersion = this.getTokenizedVersion();
         }
 
@@ -188,10 +191,10 @@ public class JavaVersionParser {
         }
 
         /**
-         * @return {@link KnownJavaVersions} representing the major version of the Java version if
+         * @return {@link KnownJavaVersion} representing the major version of the Java version if
          *         it's identifiable
          */
-        public KnownJavaVersions getKnownVersion() {
+        public KnownJavaVersion getKnownVersion() {
             return this.knownVersion;
         }
 

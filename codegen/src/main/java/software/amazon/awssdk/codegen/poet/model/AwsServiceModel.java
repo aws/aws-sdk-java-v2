@@ -103,7 +103,7 @@ public class AwsServiceModel implements ClassSpec {
         } else {
             TypeSpec.Builder specBuilder = TypeSpec.classBuilder(this.shapeModel.getShapeName())
                                                    .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                                                   .addAnnotation(PoetUtils.GENERATED)
+                                                   .addAnnotation(PoetUtils.generatedAnnotation())
                                                    .addSuperinterfaces(modelSuperInterfaces())
                                                    .superclass(modelSuperClass())
                                                    .addMethods(modelClassMethods())
@@ -142,7 +142,7 @@ public class AwsServiceModel implements ClassSpec {
     }
 
     private String eventStreamOperationName(ShapeModel eventStreamShape) {
-        return Utils.capitialize(
+        return Utils.capitalize(
                     intermediateModel.getOperations().values()
                                      .stream()
                                      .filter(o -> o.getOutputShape() != null && o.getOutputShape().getMembers() != null)

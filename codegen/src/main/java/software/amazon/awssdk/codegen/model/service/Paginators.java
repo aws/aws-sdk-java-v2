@@ -25,7 +25,7 @@ import java.util.Map;
  */
 public class Paginators {
 
-    public static final Paginators NONE = new Paginators(Collections.emptyMap());
+    private static final Paginators NONE = new Paginators(Collections.emptyMap());
 
     @JsonProperty("pagination")
     private final Map<String, PaginatorDefinition> paginators;
@@ -39,6 +39,10 @@ public class Paginators {
         this.paginators = paginators;
     }
 
+    public static Paginators none() {
+        return NONE;
+    }
+
     /**
      * Returns a map of operation name to its {@link PaginatorDefinition}.
      */
@@ -49,5 +53,4 @@ public class Paginators {
     public PaginatorDefinition getPaginatorDefinition(String operationName) {
         return paginators.get(operationName);
     }
-
 }

@@ -22,11 +22,12 @@ import java.util.concurrent.RejectedExecutionException;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.Response;
-import software.amazon.awssdk.core.config.options.SdkAdvancedAsyncClientOption;
-import software.amazon.awssdk.core.config.options.SdkClientOption;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
@@ -47,7 +48,8 @@ import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 /**
  * Delegate to the HTTP implementation to make an HTTP request and receive the response.
  */
-public class MakeAsyncHttpRequestStage<OutputT>
+@SdkInternalApi
+public final class MakeAsyncHttpRequestStage<OutputT>
     implements RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> {
 
     private static final Logger log = LoggerFactory.getLogger(MakeAsyncHttpRequestStage.class);

@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
-import static software.amazon.awssdk.codegen.internal.Constants.REQUEST_CLASS_SUFFIX;
-import static software.amazon.awssdk.codegen.internal.Constants.RESPONSE_CLASS_SUFFIX;
+import static software.amazon.awssdk.codegen.internal.Constant.REQUEST_CLASS_SUFFIX;
+import static software.amazon.awssdk.codegen.internal.Constant.RESPONSE_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.removeFromEnd;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;

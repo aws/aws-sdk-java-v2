@@ -15,12 +15,15 @@
 
 package software.amazon.awssdk.core.signer;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
  * Interface for the signer used for signing the requests. All SDK signer implementations will implement this interface.
  */
+@SdkPublicApi
+@FunctionalInterface
 public interface Signer {
     /**
      * Method that takes in an request and returns a signed version of the request.

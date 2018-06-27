@@ -22,10 +22,12 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Utilities for IO operations.
  */
+@SdkProtectedApi
 public final class IoUtils {
 
     private static final int BUFFER_SIZE = 1024 * 4;

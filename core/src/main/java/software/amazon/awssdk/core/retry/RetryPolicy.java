@@ -17,11 +17,13 @@ package software.amazon.awssdk.core.retry;
 
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.retry.conditions.AndRetryCondition;
 import software.amazon.awssdk.core.retry.conditions.MaxNumberOfRetriesCondition;
 import software.amazon.awssdk.core.retry.conditions.RetryCondition;
+import software.amazon.awssdk.core.retry.conditions.SdkRetryCondition;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -32,10 +34,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * {@link RetryCondition}.
  *
  * When using the {@link #builder()} the SDK will use default values for fields that are not provided. The default number of
- * retries that will be used is {@link SdkDefaultRetrySettings#DEFAULT_MAX_RETRIES}. The default retry condition is
- * {@link RetryCondition#DEFAULT} and the default backoff strategy is {@link BackoffStrategy#defaultStrategy()}.
+ * retries that will be used is {@link SdkDefaultRetrySetting#DEFAULT_MAX_RETRIES}. The default retry condition is
+ * {@link SdkRetryCondition#DEFAULT} and the default backoff strategy is {@link BackoffStrategy#defaultStrategy()}.
  *
- * @see RetryCondition for a list of SDK provided retry condition strategies
+ * @see SdkRetryCondition for a list of SDK provided retry condition strategies
  * @see BackoffStrategy for a list of SDK provided backoff strategies
  */
 @Immutable
@@ -44,13 +46,13 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
 
     public static final RetryPolicy DEFAULT = RetryPolicy.builder()
                                                          .backoffStrategy(BackoffStrategy.defaultStrategy())
-                                                         .numRetries(SdkDefaultRetrySettings.DEFAULT_MAX_RETRIES)
-                                                         .retryCondition(RetryCondition.DEFAULT)
+                                                         .numRetries(SdkDefaultRetrySetting.DEFAULT_MAX_RETRIES)
+                                                         .retryCondition(SdkRetryCondition.DEFAULT)
                                                          .build();
 
     public static final RetryPolicy NONE = RetryPolicy.builder()
                                                       .backoffStrategy(BackoffStrategy.none())
-                                                      .retryCondition(RetryCondition.NONE)
+                                                      .retryCondition(SdkRetryCondition.NONE)
                                                       .build();
 
     private final RetryCondition retryConditionFromBuilder;
@@ -90,9 +92,9 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
      */
     public static final class Builder implements CopyableBuilder<Builder, RetryPolicy> {
 
-        private Integer numRetries = SdkDefaultRetrySettings.DEFAULT_MAX_RETRIES;
+        private Integer numRetries = SdkDefaultRetrySetting.DEFAULT_MAX_RETRIES;
         private BackoffStrategy backoffStrategy = BackoffStrategy.defaultStrategy();
-        private RetryCondition retryCondition = RetryCondition.DEFAULT;
+        private RetryCondition retryCondition = SdkRetryCondition.DEFAULT;
 
         private Builder(){
         }

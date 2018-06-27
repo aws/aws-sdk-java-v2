@@ -16,12 +16,13 @@
 package software.amazon.awssdk.awscore.protocol.json;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonProtocol;
 
 /**
  * Provides additional metadata about AWS Json protocol.
  */
 @SdkProtectedApi
-public class AwsJsonProtocolMetadata {
+public final class AwsJsonProtocolMetadata {
 
     private final AwsJsonProtocol protocol;
     private final String protocolVersion;

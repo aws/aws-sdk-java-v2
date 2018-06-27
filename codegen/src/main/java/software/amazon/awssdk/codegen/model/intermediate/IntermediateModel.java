@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
-import static software.amazon.awssdk.codegen.internal.Constants.APPROVED_SIMPLE_METHOD_VERBS;
+import static software.amazon.awssdk.codegen.internal.Constant.APPROVED_SIMPLE_METHOD_VERBS;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -126,6 +126,10 @@ public final class IntermediateModel {
         } else {
             return metadata.getProtocolDefaultExceptionUmarshallerImpl();
         }
+    }
+
+    public String getCustomRetryPolicy() {
+        return customizationConfig.getCustomRetryPolicy();
     }
 
     public String getServiceBaseExceptionFqcn() {

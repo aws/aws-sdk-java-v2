@@ -18,8 +18,8 @@ package software.amazon.awssdk.services.acm;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.acm.model.GetCertificateRequest;
 import software.amazon.awssdk.services.acm.model.ListCertificatesRequest;
 import software.amazon.awssdk.services.acm.model.ListCertificatesResponse;
@@ -27,11 +27,11 @@ import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class AwsCertficateManagerIntegrationTest extends AwsIntegrationTestBase {
 
-    private static ACMClient client;
+    private static AcmClient client;
 
     @BeforeClass
     public static void setUp() {
-        client = ACMClient.builder().credentialsProvider(StaticCredentialsProvider.create(getCredentials())).build();
+        client = AcmClient.builder().credentialsProvider(StaticCredentialsProvider.create(getCredentials())).build();
     }
 
     @Test

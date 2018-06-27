@@ -29,7 +29,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocol;
+import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonProtocol;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -41,16 +41,16 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.client.ClientExecutionParams;
+import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.eventstream.EventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.core.eventstream.EventStreamTaggedUnionJsonUnmarshaller;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.internal.protocol.json.VoidJsonUnmarshaller;
 import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorShapeMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
-import software.amazon.awssdk.core.runtime.transform.VoidJsonUnmarshaller;
 
 public class JsonProtocolSpec implements ProtocolSpec {
 

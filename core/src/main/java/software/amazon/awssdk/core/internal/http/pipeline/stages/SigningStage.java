@@ -16,9 +16,10 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  * Sign the marshalled request (if applicable).
  */
 // TODO how does signing work with a request provider
+@SdkInternalApi
 public class SigningStage implements RequestToRequestPipeline {
 
     private final HttpClientDependencies dependencies;
@@ -84,6 +86,6 @@ public class SigningStage implements RequestToRequestPipeline {
      * Always use the client level timeOffset.
      */
     private void adjustForClockSkew(ExecutionAttributes attributes) {
-        attributes.putAttribute(SdkExecutionAttributes.TIME_OFFSET, dependencies.timeOffset());
+        attributes.putAttribute(SdkExecutionAttribute.TIME_OFFSET, dependencies.timeOffset());
     }
 }

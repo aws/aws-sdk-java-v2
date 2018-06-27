@@ -21,7 +21,7 @@ import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.RetryUtils;
-import software.amazon.awssdk.http.HttpStatusCodes;
+import software.amazon.awssdk.http.HttpStatusCode;
 
 public class RetryUtilsTest {
 
@@ -62,7 +62,7 @@ public class RetryUtilsTest {
     @Test
     public void statusCode413_isRequestEntityTooLargeShouldReturnTrue() {
         SdkServiceException exception = new SdkServiceException("boom");
-        exception.statusCode(HttpStatusCodes.REQUEST_TOO_LONG);
+        exception.statusCode(HttpStatusCode.REQUEST_TOO_LONG);
         assertThat(RetryUtils.isRequestEntityTooLargeException(exception)).isTrue();
     }
 }

@@ -17,9 +17,6 @@ package software.amazon.awssdk.core.async;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.tck.TestEnvironment;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
@@ -27,6 +24,9 @@ import java.nio.ByteBuffer;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.tck.TestEnvironment;
+import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 
 /**
  * TCK verification test for {@link FileAsyncRequestBody}.

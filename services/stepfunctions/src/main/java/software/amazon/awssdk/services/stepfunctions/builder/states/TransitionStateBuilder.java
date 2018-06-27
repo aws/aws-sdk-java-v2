@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.stepfunctions.builder.states;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * Base class for states that allow transitions to either another state or
@@ -28,14 +28,14 @@ abstract class TransitionStateBuilder implements State.Builder {
 
     public abstract TransitionStateBuilder transition(Transition.Builder builder);
 
-    @JsonProperty(PropertyNames.END)
+    @JsonProperty(PropertyName.END)
     private void setEnd(boolean isEnd) {
         if (isEnd) {
             transition(EndTransition.builder());
         }
     }
 
-    @JsonProperty(PropertyNames.NEXT)
+    @JsonProperty(PropertyName.NEXT)
     private void setNext(String nextStateName) {
         transition(NextStateTransition.builder().nextStateName(nextStateName));
     }

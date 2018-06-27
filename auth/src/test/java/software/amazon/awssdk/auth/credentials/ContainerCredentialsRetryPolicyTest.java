@@ -21,7 +21,8 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.regions.util.ResourcesEndpointRetryParameters;
+import software.amazon.awssdk.auth.credentials.internal.ContainerCredentialsRetryPolicy;
+import software.amazon.awssdk.regions.internal.util.ResourcesEndpointRetryParameters;
 
 public class ContainerCredentialsRetryPolicyTest {
 

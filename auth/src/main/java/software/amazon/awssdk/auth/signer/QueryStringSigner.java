@@ -16,13 +16,14 @@
 package software.amazon.awssdk.auth.signer;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.TimeZone;
-import software.amazon.awssdk.auth.AwsExecutionAttributes;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.internal.AbstractAwsSigner;
-import software.amazon.awssdk.auth.util.CredentialUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -31,7 +32,11 @@ import software.amazon.awssdk.utils.StringUtils;
 /**
  * Signer implementation responsible for signing an AWS query string request
  * according to the various signature versions and hashing algorithms.
+ *
+ * @deprecated in favor of {@link Aws4Signer}
  */
+@SdkProtectedApi
+@Deprecated
 public final class QueryStringSigner extends AbstractAwsSigner {
     /**
      * Date override for testing only.
@@ -60,8 +65,8 @@ public final class QueryStringSigner extends AbstractAwsSigner {
      */
     @Override
     public SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes) {
-        final AwsCredentials awsCredentials = executionAttributes.getAttribute(AwsExecutionAttributes.AWS_CREDENTIALS);
-        final Integer offset = executionAttributes.getAttribute(AwsExecutionAttributes.TIME_OFFSET);
+        final AwsCredentials awsCredentials = executionAttributes.getAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS);
+        final Integer offset = executionAttributes.getAttribute(AwsSignerExecutionAttribute.TIME_OFFSET);
 
         // anonymous credentials, don't sign
         if (CredentialUtils.isAnonymous(awsCredentials)) {
@@ -123,6 +128,17 @@ public final class QueryStringSigner extends AbstractAwsSigner {
         } else {
             return df.format(getSignatureDate(offset));
         }
+    }
+
+    /**
+     * Returns the current time minus the given offset in seconds.
+     * The intent is to adjust the current time in the running JVM to the
+     * corresponding wall clock time at AWS for request signing purposes.
+     *
+     * @param offsetInSeconds offset in seconds
+     */
+    private Date getSignatureDate(int offsetInSeconds) {
+        return Date.from(Instant.now().minusSeconds(offsetInSeconds));
     }
 
     @Override

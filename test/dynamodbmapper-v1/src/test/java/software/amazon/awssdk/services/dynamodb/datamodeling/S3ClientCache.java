@@ -21,8 +21,8 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
 
 /**
  * A smart Map for {@link S3Client} objects. {@link S3ClientCache} keeps the
@@ -65,7 +65,7 @@ public class S3ClientCache {
      *            be detected automatically.
      */
     public void useClient(S3Client client, Region region) {
-        clientsByRegion.put(region.value(), client);
+        clientsByRegion.put(region.id(), client);
     }
 
     /**
@@ -88,7 +88,7 @@ public class S3ClientCache {
         if (region == null) {
             throw new IllegalArgumentException("S3 region must be specified");
         }
-        return getClient(region.value());
+        return getClient(region.id());
     }
 
     /**

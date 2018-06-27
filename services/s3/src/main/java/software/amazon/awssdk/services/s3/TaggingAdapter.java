@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.s3;
 
-import software.amazon.awssdk.core.runtime.adapters.types.TypeAdapter;
+import software.amazon.awssdk.core.adapter.TypeAdapter;
 import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.Tagging;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;

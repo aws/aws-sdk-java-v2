@@ -17,11 +17,13 @@ package software.amazon.awssdk.http;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Container for extra dependencies needed during execution of a request.
  */
 @ReviewBeforeRelease("Should we keep this? It was previously used for metrics, which was removed.")
+@SdkProtectedApi
 public class SdkRequestContext {
 
     private SdkRequestContext(Builder builder) {

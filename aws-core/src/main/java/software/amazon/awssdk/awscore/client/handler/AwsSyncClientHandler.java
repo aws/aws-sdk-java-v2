@@ -17,15 +17,17 @@ package software.amazon.awssdk.awscore.client.handler;
 
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.awscore.config.options.AwsClientOptionValidation;
+import software.amazon.awssdk.awscore.internal.client.config.AwsClientOptionValidation;
+import software.amazon.awssdk.awscore.internal.client.handler.AwsClientHandlerUtils;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.client.ClientExecutionParams;
-import software.amazon.awssdk.core.client.SdkSyncClientHandler;
-import software.amazon.awssdk.core.client.SyncClientHandler;
-import software.amazon.awssdk.core.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
+import software.amazon.awssdk.core.client.handler.SdkSyncClientHandler;
+import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 
 /**
@@ -34,6 +36,7 @@ import software.amazon.awssdk.core.sync.ResponseTransformer;
 @ThreadSafe
 @Immutable
 @ReviewBeforeRelease("This looks identical to the Sdk version, revisit when we add APIG back")
+@SdkProtectedApi
 public class AwsSyncClientHandler extends SdkSyncClientHandler implements SyncClientHandler {
 
     private final SdkClientConfiguration clientConfiguration;

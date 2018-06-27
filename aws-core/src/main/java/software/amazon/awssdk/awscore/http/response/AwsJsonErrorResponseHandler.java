@@ -19,14 +19,14 @@ import com.fasterxml.jackson.core.JsonFactory;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonErrorUnmarshaller;
-import software.amazon.awssdk.awscore.protocol.json.ErrorCodeParser;
+import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonErrorUnmarshaller;
+import software.amazon.awssdk.awscore.internal.protocol.json.ErrorCodeParser;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
-import software.amazon.awssdk.core.protocol.json.ErrorMessageParser;
-import software.amazon.awssdk.core.protocol.json.JsonContent;
-import software.amazon.awssdk.core.runtime.http.response.JsonErrorResponseHandler;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.internal.http.JsonErrorResponseHandler;
+import software.amazon.awssdk.core.internal.protocol.json.ErrorMessageParser;
+import software.amazon.awssdk.core.internal.protocol.json.JsonContent;
 
 /**
  * Implementation of HttpResponseHandler that handles a error response from AWS
@@ -68,7 +68,7 @@ public class AwsJsonErrorResponseHandler extends JsonErrorResponseHandler<AwsSer
         }
 
         exception.errorCode(errorCode);
-        exception.serviceName(executionAttributes.getAttribute(SdkExecutionAttributes.SERVICE_NAME));
+        exception.serviceName(executionAttributes.getAttribute(SdkExecutionAttribute.SERVICE_NAME));
         exception.statusCode(response.getStatusCode());
         exception.errorType(getErrorType(response.getStatusCode()));
         exception.rawResponse(jsonContent.getRawContent());

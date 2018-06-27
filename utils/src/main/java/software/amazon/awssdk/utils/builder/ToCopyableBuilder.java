@@ -16,6 +16,7 @@
 package software.amazon.awssdk.utils.builder;
 
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * Implementors of this interface provide a way to get from an instance of T to a {@link CopyableBuilder}. This allows
@@ -24,6 +25,7 @@ import java.util.function.Consumer;
  * @param <T> the type that the builder will build (this)
  * @param <B> the builder type
  */
+@SdkPublicApi
 public interface ToCopyableBuilder<B extends CopyableBuilder<B, T>, T extends ToCopyableBuilder<B, T>> {
     /**
      * Take this object and create a builder that contains all of the current property values of this object.

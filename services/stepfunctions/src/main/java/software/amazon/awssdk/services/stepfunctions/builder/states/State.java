@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import software.amazon.awssdk.services.stepfunctions.builder.StateMachine;
 import software.amazon.awssdk.services.stepfunctions.builder.internal.Buildable;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * Base interface for all states that can be used in a {@link StateMachine}.
@@ -69,7 +69,7 @@ public interface State {
     /**
      * @return The type identifier for this state.
      */
-    @JsonProperty(PropertyNames.TYPE)
+    @JsonProperty(PropertyName.TYPE)
     String getType();
 
     @JsonIgnore
@@ -83,7 +83,7 @@ public interface State {
     @JsonTypeInfo(
             use = JsonTypeInfo.Id.NAME,
             include = JsonTypeInfo.As.PROPERTY,
-            property = PropertyNames.TYPE)
+            property = PropertyName.TYPE)
     @JsonSubTypes({
                            @JsonSubTypes.Type(value = ChoiceState.Builder.class, name = CHOICE),
                            @JsonSubTypes.Type(value = FailState.Builder.class, name = FAIL),
@@ -93,7 +93,7 @@ public interface State {
                            @JsonSubTypes.Type(value = TaskState.Builder.class, name = TASK),
                            @JsonSubTypes.Type(value = WaitState.Builder.class, name = WAIT)
                    })
-    @JsonIgnoreProperties(value = {PropertyNames.TYPE}, allowGetters = true)
+    @JsonIgnoreProperties(value = {PropertyName.TYPE}, allowGetters = true)
     interface Builder extends Buildable<State> {
     }
 

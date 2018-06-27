@@ -66,13 +66,13 @@ public class IotControlPlaneIntegrationTest extends AwsTestBase {
                                              "    }\n" +
                                              "  ]\n" +
                                              "}";
-    private static IoTClient client;
+    private static IotClient client;
     private static String certificateId = null;
 
     @BeforeClass
     public static void setup() throws IOException {
         setUpCredentials();
-        client = IoTClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.US_WEST_2).build();
+        client = IotClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).region(Region.US_WEST_2).build();
         THING_ATTRIBUTES.put(ATTRIBUTE_NAME, ATTRIBUTE_VALUE);
     }
 

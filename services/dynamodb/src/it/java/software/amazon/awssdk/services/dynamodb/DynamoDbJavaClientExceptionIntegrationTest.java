@@ -21,12 +21,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ListTablesRequest;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
-import software.amazon.awssdk.services.sts.STSClient;
+import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.services.sts.model.GetFederationTokenRequest;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
@@ -36,12 +36,12 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
  */
 public class DynamoDbJavaClientExceptionIntegrationTest extends AwsTestBase {
 
-    private static DynamoDBClient ddb;
+    private static DynamoDbClient ddb;
 
     @BeforeClass
     public static void setup() throws Exception {
         setUpCredentials();
-        ddb = DynamoDBClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
+        ddb = DynamoDbClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
     }
 
     @Test
@@ -59,7 +59,7 @@ public class DynamoDbJavaClientExceptionIntegrationTest extends AwsTestBase {
 
     @Test
     public void testPermissionError() {
-        STSClient sts = STSClient.builder()
+        StsClient sts = StsClient.builder()
                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                 .region(Region.US_EAST_1)
                 .build();
@@ -71,7 +71,7 @@ public class DynamoDbJavaClientExceptionIntegrationTest extends AwsTestBase {
                 .durationSeconds(900).build()).credentials();
 
 
-        DynamoDBClient client = DynamoDBClient.builder().credentialsProvider(
+        DynamoDbClient client = DynamoDbClient.builder().credentialsProvider(
                 StaticCredentialsProvider.create(AwsSessionCredentials.create(
                 creds.accessKeyId(),
                 creds.secretAccessKey(),

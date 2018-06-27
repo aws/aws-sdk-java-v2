@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http;
 
 import java.time.Duration;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -72,24 +71,18 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             new SdkHttpConfigurationOption<>("MaxConnectionAcquires", Integer.class);
 
     /**
-     * Whether or not to use strict hostname verification when establishing the SSL connection. For almost all services this
-     * should be true. S3 however uses wildcard certificates for virtual bucket address (bucketname.s3.amazonaws.com) and
-     * needs to disable strict hostname verification to allow for wildcard certs.
+     * Option to disable SSL cert validation and SSL host name verification. By default, this option is off.
+     * Only enable this option for testing purposes.
      */
-    @ReviewBeforeRelease("This does not appear to be needed anymore for S3")
-    public static final SdkHttpConfigurationOption<Boolean> USE_STRICT_HOSTNAME_VERIFICATION =
-            new SdkHttpConfigurationOption<>("UseStrictHostnameVerification", Boolean.class);
-
     public static final SdkHttpConfigurationOption<Boolean> TRUST_ALL_CERTIFICATES =
             new SdkHttpConfigurationOption<>("TrustAllCertificates", Boolean.class);
 
-    private static final Duration DEFAULT_SOCKET_READ_TIMEOUT = Duration.ofSeconds(50);
-    private static final Duration DEFAULT_SOCKET_WRITE_TIMEOUT = Duration.ofSeconds(50);
-    private static final Duration DEFAULT_CONNECTION_TIMEOUT = Duration.ofSeconds(10);
+    private static final Duration DEFAULT_SOCKET_READ_TIMEOUT = Duration.ofSeconds(30);
+    private static final Duration DEFAULT_SOCKET_WRITE_TIMEOUT = Duration.ofSeconds(30);
+    private static final Duration DEFAULT_CONNECTION_TIMEOUT = Duration.ofSeconds(2);
     private static final Duration DEFAULT_CONNECTION_ACQUIRE_TIMEOUT = Duration.ofSeconds(10);
     private static final int DEFAULT_MAX_CONNECTIONS = 50;
     private static final int DEFAULT_MAX_CONNECTION_ACQUIRES = 10_000;
-    private static final Boolean DEFAULT_USE_STRICT_HOSTNAME_VERIFICATION = Boolean.TRUE;
     private static final Boolean DEFAULT_TRUST_ALL_CERTIFICATES = Boolean.FALSE;
 
     private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP1_1;
@@ -102,7 +95,6 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             .put(CONNECTION_ACQUIRE_TIMEOUT, DEFAULT_CONNECTION_ACQUIRE_TIMEOUT)
             .put(MAX_CONNECTIONS, DEFAULT_MAX_CONNECTIONS)
             .put(MAX_PENDING_CONNECTION_ACQUIRES, DEFAULT_MAX_CONNECTION_ACQUIRES)
-            .put(USE_STRICT_HOSTNAME_VERIFICATION, DEFAULT_USE_STRICT_HOSTNAME_VERIFICATION)
             .put(PROTOCOL, DEFAULT_PROTOCOL)
             .put(TRUST_ALL_CERTIFICATES, DEFAULT_TRUST_ALL_CERTIFICATES)
             .build();

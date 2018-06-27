@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.Before;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.services.iam.model.IAMException;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.iam.model.IamException;
 import software.amazon.awssdk.services.iam.model.User;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
@@ -37,7 +37,7 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
 public class IntegrationTestBase extends AwsTestBase {
 
     /** The IAM client for all tests to use. */
-    protected IAMClient iam;
+    protected IamClient iam;
 
     /**
      * Loads the AWS account info for the integration tests and creates an
@@ -46,7 +46,7 @@ public class IntegrationTestBase extends AwsTestBase {
     @Before
     public void setUp() throws FileNotFoundException, IOException {
         setUpCredentials();
-        iam = IAMClient.builder()
+        iam = IamClient.builder()
                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                        .overrideConfiguration(c -> c.retryPolicy(RetryPolicy.builder().numRetries(50).build()))
                        .region(Region.AWS_GLOBAL)
@@ -56,13 +56,13 @@ public class IntegrationTestBase extends AwsTestBase {
 
     void waitForUsersToBeCreated(String... users) {
         Stream.of(users).forEach(user -> Waiter.run(() -> iam.getUser(r -> r.userName(user)))
-                                               .ignoringException(IAMException.class)
+                                               .ignoringException(IamException.class)
                                                .orFail());
     }
 
     void waitForGroupsToBeCreated(String... groups) {
         Stream.of(groups).forEach(user -> Waiter.run(() -> iam.getGroup(r -> r.groupName(user)))
-                                                .ignoringException(IAMException.class)
+                                                .ignoringException(IamException.class)
                                                 .orFail());
     }
 

@@ -37,7 +37,7 @@ import static software.amazon.awssdk.services.stepfunctions.builder.StepFunction
 import static software.amazon.awssdk.services.stepfunctions.builder.StepFunctionBuilder.waitState;
 
 import org.junit.Test;
-import software.amazon.awssdk.services.stepfunctions.builder.ErrorCodes;
+import software.amazon.awssdk.services.stepfunctions.builder.ErrorCode;
 import software.amazon.awssdk.services.stepfunctions.builder.conditions.NotCondition;
 
 public class StateMachineValidatorTest {
@@ -275,7 +275,7 @@ public class StateMachineValidatorTest {
                 .state("Initial", taskState()
                         .transition(end())
                         .retrier(retrier()
-                                         .errorEquals("Foo", "Bar", ErrorCodes.ALL))
+                                         .errorEquals("Foo", "Bar", ErrorCode.ALL))
                         .resource("arn"))
                 .build();
     }
@@ -330,7 +330,7 @@ public class StateMachineValidatorTest {
                         .transition(end())
                         .catcher(catcher()
                                          .transition(next("Terminal"))
-                                         .errorEquals("Foo", "Bar", ErrorCodes.ALL))
+                                         .errorEquals("Foo", "Bar", ErrorCode.ALL))
                         .resource("arn"))
                 .state("Terminal", succeedState())
                 .build();

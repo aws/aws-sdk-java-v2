@@ -23,9 +23,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.RegionMetadata;
 import software.amazon.awssdk.regions.ServiceMetadata;
-import software.amazon.awssdk.regions.ServiceMetadataProvider;
 import software.amazon.awssdk.regions.internal.model.Partition;
-import software.amazon.awssdk.regions.providers.PartitionServiceMetadata;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -75,18 +73,18 @@ public final class PartitionMetadataProvider implements RegionMetadataProvider, 
     private RegionMetadata createNewRegion(Region region) {
         return partitionMap.values()
                 .stream()
-                .filter(p -> p.hasRegion(region.value()))
+                .filter(p -> p.hasRegion(region.id()))
                 .map(p -> cacheRegion(region, p))
                 .findFirst()
                 .orElseGet(() -> cacheRegion(region, partitionMap.get(DEFAULT_PARTITION)));
     }
 
     private RegionMetadata getRegionFromCache(Region region) {
-        return regionMetadata.get(region.value());
+        return regionMetadata.get(region.id());
     }
 
     private RegionMetadata cacheRegion(Region region, Partition p) {
-        return regionMetadata.computeIfAbsent(region.value(), ignored -> new PartitionRegionMetadata(region.value(), p));
+        return regionMetadata.computeIfAbsent(region.id(), ignored -> new PartitionRegionMetadata(region.id(), p));
     }
 
     private ServiceMetadata createNewServiceMetadata(String serviceEndpointPrefix) {

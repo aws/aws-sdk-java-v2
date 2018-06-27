@@ -22,20 +22,21 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.core.RequestClientOptions;
-import software.amazon.awssdk.core.Response;
-import software.amazon.awssdk.core.SdkStandardLoggers;
-import software.amazon.awssdk.core.config.options.SdkClientOption;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.RequestOption;
+import software.amazon.awssdk.core.SdkStandardLogger;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.ResetException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToResponsePipeline;
-import software.amazon.awssdk.core.retry.RetryHandler;
+import software.amazon.awssdk.core.internal.retry.RetryHandler;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.core.util.CapacityManager;
@@ -45,7 +46,8 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 /**
  * Wrapper around the pipeline for a single request to provide retry functionality.
  */
-public class RetryableStage<OutputT> implements RequestToResponsePipeline<OutputT> {
+@SdkInternalApi
+public final class RetryableStage<OutputT> implements RequestToResponsePipeline<OutputT> {
 
     private static final Logger log = LoggerFactory.getLogger(RetryableStage.class);
 
@@ -134,8 +136,8 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
 
             request.content().ifPresent(this::markInputStream);
 
-            SdkStandardLoggers.REQUEST_LOGGER.debug(() -> (retryHandler.isRetry() ? "Retrying " : "Sending ") + "Request: " +
-                                                          request);
+            SdkStandardLogger.REQUEST_LOGGER.debug(() -> (retryHandler.isRetry() ? "Retrying " : "Sending ") + "Request: " +
+                                                         request);
 
             return requestPipeline.execute(retryHandler.addRetryInfoHeader(request, requestCount), context);
         }
@@ -187,7 +189,7 @@ public class RetryableStage<OutputT> implements RequestToResponsePipeline<Output
          */
         @ReviewBeforeRelease("Do we still want to make read limit user-configurable as in V1?")
         private int readLimit() {
-            return RequestClientOptions.DEFAULT_STREAM_BUFFER_SIZE;
+            return RequestOption.DEFAULT_STREAM_BUFFER_SIZE;
         }
 
         /**

@@ -29,12 +29,14 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.apache.internal.net.SdkSocket;
 import software.amazon.awssdk.http.apache.internal.net.SdkSslSocket;
 
 /**
  * Used to enforce the preferred TLS protocol during SSL handshake.
  */
+@SdkInternalApi
 public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
 
     private static final Logger log = LoggerFactory.getLogger(SdkTlsSocketFactory.class);

@@ -17,7 +17,7 @@ package software.amazon.awssdk.utils;
 
 import java.util.Locale;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * <p>Operations on {@link java.lang.String} that are
@@ -104,7 +104,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * @see java.lang.String
  */
 @ReviewBeforeRelease("Remove the methods we don't end up using (and we've removed software.amazon.awssdk.core.util.StringUtils).")
-@SdkInternalApi
+@SdkProtectedApi
 public final class StringUtils {
     // Performance testing notes (JDK 1.4, Jul03, scolebourne)
     // Whitespace:
@@ -123,24 +123,9 @@ public final class StringUtils {
     // (not sure who tested this)
 
     /**
-     * A String for a space character.
-     */
-    public static final String SPACE = " ";
-
-    /**
      * The empty String {@code ""}.
      */
-    public static final String EMPTY = "";
-
-    /**
-     * Represents a failed index search.
-     */
-    public static final int INDEX_NOT_FOUND = -1;
-
-    /**
-     * <p>The maximum size to which the padding constant(s) can expand.</p>
-     */
-    private static final int PAD_LIMIT = 8192;
+    private static final String EMPTY = "";
 
     /**
      * <p>{@code StringUtils} instances should NOT be constructed in

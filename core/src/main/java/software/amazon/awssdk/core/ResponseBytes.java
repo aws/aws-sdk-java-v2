@@ -22,6 +22,7 @@ import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * An in-memory representation of the service's response from a streaming operation. This usually obtained by calling the "bytes"
@@ -34,8 +35,8 @@ public final class ResponseBytes<ResponseT> {
     private final byte[] responseBytes;
 
     public ResponseBytes(ResponseT response, byte[] responseBytes) {
-        this.response = response;
-        this.responseBytes = responseBytes;
+        this.response = Validate.paramNotNull(response, "response");
+        this.responseBytes = Validate.paramNotNull(responseBytes, "responseBytes");
     }
 
     /**

@@ -209,54 +209,6 @@ public class ListObjectsV2PaginatorsIntegrationTest extends S3IntegrationTestBas
         assertThat(Long.valueOf(objectList.size()), equalTo(OBJECT_COUNT));
     }
 
-    @Test
-    public void test_Resume_Using_IntermediatePage_OnAsyncResponse() throws ExecutionException, InterruptedException {
-        ListObjectsV2Publisher publisher = s3Async.listObjectsV2Paginator(requestBuilder.bucket(bucketName).build());
-
-        TestSubscriber firstSubscriber = new TestSubscriber(2);
-        publisher.subscribe(firstSubscriber);
-        while (!firstSubscriber.isDone()) {
-            Thread.sleep(1000);
-        }
-
-        // Call resume
-        ListObjectsV2Publisher resumedPublisher = publisher.resume(firstSubscriber.getLastPage());
-        TestSubscriber secondSubscriber = new TestSubscriber(10);
-        resumedPublisher.subscribe(secondSubscriber);
-        while (!secondSubscriber.isDone()) {
-            Thread.sleep(1000);
-        }
-
-        assertThat(firstSubscriber.getKeyCount() + secondSubscriber.getKeyCount(),
-                   equalTo(OBJECT_COUNT));
-    }
-
-    @Test
-    public void test_Resume_Using_LastPage_OnAsyncResponse() throws ExecutionException, InterruptedException {
-        ListObjectsV2Publisher publisher = s3Async.listObjectsV2Paginator(requestBuilder.bucket(bucketName).build());
-
-        final ListObjectsV2Response[] lastPage = new ListObjectsV2Response[1];
-        CompletableFuture<Void> future = publisher.forEach(response -> {
-            lastPage[0] = response;
-        });
-        future.get();
-
-        // Resume
-        ListObjectsV2Publisher resumedPublisher = publisher.resume(lastPage[0]);
-
-        // count using pages
-        final long[] count = {0};
-        resumedPublisher.forEach(response -> count[0] += response.contents().size())
-                        .get();
-        assertThat(count[0], equalTo(0L));
-
-        // count using items
-        List<S3Object> objects = new ArrayList<>();
-        resumedPublisher.contents().forEach(s3Object -> objects.add(s3Object))
-                        .get();
-        assertThat(Long.valueOf(objects.size()), equalTo(0L));
-    }
-
     private class TestSubscriber implements Subscriber<ListObjectsV2Response> {
         private Subscription subscription;
         private ListObjectsV2Response lastPage;

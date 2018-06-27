@@ -29,8 +29,8 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
-import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.regions.internal.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 /**

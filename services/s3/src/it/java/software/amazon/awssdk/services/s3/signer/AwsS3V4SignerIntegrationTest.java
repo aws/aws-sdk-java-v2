@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.s3.signer;
 
 import static org.junit.Assert.assertEquals;
-import static software.amazon.awssdk.core.config.options.SdkAdvancedClientOption.SIGNER;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.SIGNER;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.IOException;
@@ -30,12 +30,12 @@ import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.auth.AwsExecutionAttributes;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.auth.signer.params.AwsS3V4SignerParams;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -190,7 +190,7 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
     }
 
     private String getHost() {
-        return String.format("%s.s3-%s.amazonaws.com", BUCKET_NAME, DEFAULT_REGION.value());
+        return String.format("%s.s3-%s.amazonaws.com", BUCKET_NAME, DEFAULT_REGION.id());
     }
 
     private String getPath() {
@@ -217,9 +217,9 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
 
     private ExecutionAttributes constructExecutionAttributes() {
         return new ExecutionAttributes()
-            .putAttribute(AwsExecutionAttributes.AWS_CREDENTIALS, awsCredentials)
-            .putAttribute(AwsExecutionAttributes.SERVICE_SIGNING_NAME, SIGNING_NAME)
-            .putAttribute(AwsExecutionAttributes.SIGNING_REGION, DEFAULT_REGION);
+            .putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, awsCredentials)
+            .putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, SIGNING_NAME)
+            .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, DEFAULT_REGION);
     }
 
     private static S3ClientBuilder getClientBuilder() {

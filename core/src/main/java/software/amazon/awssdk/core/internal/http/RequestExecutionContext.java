@@ -16,17 +16,16 @@
 package software.amazon.awssdk.core.internal.http;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkRequestOverrideConfiguration;
-import software.amazon.awssdk.core.http.AmazonAsyncHttpClient;
-import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionAbortTrackerTask;
 import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
+import software.amazon.awssdk.core.internal.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.utils.Validate;
@@ -36,6 +35,7 @@ import software.amazon.awssdk.utils.Validate;
  * {@link AmazonAsyncHttpClient}.
  * Provided to the {@link RequestPipeline#execute(Object, RequestExecutionContext)} method.
  */
+@SdkInternalApi
 public final class RequestExecutionContext {
     private static final RequestOverrideConfiguration EMPTY_CONFIG = SdkRequestOverrideConfiguration.builder().build();
     private final SdkHttpRequestProvider requestProvider;

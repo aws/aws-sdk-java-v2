@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.stepfunctions.builder.conditions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
-import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNames;
+import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyName;
 
 /**
  * Binary condition for Timestamp equality comparison. Dates are converted to ISO8601 UTC timestamps.
@@ -27,10 +27,10 @@ import software.amazon.awssdk.services.stepfunctions.builder.internal.PropertyNa
  */
 public final class TimestampEqualsCondition implements BinaryCondition<Date> {
 
-    @JsonProperty(PropertyNames.VARIABLE)
+    @JsonProperty(PropertyName.VARIABLE)
     private final String variable;
 
-    @JsonProperty(PropertyNames.TIMESTAMP_EQUALS)
+    @JsonProperty(PropertyName.TIMESTAMP_EQUALS)
     private final Date expectedValue;
 
     private TimestampEqualsCondition(Builder builder) {
@@ -66,10 +66,10 @@ public final class TimestampEqualsCondition implements BinaryCondition<Date> {
      */
     public static final class Builder extends BinaryTimestampConditionBuilder {
 
-        @JsonProperty(PropertyNames.VARIABLE)
+        @JsonProperty(PropertyName.VARIABLE)
         private String variable;
 
-        @JsonProperty(PropertyNames.TIMESTAMP_EQUALS)
+        @JsonProperty(PropertyName.TIMESTAMP_EQUALS)
         private Date expectedValue;
 
         private Builder() {
@@ -101,7 +101,7 @@ public final class TimestampEqualsCondition implements BinaryCondition<Date> {
 
         @Override
         String type() {
-            return PropertyNames.TIMESTAMP_EQUALS;
+            return PropertyName.TIMESTAMP_EQUALS;
         }
 
         /**

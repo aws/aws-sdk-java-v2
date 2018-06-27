@@ -21,7 +21,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
+@SdkProtectedApi
 public final class FunctionalUtils {
 
     private FunctionalUtils() {

@@ -16,9 +16,10 @@
 package software.amazon.awssdk.core;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.runtime.io.SdkFilterInputStream;
+import software.amazon.awssdk.core.io.SdkFilterInputStream;
 import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Input stream that provides access to the unmarshalled POJO response returned by the service in addition to the streamed
@@ -38,8 +39,8 @@ public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream i
 
     public ResponseInputStream(ResponseT resp, AbortableInputStream in) {
         super(in);
-        this.response = resp;
-        this.abortable = in;
+        this.response = Validate.paramNotNull(resp, "response");
+        this.abortable = Validate.paramNotNull(in, "abortableInputStream");
     }
 
     /**

@@ -18,6 +18,7 @@ package software.amazon.awssdk.utils;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import java.util.function.BiFunction;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Simple struct of two values, possibly of different types.
@@ -25,6 +26,7 @@ import java.util.function.BiFunction;
  * @param <LeftT>  Left type
  * @param <RightT> Right Type
  */
+@SdkProtectedApi
 public final class Pair<LeftT, RightT> {
 
     private final LeftT left;

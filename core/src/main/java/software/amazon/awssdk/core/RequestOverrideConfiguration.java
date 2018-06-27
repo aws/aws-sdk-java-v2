@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,13 +23,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Consumer;
-
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * Base per-request override configuration for all SDK requests.
  */
 @Immutable
+@SdkPublicApi
 public abstract class RequestOverrideConfiguration {
 
     private final Map<String, List<String>> headers;
@@ -196,8 +196,6 @@ public abstract class RequestOverrideConfiguration {
 
         private Map<String, List<String>> rawQueryParameters;
 
-        private Duration requestExecutionTimeout;
-        
         private List<ApiName> apiNames;
 
         protected BuilderImpl() {
@@ -282,7 +280,5 @@ public abstract class RequestOverrideConfiguration {
             addApiName(b.build());
             return (B) this;
         }
-
-        public abstract RequestOverrideConfiguration build();
     }
 }

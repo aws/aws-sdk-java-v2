@@ -17,10 +17,12 @@ package software.amazon.awssdk.utils;
 
 import java.util.Optional;
 import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Functions that make working with optionals easier.
  */
+@SdkProtectedApi
 public final class OptionalUtils {
     /**
      * This class should be used statically.

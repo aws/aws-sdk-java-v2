@@ -21,15 +21,17 @@ import static software.amazon.awssdk.utils.Validate.validState;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import software.amazon.awssdk.core.runtime.io.ReleasableInputStream;
-import software.amazon.awssdk.core.util.Mimetypes;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.io.ReleasableInputStream;
+import software.amazon.awssdk.core.util.Mimetype;
+import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
@@ -37,6 +39,7 @@ import software.amazon.awssdk.utils.BinaryUtils;
  * Offers various convenience factory methods from common sources of data (File, String, byte[], etc). Body contents
  * are made reproducible where possible to facilitate automatic retries.
  */
+@SdkPublicApi
 public final class RequestBody {
 
     // TODO reproducible content
@@ -80,7 +83,9 @@ public final class RequestBody {
      * @return RequestBody instance.
      */
     public static RequestBody fromFile(Path path) {
-        return fromFile(path.toFile());
+        return new RequestBody(invokeSafely(() -> Files.newInputStream(path)),
+                               invokeSafely(() -> Files.size(path)),
+                               Mimetype.getInstance().getMimetype(path));
     }
 
     /**
@@ -90,13 +95,11 @@ public final class RequestBody {
      * @return RequestBody instance.
      */
     public static RequestBody fromFile(File file) {
-        return new RequestBody(invokeSafely(() -> new FileInputStream(file)),
-                               file.length(),
-                               Mimetypes.getInstance().getMimetype(file));
+        return fromFile(file.toPath());
     }
 
     /**
-     * Creates a {@link RequestBody} from an input stream. {@value software.amazon.awssdk.http.Headers#CONTENT_LENGTH} must
+     * Creates a {@link RequestBody} from an input stream. {@value Header#CONTENT_LENGTH} must
      * be provided so that the SDK does not have to make two passes of the data.
      *
      * <p>The stream will not be closed by the SDK. It is upto to caller of this method to close the stream. The stream
@@ -108,7 +111,7 @@ public final class RequestBody {
      * @return RequestBody instance.
      */
     public static RequestBody fromInputStream(InputStream inputStream, long contentLength) {
-        return new RequestBody(nonCloseableInputStream(inputStream), contentLength, Mimetypes.MIMETYPE_OCTET_STREAM);
+        return new RequestBody(nonCloseableInputStream(inputStream), contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     /**
@@ -119,7 +122,7 @@ public final class RequestBody {
      * @return RequestBody instance.
      */
     public static RequestBody fromString(String contents, Charset cs) {
-        return fromBytesDirect(contents.getBytes(cs), Mimetypes.MIMETYPE_TEXT_PLAIN);
+        return fromBytesDirect(contents.getBytes(cs), Mimetype.MIMETYPE_TEXT_PLAIN);
     }
 
     /**
@@ -167,7 +170,7 @@ public final class RequestBody {
      * Creates a {@link RequestBody} using the specified bytes (without copying).
      */
     private static RequestBody fromBytesDirect(byte[] bytes) {
-        return fromBytesDirect(bytes, Mimetypes.MIMETYPE_OCTET_STREAM);
+        return fromBytesDirect(bytes, Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     /**

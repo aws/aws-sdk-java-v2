@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
-import software.amazon.awssdk.services.sts.STSClient;
+import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsGetSessionTokenCredentialsProvider.Builder;
 import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.services.sts.model.GetSessionTokenRequest;
@@ -43,7 +43,7 @@ public class StsGetSessionTokenCredentialsProviderTest
     }
 
     @Override
-    protected GetSessionTokenResponse callClient(STSClient client, GetSessionTokenRequest request) {
+    protected GetSessionTokenResponse callClient(StsClient client, GetSessionTokenRequest request) {
         return client.getSessionToken(request);
     }
 }

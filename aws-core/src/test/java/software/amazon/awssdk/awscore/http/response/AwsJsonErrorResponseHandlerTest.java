@@ -32,13 +32,13 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import software.amazon.awssdk.awscore.client.utils.ValidSdkObjects;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.awscore.protocol.json.AwsJsonErrorUnmarshaller;
-import software.amazon.awssdk.awscore.protocol.json.JsonErrorCodeParser;
+import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonErrorUnmarshaller;
+import software.amazon.awssdk.awscore.internal.protocol.json.JsonErrorCodeParser;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.protocol.json.SdkJsonErrorMessageParser;
 import software.amazon.awssdk.core.util.StringInputStream;
 import software.amazon.awssdk.utils.StringUtils;
@@ -100,7 +100,7 @@ public class AwsJsonErrorResponseHandlerTest {
         httpResponse.setContent(null);
 
         ExecutionAttributes attributes =
-                new ExecutionAttributes().putAttribute(SdkExecutionAttributes.SERVICE_NAME, SERVICE_NAME);
+                new ExecutionAttributes().putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME);
         SdkServiceException exception = responseHandler.handle(httpResponse, attributes);
 
         // We assert these common properties are set again to make sure that code path is exercised
@@ -151,7 +151,7 @@ public class AwsJsonErrorResponseHandlerTest {
                 .thenReturn(new CustomException("error"));
 
         ExecutionAttributes attributes =
-                new ExecutionAttributes().putAttribute(SdkExecutionAttributes.SERVICE_NAME, SERVICE_NAME);
+                new ExecutionAttributes().putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME);
         SdkServiceException exception = responseHandler.handle(httpResponse, attributes);
 
         assertEquals(ERROR_CODE, exception.errorCode());

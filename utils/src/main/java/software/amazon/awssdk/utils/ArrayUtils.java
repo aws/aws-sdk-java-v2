@@ -36,7 +36,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 @SdkProtectedApi
 public final class ArrayUtils {
 
-    public static final int INDEX_NOT_FOUND = -1;
+    private static final int INDEX_NOT_FOUND = -1;
 
     private ArrayUtils() {
     }

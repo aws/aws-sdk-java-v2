@@ -33,11 +33,9 @@ public class EventStreamVisitorBuilder implements ClassSpec {
 
     private final PoetExtensions poetExt;
     private final EventStreamUtils eventStreamUtils;
-    private final OperationModel operation;
 
     public EventStreamVisitorBuilder(GeneratorTaskParams params, OperationModel operationModel) {
         this.poetExt = params.getPoetExtensions();
-        this.operation = operationModel;
         this.eventStreamUtils = new EventStreamUtils(operationModel);
 
     }

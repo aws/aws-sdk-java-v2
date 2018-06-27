@@ -24,7 +24,9 @@ import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.pool.ConnPoolControl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
+@SdkInternalApi
 public final class ClientConnectionManagerFactory {
     private static final Logger log = LoggerFactory.getLogger(ClientConnectionManagerFactory.class);
 

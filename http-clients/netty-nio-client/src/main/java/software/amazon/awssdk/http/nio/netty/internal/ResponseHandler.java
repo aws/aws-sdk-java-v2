@@ -17,8 +17,8 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.REQUEST_CONTEXT_KEY;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKeys.RESPONSE_COMPLETE_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 
 import com.typesafe.netty.http.HttpStreamsClientHandler;
 import com.typesafe.netty.http.StreamedHttpResponse;
@@ -44,6 +44,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -51,6 +52,7 @@ import software.amazon.awssdk.http.nio.netty.internal.http2.Http2ResetSendingSub
 import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 
 @Sharable
+@SdkInternalApi
 public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     private static final Logger log = LoggerFactory.getLogger(ResponseHandler.class);
@@ -88,7 +90,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
             final ByteBuffer bb = copyToByteBuffer(fullContent);
             fullContent.release();
             requestContext.handler().onStream(new FullResponseContentPublisher(channelContext, bb));
-            Subscriber<? super ByteBuffer> subscriber = channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY).get();
+            Subscriber<? super ByteBuffer> subscriber = channelContext.channel().attr(ChannelAttributeKey.SUBSCRIBER_KEY).get();
             try {
                 subscriber.onComplete();
                 requestContext.handler().complete();
@@ -188,7 +190,7 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                 @Override
                 public void onSubscribe(Subscription subscription) {
                     // For HTTP2 we send a RST_STREAM frame on cancel to stop the service from sending more data
-                    if (Protocol.HTTP2.equals(ChannelAttributeKeys.getProtocolNow(channelContext.channel()))) {
+                    if (Protocol.HTTP2.equals(ChannelAttributeKey.getProtocolNow(channelContext.channel()))) {
                         subscriber.onSubscribe(new Http2ResetSendingSubscription(channelContext, subscription));
                     } else {
                         // TODO I believe the behavior for H1 is to finish reading the data. Do we want to do this
@@ -238,28 +240,26 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
             this.fullContent = fullContent;
         }
 
-        // FIXME: According to the spec,the publisher must call
-        // onSubscribe and wait for demand before calling onNext
-        // see item 1.1, 1.9: https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.1/README.md#specification
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
             if (this.subscriber != null) {
                 subscriber.onComplete();
                 return;
             }
+            this.subscriber = subscriber;
+            channelContext.channel().attr(ChannelAttributeKey.SUBSCRIBER_KEY)
+                    .set(subscriber);
 
             subscriber.onSubscribe(new Subscription() {
                 @Override
                 public void request(long l) {
                     if (l <= 0 && running) {
-                        subscriber.onError(new IllegalArgumentException("Demand must be positive!"));
                         running = false;
+                        subscriber.onError(new IllegalArgumentException("Demand must be positive!"));
                     } else if (running) {
+                        running = false;
                         subscriber.onNext(fullContent);
                         subscriber.onComplete();
-                        channelContext.channel().attr(ChannelAttributeKeys.SUBSCRIBER_KEY)
-                            .set(subscriber);
-                        running = false;
                     }
                 }
 
@@ -269,7 +269,6 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                 }
             });
 
-            this.subscriber = subscriber;
         }
     }
 

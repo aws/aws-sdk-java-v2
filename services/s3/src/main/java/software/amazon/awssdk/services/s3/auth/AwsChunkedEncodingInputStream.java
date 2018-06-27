@@ -15,10 +15,9 @@
 
 package software.amazon.awssdk.services.s3.auth;
 
-import static software.amazon.awssdk.core.util.StringUtils.UTF8;
-
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -30,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.signer.AbstractAws4Signer;
 import software.amazon.awssdk.auth.signer.SigningAlgorithm;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.runtime.io.SdkInputStream;
+import software.amazon.awssdk.core.io.SdkInputStream;
 import software.amazon.awssdk.services.s3.AwsS3V4Signer;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -343,8 +342,8 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
                 .append(CRLF)
         ;
         try {
-            byte[] header = chunkHeader.toString().getBytes(UTF8);
-            byte[] trailer = CRLF.getBytes(UTF8);
+            byte[] header = chunkHeader.toString().getBytes(StandardCharsets.UTF_8);
+            byte[] trailer = CRLF.getBytes(StandardCharsets.UTF_8);
             byte[] signedChunk = new byte[header.length + chunkData.length + trailer.length];
             System.arraycopy(header, 0, signedChunk, 0, header.length);
             System.arraycopy(chunkData, 0, signedChunk, header.length, chunkData.length);

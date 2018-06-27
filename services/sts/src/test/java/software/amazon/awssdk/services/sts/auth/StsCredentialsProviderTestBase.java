@@ -28,7 +28,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.services.sts.STSClient;
+import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.Credentials;
 
 /**
@@ -37,7 +37,7 @@ import software.amazon.awssdk.services.sts.model.Credentials;
 @RunWith(MockitoJUnitRunner.class)
 public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
     @Mock
-    private STSClient stsClient;
+    private StsClient stsClient;
 
     @Test
     public void cachingDoesNotApplyToExpiredSession() {
@@ -70,7 +70,7 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
     protected abstract StsCredentialsProvider.BaseBuilder<?, ? extends StsCredentialsProvider>
             createCredentialsProviderBuilder(RequestT request);
 
-    protected abstract ResponseT callClient(STSClient client, RequestT request);
+    protected abstract ResponseT callClient(StsClient client, RequestT request);
 
     public void callClientWithCredentialsProvider(Instant credentialsExpirationDate, int numTimesInvokeCredentialsProvider) {
         Credentials credentials = Credentials.builder().accessKeyId("a").secretAccessKey("b").sessionToken("c").expiration(credentialsExpirationDate).build();

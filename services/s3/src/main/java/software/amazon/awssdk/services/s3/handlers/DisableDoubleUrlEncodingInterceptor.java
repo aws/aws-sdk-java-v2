@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.s3.handlers;
 
-import software.amazon.awssdk.auth.AwsExecutionAttributes;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -28,6 +28,6 @@ public class DisableDoubleUrlEncodingInterceptor implements ExecutionInterceptor
 
     @Override
     public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
-        executionAttributes.putAttribute(AwsExecutionAttributes.SIGNER_DOUBLE_URL_ENCODE, Boolean.FALSE);
+        executionAttributes.putAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE, Boolean.FALSE);
     }
 }

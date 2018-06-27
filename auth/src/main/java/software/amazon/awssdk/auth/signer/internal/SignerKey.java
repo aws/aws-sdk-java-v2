@@ -16,12 +16,14 @@
 package software.amazon.awssdk.auth.signer.internal;
 
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Holds the signing key and the number of days since epoch for the date for
  * which the signing key was generated.
  */
 @Immutable
+@SdkInternalApi
 public final class SignerKey {
 
     private final long numberOfDaysSinceEpoch;

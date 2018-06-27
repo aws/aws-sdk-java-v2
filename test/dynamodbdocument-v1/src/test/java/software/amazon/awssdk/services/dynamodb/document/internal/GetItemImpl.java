@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.dynamodb.document.internal;
 
 import java.util.Map;
-import software.amazon.awssdk.services.dynamodb.DynamoDBClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.document.GetItemOutcome;
 import software.amazon.awssdk.services.dynamodb.document.Item;
 import software.amazon.awssdk.services.dynamodb.document.KeyAttribute;
@@ -31,7 +31,7 @@ import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
  * The implementation for <code>GetItemApi</code>.
  */
 public class GetItemImpl extends AbstractImpl implements GetItemApi {
-    public GetItemImpl(DynamoDBClient client, Table table) {
+    public GetItemImpl(DynamoDbClient client, Table table) {
         super(client, table);
     }
 

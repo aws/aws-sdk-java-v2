@@ -90,7 +90,7 @@ public class Http2ToHttpInboundAdapter extends SimpleChannelInboundHandler<Http2
     /**
      * Exception thrown when a GOAWAY frame is sent by the service.
      */
-    private static class GoawayException extends Throwable {
+    private static class GoawayException extends IOException {
 
         private final long errorCode;
         private final byte[] debugData;

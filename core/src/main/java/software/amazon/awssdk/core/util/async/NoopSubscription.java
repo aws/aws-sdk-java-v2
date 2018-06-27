@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.util.async;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /** An implementation of {@link org.reactivestreams.Subscription} that does nothing.
  * <p />
@@ -25,6 +26,7 @@ import org.reactivestreams.Subscription;
  * signal {@code onError} or {@code onComplete} immediately after
  * {@code subscribe()} but but it needs to signal{@code onSubscription} first.
  */
+@SdkInternalApi
 public final class NoopSubscription implements Subscription {
     private final Subscriber<?> subscriber;
 

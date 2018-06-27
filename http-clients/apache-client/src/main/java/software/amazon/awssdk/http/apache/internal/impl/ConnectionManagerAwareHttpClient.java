@@ -17,11 +17,13 @@ package software.amazon.awssdk.http.apache.internal.impl;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.HttpClientConnectionManager;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * An extension of Apache's HttpClient that expose the connection manager
  * associated with the client.
  */
+@SdkInternalApi
 public interface ConnectionManagerAwareHttpClient extends HttpClient {
 
     /**

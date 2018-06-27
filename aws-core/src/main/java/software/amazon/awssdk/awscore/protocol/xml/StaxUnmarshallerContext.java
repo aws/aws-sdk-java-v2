@@ -26,6 +26,7 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.XMLEvent;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Contains the unmarshalling state for the parsing of an XML response. The
@@ -35,6 +36,7 @@ import javax.xml.stream.events.XMLEvent;
  * document being parsed and provides utilties for accessing the next XML event
  * from the parser, reading element text, handling attribute XML events, etc.
  */
+@SdkProtectedApi
 public class StaxUnmarshallerContext {
 
     public final Stack<String> stack = new Stack<>();

@@ -7,6 +7,7 @@
     "protocol":"rest-json",
     "serviceAbbreviation":"JsonProtocolTests",
     "serviceFullName":"AWS DR Tools JSON Protocol Tests",
+    "serviceId":"Json Protocol Tests",
     "signatureVersion":"v4",
     "targetPrefix":"ProtocolTestsJsonRpcService",
     "timestampFormat":"unixTimestamp",

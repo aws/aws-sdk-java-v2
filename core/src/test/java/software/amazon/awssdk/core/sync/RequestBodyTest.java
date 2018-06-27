@@ -17,9 +17,15 @@ package software.amazon.awssdk.core.sync;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.Test;
-import software.amazon.awssdk.core.util.Mimetypes;
+import software.amazon.awssdk.core.util.Mimetype;
 import software.amazon.awssdk.core.util.StringInputStream;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -37,33 +43,42 @@ public class RequestBodyTest {
     @Test
     public void stringConstructorHasCorrectContentType() {
         RequestBody requestBody = RequestBody.fromString("hello world");
-        assertThat(requestBody.contentType()).isEqualTo(Mimetypes.MIMETYPE_TEXT_PLAIN);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_TEXT_PLAIN);
+    }
+
+    @Test
+    public void fileConstructorHasCorrectContentType() throws IOException {
+        FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
+        Path path = fs.getPath("./test");
+        Files.write(path, "hello world".getBytes());
+        RequestBody requestBody = RequestBody.fromFile(path);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     @Test
     public void streamConstructorHasCorrectContentType() {
         StringInputStream inputStream = new StringInputStream("hello world");
         RequestBody requestBody = RequestBody.fromInputStream(inputStream, 11);
-        assertThat(requestBody.contentType()).isEqualTo(Mimetypes.MIMETYPE_OCTET_STREAM);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
         IoUtils.closeQuietly(inputStream, null);
     }
 
     @Test
     public void bytesArrayConstructorHasCorrectContentType() {
         RequestBody requestBody = RequestBody.fromBytes("hello world".getBytes());
-        assertThat(requestBody.contentType()).isEqualTo(Mimetypes.MIMETYPE_OCTET_STREAM);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     @Test
     public void bytesBufferConstructorHasCorrectContentType() {
         ByteBuffer byteBuffer = ByteBuffer.wrap("hello world".getBytes());
         RequestBody requestBody = RequestBody.fromByteBuffer(byteBuffer);
-        assertThat(requestBody.contentType()).isEqualTo(Mimetypes.MIMETYPE_OCTET_STREAM);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     @Test
     public void emptyBytesConstructorHasCorrectContentType() {
         RequestBody requestBody = RequestBody.empty();
-        assertThat(requestBody.contentType()).isEqualTo(Mimetypes.MIMETYPE_OCTET_STREAM);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
     }
 }

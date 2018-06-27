@@ -19,11 +19,10 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.internal.interceptor.InterceptorContext;
 import software.amazon.awssdk.services.route53.internal.Route53IdInterceptor;
 import software.amazon.awssdk.services.route53.model.CreateHostedZoneRequest;
 import software.amazon.awssdk.services.route53.model.CreateHostedZoneResponse;
@@ -32,7 +31,6 @@ import software.amazon.awssdk.services.route53.model.DelegationSet;
 import software.amazon.awssdk.services.route53.model.GetHostedZoneResponse;
 import software.amazon.awssdk.services.route53.model.GetReusableDelegationSetResponse;
 import software.amazon.awssdk.services.route53.model.ListReusableDelegationSetsResponse;
-import software.amazon.awssdk.services.route53.model.Route53Request;
 
 /**
  * Unit test for request handler customization of delegation set id's

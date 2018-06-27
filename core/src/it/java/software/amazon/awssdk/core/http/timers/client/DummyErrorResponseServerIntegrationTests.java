@@ -24,15 +24,15 @@ import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.core.TestPreConditions;
-import software.amazon.awssdk.core.http.AmazonSyncHttpClient;
+import software.amazon.awssdk.core.exception.ClientExecutionTimeoutException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.MockServerTestBase;
-import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
 import software.amazon.awssdk.core.http.server.MockServer;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.request.SlowExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
 import software.amazon.awssdk.core.internal.http.response.UnresponsiveErrorResponseHandler;
+import software.amazon.awssdk.core.internal.interceptor.ExecutionInterceptorChain;
 import utils.HttpTestUtils;
 
 /**

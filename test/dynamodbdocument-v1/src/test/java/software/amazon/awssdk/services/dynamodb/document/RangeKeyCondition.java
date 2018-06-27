@@ -30,7 +30,7 @@ import software.amazon.awssdk.services.dynamodb.document.internal.InternalUtils;
  */
 public class RangeKeyCondition {
     private final String attrName;
-    private KeyConditions kcond;
+    private KeyCondition kcond;
     private Object[] values;
 
     /**
@@ -52,7 +52,7 @@ public class RangeKeyCondition {
         return attrName;
     }
 
-    public KeyConditions getKeyCondition() {
+    public KeyCondition getKeyCondition() {
         return kcond;
     }
 
@@ -65,7 +65,7 @@ public class RangeKeyCondition {
      * value.
      */
     public RangeKeyCondition eq(Object val) {
-        kcond = KeyConditions.EQ;
+        kcond = KeyCondition.EQ;
         return values(val);
     }
 
@@ -74,7 +74,7 @@ public class RangeKeyCondition {
      * with the given value.
      */
     public RangeKeyCondition beginsWith(String val) {
-        kcond = KeyConditions.BEGINS_WITH;
+        kcond = KeyCondition.BEGINS_WITH;
         return values(val);
     }
 
@@ -83,7 +83,7 @@ public class RangeKeyCondition {
      * the given values.
      */
     public RangeKeyCondition between(Object low, Object hi) {
-        kcond = KeyConditions.BETWEEN;
+        kcond = KeyCondition.BETWEEN;
         return values(low, hi);
     }
 
@@ -92,7 +92,7 @@ public class RangeKeyCondition {
      * equal to the given value.
      */
     public RangeKeyCondition ge(Object val) {
-        kcond = KeyConditions.GE;
+        kcond = KeyCondition.GE;
         return values(val);
     }
 
@@ -101,7 +101,7 @@ public class RangeKeyCondition {
      * given value.
      */
     public RangeKeyCondition gt(Object val) {
-        kcond = KeyConditions.GT;
+        kcond = KeyCondition.GT;
         return values(val);
     }
 
@@ -110,7 +110,7 @@ public class RangeKeyCondition {
      * to the given value.
      */
     public RangeKeyCondition le(Object val) {
-        kcond = KeyConditions.LE;
+        kcond = KeyCondition.LE;
         return values(val);
     }
 
@@ -119,7 +119,7 @@ public class RangeKeyCondition {
      * given value.
      */
     public RangeKeyCondition lt(Object val) {
-        kcond = KeyConditions.LT;
+        kcond = KeyCondition.LT;
         return values(val);
     }
 

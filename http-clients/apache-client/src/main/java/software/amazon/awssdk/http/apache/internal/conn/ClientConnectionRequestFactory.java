@@ -23,7 +23,9 @@ import java.lang.reflect.Proxy;
 import org.apache.http.conn.ConnectionRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
+@SdkInternalApi
 final class ClientConnectionRequestFactory {
     private static final Logger log = LoggerFactory.getLogger(ClientConnectionRequestFactory.class);
     private static final Class<?>[] INTERFACES = {

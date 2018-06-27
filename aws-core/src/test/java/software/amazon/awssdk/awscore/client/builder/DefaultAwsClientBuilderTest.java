@@ -16,17 +16,16 @@
 package software.amazon.awssdk.awscore.client.builder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static software.amazon.awssdk.awscore.config.options.AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION;
-import static software.amazon.awssdk.awscore.config.options.AwsClientOption.SERVICE_SIGNING_NAME;
-import static software.amazon.awssdk.awscore.config.options.AwsClientOption.SIGNING_REGION;
-import static software.amazon.awssdk.core.config.options.SdkAdvancedClientOption.SIGNER;
+import static software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION;
+import static software.amazon.awssdk.awscore.client.config.AwsClientOption.SERVICE_SIGNING_NAME;
+import static software.amazon.awssdk.awscore.client.config.AwsClientOption.SIGNING_REGION;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.SIGNER;
 
 import java.beans.BeanInfo;
 import java.beans.Introspector;
@@ -43,10 +42,9 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
-import software.amazon.awssdk.core.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.config.options.SdkClientOption;
-import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;

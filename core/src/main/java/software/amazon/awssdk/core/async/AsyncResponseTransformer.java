@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
  * @param <ResponseT> POJO response type.
  * @param <ReturnT>   Type this response handler produces. I.E. the type you are transforming the response into.
  */
+@SdkPublicApi
 public interface AsyncResponseTransformer<ResponseT, ReturnT>
     extends BaseAsyncResponseTransformer<ResponseT> {
 

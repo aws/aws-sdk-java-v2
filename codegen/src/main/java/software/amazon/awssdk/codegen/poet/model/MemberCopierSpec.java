@@ -35,7 +35,7 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.StaticImport;
-import software.amazon.awssdk.core.runtime.StandardMemberCopier;
+import software.amazon.awssdk.core.internal.StandardMemberCopier;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
 
@@ -59,7 +59,7 @@ class MemberCopierSpec implements ClassSpec {
     public TypeSpec poetSpec() {
         TypeSpec.Builder builder = TypeSpec.classBuilder(className())
                 .addModifiers(Modifier.FINAL)
-                .addAnnotation(PoetUtils.GENERATED)
+                .addAnnotation(PoetUtils.generatedAnnotation())
                 .addMethod(copyMethod());
 
         if (serviceModelCopiers.requiresBuilderCopier(memberModel)) {
@@ -263,8 +263,8 @@ class MemberCopierSpec implements ClassSpec {
 
     private String memberParamName() {
         if (memberModel.isSimple()) {
-            return Utils.unCapitialize(memberModel.getVariable().getSimpleType()) + "Param";
+            return Utils.unCapitalize(memberModel.getVariable().getSimpleType()) + "Param";
         }
-        return Utils.unCapitialize(memberModel.getC2jShape()) + "Param";
+        return Utils.unCapitalize(memberModel.getC2jShape()) + "Param";
     }
 }

@@ -47,7 +47,7 @@ import org.junit.Test;
 import software.amazon.awssdk.services.dynamodb.DynamoDBMapperIntegrationTestBase;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig;
-import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.ConsistentReads;
+import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.ConsistentRead;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMappingException;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbQueryExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -121,7 +121,7 @@ public class IndexRangeKeyAttributesIntegrationTest extends DynamoDBMapperIntegr
         }
 
         mapper = new DynamoDbMapper(dynamo,
-                                    new DynamoDbMapperConfig(ConsistentReads.CONSISTENT));
+                                    new DynamoDbMapperConfig(ConsistentRead.CONSISTENT));
     }
 
     /**

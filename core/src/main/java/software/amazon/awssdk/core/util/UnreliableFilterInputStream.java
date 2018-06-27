@@ -18,12 +18,14 @@ package software.amazon.awssdk.core.util;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.util.json.JacksonUtils;
 
 /**
  * An internal class used solely for the purpose of testing via failure
  * injection.
  */
+@SdkInternalApi
 public class UnreliableFilterInputStream extends FilterInputStream {
     // True to throw a FakeIOException; false to throw a RuntimeException
     private final boolean isFakeIoException;

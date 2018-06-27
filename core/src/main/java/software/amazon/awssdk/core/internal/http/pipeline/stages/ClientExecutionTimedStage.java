@@ -17,14 +17,15 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
-import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.AbortedException;
+import software.amazon.awssdk.core.exception.ClientExecutionTimeoutException;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.http.exception.ClientExecutionTimeoutException;
-import software.amazon.awssdk.core.http.exception.SdkInterruptedException;
+import software.amazon.awssdk.core.exception.SdkInterruptedException;
+import software.amazon.awssdk.core.internal.Response;
+import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
@@ -36,17 +37,16 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 /**
  * Wrapper around a {@link RequestPipeline} to manage the client execution timeout feature.
  */
+@SdkInternalApi
 public class ClientExecutionTimedStage<OutputT> implements RequestToResponsePipeline<OutputT> {
 
     private final RequestPipeline<SdkHttpFullRequest, Response<OutputT>> wrapped;
     private final ClientExecutionTimer clientExecutionTimer;
-    private final SdkClientConfiguration clientConfig;
 
     public ClientExecutionTimedStage(HttpClientDependencies dependencies,
                                      RequestPipeline<SdkHttpFullRequest, Response<OutputT>> wrapped) {
         this.wrapped = wrapped;
         this.clientExecutionTimer = dependencies.clientExecutionTimer();
-        this.clientConfig = dependencies.clientConfiguration();
     }
 
     @Override

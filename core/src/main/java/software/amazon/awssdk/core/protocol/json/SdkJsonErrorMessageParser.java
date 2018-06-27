@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.http.HttpResponse;
+import software.amazon.awssdk.core.internal.protocol.json.ErrorMessageParser;
 
 @SdkProtectedApi
 public class SdkJsonErrorMessageParser implements ErrorMessageParser {
