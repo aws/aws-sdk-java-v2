@@ -68,6 +68,8 @@ public class MemberModel extends DocumentationModel {
 
     private String fluentSetterMethodName;
 
+    private String fluentEnumSetterMethodName;
+
     private String beanStyleGetterName;
 
     private String beanStyleSetterName;
@@ -215,6 +217,19 @@ public class MemberModel extends DocumentationModel {
 
     public MemberModel withFluentSetterMethodName(String fluentMethodName) {
         setFluentSetterMethodName(fluentMethodName);
+        return this;
+    }
+
+    public String getFluentEnumSetterMethodName() {
+        return fluentEnumSetterMethodName;
+    }
+
+    public void setFluentEnumSetterMethodName(String fluentEnumSetterMethodName) {
+        this.fluentEnumSetterMethodName = fluentEnumSetterMethodName;
+    }
+
+    public MemberModel withFluentEnumSetterMethodName(String fluentEnumSetterMethodName) {
+        setFluentEnumSetterMethodName(fluentEnumSetterMethodName);
         return this;
     }
 

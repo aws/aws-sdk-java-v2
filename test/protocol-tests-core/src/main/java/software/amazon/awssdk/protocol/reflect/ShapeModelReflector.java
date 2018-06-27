@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.StreamSupport;
+import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
@@ -135,8 +136,17 @@ public class ShapeModelReflector {
      */
     private Method getMemberSetter(Class<?> containingClass, MemberModel currentMember) throws
                                                                                         Exception {
-        return containingClass.getMethod(StringUtils.uncapitalize(currentMember.getName()),
+        return containingClass.getMethod(getMethodName(currentMember),
                                          Class.forName(getFullyQualifiedType(currentMember)));
+    }
+
+    private String getMethodName(MemberModel memberModel) {
+        String methodName = StringUtils.uncapitalize(memberModel.getName());
+
+        if (Utils.isListWithEnumShape(memberModel) || Utils.isMapWithEnumShape(memberModel)) {
+            methodName += "WithStrings";
+        }
+        return methodName;
     }
 
     private String getFullyQualifiedType(MemberModel memberModel) {

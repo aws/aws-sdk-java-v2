@@ -16,4 +16,13 @@ final class MapOfEnumToStringCopier {
                                                                                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
         return Collections.unmodifiableMap(mapOfEnumToStringParamCopy);
     }
+
+    static Map<String, String> copyEnumToString(Map<EnumType, String> mapOfEnumToStringParam) {
+        if (mapOfEnumToStringParam == null) {
+            return null;
+        }
+        Map<String, String> mapOfEnumToStringParamCopy = mapOfEnumToStringParam.entrySet().stream()
+                                                                               .collect(toMap(e -> e.getKey().toString(), Map.Entry::getValue));
+        return Collections.unmodifiableMap(mapOfEnumToStringParamCopy);
+    }
 }

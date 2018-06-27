@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeMarshaller;
@@ -77,10 +78,23 @@ public final class Utils {
 
     public static boolean isOrContainsEnum(MemberModel member) {
         boolean isEnum = member.getEnumType() != null;
-        boolean isMapWithEnumMember = member.isMap() && (member.getMapModel().getKeyModel().getEnumType() != null ||
-                                                         member.getMapModel().getValueModel().getEnumType() != null);
-        boolean isListWithEnumMember = member.isList() && member.getListModel().getListMemberModel().getEnumType() != null;
-        return isEnum || isMapWithEnumMember || isListWithEnumMember;
+        return isEnum || isMapWithEnumShape(member) || isListWithEnumShape(member);
+    }
+
+    public static boolean isListWithEnumShape(MemberModel member) {
+        return member.isList() && member.getListModel().getListMemberModel().getEnumType() != null;
+    }
+
+    public static boolean isMapWithEnumShape(MemberModel member) {
+        return member.isMap() && (isMapKeyWithEnumShape(member.getMapModel()) || isMapValueWithEnumShape(member.getMapModel()));
+    }
+
+    public static boolean isMapKeyWithEnumShape(MapModel mapModel) {
+        return mapModel.getKeyModel().getEnumType() != null;
+    }
+
+    public static boolean isMapValueWithEnumShape(MapModel mapModel) {
+        return mapModel.getValueModel().getEnumType() != null;
     }
 
     public static String unCapitalize(String name) {
