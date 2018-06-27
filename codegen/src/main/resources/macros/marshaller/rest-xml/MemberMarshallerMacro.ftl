@@ -10,6 +10,10 @@
 <#if member.simple>
     <#if member.idempotencyToken>
         xmlWriter.startElement("${http.marshallLocationName}").value(<@IdempotencyTokenMacro.content getMember member.variable.simpleType/>).endElement();
+    <#elseif member.sdkBytesType>
+        if(${getMember}() != null) {
+            xmlWriter.startElement("${http.marshallLocationName}").value(${getMember}().asByteBuffer()).endElement();
+        }
     <#else>
         if(${getMember}() != null) {
             xmlWriter.startElement("${http.marshallLocationName}").value(${getMember}()).endElement();
@@ -32,7 +36,11 @@
           <#local memberLocationName = listModel.memberLocationName!http.marshallLocationName />
           xmlWriter.startElement("${memberLocationName}");
           <#if listModel.simple>
-              xmlWriter.value(${loopVariable});
+              <#if listModel.listMemberModel.sdkBytesType>
+                  xmlWriter.value(${loopVariable}.asByteBuffer());
+              <#else>
+                  xmlWriter.value(${loopVariable});
+              </#if>
           <#else>
               <@MemberMarshallerMacro.content customConfig listModel.memberType loopVariable shapes/>
           </#if>
@@ -46,7 +54,11 @@
           <#local memberLocationName = listModel.memberLocationName!"member" />
           xmlWriter.startElement("${memberLocationName}");
           <#if listModel.simple>
-              xmlWriter.value(${loopVariable});
+              <#if listModel.listMemberModel.sdkBytesType>
+                  xmlWriter.value(${loopVariable}.asByteBuffer());
+              <#else>
+                  xmlWriter.value(${loopVariable});
+              </#if>
           <#else>
               <@MemberMarshallerMacro.content customConfig listModel.memberType loopVariable shapes/>
           </#if>
@@ -72,7 +84,11 @@
             xmlWriter.endElement();
             xmlWriter.startElement("${mapModel.valueLocationName}");
             <#if mapModel.valueModel.simple>
-                xmlWriter.value(${loopVariable}.getValue());
+                <#if mapModel.valueModel.sdkBytesType>
+                  xmlWriter.value(${loopVariable}.getValue().asByteBuffer());
+                <#else>
+                  xmlWriter.value(${loopVariable}.getValue());
+                </#if>
             <#else>
                 <@MemberMarshallerMacro.content customConfig mapModel.valueModel.variable.variableType loopVariable shapes/>
             </#if>

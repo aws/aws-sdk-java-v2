@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling.unmarshallers;
 
-import java.nio.ByteBuffer;
-import java.util.HashSet;
+import java.util.stream.Collectors;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -37,6 +37,8 @@ public class ByteBufferSetUnmarshaller extends BsUnmarshaller {
 
     @Override
     public Object unmarshall(AttributeValue value) {
-        return new HashSet<ByteBuffer>(value.bs());
+        return value.bs().stream()
+                    .map(SdkBytes::asByteBuffer)
+                    .collect(Collectors.toSet());
     }
 }

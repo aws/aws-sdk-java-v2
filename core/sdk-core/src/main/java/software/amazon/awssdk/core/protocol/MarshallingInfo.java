@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.protocol;
 
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.SdkBytes;
 
 /**
  * Metadata about the marshalling requirements of a given member. Includes things like where to put the
@@ -74,7 +75,7 @@ public final class MarshallingInfo<T> {
     }
 
     /**
-     * @return True if the payload member is binary data (i.e. a {@link java.nio.ByteBuffer} or {@link java.io.InputStream} and
+     * @return True if the payload member is binary data (i.e. a {@link SdkBytes} or {@link java.io.InputStream} and
      *     should be sent as the request content. This is not true when binary data is bound to a member of the JSON payload
      *     since it will be base64 encoded as a string.
      */

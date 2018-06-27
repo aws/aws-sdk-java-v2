@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.services.dynamodb.document.AttributeUpdate;
 import software.amazon.awssdk.services.dynamodb.document.Expected;
@@ -168,9 +169,9 @@ public final class InternalUtils {
         } else if (value instanceof Number) {
             return resultBuilder.n(value.toString()).build();
         } else if (value instanceof byte[]) {
-            return resultBuilder.b(ByteBuffer.wrap((byte[]) value)).build();
+            return resultBuilder.b(SdkBytes.fromByteArray((byte[]) value)).build();
         } else if (value instanceof ByteBuffer) {
-            return resultBuilder.b((ByteBuffer) value).build();
+            return resultBuilder.b(SdkBytes.fromByteBuffer((ByteBuffer) value)).build();
         } else if (value instanceof Set) {
             // default to an empty string set if there is no element
             @SuppressWarnings("unchecked")
@@ -196,15 +197,19 @@ public final class InternalUtils {
             } else if (element instanceof byte[]) {
                 @SuppressWarnings("unchecked")
                 Set<byte[]> in = (Set<byte[]>) value;
-                List<ByteBuffer> out = new ArrayList<ByteBuffer>(set.size());
+                List<SdkBytes> out = new ArrayList<>(set.size());
                 for (byte[] buf : in) {
-                    out.add(ByteBuffer.wrap(buf));
+                    out.add(SdkBytes.fromByteArray(buf));
                 }
                 resultBuilder.bs(out);
             } else if (element instanceof ByteBuffer) {
                 @SuppressWarnings("unchecked")
-                Set<ByteBuffer> bs = (Set<ByteBuffer>) value;
-                resultBuilder.bs(bs);
+                Set<ByteBuffer> in = (Set<ByteBuffer>) value;
+                List<SdkBytes> out = new ArrayList<>(set.size());
+                for (ByteBuffer buf : in) {
+                    out.add(SdkBytes.fromByteBuffer(buf));
+                }
+                resultBuilder.bs(out);
             } else {
                 throw new UnsupportedOperationException("element type: "
                                                         + element.getClass());
@@ -382,7 +387,7 @@ public final class InternalUtils {
             return t;
         } else if (value.b() != null) {
             @SuppressWarnings("unchecked")
-            T t = (T) copyAllBytesFrom(value.b());
+            T t = (T) value.b().asByteArray();
             return t;
         } else if (value.ss() != null) {
             @SuppressWarnings("unchecked")
@@ -398,8 +403,8 @@ public final class InternalUtils {
             return t;
         } else if (value.bs() != null) {
             Set<byte[]> set = new LinkedHashSet<byte[]>(value.bs().size());
-            for (ByteBuffer bb : value.bs()) {
-                set.add(copyAllBytesFrom(bb));
+            for (SdkBytes bb : value.bs()) {
+                set.add(copyAllBytesFrom(bb.asByteBuffer()));
             }
             @SuppressWarnings("unchecked")
             T t = (T) set;

@@ -17,11 +17,11 @@ package software.amazon.awssdk.core.protocol;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.SdkBytes;
 
 /**
  * Represents the various types supported for marshalling.
@@ -52,7 +52,7 @@ public interface MarshallingType<T> {
 
     MarshallingType<Instant> INSTANT = () -> Instant.class;
 
-    MarshallingType<ByteBuffer> BYTE_BUFFER = () -> ByteBuffer.class;
+    MarshallingType<SdkBytes> SDK_BYTES = () -> SdkBytes.class;
 
     MarshallingType<InputStream> STREAM = () -> InputStream.class;
 

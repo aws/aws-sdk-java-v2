@@ -34,6 +34,6 @@ public class ByteBufferUnmarshaller extends BUnmarshaller {
 
     @Override
     public Object unmarshall(AttributeValue value) {
-        return value.b();
+        return value.b().asByteBuffer();
     }
 }

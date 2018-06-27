@@ -13,8 +13,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.Generated;
-import software.amazon.awssdk.core.adapter.StringToByteBufferAdapter;
-import software.amazon.awssdk.core.internal.StandardMemberCopier;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.adapter.StandardMemberCopier;
+import software.amazon.awssdk.core.adapter.StringToSdkBytesAdapter;
 import software.amazon.awssdk.core.runtime.TypeConverter;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.ToString;
@@ -64,13 +65,13 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
 
     private final StructWithTimestamp structWithNestedTimestampMember;
 
-    private final ByteBuffer blobArg;
+    private final SdkBytes blobArg;
 
     private final StructWithNestedBlobType structWithNestedBlob;
 
-    private final Map<String, ByteBuffer> blobMap;
+    private final Map<String, SdkBytes> blobMap;
 
-    private final List<ByteBuffer> listOfBlobs;
+    private final List<SdkBytes> listOfBlobs;
 
     private final RecursiveStructType recursiveStruct;
 
@@ -380,14 +381,11 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
 
     /**
      * Returns the value of the BlobArg property for this object.
-     * <p>
-     * This method will return a new read-only {@code ByteBuffer} each time it is invoked.
-     * </p>
      *
      * @return The value of the BlobArg property for this object.
      */
-    public ByteBuffer blobArg() {
-        return blobArg == null ? null : blobArg.asReadOnlyBuffer();
+    public SdkBytes blobArg() {
+        return blobArg;
     }
 
     /**
@@ -407,7 +405,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      *
      * @return The value of the BlobMap property for this object.
      */
-    public Map<String, ByteBuffer> blobMap() {
+    public Map<String, SdkBytes> blobMap() {
         return blobMap;
     }
 
@@ -419,7 +417,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
      *
      * @return The value of the ListOfBlobs property for this object.
      */
-    public List<ByteBuffer> listOfBlobs() {
+    public List<SdkBytes> listOfBlobs() {
         return listOfBlobs;
     }
 
@@ -939,16 +937,12 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
 
         /**
          * Sets the value of the BlobArg property for this object.
-         * <p>
-         * To preserve immutability, the remaining bytes in the provided buffer will be copied into a new buffer when
-         * set.
-         * </p>
          *
          * @param blobArg
          *        The new value for the BlobArg property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
-        Builder blobArg(ByteBuffer blobArg);
+        Builder blobArg(SdkBytes blobArg);
 
         Builder blobArg(String blobArg);
 
@@ -986,7 +980,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
          *        The new value for the BlobMap property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
-        Builder blobMap(Map<String, ByteBuffer> blobMap);
+        Builder blobMap(Map<String, SdkBytes> blobMap);
 
         /**
          * Sets the value of the ListOfBlobs property for this object.
@@ -995,7 +989,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
          *        The new value for the ListOfBlobs property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
-        Builder listOfBlobs(Collection<ByteBuffer> listOfBlobs);
+        Builder listOfBlobs(Collection<SdkBytes> listOfBlobs);
 
         /**
          * Sets the value of the ListOfBlobs property for this object.
@@ -1004,7 +998,7 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
          *        The new value for the ListOfBlobs property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
-        Builder listOfBlobs(ByteBuffer... listOfBlobs);
+        Builder listOfBlobs(SdkBytes... listOfBlobs);
 
         /**
          * Sets the value of the RecursiveStruct property for this object.
@@ -1149,13 +1143,13 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
 
         private StructWithTimestamp structWithNestedTimestampMember;
 
-        private ByteBuffer blobArg;
+        private SdkBytes blobArg;
 
         private StructWithNestedBlobType structWithNestedBlob;
 
-        private Map<String, ByteBuffer> blobMap;
+        private Map<String, SdkBytes> blobMap;
 
-        private List<ByteBuffer> listOfBlobs;
+        private List<SdkBytes> listOfBlobs;
 
         private RecursiveStructType recursiveStruct;
 
@@ -1543,26 +1537,26 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final ByteBuffer getBlobArg() {
-            return blobArg;
+            return blobArg == null ? null : blobArg.asByteBuffer();
         }
 
         @Override
-        public final Builder blobArg(ByteBuffer blobArg) {
+        public final Builder blobArg(SdkBytes blobArg) {
             this.blobArg = StandardMemberCopier.copy(blobArg);
             return this;
         }
 
         public final void setBlobArg(ByteBuffer blobArg) {
-            this.blobArg = StandardMemberCopier.copy(blobArg);
+            blobArg(blobArg == null ? null : SdkBytes.fromByteBuffer(blobArg));
         }
 
         public Builder blobArg(String blobArg) {
-            blobArg(new StringToByteBufferAdapter().adapt(blobArg));
+            blobArg(new StringToSdkBytesAdapter().adapt(blobArg));
             return this;
         }
 
         public void setBlobArg(String blobArg) {
-            this.blobArg = new StringToByteBufferAdapter().adapt(blobArg);
+            this.blobArg = new StringToSdkBytesAdapter().adapt(blobArg);
         }
 
         public final StructWithNestedBlobType.Builder getStructWithNestedBlob() {
@@ -1580,38 +1574,41 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
         }
 
         public final Map<String, ByteBuffer> getBlobMap() {
-            return blobMap;
+            return blobMap == null ? null : blobMap.entrySet().stream()
+                                                   .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().asByteBuffer()));
         }
 
         @Override
-        public final Builder blobMap(Map<String, ByteBuffer> blobMap) {
+        public final Builder blobMap(Map<String, SdkBytes> blobMap) {
             this.blobMap = BlobMapTypeCopier.copy(blobMap);
             return this;
         }
 
         public final void setBlobMap(Map<String, ByteBuffer> blobMap) {
-            this.blobMap = BlobMapTypeCopier.copy(blobMap);
+            blobMap(blobMap == null ? null : blobMap.entrySet().stream()
+                                                    .collect(Collectors.toMap(e -> e.getKey(), e -> SdkBytes.fromByteBuffer(e.getValue()))));
         }
 
-        public final Collection<ByteBuffer> getListOfBlobs() {
-            return listOfBlobs;
+        public final List<ByteBuffer> getListOfBlobs() {
+            return listOfBlobs == null ? null : listOfBlobs.stream().map(SdkBytes::asByteBuffer).collect(Collectors.toList());
         }
 
         @Override
-        public final Builder listOfBlobs(Collection<ByteBuffer> listOfBlobs) {
+        public final Builder listOfBlobs(Collection<SdkBytes> listOfBlobs) {
             this.listOfBlobs = ListOfBlobsTypeCopier.copy(listOfBlobs);
             return this;
         }
 
         @Override
         @SafeVarargs
-        public final Builder listOfBlobs(ByteBuffer... listOfBlobs) {
+        public final Builder listOfBlobs(SdkBytes... listOfBlobs) {
             listOfBlobs(Arrays.asList(listOfBlobs));
             return this;
         }
 
         public final void setListOfBlobs(Collection<ByteBuffer> listOfBlobs) {
-            this.listOfBlobs = ListOfBlobsTypeCopier.copy(listOfBlobs);
+            listOfBlobs(listOfBlobs == null ? null : listOfBlobs.stream().map(SdkBytes::fromByteBuffer)
+                                                                .collect(Collectors.toList()));
         }
 
         public final RecursiveStructType.Builder getRecursiveStruct() {

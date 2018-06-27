@@ -21,7 +21,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 /**
  * Customization to allow generation of additional setter overloads for a 'convenience' type (i.e. a
  * different type then what the member actually is but a more convenient representation to work
- * with, I.E. String rather than ByteBuffer). Customization is configured with an adapter that knows
+ * with, I.E. String rather than SdkBytes). Customization is configured with an adapter that knows
  * how to convert the 'convenience' type to the actual member type
  * <p>
  * Note - This customization is not directly exposed through {@link CustomizationConfig} at the

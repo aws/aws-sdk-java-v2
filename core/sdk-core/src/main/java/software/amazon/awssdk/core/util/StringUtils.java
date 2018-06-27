@@ -22,6 +22,7 @@ import java.text.Collator;
 import java.time.Instant;
 import java.util.Locale;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.utils.Base64Utils;
 
 /**
@@ -117,6 +118,16 @@ public class StringUtils {
      */
     public static String fromByteBuffer(ByteBuffer byteBuffer) {
         return Base64Utils.encodeAsString(copyBytesFrom(byteBuffer));
+    }
+
+    /**
+     * Base64 encodes the data in the specified sdk bytes.
+     *
+     * @param sdkBytes The data to base64 encode and return as a string; must not be null.
+     * @return The base64 encoded contents of the specified bytes.
+     */
+    public static String fromSdkBytes(SdkBytes sdkBytes) {
+        return Base64Utils.encodeAsString(sdkBytes.asByteArray());
     }
 
     public static String replace(String originalString, String partToMatch, String replacement) {

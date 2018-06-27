@@ -20,12 +20,16 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import java.nio.ByteBuffer;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.utils.CollectionUtils;
 
 public final class BeanGetterHelper {
@@ -44,14 +48,45 @@ public final class BeanGetterHelper {
         if (memberModel.isCollectionWithBuilderMember()) {
             return memberModel.isList() ? listOfBuildersGetter(memberModel) : mapOfBuildersGetter(memberModel);
         }
+        if (memberModel.isSdkBytesType()) {
+            return byteBufferGetter(memberModel);
+        }
+        if (memberModel.isList() && memberModel.getListModel().getListMemberModel().isSdkBytesType()) {
+            return listByteBufferGetter(memberModel);
+        }
+        if (memberModel.isMap() && memberModel.getMapModel().getValueModel().isSdkBytesType()) {
+            return mapByteBufferGetter(memberModel);
+        }
         return regularGetter(memberModel);
+    }
+
+    private MethodSpec byteBufferGetter(MemberModel memberModel) {
+        return basicGetter(memberModel,
+                           ClassName.get(ByteBuffer.class),
+                           CodeBlock.of("return $1N == null ? null : $1N.asByteBuffer()",
+                                        memberModel.getVariable().getVariableName()));
+    }
+
+    private MethodSpec listByteBufferGetter(MemberModel memberModel) {
+        return basicGetter(memberModel,
+                           ParameterizedTypeName.get(List.class, ByteBuffer.class),
+                           CodeBlock.of("return $1N == null ? null : $1N.stream().map($2T::asByteBuffer).collect($3T.toList())",
+                                        memberModel.getVariable().getVariableName(), SdkBytes.class, Collectors.class));
+    }
+
+    private MethodSpec mapByteBufferGetter(MemberModel memberModel) {
+        String body = "return $1N == null ? null : " +
+                      "$1N.entrySet().stream().collect($2T.toMap(e -> e.getKey(), e -> e.getValue().asByteBuffer()))";
+        String keyType = memberModel.getMapModel().getKeyModel().getVariable().getVariableType();
+        return basicGetter(memberModel,
+                           PoetUtils.createParameterizedTypeName(Map.class, keyType, ByteBuffer.class.getSimpleName()),
+                           CodeBlock.of(body, memberModel.getVariable().getVariableName(), Collectors.class));
     }
 
     private MethodSpec regularGetter(MemberModel memberModel) {
         return basicGetter(memberModel,
                            typeProvider.parameterType(memberModel),
-                           CodeBlock.builder().add("return $N", memberModel.getVariable().getVariableName())
-                                    .build());
+                           CodeBlock.of("return $N", memberModel.getVariable().getVariableName()));
     }
 
     private MethodSpec builderGetter(MemberModel memberModel) {

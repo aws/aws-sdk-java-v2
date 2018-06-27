@@ -20,6 +20,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
@@ -156,16 +157,16 @@ public class SimpleTypeIonUnmarshallers {
         }
     }
 
-    public static class ByteBufferIonUnmarshaller implements Unmarshaller<ByteBuffer, JsonUnmarshallerContext> {
-        private static final ByteBufferIonUnmarshaller INSTANCE = new ByteBufferIonUnmarshaller();
+    public static class SdkBytesIonUnmarshaller implements Unmarshaller<SdkBytes, JsonUnmarshallerContext> {
+        private static final SdkBytesIonUnmarshaller INSTANCE = new SdkBytesIonUnmarshaller();
 
-        public static ByteBufferIonUnmarshaller getInstance() {
+        public static SdkBytesIonUnmarshaller getInstance() {
             return INSTANCE;
         }
 
         @Override
-        public ByteBuffer unmarshall(JsonUnmarshallerContext context) throws Exception {
-            return (ByteBuffer) context.getJsonParser().getEmbeddedObject();
+        public SdkBytes unmarshall(JsonUnmarshallerContext context) throws Exception {
+            return SdkBytes.fromByteBuffer((ByteBuffer) context.getJsonParser().getEmbeddedObject());
         }
     }
 

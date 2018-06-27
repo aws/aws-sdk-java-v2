@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling.marshallers;
 
-import java.nio.ByteBuffer;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.datamodeling.ArgumentMarshaller.BinaryAttributeMarshaller;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -37,6 +37,6 @@ public class ByteArrayToBinaryMarshaller implements BinaryAttributeMarshaller {
 
     @Override
     public AttributeValue marshall(Object obj) {
-        return AttributeValue.builder().b(ByteBuffer.wrap((byte[]) obj)).build();
+        return AttributeValue.builder().b(SdkBytes.fromByteArray((byte[]) obj)).build();
     }
 }

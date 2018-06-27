@@ -20,21 +20,21 @@ import static org.junit.Assert.assertEquals;
 import com.fasterxml.jackson.core.JsonParser;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.Calendar;
 import java.util.TimeZone;
 import org.junit.Test;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.internal.protocol.json.IonFactory;
 import software.amazon.awssdk.core.internal.protocol.json.SimpleTypeIonUnmarshallers.BigDecimalIonUnmarshaller;
 import software.amazon.awssdk.core.internal.protocol.json.SimpleTypeIonUnmarshallers.BigIntegerIonUnmarshaller;
 import software.amazon.awssdk.core.internal.protocol.json.SimpleTypeIonUnmarshallers.BooleanIonUnmarshaller;
-import software.amazon.awssdk.core.internal.protocol.json.SimpleTypeIonUnmarshallers.ByteBufferIonUnmarshaller;
 import software.amazon.awssdk.core.internal.protocol.json.SimpleTypeIonUnmarshallers.ByteIonUnmarshaller;
 import software.amazon.awssdk.core.internal.protocol.json.SimpleTypeIonUnmarshallers.DateIonUnmarshaller;
 import software.amazon.awssdk.core.internal.protocol.json.SimpleTypeIonUnmarshallers.DoubleIonUnmarshaller;
 import software.amazon.awssdk.core.internal.protocol.json.SimpleTypeIonUnmarshallers.FloatIonUnmarshaller;
 import software.amazon.awssdk.core.internal.protocol.json.SimpleTypeIonUnmarshallers.IntegerIonUnmarshaller;
 import software.amazon.awssdk.core.internal.protocol.json.SimpleTypeIonUnmarshallers.LongIonUnmarshaller;
+import software.amazon.awssdk.core.internal.protocol.json.SimpleTypeIonUnmarshallers.SdkBytesIonUnmarshaller;
 import software.amazon.awssdk.core.internal.protocol.json.SimpleTypeIonUnmarshallers.ShortIonUnmarshaller;
 import software.amazon.awssdk.core.internal.protocol.json.SimpleTypeIonUnmarshallers.StringIonUnmarshaller;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
@@ -110,7 +110,7 @@ public class SimpleTypeIonUnmarshallersTest {
     @Test
     public void unmarshalByteBuffer() throws Exception {
         byte[] buffer = new byte[] {1, 2, 3, 4, 5, 6};
-        assertEquals(ByteBuffer.wrap(buffer), ByteBufferIonUnmarshaller.getInstance().unmarshall(context("{{AQIDBAUG}}")));
+        assertEquals(SdkBytes.fromByteArray(buffer), SdkBytesIonUnmarshaller.getInstance().unmarshall(context("{{AQIDBAUG}}")));
     }
 
     @Test

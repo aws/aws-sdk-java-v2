@@ -119,14 +119,14 @@ public class ItemTest {
     }
 
     private static Condition<AttributeValue> bytesMatching(byte[] bytes) {
-        return new Condition<>(item -> byteBufferEquals(item.b(), bytes), "bytes matching");
+        return new Condition<>(item -> byteBufferEquals(item.b().asByteBuffer(), bytes), "bytes matching");
     }
 
     private static Condition<AttributeValue> bytesMatching(byte[] firstByteArray, byte[] secondByteArray) {
         return new Condition<>(item -> {
             return item.bs().size() == 2 &&
-                   byteBufferEquals(item.bs().get(0), firstByteArray) &&
-                   byteBufferEquals(item.bs().get(1), secondByteArray);
+                   byteBufferEquals(item.bs().get(0).asByteBuffer(), firstByteArray) &&
+                   byteBufferEquals(item.bs().get(1).asByteBuffer(), secondByteArray);
         }, "List<" + String.valueOf(firstByteArray) + ", " + String.valueOf(secondByteArray) + ">");
     }
 

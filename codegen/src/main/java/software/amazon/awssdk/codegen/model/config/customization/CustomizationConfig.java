@@ -217,12 +217,12 @@ public class CustomizationConfig {
 
     /**
      * Customization to generate a method overload for a member setter that takes a string rather
-     * than an ByteBuffer. Currently only used by Lambda
+     * than an SdkBytes. Currently only used by Lambda
      */
-    public void setStringOverloadForByteBufferMember(
-        StringOverloadForByteBufferMember stringOverloadForByteBufferMember) {
+    public void setStringOverloadForSdkBytesMember(
+        StringOverloadForSdkBytesMember stringOverloadForSdkBytesMember) {
         this.convenienceTypeOverloads
-            .add(stringOverloadForByteBufferMember.getConvenienceTypeOverload());
+            .add(stringOverloadForSdkBytesMember.getConvenienceTypeOverload());
     }
 
     public List<ConvenienceTypeOverload> getConvenienceTypeOverloads() {

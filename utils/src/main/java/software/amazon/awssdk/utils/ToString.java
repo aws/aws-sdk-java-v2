@@ -65,8 +65,17 @@ public final class ToString {
      */
     public ToString add(String fieldName, Object field) {
         if (field != null) {
-            String value = field.getClass().isArray() ? Arrays.toString((Object[]) field)
-                                                      : String.valueOf(field);
+            String value;
+
+            if (field.getClass().isArray()) {
+                if (field instanceof byte[]) {
+                    value = "0x" + BinaryUtils.toHex((byte[]) field);
+                } else {
+                    value = Arrays.toString((Object[]) field);
+                }
+            } else {
+                value = String.valueOf(field);
+            }
             result.append(fieldName).append("=").append(value).append(", ");
         }
         return this;

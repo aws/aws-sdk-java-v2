@@ -17,11 +17,11 @@ package software.amazon.awssdk.awscore.protocol.xml;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.core.util.DateUtils;
@@ -206,17 +206,17 @@ public final class SimpleTypeStaxUnmarshallers {
     /**
      * Unmarshaller for ByteBuffer values.
      */
-    public static class ByteBufferUnmarshaller implements Unmarshaller<ByteBuffer, StaxUnmarshallerContext> {
-        private static final ByteBufferUnmarshaller INSTANCE = new ByteBufferUnmarshaller();
+    public static class SdkBytesUnmarshaller implements Unmarshaller<SdkBytes, StaxUnmarshallerContext> {
+        private static final SdkBytesUnmarshaller INSTANCE = new SdkBytesUnmarshaller();
 
-        public static ByteBufferUnmarshaller getInstance() {
+        public static SdkBytesUnmarshaller getInstance() {
             return INSTANCE;
         }
 
-        public ByteBuffer unmarshall(StaxUnmarshallerContext unmarshallerContext) throws Exception {
+        public SdkBytes unmarshall(StaxUnmarshallerContext unmarshallerContext) throws Exception {
             String base64EncodedString = unmarshallerContext.readText();
             byte[] decodedBytes = Base64Utils.decode(base64EncodedString);
-            return ByteBuffer.wrap(decodedBytes);
+            return SdkBytes.fromByteArray(decodedBytes);
 
         }
     }

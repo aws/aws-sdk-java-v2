@@ -62,7 +62,7 @@ public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
     @Override
     public ResponseBytes<ResponseT> complete() {
         try {
-            return new ResponseBytes<>(response, baos.toByteArray());
+            return ResponseBytes.fromByteArray(response, baos.toByteArray());
         } finally {
             baos = null;
         }
