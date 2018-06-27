@@ -41,6 +41,7 @@ import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.core.util.CapacityManager;
 import software.amazon.awssdk.core.util.ClockSkewUtil;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 
 /**
  * Wrapper around the pipeline for a single request to provide retry functionality.
@@ -53,12 +54,15 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
 
     private final RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> requestPipeline;
     private final ScheduledExecutorService retrySubmitter;
+    private final SdkHttpResponseHandler<OutputT> responseHandler;
     private final HttpClientDependencies dependencies;
     private final CapacityManager retryCapacity;
     private final RetryPolicy retryPolicy;
 
-    public AsyncRetryableStage(HttpClientDependencies dependencies,
+    public AsyncRetryableStage(SdkHttpResponseHandler<OutputT> responseHandler,
+                               HttpClientDependencies dependencies,
                                RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> requestPipeline) {
+        this.responseHandler = responseHandler;
         this.dependencies = dependencies;
         this.retrySubmitter = dependencies.clientConfiguration().option(SdkClientOption.ASYNC_RETRY_EXECUTOR_SERVICE);
         this.retryPolicy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_POLICY);
@@ -122,17 +126,38 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
                     retryHandler.releaseRetryCapacity();
                     future.complete(resp);
                 } else if (resp != null) {
-                    retryHandler.setLastRetriedException(handleSdkException(resp));
+                    SdkException retryableException = handleSdkException(resp);
+                    retryHandler.setLastRetriedException(retryableException);
+                    // Notify the response handler on each retry. Note that this does not notify
+                    // on the last attempt by design. This is done in the generated client code so that
+                    // any exceptions that happen before we get to the retryable stage are also delivered to the
+                    // response handler
+                    deliverExceptionToResponseHandler(retryableException);
                     executeRetry(future);
                 } else {
-                    SdkClientException exception = new SdkClientException(err);
-                    retryHandler.setLastRetriedException(handleSdkException(Response.fromFailure(exception, null)));
+                    SdkException retryableException = handleSdkException(
+                        Response.fromFailure(new SdkClientException(err), null));
+                    retryHandler.setLastRetriedException(retryableException);
+                    // Notify the response handler on each retry. Note that this does not notify
+                    // on the last attempt by design. This is done in the generated client code so that
+                    // any exceptions that happen before we get to the retryable stage are also delivered to the
+                    // response handler
+                    deliverExceptionToResponseHandler(retryableException);
                     executeRetry(future);
                 }
             } catch (Exception e) {
                 future.completeExceptionally(e);
             }
             return null;
+        }
+
+        /**
+         * Notify the response handler on each retry. Note that this does not notify on the last attempt by design. This is done
+         * in the generated client code so that any exceptions that happen before we get to the retryable stage are also
+         * delivered to the response handler.
+         */
+        private void deliverExceptionToResponseHandler(SdkException retryableException) {
+            responseHandler.exceptionOccurred(retryableException);
         }
 
         private void executeRetry(CompletableFuture<Response<OutputT>> future) {

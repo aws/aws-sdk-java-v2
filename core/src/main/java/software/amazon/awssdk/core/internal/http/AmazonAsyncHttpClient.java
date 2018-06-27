@@ -188,25 +188,26 @@ public class AmazonAsyncHttpClient implements SdkAutoCloseable {
         public <OutputT> CompletableFuture<OutputT> execute(SdkHttpResponseHandler<OutputT> responseHandler) {
             try {
                 return RequestPipelineBuilder
-                        .first(RequestPipelineBuilder
-                                .first(MakeRequestMutableStage::new)
-                                .then(ApplyTransactionIdStage::new)
-                                .then(ApplyUserAgentStage::new)
-                                .then(MergeCustomHeadersStage::new)
-                                .then(MergeCustomQueryParamsStage::new)
-                                .then(MoveParametersToBodyStage::new)
-                                .then(MakeRequestImmutableStage::new)
-                                .then(RequestPipelineBuilder
-                                      .first(SigningStage::new)
-                                      .then(BeforeTransmissionExecutionInterceptorsStage::new)
-                                      .then(d -> new MakeAsyncHttpRequestStage<>(responseHandler, errorResponseHandler, d))
-                                      .wrappedWith(AsyncRetryableStage::new)
-                                      ::build)
-                                .then(async(() -> new UnwrapResponseContainer<>()))
-                                .then(async(() -> new AfterExecutionInterceptorsStage<>()))::build)
-                        .wrappedWith(AsyncExecutionFailureExceptionReportingStage::new)
-                        .build(httpClientDependencies)
-                        .execute(request, createRequestExecutionDependencies());
+                    .first(RequestPipelineBuilder
+                               .first(MakeRequestMutableStage::new)
+                               .then(ApplyTransactionIdStage::new)
+                               .then(ApplyUserAgentStage::new)
+                               .then(MergeCustomHeadersStage::new)
+                               .then(MergeCustomQueryParamsStage::new)
+                               .then(MoveParametersToBodyStage::new)
+                               .then(MakeRequestImmutableStage::new)
+                               .then(RequestPipelineBuilder
+                                         .first(SigningStage::new)
+                                         .then(BeforeTransmissionExecutionInterceptorsStage::new)
+                                         .then(d -> new MakeAsyncHttpRequestStage<>(responseHandler, errorResponseHandler, d))
+                                         .wrappedWith((deps, wrapped) ->
+                                                          new AsyncRetryableStage<>(responseHandler, deps, wrapped))
+                                         ::build)
+                               .then(async(() -> new UnwrapResponseContainer<>()))
+                               .then(async(() -> new AfterExecutionInterceptorsStage<>()))::build)
+                    .wrappedWith(AsyncExecutionFailureExceptionReportingStage::new)
+                    .build(httpClientDependencies)
+                    .execute(request, createRequestExecutionDependencies());
             } catch (RuntimeException e) {
                 throw e;
             } catch (Exception e) {

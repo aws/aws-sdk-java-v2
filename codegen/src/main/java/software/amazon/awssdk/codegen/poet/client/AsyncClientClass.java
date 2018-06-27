@@ -16,13 +16,17 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static com.squareup.javapoet.TypeSpec.Builder;
+import static java.util.Collections.singletonList;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.getCustomResponseHandler;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import javax.lang.model.element.Modifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
@@ -31,10 +35,12 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.StaticImport;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.util.CompletableFutures;
+import software.amazon.awssdk.utils.FunctionalUtils;
 
 public final class AsyncClientClass extends AsyncClientInterface {
     private final IntermediateModel model;
@@ -56,6 +62,11 @@ public final class AsyncClientClass extends AsyncClientInterface {
         Builder classBuilder = PoetUtils.createClassBuilder(className)
                                         .addAnnotation(SdkInternalApi.class)
                                         .addModifiers(Modifier.FINAL)
+                                        .addField(FieldSpec.builder(ClassName.get(Logger.class), "log")
+                                                           .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                                                           .initializer("$T.getLogger($T.class)", LoggerFactory.class,
+                                                                        className)
+                                                           .build())
                                         .addField(AsyncClientHandler.class, "clientHandler", Modifier.PRIVATE, Modifier.FINAL)
                                         .addField(protocolSpec.protocolFactory(model))
                                         .addSuperinterface(interfaceClass)
@@ -117,16 +128,22 @@ public final class AsyncClientClass extends AsyncClientInterface {
     protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel) {
         ClassName returnType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
 
-        return builder.addModifiers(Modifier.PUBLIC)
+        builder.addModifiers(Modifier.PUBLIC)
                       .addAnnotation(Override.class)
                       .beginControlFlow("try")
                           .addCode(getCustomResponseHandler(opModel, returnType)
                                        .orElseGet(() -> protocolSpec.responseHandler(opModel)))
                           .addCode(protocolSpec.errorResponseHandler(opModel))
                           .addCode(protocolSpec.asyncExecutionHandler(opModel))
-                      .endControlFlow()
-                      .beginControlFlow("catch ($T t)", Throwable.class)
-                          .addStatement("return $T.failedFuture(t)", CompletableFutures.class)
+               .endControlFlow()
+               .beginControlFlow("catch ($T t)", Throwable.class);
+
+        if (opModel.hasStreamingOutput() || opModel.hasEventStreamOutput()) {
+            builder.addStatement("runAndLogError(log, \"Exception thrown in exceptionOccurred callback, ignoring\",\n" +
+                                 "() -> asyncResponseHandler.exceptionOccurred(t))");
+        }
+
+        return builder.addStatement("return $T.failedFuture(t)", CompletableFutures.class)
                       .endControlFlow();
     }
 
@@ -141,5 +158,10 @@ public final class AsyncClientClass extends AsyncClientInterface {
     @Override
     public ClassName className() {
         return className;
+    }
+
+    @Override
+    public Iterable<StaticImport> staticImports() {
+        return singletonList(StaticImport.staticMethodImport(FunctionalUtils.class, "runAndLogError"));
     }
 }

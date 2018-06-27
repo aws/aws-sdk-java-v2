@@ -172,11 +172,12 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     @Override
     public CodeBlock errorResponseHandler(OperationModel opModel) {
+        String protocolFactory = opModel.hasEventStreamOutput() ? "jsonProtocolFactory" : "protocolFactory";
         return CodeBlock
-                .builder()
-                .add("\n\n$T<$T> errorResponseHandler = createErrorResponseHandler();",
-                     HttpResponseHandler.class, AwsServiceException.class)
-                .build();
+            .builder()
+            .add("\n\n$T<$T> errorResponseHandler = createErrorResponseHandler($L);",
+                 HttpResponseHandler.class, AwsServiceException.class, protocolFactory)
+            .build();
     }
 
     @Override
@@ -231,21 +232,26 @@ public class JsonProtocolSpec implements ProtocolSpec {
                         ClassName.get(Void.class),
                         ClassName.get(EventStreamAsyncResponseTransformer.class));
         }
+        boolean isStreaming = opModel.hasStreamingOutput() || opModel.hasEventStreamOutput();
         String protocolFactory = opModel.hasEventStreamOutput() ? "jsonProtocolFactory" : "protocolFactory";
         return builder.add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n" +
                            ".withMarshaller(new $T($L))\n" +
                            ".withResponseHandler(responseHandler)\n" +
                            ".withErrorResponseHandler(errorResponseHandler)\n" +
                            asyncRequestBody +
-                           ".withInput($L)$L);",
+                           ".withInput($L)$L)$L;",
                            ClientExecutionParams.class,
                            requestType,
                            pojoResponseType,
                            marshaller,
                            protocolFactory,
                            opModel.getInput().getVariableName(),
-                           opModel.hasStreamingOutput() || opModel.hasEventStreamOutput() ?
-                           ", asyncResponseTransformer" : "")
+                           isStreaming ? ", asyncResponseTransformer" : "",
+                           isStreaming ? ".whenComplete((r, e) -> {\n"
+                                         + "     if (e != null) {\n"
+                                         + "         asyncResponseHandler.exceptionOccurred(e);\n"
+                                         + "     }\n"
+                                         + "})" : "")
                       .build();
     }
 
@@ -256,6 +262,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
         TypeName responseHandlerOfException = ParameterizedTypeName.get(httpResponseHandler, sdkBaseException);
 
         return Optional.of(MethodSpec.methodBuilder("createErrorResponseHandler")
+                                     .addParameter(AwsJsonProtocolFactory.class, "protocolFactory")
                                      .returns(responseHandlerOfException)
                                      .addModifiers(Modifier.PRIVATE)
                                      .addStatement("return protocolFactory.createErrorResponseHandler(new $T())",

@@ -121,16 +121,14 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     @Override
     public void exceptionOccurred(Throwable throwable) {
         synchronized (this) {
-            if (!isDone) {
-                isDone = true;
-                error.set(throwable);
-                // If we have a Subscriber at this point notify it as well
-                if (subscriberRef.get() != null) {
-                    runAndLogError(log, "Error thrown from Subscriber#onError, ignoring.",
-                        () -> subscriberRef.get().onError(throwable));
-                }
-                eventStreamResponseTransformer.exceptionOccurred(throwable);
+            isDone = true;
+            error.set(throwable);
+            // If we have a Subscriber at this point notify it as well
+            if (subscriberRef.get() != null) {
+                runAndLogError(log, "Error thrown from Subscriber#onError, ignoring.",
+                    () -> subscriberRef.get().onError(throwable));
             }
+            eventStreamResponseTransformer.exceptionOccurred(throwable);
         }
     }
 

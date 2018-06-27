@@ -43,7 +43,6 @@ import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
-import software.amazon.awssdk.utils.FunctionalUtils.UnsafeRunnable;
 
 /**
  * Delegate to the HTTP implementation to make an HTTP request and receive the response.
@@ -118,20 +117,6 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     }
 
     /**
-     * Runs a given {@link UnsafeRunnable} and logs an error without throwing.
-     *
-     * @param errorMsg Message to log with exception thrown.
-     * @param runnable Action to perform.
-     */
-    private static void runAndLogError(String errorMsg, UnsafeRunnable runnable) {
-        try {
-            runnable.run();
-        } catch (Exception e) {
-            log.error(errorMsg, e);
-        }
-    }
-
-    /**
      * Detects whether the response succeeded or failed and delegates to appropriate response handler.
      */
     private class ResponseHandler implements SdkHttpResponseHandler<Response<OutputT>> {
@@ -173,8 +158,8 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         @Override
         public void exceptionOccurred(Throwable throwable) {
-            runAndLogError("SdkHttpResponseHandler threw an exception.",
-                () -> responseHandler.exceptionOccurred(throwable));
+            // Note that we don't notify the response handler here, we do that in AsyncRetryableStage where we
+            // have more context of what's going on and can deliver exceptions more reliably.
             completable.completeExceptionally(throwable);
         }
 
