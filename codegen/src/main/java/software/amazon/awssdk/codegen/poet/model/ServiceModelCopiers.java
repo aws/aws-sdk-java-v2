@@ -86,6 +86,10 @@ public class ServiceModelCopiers {
         return "copy";
     }
 
+    public String enumToStringCopyMethodName() {
+        return "copyEnumToString";
+    }
+
     public String builderCopyMethodName() {
         return "copyFromBuilder";
     }

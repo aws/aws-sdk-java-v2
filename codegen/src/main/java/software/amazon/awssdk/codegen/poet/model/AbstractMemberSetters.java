@@ -58,6 +58,13 @@ abstract class AbstractMemberSetters implements MemberSetters {
         return fluentSetterDeclaration(parameter, returnType).addModifiers(Modifier.ABSTRACT);
     }
 
+    protected MethodSpec.Builder fluentAbstractSetterDeclaration(String methodName,
+                                                                 ParameterSpec parameter,
+                                                                 TypeName returnType) {
+        return setterDeclaration(methodName, parameter, returnType).addModifiers(Modifier.ABSTRACT);
+    }
+
+
     protected MethodSpec.Builder fluentDefaultSetterDeclaration(ParameterSpec parameter, TypeName returnType) {
         return fluentSetterDeclaration(parameter, returnType).addModifiers(Modifier.DEFAULT);
     }
@@ -67,11 +74,15 @@ abstract class AbstractMemberSetters implements MemberSetters {
     }
 
     protected MethodSpec.Builder fluentSetterBuilder(ParameterSpec setterParam, TypeName returnType) {
-        return MethodSpec.methodBuilder(memberModel().getFluentSetterMethodName())
-                .addParameter(setterParam)
-                .addAnnotation(Override.class)
-                .returns(returnType)
-                .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
+        return fluentSetterBuilder(memberModel().getFluentSetterMethodName(), setterParam, returnType);
+    }
+
+    protected MethodSpec.Builder fluentSetterBuilder(String methodName, ParameterSpec setterParam, TypeName returnType) {
+        return MethodSpec.methodBuilder(methodName)
+                         .addParameter(setterParam)
+                         .addAnnotation(Override.class)
+                         .returns(returnType)
+                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
     }
 
     protected MethodSpec.Builder beanStyleSetterBuilder() {
@@ -86,6 +97,17 @@ abstract class AbstractMemberSetters implements MemberSetters {
 
     protected CodeBlock copySetterBody() {
         return copySetterBody("this.$1N = $2T.$3N($1N)", "this.$1N = $1N", serviceModelCopiers.copyMethodName());
+    }
+
+    protected CodeBlock fluentSetterWithEnumCollectionsParameterMethodBody() {
+        return copySetterBody("this.$1N = $2T.$3N($1N)", "this.$1N = $1N",
+                              serviceModelCopiers.enumToStringCopyMethodName());
+    }
+
+
+    protected CodeBlock copySetterBodyWithModeledEnumParameter() {
+        return copySetterBody("this.$1N = $2T.$3N($1N)", "this.$1N = $1N",
+                              serviceModelCopiers.enumToStringCopyMethodName());
     }
 
     protected CodeBlock copySetterBuilderBody() {
@@ -144,7 +166,11 @@ abstract class AbstractMemberSetters implements MemberSetters {
     }
 
     private MethodSpec.Builder fluentSetterDeclaration(ParameterSpec parameter, TypeName returnType) {
-        return MethodSpec.methodBuilder(memberModel().getFluentSetterMethodName())
+        return setterDeclaration(memberModel().getFluentSetterMethodName(), parameter, returnType);
+    }
+
+    private MethodSpec.Builder setterDeclaration(String methodName, ParameterSpec parameter, TypeName returnType) {
+        return MethodSpec.methodBuilder(methodName)
                          .addModifiers(Modifier.PUBLIC)
                          .addParameter(parameter)
                          .returns(returnType);

@@ -166,7 +166,8 @@ abstract class AddShapes {
         memberModel
                 .withFluentGetterMethodName(namingStrategy.getFluentGetterMethodName(c2jMemberName, c2jShape))
                 .withFluentEnumGetterMethodName(namingStrategy.getFluentEnumGetterMethodName(c2jMemberName, c2jShape))
-                .withFluentSetterMethodName(namingStrategy.getFluentSetterMethodName(c2jMemberName))
+                .withFluentSetterMethodName(namingStrategy.getFluentSetterMethodName(c2jMemberName, c2jShape))
+                .withFluentEnumSetterMethodName(namingStrategy.getFluentEnumSetterMethodName(c2jMemberName, c2jShape))
                 .withBeanStyleGetterMethodName(namingStrategy.getBeanStyleGetterMethodName(c2jMemberName))
                 .withBeanStyleSetterMethodName(namingStrategy.getBeanStyleSetterMethodName(c2jMemberName));
         memberModel.setIdempotencyToken(c2jMemberDefinition.isIdempotencyToken());

@@ -311,7 +311,7 @@ public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
 
     @Test
     public void testListStacksFilter() throws Exception {
-        ListStacksResponse listStacksResult = cf.listStacks(ListStacksRequest.builder().stackStatusFilters(
+        ListStacksResponse listStacksResult = cf.listStacks(ListStacksRequest.builder().stackStatusFiltersWithStrings(
                 "CREATE_COMPLETE", "DELETE_COMPLETE").build());
         assertNotNull(listStacksResult);
         assertNotNull(listStacksResult.stackSummaries());

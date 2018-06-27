@@ -36,7 +36,7 @@ public class ModelBuilderListMemberTest {
     @Test
     public void nullSetterCreatesSdkAutoConstructedList() {
         AllTypesRequest request = AllTypesRequest.builder()
-                .listOfEnums((Collection<String>) null)
+                .listOfEnumsWithStrings((Collection<String>) null)
                 .build();
 
         assertThat(request.listOfEnumsAsStrings()).isInstanceOf(SdkAutoConstructList.class);
