@@ -23,4 +23,13 @@ final class MapOfEnumToSimpleStructCopier {
         }
         return copy(mapOfEnumToSimpleStructParam.entrySet().stream().collect(toMap(Map.Entry::getKey, e -> e.getValue().build())));
     }
+
+    static Map<String, SimpleStruct> copyEnumToString(Map<EnumType, SimpleStruct> mapOfEnumToSimpleStructParam) {
+        if (mapOfEnumToSimpleStructParam == null) {
+            return null;
+        }
+        Map<String, SimpleStruct> mapOfEnumToSimpleStructParamCopy = mapOfEnumToSimpleStructParam.entrySet().stream()
+                                                                                                 .collect(toMap(e -> e.getKey().toString(), Map.Entry::getValue));
+        return Collections.unmodifiableMap(mapOfEnumToSimpleStructParamCopy);
+    }
 }

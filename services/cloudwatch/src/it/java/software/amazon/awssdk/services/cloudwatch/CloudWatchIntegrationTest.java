@@ -129,7 +129,7 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
                                                                       .dimensions(Dimension.builder().name("InstanceType")
                                                                                            .value("m1.small").build())
                                                                       .metricName(measureName)
-                                                                      .statistics("Average", "Maximum", "Minimum", "Sum")
+                                                                      .statisticsWithStrings("Average", "Maximum", "Minimum", "Sum")
                                                                       .endTime(Instant.now())))
                       .until(r -> r.datapoints().size() == 1)
                       .orFailAfter(Duration.ofMinutes(1));

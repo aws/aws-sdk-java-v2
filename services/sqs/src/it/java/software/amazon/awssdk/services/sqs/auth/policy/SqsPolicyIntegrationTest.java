@@ -72,6 +72,9 @@ public class SqsPolicyIntegrationTest extends IntegrationTestBase {
         Map<String, String> attributes = new HashMap<String, String>();
         attributes.put("Policy", policy.toJson());
 
-        sqsSync.setQueueAttributes(SetQueueAttributesRequest.builder().queueUrl(queueUrl).attributes(attributes).build());
+        sqsSync.setQueueAttributes(SetQueueAttributesRequest.builder()
+                                                            .queueUrl(queueUrl)
+                                                            .attributesWithStrings(attributes)
+                                                            .build());
     }
 }

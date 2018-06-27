@@ -252,7 +252,24 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
-    public String getFluentSetterMethodName(String memberName) {
+    public String getFluentSetterMethodName(String memberName, Shape shape) {
+        String setterMethodName = Utils.unCapitalize(memberName);
+
+        if (Utils.isOrContainsEnumShape(shape, serviceModel.getShapes()) &&
+            (Utils.isListShape(shape) || Utils.isMapShape(shape))) {
+
+            setterMethodName += "WithStrings";
+        }
+
+        return setterMethodName;
+    }
+
+    @Override
+    public String getFluentEnumSetterMethodName(String memberName, Shape shape) {
+        if (!Utils.isOrContainsEnumShape(shape, serviceModel.getShapes())) {
+            return null;
+        }
+
         return Utils.unCapitalize(memberName);
     }
 

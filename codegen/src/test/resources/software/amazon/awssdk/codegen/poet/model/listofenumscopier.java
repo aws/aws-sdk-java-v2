@@ -19,4 +19,12 @@ final class ListOfEnumsCopier {
         List<String> listOfEnumsParamCopy = new ArrayList<>(listOfEnumsParam);
         return Collections.unmodifiableList(listOfEnumsParamCopy);
     }
+
+    static List<String> copyEnumToString(Collection<EnumType> listOfEnumsParam) {
+        if (listOfEnumsParam == null || listOfEnumsParam instanceof SdkAutoConstructList) {
+            return DefaultSdkAutoConstructList.getInstance();
+        }
+        List<String> listOfEnumsParamCopy = listOfEnumsParam.stream().map(Object::toString).collect(toList());
+        return Collections.unmodifiableList(listOfEnumsParamCopy);
+    }
 }

@@ -187,7 +187,7 @@ public class Topics {
         Map<String, String> sqsAttrs =
                 sqs.getQueueAttributes(GetQueueAttributesRequest.builder()
                         .queueUrl(sqsQueueUrl)
-                        .attributeNames(sqsAttrNames)
+                        .attributeNamesWithStrings(sqsAttrNames)
                         .build())
                         .attributesAsStrings();
         String sqsQueueArn = sqsAttrs.get(QueueAttributeName.QUEUE_ARN.toString());
@@ -204,7 +204,7 @@ public class Topics {
 
         Map<String, String> newAttrs = new HashMap<String, String>();
         newAttrs.put(QueueAttributeName.POLICY.toString(), policy.toJson());
-        sqs.setQueueAttributes(SetQueueAttributesRequest.builder().queueUrl(sqsQueueUrl).attributes(newAttrs).build());
+        sqs.setQueueAttributes(SetQueueAttributesRequest.builder().queueUrl(sqsQueueUrl).attributesWithStrings(newAttrs).build());
 
         SubscribeResponse subscribeResult = sns.subscribe(SubscribeRequest.builder()
                 .topicArn(snsTopicArn).protocol("sqs")

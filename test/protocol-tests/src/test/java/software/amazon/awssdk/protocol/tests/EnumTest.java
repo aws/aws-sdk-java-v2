@@ -85,12 +85,12 @@ public class EnumTest {
     }
 
     private List<EnumType> convertToListEnumWithBuilder(String... values) {
-        return AllTypesResponse.builder().listOfEnums(values).build().listOfEnums();
+        return AllTypesResponse.builder().listOfEnumsWithStrings(values).build().listOfEnums();
     }
 
     @SafeVarargs
     private final Map<EnumType, EnumType> convertToMapEnumWithBuilder(Entry<String, String>... values) {
         Map<String, String> enumMap = Stream.of(values).collect(toMap(Entry::getKey, Entry::getValue));
-        return AllTypesResponse.builder().mapOfEnumToEnum(enumMap).build().mapOfEnumToEnum();
+        return AllTypesResponse.builder().mapOfEnumToEnumWithStrings(enumMap).build().mapOfEnumToEnum();
     }
 }
