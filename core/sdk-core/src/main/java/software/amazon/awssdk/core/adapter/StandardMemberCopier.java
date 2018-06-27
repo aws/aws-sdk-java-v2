@@ -13,20 +13,21 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal;
+package software.amazon.awssdk.core.adapter;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.time.Instant;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * Used in combination with the generated member copiers to implement deep
  * copies of shape members.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class StandardMemberCopier {
 
     private StandardMemberCopier() {
@@ -70,6 +71,10 @@ public final class StandardMemberCopier {
 
     public static Instant copy(Instant i) {
         return i;
+    }
+
+    public static SdkBytes copy(SdkBytes bytes) {
+        return bytes;
     }
 
     public static ByteBuffer copy(ByteBuffer bb) {

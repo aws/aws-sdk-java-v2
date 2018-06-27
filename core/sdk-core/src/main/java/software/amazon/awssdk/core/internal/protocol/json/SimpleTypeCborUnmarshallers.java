@@ -19,10 +19,10 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.Date;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
@@ -198,15 +198,15 @@ public class SimpleTypeCborUnmarshallers {
     /**
      * Unmarshaller for ByteBuffer values.
      */
-    public static class ByteBufferCborUnmarshaller implements Unmarshaller<ByteBuffer, JsonUnmarshallerContext> {
-        private static final ByteBufferCborUnmarshaller INSTANCE = new ByteBufferCborUnmarshaller();
+    public static class SdkBytesCborUnmarshaller implements Unmarshaller<SdkBytes, JsonUnmarshallerContext> {
+        private static final SdkBytesCborUnmarshaller INSTANCE = new SdkBytesCborUnmarshaller();
 
-        public static ByteBufferCborUnmarshaller getInstance() {
+        public static SdkBytesCborUnmarshaller getInstance() {
             return INSTANCE;
         }
 
-        public ByteBuffer unmarshall(JsonUnmarshallerContext unmarshallerContext) throws Exception {
-            return ByteBuffer.wrap(unmarshallerContext.getJsonParser().getBinaryValue());
+        public SdkBytes unmarshall(JsonUnmarshallerContext unmarshallerContext) throws Exception {
+            return SdkBytes.fromByteArray(unmarshallerContext.getJsonParser().getBinaryValue());
 
         }
     }

@@ -302,11 +302,6 @@ public class AwsServiceModel implements ClassSpec {
 
     private CodeBlock getterStatement(MemberModel model) {
         VariableModel modelVariable = model.getVariable();
-
-        if ("java.nio.ByteBuffer".equals(modelVariable.getVariableType())) {
-            return CodeBlock.of("return $1N == null ? null : $1N.asReadOnlyBuffer();", modelVariable.getVariableName());
-        }
-
         return CodeBlock.of("return $N;", modelVariable.getVariableName());
     }
 

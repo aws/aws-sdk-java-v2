@@ -16,12 +16,12 @@
 package software.amazon.awssdk.services.kinesis;
 
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.kinesis.model.CreateStreamRequest;
 import software.amazon.awssdk.services.kinesis.model.DeleteStreamRequest;
@@ -46,7 +46,6 @@ import software.amazon.awssdk.services.kinesis.model.ShardIteratorType;
 import software.amazon.awssdk.services.kinesis.model.SplitShardRequest;
 import software.amazon.awssdk.services.kinesis.model.StreamDescription;
 import software.amazon.awssdk.services.kinesis.model.StreamStatus;
-import software.amazon.awssdk.utils.BinaryUtils;
 
 public class KinesisIntegrationTests extends AbstractTestCase {
 
@@ -228,7 +227,7 @@ public class KinesisIntegrationTests extends AbstractTestCase {
         Assert.assertNotNull(record.sequenceNumber());
         new BigInteger(record.sequenceNumber());
 
-        String value = new String(BinaryUtils.copyBytesFrom(record.data()));
+        String value = record.data() == null ? null : record.data().asUtf8String();
         Assert.assertEquals(data, value);
 
         Assert.assertNotNull(record.partitionKey());
@@ -373,7 +372,7 @@ public class KinesisIntegrationTests extends AbstractTestCase {
                 PutRecordRequest.builder()
                                 .streamName(streamName)
                                 .partitionKey("foobar")
-                                .data(ByteBuffer.wrap(data.getBytes()))
+                                .data(SdkBytes.fromUtf8String(data))
                                 .build());
         Assert.assertNotNull(result);
 
@@ -390,7 +389,7 @@ public class KinesisIntegrationTests extends AbstractTestCase {
                                                                   .streamName(streamName)
                                                                   .partitionKey("foobar")
                                                                   .explicitHashKey(hashKey)
-                                                                  .data(ByteBuffer.wrap("Speak No Evil".getBytes()))
+                                                                  .data(SdkBytes.fromUtf8String("Speak No Evil"))
                                                                   .build());
         Assert.assertNotNull(result);
 
@@ -409,7 +408,7 @@ public class KinesisIntegrationTests extends AbstractTestCase {
                                                                   .partitionKey("foobar")
                                                                   .explicitHashKey(hashKey)
                                                                   .sequenceNumberForOrdering(minSQN)
-                                                                  .data(ByteBuffer.wrap("Hear No Evil".getBytes()))
+                                                                  .data(SdkBytes.fromUtf8String("Hear No Evil"))
                                                                   .build());
         Assert.assertNotNull(result);
 

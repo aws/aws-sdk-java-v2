@@ -79,7 +79,7 @@ class MapSetters extends AbstractMemberSetters {
     @Override
     public MethodSpec beanStyle() {
         MethodSpec.Builder builder = beanStyleSetterBuilder()
-                .addCode(memberModel().isCollectionWithBuilderMember() ? copySetterBuilderBody() : copySetterBody());
+                .addCode(memberModel().isCollectionWithBuilderMember() ? copySetterBuilderBody() : beanCopySetterBody());
 
         if (annotateJsonProperty()) {
             builder.addAnnotation(

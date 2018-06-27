@@ -18,11 +18,11 @@ package software.amazon.awssdk.core.protocol.json;
 import com.fasterxml.jackson.core.JsonFactory;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.internal.protocol.json.BaseSdkStructuredJsonFactory;
 import software.amazon.awssdk.core.internal.protocol.json.SdkJsonGenerator;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
@@ -55,7 +55,7 @@ public abstract class SdkStructuredPlainJsonFactory {
             .put(Long.class, SimpleTypeJsonUnmarshallers.LongJsonUnmarshaller.getInstance())
             .put(Byte.class, SimpleTypeJsonUnmarshallers.ByteJsonUnmarshaller.getInstance())
             .put(Instant.class, SimpleTypeJsonUnmarshallers.InstantJsonUnmarshaller.getInstance())
-            .put(ByteBuffer.class, SimpleTypeJsonUnmarshallers.ByteBufferJsonUnmarshaller.getInstance())
+            .put(SdkBytes.class, SimpleTypeJsonUnmarshallers.SdkBytesJsonUnmarshaller.getInstance())
             .put(Character.class, SimpleTypeJsonUnmarshallers.CharacterJsonUnmarshaller.getInstance())
             .put(Short.class, SimpleTypeJsonUnmarshallers.ShortJsonUnmarshaller.getInstance()).build();
 

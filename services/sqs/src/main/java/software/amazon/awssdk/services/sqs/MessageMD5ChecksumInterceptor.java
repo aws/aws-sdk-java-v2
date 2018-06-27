@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -234,7 +235,7 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
                     updateLengthAndBytes(md5Digest, attrValue.stringValue());
                 } else if (attrValue.binaryValue() != null) {
                     md5Digest.update(BINARY_TYPE_FIELD_INDEX);
-                    updateLengthAndBytes(md5Digest, attrValue.binaryValue());
+                    updateLengthAndBytes(md5Digest, attrValue.binaryValue().asByteBuffer());
                 } else if (attrValue.stringListValues() != null &&
                            attrValue.stringListValues().size() > 0) {
                     md5Digest.update(STRING_LIST_TYPE_FIELD_INDEX);
@@ -244,8 +245,8 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
                 } else if (attrValue.binaryListValues() != null &&
                            attrValue.binaryListValues().size() > 0) {
                     md5Digest.update(BINARY_LIST_TYPE_FIELD_INDEX);
-                    for (ByteBuffer byteListMember : attrValue.binaryListValues()) {
-                        updateLengthAndBytes(md5Digest, byteListMember);
+                    for (SdkBytes byteListMember : attrValue.binaryListValues()) {
+                        updateLengthAndBytes(md5Digest, byteListMember.asByteBuffer());
                     }
                 }
             }

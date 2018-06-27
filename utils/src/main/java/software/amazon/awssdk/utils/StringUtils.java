@@ -15,6 +15,10 @@
 
 package software.amazon.awssdk.utils;
 
+import java.io.UncheckedIOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
 import java.util.Locale;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -562,5 +566,18 @@ public final class StringUtils {
             inOffset += Character.charCount(codepoint);
         }
         return new String(newCodePoints, 0, outOffset);
+    }
+
+    /**
+     * Encode the given bytes as a string using the given charset
+     * @throws UncheckedIOException with a {@link CharacterCodingException} as the cause if the bytes cannot be encoded using the
+     * provided charset.
+     */
+    public static String fromBytes(byte[] bytes, Charset charset) throws UncheckedIOException {
+        try {
+            return charset.newDecoder().decode(ByteBuffer.wrap(bytes)).toString();
+        } catch (CharacterCodingException e) {
+            throw new UncheckedIOException("Cannot encode string.", e);
+        }
     }
 }

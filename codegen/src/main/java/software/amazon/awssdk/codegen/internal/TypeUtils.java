@@ -22,7 +22,6 @@ import static software.amazon.awssdk.codegen.model.service.ShapeType.Structure;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,6 +30,7 @@ import java.util.Map;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
+import software.amazon.awssdk.core.SdkBytes;
 
 /**
  * Used to determine the Java types for the service model.
@@ -62,7 +62,7 @@ public class TypeUtils {
         DATA_TYPE_MAPPINGS.put("float", Float.class.getSimpleName());
         DATA_TYPE_MAPPINGS.put("byte", Byte.class.getSimpleName());
         DATA_TYPE_MAPPINGS.put("timestamp", Instant.class.getName());
-        DATA_TYPE_MAPPINGS.put("blob", ByteBuffer.class.getName());
+        DATA_TYPE_MAPPINGS.put("blob", SdkBytes.class.getName());
         DATA_TYPE_MAPPINGS.put("stream", InputStream.class.getName());
         DATA_TYPE_MAPPINGS.put("bigdecimal", BigDecimal.class.getName());
         DATA_TYPE_MAPPINGS.put("biginteger", BigInteger.class.getName());
@@ -79,7 +79,7 @@ public class TypeUtils {
         MARSHALLING_TYPE_MAPPINGS.put("Float", "FLOAT");
         MARSHALLING_TYPE_MAPPINGS.put("Double", "DOUBLE");
         MARSHALLING_TYPE_MAPPINGS.put("Instant", "INSTANT");
-        MARSHALLING_TYPE_MAPPINGS.put("ByteBuffer", "BYTE_BUFFER");
+        MARSHALLING_TYPE_MAPPINGS.put("SdkBytes", "SDK_BYTES");
         MARSHALLING_TYPE_MAPPINGS.put("Boolean", "BOOLEAN");
         MARSHALLING_TYPE_MAPPINGS.put("BigDecimal", "BIG_DECIMAL");
         MARSHALLING_TYPE_MAPPINGS.put("InputStream", "STREAM");

@@ -15,13 +15,11 @@
 
 package software.amazon.awssdk.core;
 
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -30,13 +28,16 @@ import software.amazon.awssdk.utils.Validate;
  * {@link ResponseTransformer#toBytes()} or {@link AsyncResponseTransformer#toBytes()} to a streaming output operation.
  */
 @SdkPublicApi
-public final class ResponseBytes<ResponseT> {
+public final class ResponseBytes<ResponseT> extends BytesWrapper {
     private final ResponseT response;
-    private final byte[] responseBytes;
 
-    public ResponseBytes(ResponseT response, byte[] responseBytes) {
+    ResponseBytes(ResponseT response, byte[] bytes) {
+        super(bytes);
         this.response = Validate.paramNotNull(response, "response");
-        this.responseBytes = Validate.paramNotNull(responseBytes, "responseBytes");
+    }
+
+    public static <ResponseT> ResponseBytes<ResponseT> fromByteArray(ResponseT response, byte[] bytes) {
+        return new ResponseBytes<>(response, Arrays.copyOf(bytes, bytes.length));
     }
 
     /**
@@ -46,35 +47,35 @@ public final class ResponseBytes<ResponseT> {
         return response;
     }
 
-    /**
-     * @return The output from the streaming operation as a read-only byte buffer.
-     */
-    public ByteBuffer asByteBuffer() {
-        return ByteBuffer.wrap(responseBytes).asReadOnlyBuffer();
+    @Override
+    public String toString() {
+        return ToString.builder("ResponseBytes")
+                       .add("response", response)
+                       .add("bytes", wrappedBytes())
+                       .build();
     }
 
-    /**
-     * @return A copy of the output from the streaming operation as a byte array.
-     * @see #asByteBuffer() to prevent creating an additional array copy.
-     */
-    public byte[] asByteArray() {
-        return Arrays.copyOf(responseBytes, responseBytes.length);
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        final ResponseBytes<?> that = (ResponseBytes<?>) o;
+
+        return response != null ? response.equals(that.response) : that.response == null;
     }
 
-    /**
-     * Retrieve the output of the streaming operation as a string.
-     *
-     * @param charset The charset of the string.
-     * @return The output from the streaming operation as a string.
-     */
-    public String asString(Charset charset) {
-        return new String(responseBytes, charset);
-    }
-
-    /**
-     * @return The output from the streaming operation as a utf-8 encoded string.
-     */
-    public String asUtf8String() {
-        return asString(StandardCharsets.UTF_8);
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (response != null ? response.hashCode() : 0);
+        return result;
     }
 }

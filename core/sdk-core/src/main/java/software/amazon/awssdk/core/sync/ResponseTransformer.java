@@ -168,7 +168,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
     static <ResponseT> ResponseTransformer<ResponseT, ResponseBytes<ResponseT>> toBytes() {
         return (response, inputStream) -> {
             try {
-                return new ResponseBytes<>(response, IoUtils.toByteArray(inputStream));
+                return ResponseBytes.fromByteArray(response, IoUtils.toByteArray(inputStream));
             } catch (IOException e) {
                 throw new RetryableException("Failed to read response.", e);
             }

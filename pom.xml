@@ -661,6 +661,7 @@
                                         <include>**/RunCucumberTest.java</include>
                                     </includes>
                                     <trimStackTrace>false</trimStackTrace>
+                                    <rerunFailingTestsCount>2</rerunFailingTestsCount>
                                 </configuration>
                             </execution>
                         </executions>
