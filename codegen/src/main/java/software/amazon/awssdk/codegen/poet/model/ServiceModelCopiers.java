@@ -26,7 +26,7 @@ import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
-import software.amazon.awssdk.core.internal.StandardMemberCopier;
+import software.amazon.awssdk.core.adapter.StandardMemberCopier;
 
 public class ServiceModelCopiers {
     private final IntermediateModel intermediateModel;
@@ -132,7 +132,7 @@ public class ServiceModelCopiers {
 
         String simpleType = m.getVariable().getSimpleType();
 
-        return "Date".equals(simpleType) || "ByteBuffer".equals(simpleType);
+        return "Date".equals(simpleType) || "SdkBytes".equals(simpleType);
     }
 
     private boolean canCopyReference(MemberModel m) {
@@ -144,7 +144,7 @@ public class ServiceModelCopiers {
             String simpleType = m.getVariable().getSimpleType();
             switch (simpleType) {
                 case "Date":
-                case "ByteBuffer":
+                case "SdkBytes":
                     return false;
                 default:
                     return true;

@@ -30,6 +30,7 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -119,7 +120,7 @@ public class MessageAttributesIntegrationTest extends IntegrationTestBase {
         byte[] bytes = new byte[]{1, 1, 1, 0, 0, 0};
         String byteBufferAttrName = "byte-buffer-attr";
         Map<String, MessageAttributeValue> attrs = ImmutableMapParameter.of(byteBufferAttrName,
-                MessageAttributeValue.builder().dataType("Binary").binaryValue(ByteBuffer.wrap(bytes)).build());
+                MessageAttributeValue.builder().dataType("Binary").binaryValue(SdkBytes.fromByteArray(bytes)).build());
 
         sqsAsync.sendMessage(SendMessageRequest.builder().queueUrl(queueUrl).messageBody("test")
                 .messageAttributes(attrs)
@@ -129,7 +130,7 @@ public class MessageAttributesIntegrationTest extends IntegrationTestBase {
                 ReceiveMessageRequest.builder().queueUrl(queueUrl).messageAttributeNames("All").waitTimeSeconds(20).build()).join()
                 .messages();
 
-        ByteBuffer actualByteBuffer = messages.get(0).messageAttributes().get(byteBufferAttrName).binaryValue();
+        ByteBuffer actualByteBuffer = messages.get(0).messageAttributes().get(byteBufferAttrName).binaryValue().asByteBuffer();
         assertEquals(bytes.length, actualByteBuffer.remaining());
     }
 

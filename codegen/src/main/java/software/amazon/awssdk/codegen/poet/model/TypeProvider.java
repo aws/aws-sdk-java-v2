@@ -23,7 +23,6 @@ import com.squareup.javapoet.WildcardTypeName;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,6 +37,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ListModel;
 import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.core.SdkBytes;
 
 /**
  * Helper class for resolving Poet {@link TypeName}s for use in model classes.
@@ -68,6 +68,9 @@ public class TypeProvider {
     }
 
     public TypeName returnType(MemberModel memberModel) {
+        if (memberModel.getVariable().getVariableType().endsWith("SdkBytes")) {
+            return TypeName.get(SdkBytes.class);
+        }
         return fieldType(memberModel, false);
     }
 
@@ -171,10 +174,7 @@ public class TypeProvider {
                 Double.class,
                 Float.class,
                 BigDecimal.class,
-                // TODO: Revisit use of this for non-streaming binary blobs
-                // and whether we even make a distinction between streaming
-                // and non-streaming
-                ByteBuffer.class,
+                SdkBytes.class,
                 InputStream.class,
                 Instant.class)
                 .filter(cls -> cls.getName().equals(simpleType) || cls.getSimpleName().equals(simpleType))

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import java.lang.reflect.Method;
@@ -35,6 +36,7 @@ import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.pojos.SubClass;
@@ -156,13 +158,12 @@ public class StandardModelFactoriesV2UnconvertTest {
 
     @Test
     public void testBinary() {
-        ByteBuffer test = ByteBuffer.wrap("test".getBytes());
-        Assert.assertTrue(Arrays.equals("test".getBytes(), (byte[]) unconvert(
-                "getByteArray", "setByteArray",
-                AttributeValue.builder().b(test.slice()).build())));
+        SdkBytes test = SdkBytes.fromUtf8String("test");
+        assertArrayEquals(test.asByteArray(),
+                          (byte[]) unconvert("getByteArray", "setByteArray", AttributeValue.builder().b(test).build()));
 
-        assertEquals(test.slice(), unconvert("getByteBuffer", "setByteBuffer",
-                                             AttributeValue.builder().b(test.slice()).build()));
+        assertEquals(test.asByteBuffer(),
+                     unconvert("getByteBuffer", "setByteBuffer", AttributeValue.builder().b(test).build()));
     }
 
     @Test
@@ -343,7 +344,7 @@ public class StandardModelFactoriesV2UnconvertTest {
 
         Set<byte[]> result = (Set<byte[]>) unconvert(
                 "getByteArraySet", "setByteArraySet",
-                AttributeValue.builder().bs(test.slice()).build());
+                AttributeValue.builder().bs(SdkBytes.fromByteBuffer(test.slice())).build());
 
         assertEquals(1, result.size());
         Assert.assertTrue(Arrays.equals(
@@ -352,7 +353,7 @@ public class StandardModelFactoriesV2UnconvertTest {
 
         Assert.assertEquals(Collections.singleton(test.slice()),
                             unconvert("getByteBufferSet", "setByteBufferSet",
-                                      AttributeValue.builder().bs(test.slice()).build()));
+                                      AttributeValue.builder().bs(SdkBytes.fromByteBuffer(test.slice())).build()));
     }
 
     @Test

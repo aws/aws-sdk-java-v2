@@ -15,20 +15,18 @@
 
 package software.amazon.awssdk.core.adapter;
 
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.SdkBytes;
 
 @SdkProtectedApi
-public final class StringToByteBufferAdapter implements TypeAdapter<String, ByteBuffer> {
-
+public final class StringToSdkBytesAdapter implements TypeAdapter<String, SdkBytes> {
     @Override
-    public ByteBuffer adapt(String source) {
+    public SdkBytes adapt(String source) {
         if (source == null) {
             return null;
         } else {
-            return ByteBuffer.wrap(source.getBytes(StandardCharsets.UTF_8));
+            return SdkBytes.fromByteArray(source.getBytes(StandardCharsets.UTF_8));
         }
     }
-
 }

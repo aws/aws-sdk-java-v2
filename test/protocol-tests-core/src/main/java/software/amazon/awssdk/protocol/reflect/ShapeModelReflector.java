@@ -19,8 +19,6 @@ import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.lang.reflect.Method;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,6 +31,7 @@ import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -153,7 +152,7 @@ public class ShapeModelReflector {
         if (memberModel.isSimple()) {
             switch (memberModel.getVariable().getSimpleType()) {
                 case "Instant":
-                case "ByteBuffer":
+                case "SdkBytes":
                 case "InputStream":
                     return memberModel.getSetterModel().getVariableSetterType();
                 default:
@@ -229,8 +228,8 @@ public class ShapeModelReflector {
                 return currentNode.asDouble();
             case "Instant":
                 return Instant.ofEpochMilli(currentNode.asLong());
-            case "ByteBuffer":
-                return ByteBuffer.wrap(currentNode.asText().getBytes(StandardCharsets.UTF_8));
+            case "SdkBytes":
+                return SdkBytes.fromUtf8String(currentNode.asText());
             case "Float":
                 return (float) currentNode.asDouble();
             case "Character":

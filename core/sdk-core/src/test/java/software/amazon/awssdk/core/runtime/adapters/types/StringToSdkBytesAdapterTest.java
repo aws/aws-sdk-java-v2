@@ -21,11 +21,12 @@ import static org.junit.Assert.assertNull;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import org.junit.Test;
-import software.amazon.awssdk.core.adapter.StringToByteBufferAdapter;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.adapter.StringToSdkBytesAdapter;
 
-public class StringToByteBufferAdapterTest {
+public class StringToSdkBytesAdapterTest {
 
-    private final StringToByteBufferAdapter adapter = new StringToByteBufferAdapter();
+    private final StringToSdkBytesAdapter adapter = new StringToSdkBytesAdapter();
 
     @Test
     public void nullString_ReturnsNullByteBuffer() {
@@ -34,15 +35,15 @@ public class StringToByteBufferAdapterTest {
 
     @Test
     public void emptyString_ReturnsEmptyByteBuffer() throws IOException {
-        ByteBuffer byteBuffer = adapter.adapt("");
-        assertEquals(0, byteBuffer.remaining());
+        SdkBytes bytes = adapter.adapt("");
+        assertEquals(0, bytes.asByteBuffer().remaining());
     }
 
     @Test
     public void nonEmptyString_ReturnsNonEmptyByteBuffer() throws IOException {
         String source = "foo";
-        ByteBuffer byteBuffer = adapter.adapt(source);
-        assertEquals(new String(byteBuffer.array()), source);
+        SdkBytes bytes = adapter.adapt(source);
+        assertEquals(new String(bytes.asByteArray()), source);
     }
 
 }

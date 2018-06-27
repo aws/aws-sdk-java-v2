@@ -16,11 +16,11 @@
 package software.amazon.awssdk.core.internal.protocol.json;
 
 import java.math.BigDecimal;
-import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.StructuredPojo;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
@@ -95,10 +95,10 @@ public final class SimpleTypeJsonMarshaller {
         }
     };
 
-    public static final JsonMarshaller<ByteBuffer> BYTE_BUFFER = new BaseJsonMarshaller<ByteBuffer>() {
+    public static final JsonMarshaller<SdkBytes> SDK_BYTES = new BaseJsonMarshaller<SdkBytes>() {
         @Override
-        public void marshall(ByteBuffer val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
-            jsonGenerator.writeValue(val);
+        public void marshall(SdkBytes val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
+            jsonGenerator.writeValue(val.asByteBuffer());
         }
     };
 

@@ -74,8 +74,8 @@ public class ${shapeName}Marshaller implements Marshaller<Request<${shapeName}>,
                 if (!request.getHeaders().containsKey("Content-Type")) {
                     request.addHeader("Content-Type", protocolFactory.getContentType());
                 }
-                <#elseif (member.http.isPayload) && member.variable.variableType = "java.nio.ByteBuffer">
-                request.setContent(BinaryUtils.toStream(${shape.variable.variableName}.${member.getterMethodName}()));
+                <#elseif (member.http.isPayload) && member.variable.variableType = "software.amazon.awssdk.core.SdkBytes">
+                request.setContent(${shape.variable.variableName}.${member.getterMethodName}().asInputStream());
                 if (!request.getHeaders().containsKey("Content-Type")) {
                     request.addHeader("Content-Type", protocolFactory.getContentType());
                 }

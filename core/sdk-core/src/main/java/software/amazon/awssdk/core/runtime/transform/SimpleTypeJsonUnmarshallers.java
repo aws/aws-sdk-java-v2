@@ -17,9 +17,9 @@ package software.amazon.awssdk.core.runtime.transform;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.util.DateUtils;
 import software.amazon.awssdk.utils.Base64Utils;
@@ -183,20 +183,20 @@ public final class SimpleTypeJsonUnmarshallers {
     /**
      * Unmarshaller for ByteBuffer values.
      */
-    public static class ByteBufferJsonUnmarshaller implements Unmarshaller<ByteBuffer, JsonUnmarshallerContext> {
-        private static final ByteBufferJsonUnmarshaller INSTANCE = new ByteBufferJsonUnmarshaller();
+    public static class SdkBytesJsonUnmarshaller implements Unmarshaller<SdkBytes, JsonUnmarshallerContext> {
+        private static final SdkBytesJsonUnmarshaller INSTANCE = new SdkBytesJsonUnmarshaller();
 
-        public static ByteBufferJsonUnmarshaller getInstance() {
+        public static SdkBytesJsonUnmarshaller getInstance() {
             return INSTANCE;
         }
 
-        public ByteBuffer unmarshall(JsonUnmarshallerContext unmarshallerContext) throws Exception {
+        public SdkBytes unmarshall(JsonUnmarshallerContext unmarshallerContext) throws Exception {
             String base64EncodedString = unmarshallerContext.readText();
             if (base64EncodedString == null) {
                 return null;
             }
             byte[] decodedBytes = Base64Utils.decode(base64EncodedString);
-            return ByteBuffer.wrap(decodedBytes);
+            return SdkBytes.fromByteArray(decodedBytes);
 
         }
     }

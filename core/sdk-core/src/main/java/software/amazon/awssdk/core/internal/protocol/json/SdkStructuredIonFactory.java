@@ -18,11 +18,11 @@ package software.amazon.awssdk.core.internal.protocol.json;
 import com.fasterxml.jackson.core.JsonFactory;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.Map;
 import java.util.function.BiFunction;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
@@ -45,7 +45,7 @@ public abstract class SdkStructuredIonFactory {
             .put(BigDecimal.class, SimpleTypeIonUnmarshallers.BigDecimalIonUnmarshaller.getInstance())
             .put(BigInteger.class, SimpleTypeIonUnmarshallers.BigIntegerIonUnmarshaller.getInstance())
             .put(Boolean.class, SimpleTypeIonUnmarshallers.BooleanIonUnmarshaller.getInstance())
-            .put(ByteBuffer.class, SimpleTypeIonUnmarshallers.ByteBufferIonUnmarshaller.getInstance())
+            .put(SdkBytes.class, SimpleTypeIonUnmarshallers.SdkBytesIonUnmarshaller.getInstance())
             .put(Byte.class, SimpleTypeIonUnmarshallers.ByteIonUnmarshaller.getInstance())
             .put(Date.class, SimpleTypeIonUnmarshallers.DateIonUnmarshaller.getInstance())
             .put(Double.class, SimpleTypeIonUnmarshallers.DoubleIonUnmarshaller.getInstance())

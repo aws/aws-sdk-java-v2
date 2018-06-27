@@ -20,10 +20,10 @@ import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.protocol.MarshallingInfo;
 import software.amazon.awssdk.core.protocol.MarshallingType;
@@ -31,7 +31,6 @@ import software.amazon.awssdk.core.protocol.OperationInfo;
 import software.amazon.awssdk.core.protocol.ProtocolRequestMarshaller;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 import software.amazon.awssdk.core.util.UriResourcePathUtils;
-import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * Implementation of {@link ProtocolRequestMarshaller} for JSON based services. This includes JSON-RPC and REST-JSON.
@@ -90,7 +89,7 @@ public class JsonProtocolMarshaller<OrigRequestT extends SdkRequest> implements 
                 .payloadMarshaller(MarshallingType.BIG_DECIMAL, SimpleTypeJsonMarshaller.BIG_DECIMAL)
                 .payloadMarshaller(MarshallingType.BOOLEAN, SimpleTypeJsonMarshaller.BOOLEAN)
                 .payloadMarshaller(MarshallingType.INSTANT, SimpleTypeJsonMarshaller.INSTANT)
-                .payloadMarshaller(MarshallingType.BYTE_BUFFER, SimpleTypeJsonMarshaller.BYTE_BUFFER)
+                .payloadMarshaller(MarshallingType.SDK_BYTES, SimpleTypeJsonMarshaller.SDK_BYTES)
                 .payloadMarshaller(MarshallingType.STRUCTURED, SimpleTypeJsonMarshaller.STRUCTURED)
                 .payloadMarshaller(MarshallingType.LIST, SimpleTypeJsonMarshaller.LIST)
                 .payloadMarshaller(MarshallingType.MAP, SimpleTypeJsonMarshaller.MAP)
@@ -163,8 +162,8 @@ public class JsonProtocolMarshaller<OrigRequestT extends SdkRequest> implements 
      * Binary data should be placed as is, directly into the content.
      */
     private void marshallBinaryPayload(Object val) {
-        if (val instanceof ByteBuffer) {
-            request.setContent(BinaryUtils.toStream((ByteBuffer) val));
+        if (val instanceof SdkBytes) {
+            request.setContent(((SdkBytes) val).asInputStream());
         } else if (val instanceof InputStream) {
             request.setContent((InputStream) val);
         }

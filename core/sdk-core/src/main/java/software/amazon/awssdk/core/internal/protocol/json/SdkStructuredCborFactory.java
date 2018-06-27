@@ -19,12 +19,12 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import java.util.function.BiFunction;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
@@ -56,7 +56,7 @@ public abstract class SdkStructuredCborFactory {
             .put(Long.class, SimpleTypeCborUnmarshallers.LongCborUnmarshaller.getInstance())
             .put(Byte.class, SimpleTypeCborUnmarshallers.ByteCborUnmarshaller.getInstance())
             .put(Date.class, SimpleTypeCborUnmarshallers.DateCborUnmarshaller.getInstance())
-            .put(ByteBuffer.class, SimpleTypeCborUnmarshallers.ByteBufferCborUnmarshaller.getInstance())
+            .put(SdkBytes.class, SimpleTypeCborUnmarshallers.SdkBytesCborUnmarshaller.getInstance())
             .put(Instant.class, SimpleTypeCborUnmarshallers.InstantCborUnmarshaller.getInstance())
             .put(Short.class, SimpleTypeCborUnmarshallers.ShortCborUnmarshaller.getInstance()).build();
 

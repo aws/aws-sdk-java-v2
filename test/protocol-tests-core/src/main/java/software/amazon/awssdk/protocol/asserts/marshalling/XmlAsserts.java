@@ -87,7 +87,9 @@ public final class XmlAsserts {
     private static TransformerFactory transformerFactory() throws TransformerConfigurationException {
         TransformerFactory factory = TransformerFactory.newInstance();
         factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-        factory.setFeature(XMLConstants.ACCESS_EXTERNAL_DTD, false);
+        if (factory.getFeature(XMLConstants.ACCESS_EXTERNAL_DTD)) {
+            factory.setFeature(XMLConstants.ACCESS_EXTERNAL_DTD, false);
+        }
         return factory;
     }
 }

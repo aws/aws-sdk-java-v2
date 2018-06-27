@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.services.sqs;
 
-import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import org.junit.Before;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
@@ -93,7 +93,7 @@ public class IntegrationTestBase extends AwsIntegrationTestBase {
     protected static MessageAttributeValue createRandomBinaryAttributeValue() {
         byte[] randomBytes = new byte[10];
         random.nextBytes(randomBytes);
-        return MessageAttributeValue.builder().dataType("Binary").binaryValue(ByteBuffer.wrap(randomBytes)).build();
+        return MessageAttributeValue.builder().dataType("Binary").binaryValue(SdkBytes.fromByteArray(randomBytes)).build();
     }
 
     protected static Map<String, MessageAttributeValue> createRandomAttributeValues(int attrNumber) {

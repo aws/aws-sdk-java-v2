@@ -97,7 +97,7 @@ class NonCollectionSetters extends AbstractMemberSetters {
     @Override
     public MethodSpec beanStyle() {
         MethodSpec.Builder builder = beanStyleSetterBuilder()
-            .addCode(copySetterBuilderBody());
+            .addCode(beanCopySetterBody());
 
         if (annotateJsonProperty()) {
             builder.addAnnotation(
