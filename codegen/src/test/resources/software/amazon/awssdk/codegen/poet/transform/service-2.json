@@ -56,6 +56,16 @@
         "requestUri":"/2016-03-11/streamingOutputOperation"
       },
       "output":{"shape":"StructureWithStreamingMember"}
+    },
+    "EventStreamOperation": {
+      "name": "EventStreamOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/eventStreamOperation"
+      },
+      "output": {
+        "shape": "EventStreamOutput"
+      }
     }
   },
   "shapes":{
@@ -263,6 +273,47 @@
         "EnumValue1", "EnumValue2"
       ]
     },
-    "Timestamp":{"type":"timestamp"}
+    "Timestamp":{"type":"timestamp"},
+    "EventStreamOutput": {
+      "type": "structure",
+      "required": [
+        "EventStream"
+      ],
+      "members": {
+        "EventStream": {
+          "shape": "EventStream"
+        }
+      }
+    },
+    "EventStream": {
+      "type": "structure",
+      "members": {
+        "EventOne": {
+          "shape": "EventOne"
+        },
+        "EventTwo": {
+          "shape": "EventTwo"
+        }
+      },
+      "eventstream": true
+    },
+    "EventOne": {
+      "type": "structure",
+      "members": {
+        "Foo": {
+          "shape": "String"
+        }
+      },
+      "event": true
+    },
+    "EventTwo": {
+      "type": "structure",
+      "members": {
+        "Bar": {
+          "shape": "String"
+        }
+      },
+      "event": true
+    }
   }
 }

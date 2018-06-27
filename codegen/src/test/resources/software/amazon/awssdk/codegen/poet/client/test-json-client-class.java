@@ -68,8 +68,8 @@ final class DefaultJsonClient implements JsonClient {
 
     protected DefaultJsonClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
-        this.protocolFactory = init();
         this.clientConfiguration = clientConfiguration;
+        this.protocolFactory = init(false);
     }
 
     @Override
@@ -495,10 +495,10 @@ final class DefaultJsonClient implements JsonClient {
         return protocolFactory.createErrorResponseHandler(new JsonErrorResponseMetadata());
     }
 
-    private software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory init() {
+    private software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory init(boolean supportsCbor) {
         return new AwsJsonProtocolFactory(
                 new JsonClientMetadata()
-                        .withSupportsCbor(false)
+                        .withSupportsCbor(supportsCbor)
                         .withSupportsIon(false)
                         .withBaseServiceExceptionClass(software.amazon.awssdk.services.json.model.JsonException.class)
                         .withContentTypeOverride("")
