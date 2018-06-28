@@ -51,13 +51,9 @@
 
     <!-- The module section in pom.xml is auto generated. No manual changes are allowed -->
     <modules>
+        <module>core</module>
         <module>services</module>
         <module>aws-sdk-java</module>
-        <module>auth</module>
-        <module>aws-core</module>
-        <module>core</module>
-        <module>regions</module>
-        <module>profiles</module>
         <module>bom</module>
         <module>codegen</module>
         <module>http-client-spi</module>
@@ -73,7 +69,6 @@
         <module>test/service-test-utils</module>
         <module>test/test-utils</module>
         <module>test/codegen-generated-classes-test</module>
-        <module>annotations</module>
         <module>utils</module>
     </modules>
     <scm>
