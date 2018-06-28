@@ -31,6 +31,14 @@ public final class NonRetryableException extends SdkException {
         super(message);
     }
 
+    public NonRetryableException(Throwable t) {
+        super(t);
+    }
+
+    public NonRetryableException(String message, Throwable t) {
+        super(message, t);
+    }
+
     @Override
     public boolean retryable() {
         return false;
