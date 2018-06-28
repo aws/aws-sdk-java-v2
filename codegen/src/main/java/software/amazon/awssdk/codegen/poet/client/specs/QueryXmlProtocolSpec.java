@@ -159,14 +159,19 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
                                        ".withResponseHandler(responseHandler)" +
                                        ".withErrorResponseHandler($N)\n" +
                                        asyncRequestBody +
-                                       ".withInput($L) $L);",
+                                       ".withInput($L) $L)$L;",
                                        ClientExecutionParams.class,
                                        requestType,
                                        pojoResponseType,
                                        marshaller,
                                        "errorResponseHandler",
                                        opModel.getInput().getVariableName(),
-                                       opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "")
+                                       opModel.hasStreamingOutput() ? ", asyncResponseTransformer" : "",
+                                       opModel.hasStreamingOutput() ? ".whenComplete((r, e) -> {\n"
+                                                                      + "    if (e != null) {\n"
+                                                                      + "        asyncResponseTransformer.exceptionOccurred(e);\n"
+                                                                      + "    }\n"
+                                                                      + "})" : "")
                         .build();
     }
 

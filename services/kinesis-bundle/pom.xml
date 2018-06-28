@@ -49,6 +49,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <configuration>
                     <ignoredUnusedDeclaredDependencies>
+                        <ignoredUnusedDeclaredDependency>software.amazon.awssdk:aws-core</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:core</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:kinesis</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>

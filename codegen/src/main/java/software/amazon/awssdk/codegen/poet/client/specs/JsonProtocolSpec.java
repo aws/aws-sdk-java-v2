@@ -234,6 +234,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
         }
         boolean isStreaming = opModel.hasStreamingOutput() || opModel.hasEventStreamOutput();
         String protocolFactory = opModel.hasEventStreamOutput() ? "jsonProtocolFactory" : "protocolFactory";
+        String customerResponseHandler = opModel.hasEventStreamOutput() ? "asyncResponseHandler" : "asyncResponseTransformer";
         return builder.add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n" +
                            ".withMarshaller(new $T($L))\n" +
                            ".withResponseHandler(responseHandler)\n" +
@@ -247,11 +248,12 @@ public class JsonProtocolSpec implements ProtocolSpec {
                            protocolFactory,
                            opModel.getInput().getVariableName(),
                            isStreaming ? ", asyncResponseTransformer" : "",
-                           isStreaming ? ".whenComplete((r, e) -> {\n"
-                                         + "     if (e != null) {\n"
-                                         + "         asyncResponseHandler.exceptionOccurred(e);\n"
-                                         + "     }\n"
-                                         + "})" : "")
+                           isStreaming ? String.format(".whenComplete((r, e) -> {%n"
+                                                       + "     if (e != null) {%n"
+                                                       + "         %s.exceptionOccurred(e);%n"
+                                                       + "     }%n"
+                                                       + "})", customerResponseHandler)
+                                       : "")
                       .build();
     }
 

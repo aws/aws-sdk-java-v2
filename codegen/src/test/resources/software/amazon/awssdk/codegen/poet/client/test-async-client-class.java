@@ -589,12 +589,12 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withInput(streamingOutputOperationRequest), asyncResponseTransformer).whenComplete((r, e) -> {
                 if (e != null) {
-                    asyncResponseHandler.exceptionOccurred(e);
+                    asyncResponseTransformer.exceptionOccurred(e);
                 }
             });
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
-                           () -> asyncResponseHandler.exceptionOccurred(t));
+                           () -> asyncResponseTransformer.exceptionOccurred(t));
             return CompletableFutures.failedFuture(t);
         }
     }
