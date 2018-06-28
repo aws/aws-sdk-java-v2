@@ -122,7 +122,7 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
         @Override
         public ReturnT handle(HttpResponse response, ExecutionAttributes executionAttributes) throws Exception {
             OutputT resp = httpResponseHandler.handle(response, executionAttributes);
-            return responseTransformer.transform(resp, new AbortableInputStream(response.getContent(), response));
+            return responseTransformer.apply(resp, new AbortableInputStream(response.getContent(), response));
         }
 
         @Override
