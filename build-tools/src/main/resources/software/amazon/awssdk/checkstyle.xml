@@ -252,6 +252,13 @@
                      value="Method name ''{0}'' must match pattern ''{1}''."/>
         </module>
 
+        <!-- Should not use kotlin function name as public method name -->
+        <module name="software.amazon.awssdk.buildtools.checkstyle.SdkPublicMethodNameCheck">
+            <property name="format" value="^(?!(?:apply|let|run|also|with)$).*$"/>
+            <message key="name.invalidPattern"
+                     value="Method name ''{0}'' conflicts with kotlin function name"/>
+        </module>
+
         <!-- Finalizers must not be overridden. -->
         <module name="NoFinalizer"/>
 
