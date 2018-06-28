@@ -6,7 +6,7 @@
 
     <parent>
         <groupId>software.amazon.awssdk</groupId>
-        <artifactId>aws-sdk-java-pom</artifactId>
+        <artifactId>core</artifactId>
         <version>2.0.0-preview-11-SNAPSHOT</version>
     </parent>
 
@@ -34,7 +34,7 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <artifactId>core</artifactId>
+            <artifactId>sdk-core</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
         </dependency>
