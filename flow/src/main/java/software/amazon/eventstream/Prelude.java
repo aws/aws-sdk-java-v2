@@ -50,7 +50,8 @@ final class Prelude {
         }
 
         long payloadLength = (totalLength - headersLength) - Message.MESSAGE_OVERHEAD;
-        if (payloadLength < 0 || payloadLength > 16_777_216) {
+        // This implementation temporarily accepts larger payloads than the spec permits.
+        if (payloadLength < 0 || payloadLength > 25_165_824) {
             throw new IllegalArgumentException("Illegal payload size: " + payloadLength);
         }
 
