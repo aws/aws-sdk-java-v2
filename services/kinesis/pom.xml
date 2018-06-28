@@ -29,4 +29,30 @@
         with Amazon Kinesis Service
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
+
+    <!-- Only sync clients require dependency region. As sync client generation is disabled, ignore the dependency -->
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>analyze-only</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <failOnWarning>true</failOnWarning>
+                        <ignoreNonCompile>true</ignoreNonCompile>
+                        <ignoredDependencies>
+                            <ignoredDependency>software.amazon.awssdk:regions</ignoredDependency>
+                        </ignoredDependencies>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>
