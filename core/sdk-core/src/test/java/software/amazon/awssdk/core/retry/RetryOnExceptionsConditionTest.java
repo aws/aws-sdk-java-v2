@@ -19,6 +19,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.Sets;
+import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.util.Collections;
@@ -79,6 +80,13 @@ public class RetryOnExceptionsConditionTest {
     @Test
     public void genericBaseException_ReturnsFalse() {
         assertFalse(condition.shouldRetry(RetryPolicyContexts.withException(new SdkException("foo"))));
+    }
+
+    @Test
+    public void subclassOfRetryableWrappedClientException_ReturnsTrue() {
+        final RetryCondition condition = RetryOnExceptionsCondition.create(
+            Collections.singleton(IOException.class));
+        assertTrue(condition.shouldRetry(RetryPolicyContexts.withException(new SdkClientException(new ConnectException("foo")))));
     }
 
     @Test

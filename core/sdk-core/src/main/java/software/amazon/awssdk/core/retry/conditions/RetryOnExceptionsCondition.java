@@ -52,12 +52,11 @@ public final class RetryOnExceptionsCondition implements RetryCondition {
             return false;
         }
 
-        //TODO: update equals to isAssignableFrom to match all sub classes of IOException
         Predicate<Class<? extends Exception>> isRetryableException =
-            ex -> ex.equals(exception.getClass());
+            ex -> ex.isAssignableFrom(exception.getClass());
 
         Predicate<Class<? extends Exception>> hasRetrableCause =
-            ex -> exception.getCause() != null && ex.equals(exception.getCause().getClass());
+            ex -> exception.getCause() != null && ex.isAssignableFrom(exception.getCause().getClass());
 
         return exceptionsToRetryOn.stream().anyMatch(isRetryableException.or(hasRetrableCause));
     }
