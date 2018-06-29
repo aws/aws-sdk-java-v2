@@ -25,7 +25,7 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
-public class MapUnmarshaller<K, V> implements Unmarshaller<Map<K, V>, JsonUnmarshallerContext> {
+public final class MapUnmarshaller<K, V> implements Unmarshaller<Map<K, V>, JsonUnmarshallerContext> {
 
     private final Unmarshaller<K, JsonUnmarshallerContext> keyUnmarshaller;
     private final Unmarshaller<V, JsonUnmarshallerContext> valueUnmarshaller;
@@ -37,7 +37,7 @@ public class MapUnmarshaller<K, V> implements Unmarshaller<Map<K, V>, JsonUnmars
     }
 
     public Map<K, V> unmarshall(JsonUnmarshallerContext context) throws Exception {
-        Map<K, V> map = new HashMap<K, V>();
+        Map<K, V> map = new HashMap<>();
         int originalDepth = context.getCurrentDepth();
 
         if (context.getCurrentToken() == JsonToken.VALUE_NULL) {

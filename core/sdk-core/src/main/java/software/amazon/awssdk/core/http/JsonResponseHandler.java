@@ -40,7 +40,7 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkProtectedApi
 @ReviewBeforeRelease("Metadata in base result has been broken. Fix this and deal with AwsResponseHandlerAdapter")
-public class JsonResponseHandler<T> implements HttpResponseHandler<T> {
+public final class JsonResponseHandler<T> implements HttpResponseHandler<T> {
     private static final Logger log = Logger.loggerFor(JsonResponseHandler.class);
 
     private final JsonFactory jsonFactory;
@@ -73,7 +73,7 @@ public class JsonResponseHandler<T> implements HttpResponseHandler<T> {
          * don't have to do this check here.
          */
         this.responseUnmarshaller =
-                responseUnmarshaller != null ? responseUnmarshaller : new VoidJsonUnmarshaller<T>();
+                responseUnmarshaller != null ? responseUnmarshaller : new VoidJsonUnmarshaller<>();
 
         this.needsConnectionLeftOpen = needsConnectionLeftOpen;
         this.isPayloadJson = isPayloadJson;
@@ -136,6 +136,7 @@ public class JsonResponseHandler<T> implements HttpResponseHandler<T> {
             JsonUnmarshallerContext unmarshallerContext) {
     }
 
+    @Override
     public boolean needsConnectionLeftOpen() {
         return needsConnectionLeftOpen;
     }

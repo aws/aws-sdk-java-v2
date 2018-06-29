@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
  * @param <T> Type of POJO being marshalled.
  */
 @SdkProtectedApi
-public class StreamingRequestMarshaller<T> implements Marshaller<Request<T>, T> {
+public final class StreamingRequestMarshaller<T> implements Marshaller<Request<T>, T> {
 
     private final Marshaller<Request<T>, T> delegate;
     private final RequestBody requestBody;

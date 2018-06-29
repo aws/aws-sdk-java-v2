@@ -22,7 +22,7 @@ import software.amazon.awssdk.core.client.config.ClientOption;
 import software.amazon.awssdk.regions.Region;
 
 @SdkProtectedApi
-public class AwsClientOption<T> extends ClientOption<T> {
+public final class AwsClientOption<T> extends ClientOption<T> {
     /**
      * @see AwsClientBuilder#credentialsProvider(AwsCredentialsProvider)
      */
@@ -42,7 +42,7 @@ public class AwsClientOption<T> extends ClientOption<T> {
 
     public static final AwsClientOption<String> SERVICE_SIGNING_NAME = new AwsClientOption<>(String.class);
 
-    protected AwsClientOption(Class<T> valueClass) {
+    private AwsClientOption(Class<T> valueClass) {
         super(valueClass);
     }
 }

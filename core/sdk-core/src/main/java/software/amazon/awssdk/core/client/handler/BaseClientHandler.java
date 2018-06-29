@@ -180,7 +180,7 @@ public abstract class BaseClientHandler {
     /**
      * Decorate response handlers by running after unmarshalling Interceptors and adding http response metadata.
      */
-    static <InputT extends SdkRequest, OutputT extends SdkResponse> HttpResponseHandler<OutputT> decorateResponseHandlers(
+    static <OutputT extends SdkResponse> HttpResponseHandler<OutputT> decorateResponseHandlers(
         HttpResponseHandler<OutputT> delegate, ExecutionContext executionContext) {
         HttpResponseHandler<OutputT> interceptorCallingResponseHandler = interceptorCalling(delegate, executionContext);
         return addHttpResponseMetadataResponseHandler(interceptorCallingResponseHandler);

@@ -27,7 +27,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * control of the context.
  */
 @SdkProtectedApi
-public class ListUnmarshaller<T> implements
+public final class ListUnmarshaller<T> implements
                                  Unmarshaller<List<T>, JsonUnmarshallerContext> {
 
     private final Unmarshaller<T, JsonUnmarshallerContext> itemUnmarshaller;

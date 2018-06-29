@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.profiles.internal.ProfileFileLocations;
@@ -53,14 +52,13 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  * default, the SDK will use the {@link #defaultProfileFile()} when that behavior hasn't been explicitly overridden.
  */
 @SdkPublicApi
-public class ProfileFile {
+public final class ProfileFile {
     private final Map<String, Profile> profiles;
 
     /**
      * @see #builder()
      */
-    @SdkInternalApi
-    ProfileFile(Map<String, Map<String, String>> rawProfiles) {
+    private ProfileFile(Map<String, Map<String, String>> rawProfiles) {
         Validate.paramNotNull(rawProfiles, "rawProfiles");
 
         this.profiles = Collections.unmodifiableMap(convertToProfilesMap(rawProfiles));
@@ -99,7 +97,7 @@ public class ProfileFile {
      * @param profileName The name of the profile that should be retrieved from this file.
      * @return The profile, if available.
      */
-    public final Optional<Profile> profile(String profileName) {
+    public Optional<Profile> profile(String profileName) {
         return Optional.ofNullable(profiles.get(profileName));
     }
 
@@ -107,7 +105,7 @@ public class ProfileFile {
      * Retrieve an unmodifiable collection including all of the profiles in this file.
      * @return An unmodifiable collection of the profiles in this file, keyed by profile name.
      */
-    public final Map<String, Profile> profiles() {
+    public Map<String, Profile> profiles() {
         return profiles;
     }
 

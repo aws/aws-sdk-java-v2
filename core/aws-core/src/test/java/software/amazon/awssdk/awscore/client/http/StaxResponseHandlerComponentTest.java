@@ -20,8 +20,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.client.VerificationException;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -34,6 +32,7 @@ import java.nio.file.Files;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import software.amazon.awssdk.awscore.client.utils.ValidSdkObjects;
 import software.amazon.awssdk.awscore.http.response.StaxResponseHandler;
 import software.amazon.awssdk.awscore.protocol.xml.StaxUnmarshallerContext;
 import software.amazon.awssdk.core.http.HttpResponse;
@@ -69,11 +68,11 @@ public class StaxResponseHandlerComponentTest {
 
         StaxResponseHandler<EmptyAwsResponse> responseHandler = new StaxResponseHandler<>(dummyUnmarshaller());
 
-        HttpResponse response = mock(HttpResponse.class);
-        when(response.getContent()).thenReturn(new ByteArrayInputStream(payload.getBytes(Charset.forName("UTF-8"))));
+        HttpResponse response = new HttpResponse(ValidSdkObjects.sdkHttpFullRequest().build());
+        response.setContent(new ByteArrayInputStream(payload.getBytes(Charset.forName("UTF-8"))));
 
         try {
-            responseHandler.handle(response, mock(ExecutionAttributes.class));
+            responseHandler.handle(response, new ExecutionAttributes());
         } catch (Exception e) {
             //expected
         }

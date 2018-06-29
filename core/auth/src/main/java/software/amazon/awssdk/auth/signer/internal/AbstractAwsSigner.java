@@ -209,7 +209,7 @@ public abstract class AbstractAwsSigner implements Signer {
      */
     protected String getCanonicalizedQueryString(Map<String, List<String>> parameters) {
 
-        final SortedMap<String, List<String>> sorted = new TreeMap<String, List<String>>();
+        final SortedMap<String, List<String>> sorted = new TreeMap<>();
 
         /**
          * Signing protocol expects the param values also to be sorted after url
@@ -258,7 +258,7 @@ public abstract class AbstractAwsSigner implements Signer {
         }
     }
 
-    protected String getCanonicalizedResourcePath(String resourcePath, boolean urlEncode) {
+    String getCanonicalizedResourcePath(String resourcePath, boolean urlEncode) {
         if (StringUtils.isEmpty(resourcePath)) {
             return "/";
         } else {

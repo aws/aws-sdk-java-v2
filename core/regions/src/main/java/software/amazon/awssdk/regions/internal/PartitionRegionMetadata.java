@@ -24,7 +24,7 @@ import software.amazon.awssdk.utils.Validate;
  * A region implementation backed by the partition.
  */
 @SdkInternalApi
-public class PartitionRegionMetadata implements RegionMetadata {
+public final class PartitionRegionMetadata implements RegionMetadata {
 
     /**
      * partition where the region is present.

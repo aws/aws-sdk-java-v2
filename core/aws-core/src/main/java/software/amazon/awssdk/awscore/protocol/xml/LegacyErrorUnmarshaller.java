@@ -28,7 +28,7 @@ import software.amazon.awssdk.core.util.XpathUtils;
  * optionally, a subclass of SdkServiceException if this class is extended.
  */
 @SdkProtectedApi
-public class LegacyErrorUnmarshaller extends AbstractErrorUnmarshaller<AwsServiceException, Node> {
+public final class LegacyErrorUnmarshaller extends AbstractErrorUnmarshaller<AwsServiceException, Node> {
 
     /**
      * Constructs a new unmarshaller that will unmarshall AWS error responses as

@@ -40,7 +40,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * @param <T> The type of data associated with this attribute.
  */
 @SdkPublicApi
-public class ExecutionAttribute<T> {
+public final class ExecutionAttribute<T> {
 
     private final String name;
 
