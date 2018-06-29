@@ -29,7 +29,7 @@ import software.amazon.awssdk.regions.internal.model.Partition;
 import software.amazon.awssdk.regions.internal.model.Service;
 
 @SdkInternalApi
-public class PartitionServiceMetadata implements ServiceMetadata {
+public final class PartitionServiceMetadata implements ServiceMetadata {
 
     private static final String SERVICE = "{service}";
     private static final String REGION = "{region}";

@@ -25,7 +25,7 @@ import software.amazon.awssdk.core.retry.conditions.RetryCondition;
  * Retry condition implementation that retries if the exception or the cause of the exception matches the error codes defined.
  */
 @SdkPublicApi
-public class RetryOnErrorCodeCondition implements RetryCondition {
+public final class RetryOnErrorCodeCondition implements RetryCondition {
 
     private final Set<String> retryableErrorCodes;
 

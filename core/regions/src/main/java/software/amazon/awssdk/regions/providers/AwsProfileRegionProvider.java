@@ -26,7 +26,7 @@ import software.amazon.awssdk.regions.Region;
  * Loads region information from the {@link ProfileFile#defaultProfileFile()} using the default profile name.
  */
 @SdkProtectedApi
-public class AwsProfileRegionProvider implements AwsRegionProvider {
+public final class AwsProfileRegionProvider implements AwsRegionProvider {
 
     private final String profileName = SdkSystemSetting.AWS_PROFILE.getStringValueOrThrow();
 

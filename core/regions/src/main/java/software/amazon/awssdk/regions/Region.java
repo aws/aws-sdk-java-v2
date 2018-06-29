@@ -146,9 +146,18 @@ public final class Region {
         return isGlobalRegion;
     }
 
+    @Override
+    public String toString() {
+        return id;
+    }
+
     private static class RegionCache {
 
         private static final ConcurrentHashMap<String, Region> VALUES = new ConcurrentHashMap<>();
+
+        private RegionCache() {
+
+        }
 
         private static Region put(String value, boolean isGlobalRegion) {
             return VALUES.computeIfAbsent(value, v -> new Region(value, isGlobalRegion));

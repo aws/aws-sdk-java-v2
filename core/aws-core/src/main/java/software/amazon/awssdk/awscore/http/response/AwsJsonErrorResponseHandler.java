@@ -33,7 +33,7 @@ import software.amazon.awssdk.core.internal.protocol.json.JsonContent;
  * services and unmarshalls the result using a JSON unmarshaller.
  */
 @SdkInternalApi
-public class AwsJsonErrorResponseHandler extends JsonErrorResponseHandler<AwsServiceException> {
+public final class AwsJsonErrorResponseHandler extends JsonErrorResponseHandler<AwsServiceException> {
 
     private final List<AwsJsonErrorUnmarshaller> unmarshallers;
     private final ErrorCodeParser errorCodeParser;

@@ -21,13 +21,14 @@ import java.nio.ByteBuffer;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
-import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 import software.amazon.awssdk.core.util.DateUtils;
 import software.amazon.awssdk.utils.Base64Utils;
 
 @SdkProtectedApi
-public class SimpleTypeJsonUnmarshallers {
+public final class SimpleTypeJsonUnmarshallers {
+    private SimpleTypeJsonUnmarshallers() {
+    }
+
     /**
      * Unmarshaller for String values.
      */

@@ -24,7 +24,7 @@ import software.amazon.awssdk.core.Protocol;
  * Endpoint configuration.
  */
 @SdkInternalApi
-public class Endpoint implements Cloneable {
+public final class Endpoint implements Cloneable {
 
     /**
      * endpoint string.

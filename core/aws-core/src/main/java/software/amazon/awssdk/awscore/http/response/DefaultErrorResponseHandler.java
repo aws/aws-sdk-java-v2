@@ -45,7 +45,7 @@ import software.amazon.awssdk.utils.IoUtils;
  * message, AWS error code, AWS request ID, etc).
  */
 @SdkProtectedApi
-public class DefaultErrorResponseHandler implements HttpResponseHandler<AwsServiceException> {
+public final class DefaultErrorResponseHandler implements HttpResponseHandler<AwsServiceException> {
     private static final Logger log = LoggerFactory.getLogger(DefaultErrorResponseHandler.class);
 
     /**

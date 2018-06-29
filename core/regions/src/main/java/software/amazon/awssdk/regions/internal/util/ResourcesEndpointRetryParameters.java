@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * Parameters that are used in {@link ResourcesEndpointRetryPolicy}.
  */
 @SdkInternalApi
-public class ResourcesEndpointRetryParameters {
+public final class ResourcesEndpointRetryParameters {
 
     private final Integer statusCode;
 

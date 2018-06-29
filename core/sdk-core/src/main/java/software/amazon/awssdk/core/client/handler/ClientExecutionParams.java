@@ -34,7 +34,7 @@ import software.amazon.awssdk.core.runtime.transform.Marshaller;
 @SdkProtectedApi
 @NotThreadSafe
 @ReviewBeforeRelease("Using old style withers/getters")
-public class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
+public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
 
     private InputT input;
     private AsyncRequestBody asyncRequestBody;

@@ -56,7 +56,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  *            Class of the value for the map.
  */
 @SdkProtectedApi
-public class ImmutableMapParameter<K, V> implements Map<K, V> {
+public final class ImmutableMapParameter<K, V> implements Map<K, V> {
 
     private static final String UNMODIFIABLE_MESSAGE = "This is an immutable map.";
     private static final String DUPLICATED_KEY_MESSAGE = "Duplicate keys are provided.";

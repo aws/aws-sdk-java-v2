@@ -157,7 +157,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
     /**
      * Reads the file for one subscriber.
      */
-    private static class FileSubscription implements Subscription {
+    private static final class FileSubscription implements Subscription {
         private final AsynchronousFileChannel inputChannel;
         private final Subscriber<? super ByteBuffer> subscriber;
         private final int chunkSize;

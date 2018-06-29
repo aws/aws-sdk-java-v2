@@ -40,7 +40,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  * @param <OutputT> Type of unmarshalled response
  */
 @SdkInternalApi
-public class StreamManagingStage<OutputT> implements RequestPipeline<SdkHttpFullRequest, Response<OutputT>> {
+public final class StreamManagingStage<OutputT> implements RequestPipeline<SdkHttpFullRequest, Response<OutputT>> {
 
     private static final Logger log = LoggerFactory.getLogger(StreamManagingStage.class);
 

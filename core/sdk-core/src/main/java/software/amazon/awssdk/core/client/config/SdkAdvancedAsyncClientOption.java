@@ -31,7 +31,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * @param <T> The type of value associated with the option.
  */
 @SdkPublicApi
-public class SdkAdvancedAsyncClientOption<T> extends ClientOption<T> {
+public final class SdkAdvancedAsyncClientOption<T> extends ClientOption<T> {
     /**
      * Configure the executor that should be used to complete the {@link CompletableFuture} that is returned by the service
      * clients. By default, this is an the {@link ExecutorService} managed by the SDK. {@link Executor#execute(Runnable)} is
@@ -41,7 +41,7 @@ public class SdkAdvancedAsyncClientOption<T> extends ClientOption<T> {
     public static final SdkAdvancedAsyncClientOption<Executor> FUTURE_COMPLETION_EXECUTOR =
             new SdkAdvancedAsyncClientOption<>(Executor.class);
 
-    protected SdkAdvancedAsyncClientOption(Class<T> valueClass) {
+    private SdkAdvancedAsyncClientOption(Class<T> valueClass) {
         super(valueClass);
     }
 }

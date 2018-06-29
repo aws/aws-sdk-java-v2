@@ -23,7 +23,7 @@ import software.amazon.awssdk.utils.Validate;
  * Metadata about a region in partition.
  */
 @SdkInternalApi
-public class PartitionRegion {
+public final class PartitionRegion {
 
     /**
      * description of the region.

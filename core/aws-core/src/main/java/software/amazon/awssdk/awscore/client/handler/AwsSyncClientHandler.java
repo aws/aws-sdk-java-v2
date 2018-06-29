@@ -37,7 +37,7 @@ import software.amazon.awssdk.core.sync.ResponseTransformer;
 @Immutable
 @ReviewBeforeRelease("This looks identical to the Sdk version, revisit when we add APIG back")
 @SdkProtectedApi
-public class AwsSyncClientHandler extends SdkSyncClientHandler implements SyncClientHandler {
+public final class AwsSyncClientHandler extends SdkSyncClientHandler implements SyncClientHandler {
 
     private final SdkClientConfiguration clientConfiguration;
 

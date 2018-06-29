@@ -32,7 +32,7 @@ import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
-public class JsonUnmarshallerContextImpl extends JsonUnmarshallerContext {
+public final class JsonUnmarshallerContextImpl extends JsonUnmarshallerContext {
 
     private final JsonParser jsonParser;
     /**
