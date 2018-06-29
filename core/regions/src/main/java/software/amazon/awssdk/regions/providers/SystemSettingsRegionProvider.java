@@ -25,7 +25,7 @@ import software.amazon.awssdk.regions.Region;
  * the system property will be used.
  */
 @SdkProtectedApi
-public class SystemSettingsRegionProvider implements AwsRegionProvider {
+public final class SystemSettingsRegionProvider implements AwsRegionProvider {
     @Override
     public Region getRegion() throws SdkClientException {
         return SdkSystemSetting.AWS_REGION.getStringValue()

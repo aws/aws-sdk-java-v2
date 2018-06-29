@@ -216,7 +216,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     private SdkClientConfiguration finalizeAsyncConfiguration(SdkClientConfiguration config) {
         return config.toBuilder()
                      .option(FUTURE_COMPLETION_EXECUTOR, resolveAsyncFutureCompletionExecutor(config))
-                     .option(ASYNC_RETRY_EXECUTOR_SERVICE, resolveAsyncRetryExecutorService(config))
+                     .option(ASYNC_RETRY_EXECUTOR_SERVICE, resolveAsyncRetryExecutorService())
                      .option(ASYNC_HTTP_CLIENT, resolveAsyncHttpClient(config))
                      .build();
     }
@@ -277,7 +277,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     /**
      * Finalize which async executor service will be used for retries in the created client.
      */
-    private ScheduledExecutorService resolveAsyncRetryExecutorService(SdkClientConfiguration config) {
+    private ScheduledExecutorService resolveAsyncRetryExecutorService() {
         return Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().threadNamePrefix("sdk-retry").build());
     }
 

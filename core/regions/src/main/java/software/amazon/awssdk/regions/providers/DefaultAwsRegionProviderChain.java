@@ -27,7 +27,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * </ol>
  */
 @SdkProtectedApi
-public class DefaultAwsRegionProviderChain extends AwsRegionProviderChain {
+public final class DefaultAwsRegionProviderChain extends AwsRegionProviderChain {
     public DefaultAwsRegionProviderChain() {
         super(new SystemSettingsRegionProvider(), new AwsProfileRegionProvider(),
               new InstanceProfileRegionProvider());

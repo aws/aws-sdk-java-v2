@@ -30,7 +30,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  */
 @SdkProtectedApi
 @ReviewBeforeRelease("Make sure we aren't exposing this anywhere")
-public class HttpResponse implements Abortable {
+public final class HttpResponse implements Abortable {
 
     private final SdkHttpFullRequest request;
     private final Abortable abortable;

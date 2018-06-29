@@ -22,7 +22,7 @@ import software.amazon.awssdk.core.internal.protocol.json.ErrorMessageParser;
 import software.amazon.awssdk.core.protocol.json.SdkJsonErrorMessageParser;
 
 @SdkProtectedApi
-public class AwsJsonErrorMessageParser implements ErrorMessageParser {
+public final class AwsJsonErrorMessageParser implements ErrorMessageParser {
 
     public static final ErrorMessageParser DEFAULT_ERROR_MESSAGE_PARSER =
         new AwsJsonErrorMessageParser(SdkJsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER);

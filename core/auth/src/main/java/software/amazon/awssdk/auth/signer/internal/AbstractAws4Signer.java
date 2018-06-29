@@ -231,11 +231,10 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
         SignerKey signerKey = SIGNER_CACHE.get(cacheKey);
 
-        if (signerKey != null) {
-            if (daysSinceEpochSigningDate == signerKey.getNumberOfDaysSinceEpoch()) {
-                return signerKey.getSigningKey();
-            }
+        if (signerKey != null && daysSinceEpochSigningDate == signerKey.getNumberOfDaysSinceEpoch()) {
+            return signerKey.getSigningKey();
         }
+
         if (LOG.isDebugEnabled()) {
             LOG.debug("Generating a new signing key as the signing key not available in the cache for the date "
                       + TimeUnit.DAYS.toMillis(daysSinceEpochSigningDate));

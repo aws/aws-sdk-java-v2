@@ -24,7 +24,7 @@ import software.amazon.awssdk.core.util.ValidationUtils;
  * Metadata of all partitions.
  */
 @SdkInternalApi
-public class Partitions {
+public final class Partitions {
 
     /**
      * the version of json schema for the partition metadata.

@@ -24,7 +24,7 @@ import software.amazon.awssdk.core.util.ValidationUtils;
  * Endpoint configuration for a service in a partition.
  */
 @SdkInternalApi
-public class Service {
+public final class Service {
 
     /**
      * endpoint configuration for every region in a partition.

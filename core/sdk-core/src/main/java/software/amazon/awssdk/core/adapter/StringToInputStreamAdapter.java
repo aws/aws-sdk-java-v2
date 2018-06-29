@@ -20,7 +20,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.util.StringInputStream;
 
 @SdkProtectedApi
-public class StringToInputStreamAdapter implements TypeAdapter<String, InputStream> {
+public final class StringToInputStreamAdapter implements TypeAdapter<String, InputStream> {
     @Override
     public InputStream adapt(String source) {
         if (source == null) {

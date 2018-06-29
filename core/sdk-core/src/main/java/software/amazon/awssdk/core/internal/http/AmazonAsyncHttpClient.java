@@ -52,7 +52,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 @ThreadSafe
 @SdkInternalApi
 @ReviewBeforeRelease("come up with better name")
-public class AmazonAsyncHttpClient implements SdkAutoCloseable {
+public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
     private final HttpClientDependencies httpClientDependencies;
 
     public AmazonAsyncHttpClient(SdkClientConfiguration clientConfiguration) {
