@@ -21,11 +21,20 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.core.async.BaseAsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 
-public interface EventStreamResponseHandler<ResponseT, EventT>
-    extends BaseAsyncResponseTransformer<ResponseT> {
+public interface EventStreamResponseHandler<ResponseT, EventT> {
+
+    /**
+     * Called when the initial response has been received and the POJO response has
+     * been unmarshalled. This is guaranteed to be called before {@link #onEventStream(SdkPublisher)}.
+     *
+     * <p>In the event of a retryable error, this callback may be called multiple times. It
+     * also may never be invoked if the request never succeeds.</p>
+     *
+     * @param response Unmarshalled POJO containing metadata about the streamed data.
+     */
+    void responseReceived(ResponseT response);
 
     /**
      * Called when events are ready to be streamed. Implementations  must subscribe to the {@link Publisher} and request data via
@@ -46,6 +55,15 @@ public interface EventStreamResponseHandler<ResponseT, EventT>
      * </p>
      */
     void onEventStream(SdkPublisher<EventT> publisher);
+
+    /**
+     * Called when an exception occurs while establishing the connection or streaming the response. Implementations
+     * should free up any resources in this method. This method may be called multiple times during the lifecycle
+     * of a request if automatic retries are enabled.
+     *
+     * @param throwable Exception that occurred.
+     */
+    void exceptionOccurred(Throwable throwable);
 
     /**
      * Called when all data has been successfully published to the {@link org.reactivestreams.Subscriber}. This will

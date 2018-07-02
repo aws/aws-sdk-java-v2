@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.eventstream;
 
 import java.util.HashMap;
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
@@ -26,6 +27,7 @@ import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
  *
  * @param <BaseEventT> Base type for all events.
  */
+@SdkProtectedApi
 public final class EventStreamTaggedUnionJsonUnmarshaller<BaseEventT>
     implements Unmarshaller<BaseEventT, JsonUnmarshallerContext> {
 

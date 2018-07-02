@@ -16,13 +16,14 @@
 package software.amazon.awssdk.core.async.internal;
 
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-public class FlatteningSubscriber<U> extends DelegatingSubscriber<List<U>, U> {
+public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U> {
 
     private final AtomicLong demand = new AtomicLong(0);
     private final Object lock = new Object();
@@ -62,9 +63,10 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<List<U>, U> {
     }
 
     @Override
-    public void onNext(List<U> nextItems) {
+    public void onNext(Iterable<U> nextItems) {
         synchronized (lock) {
-            currentBatch = new LinkedList<>(nextItems);
+            currentBatch = StreamSupport.stream(nextItems.spliterator(), false)
+                                        .collect(Collectors.toCollection(LinkedList::new));
             fulfillDemand();
         }
     }

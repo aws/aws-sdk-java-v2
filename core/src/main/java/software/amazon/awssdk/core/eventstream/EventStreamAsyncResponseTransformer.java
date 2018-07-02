@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.async.BaseAsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponse;
@@ -56,9 +55,14 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     private static final ExecutionAttributes EMPTY_EXECUTION_ATTRIBUTES = new ExecutionAttributes();
 
     /**
-     * {@link BaseAsyncResponseTransformer} provided by customer.
+     * {@link EventStreamResponseHandler} provided by customer.
      */
     private final EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseTransformer;
+
+    /**
+     * Unmarshalls the initial response.
+     */
+    private final HttpResponseHandler<? extends ResponseT> initialResponseUnmarshaller;
 
     /**
      * Unmarshalls the event POJO.
@@ -94,22 +98,32 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
 
     /**
      * @param eventStreamResponseTransformer Response transformer provided by customer.
+     * @param initialResponseUnmarshaller Unmarshaller for the initial-response event stream message.
      * @param eventUnmarshaller Unmarshaller for the various event types.
      */
     public EventStreamAsyncResponseTransformer(
         EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseTransformer,
+        HttpResponseHandler<? extends ResponseT> initialResponseUnmarshaller,
         HttpResponseHandler<? extends EventT> eventUnmarshaller) {
 
         this.eventStreamResponseTransformer = eventStreamResponseTransformer;
+        this.initialResponseUnmarshaller = initialResponseUnmarshaller;
         this.eventUnmarshaller = eventUnmarshaller;
     }
 
     @Override
     public void responseReceived(SdkResponse response) {
+        // We use a void unmarshaller and unmarshall the actual response in the message
+        // decoder when we receive the initial-response frame. TODO not clear
+        // how we would handle REST protocol which would unmarshall the response from the HTTP headers
     }
 
     @Override
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
+        synchronized (this) {
+            // Reset to allow more exceptions to propagate for retries
+            isDone = false;
+        }
         CompletableFuture<Subscription> dataSubscriptionFuture = new CompletableFuture<>();
         publisher.subscribe(new ByteSubscriber(dataSubscriptionFuture));
         dataSubscriptionFuture.thenAccept(dataSubscription -> {
@@ -121,14 +135,16 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     @Override
     public void exceptionOccurred(Throwable throwable) {
         synchronized (this) {
-            isDone = true;
-            error.set(throwable);
-            // If we have a Subscriber at this point notify it as well
-            if (subscriberRef.get() != null) {
-                runAndLogError(log, "Error thrown from Subscriber#onError, ignoring.",
-                    () -> subscriberRef.get().onError(throwable));
+            if (!isDone) {
+                isDone = true;
+                error.set(throwable);
+                // If we have a Subscriber at this point notify it as well
+                if (subscriberRef.get() != null) {
+                    runAndLogError(log, "Error thrown from Subscriber#onError, ignoring.",
+                        () -> subscriberRef.get().onError(throwable));
+                }
+                eventStreamResponseTransformer.exceptionOccurred(throwable);
             }
-            eventStreamResponseTransformer.exceptionOccurred(throwable);
         }
     }
 
@@ -159,24 +175,25 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
      */
     private MessageDecoder createDecoder() {
         return new MessageDecoder(m -> {
-            if (isEvent(m)) {
-                if (m.getHeaders().get(":event-type").getString().equals("initial-response")) {
-                    // TODO unmarshall initial response and call responseRecieved.
-                    eventStreamResponseTransformer.responseReceived(null);
-                } else {
-                    try {
+            try {
+                if (isEvent(m)) {
+                    if (m.getHeaders().get(":event-type").getString().equals("initial-response")) {
+                        eventStreamResponseTransformer.responseReceived(
+                            initialResponseUnmarshaller.handle(adaptMessageToResponse(m),
+                                                               EMPTY_EXECUTION_ATTRIBUTES));
+                    } else {
                         remainingDemand.decrementAndGet();
                         subscriberRef.get().onNext(eventUnmarshaller.handle(adaptMessageToResponse(m),
                                                                             EMPTY_EXECUTION_ATTRIBUTES));
-                    } catch (Exception e) {
-                        throw new SdkClientException(e);
                     }
+                } else if (isError(m)) {
+                    EventStreamException exception = EventStreamException.create(m.getHeaders().get(":error-message").getString(),
+                                                                                 m.getHeaders().get(":error-code").getString());
+                    runAndLogError(log, "Error thrown from exceptionOccurred, ignoring.",
+                        () -> exceptionOccurred(exception));
                 }
-            } else if (isError(m)) {
-                EventStreamException exception = EventStreamException.create(m.getHeaders().get(":error-message").getString(),
-                                                                             m.getHeaders().get(":error-code").getString());
-                runAndLogError(log, "Error thrown from exceptionOccurred, ignoring.",
-                    () -> exceptionOccurred(exception));
+            } catch (Exception e) {
+                throw new SdkClientException(e);
             }
         });
     }
@@ -268,23 +285,25 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
 
         @Override
         public void subscribe(Subscriber<? super EventT> subscriber) {
+            if (subscriberRef.compareAndSet(null, subscriber)) {
+                subscriber.onSubscribe(new Subscription() {
+                    @Override
+                    public void request(long l) {
+                        // Kick off the first request to the byte buffer publisher which will keep requesting
+                        // bytes until we can fulfill the demand of the event publisher.
+                        dataSubscription.request(1);
+                        remainingDemand.addAndGet(l);
+                    }
 
-            subscriberRef.set(subscriber);
-            // TODO fail on multiple subscribers
-            subscriber.onSubscribe(new Subscription() {
-                @Override
-                public void request(long l) {
-                    // Kick off the first request to the byte buffer publisher which will keep requesting
-                    // bytes until we can fulfill the demand of the event publisher.
-                    dataSubscription.request(1);
-                    remainingDemand.addAndGet(l);
-                }
-
-                @Override
-                public void cancel() {
-                    dataSubscription.cancel();
-                }
-            });
+                    @Override
+                    public void cancel() {
+                        dataSubscription.cancel();
+                    }
+                });
+            } else {
+                log.error("Event stream publishers can only be subscribed to once.");
+                throw new IllegalStateException("This publisher may only be subscribed to once");
+            }
         }
     }
 

@@ -1,8 +1,13 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
+import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+
 /**
  * Base interface for all event types of the EventStreamOperation API.
  */
+@Generated("software.amazon.awssdk:codegen")
+@SdkPublicApi
 public interface EventStream {
     /**
      * Special type of {@link EventStream} for unknown types of events that this version of the SDK does not know about

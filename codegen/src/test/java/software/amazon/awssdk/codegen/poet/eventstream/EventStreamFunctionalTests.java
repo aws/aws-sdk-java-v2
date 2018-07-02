@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.poet.eventstream;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
+import java.util.function.BiFunction;
 import org.junit.Test;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -28,29 +29,27 @@ public class EventStreamFunctionalTests {
 
     @Test
     public void visitorBuilder() throws Exception {
-        IntermediateModel model = ClientTestModels.jsonServiceModels();
-        GeneratorTaskParams dependencies = GeneratorTaskParams.create(model, "sources/", "tests/");
-        ClassSpec classSpec = new EventStreamVisitorBuilder(dependencies,
-                                                            model.getOperation("EventStreamOperation"));
-        assertThat(classSpec, generatesTo("test-visitor-builder.java"));
+        runTest(EventStreamVisitorBuilderImplSpec::new, "test-visitor-builder.java");
     }
 
     @Test
     public void responseHandler() throws Exception {
-        IntermediateModel model = ClientTestModels.jsonServiceModels();
-        GeneratorTaskParams dependencies = GeneratorTaskParams.create(model, "sources/", "tests/");
-        ClassSpec classSpec = new EventStreamResponseHandlerSpec(dependencies,
-                                                                 model.getOperation("EventStreamOperation"));
-        assertThat(classSpec, generatesTo("test-response-handler.java"));
+        runTest(EventStreamResponseHandlerSpec::new, "test-response-handler.java");
     }
 
     @Test
     public void responseHandlerBuilder() throws Exception {
+        runTest(EventStreamResponseHandlerBuilderImplSpec::new, "test-response-handler-builder.java");
+    }
+
+    private void runTest(BiFunction<GeneratorTaskParams, EventStreamUtils, ClassSpec> specFactory,
+                         String expectedTestFile) {
         IntermediateModel model = ClientTestModels.jsonServiceModels();
         GeneratorTaskParams dependencies = GeneratorTaskParams.create(model, "sources/", "tests/");
-        ClassSpec classSpec = new EventStreamResponseHandlerBuilderSpec(dependencies,
-                                                                        model.getOperation("EventStreamOperation"));
-        assertThat(classSpec, generatesTo("test-response-handler-builder.java"));
+        EventStreamUtils eventStreamUtils = EventStreamUtils.create(dependencies.getPoetExtensions(),
+                                                                    model.getOperation("EventStreamOperation"));
+        ClassSpec classSpec = specFactory.apply(dependencies, eventStreamUtils);
+        assertThat(classSpec, generatesTo(expectedTestFile));
     }
 
 }

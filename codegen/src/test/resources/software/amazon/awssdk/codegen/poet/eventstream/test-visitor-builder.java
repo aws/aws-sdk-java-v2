@@ -2,9 +2,11 @@ package software.amazon.awssdk.services.json.model;
 
 import java.util.function.Consumer;
 import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @Generated("software.amazon.awssdk:codegen")
-class DefaultEventStreamOperationVisitorBuilder implements EventStreamOperationResponseHandler.Visitor.Builder {
+@SdkInternalApi
+final class DefaultEventStreamOperationVisitorBuilder implements EventStreamOperationResponseHandler.Visitor.Builder {
     private Consumer<EventStream> onDefault;
 
     private Consumer<EventOne> onEventOne;
@@ -36,19 +38,24 @@ class DefaultEventStreamOperationVisitorBuilder implements EventStreamOperationR
 
     @Generated("software.amazon.awssdk:codegen")
     class VisitorFromBuilder implements EventStreamOperationResponseHandler.Visitor {
+        private final Consumer<EventStream> onDefault;
+
         private final Consumer<EventOne> onEventOne;
 
         private final Consumer<EventTwo> onEventTwo;
 
-        private final Consumer<EventStream> onDefault;
-
         VisitorFromBuilder(DefaultEventStreamOperationVisitorBuilder builder) {
+            this.onDefault = builder.onDefault != null ? builder.onDefault
+                                                       : EventStreamOperationResponseHandler.Visitor.super::visitDefault;
             this.onEventOne = builder.onEventOne != null ? builder.onEventOne
                                                          : EventStreamOperationResponseHandler.Visitor.super::visit;
             this.onEventTwo = builder.onEventTwo != null ? builder.onEventTwo
                                                          : EventStreamOperationResponseHandler.Visitor.super::visit;
-            this.onDefault = builder.onDefault != null ? builder.onDefault
-                                                       : EventStreamOperationResponseHandler.Visitor.super::visitDefault;
+        }
+
+        @Override
+        public void visitDefault(EventStream event) {
+            onDefault.accept(event);
         }
 
         @Override
@@ -59,11 +66,6 @@ class DefaultEventStreamOperationVisitorBuilder implements EventStreamOperationR
         @Override
         public void visit(EventTwo event) {
             onEventTwo.accept(event);
-        }
-
-        @Override
-        public void visitDefault(EventStream event) {
-            onDefault.accept(event);
         }
     }
 }

@@ -88,6 +88,7 @@ public class UnmarshallerGeneratorTasks extends BaseGeneratorTasks {
         switch (shapeModel.getShapeType()) {
             case Response:
             case Model:
+                // The event stream shape is a container for event subtypes and isn't something that needs to ever be unmarshalled
                 return !shapeModel.isEventStream();
             case Exception:
                 // Generating Exception Unmarshallers is not required for the JSON protocol

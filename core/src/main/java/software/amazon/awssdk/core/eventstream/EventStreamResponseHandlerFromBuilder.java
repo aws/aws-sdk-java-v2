@@ -22,23 +22,36 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.reactivestreams.Subscriber;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.utils.FunctionalUtils;
 
+/**
+ * Base class for creating implementations of an {@link EventStreamResponseHandler} from a builder.
+ * See {@link EventStreamResponseHandler.Builder}.
+ *
+ * @param <ResponseT> Type of initial response object.
+ * @param <EventT> Type of event being published.
+ */
+@SdkProtectedApi
 public abstract class EventStreamResponseHandlerFromBuilder<ResponseT, EventT>
     implements EventStreamResponseHandler<ResponseT, EventT> {
 
     private final Consumer<ResponseT> responseConsumer;
     private final Consumer<Throwable> errorConsumer;
     private final Runnable onComplete;
-    private final Consumer<SdkPublisher<EventT>> onSubscribe;
+    private final Consumer<SdkPublisher<EventT>> onEventStream;
     private final Function<SdkPublisher<EventT>, SdkPublisher<EventT>> publisherTransformer;
 
     protected EventStreamResponseHandlerFromBuilder(DefaultEventStreamResponseHandlerBuilder<ResponseT, EventT, ?> builder) {
-        mutuallyExclusive("onSubscribe and subscriber are mutually exclusive, set only one on the Builder",
-                          builder.onSubscribe(), builder.subscriber());
+        mutuallyExclusive("onEventStream and subscriber are mutually exclusive, set only one on the Builder",
+                          builder.onEventStream(), builder.subscriber());
         Supplier<Subscriber<EventT>> subscriber = builder.subscriber();
-        this.onSubscribe = subscriber != null ? p -> p.subscribe(subscriber.get()) : builder.onSubscribe();
+        this.onEventStream = subscriber != null ? p -> p.subscribe(subscriber.get()) : builder.onEventStream();
+        if (this.onEventStream == null) {
+            throw new IllegalArgumentException("Must provide either a subscriber or set onEventStream "
+                                               + "and subscribe to the publisher in the callback method");
+        }
         this.responseConsumer = getOrDefault(builder.onResponse(), FunctionalUtils::noOpConsumer);
         this.errorConsumer = getOrDefault(builder.onError(), FunctionalUtils::noOpConsumer);
         this.onComplete = getOrDefault(builder.onComplete(), FunctionalUtils::noOpRunnable);
@@ -52,7 +65,7 @@ public abstract class EventStreamResponseHandlerFromBuilder<ResponseT, EventT>
 
     @Override
     public void onEventStream(SdkPublisher<EventT> p) {
-        onSubscribe.accept(publisherTransformer.apply(p));
+        onEventStream.accept(publisherTransformer.apply(p));
     }
 
     @Override

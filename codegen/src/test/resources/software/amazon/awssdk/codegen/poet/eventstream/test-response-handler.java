@@ -2,12 +2,14 @@ package software.amazon.awssdk.services.json.model;
 
 import java.util.function.Consumer;
 import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.eventstream.EventStreamResponseHandler;
 
 /**
  * Response handler for the EventStreamOperation API.
  */
 @Generated("software.amazon.awssdk:codegen")
+@SdkPublicApi
 public interface EventStreamOperationResponseHandler extends
                                                      EventStreamResponseHandler<EventStreamOperationResponse, EventStream> {
     /**
@@ -49,6 +51,13 @@ public interface EventStreamOperationResponseHandler extends
     @Generated("software.amazon.awssdk:codegen")
     interface Visitor {
         /**
+         * @return A new {@link Builder}.
+         */
+        static Builder builder() {
+            return new DefaultEventStreamOperationVisitorBuilder();
+        }
+
+        /**
          * A required "else" or "default" block, invoked when no other more-specific "visit" method is appropriate. This
          * is invoked under two circumstances:
          * <ol>
@@ -63,13 +72,6 @@ public interface EventStreamOperationResponseHandler extends
          *        The event that was not handled by a more-specific "visit" method.
          */
         default void visitDefault(EventStream event) {
-        }
-
-        /**
-         * @return A new {@link Builder}.
-         */
-        static Builder builder() {
-            return new DefaultEventStreamOperationVisitorBuilder();
         }
 
         /**

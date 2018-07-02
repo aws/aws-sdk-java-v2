@@ -32,8 +32,18 @@ import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
  * @param <ReturnT>   Type this response handler produces. I.E. the type you are transforming the response into.
  */
 @SdkPublicApi
-public interface AsyncResponseTransformer<ResponseT, ReturnT>
-    extends BaseAsyncResponseTransformer<ResponseT> {
+public interface AsyncResponseTransformer<ResponseT, ReturnT> {
+
+    /**
+     * Called when the initial response has been received and the POJO response has
+     * been unmarshalled. This is guaranteed to be called before onStream.
+     *
+     * <p>In the event of a retryable error, this callback may be called multiple times. It
+     * also may never be invoked if the request never succeeds.</p>
+     *
+     * @param response Unmarshalled POJO containing metadata about the streamed data.
+     */
+    void responseReceived(ResponseT response);
 
     /**
      * Called when events are ready to be streamed. Implementations  must subscribe to the {@link Publisher} and request data via
@@ -54,6 +64,15 @@ public interface AsyncResponseTransformer<ResponseT, ReturnT>
      * </p>
      */
     void onStream(SdkPublisher<ByteBuffer> publisher);
+
+    /**
+     * Called when an exception occurs while establishing the connection or streaming the response. Implementations
+     * should free up any resources in this method. This method may be called multiple times during the lifecycle
+     * of a request if automatic retries are enabled.
+     *
+     * @param throwable Exception that occurred.
+     */
+    void exceptionOccurred(Throwable throwable);
 
     /**
      * Called when all data has been successfully published to the {@link org.reactivestreams.Subscriber}. This will

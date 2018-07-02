@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
@@ -124,14 +123,10 @@ public final class SyncClientInterface implements ClassSpec {
     private Iterable<MethodSpec> operations() {
         return model.getOperations().values().stream()
                     // TODO Sync not supported for event streaming yet. Revisit after sync/async merge
-                    .filter(hasEventStreamOutput())
+                    .filter(o -> !o.hasEventStreamOutput())
                     .map(this::operationMethodSpec)
                     .flatMap(List::stream)
                     .collect(toList());
-    }
-
-    static Predicate<OperationModel> hasEventStreamOutput() {
-        return o -> o.getOutputShape() == null || !o.getOutputShape().hasEventStreamMember();
     }
 
     private MethodSpec serviceMetadata() {

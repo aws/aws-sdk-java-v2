@@ -1,11 +1,13 @@
 package software.amazon.awssdk.services.json.model;
 
 import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.eventstream.DefaultEventStreamResponseHandlerBuilder;
 import software.amazon.awssdk.core.eventstream.EventStreamResponseHandlerFromBuilder;
 
 @Generated("software.amazon.awssdk:codegen")
-class DefaultEventStreamOperationResponseHandlerBuilder
+@SdkInternalApi
+final class DefaultEventStreamOperationResponseHandlerBuilder
     extends
     DefaultEventStreamResponseHandlerBuilder<EventStreamOperationResponse, EventStream, EventStreamOperationResponseHandler.Builder>
     implements EventStreamOperationResponseHandler.Builder {

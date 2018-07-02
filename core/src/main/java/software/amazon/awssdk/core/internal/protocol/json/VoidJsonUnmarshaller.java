@@ -22,7 +22,7 @@ import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
 /**
  * Simple unmarshaller that iterates through the JSON events but always
- * returns null.
+ * returns a dummy empty {@link SdkResponse}.
  */
 @SdkInternalApi
 public class VoidJsonUnmarshaller implements Unmarshaller<SdkResponse, JsonUnmarshallerContext> {
@@ -31,9 +31,12 @@ public class VoidJsonUnmarshaller implements Unmarshaller<SdkResponse, JsonUnmar
         return EmptySdkResponse.builder().build();
     }
 
+    /**
+     * Dummy implementation of {@link SdkResponse}.
+     */
     private static final class EmptySdkResponse extends SdkResponse {
 
-        protected EmptySdkResponse(Builder builder) {
+        EmptySdkResponse(Builder builder) {
             super(builder);
         }
 

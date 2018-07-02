@@ -23,9 +23,10 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.eventstream.EventStreamResponseHandlerBuilderSpec;
+import software.amazon.awssdk.codegen.poet.eventstream.EventStreamResponseHandlerBuilderImplSpec;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamResponseHandlerSpec;
-import software.amazon.awssdk.codegen.poet.eventstream.EventStreamVisitorBuilder;
+import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
+import software.amazon.awssdk.codegen.poet.eventstream.EventStreamVisitorBuilderImplSpec;
 
 /**
  * Generator tasks for event streaming operations.
@@ -46,17 +47,17 @@ class EventStreamGeneratorTasks extends BaseGeneratorTasks {
         String fileHeader = model.getFileHeader();
         String modelDirectory = params.getPathProvider().getModelDirectory();
         return model.getOperations().values().stream()
-                    .filter(e -> e.getOutputShape() != null)
-                    .filter(e -> e.getOutputShape().hasEventStreamMember())
+                    .filter(OperationModel::hasEventStreamOutput)
                     .flatMap(this::eventStreamClassSpecs)
                     .map(spec -> new PoetGeneratorTask(modelDirectory, fileHeader, spec))
                     .collect(Collectors.toList());
     }
 
     private Stream<ClassSpec> eventStreamClassSpecs(OperationModel opModel) {
+        EventStreamUtils eventStreamUtils = EventStreamUtils.create(params.getPoetExtensions(), opModel);
         return Stream.of(
-            new EventStreamResponseHandlerSpec(params, opModel),
-            new EventStreamResponseHandlerBuilderSpec(params, opModel),
-            new EventStreamVisitorBuilder(params, opModel));
+            new EventStreamResponseHandlerSpec(params, eventStreamUtils),
+            new EventStreamResponseHandlerBuilderImplSpec(params, eventStreamUtils),
+            new EventStreamVisitorBuilderImplSpec(params, eventStreamUtils));
     }
 }

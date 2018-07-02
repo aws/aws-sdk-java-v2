@@ -138,6 +138,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                .endControlFlow()
                .beginControlFlow("catch ($T t)", Throwable.class);
 
+        // For streaming operations we also want to notify the response handler of any exception.
         if (opModel.hasStreamingOutput() || opModel.hasEventStreamOutput()) {
             String paramName = opModel.hasStreamingOutput() ? "asyncResponseTransformer" : "asyncResponseHandler";
             builder.addStatement("runAndLogError(log, \"Exception thrown in exceptionOccurred callback, ignoring\",\n" +

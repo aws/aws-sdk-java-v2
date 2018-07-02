@@ -20,9 +20,18 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.reactivestreams.Subscriber;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.async.internal.SequentialSubscriber;
 
+/**
+ * Base class for event stream response handler builders.
+ *
+ * @param <ResponseT> Type of POJO response.
+ * @param <EventT> Type of event being published.
+ * @param <SubBuilderT> Subtype of builder class for method chaining.
+ */
+@SdkProtectedApi
 public abstract class DefaultEventStreamResponseHandlerBuilder<ResponseT, EventT, SubBuilderT>
     implements EventStreamResponseHandler.Builder<ResponseT, EventT, SubBuilderT> {
 
@@ -88,7 +97,7 @@ public abstract class DefaultEventStreamResponseHandlerBuilder<ResponseT, EventT
         return subclass();
     }
 
-    Consumer<SdkPublisher<EventT>> onSubscribe() {
+    Consumer<SdkPublisher<EventT>> onEventStream() {
         return onSubscribe;
     }
 

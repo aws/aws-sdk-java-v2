@@ -63,6 +63,7 @@ public class MarshallerGeneratorTasks extends BaseGeneratorTasks {
         }
         ShapeType shapeType = shapeModel.getShapeType();
         return (ShapeType.Request == shapeType || (ShapeType.Model == shapeType && metadata.isJsonProtocol()))
+               // The event stream shape is a container for event subtypes and isn't something that needs to ever be marshalled
                && !shapeModel.isEventStream();
     }
 

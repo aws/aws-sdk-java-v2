@@ -189,8 +189,15 @@ public class OperationModel extends DocumentationModel {
         isPaginated = paginated;
     }
 
+    /**
+     * @return True if the operation has an event stream member in the output shape. False otherwise.
+     */
     public boolean hasEventStreamOutput() {
-        return outputShape != null && outputShape.hasEventStreamMember();
+        return outputShape != null
+               && outputShape.getMembers() != null
+               && outputShape.getMembers().stream()
+                             .filter(m -> m.getShape() != null)
+                             .anyMatch(m -> m.getShape().isEventStream());
     }
 
 }

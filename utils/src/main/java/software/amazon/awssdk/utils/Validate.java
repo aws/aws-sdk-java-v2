@@ -651,10 +651,27 @@ public final class Validate {
         return duration;
     }
 
+    /**
+     * Returns the param if non null, otherwise gets a default value from the provided {@link Supplier}.
+     *
+     * @param param Param to return if non null.
+     * @param defaultValue Supplier of default value.
+     * @param <T> Type of value.
+     * @return Value of param or default value if param was null.
+     */
     public static <T> T getOrDefault(T param, Supplier<T> defaultValue) {
+        paramNotNull(defaultValue, "defaultValue");
         return param != null ? param : defaultValue.get();
     }
 
+    /**
+     * Verify that only one of the objects is non null. If all objects are null this method
+     * does not throw.
+     *
+     * @param message Error message if more than one object is non-null.
+     * @param objs Objects to validate.
+     * @throws IllegalArgumentException if more than one of the objects was non-null.
+     */
     public static void mutuallyExclusive(String message, Object... objs) {
         boolean oneProvided = false;
         for (Object o : objs) {

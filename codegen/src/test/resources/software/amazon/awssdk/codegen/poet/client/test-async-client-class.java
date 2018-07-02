@@ -33,6 +33,7 @@ import software.amazon.awssdk.services.json.model.APostOperationWithOutputReques
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputResponse;
 import software.amazon.awssdk.services.json.model.EventStream;
 import software.amazon.awssdk.services.json.model.EventStreamOperationRequest;
+import software.amazon.awssdk.services.json.model.EventStreamOperationResponse;
 import software.amazon.awssdk.services.json.model.EventStreamOperationResponseHandler;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersRequest;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersResponse;
@@ -53,6 +54,7 @@ import software.amazon.awssdk.services.json.transform.APostOperationWithOutputRe
 import software.amazon.awssdk.services.json.transform.APostOperationWithOutputResponseUnmarshaller;
 import software.amazon.awssdk.services.json.transform.EventOneUnmarshaller;
 import software.amazon.awssdk.services.json.transform.EventStreamOperationRequestMarshaller;
+import software.amazon.awssdk.services.json.transform.EventStreamOperationResponseUnmarshaller;
 import software.amazon.awssdk.services.json.transform.EventTwoUnmarshaller;
 import software.amazon.awssdk.services.json.transform.GetWithoutRequiredMembersRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.GetWithoutRequiredMembersResponseUnmarshaller;
@@ -198,7 +200,11 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                                                         EventStreamOperationResponseHandler asyncResponseHandler) {
         try {
 
-            HttpResponseHandler<SdkResponse> responseHandler = jsonProtocolFactory.createResponseHandler(
+            HttpResponseHandler<EventStreamOperationResponse> responseHandler = jsonProtocolFactory.createResponseHandler(
+                new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),
+                new EventStreamOperationResponseUnmarshaller());
+
+            HttpResponseHandler<SdkResponse> voidResponseHandler = jsonProtocolFactory.createResponseHandler(
                 new JsonOperationMetadata().withPayloadJson(false).withHasStreamingSuccessResponse(true),
                 new VoidJsonUnmarshaller());
 
@@ -211,12 +217,12 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(jsonProtocolFactory);
             AsyncResponseTransformer<SdkResponse, Void> asyncResponseTransformer = new EventStreamAsyncResponseTransformer<>(
-                asyncResponseHandler, eventResponseHandler);
+                asyncResponseHandler, responseHandler, eventResponseHandler);
 
             return clientHandler.execute(
                 new ClientExecutionParams<EventStreamOperationRequest, SdkResponse>()
                     .withMarshaller(new EventStreamOperationRequestMarshaller(jsonProtocolFactory))
-                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                    .withResponseHandler(voidResponseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withInput(eventStreamOperationRequest), asyncResponseTransformer).whenComplete((r, e) -> {
                 if (e != null) {
                     asyncResponseHandler.exceptionOccurred(e);

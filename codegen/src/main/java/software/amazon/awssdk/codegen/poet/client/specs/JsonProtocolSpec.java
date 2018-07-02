@@ -33,12 +33,12 @@ import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonProtocol;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
@@ -81,13 +81,13 @@ public class JsonProtocolSpec implements ProtocolSpec {
                                                   .returns(protocolFactory)
                                                   .addModifiers(Modifier.PRIVATE)
                                                   .addCode(
-                                                          "return new $T(new $T()\n" +
-                                                          ".withSupportsCbor(supportsCbor)\n" +
-                                                          ".withSupportsIon($L)" +
-                                                          ".withBaseServiceExceptionClass($L.class)",
-                                                          AwsJsonProtocolFactory.class,
-                                                          JsonClientMetadata.class,
-                                                          metadata.isIonProtocol(), baseException);
+                                                      "return new $T(new $T()\n" +
+                                                      ".withSupportsCbor(supportsCbor)\n" +
+                                                      ".withSupportsIon($L)" +
+                                                      ".withBaseServiceExceptionClass($L.class)",
+                                                      AwsJsonProtocolFactory.class,
+                                                      JsonClientMetadata.class,
+                                                      metadata.isIonProtocol(), baseException);
 
         if (metadata.getContentType() != null) {
             methodSpec.addCode(".withContentTypeOverride($S)", metadata.getContentType());
@@ -107,11 +107,13 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     @Override
     public CodeBlock responseHandler(OperationModel opModel) {
-        ClassName unmarshaller = deriveResponseUnmarshallerName(opModel);
-        ClassName pojoResponseType = opModel.hasEventStreamOutput() ?
-                                     ClassName.get(SdkResponse.class) :
-                                     poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
+        ClassName unmarshaller = getUnmarshallerType(opModel);
+        // TODO for rest-json we need to use the real response handler since response members will be bound to headers, for
+        // aws-json we need to have a dummy response handler since the response members will be in the initial-response
+        // event message
+        TypeName pojoResponseType = getPojoResponseType(opModel);
 
+        // TODO remove this once kinesis supports CBOR for event streaming
         String protocolFactory = opModel.hasEventStreamOutput() ? "jsonProtocolFactory" : "protocolFactory";
         CodeBlock.Builder builder = CodeBlock
             .builder()
@@ -122,52 +124,47 @@ public class JsonProtocolSpec implements ProtocolSpec {
                  pojoResponseType,
                  protocolFactory,
                  JsonOperationMetadata.class,
-                 !opModel.getHasBlobMemberAsPayload() && !opModel.hasEventStreamOutput(),
-                 opModel.hasStreamingOutput() || opModel.hasEventStreamOutput(),
+                 !opModel.getHasBlobMemberAsPayload(),
+                 opModel.hasStreamingOutput(),
                  unmarshaller);
         if (opModel.hasEventStreamOutput()) {
-            ShapeModel eventStreamShape = opModel.getOutputShape().getMembers()
-                                                 .stream()
-                                                 .map(MemberModel::getShape)
-                                                 .filter(ShapeModel::isEventStream)
-                                                 .findFirst()
-                                                 .orElseThrow(() -> new IllegalArgumentException(
-                                                     "Eventstream member not found for event stream operation"));
-            ClassName eventClassName = poetExtensions.getModelClass(eventStreamShape.getVariable().getVariableType());
+            builder.add("\n\n$T<$T> voidResponseHandler = $L.createResponseHandler(new $T()" +
+                        "                                   .withPayloadJson(false)" +
+                        "                                   .withHasStreamingSuccessResponse(true), new $T());",
+                        HttpResponseHandler.class,
+                        SdkResponse.class,
+                        protocolFactory,
+                        JsonOperationMetadata.class,
+                        VoidJsonUnmarshaller.class);
+            EventStreamUtils eventStreamUtils = EventStreamUtils.create(poetExtensions, opModel);
+            ClassName eventStreamBaseClass = eventStreamUtils.eventStreamBaseClass();
             builder
                 .add("\n\n$T<$T> eventResponseHandler = $L.createResponseHandler(new $T()" +
                      "                                   .withPayloadJson($L)" +
                      "                                   .withHasStreamingSuccessResponse($L), "
                      + "$T.builder()",
                      HttpResponseHandler.class,
-                     WildcardTypeName.subtypeOf(eventClassName),
+                     WildcardTypeName.subtypeOf(eventStreamBaseClass),
                      protocolFactory,
                      JsonOperationMetadata.class,
                      true,
                      false,
                      ClassName.get(EventStreamTaggedUnionJsonUnmarshaller.class));
 
-            eventStreamShape
-                .getMembers()
-                .forEach(m -> {
-                    String unmarshallerClassName = m.getShape().getVariable().getVariableType() + "Unmarshaller";
-                    builder.add(".addUnmarshaller(\"$L\", $T.getInstance())\n",
-                                m.getC2jName(),
-                                poetExtensions.getTransformClass(unmarshallerClassName));
-                });
+            eventStreamUtils.getEventStreamShape()
+                            .getMembers()
+                            .forEach(m -> {
+                                String unmarshallerClassName = m.getShape().getVariable().getVariableType() + "Unmarshaller";
+                                builder.add(".addUnmarshaller(\"$L\", $T.getInstance())\n",
+                                            m.getC2jName(),
+                                            poetExtensions.getTransformClass(unmarshallerClassName));
+                            });
             builder.add(".defaultUnmarshaller((in) -> $T.UNKNOWN)\n"
-                        + ".build());\n", eventClassName);
+                        + ".build());\n", eventStreamUtils.eventStreamBaseClass());
 
 
         }
         return builder.build();
-    }
-
-    private ClassName deriveResponseUnmarshallerName(OperationModel opModel) {
-        if (opModel.hasEventStreamOutput()) {
-            return ClassName.get(VoidJsonUnmarshaller.class);
-        }
-        return poetExtensions.getTransformClass(opModel.getReturnType().getReturnType() + "Unmarshaller");
     }
 
     @Override
@@ -182,25 +179,23 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     @Override
     public CodeBlock executionHandler(OperationModel opModel) {
-        TypeName responseType = opModel.hasEventStreamOutput() ?
-                                ClassName.get(SdkResponse.class) :
-                                poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
+        TypeName responseType = getPojoResponseType(opModel);
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
         ClassName marshaller = poetExtensions.getRequestTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
 
 
         final CodeBlock.Builder codeBlock = CodeBlock
-                .builder()
-                .add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n" +
-                     ".withResponseHandler($N)\n" +
-                     ".withErrorResponseHandler($N)\n" +
-                     ".withInput($L)\n",
-                     ClientExecutionParams.class,
-                     requestType,
-                     responseType,
-                     "responseHandler",
-                     "errorResponseHandler",
-                     opModel.getInput().getVariableName());
+            .builder()
+            .add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n" +
+                 ".withResponseHandler($N)\n" +
+                 ".withErrorResponseHandler($N)\n" +
+                 ".withInput($L)\n",
+                 ClientExecutionParams.class,
+                 requestType,
+                 responseType,
+                 "responseHandler",
+                 "errorResponseHandler",
+                 opModel.getInput().getVariableName());
 
         if (opModel.hasStreamingInput()) {
             return codeBlock.add(".withMarshaller(new $T(new $T(protocolFactory), requestBody)));",
@@ -216,17 +211,16 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     @Override
     public CodeBlock asyncExecutionHandler(OperationModel opModel) {
-        TypeName pojoResponseType = opModel.hasEventStreamOutput() ?
-                                ClassName.get(SdkResponse.class) :
-                                poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
+        TypeName pojoResponseType = getPojoResponseType(opModel);
         ClassName requestType = poetExtensions.getModelClass(opModel.getInput().getVariableType());
         ClassName marshaller = poetExtensions.getRequestTransformClass(opModel.getInputShape().getShapeName() + "Marshaller");
 
         String asyncRequestBody = opModel.hasStreamingInput() ? ".withAsyncRequestBody(requestBody)"
-                : "";
+                                                              : "";
         CodeBlock.Builder builder = CodeBlock.builder();
         if (opModel.hasEventStreamOutput()) {
-            builder.add("$T<$T, $T> asyncResponseTransformer = new $T<>(asyncResponseHandler, eventResponseHandler);\n",
+            builder.add("$T<$T, $T> asyncResponseTransformer = new $T<>(\n"
+                        + "asyncResponseHandler, responseHandler, eventResponseHandler);\n",
                         ClassName.get(AsyncResponseTransformer.class),
                         ClassName.get(SdkResponse.class),
                         ClassName.get(Void.class),
@@ -237,17 +231,19 @@ public class JsonProtocolSpec implements ProtocolSpec {
         String customerResponseHandler = opModel.hasEventStreamOutput() ? "asyncResponseHandler" : "asyncResponseTransformer";
         return builder.add("\n\nreturn clientHandler.execute(new $T<$T, $T>()\n" +
                            ".withMarshaller(new $T($L))\n" +
-                           ".withResponseHandler(responseHandler)\n" +
+                           ".withResponseHandler($L)\n" +
                            ".withErrorResponseHandler(errorResponseHandler)\n" +
                            asyncRequestBody +
                            ".withInput($L)$L)$L;",
                            ClientExecutionParams.class,
                            requestType,
-                           pojoResponseType,
+                           opModel.hasEventStreamOutput() ? SdkResponse.class : pojoResponseType,
                            marshaller,
                            protocolFactory,
+                           opModel.hasEventStreamOutput() ? "voidResponseHandler" : "responseHandler",
                            opModel.getInput().getVariableName(),
                            isStreaming ? ", asyncResponseTransformer" : "",
+                           // If it's a streaming operation we also need to notify the handler on exception.
                            isStreaming ? String.format(".whenComplete((r, e) -> {%n"
                                                        + "     if (e != null) {%n"
                                                        + "         %s.exceptionOccurred(e);%n"
@@ -255,6 +251,19 @@ public class JsonProtocolSpec implements ProtocolSpec {
                                                        + "})", customerResponseHandler)
                                        : "")
                       .build();
+    }
+
+    private ClassName getUnmarshallerType(OperationModel opModel) {
+        return poetExtensions.getTransformClass(opModel.getReturnType().getReturnType() + "Unmarshaller");
+    }
+
+    /**
+     * Gets the POJO response type for the operation.
+     *
+     * @param opModel Operation to get response type for.
+     */
+    private TypeName getPojoResponseType(OperationModel opModel) {
+        return poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
     }
 
     @Override

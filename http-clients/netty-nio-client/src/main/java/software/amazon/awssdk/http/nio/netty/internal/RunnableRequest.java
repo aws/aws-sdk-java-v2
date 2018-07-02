@@ -109,9 +109,9 @@ public final class RunnableRequest implements AbortableRunnable {
         } else if (!Protocol.HTTP1_1.equals(protocol)) {
             throw new RuntimeException("Unknown protocol: " + protocol);
         }
+        channel.config().setOption(ChannelOption.AUTO_READ, false);
         channel.pipeline().addLast(new HttpStreamsClientHandler());
         channel.pipeline().addLast(new ResponseHandler());
-        channel.config().setOption(ChannelOption.AUTO_READ, false);
     }
 
     private void writeRequest(HttpRequest request) {
@@ -132,7 +132,6 @@ public final class RunnableRequest implements AbortableRunnable {
                        handleFailure(() -> "Failed to make request to " + endpoint(), wireCall.cause());
                    }
                });
-        channel.read();
     }
 
     private URI endpoint() {

@@ -471,6 +471,10 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
         this.requestSignerClassFqcn = authorizerClass;
     }
 
+    /**
+     * @return True if the shape is an 'eventstream' shape. The eventstream shape is the tagged union like
+     * container that holds individual 'events'.
+     */
     public boolean isEventStream() {
         return this.isEventStream;
     }
@@ -480,12 +484,10 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
         return this;
     }
 
-    public boolean hasEventStreamMember() {
-        return members != null && members.stream()
-                                         .filter(m -> m.getShape() != null)
-                                         .anyMatch(m -> m.getShape().isEventStream());
-    }
-
+    /**
+     * @return True if the shape is an 'event'. I.E. It is a member of the eventstream and represents one logical event
+     * that can be delivered on the event stream.
+     */
     public boolean isEvent() {
         return this.isEvent;
     }

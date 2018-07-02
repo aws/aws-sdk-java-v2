@@ -43,11 +43,18 @@ public final class FunctionalUtils {
         }
     }
 
+    /**
+     * @param <T> Type of object to be consumed.
+     * @return A {@link Consumer} that does nothing.
+     */
     public static <T> Consumer<T> noOpConsumer() {
         return ignored -> {
         };
     }
 
+    /**
+     * @return A {@link Runnable} that does nothing.
+     */
     public static Runnable noOpRunnable() {
         return () -> {
         };

@@ -168,7 +168,7 @@ public class ListObjectsV2PaginatorsIntegrationTest extends S3IntegrationTestBas
 
         // count objects using forEach
         final long[] count = {0};
-        CompletableFuture<Void> future = publisher.forEach(response -> {
+        CompletableFuture<Void> future = publisher.subscribe(response -> {
             count[0] += response.keyCount();
         });
         future.get();
@@ -177,7 +177,7 @@ public class ListObjectsV2PaginatorsIntegrationTest extends S3IntegrationTestBas
 
         // Use ForEach: collect objects into a list
         List<S3Object> objects = new ArrayList<>();
-        CompletableFuture<Void> future2 = publisher.forEach(response -> {
+        CompletableFuture<Void> future2 = publisher.subscribe(response -> {
             objects.addAll(response.contents());
         });
         future2.get();
@@ -189,7 +189,7 @@ public class ListObjectsV2PaginatorsIntegrationTest extends S3IntegrationTestBas
         ListObjectsV2Publisher publisher = s3Async.listObjectsV2Paginator(requestBuilder.bucket(emptyBucketName).build());
 
         final int[] count = {0};
-        CompletableFuture<Void> future = publisher.forEach(response -> {
+        CompletableFuture<Void> future = publisher.subscribe(response -> {
             count[0] += response.keyCount();
         });
         future.get();

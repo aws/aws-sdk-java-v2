@@ -54,6 +54,7 @@ public class Http2ToHttpInboundAdapter extends SimpleChannelInboundHandler<Http2
         } else if (frame instanceof Http2GoAwayFrame) {
             onGoAwayRead((Http2GoAwayFrame) frame, ctx);
         } else {
+            // TODO this is related to the inbound window update bug. Revisit
             ctx.channel().parent().read();
         }
     }

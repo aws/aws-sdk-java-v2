@@ -118,7 +118,7 @@ public class SyncClientClass implements ClassSpec {
 
     private List<MethodSpec> operations() {
         return model.getOperations().values().stream()
-                    .filter(SyncClientInterface.hasEventStreamOutput())
+                    .filter(o -> !o.hasEventStreamOutput())
                     .map(this::operationMethodSpecs)
                     .flatMap(List::stream)
                     .collect(Collectors.toList());

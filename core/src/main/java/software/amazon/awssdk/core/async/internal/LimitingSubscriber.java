@@ -39,7 +39,11 @@ public class LimitingSubscriber<T> extends DelegatingSubscriber<T, T> {
 
     @Override
     public void onNext(T t) {
-        subscriber.onNext(t);
+        // We may get more events even after cancelling so we ignore them.
+        if (delivered.get() < limit) {
+            subscriber.onNext(t);
+        }
+        // If we've met the limit then we can cancel the subscription
         if (delivered.incrementAndGet() >= limit) {
             subscription.cancel();
         }

@@ -26,6 +26,7 @@
         <#else>
             if (token == FIELD_NAME || token == START_OBJECT) {
                 <#list shape.unboundMembers as payloadMember>
+                <#-- The event stream is not a real member of the response so it shouldn't be unmarshalled -->
                 <#if !payloadMember.shape?? || !payloadMember.shape.isEventStream() >
                     <@MemberUnmarshallerInvocationMacro.content shape.variable.variableName payloadMember />
                 </#if>

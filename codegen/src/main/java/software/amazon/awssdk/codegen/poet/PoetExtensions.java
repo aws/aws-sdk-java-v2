@@ -85,8 +85,4 @@ public class PoetExtensions {
     public ClassName getResponseClassForPaginatedAsyncOperation(String operationName) {
         return ClassName.get(model.getMetadata().getFullPaginatorsPackageName(), operationName + "Publisher");
     }
-
-    public ClassName getResponseHandlerClassForEventStreamOperation(String operationName) {
-        return ClassName.get(model.getMetadata().getFullModelPackageName(), operationName + "ResponseHandler");
-    }
 }
