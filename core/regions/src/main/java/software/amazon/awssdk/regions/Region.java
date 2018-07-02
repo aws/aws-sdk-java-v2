@@ -57,6 +57,7 @@ public final class Region {
     public static final Region EU_CENTRAL_1 = Region.of("eu-central-1");
     public static final Region EU_WEST_1 = Region.of("eu-west-1");
     public static final Region EU_WEST_2 = Region.of("eu-west-2");
+    public static final Region EU_WEST_3 = Region.of("eu-west-3");
 
     public static final Region SA_EAST_1 = Region.of("sa-east-1");
 
@@ -87,6 +88,7 @@ public final class Region {
             EU_CENTRAL_1,
             EU_WEST_1,
             EU_WEST_2,
+            EU_WEST_3,
             SA_EAST_1,
             US_EAST_1,
             US_EAST_2,
