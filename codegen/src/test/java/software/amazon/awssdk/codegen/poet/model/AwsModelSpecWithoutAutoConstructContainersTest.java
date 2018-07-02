@@ -76,6 +76,7 @@ public class AwsModelSpecWithoutAutoConstructContainersTest {
         ServiceModel serviceModel = ModelLoaderUtils.loadModel(ServiceModel.class, serviceModelFile);
         CustomizationConfig autoConstructListConfig = ModelLoaderUtils.loadModel(CustomizationConfig.class, customizationConfigFile);
         autoConstructListConfig.setUseAutoConstructList(false);
+        autoConstructListConfig.setUseAutoConstructMap(false);
 
         intermediateModel = new IntermediateModelBuilder(
                 C2jModels.builder()

@@ -5,17 +5,15 @@ import static java.util.stream.Collectors.toMap;
 import java.util.Collections;
 import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
-import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
-import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 
 @Generated("software.amazon.awssdk:codegen")
 final class MapOfStringToSimpleStructCopier {
     static Map<String, SimpleStruct> copy(Map<String, SimpleStruct> mapOfStringToSimpleStructParam) {
-        if (mapOfStringToSimpleStructParam == null || mapOfStringToSimpleStructParam instanceof SdkAutoConstructMap) {
-            return DefaultSdkAutoConstructMap.getInstance();
+        if (mapOfStringToSimpleStructParam == null) {
+            return null;
         }
         Map<String, SimpleStruct> mapOfStringToSimpleStructParamCopy = mapOfStringToSimpleStructParam.entrySet().stream()
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+                                                                                                     .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
         return Collections.unmodifiableMap(mapOfStringToSimpleStructParamCopy);
     }
 
@@ -24,6 +22,6 @@ final class MapOfStringToSimpleStructCopier {
             return null;
         }
         return copy(mapOfStringToSimpleStructParam.entrySet().stream()
-                .collect(toMap(Map.Entry::getKey, e -> e.getValue().build())));
+                                                  .collect(toMap(Map.Entry::getKey, e -> e.getValue().build())));
     }
 }
