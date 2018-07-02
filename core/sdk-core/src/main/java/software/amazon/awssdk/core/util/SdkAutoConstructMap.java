@@ -15,19 +15,21 @@
 
 package software.amazon.awssdk.core.util;
 
-import java.util.List;
+import java.util.Map;
+
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
- * A list that was auto constructed by the SDK.
+ * A map that was auto constructed by the SDK.
  * <p>
- * The main purpose of this class is to help distinguish explicitly empty lists
+ * The main purpose of this class is to help distinguish explicitly empty maps
  * set on requests by the user, as some services may treat {@code null} or
- * missing lists and empty list members differently. As such, this class should
+ * missing maps and empty map members differently. As such, this class should
  * not be used directly by the user.
  *
- * @param <T> The element type.
+ * @param <K> The key type.
+ * @param <V> The value type.
  */
 @SdkProtectedApi
-public interface SdkAutoConstructList<T> extends List<T> {
+public interface SdkAutoConstructMap<K, V> extends Map<K, V> {
 }

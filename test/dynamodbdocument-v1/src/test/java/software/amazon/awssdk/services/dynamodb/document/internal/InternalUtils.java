@@ -32,6 +32,8 @@ import java.util.Set;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.services.dynamodb.document.AttributeUpdate;
 import software.amazon.awssdk.services.dynamodb.document.Expected;
@@ -389,11 +391,11 @@ public final class InternalUtils {
             @SuppressWarnings("unchecked")
             T t = (T) value.b().asByteArray();
             return t;
-        } else if (value.ss() != null) {
+        } else if (value.ss() != null && !(value.ss() instanceof SdkAutoConstructList)) {
             @SuppressWarnings("unchecked")
             T t = (T) new LinkedHashSet<String>(value.ss());
             return t;
-        } else if (value.ns() != null) {
+        } else if (value.ns() != null && !(value.ns() instanceof SdkAutoConstructList)) {
             Set<BigDecimal> set = new LinkedHashSet<BigDecimal>(value.ns().size());
             for (String s : value.ns()) {
                 set.add(new BigDecimal(s));
@@ -401,7 +403,7 @@ public final class InternalUtils {
             @SuppressWarnings("unchecked")
             T t = (T) set;
             return t;
-        } else if (value.bs() != null) {
+        } else if (value.bs() != null && !(value.bs() instanceof SdkAutoConstructList)) {
             Set<byte[]> set = new LinkedHashSet<byte[]>(value.bs().size());
             for (SdkBytes bb : value.bs()) {
                 set.add(copyAllBytesFrom(bb.asByteBuffer()));
@@ -409,11 +411,11 @@ public final class InternalUtils {
             @SuppressWarnings("unchecked")
             T t = (T) set;
             return t;
-        } else if (value.l() != null) {
+        } else if (value.l() != null && !(value.l() instanceof SdkAutoConstructList)) {
             @SuppressWarnings("unchecked")
             T t = (T) toSimpleList(value.l());
             return t;
-        } else if (value.m() != null) {
+        } else if (value.m() != null && !(value.m() instanceof SdkAutoConstructMap)) {
             @SuppressWarnings("unchecked")
             T t = (T) toSimpleMapValue(value.m());
             return t;

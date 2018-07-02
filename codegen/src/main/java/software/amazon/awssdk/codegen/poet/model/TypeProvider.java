@@ -59,6 +59,10 @@ public class TypeProvider {
         return intermediateModel.getCustomizationConfig().isUseAutoConstructList();
     }
 
+    public boolean useAutoConstructMaps() {
+        return intermediateModel.getCustomizationConfig().isUseAutoConstructMap();
+    }
+
     public ClassName mapImplClassName() {
         return ClassName.get(HashMap.class);
     }

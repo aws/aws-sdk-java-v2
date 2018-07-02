@@ -414,6 +414,27 @@
         }
       }
     }
+  },
+  {
+    "description": "No parameters set, does not set query request params",
+    "given": {
+      "input": {
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "params": {
+          "containsOnly": {
+            "Action": "AllTypes",
+            "Version": "2016-03-11"
+          }
+        }
+      }
+    }
   }
   // TODO the current implementation of query marshallers cannot easily support recursion
 ]
