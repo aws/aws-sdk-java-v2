@@ -74,7 +74,11 @@
     <#local loopVariable = mapVariable + "Value"/>
 
     ${mapModel.templateType} ${mapVariable} = (${mapModel.templateType})${getMember}();
+    <#if customConfig.useAutoConstructMap>
+    if (!${mapVariable}.isEmpty() || !(${mapVariable} instanceof software.amazon.awssdk.core.util.SdkAutoConstructMap)) {
+    <#else>
     if (${mapVariable} != null) {
+    </#if>
         xmlWriter.startElement("${http.marshallLocationName}");
 
         for (${mapModel.entryType} ${loopVariable} : ${mapVariable}.entrySet()) {

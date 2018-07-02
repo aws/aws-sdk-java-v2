@@ -37,7 +37,9 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.StaticImport;
 import software.amazon.awssdk.core.adapter.StandardMemberCopier;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
+import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 
 class MemberCopierSpec implements ClassSpec {
     private final MemberModel memberModel;
@@ -290,11 +292,18 @@ class MemberCopierSpec implements ClassSpec {
                                                   StandardMemberCopier.class,
                                                   copyMethod));
 
-        CodeBlock.Builder builder = CodeBlock.builder()
-                .beginControlFlow("if ($N == null)", memberParamName())
-                .addStatement("return null")
-                .endControlFlow()
-                .addStatement("$T $N = $N.entrySet().stream().collect(toMap($L, $L))", typeProvider.fieldType(memberModel),
+        CodeBlock.Builder builder = CodeBlock.builder();
+        if (typeProvider.useAutoConstructMaps()) {
+            builder.beginControlFlow("if ($1N == null || $1N instanceof $2T)", memberParamName(), SdkAutoConstructMap.class)
+                    .addStatement("return $T.getInstance()", DefaultSdkAutoConstructMap.class)
+                    .endControlFlow();
+        } else {
+            builder.beginControlFlow("if ($1N == null)", memberParamName())
+                    .addStatement("return null")
+                    .endControlFlow();
+        }
+
+        builder.addStatement("$T $N = $N.entrySet().stream().collect(toMap($L, $L))", typeProvider.fieldType(memberModel),
                         copyName, memberParamName(), keyCopyExpr, valueCopyExpr);
 
         return builder.addStatement("return $T.unmodifiableMap($N)", Collections.class, copyName).build();

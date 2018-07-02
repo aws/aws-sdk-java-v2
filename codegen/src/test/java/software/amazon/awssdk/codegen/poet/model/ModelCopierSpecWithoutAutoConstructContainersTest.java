@@ -57,6 +57,7 @@ public class ModelCopierSpecWithoutAutoConstructContainersTest {
 
         CustomizationConfig customizationConfig = ModelLoaderUtils.loadModel(CustomizationConfig.class, customizationConfigFile);
         customizationConfig.setUseAutoConstructList(false);
+        customizationConfig.setUseAutoConstructMap(false);
 
         intermediateModel = new IntermediateModelBuilder(
                 C2jModels.builder()

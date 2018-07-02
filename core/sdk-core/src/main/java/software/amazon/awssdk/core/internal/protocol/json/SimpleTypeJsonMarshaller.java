@@ -25,6 +25,7 @@ import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.StructuredPojo;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 
 @SdkInternalApi
 public final class SimpleTypeJsonMarshaller {
@@ -144,6 +145,11 @@ public final class SimpleTypeJsonMarshaller {
                 }
             }
             jsonGenerator.writeEndObject();
+        }
+
+        @Override
+        protected boolean shouldEmit(Map map) {
+            return !map.isEmpty() || !(map instanceof SdkAutoConstructMap);
         }
     };
 

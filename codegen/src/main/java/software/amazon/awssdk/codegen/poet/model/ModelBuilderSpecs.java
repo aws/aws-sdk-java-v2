@@ -32,6 +32,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
+import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 
 /**
@@ -136,6 +137,10 @@ class ModelBuilderSpecs {
                     if (m.isList() && typeProvider.useAutoConstructLists()) {
                         fieldSpec = fieldSpec.toBuilder()
                                 .initializer("$T.getInstance()", DefaultSdkAutoConstructList.class)
+                                .build();
+                    } else if (m.isMap() && typeProvider.useAutoConstructMaps()) {
+                        fieldSpec = fieldSpec.toBuilder()
+                                .initializer("$T.getInstance()", DefaultSdkAutoConstructMap.class)
                                 .build();
                     }
                     return fieldSpec;

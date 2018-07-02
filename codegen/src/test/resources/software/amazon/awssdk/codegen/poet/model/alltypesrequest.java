@@ -19,6 +19,7 @@ import software.amazon.awssdk.core.adapter.StandardMemberCopier;
 import software.amazon.awssdk.core.adapter.StringToSdkBytesAdapter;
 import software.amazon.awssdk.core.runtime.TypeConverter;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
+import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -28,7 +29,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class AllTypesRequest extends JsonProtocolTestsRequest implements
-                                                                    ToCopyableBuilder<AllTypesRequest.Builder, AllTypesRequest> {
+        ToCopyableBuilder<AllTypesRequest.Builder, AllTypesRequest> {
     private final String stringMember;
 
     private final Integer integerMember;
@@ -274,7 +275,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      */
     public Map<EnumType, EnumType> mapOfEnumToEnum() {
         return TypeConverter.convert(mapOfEnumToEnum, EnumType::fromValue, EnumType::fromValue,
-                                     (k, v) -> !Objects.equals(k, EnumType.UNKNOWN_TO_SDK_VERSION));
+                (k, v) -> !Objects.equals(k, EnumType.UNKNOWN_TO_SDK_VERSION));
     }
 
     /**
@@ -299,7 +300,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      */
     public Map<EnumType, String> mapOfEnumToString() {
         return TypeConverter.convert(mapOfEnumToString, EnumType::fromValue, Function.identity(),
-                                     (k, v) -> !Objects.equals(k, EnumType.UNKNOWN_TO_SDK_VERSION));
+                (k, v) -> !Objects.equals(k, EnumType.UNKNOWN_TO_SDK_VERSION));
     }
 
     /**
@@ -348,7 +349,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
      */
     public Map<EnumType, SimpleStruct> mapOfEnumToSimpleStruct() {
         return TypeConverter.convert(mapOfEnumToSimpleStruct, EnumType::fromValue, Function.identity(),
-                                     (k, v) -> !Objects.equals(k, EnumType.UNKNOWN_TO_SDK_VERSION));
+                (k, v) -> !Objects.equals(k, EnumType.UNKNOWN_TO_SDK_VERSION));
     }
 
     /**
@@ -539,44 +540,44 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         }
         AllTypesRequest other = (AllTypesRequest) obj;
         return Objects.equals(stringMember(), other.stringMember()) && Objects.equals(integerMember(), other.integerMember())
-               && Objects.equals(booleanMember(), other.booleanMember()) && Objects.equals(floatMember(), other.floatMember())
-               && Objects.equals(doubleMember(), other.doubleMember()) && Objects.equals(longMember(), other.longMember())
-               && Objects.equals(simpleList(), other.simpleList())
-               && Objects.equals(listOfEnumsAsStrings(), other.listOfEnumsAsStrings())
-               && Objects.equals(listOfMaps(), other.listOfMaps()) && Objects.equals(listOfStructs(), other.listOfStructs())
-               && Objects.equals(mapOfStringToIntegerList(), other.mapOfStringToIntegerList())
-               && Objects.equals(mapOfStringToString(), other.mapOfStringToString())
-               && Objects.equals(mapOfStringToSimpleStruct(), other.mapOfStringToSimpleStruct())
-               && Objects.equals(mapOfEnumToEnumAsStrings(), other.mapOfEnumToEnumAsStrings())
-               && Objects.equals(mapOfEnumToStringAsStrings(), other.mapOfEnumToStringAsStrings())
-               && Objects.equals(mapOfStringToEnumAsStrings(), other.mapOfStringToEnumAsStrings())
-               && Objects.equals(mapOfEnumToSimpleStructAsStrings(), other.mapOfEnumToSimpleStructAsStrings())
-               && Objects.equals(timestampMember(), other.timestampMember())
-               && Objects.equals(structWithNestedTimestampMember(), other.structWithNestedTimestampMember())
-               && Objects.equals(blobArg(), other.blobArg())
-               && Objects.equals(structWithNestedBlob(), other.structWithNestedBlob())
-               && Objects.equals(blobMap(), other.blobMap()) && Objects.equals(listOfBlobs(), other.listOfBlobs())
-               && Objects.equals(recursiveStruct(), other.recursiveStruct())
-               && Objects.equals(polymorphicTypeWithSubTypes(), other.polymorphicTypeWithSubTypes())
-               && Objects.equals(polymorphicTypeWithoutSubTypes(), other.polymorphicTypeWithoutSubTypes())
-               && Objects.equals(enumTypeAsString(), other.enumTypeAsString());
+                && Objects.equals(booleanMember(), other.booleanMember()) && Objects.equals(floatMember(), other.floatMember())
+                && Objects.equals(doubleMember(), other.doubleMember()) && Objects.equals(longMember(), other.longMember())
+                && Objects.equals(simpleList(), other.simpleList())
+                && Objects.equals(listOfEnumsAsStrings(), other.listOfEnumsAsStrings())
+                && Objects.equals(listOfMaps(), other.listOfMaps()) && Objects.equals(listOfStructs(), other.listOfStructs())
+                && Objects.equals(mapOfStringToIntegerList(), other.mapOfStringToIntegerList())
+                && Objects.equals(mapOfStringToString(), other.mapOfStringToString())
+                && Objects.equals(mapOfStringToSimpleStruct(), other.mapOfStringToSimpleStruct())
+                && Objects.equals(mapOfEnumToEnumAsStrings(), other.mapOfEnumToEnumAsStrings())
+                && Objects.equals(mapOfEnumToStringAsStrings(), other.mapOfEnumToStringAsStrings())
+                && Objects.equals(mapOfStringToEnumAsStrings(), other.mapOfStringToEnumAsStrings())
+                && Objects.equals(mapOfEnumToSimpleStructAsStrings(), other.mapOfEnumToSimpleStructAsStrings())
+                && Objects.equals(timestampMember(), other.timestampMember())
+                && Objects.equals(structWithNestedTimestampMember(), other.structWithNestedTimestampMember())
+                && Objects.equals(blobArg(), other.blobArg())
+                && Objects.equals(structWithNestedBlob(), other.structWithNestedBlob())
+                && Objects.equals(blobMap(), other.blobMap()) && Objects.equals(listOfBlobs(), other.listOfBlobs())
+                && Objects.equals(recursiveStruct(), other.recursiveStruct())
+                && Objects.equals(polymorphicTypeWithSubTypes(), other.polymorphicTypeWithSubTypes())
+                && Objects.equals(polymorphicTypeWithoutSubTypes(), other.polymorphicTypeWithoutSubTypes())
+                && Objects.equals(enumTypeAsString(), other.enumTypeAsString());
     }
 
     @Override
     public String toString() {
         return ToString.builder("AllTypesRequest").add("StringMember", stringMember()).add("IntegerMember", integerMember())
-                       .add("BooleanMember", booleanMember()).add("FloatMember", floatMember()).add("DoubleMember", doubleMember())
-                       .add("LongMember", longMember()).add("SimpleList", simpleList()).add("ListOfEnums", listOfEnumsAsStrings())
-                       .add("ListOfMaps", listOfMaps()).add("ListOfStructs", listOfStructs())
-                       .add("MapOfStringToIntegerList", mapOfStringToIntegerList()).add("MapOfStringToString", mapOfStringToString())
-                       .add("MapOfStringToSimpleStruct", mapOfStringToSimpleStruct()).add("MapOfEnumToEnum", mapOfEnumToEnumAsStrings())
-                       .add("MapOfEnumToString", mapOfEnumToStringAsStrings()).add("MapOfStringToEnum", mapOfStringToEnumAsStrings())
-                       .add("MapOfEnumToSimpleStruct", mapOfEnumToSimpleStructAsStrings()).add("TimestampMember", timestampMember())
-                       .add("StructWithNestedTimestampMember", structWithNestedTimestampMember()).add("BlobArg", blobArg())
-                       .add("StructWithNestedBlob", structWithNestedBlob()).add("BlobMap", blobMap()).add("ListOfBlobs", listOfBlobs())
-                       .add("RecursiveStruct", recursiveStruct()).add("PolymorphicTypeWithSubTypes", polymorphicTypeWithSubTypes())
-                       .add("PolymorphicTypeWithoutSubTypes", polymorphicTypeWithoutSubTypes()).add("EnumType", enumTypeAsString())
-                       .build();
+                .add("BooleanMember", booleanMember()).add("FloatMember", floatMember()).add("DoubleMember", doubleMember())
+                .add("LongMember", longMember()).add("SimpleList", simpleList()).add("ListOfEnums", listOfEnumsAsStrings())
+                .add("ListOfMaps", listOfMaps()).add("ListOfStructs", listOfStructs())
+                .add("MapOfStringToIntegerList", mapOfStringToIntegerList()).add("MapOfStringToString", mapOfStringToString())
+                .add("MapOfStringToSimpleStruct", mapOfStringToSimpleStruct()).add("MapOfEnumToEnum", mapOfEnumToEnumAsStrings())
+                .add("MapOfEnumToString", mapOfEnumToStringAsStrings()).add("MapOfStringToEnum", mapOfStringToEnumAsStrings())
+                .add("MapOfEnumToSimpleStruct", mapOfEnumToSimpleStructAsStrings()).add("TimestampMember", timestampMember())
+                .add("StructWithNestedTimestampMember", structWithNestedTimestampMember()).add("BlobArg", blobArg())
+                .add("StructWithNestedBlob", structWithNestedBlob()).add("BlobMap", blobMap()).add("ListOfBlobs", listOfBlobs())
+                .add("RecursiveStruct", recursiveStruct()).add("PolymorphicTypeWithSubTypes", polymorphicTypeWithSubTypes())
+                .add("PolymorphicTypeWithoutSubTypes", polymorphicTypeWithoutSubTypes()).add("EnumType", enumTypeAsString())
+                .build();
     }
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
@@ -934,7 +935,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
          */
         default Builder structWithNestedTimestampMember(Consumer<StructWithTimestamp.Builder> structWithNestedTimestampMember) {
             return structWithNestedTimestampMember(StructWithTimestamp.builder().applyMutation(structWithNestedTimestampMember)
-                                                                      .build());
+                    .build());
         }
 
         /**
@@ -1133,19 +1134,19 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         private List<SimpleStruct> listOfStructs = DefaultSdkAutoConstructList.getInstance();
 
-        private Map<String, List<Integer>> mapOfStringToIntegerList;
+        private Map<String, List<Integer>> mapOfStringToIntegerList = DefaultSdkAutoConstructMap.getInstance();
 
-        private Map<String, String> mapOfStringToString;
+        private Map<String, String> mapOfStringToString = DefaultSdkAutoConstructMap.getInstance();
 
-        private Map<String, SimpleStruct> mapOfStringToSimpleStruct;
+        private Map<String, SimpleStruct> mapOfStringToSimpleStruct = DefaultSdkAutoConstructMap.getInstance();
 
-        private Map<String, String> mapOfEnumToEnum;
+        private Map<String, String> mapOfEnumToEnum = DefaultSdkAutoConstructMap.getInstance();
 
-        private Map<String, String> mapOfEnumToString;
+        private Map<String, String> mapOfEnumToString = DefaultSdkAutoConstructMap.getInstance();
 
-        private Map<String, String> mapOfStringToEnum;
+        private Map<String, String> mapOfStringToEnum = DefaultSdkAutoConstructMap.getInstance();
 
-        private Map<String, SimpleStruct> mapOfEnumToSimpleStruct;
+        private Map<String, SimpleStruct> mapOfEnumToSimpleStruct = DefaultSdkAutoConstructMap.getInstance();
 
         private Instant timestampMember;
 
@@ -1155,7 +1156,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         private StructWithNestedBlobType structWithNestedBlob;
 
-        private Map<String, SdkBytes> blobMap;
+        private Map<String, SdkBytes> blobMap = DefaultSdkAutoConstructMap.getInstance();
 
         private List<SdkBytes> listOfBlobs = DefaultSdkAutoConstructList.getInstance();
 
@@ -1363,7 +1364,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         public final Collection<SimpleStruct.Builder> getListOfStructs() {
             return listOfStructs != null ? listOfStructs.stream().map(SimpleStruct::toBuilder).collect(Collectors.toList())
-                                         : null;
+                    : null;
         }
 
         @Override
@@ -1383,7 +1384,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
         @SafeVarargs
         public final Builder listOfStructs(Consumer<SimpleStruct.Builder>... listOfStructs) {
             listOfStructs(Stream.of(listOfStructs).map(c -> SimpleStruct.builder().applyMutation(c).build())
-                                .collect(Collectors.toList()));
+                    .collect(Collectors.toList()));
             return this;
         }
 
@@ -1421,7 +1422,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         public final Map<String, SimpleStruct.Builder> getMapOfStringToSimpleStruct() {
             return mapOfStringToSimpleStruct != null ? CollectionUtils.mapValues(mapOfStringToSimpleStruct,
-                                                                                 SimpleStruct::toBuilder) : null;
+                    SimpleStruct::toBuilder) : null;
         }
 
         @Override
@@ -1496,7 +1497,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         public final Map<String, SimpleStruct.Builder> getMapOfEnumToSimpleStruct() {
             return mapOfEnumToSimpleStruct != null ? CollectionUtils.mapValues(mapOfEnumToSimpleStruct, SimpleStruct::toBuilder)
-                                                   : null;
+                    : null;
         }
 
         @Override
@@ -1541,7 +1542,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         public final void setStructWithNestedTimestampMember(StructWithTimestamp.BuilderImpl structWithNestedTimestampMember) {
             this.structWithNestedTimestampMember = structWithNestedTimestampMember != null ? structWithNestedTimestampMember
-                .build() : null;
+                    .build() : null;
         }
 
         public final ByteBuffer getBlobArg() {
@@ -1583,7 +1584,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         public final Map<String, ByteBuffer> getBlobMap() {
             return blobMap == null ? null : blobMap.entrySet().stream()
-                                                   .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().asByteBuffer()));
+                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().asByteBuffer()));
         }
 
         @Override
@@ -1594,7 +1595,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         public final void setBlobMap(Map<String, ByteBuffer> blobMap) {
             blobMap(blobMap == null ? null : blobMap.entrySet().stream()
-                                                    .collect(Collectors.toMap(e -> e.getKey(), e -> SdkBytes.fromByteBuffer(e.getValue()))));
+                    .collect(Collectors.toMap(e -> e.getKey(), e -> SdkBytes.fromByteBuffer(e.getValue()))));
         }
 
         public final List<ByteBuffer> getListOfBlobs() {
@@ -1616,7 +1617,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         public final void setListOfBlobs(Collection<ByteBuffer> listOfBlobs) {
             listOfBlobs(listOfBlobs == null ? null : listOfBlobs.stream().map(SdkBytes::fromByteBuffer)
-                                                                .collect(Collectors.toList()));
+                    .collect(Collectors.toList()));
         }
 
         public final RecursiveStructType.Builder getRecursiveStruct() {
@@ -1659,7 +1660,7 @@ public final class AllTypesRequest extends JsonProtocolTestsRequest implements
 
         public final void setPolymorphicTypeWithoutSubTypes(SubTypeOne.BuilderImpl polymorphicTypeWithoutSubTypes) {
             this.polymorphicTypeWithoutSubTypes = polymorphicTypeWithoutSubTypes != null ? polymorphicTypeWithoutSubTypes.build()
-                                                                                         : null;
+                    : null;
         }
 
         public final String getEnumType() {
