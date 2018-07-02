@@ -26,7 +26,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * This subscription calls {@link Subscriber#onComplete()} on first request for data and then terminates the subscription.
  */
 @SdkProtectedApi
-public class EmptySubscription implements Subscription {
+public final class EmptySubscription implements Subscription {
 
     private final AtomicBoolean isTerminated = new AtomicBoolean(false);
     private final Subscriber subscriber;

@@ -20,7 +20,7 @@ import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
-public class StringToByteBufferAdapter implements TypeAdapter<String, ByteBuffer> {
+public final class StringToByteBufferAdapter implements TypeAdapter<String, ByteBuffer> {
 
     @Override
     public ByteBuffer adapt(String source) {

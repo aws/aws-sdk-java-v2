@@ -37,7 +37,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * from the parser, reading element text, handling attribute XML events, etc.
  */
 @SdkProtectedApi
-public class StaxUnmarshallerContext {
+public final class StaxUnmarshallerContext {
 
     public final Stack<String> stack = new Stack<>();
     private final XMLEventReader eventReader;
@@ -179,7 +179,7 @@ public class StaxUnmarshallerContext {
         }
 
         int index = -1;
-        while ((index = expression.indexOf("/", index + 1)) > -1) {
+        while ((index = expression.indexOf('/', index + 1)) > -1) {
             // Don't consider attributes a new depth level
             if (expression.charAt(index + 1) != '@') {
                 startingStackDepth++;
@@ -298,10 +298,10 @@ public class StaxUnmarshallerContext {
      * Simple container for the details of a metadata expression this
      * unmarshaller context is looking for.
      */
-    private static class MetadataExpression {
-        public String expression;
-        public int targetDepth;
-        public String key;
+    private static final class MetadataExpression {
+        private String expression;
+        private int targetDepth;
+        private String key;
 
         MetadataExpression(String expression, int targetDepth, String key) {
             this.expression = expression;

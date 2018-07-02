@@ -25,7 +25,7 @@ import software.amazon.awssdk.core.util.ValidationUtils;
  * This class models a AWS partition and contains all metadata about it.
  */
 @SdkInternalApi
-public class Partition {
+public final class Partition {
 
     /**
      * The name of the partition.

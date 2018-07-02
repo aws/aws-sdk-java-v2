@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * credential scope associated with an endpoint.
  */
 @SdkInternalApi
-public class CredentialScope {
+public final class CredentialScope {
 
     /**
      * region string to be used when signing a request for an endpoint.

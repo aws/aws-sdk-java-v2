@@ -58,7 +58,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 @SdkInternalApi
 @ReviewBeforeRelease("come up with better name, Also this can be moved to an internal package if we "
                      + "deal with HttpTestUtils.")
-public class AmazonSyncHttpClient implements SdkAutoCloseable {
+public final class AmazonSyncHttpClient implements SdkAutoCloseable {
     /**
      * Used for testing via failure injection.
      */

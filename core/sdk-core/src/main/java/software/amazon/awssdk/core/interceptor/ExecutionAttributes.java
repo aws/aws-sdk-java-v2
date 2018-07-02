@@ -28,7 +28,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  */
 @SdkPublicApi
 @NotThreadSafe
-public class ExecutionAttributes {
+public final class ExecutionAttributes {
     private final Map<ExecutionAttribute<?>, Object> attributes = new HashMap<>();
 
     /**

@@ -30,7 +30,7 @@ import software.amazon.awssdk.regions.internal.util.EC2MetadataUtils;
  * region from EC2 metadata service and will return null.
  */
 @SdkProtectedApi
-public class InstanceProfileRegionProvider implements AwsRegionProvider {
+public final class InstanceProfileRegionProvider implements AwsRegionProvider {
 
     /**
      * Cache region as it will not change during the lifetime of the JVM.

@@ -28,7 +28,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * A named collection of configuration stored in a {@link ProfileFile}.
- *
+ * <p>
  * Raw property access can be made via {@link #property(String)} and {@link #properties()}.
  *
  * @see ProfileFile
@@ -125,7 +125,7 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
     /**
      * A builder for a {@link Profile}. See {@link #builder()}.
      */
-    public static class Builder implements CopyableBuilder<Builder, Profile> {
+    public static final class Builder implements CopyableBuilder<Builder, Profile> {
         private String name;
         private Map<String, String> properties;
 

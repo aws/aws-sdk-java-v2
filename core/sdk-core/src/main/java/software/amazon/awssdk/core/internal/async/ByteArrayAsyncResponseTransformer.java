@@ -37,7 +37,7 @@ import software.amazon.awssdk.utils.BinaryUtils;
  * @see AsyncResponseTransformer#toBytes()
  */
 @SdkInternalApi
-public class ByteArrayAsyncResponseTransformer<ResponseT> implements
+public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
         AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>> {
 
     private ResponseT response;

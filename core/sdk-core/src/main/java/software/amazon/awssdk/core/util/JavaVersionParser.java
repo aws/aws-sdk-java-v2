@@ -28,7 +28,7 @@ import software.amazon.awssdk.utils.JavaSystemSetting;
  *     </a>
  */
 @SdkInternalApi
-public class JavaVersionParser {
+public final class JavaVersionParser {
 
     public static final String JAVA_VERSION_PROPERTY = "java.version";
 

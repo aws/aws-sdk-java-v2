@@ -33,7 +33,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
  * A set of internal options required by the SDK via {@link SdkClientConfiguration}.
  */
 @SdkProtectedApi
-public class SdkClientOption<T> extends ClientOption<T> {
+public final class SdkClientOption<T> extends ClientOption<T> {
     /**
      * @see ClientOverrideConfiguration#additionalHttpHeaders()
      */
@@ -87,11 +87,11 @@ public class SdkClientOption<T> extends ClientOption<T> {
     public static final SdkClientOption<SdkHttpClient> SYNC_HTTP_CLIENT =
             new SdkClientOption<>(SdkHttpClient.class);
 
-    protected SdkClientOption(Class<T> valueClass) {
+    private SdkClientOption(Class<T> valueClass) {
         super(valueClass);
     }
 
-    protected SdkClientOption(UnsafeValueType valueType) {
+    private SdkClientOption(UnsafeValueType valueType) {
         super(valueType);
     }
 }
