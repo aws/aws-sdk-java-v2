@@ -31,6 +31,7 @@ import io.netty.handler.codec.http2.ForkedHttp2MultiplexCodecBuilder;
 import io.netty.handler.codec.http2.Http2SettingsFrame;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.ssl.SslContext;
+import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -44,7 +45,6 @@ import software.amazon.awssdk.http.nio.netty.internal.http2.SdkHttp2FrameLogger;
  */
 @SdkInternalApi
 public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
-
     private final Protocol protocol;
     private final SslContext sslCtx;
     private final long clientMaxStreams;
@@ -82,6 +82,7 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
                              .frameLogger(new SdkHttp2FrameLogger(LogLevel.DEBUG))
                              .headerSensitivityDetector((name, value) -> lowerCase(name.toString()).equals("authorization"))
                              .build());
+
         pipeline.addLast(new SimpleChannelInboundHandler<Http2SettingsFrame>() {
             @Override
             protected void channelRead0(ChannelHandlerContext ctx, Http2SettingsFrame msg) throws Exception {
@@ -91,24 +92,35 @@ public class ChannelPipelineInitializer extends AbstractChannelPoolHandler {
             }
 
             @Override
-            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-                ch.attr(PROTOCOL_FUTURE).get().completeExceptionally(cause);
-                MultiplexedChannelRecord record = ch.attr(ChannelAttributeKey.CHANNEL_POOL_RECORD).get();
-                // Deliver the exception to any child channels registered to this connection.
-                if (record != null) {
-                    record.shutdownChildChannels(cause);
+            public void channelUnregistered(ChannelHandlerContext ctx) {
+                if (!ch.attr(PROTOCOL_FUTURE).get().isDone()) {
+                    channelError(new IOException("The channel was closed before the protocol could be determined."), ch);
                 }
-                // Channel status may still be active at this point even if it's not so queue up the close so that status is
-                // accurately updated
-                ch.eventLoop().submit(() -> {
-                    try {
-                        if (ch.isActive()) {
-                            ch.close();
-                        }
-                    } finally {
-                        channelPoolRef.get().release(ch);
-                    }
-                });
+            }
+
+            @Override
+            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+                channelError(cause, ch);
+            }
+        });
+    }
+
+    private void channelError(Throwable cause, Channel ch) {
+        ch.attr(PROTOCOL_FUTURE).get().completeExceptionally(cause);
+        MultiplexedChannelRecord record = ch.attr(ChannelAttributeKey.CHANNEL_POOL_RECORD).get();
+        // Deliver the exception to any child channels registered to this connection.
+        if (record != null) {
+            record.shutdownChildChannels(cause);
+        }
+        // Channel status may still be active at this point even if it's not so queue up the close so that status is
+        // accurately updated
+        ch.eventLoop().submit(() -> {
+            try {
+                if (ch.isActive()) {
+                    ch.close();
+                }
+            } finally {
+                channelPoolRef.get().release(ch);
             }
         });
     }
