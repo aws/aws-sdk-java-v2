@@ -60,7 +60,7 @@ public final class ContainerCredentialsProvider extends HttpCredentialsProvider 
     /**
      * @see #builder()
      */
-    private ContainerCredentialsProvider(Builder builder) {
+    private ContainerCredentialsProvider(BuilderImpl builder) {
         super(builder);
         this.credentialsEndpointProvider = builder.credentialsEndpointProvider;
     }
@@ -69,7 +69,7 @@ public final class ContainerCredentialsProvider extends HttpCredentialsProvider 
      * Create a builder for creating a {@link ContainerCredentialsProvider}.
      */
     public static Builder builder() {
-        return new Builder();
+        return new BuilderImpl();
     }
 
     @Override
@@ -142,11 +142,21 @@ public final class ContainerCredentialsProvider extends HttpCredentialsProvider 
     /**
      * A builder for creating a custom a {@link ContainerCredentialsProvider}.
      */
-    public static final class Builder extends HttpCredentialsProvider.Builder<ContainerCredentialsProvider, Builder> {
+    public interface Builder extends HttpCredentialsProvider.Builder<ContainerCredentialsProvider, Builder> {
+
+        /**
+         * Build a {@link ContainerCredentialsProvider} from the provided configuration.
+         */
+        @Override
+        ContainerCredentialsProvider build();
+    }
+
+    static final class BuilderImpl extends HttpCredentialsProvider.BuilderImpl<ContainerCredentialsProvider, Builder>
+        implements Builder {
 
         private ResourcesEndpointProvider credentialsEndpointProvider = new ContainerCredentialsEndpointProvider();
 
-        private Builder() {
+        BuilderImpl() {
             super.asyncThreadName("container-credentials-provider");
         }
 
@@ -156,9 +166,7 @@ public final class ContainerCredentialsProvider extends HttpCredentialsProvider 
             return this;
         }
 
-        /**
-         * Build a {@link ContainerCredentialsProvider} from the provided configuration.
-         */
+        @Override
         public ContainerCredentialsProvider build() {
             return new ContainerCredentialsProvider(this);
         }

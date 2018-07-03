@@ -50,7 +50,7 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
     /**
      * @see #builder()
      */
-    private ProfileCredentialsProvider(Builder builder) {
+    private ProfileCredentialsProvider(BuilderImpl builder) {
         this.profileName = builder.profileName != null ? builder.profileName
                                                        : SdkSystemSetting.AWS_PROFILE.getStringValueOrThrow();
 
@@ -98,7 +98,7 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
      * Get a builder for creating a custom {@link ProfileCredentialsProvider}.
      */
     public static Builder builder() {
-        return new Builder();
+        return new BuilderImpl();
     }
 
     @Override
@@ -127,56 +127,80 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
     /**
      * A builder for creating a custom {@link ProfileCredentialsProvider}.
      */
-    public static final class Builder {
-        private ProfileFile profileFile;
-        private String profileName;
-
-        private Supplier<ProfileFile> defaultProfileFileLoader = ProfileFile::defaultProfileFile;
-
-        private Builder() {
-        }
+    public interface Builder {
 
         /**
          * Define the profile file that should be used by this credentials provider. By default, the
          * {@link ProfileFile#defaultProfileFile()} is used.
          */
-        public Builder profileFile(ProfileFile profileFile) {
-            this.profileFile = profileFile;
-            return this;
-        }
+        Builder profileFile(ProfileFile profileFile);
 
         /**
          * Similar to {@link #profileFile(ProfileFile)}, but takes a lambda to configure a new {@link ProfileFile.Builder}. This
          * removes the need to called {@link ProfileFile#builder()} and {@link ProfileFile.Builder#build()}.
          */
-        public Builder profileFile(Consumer<ProfileFile.Builder> profileFile) {
-            return profileFile(ProfileFile.builder().applyMutation(profileFile).build());
-        }
+        Builder profileFile(Consumer<ProfileFile.Builder> profileFile);
 
         /**
          * Define the name of the profile that should be used by this credentials provider. By default, the value in
          * {@link SdkSystemSetting#AWS_PROFILE} is used.
          */
+        Builder profileName(String profileName);
+
+        /**
+         * Create a {@link ProfileCredentialsProvider} using the configuration applied to this builder.
+         */
+        ProfileCredentialsProvider build();
+    }
+
+    static final class BuilderImpl implements Builder {
+        private ProfileFile profileFile;
+        private String profileName;
+
+        private Supplier<ProfileFile> defaultProfileFileLoader = ProfileFile::defaultProfileFile;
+
+        BuilderImpl() {
+        }
+
+        @Override
+        public Builder profileFile(ProfileFile profileFile) {
+            this.profileFile = profileFile;
+            return this;
+        }
+
+        public void setProfileFile(ProfileFile profileFile) {
+            profileFile(profileFile);
+        }
+
+        @Override
+        public Builder profileFile(Consumer<ProfileFile.Builder> profileFile) {
+            return profileFile(ProfileFile.builder().applyMutation(profileFile).build());
+        }
+
+        @Override
         public Builder profileName(String profileName) {
             this.profileName = profileName;
             return this;
         }
 
+        public void setProfileName(String profileName) {
+            profileName(profileName);
+        }
+
+        @Override
+        public ProfileCredentialsProvider build() {
+            return new ProfileCredentialsProvider(this);
+        }
+
         /**
          * Override the default configuration file to be used when the customer does not explicitly set
+         * profileName(profileName);
          * {@link #profileFile(ProfileFile)}. Use of this method is only useful for testing the default behavior.
          */
         @SdkTestInternalApi
         Builder defaultProfileFileLoader(Supplier<ProfileFile> defaultProfileFileLoader) {
             this.defaultProfileFileLoader = defaultProfileFileLoader;
             return this;
-        }
-
-        /**
-         * Create a {@link ProfileCredentialsProvider} using the configuration applied to this builder.
-         */
-        public ProfileCredentialsProvider build() {
-            return new ProfileCredentialsProvider(this);
         }
     }
 }

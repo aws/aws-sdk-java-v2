@@ -33,6 +33,7 @@ public class ResponsesSubscription<ResponseT> extends PaginationSubscription<Res
         super(subscriber, nextPageFetcher);
     }
 
+    @Override
     protected void handleRequests() {
         if (!hasNextPage()) {
             completeSubscription();

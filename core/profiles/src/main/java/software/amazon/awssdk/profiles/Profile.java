@@ -50,7 +50,7 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
      * @see ProfileFile
      * @see #builder()
      */
-    private Profile(Builder builder) {
+    private Profile(BuilderImpl builder) {
         this.name = Validate.paramNotNull(builder.name, "name");
         this.properties = Validate.paramNotNull(builder.properties, "properties");
     }
@@ -60,7 +60,7 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
      * {@link ProfileFile}.
      */
     public static Builder builder() {
-        return new Builder();
+        return new BuilderImpl();
     }
 
     /**
@@ -125,34 +125,54 @@ public final class Profile implements ToCopyableBuilder<Profile.Builder, Profile
     /**
      * A builder for a {@link Profile}. See {@link #builder()}.
      */
-    public static final class Builder implements CopyableBuilder<Builder, Profile> {
+    public interface Builder extends CopyableBuilder<Builder, Profile> {
+
+        /**
+         * Define the name of this profile, without the legacy "profile" prefix.
+         */
+        Builder name(String name);
+
+        /**
+         * Define the properties configured in this profile.
+         */
+        Builder properties(Map<String, String> properties);
+
+        /**
+         * Create a profile using the current state of this builder.
+         */
+        Profile build();
+    }
+
+    private static final class BuilderImpl implements Builder {
         private String name;
         private Map<String, String> properties;
 
         /**
          * @see #builder()
          */
-        private Builder() {}
+        private BuilderImpl() {}
 
-        /**
-         * Define the name of this profile, without the legacy "profile" prefix.
-         */
+        @Override
         public Builder name(String name) {
             this.name = name;
             return this;
         }
 
-        /**
-         * Define the properties configured in this profile.
-         */
+        public void setName(String name) {
+            name(name);
+        }
+
+        @Override
         public Builder properties(Map<String, String> properties) {
             this.properties = Collections.unmodifiableMap(new LinkedHashMap<>(properties));
             return this;
         }
 
-        /**
-         * Create a profile using the current state of this builder.
-         */
+        public void setProperties(Map<String, String> properties) {
+            properties(properties);
+        }
+
+        @Override
         public Profile build() {
             return new Profile(this);
         }

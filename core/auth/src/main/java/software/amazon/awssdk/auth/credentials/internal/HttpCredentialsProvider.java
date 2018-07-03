@@ -47,7 +47,7 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 public abstract class HttpCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
     private final Optional<CachedSupplier<AwsCredentials>> credentialsCache;
 
-    protected HttpCredentialsProvider(Builder<?, ?> builder) {
+    protected HttpCredentialsProvider(BuilderImpl<?, ?> builder) {
         this(builder.asyncCredentialUpdateEnabled, builder.asyncThreadName);
     }
 
@@ -147,33 +147,51 @@ public abstract class HttpCredentialsProvider implements AwsCredentialsProvider,
         credentialsCache.ifPresent(CachedSupplier::close);
     }
 
-    /**
-     * A builder for creating a custom a {@link InstanceProfileCredentialsProvider}.
-     */
-    protected abstract static class Builder<TypeToBuildT extends HttpCredentialsProvider, BuilderT extends Builder> {
-        private boolean asyncCredentialUpdateEnabled = false;
-        private String asyncThreadName;
-
-        protected Builder() {
-        }
-
+    public interface Builder<TypeToBuildT extends HttpCredentialsProvider, BuilderT extends Builder> {
         /**
          * Configure whether this provider should fetch credentials asynchronously in the background. If this is true, threads are
          * less likely to block when {@link #resolveCredentials()} is called, but additional resources are used to maintain the
          * provider.
          *
-         * <p>By default, this is disabled.</p>
+         * <p>
+         * By default, this is disabled.
          */
+        BuilderT asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled);
+
+        BuilderT asyncThreadName(String asyncThreadName);
+
+        TypeToBuildT build();
+    }
+
+    /**
+     * A builder for creating a custom a {@link InstanceProfileCredentialsProvider}.
+     */
+    protected abstract static class BuilderImpl<TypeToBuildT extends HttpCredentialsProvider, BuilderT extends Builder>
+        implements Builder<TypeToBuildT, BuilderT> {
+        private boolean asyncCredentialUpdateEnabled = false;
+        private String asyncThreadName;
+
+        protected BuilderImpl() {
+        }
+
+        @Override
         public BuilderT asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {
             this.asyncCredentialUpdateEnabled = asyncCredentialUpdateEnabled;
             return (BuilderT) this;
         }
 
+        public void setAsyncCredentialUpdateEnabled(boolean asyncCredentialUpdateEnabled) {
+            asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled);
+        }
+
+        @Override
         public BuilderT asyncThreadName(String asyncThreadName) {
             this.asyncThreadName = asyncThreadName;
             return (BuilderT) this;
         }
 
-        public abstract TypeToBuildT build();
+        public void setAsyncThreadName(String asyncThreadName) {
+            asyncThreadName(asyncThreadName);
+        }
     }
 }

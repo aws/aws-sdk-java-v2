@@ -52,9 +52,9 @@ public class ContainerCredentialsProviderTest {
     public void setup() {
         TestCredentialsEndpointProvider endpointProvider =
             new TestCredentialsEndpointProvider("http://localhost:" + mockServer.port());
-        credentialsProvider = ContainerCredentialsProvider.builder()
-                                                          .credentialsEndpointProvider(endpointProvider)
-                                                          .build();
+        credentialsProvider = new ContainerCredentialsProvider.BuilderImpl()
+            .credentialsEndpointProvider(endpointProvider)
+            .build();
     }
 
     @AfterClass
