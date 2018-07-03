@@ -139,8 +139,8 @@ public abstract class SdkHttpClientTestSuite {
                                  .protocol(uri.getScheme())
                                  .port(uri.getPort())
                                  .method(SdkHttpMethod.POST)
-                                 .header("Host", uri.getHost())
-                                 .header("User-Agent", "hello-world!")
+                                 .putHeader("Host", uri.getHost())
+                                 .putHeader("User-Agent", "hello-world!")
                                  .content(new ByteArrayInputStream("Body".getBytes(StandardCharsets.UTF_8)))
                                  .build();
     }

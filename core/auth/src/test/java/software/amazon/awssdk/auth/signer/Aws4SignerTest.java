@@ -81,7 +81,7 @@ public class Aws4SignerTest {
 
         // Test request with 'x-amz-sha256' header
         request = generateBasicRequest();
-        request.header("x-amz-sha256", "required");
+        request.putHeader("x-amz-sha256", "required");
 
         signed = SignerTestUtils.signRequest(signer, request.build(), credentials, "demo", signingOverrideClock, "us-east-1");
         assertThat(signed.firstMatchingHeader("Authorization")).hasValue(expectedAuthorizationHeaderWithSha256Header);
@@ -96,7 +96,7 @@ public class Aws4SignerTest {
 
         AwsBasicCredentials credentials = AwsBasicCredentials.create("access", "secret");
         // Test request without 'x-amz-sha256' header
-        SdkHttpFullRequest.Builder request = generateBasicRequest().rawQueryParameter("Foo", (String) null);
+        SdkHttpFullRequest.Builder request = generateBasicRequest().putRawQueryParameter("Foo", (String) null);
 
         SdkHttpFullRequest signed = SignerTestUtils.signRequest(signer, request.build(), credentials,
                                                                 "demo", signingOverrideClock, "us-east-1");
@@ -144,7 +144,7 @@ public class Aws4SignerTest {
     public void xAmznTraceId_NotSigned() throws Exception {
         AwsBasicCredentials credentials = AwsBasicCredentials.create("akid", "skid");
         SdkHttpFullRequest.Builder request = generateBasicRequest();
-        request.header("X-Amzn-Trace-Id", " Root=1-584b150a-708479cb060007ffbf3ee1da;Parent=36d3dbcfd150aac9;Sampled=1");
+        request.putHeader("X-Amzn-Trace-Id", " Root=1-584b150a-708479cb060007ffbf3ee1da;Parent=36d3dbcfd150aac9;Sampled=1");
 
         SdkHttpFullRequest actual = SignerTestUtils.signRequest(signer, request.build(), credentials, "demo", signingOverrideClock, "us-east-1");
 
@@ -158,8 +158,8 @@ public class Aws4SignerTest {
         return SdkHttpFullRequest.builder()
                                  .content(new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
                                  .method(SdkHttpMethod.POST)
-                                 .header("Host", "demo.us-east-1.amazonaws.com")
-                                 .header("x-amz-archive-description", "test  test")
+                                 .putHeader("Host", "demo.us-east-1.amazonaws.com")
+                                 .putHeader("x-amz-archive-description", "test  test")
                                  .encodedPath("/")
                                  .protocol("http")
                                  .host("demo.us-east-1.amazonaws.com");

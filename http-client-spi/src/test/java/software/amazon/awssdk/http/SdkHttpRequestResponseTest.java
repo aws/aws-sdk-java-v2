@@ -57,11 +57,11 @@ public class SdkHttpRequestResponseTest {
                 .isEqualTo("http://localhost/foo/");
         assertThat(normalizedUri(b -> b.protocol("http").host("localhost").port(80).encodedPath("/foo/")))
                 .isEqualTo("http://localhost/foo/");
-        assertThat(normalizedUri(b -> b.protocol("http").host("localhost").port(80).rawQueryParameter("foo", "bar ")))
+        assertThat(normalizedUri(b -> b.protocol("http").host("localhost").port(80).putRawQueryParameter("foo", "bar ")))
                 .isEqualTo("http://localhost?foo=bar%20");
-        assertThat(normalizedUri(b -> b.protocol("http").host("localhost").port(80).encodedPath("/foo").rawQueryParameter("foo", "bar")))
+        assertThat(normalizedUri(b -> b.protocol("http").host("localhost").port(80).encodedPath("/foo").putRawQueryParameter("foo", "bar")))
                 .isEqualTo("http://localhost/foo?foo=bar");
-        assertThat(normalizedUri(b -> b.protocol("http").host("localhost").port(80).encodedPath("foo/").rawQueryParameter("foo", "bar")))
+        assertThat(normalizedUri(b -> b.protocol("http").host("localhost").port(80).encodedPath("foo/").putRawQueryParameter("foo", "bar")))
                 .isEqualTo("http://localhost/foo/?foo=bar");
     }
 
@@ -149,13 +149,13 @@ public class SdkHttpRequestResponseTest {
 
             @Override
             public BuilderProxy setValue(String key, String value) {
-                builder.rawQueryParameter(key, value);
+                builder.putRawQueryParameter(key, value);
                 return this;
             }
 
             @Override
             public BuilderProxy setValues(String key, List<String> values) {
-                builder.rawQueryParameter(key, values);
+                builder.putRawQueryParameter(key, values);
                 return this;
             }
 
@@ -191,13 +191,13 @@ public class SdkHttpRequestResponseTest {
 
             @Override
             public BuilderProxy setValue(String key, String value) {
-                builder.header(key, value);
+                builder.putHeader(key, value);
                 return this;
             }
 
             @Override
             public BuilderProxy setValues(String key, List<String> values) {
-                builder.header(key, values);
+                builder.putHeader(key, values);
                 return this;
             }
 
@@ -243,13 +243,13 @@ public class SdkHttpRequestResponseTest {
 
             @Override
             public BuilderProxy setValue(String key, String value) {
-                builder.header(key, value);
+                builder.putHeader(key, value);
                 return this;
             }
 
             @Override
             public BuilderProxy setValues(String key, List<String> values) {
-                builder.header(key, values);
+                builder.putHeader(key, values);
                 return this;
             }
 
