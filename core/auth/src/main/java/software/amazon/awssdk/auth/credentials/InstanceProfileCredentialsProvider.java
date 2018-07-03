@@ -31,7 +31,6 @@ import software.amazon.awssdk.utils.ToString;
  * <P>
  * If {@link SdkSystemSetting#AWS_EC2_METADATA_DISABLED} is set to true, it will not try to load
  * credentials from EC2 metadata service and will return null.
- *
  */
 @SdkPublicApi
 public final class InstanceProfileCredentialsProvider extends HttpCredentialsProvider {
@@ -42,7 +41,7 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
     /**
      * @see #builder()
      */
-    private InstanceProfileCredentialsProvider(Builder builder) {
+    private InstanceProfileCredentialsProvider(BuilderImpl builder) {
         super(builder);
     }
 
@@ -50,11 +49,12 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
      * Create a builder for creating a {@link InstanceProfileCredentialsProvider}.
      */
     public static Builder builder() {
-        return new Builder();
+        return new BuilderImpl();
     }
 
     /**
      * Create a {@link InstanceProfileCredentialsProvider} with default values.
+     *
      * @return a {@link InstanceProfileCredentialsProvider}
      */
     public static InstanceProfileCredentialsProvider create() {
@@ -96,17 +96,24 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
     /**
      * A builder for creating a custom a {@link InstanceProfileCredentialsProvider}.
      */
-    public static final class Builder extends HttpCredentialsProvider.Builder<InstanceProfileCredentialsProvider, Builder> {
-        /**
-         * Created using {@link #builder()}.
-         */
-        private Builder() {
-            super.asyncThreadName("instance-profile-credentials-provider");
-        }
+    public interface Builder extends HttpCredentialsProvider.Builder<InstanceProfileCredentialsProvider, Builder> {
 
         /**
          * Build a {@link InstanceProfileCredentialsProvider} from the provided configuration.
          */
+        @Override
+        InstanceProfileCredentialsProvider build();
+    }
+
+    private static final class BuilderImpl
+        extends HttpCredentialsProvider.BuilderImpl<InstanceProfileCredentialsProvider, Builder>
+        implements Builder {
+
+        private BuilderImpl() {
+            super.asyncThreadName("instance-profile-credentials-provider");
+        }
+
+        @Override
         public InstanceProfileCredentialsProvider build() {
             return new InstanceProfileCredentialsProvider(this);
         }

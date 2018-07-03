@@ -41,7 +41,7 @@ public class ItemsSubscription<ResponseT, ItemT> extends PaginationSubscription<
         this.getIteratorFunction = getIteratorFunction;
     }
 
-
+    @Override
     protected void handleRequests() {
         if (!hasMoreItems() && !hasNextPage()) {
             completeSubscription();

@@ -68,7 +68,7 @@ public final class ApiName {
         ApiName build();
     }
 
-    private static class BuilderImpl implements Builder {
+    private static final class BuilderImpl implements Builder {
         private String name;
         private String version;
 
@@ -78,10 +78,18 @@ public final class ApiName {
             return this;
         }
 
+        public void setName(String name) {
+            name(name);
+        }
+
         @Override
         public Builder version(String version) {
             this.version = version;
             return this;
+        }
+
+        public void setVersion(String version) {
+            version(version);
         }
 
         @Override

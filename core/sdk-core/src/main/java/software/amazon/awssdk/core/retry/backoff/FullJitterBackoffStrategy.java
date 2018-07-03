@@ -46,7 +46,7 @@ public final class FullJitterBackoffStrategy implements BackoffStrategy,
     private final int numRetries;
     private final Random random = new Random();
 
-    private FullJitterBackoffStrategy(Builder builder) {
+    private FullJitterBackoffStrategy(BuilderImpl builder) {
         this.baseDelay = isNotNegative(builder.baseDelay, "baseDelay");
         this.maxBackoffTime = isNotNegative(builder.maxBackoffTime, "maxBackoffTime");
         this.numRetries = Validate.isNotNegative(builder.numRetries, "numRetries");
@@ -64,41 +64,75 @@ public final class FullJitterBackoffStrategy implements BackoffStrategy,
     }
 
     public static Builder builder() {
-        return new Builder();
+        return new BuilderImpl();
     }
 
-    public static final class Builder implements CopyableBuilder<Builder, FullJitterBackoffStrategy> {
+    public interface Builder extends CopyableBuilder<Builder, FullJitterBackoffStrategy> {
+        Builder baseDelay(Duration baseDelay);
+
+        Duration baseDelay();
+
+        Builder maxBackoffTime(Duration maxBackoffTime);
+
+        Duration maxBackoffTime();
+
+        Builder numRetries(Integer numRetries);
+
+        Integer numRetries();
+
+        FullJitterBackoffStrategy build();
+    }
+
+    private static final class BuilderImpl implements Builder {
 
         private Duration baseDelay;
         private Duration maxBackoffTime;
         private int numRetries;
 
-        private Builder(){
+        private BuilderImpl() {
         }
 
+        @Override
         public Builder baseDelay(Duration baseDelay) {
             this.baseDelay = baseDelay;
             return this;
         }
 
+        public void setBaseDelay(Duration baseDelay) {
+            baseDelay(baseDelay);
+        }
+
+        @Override
         public Duration baseDelay() {
             return baseDelay;
         }
 
+        @Override
         public Builder maxBackoffTime(Duration maxBackoffTime) {
             this.maxBackoffTime = maxBackoffTime;
             return this;
         }
 
+        public void setMaxBackoffTime(Duration maxBackoffTime) {
+            maxBackoffTime(maxBackoffTime);
+        }
+
+        @Override
         public Duration maxBackoffTime() {
             return maxBackoffTime;
         }
 
+        @Override
         public Builder numRetries(Integer numRetries) {
             this.numRetries = numRetries;
             return this;
         }
 
+        public void setNumRetries(Integer numRetries) {
+            numRetries(numRetries);
+        }
+
+        @Override
         public Integer numRetries() {
             return numRetries;
         }

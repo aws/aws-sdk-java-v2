@@ -23,7 +23,7 @@ public final class AwsS3V4SignerParams extends Aws4SignerParams {
     private final Boolean enableChunkedEncoding;
     private final Boolean enablePayloadSigning;
 
-    private AwsS3V4SignerParams(Builder builder) {
+    private AwsS3V4SignerParams(BuilderImpl builder) {
         super(builder);
         this.enableChunkedEncoding = builder.enableChunkedEncoding;
         this.enablePayloadSigning = builder.enablePayloadSigning;
@@ -38,17 +38,10 @@ public final class AwsS3V4SignerParams extends Aws4SignerParams {
     }
 
     public static Builder builder() {
-        return new Builder();
+        return new BuilderImpl();
     }
 
-    // Default values from v1
-    public static final class Builder extends Aws4SignerParams.Builder<Builder> {
-        static final boolean DEFAULT_CHUNKED_ENCODING_ENABLED = true;
-        static final boolean DEFAULT_PAYLOAD_SIGNING_ENABLED = false;
-
-
-        private Boolean enableChunkedEncoding = DEFAULT_CHUNKED_ENCODING_ENABLED;
-        private Boolean enablePayloadSigning = DEFAULT_PAYLOAD_SIGNING_ENABLED;
+    public interface Builder extends Aws4SignerParams.Builder<Builder> {
 
         /**
          * <p>
@@ -67,10 +60,7 @@ public final class AwsS3V4SignerParams extends Aws4SignerParams {
          *
          * @param enableChunkedEncoding True to enable chunked encoding and False to disable. Default value is True.
          */
-        public Builder enableChunkedEncoding(Boolean enableChunkedEncoding) {
-            this.enableChunkedEncoding = enableChunkedEncoding;
-            return this;
-        }
+        Builder enableChunkedEncoding(Boolean enableChunkedEncoding);
 
         /**
          * <p>
@@ -90,9 +80,40 @@ public final class AwsS3V4SignerParams extends Aws4SignerParams {
          *
          * @param enablePayloadSigning True to explicitly enable payload signing in all situations. Default value is False.
          */
+        Builder enablePayloadSigning(Boolean enablePayloadSigning);
+
+        @Override
+        AwsS3V4SignerParams build();
+    }
+
+    private static final class BuilderImpl extends Aws4SignerParams.BuilderImpl<Builder> implements Builder {
+        static final boolean DEFAULT_CHUNKED_ENCODING_ENABLED = true;
+        static final boolean DEFAULT_PAYLOAD_SIGNING_ENABLED = false;
+
+        private Boolean enableChunkedEncoding = DEFAULT_CHUNKED_ENCODING_ENABLED;
+        private Boolean enablePayloadSigning = DEFAULT_PAYLOAD_SIGNING_ENABLED;
+
+        private BuilderImpl() {
+        }
+
+        @Override
+        public Builder enableChunkedEncoding(Boolean enableChunkedEncoding) {
+            this.enableChunkedEncoding = enableChunkedEncoding;
+            return this;
+        }
+
+        public void setEnableChunkedEncoding(Boolean enableChunkedEncoding) {
+            enableChunkedEncoding(enableChunkedEncoding);
+        }
+
+        @Override
         public Builder enablePayloadSigning(Boolean enablePayloadSigning) {
             this.enablePayloadSigning = enablePayloadSigning;
             return this;
+        }
+
+        public void setEnablePayloadSigning(Boolean enablePayloadSigning) {
+            enablePayloadSigning(enablePayloadSigning);
         }
 
         @Override
