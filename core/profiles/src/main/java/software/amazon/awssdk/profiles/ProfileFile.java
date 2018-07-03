@@ -68,7 +68,7 @@ public final class ProfileFile {
      * Create a builder for a {@link ProfileFile}.
      */
     public static Builder builder() {
-        return new Builder();
+        return new BuilderImpl();
     }
 
     /**
@@ -186,33 +186,57 @@ public final class ProfileFile {
      * A builder for a {@link ProfileFile}. {@link #content(Path)} (or {@link #content(InputStream)}) and {@link #type(Type)} are
      * required fields.
      */
-    public static final class Builder implements SdkBuilder<Builder, ProfileFile> {
-        private InputStream content;
-        private Path contentLocation;
-        private Type type;
-
-        private Builder() {}
-
+    public interface Builder extends SdkBuilder<Builder, ProfileFile> {
         /**
          * Configure the content of the profile file. This stream will be read from and then closed when {@link #build()} is
          * invoked.
          */
+        Builder content(InputStream contentStream);
+
+        /**
+         * Configure the location from which the profile file should be loaded.
+         */
+        Builder content(Path contentLocation);
+
+        /**
+         * Configure the {@link Type} of file that should be loaded.
+         */
+        Builder type(Type type);
+
+        @Override
+        ProfileFile build();
+    }
+
+    private static final class BuilderImpl implements Builder {
+        private InputStream content;
+        private Path contentLocation;
+        private Type type;
+
+        private BuilderImpl() {}
+
+        @Override
         public Builder content(InputStream contentStream) {
             this.contentLocation = null;
             this.content = contentStream;
             return this;
         }
 
-        /**
-         * Configure the location from which the profile file should be loaded.
-         */
+        public void setContent(InputStream contentStream) {
+            content(contentStream);
+        }
+
+        @Override
         public Builder content(Path contentLocation) {
             Validate.paramNotNull(contentLocation, "profileLocation");
-            Validate.validState(Files.exists(contentLocation), "Profile file '%s' does not exist.", contentLocation);
+            Validate.validState(contentLocation.toFile().exists(), "Profile file '%s' does not exist.", contentLocation);
 
             this.content = null;
             this.contentLocation = contentLocation;
             return this;
+        }
+
+        public void setContentLocation(Path contentLocation) {
+            content(contentLocation);
         }
 
         /**
@@ -221,6 +245,10 @@ public final class ProfileFile {
         public Builder type(Type type) {
             this.type = type;
             return this;
+        }
+
+        public void setType(Type type) {
+            type(type);
         }
 
         @Override

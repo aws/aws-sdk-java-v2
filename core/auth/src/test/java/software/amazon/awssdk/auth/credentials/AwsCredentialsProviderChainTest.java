@@ -87,12 +87,12 @@ public class AwsCredentialsProviderChainTest {
     @Test
     public void testMissingProfileUsesNextProvider() {
         ProfileCredentialsProvider provider =
-                ProfileCredentialsProvider.builder()
-                                          .defaultProfileFileLoader(() -> ProfileFile.builder()
-                                                                                     .content(new StringInputStream(""))
-                                                                                     .type(ProfileFile.Type.CONFIGURATION)
-                                                                                     .build())
-                                          .build();
+            new ProfileCredentialsProvider.BuilderImpl()
+                .defaultProfileFileLoader(() -> ProfileFile.builder()
+                                                           .content(new StringInputStream(""))
+                                                           .type(ProfileFile.Type.CONFIGURATION)
+                                                           .build())
+                .build();
 
         MockCredentialsProvider provider2 = new MockCredentialsProvider();
 
@@ -125,7 +125,7 @@ public class AwsCredentialsProviderChainTest {
     private static final class MockCredentialsProvider implements AwsCredentialsProvider {
         private final StaticCredentialsProvider staticCredentialsProvider;
         private final String exceptionMessage;
-        public int getCredentialsCallCount = 0;
+        int getCredentialsCallCount = 0;
 
         private MockCredentialsProvider() {
             this(null);

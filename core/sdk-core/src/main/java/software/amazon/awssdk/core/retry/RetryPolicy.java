@@ -60,7 +60,7 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
     private final BackoffStrategy backoffStrategy;
     private final Integer numRetries;
 
-    private RetryPolicy(Builder builder) {
+    private RetryPolicy(BuilderImpl builder) {
         this.backoffStrategy = builder.backoffStrategy;
         this.numRetries = builder.numRetries;
         this.retryConditionFromBuilder = builder.retryCondition;
@@ -80,48 +80,82 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
     }
 
     public static Builder builder() {
-        return new Builder();
+        return new BuilderImpl();
     }
 
     public Builder toBuilder() {
         return builder().numRetries(numRetries).retryCondition(retryConditionFromBuilder).backoffStrategy(backoffStrategy);
     }
 
+    public interface Builder extends CopyableBuilder<Builder, RetryPolicy> {
+        Builder numRetries(Integer numRetries);
+
+        Integer numRetries();
+
+        Builder backoffStrategy(BackoffStrategy backoffStrategy);
+
+        BackoffStrategy backoffStrategy();
+
+        Builder retryCondition(RetryCondition retryCondition);
+
+        RetryCondition retryCondition();
+
+        RetryPolicy build();
+    }
+
     /**
      * Builder for a {@link RetryPolicy}.
      */
-    public static final class Builder implements CopyableBuilder<Builder, RetryPolicy> {
+    private static final class BuilderImpl implements Builder {
 
         private Integer numRetries = SdkDefaultRetrySetting.DEFAULT_MAX_RETRIES;
         private BackoffStrategy backoffStrategy = BackoffStrategy.defaultStrategy();
         private RetryCondition retryCondition = SdkRetryCondition.DEFAULT;
 
-        private Builder(){
+        private BuilderImpl(){
         }
 
+        @Override
         public Builder numRetries(Integer numRetries) {
             this.numRetries = numRetries;
             return this;
         }
 
+        public void setNumRetries(Integer numRetries) {
+            numRetries(numRetries);
+        }
+
+        @Override
         public Integer numRetries() {
             return numRetries;
         }
 
+        @Override
         public Builder backoffStrategy(BackoffStrategy backoffStrategy) {
             this.backoffStrategy = backoffStrategy;
             return this;
         }
 
+        public void setBackoffStrategy(BackoffStrategy backoffStrategy) {
+            backoffStrategy(backoffStrategy);
+        }
+
+        @Override
         public BackoffStrategy backoffStrategy() {
             return backoffStrategy;
         }
 
+        @Override
         public Builder retryCondition(RetryCondition retryCondition) {
             this.retryCondition = retryCondition;
             return this;
         }
 
+        public void setRetryCondition(RetryCondition retryCondition) {
+            retryCondition(retryCondition);
+        }
+
+        @Override
         public RetryCondition retryCondition() {
             return retryCondition;
         }

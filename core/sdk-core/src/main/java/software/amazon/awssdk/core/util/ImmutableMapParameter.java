@@ -71,7 +71,7 @@ public final class ImmutableMapParameter<K, V> implements Map<K, V> {
      * Returns a new MapParameterBuilder instance.
      */
     public static <K, V> Builder<K, V> builder() {
-        return new Builder<K, V>();
+        return new Builder<>();
     }
 
     /**
@@ -84,7 +84,7 @@ public final class ImmutableMapParameter<K, V> implements Map<K, V> {
      */
     public static <K, V> ImmutableMapParameter<K, V> of(K k0, V v0) {
         Map<K, V> map = Collections.singletonMap(k0, v0);
-        return new ImmutableMapParameter<K, V>(map);
+        return new ImmutableMapParameter<>(map);
     }
 
     /**
@@ -100,10 +100,10 @@ public final class ImmutableMapParameter<K, V> implements Map<K, V> {
      *            Value of the second entry.
      */
     public static <K, V> ImmutableMapParameter<K, V> of(K k0, V v0, K k1, V v1) {
-        Map<K, V> map = new HashMap<K, V>();
+        Map<K, V> map = new HashMap<>();
         putAndWarnDuplicateKeys(map, k0, v0);
         putAndWarnDuplicateKeys(map, k1, v1);
-        return new ImmutableMapParameter<K, V>(map);
+        return new ImmutableMapParameter<>(map);
     }
 
     /**
@@ -124,11 +124,11 @@ public final class ImmutableMapParameter<K, V> implements Map<K, V> {
      */
     public static <K, V> ImmutableMapParameter<K, V> of(K k0, V v0, K k1, V v1,
                                                         K k2, V v2) {
-        Map<K, V> map = new HashMap<K, V>();
+        Map<K, V> map = new HashMap<>();
         putAndWarnDuplicateKeys(map, k0, v0);
         putAndWarnDuplicateKeys(map, k1, v1);
         putAndWarnDuplicateKeys(map, k2, v2);
-        return new ImmutableMapParameter<K, V>(map);
+        return new ImmutableMapParameter<>(map);
     }
 
     /**
@@ -153,12 +153,12 @@ public final class ImmutableMapParameter<K, V> implements Map<K, V> {
      */
     public static <K, V> ImmutableMapParameter<K, V> of(K k0, V v0, K k1, V v1,
                                                         K k2, V v2, K k3, V v3) {
-        Map<K, V> map = new HashMap<K, V>();
+        Map<K, V> map = new HashMap<>();
         putAndWarnDuplicateKeys(map, k0, v0);
         putAndWarnDuplicateKeys(map, k1, v1);
         putAndWarnDuplicateKeys(map, k2, v2);
         putAndWarnDuplicateKeys(map, k3, v3);
-        return new ImmutableMapParameter<K, V>(map);
+        return new ImmutableMapParameter<>(map);
     }
 
     /**
@@ -187,13 +187,13 @@ public final class ImmutableMapParameter<K, V> implements Map<K, V> {
      */
     public static <K, V> ImmutableMapParameter<K, V> of(K k0, V v0, K k1, V v1,
                                                         K k2, V v2, K k3, V v3, K k4, V v4) {
-        Map<K, V> map = new HashMap<K, V>();
+        Map<K, V> map = new HashMap<>();
         putAndWarnDuplicateKeys(map, k0, v0);
         putAndWarnDuplicateKeys(map, k1, v1);
         putAndWarnDuplicateKeys(map, k2, v2);
         putAndWarnDuplicateKeys(map, k3, v3);
         putAndWarnDuplicateKeys(map, k4, v4);
-        return new ImmutableMapParameter<K, V>(map);
+        return new ImmutableMapParameter<>(map);
     }
 
     private static <K, V> void putAndWarnDuplicateKeys(Map<K, V> map, K key,
@@ -301,9 +301,8 @@ public final class ImmutableMapParameter<K, V> implements Map<K, V> {
          * method.
          */
         public ImmutableMapParameter<K, V> build() {
-            HashMap<K, V> builtMap = new HashMap<K, V>();
-            builtMap.putAll(entries);
-            return new ImmutableMapParameter<K, V>(builtMap);
+            HashMap<K, V> builtMap = new HashMap<>(entries);
+            return new ImmutableMapParameter<>(builtMap);
         }
     }
 }

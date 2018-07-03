@@ -30,12 +30,12 @@ public class ProfileCredentialsProviderTest {
     @Test
     public void missingProfileFileThrowsExceptionInGetCredentials() {
         ProfileCredentialsProvider provider =
-                ProfileCredentialsProvider.builder()
-                                          .defaultProfileFileLoader(() -> ProfileFile.builder()
-                                                                                     .content(new StringInputStream(""))
-                                                                                     .type(ProfileFile.Type.CONFIGURATION)
-                                                                                     .build())
-                                          .build();
+            new ProfileCredentialsProvider.BuilderImpl()
+                .defaultProfileFileLoader(() -> ProfileFile.builder()
+                                                           .content(new StringInputStream(""))
+                                                           .type(ProfileFile.Type.CONFIGURATION)
+                                                           .build())
+                .build();
 
         assertThatThrownBy(provider::resolveCredentials).isInstanceOf(SdkClientException.class);
     }
