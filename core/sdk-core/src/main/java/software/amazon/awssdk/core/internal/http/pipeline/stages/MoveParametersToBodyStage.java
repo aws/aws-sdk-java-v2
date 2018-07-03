@@ -68,8 +68,8 @@ public final class MoveParametersToBodyStage implements MutableRequestToRequestP
 
         return input.clearQueryParameters()
                     .content(new ByteArrayInputStream(params))
-                    .header("Content-Length", singletonList(String.valueOf(params.length)))
-                    .header("Content-Type", singletonList("application/x-www-form-urlencoded; charset=" +
-                                                          lowerCase(StandardCharsets.UTF_8.toString())));
+                    .putHeader("Content-Length", singletonList(String.valueOf(params.length)))
+                    .putHeader("Content-Type", singletonList("application/x-www-form-urlencoded; charset=" +
+                                                             lowerCase(StandardCharsets.UTF_8.toString())));
     }
 }

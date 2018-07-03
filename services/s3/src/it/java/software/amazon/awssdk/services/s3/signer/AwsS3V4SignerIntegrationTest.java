@@ -87,7 +87,7 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
     public void test_UsingSdkClient_WithIncorrectSigner_SetInConfig() {
         S3Client customClient = getClientBuilder()
             .overrideConfiguration(ClientOverrideConfiguration.builder()
-                                                              .advancedOption(SIGNER, Aws4Signer.create())
+                                                              .putAdvancedOption(SIGNER, Aws4Signer.create())
                                                               .build())
             .build();
 
@@ -99,7 +99,7 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
     public void test_UsingSdkClient_WithCorrectSigner_SetInConfig() {
         S3Client customClient = getClientBuilder()
             .overrideConfiguration(ClientOverrideConfiguration.builder()
-                                                              .advancedOption(SIGNER, AwsS3V4Signer.create())
+                                                              .putAdvancedOption(SIGNER, AwsS3V4Signer.create())
                                                               .build())
             .build();
 

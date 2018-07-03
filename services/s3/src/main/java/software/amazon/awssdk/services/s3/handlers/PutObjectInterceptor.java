@@ -30,7 +30,7 @@ public class PutObjectInterceptor implements ExecutionInterceptor {
     @Override
     public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
         if (context.request() instanceof PutObjectRequest) {
-            return context.httpRequest().toBuilder().header("Expect", "100-continue").build();
+            return context.httpRequest().toBuilder().putHeader("Expect", "100-continue").build();
         }
         return context.httpRequest();
     }

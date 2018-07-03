@@ -22,7 +22,7 @@ import software.amazon.awssdk.core.signer.Signer;
 
 /**
  * A collection of advanced options that can be configured on an AWS client via
- * {@link ClientOverrideConfiguration.Builder#advancedOption(SdkAdvancedClientOption, Object)}.
+ * {@link ClientOverrideConfiguration.Builder#putAdvancedOption(SdkAdvancedClientOption, Object)}.
  *
  * <p>These options are usually not required outside of testing or advanced libraries, so most users should not need to configure
  * them.</p>

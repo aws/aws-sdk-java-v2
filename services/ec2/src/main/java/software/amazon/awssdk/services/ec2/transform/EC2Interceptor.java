@@ -51,7 +51,7 @@ public class EC2Interceptor implements ExecutionInterceptor {
             ImportKeyPairRequest importKeyPairRequest = (ImportKeyPairRequest) originalRequest;
             String publicKeyMaterial = importKeyPairRequest.publicKeyMaterial();
             String encodedKeyMaterial = Base64Utils.encodeAsString(publicKeyMaterial.getBytes(StandardCharsets.UTF_8));
-            mutableRequest.rawQueryParameter("PublicKeyMaterial", encodedKeyMaterial);
+            mutableRequest.putRawQueryParameter("PublicKeyMaterial", encodedKeyMaterial);
         } else if (originalRequest instanceof RequestSpotInstancesRequest) {
             // Request -> Query string marshalling for RequestSpotInstancesRequest is a little tricky since
             // the query string params follow a different form than the XML responses, so we manually set the parameters here.
@@ -60,7 +60,7 @@ public class EC2Interceptor implements ExecutionInterceptor {
             // Marshall the security groups specified only by name
             int groupNameCount = 1;
             for (String groupName : requestSpotInstancesRequest.launchSpecification().securityGroups()) {
-                mutableRequest.rawQueryParameter("LaunchSpecification.SecurityGroup." + groupNameCount++, groupName);
+                mutableRequest.putRawQueryParameter("LaunchSpecification.SecurityGroup." + groupNameCount++, groupName);
             }
 
             // Then loop through the GroupIdentifier objects and marshall any specified IDs
@@ -68,11 +68,12 @@ public class EC2Interceptor implements ExecutionInterceptor {
             int groupIdCount = 1;
             for (GroupIdentifier group : requestSpotInstancesRequest.launchSpecification().allSecurityGroups()) {
                 if (group.groupId() != null) {
-                    mutableRequest.rawQueryParameter("LaunchSpecification.SecurityGroupId." + groupIdCount++, group.groupId());
+                    mutableRequest.putRawQueryParameter("LaunchSpecification.SecurityGroupId." + groupIdCount++, group.groupId());
                 }
 
                 if (group.groupName() != null) {
-                    mutableRequest.rawQueryParameter("LaunchSpecification.SecurityGroup." + groupNameCount++, group.groupName());
+                    mutableRequest.putRawQueryParameter("LaunchSpecification.SecurityGroup." + groupNameCount++, group
+                        .groupName());
                 }
             }
 
@@ -85,14 +86,14 @@ public class EC2Interceptor implements ExecutionInterceptor {
             // retries could result in unwanted instances being launched in the customer's account.
             RunInstancesRequest runInstancesRequest = (RunInstancesRequest) originalRequest;
             if (runInstancesRequest.clientToken() == null) {
-                mutableRequest.rawQueryParameter("ClientToken", UUID.randomUUID().toString());
+                mutableRequest.putRawQueryParameter("ClientToken", UUID.randomUUID().toString());
             }
         } else if (originalRequest instanceof ModifyReservedInstancesRequest) {
             // If a ModifyReservedInstancesRequest doesn't specify a ClientToken, fill one in, otherwise
             // retries could result in duplicate requests.
             ModifyReservedInstancesRequest modifyReservedInstancesRequest = (ModifyReservedInstancesRequest) originalRequest;
             if (modifyReservedInstancesRequest.clientToken() == null) {
-                mutableRequest.rawQueryParameter("ClientToken", UUID.randomUUID().toString());
+                mutableRequest.putRawQueryParameter("ClientToken", UUID.randomUUID().toString());
             }
         }
         return mutableRequest.build();

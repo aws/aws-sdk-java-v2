@@ -110,7 +110,7 @@ public interface SdkHttpFullRequest
 
         /**
          * The query parameters, exactly as they were configured with {@link #rawQueryParameters(Map)},
-         * {@link #rawQueryParameter(String, String)} and {@link #rawQueryParameter(String, List)}.
+         * {@link #putRawQueryParameter(String, String)} and {@link #putRawQueryParameter(String, List)}.
          */
         Map<String, List<String>> rawQueryParameters();
 
@@ -122,8 +122,8 @@ public interface SdkHttpFullRequest
          * @param paramName The name of the query parameter to add
          * @param paramValue The un-encoded value for the query parameter.
          */
-        default Builder rawQueryParameter(String paramName, String paramValue) {
-            return rawQueryParameter(paramName, singletonList(paramValue));
+        default Builder putRawQueryParameter(String paramName, String paramValue) {
+            return putRawQueryParameter(paramName, singletonList(paramValue));
         }
 
         /**
@@ -134,7 +134,7 @@ public interface SdkHttpFullRequest
          * @param paramName The name of the query parameter to add
          * @param paramValues The un-encoded values for the query parameter.
          */
-        Builder rawQueryParameter(String paramName, List<String> paramValues);
+        Builder putRawQueryParameter(String paramName, List<String> paramValues);
 
         /**
          * Configure an {@link SdkHttpRequest#rawQueryParameters()} to be used in the created HTTP request. This is not validated
@@ -185,7 +185,7 @@ public interface SdkHttpFullRequest
 
         /**
          * The query parameters, exactly as they were configured with {@link #headers(Map)},
-         * {@link #header(String, String)} and {@link #header(String, List)}.
+         * {@link #putHeader(String, String)} and {@link #putHeader(String, List)}.
          */
         Map<String, List<String>> headers();
 
@@ -197,8 +197,8 @@ public interface SdkHttpFullRequest
          * @param headerName The name of the header to add (eg. "Host")
          * @param headerValue The value for the header
          */
-        default Builder header(String headerName, String headerValue) {
-            return header(headerName, singletonList(headerValue));
+        default Builder putHeader(String headerName, String headerValue) {
+            return putHeader(headerName, singletonList(headerValue));
         }
 
         /**
@@ -209,7 +209,7 @@ public interface SdkHttpFullRequest
          * @param headerName The name of the header to add
          * @param headerValues The values for the header
          */
-        Builder header(String headerName, List<String> headerValues);
+        Builder putHeader(String headerName, List<String> headerValues);
 
         /**
          * Configure an {@link SdkHttpRequest#headers()} to be used in the created HTTP request. This is not validated

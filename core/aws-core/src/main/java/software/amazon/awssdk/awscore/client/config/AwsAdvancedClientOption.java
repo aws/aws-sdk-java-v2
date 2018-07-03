@@ -23,7 +23,7 @@ import software.amazon.awssdk.regions.Region;
 
 /**
  * A collection of advanced options that can be configured on an AWS client via
- * {@link Builder#advancedOption(SdkAdvancedClientOption, Object)}.
+ * {@link Builder#putAdvancedOption(SdkAdvancedClientOption, Object)}.
  *
  * <p>These options are usually not required outside of testing or advanced libraries, so most users should not need to configure
  * them.</p>

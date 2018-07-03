@@ -157,7 +157,7 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
         // To be consistent with other service clients using sig-v4,
         // we just set the header as "required", and AWS4Signer.sign() will be
         // notified to pick up the header value returned by this method.
-        mutableRequest.header(X_AMZ_CONTENT_SHA256, "required");
+        mutableRequest.putHeader(X_AMZ_CONTENT_SHA256, "required");
 
         if (isPayloadSigningEnabled(mutableRequest, signerParams)) {
             if (useChunkEncoding(mutableRequest, signerParams)) {
@@ -182,10 +182,10 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
                         throw new SdkClientException("Cannot get the content-length of the request content.", e);
                     }
                 }
-                mutableRequest.header("x-amz-decoded-content-length", Long.toString(originalContentLength));
+                mutableRequest.putHeader("x-amz-decoded-content-length", Long.toString(originalContentLength));
                 // Make sure "Content-Length" header is not empty so that HttpClient
                 // won't cache the stream again to recover Content-Length
-                mutableRequest.header(CONTENT_LENGTH, Long.toString(
+                mutableRequest.putHeader(CONTENT_LENGTH, Long.toString(
                     AwsChunkedEncodingInputStream.calculateStreamContentLength(originalContentLength)));
                 return CONTENT_SHA_256;
             } else {
