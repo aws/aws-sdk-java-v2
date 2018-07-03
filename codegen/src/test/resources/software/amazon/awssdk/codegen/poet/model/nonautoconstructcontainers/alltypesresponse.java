@@ -580,59 +580,59 @@ public final class AllTypesResponse extends JsonProtocolTestsResponse implements
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
             case "StringMember":
-                return Optional.of(clazz.cast(stringMember()));
+                return Optional.ofNullable(clazz.cast(stringMember()));
             case "IntegerMember":
-                return Optional.of(clazz.cast(integerMember()));
+                return Optional.ofNullable(clazz.cast(integerMember()));
             case "BooleanMember":
-                return Optional.of(clazz.cast(booleanMember()));
+                return Optional.ofNullable(clazz.cast(booleanMember()));
             case "FloatMember":
-                return Optional.of(clazz.cast(floatMember()));
+                return Optional.ofNullable(clazz.cast(floatMember()));
             case "DoubleMember":
-                return Optional.of(clazz.cast(doubleMember()));
+                return Optional.ofNullable(clazz.cast(doubleMember()));
             case "LongMember":
-                return Optional.of(clazz.cast(longMember()));
+                return Optional.ofNullable(clazz.cast(longMember()));
             case "SimpleList":
-                return Optional.of(clazz.cast(simpleList()));
+                return Optional.ofNullable(clazz.cast(simpleList()));
             case "ListOfEnums":
-                return Optional.of(clazz.cast(listOfEnumsAsStrings()));
+                return Optional.ofNullable(clazz.cast(listOfEnumsAsStrings()));
             case "ListOfMaps":
-                return Optional.of(clazz.cast(listOfMaps()));
+                return Optional.ofNullable(clazz.cast(listOfMaps()));
             case "ListOfStructs":
-                return Optional.of(clazz.cast(listOfStructs()));
+                return Optional.ofNullable(clazz.cast(listOfStructs()));
             case "MapOfStringToIntegerList":
-                return Optional.of(clazz.cast(mapOfStringToIntegerList()));
+                return Optional.ofNullable(clazz.cast(mapOfStringToIntegerList()));
             case "MapOfStringToString":
-                return Optional.of(clazz.cast(mapOfStringToString()));
+                return Optional.ofNullable(clazz.cast(mapOfStringToString()));
             case "MapOfStringToSimpleStruct":
-                return Optional.of(clazz.cast(mapOfStringToSimpleStruct()));
+                return Optional.ofNullable(clazz.cast(mapOfStringToSimpleStruct()));
             case "MapOfEnumToEnum":
-                return Optional.of(clazz.cast(mapOfEnumToEnumAsStrings()));
+                return Optional.ofNullable(clazz.cast(mapOfEnumToEnumAsStrings()));
             case "MapOfEnumToString":
-                return Optional.of(clazz.cast(mapOfEnumToStringAsStrings()));
+                return Optional.ofNullable(clazz.cast(mapOfEnumToStringAsStrings()));
             case "MapOfStringToEnum":
-                return Optional.of(clazz.cast(mapOfStringToEnumAsStrings()));
+                return Optional.ofNullable(clazz.cast(mapOfStringToEnumAsStrings()));
             case "MapOfEnumToSimpleStruct":
-                return Optional.of(clazz.cast(mapOfEnumToSimpleStructAsStrings()));
+                return Optional.ofNullable(clazz.cast(mapOfEnumToSimpleStructAsStrings()));
             case "TimestampMember":
-                return Optional.of(clazz.cast(timestampMember()));
+                return Optional.ofNullable(clazz.cast(timestampMember()));
             case "StructWithNestedTimestampMember":
-                return Optional.of(clazz.cast(structWithNestedTimestampMember()));
+                return Optional.ofNullable(clazz.cast(structWithNestedTimestampMember()));
             case "BlobArg":
-                return Optional.of(clazz.cast(blobArg()));
+                return Optional.ofNullable(clazz.cast(blobArg()));
             case "StructWithNestedBlob":
-                return Optional.of(clazz.cast(structWithNestedBlob()));
+                return Optional.ofNullable(clazz.cast(structWithNestedBlob()));
             case "BlobMap":
-                return Optional.of(clazz.cast(blobMap()));
+                return Optional.ofNullable(clazz.cast(blobMap()));
             case "ListOfBlobs":
-                return Optional.of(clazz.cast(listOfBlobs()));
+                return Optional.ofNullable(clazz.cast(listOfBlobs()));
             case "RecursiveStruct":
-                return Optional.of(clazz.cast(recursiveStruct()));
+                return Optional.ofNullable(clazz.cast(recursiveStruct()));
             case "PolymorphicTypeWithSubTypes":
-                return Optional.of(clazz.cast(polymorphicTypeWithSubTypes()));
+                return Optional.ofNullable(clazz.cast(polymorphicTypeWithSubTypes()));
             case "PolymorphicTypeWithoutSubTypes":
-                return Optional.of(clazz.cast(polymorphicTypeWithoutSubTypes()));
+                return Optional.ofNullable(clazz.cast(polymorphicTypeWithoutSubTypes()));
             case "EnumType":
-                return Optional.of(clazz.cast(enumTypeAsString()));
+                return Optional.ofNullable(clazz.cast(enumTypeAsString()));
             default:
                 return Optional.empty();
         }
