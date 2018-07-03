@@ -178,7 +178,7 @@ public class DefaultClientBuilderTest {
     private SdkDefaultClientBuilder<TestClientBuilder, TestClient> testClientBuilder() {
         ClientOverrideConfiguration overrideConfig =
                 ClientOverrideConfiguration.builder()
-                                           .advancedOption(SIGNER, TEST_SIGNER)
+                                           .putAdvancedOption(SIGNER, TEST_SIGNER)
                                            .build();
 
         return new TestClientBuilder().overrideConfiguration(overrideConfig);
@@ -187,7 +187,7 @@ public class DefaultClientBuilderTest {
     private SdkDefaultClientBuilder<TestAsyncClientBuilder, TestAsyncClient> testAsyncClientBuilder() {
         ClientOverrideConfiguration overrideConfig =
                 ClientOverrideConfiguration.builder()
-                                           .advancedOption(SIGNER, TEST_SIGNER)
+                                           .putAdvancedOption(SIGNER, TEST_SIGNER)
                                            .build();
 
         return new TestAsyncClientBuilder().overrideConfiguration(overrideConfig);

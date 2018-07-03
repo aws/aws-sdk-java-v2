@@ -488,14 +488,14 @@ public class ExecutionInterceptorTest {
         public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context,
                                                     ExecutionAttributes executionAttributes) {
             SdkHttpFullRequest httpRequest = context.httpRequest();
-            return httpRequest.copy(b -> b.header("x-amz-integer", "2"));
+            return httpRequest.copy(b -> b.putHeader("x-amz-integer", "2"));
         }
 
         @Override
         public SdkHttpFullResponse modifyHttpResponse(Context.ModifyHttpResponse context,
                                                       ExecutionAttributes executionAttributes) {
             SdkHttpFullResponse httpResponse = context.httpResponse();
-            return httpResponse.copy(b -> b.header("x-amz-integer", Collections.singletonList("3")));
+            return httpResponse.copy(b -> b.putHeader("x-amz-integer", Collections.singletonList("3")));
         }
 
         @Override

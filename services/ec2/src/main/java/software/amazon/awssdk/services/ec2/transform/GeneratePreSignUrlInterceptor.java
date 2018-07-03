@@ -88,8 +88,8 @@ public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
             final SdkHttpFullRequest presignedRequest = signer.presign(requestForPresigning, signingParams);
 
             return request.toBuilder()
-                          .rawQueryParameter("DestinationRegion", destinationRegion)
-                          .rawQueryParameter("PresignedUrl", presignedRequest.getUri().toString())
+                          .putRawQueryParameter("DestinationRegion", destinationRegion)
+                          .putRawQueryParameter("PresignedUrl", presignedRequest.getUri().toString())
                           .build();
         }
 

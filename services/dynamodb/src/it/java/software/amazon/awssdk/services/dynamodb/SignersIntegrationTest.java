@@ -109,7 +109,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
     public void test_UsingSdkClient_WithSignerSetInConfig() {
         DynamoDbClient client = getClientBuilder()
             .overrideConfiguration(ClientOverrideConfiguration.builder()
-                                                              .advancedOption(SIGNER, Aws4Signer.create())
+                                                              .putAdvancedOption(SIGNER, Aws4Signer.create())
                                                               .build())
             .build();
 
@@ -161,9 +161,9 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
         return SdkHttpFullRequest.builder()
                                  .content(contentStream)
                                  .method(SdkHttpMethod.POST)
-                                 .header("Content-Length", Integer.toString(content.length()))
-                                 .header("Content-Type", "application/x-amz-json-1.0")
-                                 .header("X-Amz-Target", "DynamoDB_20120810.GetItem")
+                                 .putHeader("Content-Length", Integer.toString(content.length()))
+                                 .putHeader("Content-Type", "application/x-amz-json-1.0")
+                                 .putHeader("X-Amz-Target", "DynamoDB_20120810.GetItem")
                                  .encodedPath("/")
                                  .protocol("https")
                                  .host(getHost())

@@ -273,7 +273,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
         URI uri = URI.create("http://localhost:" + mockServer.port());
 
         SdkHttpFullRequest request = createRequest(uri, "/echo", streamContent, SdkHttpMethod.POST, singletonMap("reversed", "true"));
-        request = request.toBuilder().header("Content-Length", Integer.toString(content.length())).build();
+        request = request.toBuilder().putHeader("Content-Length", Integer.toString(content.length())).build();
         RecordingResponseHandler recorder = new RecordingResponseHandler();
 
 
@@ -351,11 +351,11 @@ public class NettyNioAsyncHttpClientWireMockTest {
                                  .port(uri.getPort())
                                  .method(method)
                                  .encodedPath(resourcePath)
-                                 .applyMutation(b -> params.forEach(b::rawQueryParameter))
+                                 .applyMutation(b -> params.forEach(b::putRawQueryParameter))
                                  .applyMutation(b -> {
-                                     b.header("Host", uri.getHost());
+                                     b.putHeader("Host", uri.getHost());
                                      if (contentLength != null) {
-                                         b.header("Content-Length", contentLength);
+                                         b.putHeader("Content-Length", contentLength);
                                      }
                                  }).build();
     }

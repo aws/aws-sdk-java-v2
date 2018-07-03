@@ -198,8 +198,8 @@ public class DefaultAwsClientBuilderTest {
     private AwsClientBuilder<TestClientBuilder, TestClient> testClientBuilder() {
         ClientOverrideConfiguration overrideConfig =
             ClientOverrideConfiguration.builder()
-                                       .advancedOption(SIGNER, TEST_SIGNER)
-                                       .advancedOption(ENABLE_DEFAULT_REGION_DETECTION, false)
+                                       .putAdvancedOption(SIGNER, TEST_SIGNER)
+                                       .putAdvancedOption(ENABLE_DEFAULT_REGION_DETECTION, false)
                                        .build();
 
         return new TestClientBuilder().credentialsProvider(AnonymousCredentialsProvider.create())
@@ -209,8 +209,8 @@ public class DefaultAwsClientBuilderTest {
     private AwsClientBuilder<TestAsyncClientBuilder, TestAsyncClient> testAsyncClientBuilder() {
         ClientOverrideConfiguration overrideConfig =
             ClientOverrideConfiguration.builder()
-                                       .advancedOption(SIGNER, TEST_SIGNER)
-                                       .advancedOption(ENABLE_DEFAULT_REGION_DETECTION, false)
+                                       .putAdvancedOption(SIGNER, TEST_SIGNER)
+                                       .putAdvancedOption(ENABLE_DEFAULT_REGION_DETECTION, false)
                                        .build();
 
         return new TestAsyncClientBuilder().credentialsProvider(AnonymousCredentialsProvider.create())

@@ -58,7 +58,7 @@ public class QueryStringSignerTest {
                                                        .host("foo.amazon.com")
                                                        .encodedPath("foo/bar")
                                                        .method(SdkHttpMethod.POST)
-                                                       .rawQueryParameter("foo", "bar")
+                                                       .putRawQueryParameter("foo", "bar")
                                                        .build();
 
 
@@ -74,7 +74,7 @@ public class QueryStringSignerTest {
                                                        .host("foo.amazon.com")
                                                        .encodedPath("bar")
                                                        .method(SdkHttpMethod.POST)
-                                                       .rawQueryParameter("foo", "bar")
+                                                       .putRawQueryParameter("foo", "bar")
                                                        .build();
 
         request = signer.sign(request, constructAttributes(AnonymousCredentialsProvider.create().resolveCredentials()));
