@@ -72,10 +72,10 @@ public final class SubTypeOne implements StructuredPojo, ToCopyableBuilder<SubTy
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "SubTypeOneMember":
-                return Optional.of(clazz.cast(subTypeOneMember()));
-            default:
-                return Optional.empty();
+        case "SubTypeOneMember":
+            return Optional.ofNullable(clazz.cast(subTypeOneMember()));
+        default:
+            return Optional.empty();
         }
     }
 

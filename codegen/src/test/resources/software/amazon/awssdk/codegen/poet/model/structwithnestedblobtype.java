@@ -18,7 +18,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class StructWithNestedBlobType implements StructuredPojo,
-                                                       ToCopyableBuilder<StructWithNestedBlobType.Builder, StructWithNestedBlobType> {
+        ToCopyableBuilder<StructWithNestedBlobType.Builder, StructWithNestedBlobType> {
     private final SdkBytes nestedBlob;
 
     private StructWithNestedBlobType(BuilderImpl builder) {
@@ -76,10 +76,10 @@ public final class StructWithNestedBlobType implements StructuredPojo,
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "NestedBlob":
-                return Optional.of(clazz.cast(nestedBlob()));
-            default:
-                return Optional.empty();
+        case "NestedBlob":
+            return Optional.ofNullable(clazz.cast(nestedBlob()));
+        default:
+            return Optional.empty();
         }
     }
 

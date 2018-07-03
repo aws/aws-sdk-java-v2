@@ -73,7 +73,7 @@ public final class BaseType implements StructuredPojo, ToCopyableBuilder<BaseTyp
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
             case "BaseMember":
-                return Optional.of(clazz.cast(baseMember()));
+                return Optional.ofNullable(clazz.cast(baseMember()));
             default:
                 return Optional.empty();
         }
