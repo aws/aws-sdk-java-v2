@@ -72,10 +72,10 @@ public final class SimpleStruct implements StructuredPojo, ToCopyableBuilder<Sim
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "StringMember":
-                return Optional.of(clazz.cast(stringMember()));
-            default:
-                return Optional.empty();
+        case "StringMember":
+            return Optional.ofNullable(clazz.cast(stringMember()));
+        default:
+            return Optional.empty();
         }
     }
 

@@ -129,13 +129,13 @@ public final class RecursiveStructType implements StructuredPojo,
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
         case "NoRecurse":
-            return Optional.of(clazz.cast(noRecurse()));
+            return Optional.ofNullable(clazz.cast(noRecurse()));
         case "RecursiveStruct":
-            return Optional.of(clazz.cast(recursiveStruct()));
+            return Optional.ofNullable(clazz.cast(recursiveStruct()));
         case "RecursiveList":
-            return Optional.of(clazz.cast(recursiveList()));
+            return Optional.ofNullable(clazz.cast(recursiveList()));
         case "RecursiveMap":
-            return Optional.of(clazz.cast(recursiveMap()));
+            return Optional.ofNullable(clazz.cast(recursiveMap()));
         default:
             return Optional.empty();
         }
