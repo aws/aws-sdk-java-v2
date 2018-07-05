@@ -22,7 +22,6 @@ import software.amazon.awssdk.codegen.model.config.templates.CodeGenTemplatesCon
 
 public class CustomizationConfig {
 
-    public static final CustomizationConfig DEFAULT = new CustomizationConfig();
     /**
      * List of 'convenience' overloads to generate for model classes. Convenience overloads expose a
      * different type that is adapted to the real type
@@ -97,10 +96,10 @@ public class CustomizationConfig {
     private boolean excludeClientCreateMethod = false;
 
     /**
-     * A service name that this service client should share models with. The models and non-request marshallers will be generated
-     * into the same directory as the provided service's models.
+     * Configurations for the service that share model with other services. The models and non-request marshallers will be
+     * generated into the same directory as the provided service's models.
      */
-    private String shareModelsWith;
+    private ShareModelConfig shareModelConfig;
 
     /**
      * Expression to return a service specific instance of {@link software.amazon.awssdk.http.SdkHttpConfigurationOption}. If
@@ -139,6 +138,10 @@ public class CustomizationConfig {
     private boolean skipSyncClientGeneration;
 
     private CustomizationConfig() {
+    }
+
+    public static CustomizationConfig create() {
+        return new CustomizationConfig();
     }
 
     public String getCustomServiceNameForRequest() {
@@ -282,12 +285,12 @@ public class CustomizationConfig {
         this.excludeClientCreateMethod = excludeClientCreateMethod;
     }
 
-    public String getShareModelsWith() {
-        return shareModelsWith;
+    public ShareModelConfig getShareModelConfig() {
+        return shareModelConfig;
     }
 
-    public void setShareModelsWith(String shareModelsWith) {
-        this.shareModelsWith = shareModelsWith;
+    public void setShareModelConfig(ShareModelConfig shareModelConfig) {
+        this.shareModelConfig = shareModelConfig;
     }
 
     public String getServiceSpecificHttpConfig() {

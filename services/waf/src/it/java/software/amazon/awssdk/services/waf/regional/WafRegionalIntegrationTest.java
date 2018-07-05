@@ -13,13 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.waf;
+package software.amazon.awssdk.services.waf.regional;
 
 import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.waf.model.ListResourcesForWebACLRequest;
 import software.amazon.awssdk.services.waf.model.WAFNonexistentItemException;
-import software.amazon.awssdk.services.wafregional.WafRegionalClient;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public class WafRegionalIntegrationTest extends AwsIntegrationTestBase {
@@ -31,9 +30,9 @@ public class WafRegionalIntegrationTest extends AwsIntegrationTestBase {
     @Test(expected = WAFNonexistentItemException.class)
     public void smokeTest() {
         final WafRegionalClient client = WafRegionalClient.builder()
-                                                                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                                                 .region(Region.US_WEST_2)
-                                                                 .build();
+                                                          .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                                          .region(Region.US_WEST_2)
+                                                          .build();
 
         client.listResourcesForWebACL(ListResourcesForWebACLRequest.builder().webACLId("foo").build());
     }

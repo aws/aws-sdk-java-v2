@@ -26,6 +26,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.config.customization.ShareModelConfig;
 import software.amazon.awssdk.codegen.model.service.Member;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
@@ -160,6 +162,60 @@ public class DefaultNamingStrategyTest {
         when(serviceModel.getShapes()).thenReturn(mockShapeMap);
         when(mockShape.getEnumValues()).thenReturn(new ArrayList<>());
 
+    }
+
+    @Test
+    public void nonSharedModel_packageName() {
+        String serviceName = "foo";
+        DefaultNamingStrategy strategy = new DefaultNamingStrategy(serviceModel, CustomizationConfig.create());
+        assertThat(strategy.getClientPackageName(serviceName)).isEqualTo("foo");
+        assertThat(strategy.getPaginatorsPackageName(serviceName)).isEqualTo("foo.paginators");
+        assertThat(strategy.getSmokeTestPackageName(serviceName)).isEqualTo("foo.smoketests");
+        assertThat(strategy.getModelPackageName(serviceName)).isEqualTo("foo.model");
+        assertThat(strategy.getRequestTransformPackageName(serviceName)).isEqualTo("foo.transform");
+        assertThat(strategy.getTransformPackageName(serviceName)).isEqualTo("foo.transform");
+    }
+
+    @Test
+    public void sharedModel_notProvidingPackageName_shouldUseServiceName() {
+        CustomizationConfig config = CustomizationConfig.create();
+        ShareModelConfig shareModelConfig = new ShareModelConfig();
+        shareModelConfig.setShareModelWith("foo");
+        config.setShareModelConfig(shareModelConfig);
+        String serviceName = "bar";
+
+        DefaultNamingStrategy customizedModel = new DefaultNamingStrategy(serviceModel, config);
+
+        assertThat(customizedModel.getClientPackageName(serviceName)).isEqualTo("foo.bar");
+        assertThat(customizedModel.getPaginatorsPackageName(serviceName)).isEqualTo("foo.bar.paginators");
+        assertThat(customizedModel.getSmokeTestPackageName(serviceName)).isEqualTo("foo.bar.smoketests");
+        assertThat(customizedModel.getRequestTransformPackageName(serviceName)).isEqualTo("foo.bar.transform");
+
+        // should share the same model and non-request transform packages
+        assertThat(customizedModel.getModelPackageName(serviceName)).isEqualTo("foo.model");
+        assertThat(customizedModel.getTransformPackageName(serviceName)).isEqualTo("foo.transform");
+    }
+
+
+    @Test
+    public void sharedModel_providingPackageName_shouldUseProvidedPacakgeName() {
+        CustomizationConfig config = CustomizationConfig.create();
+        ShareModelConfig shareModelConfig = new ShareModelConfig();
+        shareModelConfig.setShareModelWith("foo");
+        shareModelConfig.setPackageName("b");
+        config.setShareModelConfig(shareModelConfig);
+        String serviceName = "bar";
+
+        DefaultNamingStrategy customizedModel = new DefaultNamingStrategy(serviceModel, config);
+
+        assertThat(customizedModel.getClientPackageName(serviceName)).isEqualTo("foo.b");
+        assertThat(customizedModel.getPaginatorsPackageName(serviceName)).isEqualTo("foo.b.paginators");
+        assertThat(customizedModel.getSmokeTestPackageName(serviceName)).isEqualTo("foo.b.smoketests");
+        assertThat(customizedModel.getRequestTransformPackageName(serviceName)).isEqualTo("foo.b.transform");
+
+        // should share the same model and non-request transform packages
+        assertThat(customizedModel.getModelPackageName(serviceName)).isEqualTo("foo.model");
+        assertThat(customizedModel.getTransformPackageName(serviceName)).isEqualTo("foo.transform");
     }
 
     private void validateConversion(String input, String expectedOutput) {
