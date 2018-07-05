@@ -16,10 +16,12 @@
 package software.amazon.awssdk.core.util;
 
 import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Utility class for working with {@link CompletableFuture}.
  */
+@SdkProtectedApi
 public final class CompletableFutures {
     private CompletableFutures() {
     }

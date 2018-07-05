@@ -16,15 +16,15 @@
 package software.amazon.awssdk.core.internal.http;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Used to configure the conditions for injecting content input stream failures
  * for testing purposes.
  */
-@SdkTestInternalApi
+@SdkInternalApi
 @ReviewBeforeRelease("Don't like this mixing of test code")
-public class UnreliableTestConfig {
+class UnreliableTestConfig {
     private int maxNumErrors = 1;
     private int bytesReadBeforeException = 100;
     private boolean isFakeIoException;
