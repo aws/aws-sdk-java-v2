@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -53,12 +54,12 @@ public class DefaultNamingStrategy implements NamingStrategy {
     static {
         Set<String> keywords = new HashSet<>();
         Collections.addAll(keywords,
-                "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class",
-                "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for",
-                "if", "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "package",
-                "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch",
-                "synchronized", "this", "throw", "throws", "transient", "try", "void", "volatile", "while", "true",
-                "null", "false", "const", "goto");
+                           "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class",
+                           "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for",
+                           "if", "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "package",
+                           "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch",
+                           "synchronized", "this", "throw", "throws", "transient", "try", "void", "volatile", "while", "true",
+                           "null", "false", "const", "goto");
         RESERVED_KEYWORDS = Collections.unmodifiableSet(keywords);
     }
 
@@ -98,15 +99,16 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
     @Override
     public String getClientPackageName(String serviceName) {
-        return getCustomizedPackageName(serviceName,
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),
                                         Constant.PACKAGE_NAME_CLIENT_PATTERN);
     }
 
     @Override
     public String getModelPackageName(String serviceName) {
-        // Share transform package classes if we are sharing models.
-        if (customizationConfig.getShareModelsWith() != null) {
-            serviceName = customizationConfig.getShareModelsWith();
+        // Share model package classes if we are sharing models.
+        if (customizationConfig.getShareModelConfig() != null
+            && customizationConfig.getShareModelConfig().getShareModelWith() != null) {
+            serviceName = customizationConfig.getShareModelConfig().getShareModelWith();
         }
         return getCustomizedPackageName(serviceName,
                                         Constant.PACKAGE_NAME_MODEL_PATTERN);
@@ -115,27 +117,44 @@ public class DefaultNamingStrategy implements NamingStrategy {
     @Override
     public String getTransformPackageName(String serviceName) {
         // Share transform package classes if we are sharing models.
-        if (customizationConfig.getShareModelsWith() != null) {
-            serviceName = customizationConfig.getShareModelsWith();
+        if (customizationConfig.getShareModelConfig() != null
+            && customizationConfig.getShareModelConfig().getShareModelWith() != null) {
+            serviceName = customizationConfig.getShareModelConfig().getShareModelWith();
         }
-        return getRequestTransformPackageName(serviceName);
-    }
-
-    @Override
-    public String getRequestTransformPackageName(String serviceName) {
         return getCustomizedPackageName(serviceName,
                                         Constant.PACKAGE_NAME_TRANSFORM_PATTERN);
     }
 
     @Override
+    public String getRequestTransformPackageName(String serviceName) {
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),
+                                        Constant.PACKAGE_NAME_TRANSFORM_PATTERN);
+    }
+
+    @Override
     public String getPaginatorsPackageName(String serviceName) {
-        return getCustomizedPackageName(serviceName, Constant.PACKAGE_NAME_PAGINATORS_PATTERN);
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName), Constant.PACKAGE_NAME_PAGINATORS_PATTERN);
     }
 
     @Override
     public String getSmokeTestPackageName(String serviceName) {
-        return getCustomizedPackageName(serviceName,
+
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),
                                         Constant.PACKAGE_NAME_SMOKE_TEST_PATTERN);
+    }
+
+    /**
+     * If the service is sharing models with other services, we need to concatenate its customized package name
+     * if provided or service name with the shared service name.
+     */
+    private String concatServiceNameIfShareModel(String serviceName) {
+
+        if (customizationConfig.getShareModelConfig() != null) {
+            return customizationConfig.getShareModelConfig().getShareModelWith() + "." +
+                   Optional.ofNullable(customizationConfig.getShareModelConfig().getPackageName()).orElse(serviceName);
+        }
+
+        return serviceName;
     }
 
     private String pascalCase(String... words) {
