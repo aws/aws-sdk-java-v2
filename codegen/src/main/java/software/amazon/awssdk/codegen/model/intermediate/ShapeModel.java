@@ -278,7 +278,10 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
      */
     public List<MemberModel> getNonStreamingMembers() {
         return getMembers().stream()
-                           .filter(m -> !m.getHttp().getIsStreaming() && (m.getShape() == null || !m.getShape().isEventStream))
+                           // Filter out binary streaming members
+                           .filter(m -> !m.getHttp().getIsStreaming())
+                           // Filter out event stream members (if shape is null then it's primitive and we should include it).
+                           .filter(m -> m.getShape() == null || !m.getShape().isEventStream)
                            .collect(Collectors.toList());
     }
 

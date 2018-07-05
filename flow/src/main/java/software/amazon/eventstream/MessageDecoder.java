@@ -31,13 +31,18 @@ public final class MessageDecoder {
     }
 
     public void feed(byte[] bytes) {
-        int bytesConsumed = 0;
-        while (bytesConsumed < bytes.length) {
+        feed(bytes, 0, bytes.length);
+    }
+
+    public void feed(byte[] bytes, int offset, int length) {
+        int bytesToRead = Math.min(bytes.length, length + offset);
+        int bytesConsumed = offset;
+        while (bytesConsumed < bytesToRead) {
             ByteBuffer readView = updateReadView();
             if (currentPrelude == null) {
                 // Put only 15 bytes into buffer and compute prelude.
                 int numBytesToWrite = Math.min(15 - readView.remaining(),
-                                               bytes.length - bytesConsumed);
+                                               bytesToRead - bytesConsumed);
 
                 buf.put(bytes, bytesConsumed, numBytesToWrite);
                 bytesConsumed += numBytesToWrite;
@@ -58,7 +63,7 @@ public final class MessageDecoder {
             if (currentPrelude != null) {
                 // Only write up to what we need to decode the next message
                 int numBytesToWrite = Math.min(currentPrelude.getTotalLength() - readView.remaining(),
-                                               bytes.length - bytesConsumed);
+                                               bytesToRead - bytesConsumed);
 
                 buf.put(bytes, bytesConsumed, numBytesToWrite);
                 bytesConsumed += numBytesToWrite;

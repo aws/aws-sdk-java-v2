@@ -43,6 +43,31 @@ public class MessageDecoderTest {
     }
 
     @Test
+    public void testDecoder_WithOffset() throws Exception {
+        TestUtils utils = new TestUtils(SEED);
+        Random rand = new Random(SEED);
+        List<Message> expected = IntStream.range(0, 100_000)
+                                          .mapToObj(x -> utils.randomMessage())
+                                          .collect(Collectors.toList());
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        expected.forEach(x -> x.encode(baos));
+        byte[] data = baos.toByteArray();
+        int toRead = data.length;
+        int read = 0;
+
+        List<Message> actual = new ArrayList<>();
+        MessageDecoder decoder = new MessageDecoder(actual::add);
+        while (toRead > 0) {
+            int length = rand.nextInt(100);
+            decoder.feed(data, read, length);
+            read += length;
+            toRead -= length;
+        }
+
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
     public void preludeFedFirst_DecodesCorrectly() {
         TestUtils utils = new TestUtils(SEED);
         Message message = utils.randomMessage();
