@@ -20,16 +20,17 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.codegen.emitters.CodeWriter;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.config.customization.ShareModelConfig;
 
 /**
- * This validates that services with the {@link CustomizationConfig#shareModelsWith} attribute specified are being generated
+ * This validates that services with the {@link CustomizationConfig#shareModelConfig} attribute specified are being generated
  * after the service they are attempting to share models with. This ensures that the services are kept together in the same
  * module and allows us to verify (in {@link CodeWriter}) that their models are compatible with each other.
  */
 public class SharedModelsTaskParamsValidator implements Consumer<GeneratorTaskParams> {
     @Override
     public void accept(GeneratorTaskParams params) {
-        String sharedModelService = params.getModel().getCustomizationConfig().getShareModelsWith();
+        ShareModelConfig sharedModelService = params.getModel().getCustomizationConfig().getShareModelConfig();
 
         if (sharedModelService != null) {
             // Validate the service we're sharing models with has been generated already.

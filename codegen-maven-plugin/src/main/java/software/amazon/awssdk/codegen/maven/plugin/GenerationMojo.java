@@ -98,7 +98,7 @@ public class GenerationMojo extends AbstractMojo {
     }
 
     private int modelSharersLast(Path lhs, Path rhs) {
-        return loadCustomizationConfig(lhs).getShareModelsWith() == null ? -1 : 1;
+        return loadCustomizationConfig(lhs).getShareModelConfig() == null ? -1 : 1;
     }
 
     private boolean isModelFile(Path p, BasicFileAttributes a) {
@@ -121,7 +121,7 @@ public class GenerationMojo extends AbstractMojo {
 
     private CustomizationConfig loadCustomizationConfig(Path root) {
         return loadOptionalModel(CustomizationConfig.class, root.resolve(CUSTOMIZATION_CONFIG_FILE))
-                .orElse(CustomizationConfig.DEFAULT);
+                .orElse(CustomizationConfig.create());
     }
 
     private ServiceModel loadServiceModel(Path root) throws MojoExecutionException {
