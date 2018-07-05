@@ -433,5 +433,8 @@
 
         <!-- Checks for utility and constants classes to have private constructor-->
         <module name="HideUtilityClassConstructor"/>
+
+        <!-- Checks that every class is marked with Sdk Annotation -->
+        <module name="software.amazon.awssdk.buildtools.checkstyle.MissingSdkAnnotationCheck" />
     </module>
 </module>
