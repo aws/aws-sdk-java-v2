@@ -37,7 +37,7 @@ import software.amazon.awssdk.services.ec2.model.RunInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.TerminateInstancesRequest;
 import software.amazon.awssdk.services.elasticloadbalancing.model.ConfigureHealthCheckRequest;
 import software.amazon.awssdk.services.elasticloadbalancing.model.ConnectionDraining;
-import software.amazon.awssdk.services.elasticloadbalancing.model.CreateLBCookieStickinessPolicyRequest;
+import software.amazon.awssdk.services.elasticloadbalancing.model.CreateLbCookieStickinessPolicyRequest;
 import software.amazon.awssdk.services.elasticloadbalancing.model.CreateLoadBalancerListenersRequest;
 import software.amazon.awssdk.services.elasticloadbalancing.model.CreateLoadBalancerRequest;
 import software.amazon.awssdk.services.elasticloadbalancing.model.CrossZoneLoadBalancing;
@@ -64,7 +64,7 @@ import software.amazon.awssdk.services.elasticloadbalancing.model.ModifyLoadBala
 import software.amazon.awssdk.services.elasticloadbalancing.model.PolicyDescription;
 import software.amazon.awssdk.services.elasticloadbalancing.model.PolicyTypeDescription;
 import software.amazon.awssdk.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest;
-import software.amazon.awssdk.services.elasticloadbalancing.model.SetLoadBalancerListenerSSLCertificateRequest;
+import software.amazon.awssdk.services.elasticloadbalancing.model.SetLoadBalancerListenerSslCertificateRequest;
 import software.amazon.awssdk.services.elasticloadbalancing.model.SetLoadBalancerPoliciesOfListenerRequest;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.ListServerCertificatesRequest;
@@ -367,10 +367,10 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
 
         if (certificateArn != null) {
             // Set the SSL certificate for an existing listener
-            elb.setLoadBalancerListenerSSLCertificate(SetLoadBalancerListenerSSLCertificateRequest.builder()
-                                                              .loadBalancerName(loadBalancerName)
-                                                              .loadBalancerPort(443)
-                                                              .sslCertificateId(certificateArn).build());
+            elb.setLoadBalancerListenerSSLCertificate(SetLoadBalancerListenerSslCertificateRequest.builder()
+                                                                                                  .loadBalancerName(loadBalancerName)
+                                                                                                  .loadBalancerPort(443)
+                                                                                                  .sslCertificateId(certificateArn).build());
 
             // Delete the SSL listener
             Thread.sleep(1000 * 5);
@@ -461,7 +461,7 @@ public class ElbIntegrationTest extends AwsIntegrationTestBase {
     public void testSetLoadBalancerPoliciesOfListener() {
         // Create LB stickiness policy
         String policyName = "java-sdk-policy-" + System.currentTimeMillis();
-        elb.createLBCookieStickinessPolicy(CreateLBCookieStickinessPolicyRequest.builder().loadBalancerName(
+        elb.createLBCookieStickinessPolicy(CreateLbCookieStickinessPolicyRequest.builder().loadBalancerName(
                 loadBalancerName).policyName(policyName).build());
 
         // Attach the policy to a listener

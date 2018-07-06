@@ -17,8 +17,8 @@ package software.amazon.awssdk.services.sts.auth;
 
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleWithSamlCredentialsProvider.Builder;
-import software.amazon.awssdk.services.sts.model.AssumeRoleWithSAMLRequest;
-import software.amazon.awssdk.services.sts.model.AssumeRoleWithSAMLResponse;
+import software.amazon.awssdk.services.sts.model.AssumeRoleWithSamlRequest;
+import software.amazon.awssdk.services.sts.model.AssumeRoleWithSamlResponse;
 import software.amazon.awssdk.services.sts.model.Credentials;
 
 /**
@@ -26,24 +26,24 @@ import software.amazon.awssdk.services.sts.model.Credentials;
  * Inherits tests from {@link StsCredentialsProviderTestBase}.
  */
 public class StsAssumeRoleWithSamlCredentialsProviderTest
-        extends StsCredentialsProviderTestBase<AssumeRoleWithSAMLRequest, AssumeRoleWithSAMLResponse> {
+        extends StsCredentialsProviderTestBase<AssumeRoleWithSamlRequest, AssumeRoleWithSamlResponse> {
     @Override
-    protected AssumeRoleWithSAMLRequest getRequest() {
-        return AssumeRoleWithSAMLRequest.builder().build();
+    protected AssumeRoleWithSamlRequest getRequest() {
+        return AssumeRoleWithSamlRequest.builder().build();
     }
 
     @Override
-    protected AssumeRoleWithSAMLResponse getResponse(Credentials credentials) {
-        return AssumeRoleWithSAMLResponse.builder().credentials(credentials).build();
+    protected AssumeRoleWithSamlResponse getResponse(Credentials credentials) {
+        return AssumeRoleWithSamlResponse.builder().credentials(credentials).build();
     }
 
     @Override
-    protected Builder createCredentialsProviderBuilder(AssumeRoleWithSAMLRequest request) {
+    protected Builder createCredentialsProviderBuilder(AssumeRoleWithSamlRequest request) {
         return StsAssumeRoleWithSamlCredentialsProvider.builder().refreshRequest(request);
     }
 
     @Override
-    protected AssumeRoleWithSAMLResponse callClient(StsClient client, AssumeRoleWithSAMLRequest request) {
+    protected AssumeRoleWithSamlResponse callClient(StsClient client, AssumeRoleWithSamlRequest request) {
         return client.assumeRoleWithSAML(request);
     }
 }

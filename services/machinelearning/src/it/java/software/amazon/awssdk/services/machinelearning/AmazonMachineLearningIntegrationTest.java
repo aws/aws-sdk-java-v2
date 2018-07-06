@@ -27,11 +27,11 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.machinelearning.model.CreateDataSourceFromS3Request;
 import software.amazon.awssdk.services.machinelearning.model.CreateDataSourceFromS3Response;
-import software.amazon.awssdk.services.machinelearning.model.CreateMLModelRequest;
-import software.amazon.awssdk.services.machinelearning.model.CreateMLModelResponse;
+import software.amazon.awssdk.services.machinelearning.model.CreateMlModelRequest;
+import software.amazon.awssdk.services.machinelearning.model.CreateMlModelResponse;
 import software.amazon.awssdk.services.machinelearning.model.CreateRealtimeEndpointRequest;
 import software.amazon.awssdk.services.machinelearning.model.DeleteDataSourceRequest;
-import software.amazon.awssdk.services.machinelearning.model.DeleteMLModelRequest;
+import software.amazon.awssdk.services.machinelearning.model.DeleteMlModelRequest;
 import software.amazon.awssdk.services.machinelearning.model.DeleteRealtimeEndpointRequest;
 import software.amazon.awssdk.services.machinelearning.model.EntityStatus;
 import software.amazon.awssdk.services.machinelearning.model.MLModelType;
@@ -131,7 +131,7 @@ public class AmazonMachineLearningIntegrationTest extends AwsTestBase {
                 }
 
                 try {
-                    client.deleteMLModel(DeleteMLModelRequest.builder()
+                    client.deleteMLModel(DeleteMlModelRequest.builder()
                                                  .mlModelId(mlModelId).build());
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -179,8 +179,8 @@ public class AmazonMachineLearningIntegrationTest extends AwsTestBase {
 
         waitForDataSource();
 
-        CreateMLModelResponse result2 =
-                client.createMLModel(CreateMLModelRequest.builder()
+        CreateMlModelResponse result2 =
+                client.createMLModel(CreateMlModelRequest.builder()
                         .trainingDataSourceId(dataSourceId)
                         .mlModelType(MLModelType.BINARY)
                         .mlModelId("mlid_" + System.currentTimeMillis())

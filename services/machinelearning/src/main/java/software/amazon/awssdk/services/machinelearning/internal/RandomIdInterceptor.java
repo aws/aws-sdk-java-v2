@@ -22,11 +22,11 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.machinelearning.model.CreateBatchPredictionRequest;
-import software.amazon.awssdk.services.machinelearning.model.CreateDataSourceFromRDSRequest;
+import software.amazon.awssdk.services.machinelearning.model.CreateDataSourceFromRdsRequest;
 import software.amazon.awssdk.services.machinelearning.model.CreateDataSourceFromRedshiftRequest;
 import software.amazon.awssdk.services.machinelearning.model.CreateDataSourceFromS3Request;
 import software.amazon.awssdk.services.machinelearning.model.CreateEvaluationRequest;
-import software.amazon.awssdk.services.machinelearning.model.CreateMLModelRequest;
+import software.amazon.awssdk.services.machinelearning.model.CreateMlModelRequest;
 
 /**
  * CreateXxx API calls require a unique (for all time!) ID parameter for
@@ -47,9 +47,9 @@ public class RandomIdInterceptor implements ExecutionInterceptor {
             }
 
             return copy;
-        } else if (request instanceof CreateDataSourceFromRDSRequest) {
-            CreateDataSourceFromRDSRequest copy =
-                    (CreateDataSourceFromRDSRequest) request;
+        } else if (request instanceof CreateDataSourceFromRdsRequest) {
+            CreateDataSourceFromRdsRequest copy =
+                    (CreateDataSourceFromRdsRequest) request;
 
             if (copy.dataSourceId() == null) {
                 copy = copy.toBuilder().dataSourceId(UUID.randomUUID().toString()).build();
@@ -66,8 +66,7 @@ public class RandomIdInterceptor implements ExecutionInterceptor {
 
             return copy;
         } else if (request instanceof CreateDataSourceFromS3Request) {
-            CreateDataSourceFromS3Request copy =
-                    (CreateDataSourceFromS3Request) request;
+            CreateDataSourceFromS3Request copy = (CreateDataSourceFromS3Request) request;
 
             if (copy.dataSourceId() == null) {
                 copy = copy.toBuilder().dataSourceId(UUID.randomUUID().toString()).build();
@@ -83,8 +82,8 @@ public class RandomIdInterceptor implements ExecutionInterceptor {
             }
 
             return copy;
-        } else if (request instanceof CreateMLModelRequest) {
-            CreateMLModelRequest copy = (CreateMLModelRequest) request;
+        } else if (request instanceof CreateMlModelRequest) {
+            CreateMlModelRequest copy = (CreateMlModelRequest) request;
 
             if (copy.mlModelId() == null) {
                 copy = copy.toBuilder().mlModelId(UUID.randomUUID().toString()).build();
