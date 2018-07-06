@@ -84,7 +84,7 @@ public class PaginatedOperationWithResultKeyIterable implements SdkIterable<Pagi
 
     @Override
     public Iterator<PaginatedOperationWithResultKeyResponse> iterator() {
-        return new PaginatedResponsesIterator(nextPageFetcher);
+        return PaginatedResponsesIterator.builder().nextPageFetcher(nextPageFetcher).build();
     }
 
     /**
@@ -103,7 +103,7 @@ public class PaginatedOperationWithResultKeyIterable implements SdkIterable<Pagi
             }
             return Collections.emptyIterator();
         };
-        return new PaginatedItemsIterable(this, getIterator);
+        return PaginatedItemsIterable.builder().pagesIterable(this).itemIteratorFunction(getIterator).build();
     }
 
     /**

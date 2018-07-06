@@ -28,7 +28,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * @param <ResponseT> The type of a single response page
  */
 @SdkProtectedApi
-public class PaginatedResponsesIterator<ResponseT> implements Iterator<ResponseT> {
+public final class PaginatedResponsesIterator<ResponseT> implements Iterator<ResponseT> {
 
     private final SyncPageFetcher<ResponseT> nextPageFetcher;
 
@@ -36,8 +36,12 @@ public class PaginatedResponsesIterator<ResponseT> implements Iterator<ResponseT
     // where SDK make service calls.
     private ResponseT oldResponse;
 
-    public PaginatedResponsesIterator(SyncPageFetcher<ResponseT> nextPageFetcher) {
-        this.nextPageFetcher = nextPageFetcher;
+    private PaginatedResponsesIterator(BuilderImpl builder) {
+        this.nextPageFetcher = builder.nextPageFetcher;
+    }
+
+    public static Builder builder() {
+        return new BuilderImpl();
     }
 
     @Override
@@ -54,5 +58,29 @@ public class PaginatedResponsesIterator<ResponseT> implements Iterator<ResponseT
         oldResponse = nextPageFetcher.nextPage(oldResponse);
 
         return oldResponse;
+    }
+
+    public interface Builder {
+        Builder nextPageFetcher(SyncPageFetcher nextPageFetcher);
+
+        PaginatedResponsesIterator build();
+    }
+
+    private static final class BuilderImpl implements Builder {
+        private SyncPageFetcher nextPageFetcher;
+
+        protected BuilderImpl() {
+        }
+
+        @Override
+        public Builder nextPageFetcher(SyncPageFetcher nextPageFetcher) {
+            this.nextPageFetcher = nextPageFetcher;
+            return this;
+        }
+
+        @Override
+        public PaginatedResponsesIterator build() {
+            return new PaginatedResponsesIterator(this);
+        }
     }
 }

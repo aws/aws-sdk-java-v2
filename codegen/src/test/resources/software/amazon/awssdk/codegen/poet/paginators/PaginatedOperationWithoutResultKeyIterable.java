@@ -81,7 +81,7 @@ public class PaginatedOperationWithoutResultKeyIterable implements SdkIterable<P
 
     @Override
     public Iterator<PaginatedOperationWithoutResultKeyResponse> iterator() {
-        return new PaginatedResponsesIterator(nextPageFetcher);
+        return PaginatedResponsesIterator.builder().nextPageFetcher(nextPageFetcher).build();
     }
 
     /**
@@ -91,8 +91,7 @@ public class PaginatedOperationWithoutResultKeyIterable implements SdkIterable<P
      * retrieve the consecutive pages that follows the input page.
      * </p>
      */
-    private final PaginatedOperationWithoutResultKeyIterable resume(
-        PaginatedOperationWithoutResultKeyResponse lastSuccessfulPage) {
+    private final PaginatedOperationWithoutResultKeyIterable resume(PaginatedOperationWithoutResultKeyResponse lastSuccessfulPage) {
         if (nextPageFetcher.hasNextPage(lastSuccessfulPage)) {
             return new PaginatedOperationWithoutResultKeyIterable(client, firstRequest.toBuilder()
                                                                                       .nextToken(lastSuccessfulPage.nextToken()).build());
