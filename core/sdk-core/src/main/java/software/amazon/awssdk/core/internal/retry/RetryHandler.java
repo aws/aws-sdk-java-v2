@@ -101,7 +101,12 @@ public final class RetryHandler {
      * @return long value of how long to wait
      */
     public Duration computeDelayBeforeNextRetry() {
-        lastBackoffDelay = retryPolicy.backoffStrategy().computeDelayBeforeNextRetry(retryPolicyContext);
+        if (RetryUtils.isThrottlingException(retryPolicyContext.exception())) {
+            lastBackoffDelay = retryPolicy.throttlingBackoffStrategy().computeDelayBeforeNextRetry(retryPolicyContext);
+        } else {
+            lastBackoffDelay = retryPolicy.backoffStrategy().computeDelayBeforeNextRetry(retryPolicyContext);
+        }
+
         return lastBackoffDelay;
     }
 

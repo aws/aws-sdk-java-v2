@@ -44,6 +44,8 @@ public final class SdkDefaultRetrySetting {
 
     public static final Duration BASE_DELAY = Duration.ofMillis(100);
 
+    public static final Duration THROTTLED_BASE_DELAY = Duration.ofMillis(500);
+
     public static final Duration MAX_BACKOFF = Duration.ofMillis(20_000);
 
     public static final Integer DEFAULT_MAX_RETRIES = 3;

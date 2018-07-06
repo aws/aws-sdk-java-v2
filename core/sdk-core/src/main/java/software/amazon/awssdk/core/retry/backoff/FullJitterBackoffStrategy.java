@@ -21,7 +21,6 @@ import java.time.Duration;
 import java.util.Random;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
-import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -43,24 +42,22 @@ public final class FullJitterBackoffStrategy implements BackoffStrategy,
 
     private final Duration baseDelay;
     private final Duration maxBackoffTime;
-    private final int numRetries;
     private final Random random = new Random();
 
     private FullJitterBackoffStrategy(BuilderImpl builder) {
         this.baseDelay = isNotNegative(builder.baseDelay, "baseDelay");
         this.maxBackoffTime = isNotNegative(builder.maxBackoffTime, "maxBackoffTime");
-        this.numRetries = Validate.isNotNegative(builder.numRetries, "numRetries");
     }
 
     @Override
     public Duration computeDelayBeforeNextRetry(RetryPolicyContext context) {
-        int ceil = calculateExponentialDelay(context.retriesAttempted(), baseDelay, maxBackoffTime, numRetries);
+        int ceil = calculateExponentialDelay(context.retriesAttempted(), baseDelay, maxBackoffTime);
         return Duration.ofMillis(random.nextInt(ceil));
     }
 
     @Override
     public Builder toBuilder() {
-        return builder().numRetries(numRetries).baseDelay(baseDelay).maxBackoffTime(maxBackoffTime);
+        return builder().baseDelay(baseDelay).maxBackoffTime(maxBackoffTime);
     }
 
     public static Builder builder() {
@@ -76,10 +73,6 @@ public final class FullJitterBackoffStrategy implements BackoffStrategy,
 
         Duration maxBackoffTime();
 
-        Builder numRetries(Integer numRetries);
-
-        Integer numRetries();
-
         FullJitterBackoffStrategy build();
     }
 
@@ -87,7 +80,6 @@ public final class FullJitterBackoffStrategy implements BackoffStrategy,
 
         private Duration baseDelay;
         private Duration maxBackoffTime;
-        private int numRetries;
 
         private BuilderImpl() {
         }
@@ -120,21 +112,6 @@ public final class FullJitterBackoffStrategy implements BackoffStrategy,
         @Override
         public Duration maxBackoffTime() {
             return maxBackoffTime;
-        }
-
-        @Override
-        public Builder numRetries(Integer numRetries) {
-            this.numRetries = numRetries;
-            return this;
-        }
-
-        public void setNumRetries(Integer numRetries) {
-            numRetries(numRetries);
-        }
-
-        @Override
-        public Integer numRetries() {
-            return numRetries;
         }
 
         @Override

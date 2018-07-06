@@ -23,7 +23,6 @@ import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.retry.conditions.AndRetryCondition;
 import software.amazon.awssdk.core.retry.conditions.MaxNumberOfRetriesCondition;
 import software.amazon.awssdk.core.retry.conditions.RetryCondition;
-import software.amazon.awssdk.core.retry.conditions.SdkRetryCondition;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -35,33 +34,24 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  *
  * When using the {@link #builder()} the SDK will use default values for fields that are not provided. The default number of
  * retries that will be used is {@link SdkDefaultRetrySetting#DEFAULT_MAX_RETRIES}. The default retry condition is
- * {@link SdkRetryCondition#DEFAULT} and the default backoff strategy is {@link BackoffStrategy#defaultStrategy()}.
+ * {@link RetryCondition#defaultRetryCondition()} and the default backoff strategy is {@link BackoffStrategy#defaultStrategy()}.
  *
- * @see SdkRetryCondition for a list of SDK provided retry condition strategies
+ * @see RetryCondition for a list of SDK provided retry condition strategies
  * @see BackoffStrategy for a list of SDK provided backoff strategies
  */
 @Immutable
 @SdkPublicApi
 public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder, RetryPolicy> {
 
-    public static final RetryPolicy DEFAULT = RetryPolicy.builder()
-                                                         .backoffStrategy(BackoffStrategy.defaultStrategy())
-                                                         .numRetries(SdkDefaultRetrySetting.DEFAULT_MAX_RETRIES)
-                                                         .retryCondition(SdkRetryCondition.DEFAULT)
-                                                         .build();
-
-    public static final RetryPolicy NONE = RetryPolicy.builder()
-                                                      .backoffStrategy(BackoffStrategy.none())
-                                                      .retryCondition(SdkRetryCondition.NONE)
-                                                      .build();
-
     private final RetryCondition retryConditionFromBuilder;
     private final RetryCondition retryCondition;
     private final BackoffStrategy backoffStrategy;
+    private final BackoffStrategy throttlingBackoffStrategy;
     private final Integer numRetries;
 
     private RetryPolicy(BuilderImpl builder) {
         this.backoffStrategy = builder.backoffStrategy;
+        this.throttlingBackoffStrategy = builder.throttlingBackoffStrategy;
         this.numRetries = builder.numRetries;
         this.retryConditionFromBuilder = builder.retryCondition;
         this.retryCondition = AndRetryCondition.create(MaxNumberOfRetriesCondition.create(numRetries), retryConditionFromBuilder);
@@ -75,16 +65,35 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
         return backoffStrategy;
     }
 
+    public BackoffStrategy throttlingBackoffStrategy() {
+        return throttlingBackoffStrategy;
+    }
+
     public Integer numRetries() {
         return numRetries;
+    }
+
+    public Builder toBuilder() {
+        return builder().numRetries(numRetries).retryCondition(retryConditionFromBuilder).backoffStrategy(backoffStrategy);
     }
 
     public static Builder builder() {
         return new BuilderImpl();
     }
 
-    public Builder toBuilder() {
-        return builder().numRetries(numRetries).retryCondition(retryConditionFromBuilder).backoffStrategy(backoffStrategy);
+    public static RetryPolicy defaultRetryPolicy() {
+        return RetryPolicy.builder()
+                          .backoffStrategy(BackoffStrategy.defaultStrategy())
+                          .numRetries(SdkDefaultRetrySetting.DEFAULT_MAX_RETRIES)
+                          .retryCondition(RetryCondition.defaultRetryCondition())
+                          .build();
+    }
+
+    public static RetryPolicy none() {
+        return RetryPolicy.builder()
+                          .backoffStrategy(BackoffStrategy.none())
+                          .retryCondition(RetryCondition.none())
+                          .build();
     }
 
     public interface Builder extends CopyableBuilder<Builder, RetryPolicy> {
@@ -110,7 +119,8 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
 
         private Integer numRetries = SdkDefaultRetrySetting.DEFAULT_MAX_RETRIES;
         private BackoffStrategy backoffStrategy = BackoffStrategy.defaultStrategy();
-        private RetryCondition retryCondition = SdkRetryCondition.DEFAULT;
+        private BackoffStrategy throttlingBackoffStrategy = BackoffStrategy.defaultThrottlingStrategy();
+        private RetryCondition retryCondition = RetryCondition.defaultRetryCondition();
 
         private BuilderImpl(){
         }
@@ -142,6 +152,15 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
 
         @Override
         public BackoffStrategy backoffStrategy() {
+            return backoffStrategy;
+        }
+
+        public Builder throttlingBackoffStrategy(BackoffStrategy backoffStrategy) {
+            this.backoffStrategy = backoffStrategy;
+            return this;
+        }
+
+        public BackoffStrategy throttlingBackoffStrategy() {
             return backoffStrategy;
         }
 
