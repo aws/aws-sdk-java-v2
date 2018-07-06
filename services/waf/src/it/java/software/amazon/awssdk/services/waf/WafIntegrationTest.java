@@ -25,20 +25,20 @@ import org.junit.Test;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.waf.model.ChangeAction;
-import software.amazon.awssdk.services.waf.model.CreateIPSetRequest;
-import software.amazon.awssdk.services.waf.model.CreateIPSetResponse;
+import software.amazon.awssdk.services.waf.model.CreateIpSetRequest;
+import software.amazon.awssdk.services.waf.model.CreateIpSetResponse;
 import software.amazon.awssdk.services.waf.model.GetChangeTokenRequest;
 import software.amazon.awssdk.services.waf.model.GetChangeTokenResponse;
-import software.amazon.awssdk.services.waf.model.GetIPSetRequest;
-import software.amazon.awssdk.services.waf.model.GetIPSetResponse;
+import software.amazon.awssdk.services.waf.model.GetIpSetRequest;
+import software.amazon.awssdk.services.waf.model.GetIpSetResponse;
 import software.amazon.awssdk.services.waf.model.IPSet;
 import software.amazon.awssdk.services.waf.model.IPSetDescriptor;
 import software.amazon.awssdk.services.waf.model.IPSetDescriptorType;
 import software.amazon.awssdk.services.waf.model.IPSetUpdate;
-import software.amazon.awssdk.services.waf.model.ListIPSetsRequest;
-import software.amazon.awssdk.services.waf.model.ListIPSetsResponse;
-import software.amazon.awssdk.services.waf.model.UpdateIPSetRequest;
-import software.amazon.awssdk.services.waf.model.WAFNonEmptyEntityException;
+import software.amazon.awssdk.services.waf.model.ListIpSetsRequest;
+import software.amazon.awssdk.services.waf.model.ListIpSetsResponse;
+import software.amazon.awssdk.services.waf.model.UpdateIpSetRequest;
+import software.amazon.awssdk.services.waf.model.WafNonEmptyEntityException;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
@@ -71,7 +71,7 @@ public class WafIntegrationTest extends AwsTestBase {
     private static void deleteIpSet() {
         if (ipSetId != null) {
             Waiter.run(() -> client.deleteIPSet(r -> r.ipSetId(ipSetId).changeToken(newChangeToken())))
-                  .ignoringException(WAFNonEmptyEntityException.class)
+                  .ignoringException(WafNonEmptyEntityException.class)
                   .orFailAfter(Duration.ofMinutes(1));
         }
     }
@@ -93,9 +93,9 @@ public class WafIntegrationTest extends AwsTestBase {
 
     private String testCreateIpSet() {
         final String changeToken = newChangeToken();
-        CreateIPSetResponse createResult = client.createIPSet(CreateIPSetRequest.builder()
-                .changeToken(changeToken)
-                .name(IP_SET_NAME).build());
+        CreateIpSetResponse createResult = client.createIPSet(CreateIpSetRequest.builder()
+                                                                                .changeToken(changeToken)
+                                                                                .name(IP_SET_NAME).build());
 
         Assert.assertEquals(changeToken, createResult.changeToken());
 
@@ -109,7 +109,7 @@ public class WafIntegrationTest extends AwsTestBase {
     }
 
     private void testGetIpSet() {
-        GetIPSetResponse getResult = client.getIPSet(GetIPSetRequest.builder()
+        GetIpSetResponse getResult = client.getIPSet(GetIpSetRequest.builder()
                 .ipSetId(ipSetId)
                 .build());
         IPSet ipSet = getResult.ipSet();
@@ -119,9 +119,9 @@ public class WafIntegrationTest extends AwsTestBase {
         Assert.assertNotNull(ipSet.ipSetId());
         Assert.assertEquals(ipSetId, ipSet.ipSetId());
 
-        ListIPSetsResponse listResult = client.listIPSets(ListIPSetsRequest.builder()
-                .limit(1)
-                .build());
+        ListIpSetsResponse listResult = client.listIPSets(ListIpSetsRequest.builder()
+                                                                           .limit(1)
+                                                                           .build());
         Assert.assertNotNull(listResult.ipSets());
         Assert.assertFalse(listResult.ipSets().isEmpty());
     }
@@ -137,12 +137,12 @@ public class WafIntegrationTest extends AwsTestBase {
                 .build();
 
 
-        client.updateIPSet(UpdateIPSetRequest.builder()
-                                   .ipSetId(ipSetId)
-                                   .changeToken(newChangeToken())
-                                   .updates(ipToInsert).build());
-        GetIPSetResponse getResult = client.getIPSet(GetIPSetRequest.builder()
-                                                           .ipSetId(ipSetId).build());
+        client.updateIPSet(UpdateIpSetRequest.builder()
+                                             .ipSetId(ipSetId)
+                                             .changeToken(newChangeToken())
+                                             .updates(ipToInsert).build());
+        GetIpSetResponse getResult = client.getIPSet(GetIpSetRequest.builder()
+                                                                    .ipSetId(ipSetId).build());
 
         IPSet ipSet = getResult.ipSet();
         Assert.assertNotNull(ipSet);
@@ -163,7 +163,7 @@ public class WafIntegrationTest extends AwsTestBase {
                 .action(ChangeAction.DELETE)
                 .build();
 
-        client.updateIPSet(UpdateIPSetRequest.builder()
+        client.updateIPSet(UpdateIpSetRequest.builder()
                 .ipSetId(ipSetId)
                 .changeToken(newChangeToken())
                 .updates(ipToDelete)

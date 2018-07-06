@@ -16,19 +16,19 @@
 package software.amazon.awssdk.services.rds;
 
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.services.rds.model.CreateDBInstanceReadReplicaRequest;
-import software.amazon.awssdk.services.rds.transform.CreateDBInstanceReadReplicaRequestMarshaller;
+import software.amazon.awssdk.services.rds.model.CreateDbInstanceReadReplicaRequest;
+import software.amazon.awssdk.services.rds.transform.CreateDbInstanceReadReplicaRequestMarshaller;
 
 /**
- * Handler for pre-signing {@link CreateDBInstanceReadReplicaRequest}.
+ * Handler for pre-signing {@link CreateDbInstanceReadReplicaRequest}.
  */
-public class CreateDbInstanceReadReplicaPresignInterceptor extends RdsPresignInterceptor<CreateDBInstanceReadReplicaRequest> {
+public class CreateDbInstanceReadReplicaPresignInterceptor extends RdsPresignInterceptor<CreateDbInstanceReadReplicaRequest> {
     public CreateDbInstanceReadReplicaPresignInterceptor() {
-        super(CreateDBInstanceReadReplicaRequest.class);
+        super(CreateDbInstanceReadReplicaRequest.class);
     }
 
     @Override
-    protected PresignableRequest adaptRequest(final CreateDBInstanceReadReplicaRequest originalRequest) {
+    protected PresignableRequest adaptRequest(final CreateDbInstanceReadReplicaRequest originalRequest) {
         return new PresignableRequest() {
             @Override
             public String getSourceRegion() {
@@ -37,7 +37,7 @@ public class CreateDbInstanceReadReplicaPresignInterceptor extends RdsPresignInt
 
             @Override
             public Request<?> marshall() {
-                return new CreateDBInstanceReadReplicaRequestMarshaller().marshall(originalRequest);
+                return new CreateDbInstanceReadReplicaRequestMarshaller().marshall(originalRequest);
             }
         };
     }
