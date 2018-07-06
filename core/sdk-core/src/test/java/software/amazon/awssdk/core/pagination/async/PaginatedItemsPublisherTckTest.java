@@ -15,8 +15,11 @@
 
 package software.amazon.awssdk.core.pagination.async;
 
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import org.reactivestreams.Publisher;
@@ -34,7 +37,14 @@ public class PaginatedItemsPublisherTckTest extends PublisherVerification<Long> 
 
     @Override
     public Publisher<Long> createPublisher(long l) {
-        return new PaginatedItemsPublisher<>(new PageFetcher(l, 5), List::iterator, false);
+        Function<List<Long>, Iterator<Long>> getIterator = response -> response != null ? response.iterator()
+                                                                                        : Collections.emptyIterator();
+
+        return PaginatedItemsPublisher.builder()
+                                      .nextPageFetcher(new PageFetcher(l, 5))
+                                      .iteratorFunction(getIterator)
+                                      .isLastPage(false)
+                                      .build();
     }
 
     @Override

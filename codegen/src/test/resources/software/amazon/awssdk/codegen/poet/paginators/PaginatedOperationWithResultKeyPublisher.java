@@ -93,7 +93,7 @@ public class PaginatedOperationWithResultKeyPublisher implements SdkPublisher<Pa
 
     @Override
     public void subscribe(Subscriber<? super PaginatedOperationWithResultKeyResponse> subscriber) {
-        subscriber.onSubscribe(new ResponsesSubscription(subscriber, nextPageFetcher));
+        subscriber.onSubscribe(ResponsesSubscription.builder().subscriber(subscriber).nextPageFetcher(nextPageFetcher).build());
     }
 
     /**
@@ -108,7 +108,8 @@ public class PaginatedOperationWithResultKeyPublisher implements SdkPublisher<Pa
             }
             return Collections.emptyIterator();
         };
-        return new PaginatedItemsPublisher(new PaginatedOperationWithResultKeyResponseFetcher(), getIterator, isLastPage);
+        return PaginatedItemsPublisher.builder().nextPageFetcher(new PaginatedOperationWithResultKeyResponseFetcher())
+                                      .iteratorFunction(getIterator).isLastPage(isLastPage).build();
     }
 
     /**

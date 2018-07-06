@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.pagination.async;
 
-import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.internal.pagination.async.PaginationSubscription;
@@ -27,10 +26,17 @@ import software.amazon.awssdk.core.internal.pagination.async.PaginationSubscript
  * @param <ResponseT> The type of a single response page
  */
 @SdkProtectedApi
-public class ResponsesSubscription<ResponseT> extends PaginationSubscription<ResponseT> {
+public final class ResponsesSubscription<ResponseT> extends PaginationSubscription<ResponseT> {
 
-    public ResponsesSubscription(Subscriber subscriber, AsyncPageFetcher<ResponseT> nextPageFetcher) {
-        super(subscriber, nextPageFetcher);
+    private ResponsesSubscription(BuilderImpl builder) {
+        super(builder);
+    }
+
+    /**
+     * Create a builder for creating a {@link ResponsesSubscription}.
+     */
+    public static Builder builder() {
+        return new BuilderImpl();
     }
 
     @Override
@@ -61,6 +67,20 @@ public class ResponsesSubscription<ResponseT> extends PaginationSubscription<Res
                                    cleanup();
                                }
                            }));
+        }
+    }
+
+    public interface Builder extends PaginationSubscription.Builder<ResponsesSubscription, Builder> {
+        @Override
+        ResponsesSubscription build();
+    }
+
+    private static final class BuilderImpl extends PaginationSubscription.BuilderImpl<ResponsesSubscription, Builder>
+        implements Builder {
+
+        @Override
+        public ResponsesSubscription build() {
+            return new ResponsesSubscription(this);
         }
     }
 }

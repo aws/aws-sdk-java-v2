@@ -36,9 +36,9 @@ public abstract class PaginationSubscription<ResponseT> implements Subscription 
     // boolean indicating whether task to handle requests is running
     private AtomicBoolean isTaskRunning = new AtomicBoolean(false);
 
-    public PaginationSubscription(Subscriber subscriber, AsyncPageFetcher<ResponseT> nextPageFetcher) {
-        this.subscriber = subscriber;
-        this.nextPageFetcher = nextPageFetcher;
+    protected PaginationSubscription(BuilderImpl builder) {
+        this.subscriber = builder.subscriber;
+        this.nextPageFetcher = builder.nextPageFetcher;
     }
 
     @Override
@@ -104,4 +104,31 @@ public abstract class PaginationSubscription<ResponseT> implements Subscription 
         terminate();
         stopTask();
     }
+
+    public interface Builder<TypeToBuildT extends PaginationSubscription, BuilderT extends Builder> {
+        BuilderT subscriber(Subscriber subscriber);
+
+        BuilderT nextPageFetcher(AsyncPageFetcher nextPageFetcher);
+
+        TypeToBuildT build();
+    }
+
+    protected abstract static class BuilderImpl<TypeToBuildT extends PaginationSubscription, BuilderT extends Builder>
+        implements Builder<TypeToBuildT, BuilderT> {
+        private Subscriber subscriber;
+        private AsyncPageFetcher nextPageFetcher;
+
+        @Override
+        public BuilderT subscriber(Subscriber subscriber) {
+            this.subscriber = subscriber;
+            return (BuilderT) this;
+        }
+
+        @Override
+        public BuilderT nextPageFetcher(AsyncPageFetcher nextPageFetcher) {
+            this.nextPageFetcher = nextPageFetcher;
+            return (BuilderT) this;
+        }
+    }
+
 }

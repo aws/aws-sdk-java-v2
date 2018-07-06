@@ -17,10 +17,8 @@ package software.amazon.awssdk.core.internal.pagination.async;
 
 import java.util.Iterator;
 import java.util.function.Function;
-import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.pagination.async.AsyncPageFetcher;
 
 /**
  * An implementation of the {@link Subscription} interface that can be used to signal and cancel demand for
@@ -30,15 +28,20 @@ import software.amazon.awssdk.core.pagination.async.AsyncPageFetcher;
  * @param <ItemT> The type of paginated member in a response page
  */
 @SdkInternalApi
-public class ItemsSubscription<ResponseT, ItemT> extends PaginationSubscription<ResponseT> {
+public final class ItemsSubscription<ResponseT, ItemT> extends PaginationSubscription<ResponseT> {
     private final Function<ResponseT, Iterator<ItemT>> getIteratorFunction;
     private volatile Iterator<ItemT> singlePageItemsIterator;
 
-    public ItemsSubscription(Subscriber subscriber,
-                             AsyncPageFetcher<ResponseT> nextPageFetcher,
-                             Function<ResponseT, Iterator<ItemT>> getIteratorFunction) {
-        super(subscriber, nextPageFetcher);
-        this.getIteratorFunction = getIteratorFunction;
+    private ItemsSubscription(BuilderImpl builder) {
+        super(builder);
+        this.getIteratorFunction = builder.iteratorFunction;
+    }
+
+    /**
+     * Create a builder for creating a {@link ItemsSubscription}.
+     */
+    public static Builder builder() {
+        return new BuilderImpl();
     }
 
     @Override
@@ -102,5 +105,29 @@ public class ItemsSubscription<ResponseT, ItemT> extends PaginationSubscription<
 
     private boolean hasMoreItems() {
         return singlePageItemsIterator != null && singlePageItemsIterator.hasNext();
+    }
+
+
+    public interface Builder extends PaginationSubscription.Builder<ItemsSubscription, Builder> {
+        Builder iteratorFunction(Function iteratorFunction);
+
+        @Override
+        ItemsSubscription build();
+    }
+
+    private static final class BuilderImpl extends PaginationSubscription.BuilderImpl<ItemsSubscription, Builder>
+        implements Builder {
+        private Function iteratorFunction;
+
+        @Override
+        public Builder iteratorFunction(Function iteratorFunction) {
+            this.iteratorFunction = iteratorFunction;
+            return this;
+        }
+
+        @Override
+        public ItemsSubscription build() {
+            return new ItemsSubscription(this);
+        }
     }
 }
