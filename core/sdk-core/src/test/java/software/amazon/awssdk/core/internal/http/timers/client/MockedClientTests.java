@@ -65,7 +65,7 @@ public class MockedClientTests {
     public void clientExecutionTimeoutEnabled_RequestCompletesWithinTimeout_TaskCanceled() throws Exception {
         AmazonSyncHttpClient httpClient = HttpTestUtils.testClientBuilder()
                                                        .httpClient(sdkHttpClient)
-                                                       .retryPolicy(RetryPolicy.NONE)
+                                                       .retryPolicy(RetryPolicy.none())
                                                        .build();
 
         try {

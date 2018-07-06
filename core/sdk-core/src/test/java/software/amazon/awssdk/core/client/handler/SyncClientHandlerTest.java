@@ -134,7 +134,7 @@ public class SyncClientHandlerTest {
     public SdkClientConfiguration clientConfiguration() {
         return HttpTestUtils.testClientConfiguration().toBuilder()
                             .option(SdkClientOption.SYNC_HTTP_CLIENT, httpClient)
-                            .option(SdkClientOption.RETRY_POLICY, RetryPolicy.NONE)
+                            .option(SdkClientOption.RETRY_POLICY, RetryPolicy.none())
                             .build();
     }
 }

@@ -20,6 +20,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.Collections;
+import java.util.Set;
 import org.junit.Test;
 import software.amazon.awssdk.core.retry.conditions.RetryCondition;
 import software.amazon.awssdk.core.retry.conditions.RetryOnStatusCodeCondition;
@@ -51,7 +52,8 @@ public class RetryOnStatusCodeConditionTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void nullListOfStatusCodes_ThrowsException() {
-        RetryOnStatusCodeCondition.create(null);
+        Set<Integer> nullSet = null;
+        RetryOnStatusCodeCondition.create(nullSet);
     }
 
 }

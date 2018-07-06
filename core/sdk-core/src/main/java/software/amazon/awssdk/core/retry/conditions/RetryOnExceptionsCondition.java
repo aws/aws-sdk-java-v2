@@ -15,9 +15,11 @@
 
 package software.amazon.awssdk.core.retry.conditions;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
@@ -65,5 +67,12 @@ public final class RetryOnExceptionsCondition implements RetryCondition {
      */
     public static RetryOnExceptionsCondition create(Set<Class<? extends Exception>> exceptionsToRetryOn) {
         return new RetryOnExceptionsCondition(exceptionsToRetryOn);
+    }
+
+    /**
+     * @param exceptionsToRetryOn Exception classes to retry on.
+     */
+    public static RetryOnExceptionsCondition create(Class<? extends Exception>... exceptionsToRetryOn) {
+        return new RetryOnExceptionsCondition(Arrays.stream(exceptionsToRetryOn).collect(Collectors.toSet()));
     }
 }

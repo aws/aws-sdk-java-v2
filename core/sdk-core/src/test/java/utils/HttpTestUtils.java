@@ -53,7 +53,7 @@ public class HttpTestUtils {
         return SdkClientConfiguration.builder()
                                      .option(SdkClientOption.EXECUTION_INTERCEPTORS, new ArrayList<>())
                                      .option(SdkClientOption.ENDPOINT, URI.create("http://localhost:8080"))
-                                     .option(SdkClientOption.RETRY_POLICY, RetryPolicy.DEFAULT)
+                                     .option(SdkClientOption.RETRY_POLICY, RetryPolicy.defaultRetryPolicy())
                                      .option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, new HashMap<>())
                                      .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
                                      .option(SdkAdvancedClientOption.SIGNER, new NoOpSigner())

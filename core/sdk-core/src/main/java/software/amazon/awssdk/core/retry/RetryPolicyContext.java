@@ -57,7 +57,7 @@ public final class RetryPolicyContext implements ToCopyableBuilder<RetryPolicyCo
     /**
      * @return The original request passed to the client method for an operation.
      */
-    public Object originalRequest() {
+    public SdkRequest originalRequest() {
         return this.originalRequest;
     }
 

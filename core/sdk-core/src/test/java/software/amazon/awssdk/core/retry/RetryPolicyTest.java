@@ -24,7 +24,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.retry.conditions.RetryCondition;
-import software.amazon.awssdk.core.retry.conditions.SdkRetryCondition;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RetryPolicyTest {
@@ -38,7 +37,7 @@ public class RetryPolicyTest {
     public void nullRetryCondition_UsesDefaultRetryCondition() {
         RetryPolicy policy = RetryPolicy.builder().retryCondition(null).backoffStrategy(backoffStrategy).build();
 
-        assertThat(policy.toBuilder().retryCondition()).isEqualToComparingFieldByField(SdkRetryCondition.DEFAULT);
+        assertThat(policy.toBuilder().retryCondition()).isEqualToComparingFieldByField(RetryCondition.defaultRetryCondition());
     }
 
     public void nullBackoffStrategy_UsesDefaultBackoffStrategy() {

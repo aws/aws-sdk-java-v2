@@ -17,9 +17,11 @@ package software.amazon.awssdk.core.retry.conditions;
 
 import static software.amazon.awssdk.core.util.ValidationUtils.assertNotNull;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 
@@ -49,5 +51,9 @@ public final class RetryOnStatusCodeCondition implements RetryCondition {
 
     public static RetryOnStatusCodeCondition create(Set<Integer> statusCodesToRetryOn) {
         return new RetryOnStatusCodeCondition(statusCodesToRetryOn);
+    }
+
+    public static RetryOnStatusCodeCondition create(Integer... statusCodesToRetryOn) {
+        return new RetryOnStatusCodeCondition(Arrays.stream(statusCodesToRetryOn).collect(Collectors.toSet()));
     }
 }

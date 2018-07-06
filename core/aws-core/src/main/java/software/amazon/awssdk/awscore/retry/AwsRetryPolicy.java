@@ -19,8 +19,8 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.internal.AwsErrorCode;
 import software.amazon.awssdk.awscore.retry.conditions.RetryOnErrorCodeCondition;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.retry.conditions.OrRetryCondition;
 import software.amazon.awssdk.core.retry.conditions.RetryCondition;
-import software.amazon.awssdk.core.retry.conditions.SdkRetryCondition;
 
 /**
  * Retry Policy used by clients when communicating with AWS services.
@@ -28,14 +28,15 @@ import software.amazon.awssdk.core.retry.conditions.SdkRetryCondition;
 @SdkPublicApi
 public final class AwsRetryPolicy {
 
-    public static final RetryCondition AWS_DEFAULT_RETRY_CONDITION =
-        SdkRetryCondition.DEFAULT.or(new RetryOnErrorCodeCondition(AwsErrorCode.RETRYABLE_ERROR_CODES));
-
-    public static final RetryPolicy DEFAULT =
-        RetryPolicy.DEFAULT.toBuilder()
-                           .retryCondition(AWS_DEFAULT_RETRY_CONDITION)
-                           .build();
-
     private AwsRetryPolicy() {
+    }
+
+    public static RetryCondition defaultRetryCondition() {
+        return OrRetryCondition.create(RetryCondition.defaultRetryCondition(),
+                                       RetryOnErrorCodeCondition.create(AwsErrorCode.RETRYABLE_ERROR_CODES));
+    }
+
+    public static RetryPolicy defaultRetryPolicy() {
+        return RetryPolicy.defaultRetryPolicy().toBuilder().retryCondition(defaultRetryCondition()).build();
     }
 }

@@ -16,7 +16,7 @@ package software.amazon.awssdk.awscore.retry;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static software.amazon.awssdk.awscore.retry.AwsRetryPolicy.AWS_DEFAULT_RETRY_CONDITION;
+import static software.amazon.awssdk.awscore.retry.AwsRetryPolicy.defaultRetryCondition;
 
 import java.io.IOException;
 import java.util.function.Consumer;
@@ -93,7 +93,7 @@ public class AwsRetryPolicyTest {
     }
 
     private boolean shouldRetry(Consumer<RetryPolicyContext.Builder> builder) {
-        return AWS_DEFAULT_RETRY_CONDITION.shouldRetry(RetryPolicyContext.builder().applyMutation(builder).build());
+        return defaultRetryCondition().shouldRetry(RetryPolicyContext.builder().applyMutation(builder).build());
     }
 
     private Consumer<RetryPolicyContext.Builder> applyErrorCode(String errorCode) {

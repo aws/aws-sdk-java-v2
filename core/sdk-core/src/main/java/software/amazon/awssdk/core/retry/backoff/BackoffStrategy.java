@@ -32,17 +32,22 @@ public interface BackoffStrategy {
      */
     Duration computeDelayBeforeNextRetry(RetryPolicyContext context);
 
-    default int calculateExponentialDelay(int retriesAttempted, Duration baseDelay, Duration maxBackoffTime, int maxRetries) {
-        int retries = Math.min(retriesAttempted, maxRetries);
-        return (int) Math.min((1L << retries) * baseDelay.toMillis(), maxBackoffTime.toMillis());
+    default int calculateExponentialDelay(int retriesAttempted, Duration baseDelay, Duration maxBackoffTime) {
+        return (int) Math.min((1L << retriesAttempted) * baseDelay.toMillis(), maxBackoffTime.toMillis());
     }
 
     static BackoffStrategy defaultStrategy() {
         return FullJitterBackoffStrategy.builder()
                                         .baseDelay(SdkDefaultRetrySetting.BASE_DELAY)
                                         .maxBackoffTime(SdkDefaultRetrySetting.MAX_BACKOFF)
-                                        .numRetries(SdkDefaultRetrySetting.DEFAULT_MAX_RETRIES)
                                         .build();
+    }
+
+    static BackoffStrategy defaultThrottlingStrategy() {
+        return EqualJitterBackoffStrategy.builder()
+                                         .baseDelay(SdkDefaultRetrySetting.THROTTLED_BASE_DELAY)
+                                         .maxBackoffTime(SdkDefaultRetrySetting.MAX_BACKOFF)
+                                         .build();
     }
 
     static BackoffStrategy none() {
