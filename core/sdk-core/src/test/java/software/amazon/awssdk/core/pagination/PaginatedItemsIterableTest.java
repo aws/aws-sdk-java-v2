@@ -56,7 +56,10 @@ public class PaginatedItemsIterableTest {
 
         when(getItemIteratorFunction.apply(any())).thenReturn(singlePageItemsIterator);
 
-        itemsIterable = new PaginatedItemsIterable(pagesIterable, getItemIteratorFunction);
+        itemsIterable = PaginatedItemsIterable.builder()
+                                              .pagesIterable(pagesIterable)
+                                              .itemIteratorFunction(getItemIteratorFunction)
+                                              .build();
     }
 
     @Test

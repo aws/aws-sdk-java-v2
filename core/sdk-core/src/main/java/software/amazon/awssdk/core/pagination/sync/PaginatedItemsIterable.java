@@ -29,15 +29,18 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * @param <ItemT> The type of paginated member in a response page
  */
 @SdkProtectedApi
-public class PaginatedItemsIterable<ResponseT, ItemT> implements SdkIterable<ItemT> {
+public final class PaginatedItemsIterable<ResponseT, ItemT> implements SdkIterable<ItemT> {
 
     private final SdkIterable<ResponseT> pagesIterable;
     private final Function<ResponseT, Iterator<ItemT>> getItemIterator;
 
-    public PaginatedItemsIterable(SdkIterable<ResponseT> pagesIterable,
-                                  Function<ResponseT, Iterator<ItemT>> getItemIterator) {
-        this.pagesIterable = pagesIterable;
-        this.getItemIterator = getItemIterator;
+    private PaginatedItemsIterable(BuilderImpl builder) {
+        this.pagesIterable = builder.pagesIterable;
+        this.getItemIterator = builder.itemIteratorFunction;
+    }
+
+    public static Builder builder() {
+        return new BuilderImpl();
     }
 
     @Override
@@ -83,4 +86,33 @@ public class PaginatedItemsIterable<ResponseT, ItemT> implements SdkIterable<Ite
         }
     }
 
+    public interface Builder {
+        Builder pagesIterable(SdkIterable sdkIterable);
+
+        Builder itemIteratorFunction(Function itemIteratorFunction);
+
+        PaginatedItemsIterable build();
+    }
+
+    private static final class BuilderImpl implements Builder {
+        private SdkIterable pagesIterable;
+        private Function itemIteratorFunction;
+
+        @Override
+        public Builder pagesIterable(SdkIterable pagesIterable) {
+            this.pagesIterable = pagesIterable;
+            return this;
+        }
+
+        @Override
+        public Builder itemIteratorFunction(Function itemIteratorFunction) {
+            this.itemIteratorFunction = itemIteratorFunction;
+            return this;
+        }
+
+        @Override
+        public PaginatedItemsIterable build() {
+            return new PaginatedItemsIterable(this);
+        }
+    }
 }

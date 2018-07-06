@@ -88,7 +88,7 @@ public class PaginatedOperationWithoutResultKeyPublisher implements SdkPublisher
 
     @Override
     public void subscribe(Subscriber<? super PaginatedOperationWithoutResultKeyResponse> subscriber) {
-        subscriber.onSubscribe(new ResponsesSubscription(subscriber, nextPageFetcher));
+        subscriber.onSubscribe(ResponsesSubscription.builder().subscriber(subscriber).nextPageFetcher(nextPageFetcher).build());
     }
 
     /**
@@ -98,8 +98,7 @@ public class PaginatedOperationWithoutResultKeyPublisher implements SdkPublisher
      * retrieve the consecutive pages that follows the input page.
      * </p>
      */
-    private final PaginatedOperationWithoutResultKeyPublisher resume(
-        PaginatedOperationWithoutResultKeyResponse lastSuccessfulPage) {
+    private final PaginatedOperationWithoutResultKeyPublisher resume(PaginatedOperationWithoutResultKeyResponse lastSuccessfulPage) {
         if (nextPageFetcher.hasNextPage(lastSuccessfulPage)) {
             return new PaginatedOperationWithoutResultKeyPublisher(client, firstRequest.toBuilder()
                                                                                        .nextToken(lastSuccessfulPage.nextToken()).build());

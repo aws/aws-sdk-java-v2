@@ -29,7 +29,7 @@ import software.amazon.awssdk.core.internal.pagination.async.ItemsSubscription;
  * @param <ItemT> The type of paginated member in a response page
  */
 @SdkProtectedApi
-public class PaginatedItemsPublisher<ResponseT, ItemT> implements SdkPublisher<ItemT> {
+public final class PaginatedItemsPublisher<ResponseT, ItemT> implements SdkPublisher<ItemT> {
 
     private final AsyncPageFetcher<ResponseT> nextPageFetcher;
 
@@ -37,17 +37,62 @@ public class PaginatedItemsPublisher<ResponseT, ItemT> implements SdkPublisher<I
 
     private final boolean isLastPage;
 
-    public PaginatedItemsPublisher(AsyncPageFetcher<ResponseT> nextPageFetcher,
-                                   Function<ResponseT, Iterator<ItemT>> getIteratorFunction,
-                                   boolean isLastPage) {
-        this.nextPageFetcher = nextPageFetcher;
-        this.getIteratorFunction = getIteratorFunction;
-        this.isLastPage = isLastPage;
+    private PaginatedItemsPublisher(BuilderImpl builder) {
+        this.nextPageFetcher = builder.nextPageFetcher;
+        this.getIteratorFunction = builder.iteratorFunction;
+        this.isLastPage = builder.isLastPage;
+    }
+
+    public static Builder builder() {
+        return new BuilderImpl();
     }
 
     @Override
     public void subscribe(Subscriber<? super ItemT> subscriber) {
         subscriber.onSubscribe(isLastPage ? new EmptySubscription(subscriber)
-                                          : new ItemsSubscription<>(subscriber, nextPageFetcher, getIteratorFunction));
+                                          : ItemsSubscription.builder()
+                                                             .subscriber(subscriber)
+                                                             .nextPageFetcher(nextPageFetcher)
+                                                             .iteratorFunction(getIteratorFunction)
+                                                             .build());
+    }
+
+    public interface Builder {
+        Builder nextPageFetcher(AsyncPageFetcher nextPageFetcher);
+
+        Builder iteratorFunction(Function iteratorFunction);
+
+        Builder isLastPage(boolean isLastPage);
+
+        PaginatedItemsPublisher build();
+    }
+
+    private static final class BuilderImpl implements Builder {
+        private AsyncPageFetcher nextPageFetcher;
+        private Function iteratorFunction;
+        private boolean isLastPage;
+
+        @Override
+        public Builder nextPageFetcher(AsyncPageFetcher nextPageFetcher) {
+            this.nextPageFetcher = nextPageFetcher;
+            return this;
+        }
+
+        @Override
+        public Builder iteratorFunction(Function iteratorFunction) {
+            this.iteratorFunction = iteratorFunction;
+            return this;
+        }
+
+        @Override
+        public Builder isLastPage(boolean isLastPage) {
+            this.isLastPage = isLastPage;
+            return this;
+        }
+
+        @Override
+        public PaginatedItemsPublisher build() {
+            return new PaginatedItemsPublisher(this);
+        }
     }
 }
