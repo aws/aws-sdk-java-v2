@@ -51,12 +51,12 @@ public class ConnectionPoolMaxConnectionsIntegrationTest {
     }
 
     @Test(timeout = 60 * 1000)
-    public void leasing_a_new_connection_fails_with_connection_pool_timeout() throws Exception {
+    public void leasing_a_new_connection_fails_with_connection_pool_timeout() {
 
         String localhostEndpoint = "http://localhost:" + server.getPort();
 
         AmazonSyncHttpClient httpClient = HttpTestUtils.testClientBuilder()
-                                                       .retryPolicy(RetryPolicy.NONE)
+                                                       .retryPolicy(RetryPolicy.none())
                                                        .httpClient(ApacheHttpClient.builder()
                                                                                    .connectionTimeout(Duration.ofMillis(100))
                                                                                    .maxConnections(1)

@@ -27,8 +27,7 @@ import software.amazon.awssdk.core.retry.RetryPolicyContext;
 
 public class RetryOnErrorCodeConditionTest {
 
-    private RetryOnErrorCodeCondition condition = new RetryOnErrorCodeCondition(Sets.newHashSet(
-        "Foo", "Bar"));
+    private RetryOnErrorCodeCondition condition = RetryOnErrorCodeCondition.create(Sets.newHashSet("Foo", "Bar"));
 
     @Test
     public void noExceptionInContext_ReturnsFalse() {

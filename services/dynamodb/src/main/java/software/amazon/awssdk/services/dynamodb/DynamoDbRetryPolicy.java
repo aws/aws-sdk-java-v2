@@ -46,16 +46,15 @@ public final class DynamoDbRetryPolicy {
         FullJitterBackoffStrategy.builder()
                                  .baseDelay(DEFAULT_BASE_DELAY)
                                  .maxBackoffTime(SdkDefaultRetrySetting.MAX_BACKOFF)
-                                 .numRetries(SdkDefaultRetrySetting.DEFAULT_MAX_RETRIES)
                                  .build();
 
     /**
      * Default retry policy for DynamoDB.
      */
     private static final RetryPolicy DEFAULT =
-        AwsRetryPolicy.DEFAULT.toBuilder()
-                              .numRetries(DEFAULT_MAX_ERROR_RETRY)
-                              .backoffStrategy(DEFAULT_BACKOFF_STRATEGY).build();
+        AwsRetryPolicy.defaultRetryPolicy().toBuilder()
+                      .numRetries(DEFAULT_MAX_ERROR_RETRY)
+                      .backoffStrategy(DEFAULT_BACKOFF_STRATEGY).build();
 
     private DynamoDbRetryPolicy() {
 

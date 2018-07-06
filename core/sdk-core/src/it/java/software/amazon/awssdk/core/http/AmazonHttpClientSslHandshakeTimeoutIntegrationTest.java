@@ -44,7 +44,7 @@ public class AmazonHttpClientSslHandshakeTimeoutIntegrationTest extends Unrespon
     @Test(timeout = 60 * 1000)
     public void testSslHandshakeTimeout() {
         AmazonSyncHttpClient httpClient = HttpTestUtils.testClientBuilder()
-                                                       .retryPolicy(RetryPolicy.NONE)
+                                                       .retryPolicy(RetryPolicy.none())
                                                        .httpClient(ApacheHttpClient.builder()
                                                                                .socketTimeout(CLIENT_SOCKET_TO)
                                                                                .build())

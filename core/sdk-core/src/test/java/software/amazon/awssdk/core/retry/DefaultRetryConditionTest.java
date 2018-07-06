@@ -22,7 +22,7 @@ import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.retry.conditions.SdkRetryCondition;
+import software.amazon.awssdk.core.retry.conditions.RetryCondition;
 
 public class DefaultRetryConditionTest {
 
@@ -72,9 +72,9 @@ public class DefaultRetryConditionTest {
     }
 
     private boolean shouldRetry(Consumer<RetryPolicyContext.Builder> builder) {
-        return SdkRetryCondition.DEFAULT.shouldRetry(RetryPolicyContext.builder()
-                                                                       .applyMutation(builder)
-                                                                       .build());
+        return RetryCondition.defaultRetryCondition().shouldRetry(RetryPolicyContext.builder()
+                                                                    .applyMutation(builder)
+                                                                    .build());
     }
 
     private Consumer<RetryPolicyContext.Builder> applyStatusCode(Integer statusCode) {
