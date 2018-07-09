@@ -22,7 +22,6 @@ import static software.amazon.awssdk.codegen.internal.Constant.FAULT_CLASS_SUFFI
 import static software.amazon.awssdk.codegen.internal.Constant.REQUEST_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Constant.RESPONSE_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Constant.VARIABLE_NAME_SUFFIX;
-import static software.amazon.awssdk.codegen.internal.Utils.capitalize;
 import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
 
 import java.util.Arrays;
@@ -157,6 +156,10 @@ public class DefaultNamingStrategy implements NamingStrategy {
         return serviceName;
     }
 
+    private String pascalCase(String word) {
+        return Stream.of(splitOnWordBoundaries(word)).map(StringUtils::lowerCase).map(Utils::capitalize).collect(joining());
+    }
+
     private String pascalCase(String... words) {
         return Stream.of(words).map(StringUtils::lowerCase).map(Utils::capitalize).collect(joining());
     }
@@ -168,22 +171,22 @@ public class DefaultNamingStrategy implements NamingStrategy {
     @Override
     public String getExceptionName(String errorShapeName) {
         if (errorShapeName.endsWith(FAULT_CLASS_SUFFIX)) {
-            return capitalize(errorShapeName.substring(0, errorShapeName.length() - FAULT_CLASS_SUFFIX.length()) +
-                              EXCEPTION_CLASS_SUFFIX);
+            return pascalCase(errorShapeName.substring(0, errorShapeName.length() - FAULT_CLASS_SUFFIX.length())) +
+                              EXCEPTION_CLASS_SUFFIX;
         } else if (errorShapeName.endsWith(EXCEPTION_CLASS_SUFFIX)) {
-            return capitalize(errorShapeName);
+            return pascalCase(errorShapeName);
         }
-        return capitalize(errorShapeName + EXCEPTION_CLASS_SUFFIX);
+        return pascalCase(errorShapeName) + EXCEPTION_CLASS_SUFFIX;
     }
 
     @Override
     public String getRequestClassName(String operationName) {
-        return capitalize(operationName + REQUEST_CLASS_SUFFIX);
+        return pascalCase(operationName) + REQUEST_CLASS_SUFFIX;
     }
 
     @Override
     public String getResponseClassName(String operationName) {
-        return capitalize(operationName + RESPONSE_CLASS_SUFFIX);
+        return pascalCase(operationName) + RESPONSE_CLASS_SUFFIX;
     }
 
     @Override
@@ -303,7 +306,7 @@ public class DefaultNamingStrategy implements NamingStrategy {
                        .replaceAll("([^A-Z]{2,})V([0-9]+)", "$1 V$2 "); // TestV4 -> "Test V4 "
 
         // Add a space between camelCased words
-        result = result.replaceAll("([a-z])([A-Z][a-zA-Z])", "$1 $2"); // AcmSuccess -> "Acm Success"
+        result = String.join(" ", result.split("(?<=[a-z])(?=[A-Z]([a-zA-Z]|[0-9]))")); // AcmSuccess -> "Acm Success"
 
         // Add a space after acronyms
         result = result.replaceAll("([A-Z]+)([A-Z][a-z])", "$1 $2"); // ACMSuccess -> "ACM Success"

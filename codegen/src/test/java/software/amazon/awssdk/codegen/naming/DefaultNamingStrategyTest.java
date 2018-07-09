@@ -218,6 +218,16 @@ public class DefaultNamingStrategyTest {
         assertThat(customizedModel.getTransformPackageName(serviceName)).isEqualTo("foo.transform");
     }
 
+    @Test
+    public void modelNameShouldHavePascalCase() {
+        assertThat(strat.getRequestClassName("CAPSTest")).isEqualTo("CapsTestRequest");
+        assertThat(strat.getExceptionName("CAPSTest")).isEqualTo("CapsTestException");
+        assertThat(strat.getResponseClassName("CAPSTest")).isEqualTo("CapsTestResponse");
+        assertThat(strat.getResponseClassName("CAPSByIndex")).isEqualTo("CapsByIndexResponse");
+
+        assertThat(strat.getRequestClassName("FollowedByS3")).isEqualTo("FollowedByS3Request");
+    }
+
     private void validateConversion(String input, String expectedOutput) {
         assertThat(strat.getEnumValueName(input)).isEqualTo(expectedOutput);
     }
