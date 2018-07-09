@@ -19,6 +19,7 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
  * Request-specific configuration overrides for AWS service clients.
@@ -50,7 +51,8 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
         return new BuilderImpl();
     }
 
-    public interface Builder extends RequestOverrideConfiguration.Builder<Builder> {
+    public interface Builder extends RequestOverrideConfiguration.Builder<Builder>,
+                                     SdkBuilder<Builder, AwsRequestOverrideConfiguration> {
         /**
          * Set the optional {@link AwsCredentialsProvider} that will provide credentials to be used to authenticate this request.
          *
