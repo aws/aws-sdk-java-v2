@@ -25,11 +25,13 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Removes any per request {@link ChannelHandler} from the pipeline prior to releasing
  * it to the pool.
  */
+@SdkInternalApi
 public class HandlerRemovingChannelPool implements ChannelPool {
 
     private final ChannelPool delegate;

@@ -19,14 +19,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * A simple implementation of {@link Subscriber} that requests data one at a time.
  *
  * @param <T> Type of data requested
  */
-@SdkProtectedApi
+@SdkInternalApi
 public class SequentialSubscriber<T> implements Subscriber<T> {
 
     private final Consumer<T> consumer;

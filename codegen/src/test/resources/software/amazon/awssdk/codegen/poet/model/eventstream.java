@@ -1,6 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
@@ -27,4 +27,3 @@ public interface EventStream {
      */
     void accept(EventStreamOperationResponseHandler.Visitor visitor);
 }
-

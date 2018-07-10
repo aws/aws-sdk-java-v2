@@ -88,7 +88,7 @@
         <module>iot</module>
         <module>iotdata</module>
         <module>kinesis</module>
-        <module>kinesis-bundle</module>
+        <!-- <module>kinesis-bundle</module> -->
         <module>kinesisanalytics</module>
         <module>kinesisfirehose</module>
         <module>kms</module>

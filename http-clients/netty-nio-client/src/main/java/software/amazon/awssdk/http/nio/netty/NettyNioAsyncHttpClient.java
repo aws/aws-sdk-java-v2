@@ -21,7 +21,6 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECT
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_PENDING_CONNECTION_ACQUIRES;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.READ_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.WRITE_TIMEOUT;
-import static software.amazon.awssdk.http.nio.netty.internal.utils.SocketChannelResolver.resolveSocketChannelClass;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import io.netty.bootstrap.Bootstrap;
@@ -62,7 +61,6 @@ import software.amazon.awssdk.http.nio.netty.internal.SharedSdkEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpOrHttp2ChannelPool;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -145,7 +143,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                 Bootstrap bootstrap =
                     new Bootstrap()
                         .group(sdkEventLoopGroup.eventLoopGroup())
-                        .channel(resolveSocketChannelClass(sdkEventLoopGroup.eventLoopGroup()))
+                        .channelFactory(sdkEventLoopGroup.channelFactory())
                         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, configuration.connectTimeoutMillis())
                         // TODO run some performance tests with and without this.
                         .option(ChannelOption.TCP_NODELAY, true)

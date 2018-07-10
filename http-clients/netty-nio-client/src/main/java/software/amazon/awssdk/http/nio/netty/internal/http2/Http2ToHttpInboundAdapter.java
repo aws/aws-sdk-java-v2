@@ -31,12 +31,15 @@ import io.netty.handler.codec.http2.Http2ResetFrame;
 import io.netty.handler.codec.http2.HttpConversionUtil;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * Converts {@link Http2Frame}s to {@link HttpObject}s. Ignores the majority of {@link Http2Frame}s like PING
  * or SETTINGS.
  */
+@SdkInternalApi
 public class Http2ToHttpInboundAdapter extends SimpleChannelInboundHandler<Http2Frame> {
 
     public Http2ToHttpInboundAdapter() {

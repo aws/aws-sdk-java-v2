@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.core.eventstream;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkException;
 
 /**
  * Exception thrown during the processing of an event stream.
  */
+@SdkPublicApi
 public final class EventStreamException extends SdkException {
 
     private final String errorCode;

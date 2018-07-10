@@ -18,7 +18,9 @@ package software.amazon.awssdk.core.internal.async;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
+@SdkInternalApi
 public class LimitingSubscriber<T> extends DelegatingSubscriber<T, T> {
 
     private final int limit;

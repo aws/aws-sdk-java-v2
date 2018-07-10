@@ -18,7 +18,9 @@ package software.amazon.awssdk.core.internal.async;
 import java.util.function.Predicate;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
+@SdkInternalApi
 public class FilteringSubscriber<T> extends DelegatingSubscriber<T, T> {
 
     private final Predicate<T> predicate;

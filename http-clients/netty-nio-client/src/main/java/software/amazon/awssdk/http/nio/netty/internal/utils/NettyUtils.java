@@ -22,7 +22,9 @@ import io.netty.util.concurrent.Promise;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
+@SdkInternalApi
 public final class NettyUtils {
 
     private NettyUtils() {

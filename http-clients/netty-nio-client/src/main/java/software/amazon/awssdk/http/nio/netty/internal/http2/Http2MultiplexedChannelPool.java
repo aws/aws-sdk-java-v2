@@ -26,6 +26,8 @@ import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import java.util.ArrayList;
+
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPool;
 
 /**
@@ -40,6 +42,7 @@ import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPo
  * to enforce max concurrency which gives a bunch of other good features like timeouts, max pending acquires, etc.
  * </p>
  */
+@SdkInternalApi
 public class Http2MultiplexedChannelPool implements ChannelPool {
 
     private final EventLoop eventLoop;

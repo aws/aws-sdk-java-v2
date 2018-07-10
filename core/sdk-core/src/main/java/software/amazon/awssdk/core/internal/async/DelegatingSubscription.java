@@ -16,7 +16,9 @@
 package software.amazon.awssdk.core.internal.async;
 
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
+@SdkInternalApi
 public class DelegatingSubscription implements Subscription {
 
     private final Subscription s;

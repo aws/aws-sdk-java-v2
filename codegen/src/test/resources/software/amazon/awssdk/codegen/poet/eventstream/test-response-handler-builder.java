@@ -1,6 +1,6 @@
 package software.amazon.awssdk.services.json.model;
 
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.eventstream.DefaultEventStreamResponseHandlerBuilder;
 import software.amazon.awssdk.core.eventstream.EventStreamResponseHandlerFromBuilder;
@@ -8,9 +8,9 @@ import software.amazon.awssdk.core.eventstream.EventStreamResponseHandlerFromBui
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 final class DefaultEventStreamOperationResponseHandlerBuilder
-    extends
-    DefaultEventStreamResponseHandlerBuilder<EventStreamOperationResponse, EventStream, EventStreamOperationResponseHandler.Builder>
-    implements EventStreamOperationResponseHandler.Builder {
+        extends
+        DefaultEventStreamResponseHandlerBuilder<EventStreamOperationResponse, EventStream, EventStreamOperationResponseHandler.Builder>
+        implements EventStreamOperationResponseHandler.Builder {
     @Override
     public EventStreamOperationResponseHandler.Builder subscriber(EventStreamOperationResponseHandler.Visitor visitor) {
         subscriber(e -> e.accept(visitor));
@@ -24,10 +24,9 @@ final class DefaultEventStreamOperationResponseHandlerBuilder
 
     @Generated("software.amazon.awssdk:codegen")
     private static final class Impl extends EventStreamResponseHandlerFromBuilder<EventStreamOperationResponse, EventStream>
-        implements EventStreamOperationResponseHandler {
+            implements EventStreamOperationResponseHandler {
         private Impl(DefaultEventStreamOperationResponseHandlerBuilder builder) {
             super(builder);
         }
     }
 }
-

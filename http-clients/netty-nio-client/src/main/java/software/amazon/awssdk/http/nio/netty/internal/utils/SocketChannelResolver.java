@@ -44,30 +44,6 @@ public final class SocketChannelResolver {
     }
 
     /**
-     * Attempts to determine the {@link Channel} class that corresponds to the given
-     * event loop group.
-     *
-     * @param eventLoopGroup the event loop group to determine the {@link Channel} for
-     * @return A {@link Channel} class for the given event loop group.
-     */
-    public static Class<? extends Channel> resolveSocketChannelClass(EventLoopGroup eventLoopGroup) {
-        if (eventLoopGroup instanceof DelegatingEventLoopGroup) {
-            return resolveSocketChannelClass(((DelegatingEventLoopGroup) eventLoopGroup).getDelegate());
-        }
-        if (eventLoopGroup instanceof NioEventLoopGroup) {
-            return NioSocketChannel.class;
-        }
-        if (eventLoopGroup instanceof EpollEventLoopGroup) {
-            return EpollSocketChannel.class;
-        }
-        String socketFqcn = KNOWN_EL_GROUPS.get(eventLoopGroup.getClass().getName());
-        if (socketFqcn == null) {
-            throw new IllegalArgumentException("Unknown event loop group : " + eventLoopGroup.getClass());
-        }
-        return invokeSafely(() -> (Class<? extends Channel>) Class.forName(socketFqcn));
-    }
-
-    /**
      * Attempts to determine the {@link ChannelFactory} class that corresponds to the given
      * event loop group.
      *

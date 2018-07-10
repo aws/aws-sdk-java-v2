@@ -22,7 +22,9 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
+@SdkInternalApi
 public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U> {
 
     private final AtomicLong demand = new AtomicLong(0);

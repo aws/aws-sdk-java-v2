@@ -1,7 +1,7 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Optional;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -10,7 +10,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class EventStreamOperationResponse extends JsonProtocolTestsResponse implements
-                                                                                  ToCopyableBuilder<EventStreamOperationResponse.Builder, EventStreamOperationResponse> {
+        ToCopyableBuilder<EventStreamOperationResponse.Builder, EventStreamOperationResponse> {
     private EventStreamOperationResponse(BuilderImpl builder) {
         super(builder);
     }
@@ -74,4 +74,3 @@ public final class EventStreamOperationResponse extends JsonProtocolTestsRespons
         }
     }
 }
-

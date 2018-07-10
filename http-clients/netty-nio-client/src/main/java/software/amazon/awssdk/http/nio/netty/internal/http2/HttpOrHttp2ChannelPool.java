@@ -29,6 +29,7 @@ import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
 import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPool;
@@ -38,6 +39,7 @@ import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPo
  * to appropriate channel pool implementation depending on the protocol. This assumes that
  * all connections will be negotiated with the same protocol.
  */
+@SdkInternalApi
 public class HttpOrHttp2ChannelPool implements ChannelPool {
 
     private final ChannelPool simpleChannelPool;
