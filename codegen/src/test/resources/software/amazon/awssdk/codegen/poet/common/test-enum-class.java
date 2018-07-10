@@ -4,7 +4,7 @@ import static java.util.stream.Collectors.toSet;
 
 import java.util.Set;
 import java.util.stream.Stream;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 
 /**
  * Some comment on the class itself

@@ -135,5 +135,12 @@ public interface NamingStrategy {
      * @param memberName Member name to name fluent setter for.
      * @return Appropriate name to use for fluent setter method (i.e. withFoo) for a model class member.
      */
-    String getFluentSetterMethodName(String memberName);
+    String getFluentSetterMethodName(String memberName, Shape shape);
+
+    /**
+     * @param memberName The full member to get the name for.
+     * @param shape The shape associated with the member.
+     * @return Name of the getter method for an enum model class member.
+     */
+    String getFluentEnumSetterMethodName(String memberName, Shape shape);
 }

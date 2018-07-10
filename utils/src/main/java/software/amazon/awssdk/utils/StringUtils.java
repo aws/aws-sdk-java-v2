@@ -15,6 +15,10 @@
 
 package software.amazon.awssdk.utils;
 
+import java.io.UncheckedIOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
 import java.util.Locale;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -222,11 +226,7 @@ public final class StringUtils {
      * {@code null}.</p>
      *
      * <p>The String is trimmed using {@link String#trim()}.
-     * Trim removes start and end characters &lt;= 32.
-     * To strip whitespace use {@link #strip(String)}.</p>
-     *
-     * <p>To trim your choice of characters, use the
-     * {@link #strip(String, String)} methods.</p>
+     * Trim removes start and end characters &lt;= 32.</p>
      *
      * <pre>
      * StringUtils.trim(null)          = null
@@ -249,8 +249,7 @@ public final class StringUtils {
      * empty ("") after the trim or if it is {@code null}.
      *
      * <p>The String is trimmed using {@link String#trim()}.
-     * Trim removes start and end characters &lt;= 32.
-     * To strip whitespace use {@link #stripToNull(String)}.</p>
+     * Trim removes start and end characters &lt;= 32.</p>
      *
      * <pre>
      * StringUtils.trimToNull(null)          = null
@@ -276,8 +275,7 @@ public final class StringUtils {
      * is empty ("") after the trim or if it is {@code null}.
      *
      * <p>The String is trimmed using {@link String#trim()}.
-     * Trim removes start and end characters &lt;= 32.
-     * To strip whitespace use {@link #stripToEmpty(String)}.</p>
+     * Trim removes start and end characters &lt;= 32.</p>
      *
      * <pre>
      * StringUtils.trimToEmpty(null)          = ""
@@ -568,5 +566,18 @@ public final class StringUtils {
             inOffset += Character.charCount(codepoint);
         }
         return new String(newCodePoints, 0, outOffset);
+    }
+
+    /**
+     * Encode the given bytes as a string using the given charset
+     * @throws UncheckedIOException with a {@link CharacterCodingException} as the cause if the bytes cannot be encoded using the
+     * provided charset.
+     */
+    public static String fromBytes(byte[] bytes, Charset charset) throws UncheckedIOException {
+        try {
+            return charset.newDecoder().decode(ByteBuffer.wrap(bytes)).toString();
+        } catch (CharacterCodingException e) {
+            throw new UncheckedIOException("Cannot encode string.", e);
+        }
     }
 }

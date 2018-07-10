@@ -33,10 +33,10 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.pagination.PaginatedItemsIterable;
-import software.amazon.awssdk.core.pagination.PaginatedResponsesIterator;
-import software.amazon.awssdk.core.pagination.SdkIterable;
-import software.amazon.awssdk.core.pagination.SyncPageFetcher;
+import software.amazon.awssdk.core.pagination.sync.PaginatedItemsIterable;
+import software.amazon.awssdk.core.pagination.sync.PaginatedResponsesIterator;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
+import software.amazon.awssdk.core.pagination.sync.SyncPageFetcher;
 
 /**
  * Java poet {@link ClassSpec} to generate the response class for sync paginated operations.
@@ -117,7 +117,7 @@ public class SyncResponseClassSpec extends PaginatorsClassSpec {
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .returns(ParameterizedTypeName.get(ClassName.get(Iterator.class), responseType()))
-                .addStatement("return new $T($L)", PaginatedResponsesIterator.class, NEXT_PAGE_FETCHER_MEMBER)
+                .addStatement("return $1T.builder().$2L($2L).build()", PaginatedResponsesIterator.class, NEXT_PAGE_FETCHER_MEMBER)
                 .build();
     }
 
@@ -149,7 +149,8 @@ public class SyncResponseClassSpec extends PaginatorsClassSpec {
      *          }
      *          return Collections.emptyIterator();
      *      };
-     *      return new PaginatedItemsIterable(this, getIterator);
+     *
+     *      return PaginatedItemsIterable.builder().pagesIterable(this).itemIteratorFunction(getIterator).build();
      *  }
      */
     private MethodSpec getMethodsSpecForSingleResultKey(String resultKey) {
@@ -166,7 +167,8 @@ public class SyncResponseClassSpec extends PaginatorsClassSpec {
                                                                                       resultKeyType)))
                          .addCode(getIteratorLambdaBlock(resultKey, resultKeyModel))
                          .addCode("\n")
-                         .addStatement("return new $T(this, getIterator)", PaginatedItemsIterable.class)
+                         .addStatement("return $T.builder().pagesIterable(this).itemIteratorFunction(getIterator).build()",
+                                       PaginatedItemsIterable.class)
                          .addJavadoc(CodeBlock.builder()
                                               .add("Returns an iterable to iterate through the paginated {@link $T#$L()} member."
                                                    + " The returned iterable is used to iterate through the results across all "

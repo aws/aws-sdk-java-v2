@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -116,11 +116,11 @@ public final class NestedContainersRequest extends JsonProtocolTestsRequest impl
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
         case "ListOfListOfStrings":
-            return Optional.of(clazz.cast(listOfListOfStrings()));
+            return Optional.ofNullable(clazz.cast(listOfListOfStrings()));
         case "ListOfListOfListOfStrings":
-            return Optional.of(clazz.cast(listOfListOfListOfStrings()));
+            return Optional.ofNullable(clazz.cast(listOfListOfListOfStrings()));
         case "MapOfStringToListOfListOfStrings":
-            return Optional.of(clazz.cast(mapOfStringToListOfListOfStrings()));
+            return Optional.ofNullable(clazz.cast(mapOfStringToListOfListOfStrings()));
         default:
             return Optional.empty();
         }

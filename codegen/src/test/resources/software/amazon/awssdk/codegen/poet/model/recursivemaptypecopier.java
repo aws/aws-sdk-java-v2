@@ -4,16 +4,18 @@ import static java.util.stream.Collectors.toMap;
 
 import java.util.Collections;
 import java.util.Map;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 
 @Generated("software.amazon.awssdk:codegen")
 final class RecursiveMapTypeCopier {
     static Map<String, RecursiveStructType> copy(Map<String, RecursiveStructType> recursiveMapTypeParam) {
-        if (recursiveMapTypeParam == null) {
-            return null;
+        if (recursiveMapTypeParam == null || recursiveMapTypeParam instanceof SdkAutoConstructMap) {
+            return DefaultSdkAutoConstructMap.getInstance();
         }
         Map<String, RecursiveStructType> recursiveMapTypeParamCopy = recursiveMapTypeParam.entrySet().stream()
-                                                                                          .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
         return Collections.unmodifiableMap(recursiveMapTypeParamCopy);
     }
 

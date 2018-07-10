@@ -162,15 +162,15 @@ public class AsyncClientInterface implements ClassSpec {
         List<MethodSpec> methods = new ArrayList<>();
 
         if (opModel.isPaginated()) {
+            if (opModel.getInputShape().isSimpleMethod()) {
+                methods.add(paginatedSimpleMethod(opModel));
+            }
+
             MethodSpec paginatedMethod = paginatedTraditionalMethod(opModel);
             methods.add(paginatedMethod);
 
-            if (opModel.getInputShape().isSimpleMethod()) {
-                methods.add(paginatedSimpleMethod(opModel));
-            } else {
-                String consumerBuilderJavadoc = consumerBuilderJavadoc(opModel, SimpleMethodOverload.PAGINATED);
-                methods.add(ClientClassUtils.consumerBuilderVariant(paginatedMethod, consumerBuilderJavadoc));
-            }
+            String consumerBuilderJavadoc = consumerBuilderJavadoc(opModel, SimpleMethodOverload.PAGINATED);
+            methods.add(ClientClassUtils.consumerBuilderVariant(paginatedMethod, consumerBuilderJavadoc));
         }
 
         return methods;

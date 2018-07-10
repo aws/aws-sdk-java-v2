@@ -4,9 +4,12 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import javax.annotation.Generated;
 import org.reactivestreams.Subscriber;
+<<<<<<< HEAD
 import software.amazon.awssdk.core.async.SdkPublisher;
+=======
+import software.amazon.awssdk.annotations.Generated;
+>>>>>>> public/master
 import software.amazon.awssdk.core.pagination.async.AsyncPageFetcher;
 import software.amazon.awssdk.core.pagination.async.EmptySubscription;
 import software.amazon.awssdk.core.pagination.async.PaginatedItemsPublisher;
@@ -93,7 +96,7 @@ public class PaginatedOperationWithResultKeyPublisher implements SdkPublisher<Pa
 
     @Override
     public void subscribe(Subscriber<? super PaginatedOperationWithResultKeyResponse> subscriber) {
-        subscriber.onSubscribe(new ResponsesSubscription(subscriber, nextPageFetcher));
+        subscriber.onSubscribe(ResponsesSubscription.builder().subscriber(subscriber).nextPageFetcher(nextPageFetcher).build());
     }
 
     /**
@@ -108,7 +111,8 @@ public class PaginatedOperationWithResultKeyPublisher implements SdkPublisher<Pa
             }
             return Collections.emptyIterator();
         };
-        return new PaginatedItemsPublisher(new PaginatedOperationWithResultKeyResponseFetcher(), getIterator, isLastPage);
+        return PaginatedItemsPublisher.builder().nextPageFetcher(new PaginatedOperationWithResultKeyResponseFetcher())
+                                      .iteratorFunction(getIterator).isLastPage(isLastPage).build();
     }
 
     /**

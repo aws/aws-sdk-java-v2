@@ -20,16 +20,16 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.services.sts.StsClient;
-import software.amazon.awssdk.services.sts.model.AssumeRoleWithSAMLRequest;
+import software.amazon.awssdk.services.sts.model.AssumeRoleWithSamlRequest;
 import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * An implementation of {@link AwsCredentialsProvider} that periodically sends a {@link AssumeRoleWithSAMLRequest}
+ * An implementation of {@link AwsCredentialsProvider} that periodically sends a {@link AssumeRoleWithSamlRequest}
  * to the AWS Security Token Service to maintain short-lived sessions to use for authentication. These sessions are updated
  * asynchronously in the background as they get close to expiring. If the credentials are not successfully updated asynchronously
- * in the background, calls to {@link #getCredentials()} will begin to block in an attempt to update the credentials
+ * in the background, calls to {@link #resolveCredentials()} will begin to block in an attempt to update the credentials
  * synchronously.
  *
  * This provider creates a thread in the background to periodically update credentials. If this provider is no longer needed,
@@ -39,7 +39,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @ThreadSafe
 public class StsAssumeRoleWithSamlCredentialsProvider extends StsCredentialsProvider {
-    private final AssumeRoleWithSAMLRequest assumeRoleWithSamlRequest;
+    private final AssumeRoleWithSamlRequest assumeRoleWithSamlRequest;
 
     /**
      * @see #builder()
@@ -76,31 +76,31 @@ public class StsAssumeRoleWithSamlCredentialsProvider extends StsCredentialsProv
      */
     @NotThreadSafe
     public static final class Builder extends BaseBuilder<Builder, StsAssumeRoleWithSamlCredentialsProvider> {
-        private AssumeRoleWithSAMLRequest assumeRoleWithSamlRequest;
+        private AssumeRoleWithSamlRequest assumeRoleWithSamlRequest;
 
         private Builder() {
             super(StsAssumeRoleWithSamlCredentialsProvider::new);
         }
 
         /**
-         * Configure the {@link AssumeRoleWithSAMLRequest} that should be periodically sent to the STS service to update
+         * Configure the {@link AssumeRoleWithSamlRequest} that should be periodically sent to the STS service to update
          * the session token when it gets close to expiring.
          *
          * @param assumeRoleWithSamlRequest The request to send to STS whenever the assumed session expires.
          * @return This object for chained calls.
          */
-        public Builder refreshRequest(AssumeRoleWithSAMLRequest assumeRoleWithSamlRequest) {
+        public Builder refreshRequest(AssumeRoleWithSamlRequest assumeRoleWithSamlRequest) {
             this.assumeRoleWithSamlRequest = assumeRoleWithSamlRequest;
             return this;
         }
 
         /**
-         * Similar to {@link #refreshRequest(AssumeRoleWithSAMLRequest)}, but takes a lambda to configure a new
-         * {@link AssumeRoleWithSAMLRequest.Builder}. This removes the need to called {@link AssumeRoleWithSAMLRequest#builder()}
-         * and {@link AssumeRoleWithSAMLRequest.Builder#build()}.
+         * Similar to {@link #refreshRequest(AssumeRoleWithSamlRequest)}, but takes a lambda to configure a new
+         * {@link AssumeRoleWithSamlRequest.Builder}. This removes the need to called {@link AssumeRoleWithSamlRequest#builder()}
+         * and {@link AssumeRoleWithSamlRequest.Builder#build()}.
          */
-        public Builder refreshRequest(Consumer<AssumeRoleWithSAMLRequest.Builder> assumeRoleWithSamlRequest) {
-            return refreshRequest(AssumeRoleWithSAMLRequest.builder().apply(assumeRoleWithSamlRequest).build());
+        public Builder refreshRequest(Consumer<AssumeRoleWithSamlRequest.Builder> assumeRoleWithSamlRequest) {
+            return refreshRequest(AssumeRoleWithSamlRequest.builder().applyMutation(assumeRoleWithSamlRequest).build());
         }
     }
 }

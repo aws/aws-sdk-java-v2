@@ -20,7 +20,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -268,7 +267,6 @@ public class FilterConditionTest {
     }
 
     @Test
-    @Ignore // FIXME: fails with "region cannot be null"
     public void testScanFilter_DuplicateAttribute() {
         Table fakeTable = new Table(DynamoDbClient.builder().region(Region.US_WEST_2).build(), "fake-table");
         try {

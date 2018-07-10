@@ -23,9 +23,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iotdataplane.IotDataPlaneClient;
 import software.amazon.awssdk.services.iotdataplane.model.DeleteThingShadowRequest;
@@ -48,16 +48,12 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
 
     private IotDataPlaneClient iot;
 
-    private static ByteBuffer getPayloadAsByteBuffer(String payloadString) {
-        return ByteBuffer.wrap(payloadString.getBytes(StandardCharsets.UTF_8));
-    }
-
     private static JsonNode getPayloadAsJsonNode(ByteBuffer payload) throws IOException {
         return new ObjectMapper().readTree(BinaryUtils.toStream(payload));
     }
 
-    private static void assertPayloadNonEmpty(ByteBuffer payload) {
-        assertThat(payload.capacity(), greaterThan(0));
+    private static void assertPayloadNonEmpty(SdkBytes payload) {
+        assertThat(payload.asByteBuffer().capacity(), greaterThan(0));
     }
 
     /**
@@ -70,9 +66,9 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
      *            ByteBuffer returned by the service containing the state (which should be the same
      *            as what we sent) plus additional metadata in the JSON document
      */
-    private static void assertPayloadIsValid(ByteBuffer originalPayload, ByteBuffer returnedPayload) throws Exception {
-        JsonNode originalJson = getPayloadAsJsonNode(originalPayload);
-        JsonNode returnedJson = getPayloadAsJsonNode(returnedPayload);
+    private static void assertPayloadIsValid(SdkBytes originalPayload, SdkBytes returnedPayload) throws Exception {
+        JsonNode originalJson = getPayloadAsJsonNode(originalPayload.asByteBuffer());
+        JsonNode returnedJson = getPayloadAsJsonNode(returnedPayload.asByteBuffer());
         assertEquals(originalJson.get(STATE_FIELD_NAME), returnedJson.get(STATE_FIELD_NAME));
     }
 
@@ -83,7 +79,7 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
 
     @Test
     public void publish_ValidTopicAndNonEmptyPayload_DoesNotThrowException() {
-        iot.publish(PublishRequest.builder().topic(THING_NAME).payload(ByteBuffer.wrap(new byte[] {1, 2, 3, 4})).build());
+        iot.publish(PublishRequest.builder().topic(THING_NAME).payload(SdkBytes.fromByteArray(new byte[] {1, 2, 3, 4})).build());
     }
 
     @Test
@@ -99,7 +95,7 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
 
     @Test(expected = InvalidRequestException.class)
     public void updateThingShadow_MalformedPayload_ThrowsServiceException() throws Exception {
-        ByteBuffer payload = getPayloadAsByteBuffer("{ }");
+        SdkBytes payload = SdkBytes.fromUtf8String("{ }");
         UpdateThingShadowRequest request = UpdateThingShadowRequest.builder().thingName(THING_NAME).payload(payload).build();
         iot.updateThingShadow(request);
     }
@@ -124,12 +120,12 @@ public class ServiceIntegrationTest extends AwsIntegrationTestBase {
     }
 
     private void updateThingShadow_ValidRequest_ReturnsValidResponse(String thingName) throws Exception {
-        ByteBuffer originalPayload = getPayloadAsByteBuffer("{ \"state\": {\"reported\":{ \"r\": {}}}}");
+        SdkBytes originalPayload = SdkBytes.fromUtf8String("{ \"state\": {\"reported\":{ \"r\": {}}}}");
         UpdateThingShadowRequest request = UpdateThingShadowRequest.builder().thingName(thingName).payload(originalPayload).build();
         UpdateThingShadowResponse result = iot.updateThingShadow(request);
 
         // Comes back with some extra metadata so we assert it's bigger than the original
-        assertThat(result.payload().capacity(), greaterThan(originalPayload.capacity()));
+        assertThat(result.payload().asByteBuffer().capacity(), greaterThan(originalPayload.asByteBuffer().capacity()));
         assertPayloadIsValid(originalPayload, result.payload());
     }
 

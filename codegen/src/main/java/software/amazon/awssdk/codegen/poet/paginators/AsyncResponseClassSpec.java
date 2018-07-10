@@ -142,8 +142,8 @@ public class AsyncResponseClassSpec extends PaginatorsClassSpec {
                          .addParameter(ParameterizedTypeName.get(ClassName.get(Subscriber.class),
                                                                  WildcardTypeName.supertypeOf(responseType())),
                                        SUBSCRIBER)
-                         .addStatement("$L.onSubscribe(new $T($L, $L))", SUBSCRIBER, ResponsesSubscription.class,
-                                       SUBSCRIBER, NEXT_PAGE_FETCHER_MEMBER)
+                         .addStatement("$1L.onSubscribe($2T.builder().$1L($1L).$3L($3L).build())",
+                                       SUBSCRIBER, ResponsesSubscription.class, NEXT_PAGE_FETCHER_MEMBER)
                          .build();
     }
 
@@ -175,7 +175,10 @@ public class AsyncResponseClassSpec extends PaginatorsClassSpec {
      *          }
      *          return Collections.emptyIterator();
      *      };
-     *      return new PaginatedItemsPublisher(new DescribeFolderContentsResponseFetcher(), getIterator);
+     *      return PaginatedItemsPublisher.builder().nextPageFetcher(new DescribeFolderContentsResponseFetcher())
+                                                    .iteratorFunction(getIterator)
+                                                    .isLastPage(isLastPage)
+                                                    .build();
      *  }
      */
     private MethodSpec getMethodsSpecForSingleResultKey(String resultKey) {
@@ -192,9 +195,8 @@ public class AsyncResponseClassSpec extends PaginatorsClassSpec {
                                                                                       resultKeyType)))
                          .addCode(getIteratorLambdaBlock(resultKey, resultKeyModel))
                          .addCode("\n")
-                         .addStatement("return new $T(new $L(), getIterator, $L)",
-                                       PaginatedItemsPublisher.class,
-                                       nextPageFetcherClassName(),
+                         .addStatement("return $1T.builder().$2L(new $3L()).iteratorFunction(getIterator).$4L($4L).build()",
+                                       PaginatedItemsPublisher.class, NEXT_PAGE_FETCHER_MEMBER, nextPageFetcherClassName(),
                                        LAST_PAGE_FIELD)
                          .addJavadoc(CodeBlock.builder()
                                               .add("Returns a publisher that can be used to get a stream of data. You need to "

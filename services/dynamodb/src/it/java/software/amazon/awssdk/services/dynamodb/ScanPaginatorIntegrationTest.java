@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.pagination.SdkIterable;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
@@ -43,7 +43,7 @@ import utils.test.util.TableUtils;
 
 public class ScanPaginatorIntegrationTest extends DynamoDBTestBase {
 
-    private static final String TABLE_NAME = BasicTempTable.TEMP_TABLE_NAME;
+    private static final String TABLE_NAME = "java-sdk-scan-paginator-test" + System.currentTimeMillis();
     private static final String HASH_KEY_NAME = BasicTempTable.HASH_KEY_NAME;
     private static final String ATTRIBUTE_FOO = "attribute_foo";
     private static final int ITEM_COUNT = 19;

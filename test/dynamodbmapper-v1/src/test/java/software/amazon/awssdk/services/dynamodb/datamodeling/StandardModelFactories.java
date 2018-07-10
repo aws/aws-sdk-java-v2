@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling;
 
+import static java.util.stream.Collectors.toList;
 import static software.amazon.awssdk.services.dynamodb.datamodeling.StandardTypeConverters.Scalar.BOOLEAN;
 import static software.amazon.awssdk.services.dynamodb.datamodeling.StandardTypeConverters.Scalar.DEFAULT;
 import static software.amazon.awssdk.services.dynamodb.datamodeling.StandardTypeConverters.Scalar.STRING;
@@ -26,16 +27,19 @@ import static software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
 import static software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType.S;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.ImmutableObjectUtils;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperFieldModel.DynamoDbAttributeType;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperFieldModel.Reflect;
@@ -362,12 +366,12 @@ final class StandardModelFactories {
 
             @Override
             public ByteBuffer get(AttributeValue value) {
-                return value.b();
+                return value.b() == null ? null : value.b().asByteBuffer();
             }
 
             @Override
             public void set(AttributeValue value, ByteBuffer o) {
-                ImmutableObjectUtils.setObjectMember(value, "b", o);
+                ImmutableObjectUtils.setObjectMember(value, "b", SdkBytes.fromByteBuffer(o));
                 //value.setB(o);
             }
         }
@@ -452,12 +456,16 @@ final class StandardModelFactories {
 
             @Override
             public List<ByteBuffer> get(AttributeValue value) {
-                return value.bs();
+                return Optional.ofNullable(value.bs())
+                               .map(bs -> bs.stream()
+                                            .map(SdkBytes::asByteBuffer)
+                                            .collect(toList()))
+                               .orElse(null);
             }
 
             @Override
             public void set(AttributeValue value, List<ByteBuffer> o) {
-                ImmutableObjectUtils.setObjectMember(value, "bs", o);
+                ImmutableObjectUtils.setObjectMember(value, "bs", o.stream().map(SdkBytes::fromByteBuffer).collect(toList()));
                 //value.setBS(o);
             }
         }

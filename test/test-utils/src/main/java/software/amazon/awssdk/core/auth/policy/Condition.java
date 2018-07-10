@@ -36,14 +36,11 @@ import software.amazon.awssdk.annotations.ReviewBeforeRelease;
  * <ul>
  * <li><b>Condition Key</b> - The condition key declares which value of a
  * request to pull in and compare against when a policy is evaluated by AWS. For
- * example, using {@link ConditionFactory#SOURCE_IP_CONDITION_KEY} will cause
+ * example, using {@link software.amazon.awssdk.core.auth.policy.conditions.ConditionFactory#SOURCE_IP_CONDITION_KEY} will cause
  * AWS to pull in the current request's source IP as the first value to compare
  * against every time your policy is evaluated.
  * <li><b>Comparison Type</b> - Most condition types allow several ways to
  * compare the value obtained from the condition key and the comparison value.
- * For example, the {@link NumericComparisonType} enumerates the ways a
- * {@link NumericCondition} can be evaluated (less than, greater than, equals,
- * etc).
  * <li><b>Comparison Value</b> - This is a static value used as the second value
  * in the comparison when your policy is evaluated. Depending on the comparison
  * type, this value can optionally use wildcards. See the documentation for

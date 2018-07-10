@@ -158,7 +158,7 @@ public class BucketInventoryConfigurationIntegrationTest extends S3IntegrationTe
                                                                                          .frequency(InventoryFrequency.DAILY)
                                                                                          .build())
                                                               .filter(InventoryFilter.builder().prefix(prefix).build())
-                                                              .optionalFields(optionalFields)
+                                                              .optionalFieldsWithStrings(optionalFields)
                                                               .build();
 
 

@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.json;
 
 import java.util.function.Consumer;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 
 /**
@@ -28,6 +28,6 @@ public interface JsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C>
     B serviceConfiguration(ServiceConfiguration serviceConfiguration);
 
     default B serviceConfiguration(Consumer<ServiceConfiguration.Builder> serviceConfiguration) {
-        return serviceConfiguration(ServiceConfiguration.builder().apply(serviceConfiguration).build());
+        return serviceConfiguration(ServiceConfiguration.builder().applyMutation(serviceConfiguration).build());
     }
 }

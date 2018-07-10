@@ -233,23 +233,24 @@ public final class SyncClientInterface implements ClassSpec {
         List<MethodSpec> paginatedMethodSpecs = new ArrayList<>();
 
         if (opModel.isPaginated()) {
-            paginatedMethodSpecs.add(operationMethodSignature(model,
-                                                              opModel,
-                                                              SimpleMethodOverload.PAGINATED,
-                                                              PaginatorUtils.getPaginatedMethodName(opModel.getMethodName()))
-                                             .returns(poetExtensions.getResponseClassForPaginatedSyncOperation(
-                                                     opModel.getOperationName()))
-                                             .addModifiers(Modifier.DEFAULT)
-                                             .addStatement("throw new $T()", UnsupportedOperationException.class)
-                                             .build());
-
             if (opModel.getInputShape().isSimpleMethod()) {
                 paginatedMethodSpecs.add(paginatedSimpleMethod(opModel));
-            } else {
-                String consumerBuilderJavadoc = consumerBuilderJavadoc(opModel, SimpleMethodOverload.PAGINATED);
-                paginatedMethodSpecs.add(ClientClassUtils.consumerBuilderVariant(paginatedMethodSpecs.get(0),
-                                                                                 consumerBuilderJavadoc));
             }
+
+            MethodSpec paginatedMethod =
+                    operationMethodSignature(model,
+                                             opModel,
+                                             SimpleMethodOverload.PAGINATED,
+                                             PaginatorUtils.getPaginatedMethodName(opModel.getMethodName()))
+                            .returns(poetExtensions.getResponseClassForPaginatedSyncOperation(opModel.getOperationName()))
+                            .addModifiers(Modifier.DEFAULT)
+                            .addStatement("throw new $T()", UnsupportedOperationException.class)
+                            .build();
+
+            paginatedMethodSpecs.add(paginatedMethod);
+
+            String consumerBuilderJavadoc = consumerBuilderJavadoc(opModel, SimpleMethodOverload.PAGINATED);
+            paginatedMethodSpecs.add(ClientClassUtils.consumerBuilderVariant(paginatedMethod, consumerBuilderJavadoc));
         }
 
         return paginatedMethodSpecs;

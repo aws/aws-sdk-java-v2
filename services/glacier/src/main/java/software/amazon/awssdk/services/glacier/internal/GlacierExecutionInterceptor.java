@@ -30,7 +30,7 @@ public class GlacierExecutionInterceptor implements ExecutionInterceptor {
         SdkHttpFullRequest request = context.httpRequest();
         Object originalRequest = context.request();
         return request.toBuilder()
-                      .apply(b -> beforeRequest(originalRequest, b))
+                      .applyMutation(b -> beforeRequest(originalRequest, b))
                       .build();
     }
 

@@ -20,6 +20,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
  * Interface to take a representation of an HTTP request, make an HTTP call, and return a representation of an HTTP response.
@@ -45,7 +46,7 @@ public interface SdkHttpClient extends SdkAutoCloseable, ConfigurationProvider {
      * Interface for creating an {@link SdkHttpClient} with service specific defaults applied.
      */
     @FunctionalInterface
-    interface Builder {
+    interface Builder<T extends SdkHttpClient.Builder<T>> extends SdkBuilder<T, SdkHttpClient> {
         /**
          * Create a {@link SdkHttpClient} without defaults applied. This is useful for reusing an HTTP client across multiple
          * services.

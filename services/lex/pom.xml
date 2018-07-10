@@ -32,7 +32,7 @@
   <!-- The dependencies section in pom.xml is auto generated. No manual changes are allowed -->
   <dependencies>
     <dependency>
-        <artifactId>core</artifactId>
+        <artifactId>sdk-core</artifactId>
         <groupId>software.amazon.awssdk</groupId>
         <optional>false</optional>
         <version>${awsjavasdk.version}</version>

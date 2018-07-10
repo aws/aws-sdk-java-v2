@@ -51,13 +51,9 @@
 
     <!-- The module section in pom.xml is auto generated. No manual changes are allowed -->
     <modules>
+        <module>core</module>
         <module>services</module>
         <module>aws-sdk-java</module>
-        <module>auth</module>
-        <module>aws-core</module>
-        <module>core</module>
-        <module>regions</module>
-        <module>profiles</module>
         <module>bom</module>
         <module>codegen</module>
         <module>http-client-spi</module>
@@ -73,7 +69,6 @@
         <module>test/service-test-utils</module>
         <module>test/test-utils</module>
         <module>test/codegen-generated-classes-test</module>
-        <module>annotations</module>
         <module>utils</module>
         <module>flow</module>
     </modules>
@@ -83,7 +78,7 @@
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
         <jackson.version>2.9.3</jackson.version>
-        <ion.java.version>1.0.2</ion.java.version>
+        <ion.java.version>1.2.0</ion.java.version>
         <commons.lang.version>3.4</commons.lang.version>
         <wiremock.version>2.18.0</wiremock.version>
         <slf4j.version>1.7.25</slf4j.version>
@@ -120,7 +115,7 @@
         <maven-failsafe-plugin.version>2.19.1</maven-failsafe-plugin.version>
         <maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
-        <checkstyle.version>7.5.1</checkstyle.version>
+        <checkstyle.version>7.8.2</checkstyle.version>
         <jacoco-maven-plugin.version>0.8.1</jacoco-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
 
@@ -133,8 +128,8 @@
         <aspectj.version>1.8.2</aspectj.version>
 
         <jre.version>1.8</jre.version>
-        <httpcomponents.httpclient.version>4.5.4</httpcomponents.httpclient.version>
-        <httpcomponents.httpcore.version>4.4.7</httpcomponents.httpcore.version>
+        <httpcomponents.httpclient.version>4.5.5</httpcomponents.httpclient.version>
+        <httpcomponents.httpcore.version>4.4.10</httpcomponents.httpcore.version>
 
         <!-- These properties are used by cucumber tests related code -->
         <unitils.version>3.3</unitils.version>
@@ -685,6 +680,7 @@
                                         <include>**/RunCucumberTest.java</include>
                                     </includes>
                                     <trimStackTrace>false</trimStackTrace>
+                                    <rerunFailingTestsCount>2</rerunFailingTestsCount>
                                 </configuration>
                             </execution>
                         </executions>

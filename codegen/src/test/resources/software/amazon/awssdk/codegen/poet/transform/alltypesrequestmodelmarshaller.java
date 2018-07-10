@@ -1,11 +1,11 @@
 package software.amazon.awssdk.services.jsonprotocoltests.transform;
 
-import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingInfo;
@@ -80,8 +80,8 @@ public class AllTypesRequestModelMarshaller {
             .builder(MarshallingType.STRUCTURED).marshallLocation(MarshallLocation.PAYLOAD)
             .marshallLocationName("StructWithNestedTimestampMember").isBinary(false).build();
 
-    private static final MarshallingInfo<ByteBuffer> BLOBARG_BINDING = MarshallingInfo.builder(MarshallingType.BYTE_BUFFER)
-                                                                                      .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("BlobArg").isBinary(false).build();
+    private static final MarshallingInfo<SdkBytes> BLOBARG_BINDING = MarshallingInfo.builder(MarshallingType.SDK_BYTES)
+                                                                                    .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("BlobArg").isBinary(false).build();
 
     private static final MarshallingInfo<StructuredPojo> STRUCTWITHNESTEDBLOB_BINDING = MarshallingInfo
             .builder(MarshallingType.STRUCTURED).marshallLocation(MarshallLocation.PAYLOAD)

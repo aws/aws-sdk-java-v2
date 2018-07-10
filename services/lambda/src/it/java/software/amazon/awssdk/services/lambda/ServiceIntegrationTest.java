@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.lambda;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
@@ -27,6 +26,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.lambda.model.CreateEventSourceMappingRequest;
 import software.amazon.awssdk.services.lambda.model.CreateEventSourceMappingResponse;
 import software.amazon.awssdk.services.lambda.model.CreateFunctionResponse;
@@ -63,16 +63,16 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
     @Before
     public void uploadFunction() throws IOException {
         // Upload function
-        byte[] functionBits;
+        SdkBytes functionBits;
         InputStream functionZip = new FileInputStream(cloudFuncZip);
         try {
-            functionBits = read(functionZip);
+            functionBits = SdkBytes.fromInputStream(functionZip);
         } finally {
             functionZip.close();
         }
 
         CreateFunctionResponse result = lambda.createFunction(r -> r.description("My cloud function").functionName(FUNCTION_NAME)
-                                                                    .code(FunctionCode.builder().zipFile(ByteBuffer.wrap(functionBits)).build())
+                                                                    .code(FunctionCode.builder().zipFile(functionBits).build())
                                                                     .handler("helloworld.handler")
                                                                     .memorySize(128)
                                                                     .runtime(Runtime.NODEJS4_3)
@@ -182,21 +182,21 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
 
         // Invoke the function
         InvokeResponse invokeResult = lambda.invoke(InvokeRequest.builder().functionName(FUNCTION_NAME)
-                .invocationType(InvocationType.EVENT).payload(ByteBuffer.wrap("{}".getBytes())).build()).join();
+                .invocationType(InvocationType.EVENT).payload(SdkBytes.fromUtf8String("{}")).build()).join();
 
         Assert.assertEquals(202, invokeResult.statusCode().intValue());
         Assert.assertNull(invokeResult.logResult());
-        Assert.assertEquals(0, invokeResult.payload().remaining());
+        Assert.assertEquals(0, invokeResult.payload().asByteBuffer().remaining());
 
         invokeResult = lambda.invoke(InvokeRequest.builder().functionName(FUNCTION_NAME)
                 .invocationType(InvocationType.REQUEST_RESPONSE).logType(LogType.TAIL)
-                .payload(ByteBuffer.wrap("{}".getBytes())).build()).join();
+                .payload(SdkBytes.fromUtf8String("{}")).build()).join();
 
         Assert.assertEquals(200, invokeResult.statusCode().intValue());
 
         System.out.println(new String(Base64Utils.decode(invokeResult.logResult()), StandardCharsets.UTF_8));
 
-        Assert.assertEquals("\"Hello World\"", StandardCharsets.UTF_8.decode(invokeResult.payload()).toString());
+        Assert.assertEquals("\"Hello World\"", invokeResult.payload().asUtf8String());
     }
 
     @Test

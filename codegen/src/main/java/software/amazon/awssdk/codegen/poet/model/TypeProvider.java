@@ -23,7 +23,6 @@ import com.squareup.javapoet.WildcardTypeName;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,11 +31,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.ListModel;
 import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.core.SdkBytes;
 
 /**
  * Helper class for resolving Poet {@link TypeName}s for use in model classes.
@@ -58,6 +59,10 @@ public class TypeProvider {
         return intermediateModel.getCustomizationConfig().isUseAutoConstructList();
     }
 
+    public boolean useAutoConstructMaps() {
+        return intermediateModel.getCustomizationConfig().isUseAutoConstructMap();
+    }
+
     public ClassName mapImplClassName() {
         return ClassName.get(HashMap.class);
     }
@@ -67,6 +72,9 @@ public class TypeProvider {
     }
 
     public TypeName returnType(MemberModel memberModel) {
+        if (memberModel.getVariable().getVariableType().endsWith("SdkBytes")) {
+            return TypeName.get(SdkBytes.class);
+        }
         return fieldType(memberModel, false);
     }
 
@@ -92,35 +100,48 @@ public class TypeProvider {
 
     public TypeName parameterType(MemberModel memberModel) {
         if (memberModel.isList()) {
-            ListModel listModel = memberModel.getListModel();
-            MemberModel elementModel = listModel.getListMemberModel();
-            TypeName listElementType = parameterType(elementModel);
-            if (elementModel.isList()) {
-                listElementType = WildcardTypeName.subtypeOf(listElementType);
-            }
-            return ParameterizedTypeName.get(ClassName.get(Collection.class), listElementType);
+            return listParameterType(memberModel.getListModel());
         }
 
         if (memberModel.isMap()) {
             MapModel mapModel = memberModel.getMapModel();
-
-            TypeName keyType;
-            if (mapModel.getKeyModel().isSimple()) {
-                keyType = getTypeNameForSimpleType(mapModel.getKeyModel().getVariable().getVariableType());
-            } else {
-                keyType = parameterType(mapModel.getKeyModel());
-
-            }
-
-            TypeName valueType = parameterType(mapModel.getValueModel());
-            if (mapModel.getValueModel().isList()) {
-                valueType = WildcardTypeName.subtypeOf(valueType);
-            }
+            TypeName keyType = mapKeyParameterType(mapModel);
+            TypeName valueType = mapValueParameterType(mapModel);
 
             return ParameterizedTypeName.get(ClassName.get(Map.class), keyType, valueType);
         }
 
         return fieldType(memberModel);
+    }
+
+    public TypeName listWithEnumParameterType(MemberModel memberModel) {
+        if (Utils.isListWithEnumShape(memberModel)) {
+            return ParameterizedTypeName.get(ClassName.get(Collection.class),
+                                             poetExtensions.getModelClass(memberModel.getListModel()
+                                                                                     .getListMemberModel()
+                                                                                     .getEnumType()));
+        } else {
+            return listParameterType(memberModel.getListModel());
+        }
+    }
+
+    public TypeName mapWithEnumParameterType(MapModel mapModel) {
+        TypeName keyType;
+        TypeName valueType;
+
+        if (Utils.isMapKeyWithEnumShape(mapModel)) {
+            keyType = poetExtensions.getModelClass(mapModel.getKeyModel().getEnumType());
+        } else {
+            keyType = mapKeyParameterType(mapModel);
+        }
+
+        if (Utils.isMapValueWithEnumShape(mapModel)) {
+            valueType = poetExtensions.getModelClass(mapModel.getValueModel().getEnumType());
+        } else {
+            valueType = mapValueParameterType(mapModel);
+        }
+
+        return ParameterizedTypeName.get(ClassName.get(Map.class), keyType, valueType);
     }
 
     public TypeName mapEntryType(MapModel mapModel) {
@@ -157,10 +178,7 @@ public class TypeProvider {
                 Double.class,
                 Float.class,
                 BigDecimal.class,
-                // TODO: Revisit use of this for non-streaming binary blobs
-                // and whether we even make a distinction between streaming
-                // and non-streaming
-                ByteBuffer.class,
+                SdkBytes.class,
                 InputStream.class,
                 Instant.class)
                 .filter(cls -> cls.getName().equals(simpleType) || cls.getSimpleName().equals(simpleType))
@@ -178,5 +196,35 @@ public class TypeProvider {
         }
 
         return builder.build();
+    }
+
+    private TypeName listParameterType(ListModel listModel) {
+        MemberModel elementModel = listModel.getListMemberModel();
+        TypeName listElementType = parameterType(elementModel);
+        if (elementModel.isList()) {
+            listElementType = WildcardTypeName.subtypeOf(listElementType);
+        }
+        return ParameterizedTypeName.get(ClassName.get(Collection.class), listElementType);
+    }
+
+    private TypeName mapKeyParameterType(MapModel mapModel) {
+        TypeName keyType;
+        if (mapModel.getKeyModel().isSimple()) {
+            keyType = getTypeNameForSimpleType(mapModel.getKeyModel().getVariable().getVariableType());
+        } else {
+            keyType = parameterType(mapModel.getKeyModel());
+
+        }
+
+        return keyType;
+    }
+
+    private TypeName mapValueParameterType(MapModel mapModel) {
+        TypeName valueType = parameterType(mapModel.getValueModel());
+        if (mapModel.getValueModel().isList()) {
+            valueType = WildcardTypeName.subtypeOf(valueType);
+        }
+
+        return valueType;
     }
 }

@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.protocol.StructuredPojo;
@@ -129,13 +129,13 @@ public final class RecursiveStructType implements StructuredPojo,
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
         case "NoRecurse":
-            return Optional.of(clazz.cast(noRecurse()));
+            return Optional.ofNullable(clazz.cast(noRecurse()));
         case "RecursiveStruct":
-            return Optional.of(clazz.cast(recursiveStruct()));
+            return Optional.ofNullable(clazz.cast(recursiveStruct()));
         case "RecursiveList":
-            return Optional.of(clazz.cast(recursiveList()));
+            return Optional.ofNullable(clazz.cast(recursiveList()));
         case "RecursiveMap":
-            return Optional.of(clazz.cast(recursiveMap()));
+            return Optional.ofNullable(clazz.cast(recursiveMap()));
         default:
             return Optional.empty();
         }
@@ -181,7 +181,7 @@ public final class RecursiveStructType implements StructuredPojo,
          * @see #recursiveStruct(RecursiveStructType)
          */
         default Builder recursiveStruct(Consumer<Builder> recursiveStruct) {
-            return recursiveStruct(RecursiveStructType.builder().apply(recursiveStruct).build());
+            return recursiveStruct(RecursiveStructType.builder().applyMutation(recursiveStruct).build());
         }
 
         /**
@@ -296,7 +296,7 @@ public final class RecursiveStructType implements StructuredPojo,
         @Override
         @SafeVarargs
         public final Builder recursiveList(Consumer<Builder>... recursiveList) {
-            recursiveList(Stream.of(recursiveList).map(c -> RecursiveStructType.builder().apply(c).build())
+            recursiveList(Stream.of(recursiveList).map(c -> RecursiveStructType.builder().applyMutation(c).build())
                     .collect(Collectors.toList()));
             return this;
         }

@@ -29,7 +29,7 @@ import software.amazon.awssdk.utils.Validate;
  * An implementation of {@link AwsCredentialsProvider} that periodically sends an {@link AssumeRoleRequest} to the AWS
  * Security Token Service to maintain short-lived sessions to use for authentication. These sessions are updated asynchronously
  * in the background as they get close to expiring. If the credentials are not successfully updated asynchronously in the
- * background, calls to {@link #getCredentials()} will begin to block in an attempt to update the credentials synchronously.
+ * background, calls to {@link #resolveCredentials()} will begin to block in an attempt to update the credentials synchronously.
  *
  * This provider creates a thread in the background to periodically update credentials. If this provider is no longer needed,
  * the background thread can be shut down using {@link #close()}.
@@ -99,7 +99,7 @@ public class StsAssumeRoleCredentialsProvider extends StsCredentialsProvider {
          * {@link AssumeRoleRequest.Builder#build()}.
          */
         public Builder refreshRequest(Consumer<AssumeRoleRequest.Builder> assumeRoleRequest) {
-            return refreshRequest(AssumeRoleRequest.builder().apply(assumeRoleRequest).build());
+            return refreshRequest(AssumeRoleRequest.builder().applyMutation(assumeRoleRequest).build());
         }
     }
 }

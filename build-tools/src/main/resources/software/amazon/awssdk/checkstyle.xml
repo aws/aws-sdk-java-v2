@@ -252,6 +252,13 @@
                      value="Method name ''{0}'' must match pattern ''{1}''."/>
         </module>
 
+        <!-- Should not use kotlin function name as public method name -->
+        <module name="software.amazon.awssdk.buildtools.checkstyle.SdkPublicMethodNameCheck">
+            <property name="format" value="^(?!(?:apply|let|run|also|with)$).*$"/>
+            <message key="name.invalidPattern"
+                     value="Method name ''{0}'' conflicts with kotlin function name"/>
+        </module>
+
         <!-- Finalizers must not be overridden. -->
         <module name="NoFinalizer"/>
 
@@ -410,6 +417,14 @@
             <property name="ignoreComments" value="true"/>
         </module>
 
+        <!-- Checks that we don't use Objects.hash. Objects.hashCode is preferred-->
+        <module name="Regexp">
+            <property name="format" value="\bObjects.hash\b"/>
+            <property name="illegalPattern" value="true"/>
+            <property name="message" value="Don't use Objects.hashCode, use Objects.hash instead"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+
         <!-- Checks that we don't use plural enum names -->
         <module name="software.amazon.awssdk.buildtools.checkstyle.PluralEnumNames"/>
 
@@ -418,5 +433,8 @@
 
         <!-- Checks for utility and constants classes to have private constructor-->
         <module name="HideUtilityClassConstructor"/>
+
+        <!-- Checks that every class is marked with Sdk Annotation -->
+        <module name="software.amazon.awssdk.buildtools.checkstyle.MissingSdkAnnotationCheck" />
     </module>
 </module>

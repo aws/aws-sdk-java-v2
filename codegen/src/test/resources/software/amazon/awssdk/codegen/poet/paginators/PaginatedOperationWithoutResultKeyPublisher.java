@@ -1,9 +1,12 @@
 package software.amazon.awssdk.services.jsonprotocoltests.paginators;
 
 import java.util.concurrent.CompletableFuture;
-import javax.annotation.Generated;
 import org.reactivestreams.Subscriber;
+<<<<<<< HEAD
 import software.amazon.awssdk.core.async.SdkPublisher;
+=======
+import software.amazon.awssdk.annotations.Generated;
+>>>>>>> public/master
 import software.amazon.awssdk.core.pagination.async.AsyncPageFetcher;
 import software.amazon.awssdk.core.pagination.async.EmptySubscription;
 import software.amazon.awssdk.core.pagination.async.ResponsesSubscription;
@@ -88,7 +91,7 @@ public class PaginatedOperationWithoutResultKeyPublisher implements SdkPublisher
 
     @Override
     public void subscribe(Subscriber<? super PaginatedOperationWithoutResultKeyResponse> subscriber) {
-        subscriber.onSubscribe(new ResponsesSubscription(subscriber, nextPageFetcher));
+        subscriber.onSubscribe(ResponsesSubscription.builder().subscriber(subscriber).nextPageFetcher(nextPageFetcher).build());
     }
 
     /**
@@ -98,8 +101,7 @@ public class PaginatedOperationWithoutResultKeyPublisher implements SdkPublisher
      * retrieve the consecutive pages that follows the input page.
      * </p>
      */
-    private final PaginatedOperationWithoutResultKeyPublisher resume(
-        PaginatedOperationWithoutResultKeyResponse lastSuccessfulPage) {
+    private final PaginatedOperationWithoutResultKeyPublisher resume(PaginatedOperationWithoutResultKeyResponse lastSuccessfulPage) {
         if (nextPageFetcher.hasNextPage(lastSuccessfulPage)) {
             return new PaginatedOperationWithoutResultKeyPublisher(client, firstRequest.toBuilder()
                                                                                        .nextToken(lastSuccessfulPage.nextToken()).build());

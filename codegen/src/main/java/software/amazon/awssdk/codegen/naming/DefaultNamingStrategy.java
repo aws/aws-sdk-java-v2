@@ -22,13 +22,13 @@ import static software.amazon.awssdk.codegen.internal.Constant.FAULT_CLASS_SUFFI
 import static software.amazon.awssdk.codegen.internal.Constant.REQUEST_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Constant.RESPONSE_CLASS_SUFFIX;
 import static software.amazon.awssdk.codegen.internal.Constant.VARIABLE_NAME_SUFFIX;
-import static software.amazon.awssdk.codegen.internal.Utils.capitalize;
 import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -53,12 +53,12 @@ public class DefaultNamingStrategy implements NamingStrategy {
     static {
         Set<String> keywords = new HashSet<>();
         Collections.addAll(keywords,
-                "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class",
-                "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for",
-                "if", "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "package",
-                "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch",
-                "synchronized", "this", "throw", "throws", "transient", "try", "void", "volatile", "while", "true",
-                "null", "false", "const", "goto");
+                           "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class",
+                           "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for",
+                           "if", "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "package",
+                           "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch",
+                           "synchronized", "this", "throw", "throws", "transient", "try", "void", "volatile", "while", "true",
+                           "null", "false", "const", "goto");
         RESERVED_KEYWORDS = Collections.unmodifiableSet(keywords);
     }
 
@@ -98,15 +98,16 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
     @Override
     public String getClientPackageName(String serviceName) {
-        return getCustomizedPackageName(serviceName,
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),
                                         Constant.PACKAGE_NAME_CLIENT_PATTERN);
     }
 
     @Override
     public String getModelPackageName(String serviceName) {
-        // Share transform package classes if we are sharing models.
-        if (customizationConfig.getShareModelsWith() != null) {
-            serviceName = customizationConfig.getShareModelsWith();
+        // Share model package classes if we are sharing models.
+        if (customizationConfig.getShareModelConfig() != null
+            && customizationConfig.getShareModelConfig().getShareModelWith() != null) {
+            serviceName = customizationConfig.getShareModelConfig().getShareModelWith();
         }
         return getCustomizedPackageName(serviceName,
                                         Constant.PACKAGE_NAME_MODEL_PATTERN);
@@ -115,27 +116,48 @@ public class DefaultNamingStrategy implements NamingStrategy {
     @Override
     public String getTransformPackageName(String serviceName) {
         // Share transform package classes if we are sharing models.
-        if (customizationConfig.getShareModelsWith() != null) {
-            serviceName = customizationConfig.getShareModelsWith();
+        if (customizationConfig.getShareModelConfig() != null
+            && customizationConfig.getShareModelConfig().getShareModelWith() != null) {
+            serviceName = customizationConfig.getShareModelConfig().getShareModelWith();
         }
-        return getRequestTransformPackageName(serviceName);
-    }
-
-    @Override
-    public String getRequestTransformPackageName(String serviceName) {
         return getCustomizedPackageName(serviceName,
                                         Constant.PACKAGE_NAME_TRANSFORM_PATTERN);
     }
 
     @Override
+    public String getRequestTransformPackageName(String serviceName) {
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),
+                                        Constant.PACKAGE_NAME_TRANSFORM_PATTERN);
+    }
+
+    @Override
     public String getPaginatorsPackageName(String serviceName) {
-        return getCustomizedPackageName(serviceName, Constant.PACKAGE_NAME_PAGINATORS_PATTERN);
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName), Constant.PACKAGE_NAME_PAGINATORS_PATTERN);
     }
 
     @Override
     public String getSmokeTestPackageName(String serviceName) {
-        return getCustomizedPackageName(serviceName,
+
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),
                                         Constant.PACKAGE_NAME_SMOKE_TEST_PATTERN);
+    }
+
+    /**
+     * If the service is sharing models with other services, we need to concatenate its customized package name
+     * if provided or service name with the shared service name.
+     */
+    private String concatServiceNameIfShareModel(String serviceName) {
+
+        if (customizationConfig.getShareModelConfig() != null) {
+            return customizationConfig.getShareModelConfig().getShareModelWith() + "." +
+                   Optional.ofNullable(customizationConfig.getShareModelConfig().getPackageName()).orElse(serviceName);
+        }
+
+        return serviceName;
+    }
+
+    private String pascalCase(String word) {
+        return Stream.of(splitOnWordBoundaries(word)).map(StringUtils::lowerCase).map(Utils::capitalize).collect(joining());
     }
 
     private String pascalCase(String... words) {
@@ -149,22 +171,22 @@ public class DefaultNamingStrategy implements NamingStrategy {
     @Override
     public String getExceptionName(String errorShapeName) {
         if (errorShapeName.endsWith(FAULT_CLASS_SUFFIX)) {
-            return capitalize(errorShapeName.substring(0, errorShapeName.length() - FAULT_CLASS_SUFFIX.length()) +
-                              EXCEPTION_CLASS_SUFFIX);
+            return pascalCase(errorShapeName.substring(0, errorShapeName.length() - FAULT_CLASS_SUFFIX.length())) +
+                              EXCEPTION_CLASS_SUFFIX;
         } else if (errorShapeName.endsWith(EXCEPTION_CLASS_SUFFIX)) {
-            return capitalize(errorShapeName);
+            return pascalCase(errorShapeName);
         }
-        return capitalize(errorShapeName + EXCEPTION_CLASS_SUFFIX);
+        return pascalCase(errorShapeName) + EXCEPTION_CLASS_SUFFIX;
     }
 
     @Override
     public String getRequestClassName(String operationName) {
-        return capitalize(operationName + REQUEST_CLASS_SUFFIX);
+        return pascalCase(operationName) + REQUEST_CLASS_SUFFIX;
     }
 
     @Override
     public String getResponseClassName(String operationName) {
-        return capitalize(operationName + RESPONSE_CLASS_SUFFIX);
+        return pascalCase(operationName) + RESPONSE_CLASS_SUFFIX;
     }
 
     @Override
@@ -252,7 +274,24 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
-    public String getFluentSetterMethodName(String memberName) {
+    public String getFluentSetterMethodName(String memberName, Shape shape) {
+        String setterMethodName = Utils.unCapitalize(memberName);
+
+        if (Utils.isOrContainsEnumShape(shape, serviceModel.getShapes()) &&
+            (Utils.isListShape(shape) || Utils.isMapShape(shape))) {
+
+            setterMethodName += "WithStrings";
+        }
+
+        return setterMethodName;
+    }
+
+    @Override
+    public String getFluentEnumSetterMethodName(String memberName, Shape shape) {
+        if (!Utils.isOrContainsEnumShape(shape, serviceModel.getShapes())) {
+            return null;
+        }
+
         return Utils.unCapitalize(memberName);
     }
 
@@ -267,7 +306,7 @@ public class DefaultNamingStrategy implements NamingStrategy {
                        .replaceAll("([^A-Z]{2,})V([0-9]+)", "$1 V$2 "); // TestV4 -> "Test V4 "
 
         // Add a space between camelCased words
-        result = result.replaceAll("([a-z])([A-Z][a-zA-Z])", "$1 $2"); // AcmSuccess -> "Acm Success"
+        result = String.join(" ", result.split("(?<=[a-z])(?=[A-Z]([a-zA-Z]|[0-9]))")); // AcmSuccess -> "Acm Success"
 
         // Add a space after acronyms
         result = result.replaceAll("([A-Z]+)([A-Z][a-z])", "$1 $2"); // ACMSuccess -> "ACM Success"

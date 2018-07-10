@@ -2,10 +2,10 @@ package software.amazon.awssdk.services.jsonprotocoltests.paginators;
 
 import java.util.Collections;
 import java.util.Iterator;
-import javax.annotation.Generated;
-import software.amazon.awssdk.core.pagination.PaginatedResponsesIterator;
-import software.amazon.awssdk.core.pagination.SdkIterable;
-import software.amazon.awssdk.core.pagination.SyncPageFetcher;
+import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.core.pagination.sync.PaginatedResponsesIterator;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
+import software.amazon.awssdk.core.pagination.sync.SyncPageFetcher;
 import software.amazon.awssdk.services.jsonprotocoltests.JsonProtocolTestsClient;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithoutResultKeyRequest;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithoutResultKeyResponse;
@@ -81,7 +81,7 @@ public class PaginatedOperationWithoutResultKeyIterable implements SdkIterable<P
 
     @Override
     public Iterator<PaginatedOperationWithoutResultKeyResponse> iterator() {
-        return new PaginatedResponsesIterator(nextPageFetcher);
+        return PaginatedResponsesIterator.builder().nextPageFetcher(nextPageFetcher).build();
     }
 
     /**
@@ -91,8 +91,7 @@ public class PaginatedOperationWithoutResultKeyIterable implements SdkIterable<P
      * retrieve the consecutive pages that follows the input page.
      * </p>
      */
-    private final PaginatedOperationWithoutResultKeyIterable resume(
-        PaginatedOperationWithoutResultKeyResponse lastSuccessfulPage) {
+    private final PaginatedOperationWithoutResultKeyIterable resume(PaginatedOperationWithoutResultKeyResponse lastSuccessfulPage) {
         if (nextPageFetcher.hasNextPage(lastSuccessfulPage)) {
             return new PaginatedOperationWithoutResultKeyIterable(client, firstRequest.toBuilder()
                                                                                       .nextToken(lastSuccessfulPage.nextToken()).build());

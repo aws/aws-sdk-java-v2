@@ -77,7 +77,7 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>sdk-core</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>test</scope>
         </dependency>

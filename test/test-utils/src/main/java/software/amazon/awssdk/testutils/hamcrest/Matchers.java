@@ -27,10 +27,10 @@ public final class Matchers {
     private Matchers() {
     }
 
-    /***
+    /**
      * Creates a matcher that matches if the examined collection matches the specified matchers in order
      *
-     * <p/>
+     * <p>
      * For example:
      * <pre>assertThat(Arrays.asList("foo", "bar"), containsOnlyInOrder(startsWith("f"), endsWith("ar")))</pre>
      */
@@ -41,7 +41,7 @@ public final class Matchers {
     /***
      * Creates a matcher that matches if the examined collection matches the specified items in order
      *
-     * <p/>
+     * <p>
      * For example:
      * <pre>assertThat(Arrays.asList("foo", "bar"), containsOnlyInOrder("foo", "bar"))</pre>
      */
@@ -52,7 +52,7 @@ public final class Matchers {
     /***
      * Creates a matcher that matches if the examined collection matches the specified items in any order
      *
-     * <p/>
+     * <p>
      * For example:
      * <pre>assertThat(Arrays.asList("bar", "foo"), containsOnly(startsWith("f"), endsWith("ar")))</pre>
      */
@@ -63,7 +63,7 @@ public final class Matchers {
     /***
      * Creates a matcher that matches if the examined collection matches the specified items in any order
      *
-     * <p/>
+     * <p>
      * For example:
      * <pre>assertThat(Arrays.asList("bar", "foo"), containsOnly("foo", "bar"))</pre>
      */

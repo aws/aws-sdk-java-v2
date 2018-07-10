@@ -16,6 +16,7 @@
 package software.amazon.awssdk.protocol.asserts.marshalling;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.collection.IsMapContaining.hasKey;
 import static org.junit.Assert.assertThat;
@@ -37,10 +38,15 @@ import software.amazon.awssdk.core.util.StringUtils;
 public class QueryParamsAssertion extends MarshallingAssertion {
 
     private Map<String, List<String>> contains;
+    private Map<String, List<String>> containsOnly;
     private List<String> doesNotContain;
 
     public void setContains(Map<String, List<String>> contains) {
         this.contains = contains;
+    }
+
+    public void setContainsOnly(Map<String, List<String>> containsOnly) {
+        this.containsOnly = containsOnly;
     }
 
     public void setDoesNotContain(List<String> doesNotContain) {
@@ -68,6 +74,10 @@ public class QueryParamsAssertion extends MarshallingAssertion {
 
         if (doesNotContain != null) {
             assertDoesNotContain(actualParams);
+        }
+
+        if (containsOnly != null) {
+            assertContainsOnly(actualParams);
         }
     }
 
@@ -104,6 +114,13 @@ public class QueryParamsAssertion extends MarshallingAssertion {
     private void assertDoesNotContain(Map<String, List<String>> actualParams) {
         doesNotContain.forEach(key -> {
             assertThat(actualParams, not(hasKey(key)));
+        });
+    }
+
+    private void assertContainsOnly(Map<String, List<String>> actualParams) {
+        assertThat(actualParams.keySet(), equalTo(containsOnly.keySet()));
+        containsOnly.entrySet().forEach(e -> {
+            assertThat(actualParams.get(e.getKey()), containsInAnyOrder(e.getValue().toArray()));
         });
     }
 

@@ -371,11 +371,12 @@ public class SNSIntegrationTest extends IntegrationTestBase {
 
         Thread.sleep(1000 * 4);
         String queueArn = sqs.getQueueAttributes(
-                GetQueueAttributesRequest.builder().queueUrl(queueUrl).attributeNames(new String[] {"QueueArn"}).build())
+                GetQueueAttributesRequest.builder().queueUrl(queueUrl).attributeNames(QueueAttributeName.QUEUE_ARN)
+                                         .build())
                              .attributes().get(QueueAttributeName.QUEUE_ARN);
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("Policy", generateSqsPolicyForTopic(queueArn, topicArn));
-        sqs.setQueueAttributes(SetQueueAttributesRequest.builder().queueUrl(queueUrl).attributes(attributes).build());
+        sqs.setQueueAttributes(SetQueueAttributesRequest.builder().queueUrl(queueUrl).attributesWithStrings(attributes).build());
         int policyPropagationDelayInSeconds = 60;
         System.out.println("Sleeping " + policyPropagationDelayInSeconds + " seconds to let SQS policy propagate");
         Thread.sleep(1000 * policyPropagationDelayInSeconds);

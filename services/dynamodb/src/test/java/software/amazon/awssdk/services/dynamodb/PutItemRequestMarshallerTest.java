@@ -25,6 +25,7 @@ import org.junit.Test;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.core.Request;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.util.ImmutableMapParameter;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -48,7 +49,7 @@ public class PutItemRequestMarshallerTest {
         // Consume some of the byte buffer
         byteBuffer.position(3);
         Request<PutItemRequest> marshalled = marshaller.marshall(PutItemRequest.builder().item(
-                ImmutableMapParameter.of("binaryProp", AttributeValue.builder().b(byteBuffer).build())).build());
+                ImmutableMapParameter.of("binaryProp", AttributeValue.builder().b(SdkBytes.fromByteBuffer(byteBuffer)).build())).build());
         JsonNode marshalledContent = MAPPER.readTree(marshalled.getContent());
         String base64Binary = marshalledContent.get("Item").get("binaryProp").get("B").asText();
         // Only the remaining data in the byte buffer should have been read and marshalled.

@@ -83,7 +83,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
                          .addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
                          .returns(TypeVariableName.get("B"))
                          .addParameter(consumerBuilder, "serviceConfiguration")
-                         .addStatement("return serviceConfiguration($T.builder().apply(serviceConfiguration).build())",
+                         .addStatement("return serviceConfiguration($T.builder().applyMutation(serviceConfiguration).build())",
                                        serviceConfiguration)
                          .build();
     }

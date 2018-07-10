@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.DynamoDBMapperIntegrationTestBase;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -53,9 +54,9 @@ public class BinaryAttributesIntegrationTest extends DynamoDBMapperIntegrationTe
     static {
         Map<String, AttributeValue> attr = new HashMap<String, AttributeValue>();
         attr.put(KEY_NAME, AttributeValue.builder().s("" + startKey++).build());
-        attr.put(BINARY_ATTRIBUTE, AttributeValue.builder().b(ByteBuffer.wrap(generateByteArray(CONTENT_LENGTH))).build());
-        attr.put(BINARY_SET_ATTRIBUTE, AttributeValue.builder().bs(ByteBuffer.wrap(generateByteArray(CONTENT_LENGTH)),
-                                                                   ByteBuffer.wrap(generateByteArray(CONTENT_LENGTH + 1))).build());
+        attr.put(BINARY_ATTRIBUTE, AttributeValue.builder().b(SdkBytes.fromByteArray(generateByteArray(CONTENT_LENGTH))).build());
+        attr.put(BINARY_SET_ATTRIBUTE, AttributeValue.builder().bs(SdkBytes.fromByteArray(generateByteArray(CONTENT_LENGTH)),
+                                                                   SdkBytes.fromByteArray(generateByteArray(CONTENT_LENGTH + 1))).build());
         ATTRIBUTES.add(attr);
 
     }

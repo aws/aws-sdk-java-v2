@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 
 @Generated("software.amazon.awssdk:codegen")
 final class ListOfMapStringToStringCopier {
