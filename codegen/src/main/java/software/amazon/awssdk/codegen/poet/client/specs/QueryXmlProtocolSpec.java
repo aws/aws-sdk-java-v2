@@ -87,7 +87,8 @@ public class QueryXmlProtocolSpec implements ProtocolSpec {
     }
 
     @Override
-    public CodeBlock responseHandler(OperationModel opModel) {
+    public CodeBlock responseHandler(IntermediateModel model,
+                                     OperationModel opModel) {
         ClassName unmarshaller = poetExtensions.getTransformClass(opModel.getReturnType().getReturnType() + "Unmarshaller");
         ClassName responseType = poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
 

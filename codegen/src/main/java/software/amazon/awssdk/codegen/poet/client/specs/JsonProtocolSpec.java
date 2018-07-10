@@ -43,6 +43,7 @@ import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.eventstream.EventStreamAsyncResponseTransformer;
+import software.amazon.awssdk.core.eventstream.EventStreamExceptionJsonUnmarshaller;
 import software.amazon.awssdk.core.eventstream.EventStreamTaggedUnionJsonUnmarshaller;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.internal.protocol.json.VoidJsonUnmarshaller;
@@ -68,10 +69,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     @Override
     public MethodSpec initProtocolFactory(IntermediateModel model) {
-        String exceptionPath = model.getSdkModeledExceptionBaseFqcn()
-                                    .substring(0, model.getSdkModeledExceptionBaseFqcn().lastIndexOf("."));
-
-        ClassName baseException = ClassName.get(exceptionPath, model.getSdkModeledExceptionBaseClassName());
+        ClassName baseException = baseExceptionClassName(model);
 
         Metadata metadata = model.getMetadata();
         ClassName protocolFactory = poetExtensions.getClientClass(metadata.getProtocolFactory());
@@ -106,7 +104,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
     }
 
     @Override
-    public CodeBlock responseHandler(OperationModel opModel) {
+    public CodeBlock responseHandler(IntermediateModel model, OperationModel opModel) {
         ClassName unmarshaller = getUnmarshallerType(opModel);
         // TODO for rest-json we need to use the real response handler since response members will be bound to headers, for
         // aws-json we need to have a dummy response handler since the response members will be in the initial-response
@@ -162,6 +160,17 @@ public class JsonProtocolSpec implements ProtocolSpec {
             builder.add(".defaultUnmarshaller((in) -> $T.UNKNOWN)\n"
                         + ".build());\n", eventStreamUtils.eventStreamBaseClass());
 
+            builder.add("\n\n$T<$T> exceptionHandler = $L.createResponseHandler(\n" +
+                        "    new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),\n" +
+                        "    $T.builder()\n" +
+                        "        .defaultUnmarshaller(x -> $T.populateDefaultException($T::new, x))\n" +
+                        "        .build());",
+                        HttpResponseHandler.class,
+                        WildcardTypeName.subtypeOf(Throwable.class),
+                        protocolFactory,
+                        EventStreamExceptionJsonUnmarshaller.class,
+                        EventStreamExceptionJsonUnmarshaller.class,
+                        baseExceptionClassName(model));
 
         }
         return builder.build();
@@ -220,7 +229,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
         CodeBlock.Builder builder = CodeBlock.builder();
         if (opModel.hasEventStreamOutput()) {
             builder.add("$T<$T, $T> asyncResponseTransformer = new $T<>(\n"
-                        + "asyncResponseHandler, responseHandler, eventResponseHandler);\n",
+                        + "asyncResponseHandler, responseHandler, eventResponseHandler, exceptionHandler);\n",
                         ClassName.get(AsyncResponseTransformer.class),
                         ClassName.get(SdkResponse.class),
                         ClassName.get(Void.class),
@@ -306,5 +315,12 @@ public class JsonProtocolSpec implements ProtocolSpec {
             default:
                 return protocol.name();
         }
+    }
+
+    private ClassName baseExceptionClassName(IntermediateModel model) {
+        String exceptionPath = model.getSdkModeledExceptionBaseFqcn()
+                                    .substring(0, model.getSdkModeledExceptionBaseFqcn().lastIndexOf("."));
+
+        return ClassName.get(exceptionPath, model.getSdkModeledExceptionBaseClassName());
     }
 }

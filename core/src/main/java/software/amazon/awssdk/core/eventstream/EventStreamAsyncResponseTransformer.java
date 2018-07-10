@@ -70,6 +70,11 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     private final HttpResponseHandler<? extends EventT> eventUnmarshaller;
 
     /**
+     * Unmarshalls exception events.
+     */
+    private final HttpResponseHandler<? extends Throwable> exceptionUnmarshaller;
+
+    /**
      * Remaining demand (i.e number of unmarshalled events) we need to provide to the customers subscriber.
      */
     private final AtomicLong remainingDemand = new AtomicLong(0);
@@ -104,11 +109,13 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     public EventStreamAsyncResponseTransformer(
         EventStreamResponseHandler<ResponseT, EventT> eventStreamResponseTransformer,
         HttpResponseHandler<? extends ResponseT> initialResponseUnmarshaller,
-        HttpResponseHandler<? extends EventT> eventUnmarshaller) {
+        HttpResponseHandler<? extends EventT> eventUnmarshaller,
+        HttpResponseHandler<? extends Throwable> exceptionUnmarshaller) {
 
         this.eventStreamResponseTransformer = eventStreamResponseTransformer;
         this.initialResponseUnmarshaller = initialResponseUnmarshaller;
         this.eventUnmarshaller = eventUnmarshaller;
+        this.exceptionUnmarshaller = exceptionUnmarshaller;
     }
 
     @Override
@@ -176,6 +183,7 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
     private MessageDecoder createDecoder() {
         return new MessageDecoder(m -> {
             try {
+                // TODO: Can we move all of the dispatching to a single unmarshaller?
                 if (isEvent(m)) {
                     if (m.getHeaders().get(":event-type").getString().equals("initial-response")) {
                         eventStreamResponseTransformer.responseReceived(
@@ -186,11 +194,9 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
                         subscriberRef.get().onNext(eventUnmarshaller.handle(adaptMessageToResponse(m),
                                                                             EMPTY_EXECUTION_ATTRIBUTES));
                     }
-                } else if (isError(m)) {
-                    EventStreamException exception = EventStreamException.create(m.getHeaders().get(":error-message").getString(),
-                                                                                 m.getHeaders().get(":error-code").getString());
-                    runAndLogError(log, "Error thrown from exceptionOccurred, ignoring.",
-                        () -> exceptionOccurred(exception));
+                } else if (isError(m) || isException(m)) {
+                    Throwable exception = exceptionUnmarshaller.handle(adaptMessageToResponse(m), EMPTY_EXECUTION_ATTRIBUTES);
+                    runAndLogError(log, "Error thrown from exceptionOccurred, ignoring.", () -> exceptionOccurred(exception));
                 }
             } catch (Exception e) {
                 throw new SdkClientException(e);
@@ -212,6 +218,14 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
      */
     private boolean isError(Message m) {
         return "error".equals(m.getHeaders().get(":message-type").getString());
+    }
+
+    /**
+     * @param m Message frame.
+     * @return True if frame is an exception frame, false if not.
+     */
+    private boolean isException(Message m) {
+        return "exception".equals(m.getHeaders().get(":message-type").getString());
     }
 
     /**
