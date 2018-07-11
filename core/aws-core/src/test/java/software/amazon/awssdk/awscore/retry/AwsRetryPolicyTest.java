@@ -21,6 +21,7 @@ import static software.amazon.awssdk.awscore.retry.AwsRetryPolicy.defaultRetryCo
 import java.io.IOException;
 import java.util.function.Consumer;
 import org.junit.Test;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.RetryableException;
@@ -69,17 +70,20 @@ public class AwsRetryPolicyTest {
 
     @Test
     public void retriesOnIOException() {
-        assertTrue(shouldRetry(b -> b.exception(new SdkClientException("IO", new IOException()))));
+        assertTrue(shouldRetry(b -> b.exception(SdkClientException.builder()
+                                                                  .message("IO")
+                                                                  .cause(new IOException())
+                                                                  .build())));
     }
 
     @Test
     public void retriesOnRetryableException() {
-        assertTrue(shouldRetry(b -> b.exception(new RetryableException("this is retryable"))));
+        assertTrue(shouldRetry(b -> b.exception(RetryableException.builder().build())));
     }
 
     @Test
     public void doesNotRetryOnNonRetryableException() {
-        assertFalse(shouldRetry(b -> b.exception(new NonRetryableException("this is NOT retryable"))));
+        assertFalse(shouldRetry(b -> b.exception(NonRetryableException.builder().build())));
     }
 
     @Test
@@ -97,17 +101,15 @@ public class AwsRetryPolicyTest {
     }
 
     private Consumer<RetryPolicyContext.Builder> applyErrorCode(String errorCode) {
-        AwsServiceException exception = new AwsServiceException("");
-        exception.statusCode(404);
-        exception.errorCode(errorCode);
-        return b -> b.exception(exception);
+        AwsServiceException.Builder exception = AwsServiceException.builder().statusCode(404);
+        exception.awsErrorDetails(AwsErrorDetails.builder().errorCode(errorCode).build());
+        return b -> b.exception(exception.build());
     }
 
     private Consumer<RetryPolicyContext.Builder> applyStatusCode(Integer statusCode) {
-        AwsServiceException exception = new AwsServiceException("");
-        exception.statusCode(statusCode);
-        exception.errorCode("Foo");
-        return b -> b.exception(exception)
+        AwsServiceException.Builder exception = AwsServiceException.builder().statusCode(statusCode);
+        exception.awsErrorDetails(AwsErrorDetails.builder().errorCode("Foo").build());
+        return b -> b.exception(exception.build())
                      .httpStatusCode(statusCode);
     }
 }

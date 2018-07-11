@@ -55,12 +55,13 @@ final class ClasspathSdkHttpServiceProvider<T> implements SdkHttpServiceProvider
         T httpService = httpServices.next();
 
         if (httpServices.hasNext()) {
-            throw new SdkClientException(
+            throw SdkClientException.builder().message(
                     String.format(
                             "Multiple HTTP implementations were found on the classpath. To avoid non-deterministic loading " +
                             "implementations, please explicitly provide an HTTP client via the client builders, set the %s " +
                             "system property with the FQCN of the HTTP service to use as the default, or remove all but one " +
-                            "HTTP implementation from the classpath", implSystemProperty.property()));
+                            "HTTP implementation from the classpath", implSystemProperty.property()))
+                    .build();
         }
         return Optional.of(httpService);
     }

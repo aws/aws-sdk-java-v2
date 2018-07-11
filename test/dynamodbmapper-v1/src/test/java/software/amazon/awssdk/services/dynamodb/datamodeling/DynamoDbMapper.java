@@ -806,7 +806,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
             Thread.sleep(delay);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new SdkClientException(e.getMessage(), e);
+            throw SdkClientException.builder().message(e.getMessage()).cause(e).build();
         }
     }
 
@@ -1087,8 +1087,9 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
 
             if (conditionalExpression != null) {
                 if (!internalAssertions.isEmpty()) {
-                    throw new SdkClientException(
-                            "Condition Expressions cannot be used if a versioned attribute is present");
+                    throw SdkClientException.builder()
+                                            .message("Condition Expressions cannot be used if a versioned attribute is present")
+                                            .build();
                 }
 
                 req = req.toBuilder()
@@ -1918,7 +1919,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
 
         public BatchGetItemException(String message, Map<String, KeysAndAttributes> unprocessedKeys,
                                      Map<String, List<Object>> responses) {
-            super(message);
+            super(SdkClientException.builder().message(message));
             this.unprocessedKeys = unprocessedKeys;
             this.responses = responses;
         }

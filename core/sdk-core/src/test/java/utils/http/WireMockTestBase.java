@@ -58,8 +58,7 @@ public abstract class WireMockTestBase {
     }
 
     private SdkServiceException mockException() {
-        SdkServiceException exception = new SdkServiceException("Dummy error response");
-        exception.statusCode(500);
+        SdkServiceException exception = SdkServiceException.builder().message("Dummy error response").statusCode(500).build();
         return exception;
     }
 }

@@ -104,8 +104,10 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
         String bodyMd5Returned = sendMessageResult.md5OfMessageBody();
         String clientSideBodyMd5 = calculateMessageBodyMd5(messageBodySent);
         if (!clientSideBodyMd5.equals(bodyMd5Returned)) {
-            throw new SdkClientException(String.format(MD5_MISMATCH_ERROR_MESSAGE, MESSAGE_BODY, clientSideBodyMd5,
-                                                          bodyMd5Returned));
+            throw SdkClientException.builder()
+                                    .message(String.format(MD5_MISMATCH_ERROR_MESSAGE, MESSAGE_BODY, clientSideBodyMd5,
+                                                          bodyMd5Returned))
+                                    .build();
         }
 
         Map<String, MessageAttributeValue> messageAttrSent = sendMessageRequest.messageAttributes();
@@ -113,8 +115,10 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
             String clientSideAttrMd5 = calculateMessageAttributesMd5(messageAttrSent);
             String attrMd5Returned = sendMessageResult.md5OfMessageAttributes();
             if (!clientSideAttrMd5.equals(attrMd5Returned)) {
-                throw new SdkClientException(String.format(MD5_MISMATCH_ERROR_MESSAGE, MESSAGE_ATTRIBUTES,
-                                                              clientSideAttrMd5, attrMd5Returned));
+                throw SdkClientException.builder()
+                                        .message(String.format(MD5_MISMATCH_ERROR_MESSAGE, MESSAGE_ATTRIBUTES,
+                                                              clientSideAttrMd5, attrMd5Returned))
+                                        .build();
             }
         }
     }
@@ -130,8 +134,10 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
                 String bodyMd5Returned = messageReceived.md5OfBody();
                 String clientSideBodyMd5 = calculateMessageBodyMd5(messageBody);
                 if (!clientSideBodyMd5.equals(bodyMd5Returned)) {
-                    throw new SdkClientException(String.format(MD5_MISMATCH_ERROR_MESSAGE, MESSAGE_BODY,
-                                                                  clientSideBodyMd5, bodyMd5Returned));
+                    throw SdkClientException.builder()
+                                            .message(String.format(MD5_MISMATCH_ERROR_MESSAGE, MESSAGE_BODY,
+                                                                  clientSideBodyMd5, bodyMd5Returned))
+                                            .build();
                 }
 
                 Map<String, MessageAttributeValue> messageAttr = messageReceived.messageAttributes();
@@ -139,8 +145,10 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
                     String attrMd5Returned = messageReceived.md5OfMessageAttributes();
                     String clientSideAttrMd5 = calculateMessageAttributesMd5(messageAttr);
                     if (!clientSideAttrMd5.equals(attrMd5Returned)) {
-                        throw new SdkClientException(String.format(MD5_MISMATCH_ERROR_MESSAGE, MESSAGE_ATTRIBUTES,
-                                                                      clientSideAttrMd5, attrMd5Returned));
+                        throw SdkClientException.builder()
+                                                .message(String.format(MD5_MISMATCH_ERROR_MESSAGE, MESSAGE_ATTRIBUTES,
+                                                                      clientSideAttrMd5, attrMd5Returned))
+                                                .build();
                     }
                 }
             }
@@ -166,8 +174,10 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
                 String bodyMd5Returned = entry.md5OfMessageBody();
                 String clientSideBodyMd5 = calculateMessageBodyMd5(messageBody);
                 if (!clientSideBodyMd5.equals(bodyMd5Returned)) {
-                    throw new SdkClientException(String.format(MD5_MISMATCH_ERROR_MESSAGE_WITH_ID, MESSAGE_BODY,
-                                                                  entry.id(), clientSideBodyMd5, bodyMd5Returned));
+                    throw SdkClientException.builder()
+                                            .message(String.format(MD5_MISMATCH_ERROR_MESSAGE_WITH_ID, MESSAGE_BODY,
+                                                                  entry.id(), clientSideBodyMd5, bodyMd5Returned))
+                                            .build();
                 }
 
                 Map<String, MessageAttributeValue> messageAttr = idToRequestEntryMap.get(entry.id())
@@ -176,9 +186,11 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
                     String attrMd5Returned = entry.md5OfMessageAttributes();
                     String clientSideAttrMd5 = calculateMessageAttributesMd5(messageAttr);
                     if (!clientSideAttrMd5.equals(attrMd5Returned)) {
-                        throw new SdkClientException(String.format(MD5_MISMATCH_ERROR_MESSAGE_WITH_ID,
+                        throw SdkClientException.builder()
+                                                .message(String.format(MD5_MISMATCH_ERROR_MESSAGE_WITH_ID,
                                                                       MESSAGE_ATTRIBUTES, entry.id(), clientSideAttrMd5,
-                                                                      attrMd5Returned));
+                                                                      attrMd5Returned))
+                                                .build();
                     }
                 }
             }
@@ -196,8 +208,10 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
         try {
             expectedMd5 = Md5Utils.computeMD5Hash(messageBody.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
-            throw new SdkClientException("Unable to calculate the MD5 hash of the message body. " + e.getMessage(),
-                                            e);
+            throw SdkClientException.builder()
+                                    .message("Unable to calculate the MD5 hash of the message body. " + e.getMessage())
+                                    .cause(e)
+                                    .build();
         }
         String expectedMd5Hex = BinaryUtils.toHex(expectedMd5);
         if (log.isDebugEnabled()) {
@@ -251,8 +265,10 @@ public class MessageMD5ChecksumInterceptor implements ExecutionInterceptor {
                 }
             }
         } catch (Exception e) {
-            throw new SdkClientException("Unable to calculate the MD5 hash of the message attributes. "
-                                            + e.getMessage(), e);
+            throw SdkClientException.builder()
+                                    .message("Unable to calculate the MD5 hash of the message attributes. " + e.getMessage())
+                                    .cause(e)
+                                    .build();
         }
 
         String expectedMd5Hex = BinaryUtils.toHex(md5Digest.digest());

@@ -43,7 +43,7 @@ public class SdkBufferedInputStream extends BufferedInputStream {
     protected final void abortIfNeeded() {
         if (SdkRuntime.shouldAbort()) {
             abort();    // execute subclass specific abortion logic
-            throw new AbortedException();
+            throw AbortedException.builder().build();
         }
     }
 

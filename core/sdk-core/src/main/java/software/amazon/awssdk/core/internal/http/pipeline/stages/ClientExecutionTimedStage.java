@@ -90,7 +90,7 @@ public class ClientExecutionTimedStage<OutputT> implements RequestToResponsePipe
         // InterruptedException was not rethrown and instead the interrupted flag was set
         if (Thread.currentThread().isInterrupted() && context.clientExecutionTrackerTask().hasTimeoutExpired()) {
             Thread.interrupted();
-            return new ClientExecutionTimeoutException();
+            return ClientExecutionTimeoutException.builder().build();
         }
 
         return e;
@@ -112,10 +112,10 @@ public class ClientExecutionTimedStage<OutputT> implements RequestToResponsePipe
         if (context.clientExecutionTrackerTask().hasTimeoutExpired()) {
             // Clear the interrupt status
             Thread.interrupted();
-            return new ClientExecutionTimeoutException();
+            return ClientExecutionTimeoutException.builder().build();
         } else {
             Thread.currentThread().interrupt();
-            return new AbortedException(e);
+            return AbortedException.builder().cause(e).build();
         }
     }
 

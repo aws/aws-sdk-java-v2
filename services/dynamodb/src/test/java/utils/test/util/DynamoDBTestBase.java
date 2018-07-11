@@ -24,8 +24,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -48,7 +49,7 @@ public class DynamoDBTestBase extends AwsTestBase {
         try {
             setUpCredentials();
         } catch (Exception e) {
-            throw new SdkClientException("Unable to load credential property file.", e);
+            throw SdkClientException.builder().message("Unable to load credential property file.").cause(e).build();
         }
 
         dynamo = DynamoDbClient.builder().region(REGION).credentialsProvider(CREDENTIALS_PROVIDER_CHAIN).build();
@@ -84,8 +85,8 @@ public class DynamoDBTestBase extends AwsTestBase {
                 if (table.tableStatus() == TableStatus.DELETING) {
                     continue;
                 }
-            } catch (SdkServiceException exception) {
-                if (exception.errorCode().equalsIgnoreCase("ResourceNotFoundException")) {
+            } catch (AwsServiceException exception) {
+                if (exception.awsErrorDetails().errorCode().equalsIgnoreCase("ResourceNotFoundException")) {
                     log.info(() -> "successfully deleted");
                     return;
                 }

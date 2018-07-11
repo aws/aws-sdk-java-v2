@@ -18,9 +18,11 @@ package software.amazon.awssdk.awscore.http.response;
 import com.fasterxml.jackson.core.JsonFactory;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonErrorUnmarshaller;
 import software.amazon.awssdk.awscore.internal.protocol.json.ErrorCodeParser;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
@@ -61,21 +63,27 @@ public final class AwsJsonErrorResponseHandler extends JsonErrorResponseHandler<
 
         JsonContent jsonContent = JsonContent.createJsonContent(response, jsonFactory);
         String errorCode = errorCodeParser.parseErrorCode(response, jsonContent);
-        AwsServiceException exception = createException(errorCode, jsonContent);
+        AwsServiceException.Builder exception = createException(errorCode, jsonContent).toBuilder();
 
-        if (exception.errorMessage() == null) {
-            exception.errorMessage(errorMessageParser.parseErrorMessage(response, jsonContent.getJsonNode()));
+        AwsErrorDetails.Builder errorDetails = AwsErrorDetails.builder()
+                                                              .errorCode(errorCode)
+                                                              .serviceName(executionAttributes
+                                                                               .getAttribute(SdkExecutionAttribute.SERVICE_NAME))
+                                                              .sdkHttpResponse(response);
+
+        if (jsonContent.getRawContent() != null) {
+            errorDetails.rawResponse(SdkBytes.fromByteArray(jsonContent.getRawContent()));
         }
 
-        exception.errorCode(errorCode);
-        exception.serviceName(executionAttributes.getAttribute(SdkExecutionAttribute.SERVICE_NAME));
-        exception.statusCode(response.getStatusCode());
-        exception.errorType(getErrorType(response.getStatusCode()));
-        exception.rawResponse(jsonContent.getRawContent());
-        exception.requestId(getRequestIdFromHeaders(response.getHeaders()));
-        exception.headers(response.getHeaders());
+        if (exception.awsErrorDetails() == null || exception.awsErrorDetails().errorMessage() == null) {
+            errorDetails.errorMessage(errorMessageParser.parseErrorMessage(response, jsonContent.getJsonNode()));
+        }
 
-        return exception;
+        exception.awsErrorDetails(errorDetails.build());
+        exception.statusCode(response.getStatusCode());
+        exception.requestId(getRequestIdFromHeaders(response.getHeaders()));
+
+        return exception.build();
     }
 
     /**
@@ -96,7 +104,8 @@ public final class AwsJsonErrorResponseHandler extends JsonErrorResponseHandler<
 
     @Override
     protected AwsServiceException createUnknownException() {
-        return new AwsServiceException(
-            "Unable to unmarshall exception response with the unmarshallers provided");
+        return AwsServiceException.builder()
+                                  .message("Unable to unmarshall exception response with the unmarshallers provided")
+                                  .build();
     }
 }

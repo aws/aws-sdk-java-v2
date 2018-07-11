@@ -78,7 +78,7 @@ public class InspectorErrorUnmarshallingTest {
         try {
             inspector.listRulesPackages(ListRulesPackagesRequest.builder().build());
         } catch (AccessDeniedException e) {
-            assertEquals("AccessDeniedException", e.errorCode());
+            assertEquals("AccessDeniedException", e.awsErrorDetails().errorCode());
             assertEquals("ACCESS_DENIED_TO_RULES_PACKAGE", e.inspectorErrorCodeAsString());
         }
     }

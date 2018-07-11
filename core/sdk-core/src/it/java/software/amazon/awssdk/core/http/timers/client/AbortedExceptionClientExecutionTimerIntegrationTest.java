@@ -85,7 +85,7 @@ public class AbortedExceptionClientExecutionTimerIntegrationTest extends MockSer
 
     @Test(expected = AbortedException.class)
     public void clientExecutionTimeoutEnabled_aborted_exception_occurs_timeout_not_expired() throws Exception {
-        when(abortableCallable.call()).thenThrow(new AbortedException());
+        when(abortableCallable.call()).thenThrow(AbortedException.builder().build());
 
         execute(httpClient, createMockGetRequest());
     }

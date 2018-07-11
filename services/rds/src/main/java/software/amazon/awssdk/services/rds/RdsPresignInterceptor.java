@@ -132,8 +132,10 @@ abstract class RdsPresignInterceptor<T extends RdsRequest> implements ExecutionI
         final Region region = Region.of(regionName);
 
         if (region == null) {
-            throw new SdkClientException("{" + serviceName + ", " + regionName + "} was not "
-                                            + "found in region metadata. Update to latest version of SDK and try again.");
+            throw SdkClientException.builder()
+                                    .message("{" + serviceName + ", " + regionName + "} was not "
+                                            + "found in region metadata. Update to latest version of SDK and try again.")
+                                    .build();
         }
 
         return new DefaultServiceEndpointBuilder(SERVICE_NAME, Protocol.HTTPS.toString())

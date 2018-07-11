@@ -87,7 +87,9 @@ public final class RegionMetadataLoader {
         } else {
             stream = CLASS_LOADER.getResourceAsStream(PARTITIONS_RESOURCE_PATH);
             if (stream == null) {
-                throw new SdkClientException("Unable to load partition metadata from " + PARTITIONS_RESOURCE_PATH);
+                throw SdkClientException.builder()
+                                        .message("Unable to load partition metadata from " + PARTITIONS_RESOURCE_PATH)
+                                        .build();
             }
             provider = new PartitionMetadataProvider(loadPartitionFromStream(stream, PARTITIONS_RESOURCE_PATH).getPartitions());
         }
@@ -101,8 +103,10 @@ public final class RegionMetadataLoader {
                            .beanFrom(Partitions.class, stream);
 
         } catch (IOException | RuntimeException e) {
-            throw new SdkClientException("Error while loading partitions " +
-                                         "file from " + location, e);
+            throw SdkClientException.builder()
+                                    .message("Error while loading partitions file from " + location)
+                                    .cause(e)
+                                    .build();
         } finally {
             IoUtils.closeQuietly(stream, null);
         }

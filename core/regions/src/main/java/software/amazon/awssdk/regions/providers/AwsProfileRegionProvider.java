@@ -36,7 +36,9 @@ public final class AwsProfileRegionProvider implements AwsRegionProvider {
                           .profile(profileName)
                           .map(p -> p.properties().get(ProfileProperty.REGION))
                           .map(Region::of)
-                          .orElseThrow(() -> new SdkClientException("No region provided in profile: " + profileName));
+                          .orElseThrow(() -> SdkClientException.builder()
+                                                               .message("No region provided in profile: " + profileName)
+                                                               .build());
     }
 }
 
