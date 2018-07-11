@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.services.dynamodb.ImmutableObjectUtils;
 import software.amazon.awssdk.services.dynamodb.TableUtils;

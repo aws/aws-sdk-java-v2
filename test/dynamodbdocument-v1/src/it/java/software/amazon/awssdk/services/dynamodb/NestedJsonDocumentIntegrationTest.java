@@ -23,6 +23,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
@@ -127,7 +128,7 @@ public class NestedJsonDocumentIntegrationTest extends AwsTestBase {
 
     private int computeDepthOfNestedMapAttribute(AttributeValue mapAttr) {
         int depth = 0;
-        while (mapAttr != null && mapAttr.m() != null) {
+        while (mapAttr != null && mapAttr.m() != null && !(mapAttr.m() instanceof SdkAutoConstructMap)) {
             depth++;
             mapAttr = mapAttr.m().get(JSON_MAP_NESTED_KEY);
         }

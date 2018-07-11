@@ -7,6 +7,8 @@ import software.amazon.awssdk.core.pagination.async.AsyncPageFetcher;
 import software.amazon.awssdk.core.pagination.async.EmptySubscription;
 import software.amazon.awssdk.core.pagination.async.ResponsesSubscription;
 import software.amazon.awssdk.core.pagination.async.SdkPublisher;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.services.jsonprotocoltests.JsonProtocolTestsAsyncClient;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithoutResultKeyRequest;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithoutResultKeyResponse;
@@ -74,12 +76,12 @@ public class PaginatedOperationWithoutResultKeyPublisher implements SdkPublisher
     private boolean isLastPage;
 
     public PaginatedOperationWithoutResultKeyPublisher(JsonProtocolTestsAsyncClient client,
-                                                       PaginatedOperationWithoutResultKeyRequest firstRequest) {
+            PaginatedOperationWithoutResultKeyRequest firstRequest) {
         this(client, firstRequest, false);
     }
 
     private PaginatedOperationWithoutResultKeyPublisher(JsonProtocolTestsAsyncClient client,
-                                                        PaginatedOperationWithoutResultKeyRequest firstRequest, boolean isLastPage) {
+            PaginatedOperationWithoutResultKeyRequest firstRequest, boolean isLastPage) {
         this.client = client;
         this.firstRequest = firstRequest;
         this.isLastPage = isLastPage;
@@ -101,7 +103,7 @@ public class PaginatedOperationWithoutResultKeyPublisher implements SdkPublisher
     private final PaginatedOperationWithoutResultKeyPublisher resume(PaginatedOperationWithoutResultKeyResponse lastSuccessfulPage) {
         if (nextPageFetcher.hasNextPage(lastSuccessfulPage)) {
             return new PaginatedOperationWithoutResultKeyPublisher(client, firstRequest.toBuilder()
-                                                                                       .nextToken(lastSuccessfulPage.nextToken()).build());
+                    .nextToken(lastSuccessfulPage.nextToken()).build());
         }
         return new PaginatedOperationWithoutResultKeyPublisher(client, firstRequest, true) {
             @Override
@@ -112,20 +114,21 @@ public class PaginatedOperationWithoutResultKeyPublisher implements SdkPublisher
     }
 
     private class PaginatedOperationWithoutResultKeyResponseFetcher implements
-                                                                    AsyncPageFetcher<PaginatedOperationWithoutResultKeyResponse> {
+            AsyncPageFetcher<PaginatedOperationWithoutResultKeyResponse> {
         @Override
         public boolean hasNextPage(final PaginatedOperationWithoutResultKeyResponse previousPage) {
-            return previousPage.nextToken() != null;
+            return previousPage.nextToken() != null && !SdkAutoConstructList.class.isInstance(previousPage.nextToken())
+                    && !SdkAutoConstructMap.class.isInstance(previousPage.nextToken());
         }
 
         @Override
         public CompletableFuture<PaginatedOperationWithoutResultKeyResponse> nextPage(
-            final PaginatedOperationWithoutResultKeyResponse previousPage) {
+                final PaginatedOperationWithoutResultKeyResponse previousPage) {
             if (previousPage == null) {
                 return client.paginatedOperationWithoutResultKey(firstRequest);
             }
             return client
-                .paginatedOperationWithoutResultKey(firstRequest.toBuilder().nextToken(previousPage.nextToken()).build());
+                    .paginatedOperationWithoutResultKey(firstRequest.toBuilder().nextToken(previousPage.nextToken()).build());
         }
     }
 }
