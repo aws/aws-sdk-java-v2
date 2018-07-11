@@ -16,6 +16,8 @@
 package software.amazon.awssdk.services.dynamodb.datamodeling;
 
 import java.util.List;
+
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapperConfig.PaginationLoadingStrategy;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
@@ -75,7 +77,7 @@ public class PaginatedScanList<T> extends PaginatedList<T> {
 
     @Override
     protected synchronized boolean atEndOfResults() {
-        return scanResult.lastEvaluatedKey() == null;
+        return scanResult.lastEvaluatedKey() instanceof SdkAutoConstructMap;
     }
 
     @Override
