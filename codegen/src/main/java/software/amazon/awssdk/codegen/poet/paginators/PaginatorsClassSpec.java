@@ -34,6 +34,8 @@ import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.model.TypeProvider;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 
 public abstract class PaginatorsClassSpec implements ClassSpec {
 
@@ -165,21 +167,24 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
         return shape.getMemberByC2jName(hierarchy[hierarchy.length - 1]);
     }
 
-    protected String hasNextPageMethodBody() {
-        String body;
+    protected CodeBlock hasNextPageMethodBody() {
 
         if (paginatorDefinition.getMoreResults() != null) {
-            body = String.format("return %s.%s.booleanValue()",
+            return CodeBlock.builder()
+                    .add("return $N.$L.booleanValue()",
                                  PREVIOUS_PAGE_METHOD_ARGUMENT,
-                                 fluentGetterMethodForResponseMember(paginatorDefinition.getMoreResults()));
-        } else {
-            // If there is no more_results token, then output_token will be a single value
-            body = String.format("return %s.%s != null",
-                                 PREVIOUS_PAGE_METHOD_ARGUMENT,
-                                 fluentGetterMethodsForOutputToken().get(0));
+                                 fluentGetterMethodForResponseMember(paginatorDefinition.getMoreResults()))
+                    .build();
         }
+        // If there is no more_results token, then output_token will be a single value
+        return CodeBlock.builder()
+                .add("return $1N.$2L != null && !$3T.class.isInstance($1N.$2L) && !$4T.class.isInstance($1N.$2L)",
+                              PREVIOUS_PAGE_METHOD_ARGUMENT,
+                              fluentGetterMethodsForOutputToken().get(0),
+                              SdkAutoConstructList.class,
+                              SdkAutoConstructMap.class)
+                .build();
 
-        return body;
     }
 
     /*

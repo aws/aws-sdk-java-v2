@@ -40,6 +40,7 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.RetryUtils;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -1523,7 +1524,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
             scanResult = db.scan(applyUserAgent(scanRequest));
             count += scanResult.count();
             scanRequest = scanRequest.toBuilder().exclusiveStartKey(scanResult.lastEvaluatedKey()).build();
-        } while (scanResult.lastEvaluatedKey() != null);
+        } while (!(scanResult.lastEvaluatedKey() instanceof SdkAutoConstructMap));
 
         return count;
     }
@@ -1542,7 +1543,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
             queryResult = db.query(applyUserAgent(queryRequest));
             count += queryResult.count();
             queryRequest = queryRequest.toBuilder().exclusiveStartKey(queryResult.lastEvaluatedKey()).build();
-        } while (queryResult.lastEvaluatedKey() != null);
+        } while (!(queryResult.lastEvaluatedKey() instanceof SdkAutoConstructMap));
 
         return count;
     }
