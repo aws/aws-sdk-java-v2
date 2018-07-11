@@ -178,6 +178,8 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
         }
         // If there is no more_results token, then output_token will be a single value
         return CodeBlock.builder()
+                // Auto construct containers are treated as null so terminate
+                // pagination for those cases as well.
                 .add("return $1N.$2L != null && !$3T.class.isInstance($1N.$2L) && !$4T.class.isInstance($1N.$2L)",
                               PREVIOUS_PAGE_METHOD_ARGUMENT,
                               fluentGetterMethodsForOutputToken().get(0),
