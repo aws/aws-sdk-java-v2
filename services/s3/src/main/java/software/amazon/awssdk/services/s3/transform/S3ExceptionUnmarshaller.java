@@ -52,8 +52,6 @@ public abstract class S3ExceptionUnmarshaller extends AbstractErrorUnmarshaller<
 
         AwsServiceException.Builder exception = newException(message).toBuilder();
 
-        AwsErrorDetails awsErrorDetails = exception.awsErrorDetails().toBuilder().errorCode(errorCode).build();
-
-        return exception.requestId(requestId).awsErrorDetails(awsErrorDetails).build();
+        return exception.requestId(requestId).awsErrorDetails(AwsErrorDetails.builder().errorCode(errorCode).build()).build();
     }
 }
