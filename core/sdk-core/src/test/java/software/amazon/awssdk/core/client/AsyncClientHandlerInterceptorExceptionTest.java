@@ -172,7 +172,7 @@ public class AsyncClientHandlerInterceptorExceptionTest {
             doVerify(() -> clientHandler.execute(executionParams),
                      (t) -> {
                         for (; t != null; t = t.getCause()) {
-                            if (t.getMessage().equals(Hook.ON_EXECUTION_FAILURE.name())) {
+                            if (Hook.ON_EXECUTION_FAILURE.name().equals(t.getMessage())) {
                                 return false;
                             }
                         }

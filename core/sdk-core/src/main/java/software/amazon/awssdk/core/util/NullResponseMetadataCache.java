@@ -33,7 +33,7 @@ public class NullResponseMetadataCache implements MetadataCache {
 
     @Override
     public SdkResponseMetadata get(Object obj) {
-        throw new SdkClientException("Response metadata caching is not enabled");
+        throw SdkClientException.builder().message("Response metadata caching is not enabled").build();
     }
 
 }

@@ -59,8 +59,8 @@ public abstract class WireMockTestBase {
     }
 
     private AwsServiceException mockException() {
-        AwsServiceException exception = new AwsServiceException("Dummy error response");
+        AwsServiceException.Builder exception = AwsServiceException.builder().message("Dummy error response");
         exception.statusCode(500);
-        return exception;
+        return exception.build();
     }
 }

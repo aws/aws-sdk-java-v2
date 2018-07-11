@@ -72,7 +72,7 @@ public class SdkJsonErrorUnmarshallerTest {
         private String foo;
 
         public CustomException(BeanStyleBuilder builder) {
-            super(builder.message);
+            super(builder);
             this.foo = builder.foo;
         }
 
@@ -81,17 +81,17 @@ public class SdkJsonErrorUnmarshallerTest {
         }
 
 
-        public static Class<?> serializableBuilderClass() {
+        public static Class<? extends Builder> serializableBuilderClass() {
             return BeanStyleBuilder.class;
         }
 
-        public interface Builder {
+        public interface Builder extends SdkServiceException.Builder {
             Builder foo(String foo);
 
             CustomException build();
         }
 
-        private static class BeanStyleBuilder implements Builder {
+        private static class BeanStyleBuilder extends SdkServiceException.BuilderImpl implements Builder {
             private String foo;
             private String message;
 

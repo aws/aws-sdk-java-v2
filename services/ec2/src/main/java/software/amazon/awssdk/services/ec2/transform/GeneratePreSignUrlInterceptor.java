@@ -125,8 +125,10 @@ public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
         final Region region = Region.of(regionName);
 
         if (region == null) {
-            throw new SdkClientException("{" + serviceName + ", " + regionName + "} was not "
-                                            + "found in region metadata. Update to latest version of SDK and try again.");
+            throw SdkClientException.builder()
+                                    .message("{" + serviceName + ", " + regionName + "} was not "
+                                             + "found in region metadata. Update to latest version of SDK and try again.")
+                                    .build();
         }
 
         return Ec2Client.serviceMetadata().endpointFor(region);

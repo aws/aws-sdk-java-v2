@@ -70,7 +70,7 @@ public final class ProfileCredentialsProvider implements AwsCredentialsProvider,
         if (credentialsProvider == null) {
             String loadError = String.format("Profile file contained no credentials for profile '%s': %s",
                                              profileName, profileFile);
-            this.loadException = new SdkClientException(loadError);
+            this.loadException = SdkClientException.builder().message(loadError).build();
         } else {
             this.loadException = null;
         }

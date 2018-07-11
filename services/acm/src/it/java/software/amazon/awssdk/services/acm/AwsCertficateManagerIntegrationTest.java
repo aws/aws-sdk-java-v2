@@ -20,6 +20,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.services.acm.model.AcmException;
 import software.amazon.awssdk.services.acm.model.GetCertificateRequest;
 import software.amazon.awssdk.services.acm.model.ListCertificatesRequest;
 import software.amazon.awssdk.services.acm.model.ListCertificatesResponse;
@@ -46,7 +47,7 @@ public class AwsCertficateManagerIntegrationTest extends AwsIntegrationTestBase 
      * fix it.
      *  TODO Change the expected when service fix this.
      */
-    @Test(expected = SdkServiceException.class)
+    @Test(expected = AcmException.class)
     public void get_certificate_fake_arn_throws_exception() {
         client.getCertificate(GetCertificateRequest.builder().certificateArn("arn:aws:acm:us-east-1:123456789:fakecert").build());
     }

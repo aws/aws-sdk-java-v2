@@ -60,9 +60,10 @@ public abstract class AbstractAwsSigner implements Signer {
             try {
                 return MessageDigest.getInstance("SHA-256");
             } catch (NoSuchAlgorithmException e) {
-                throw new SdkClientException(
-                        "Unable to get SHA256 Function"
-                        + e.getMessage(), e);
+                throw SdkClientException.builder()
+                                        .message("Unable to get SHA256 Function" + e.getMessage())
+                                        .cause(e)
+                                        .build();
             }
         });
     }
@@ -73,9 +74,10 @@ public abstract class AbstractAwsSigner implements Signer {
             md.update(text.getBytes(StandardCharsets.UTF_8));
             return md.digest();
         } catch (Exception e) {
-            throw new SdkClientException(
-                    "Unable to compute hash while signing request: "
-                    + e.getMessage(), e);
+            throw SdkClientException.builder()
+                                    .message("Unable to compute hash while signing request: " + e.getMessage())
+                                    .cause(e)
+                                    .build();
         }
     }
 
@@ -107,9 +109,10 @@ public abstract class AbstractAwsSigner implements Signer {
             byte[] signature = sign(data, key.getBytes(StandardCharsets.UTF_8), algorithm);
             return Base64Utils.encodeAsString(signature);
         } catch (Exception e) {
-            throw new SdkClientException(
-                    "Unable to calculate a request signature: "
-                    + e.getMessage(), e);
+            throw SdkClientException.builder()
+                                    .message("Unable to calculate a request signature: " + e.getMessage())
+                                    .cause(e)
+                                    .build();
         }
     }
 
@@ -117,9 +120,10 @@ public abstract class AbstractAwsSigner implements Signer {
         try {
             return mac.doFinal(stringData.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
-            throw new SdkClientException(
-                    "Unable to calculate a request signature: "
-                    + e.getMessage(), e);
+            throw SdkClientException.builder()
+                                    .message("Unable to calculate a request signature: " + e.getMessage())
+                                    .cause(e)
+                                    .build();
         }
     }
 
@@ -129,9 +133,10 @@ public abstract class AbstractAwsSigner implements Signer {
             byte[] data = stringData.getBytes(StandardCharsets.UTF_8);
             return sign(data, key, algorithm);
         } catch (Exception e) {
-            throw new SdkClientException(
-                    "Unable to calculate a request signature: "
-                    + e.getMessage(), e);
+            throw SdkClientException.builder()
+                                    .message("Unable to calculate a request signature: " + e.getMessage())
+                                    .cause(e)
+                                    .build();
         }
     }
 
@@ -141,9 +146,10 @@ public abstract class AbstractAwsSigner implements Signer {
             mac.init(new SecretKeySpec(key, algorithm.toString()));
             return mac.doFinal(data);
         } catch (Exception e) {
-            throw new SdkClientException(
-                    "Unable to calculate a request signature: "
-                    + e.getMessage(), e);
+            throw SdkClientException.builder()
+                                    .message("Unable to calculate a request signature: " + e.getMessage())
+                                    .cause(e)
+                                    .build();
         }
     }
 
@@ -171,9 +177,10 @@ public abstract class AbstractAwsSigner implements Signer {
             }
             return digestInputStream.getMessageDigest().digest();
         } catch (Exception e) {
-            throw new SdkClientException(
-                    "Unable to compute hash while signing request: "
-                    + e.getMessage(), e);
+            throw SdkClientException.builder()
+                                    .message("Unable to compute hash while signing request: " + e.getMessage())
+                                    .cause(e)
+                                    .build();
         }
     }
 
@@ -190,9 +197,10 @@ public abstract class AbstractAwsSigner implements Signer {
             md.update(data);
             return md.digest();
         } catch (Exception e) {
-            throw new SdkClientException(
-                    "Unable to compute hash while signing request: "
-                    + e.getMessage(), e);
+            throw SdkClientException.builder()
+                                    .message("Unable to compute hash while signing request: " + e.getMessage())
+                                    .cause(e)
+                                    .build();
         }
     }
 
@@ -248,13 +256,18 @@ public abstract class AbstractAwsSigner implements Signer {
                 return new ByteArrayInputStream(new byte[0]);
             }
             if (!stream.markSupported()) {
-                throw new SdkClientException("Unable to read request payload to sign request.");
+                throw SdkClientException.builder()
+                                        .message("Unable to read request payload to sign request.")
+                                        .build();
             }
             return stream;
         } catch (SdkClientException e) {
             throw e;
         } catch (Exception e) {
-            throw new SdkClientException("Unable to read request payload to sign request: " + e.getMessage(), e);
+            throw SdkClientException.builder()
+                                    .message("Unable to read request payload to sign request: " + e.getMessage())
+                                    .cause(e)
+                                    .build();
         }
     }
 

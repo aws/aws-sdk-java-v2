@@ -272,7 +272,7 @@ public class SdkJsonGenerator implements StructuredJsonGenerator {
     public static class JsonGenerationException extends SdkClientException {
 
         public JsonGenerationException(Throwable t) {
-            super(t);
+            super(SdkClientException.builder().cause(t));
         }
     }
 }

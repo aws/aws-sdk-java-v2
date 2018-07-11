@@ -40,8 +40,10 @@ public final class InstanceProfileRegionProvider implements AwsRegionProvider {
     @Override
     public Region getRegion() throws SdkClientException {
         if (SdkSystemSetting.AWS_EC2_METADATA_DISABLED.getBooleanValueOrThrow()) {
-            throw new SdkClientException("EC2 Metadata is disabled. Unable to retrieve region information from EC2 Metadata "
-                                         + "service.");
+            throw SdkClientException.builder()
+                                    .message("EC2 Metadata is disabled. Unable to retrieve region information from " +
+                                             "EC2 Metadata service.")
+                                    .build();
         }
 
         if (region == null) {
@@ -53,8 +55,10 @@ public final class InstanceProfileRegionProvider implements AwsRegionProvider {
         }
 
         if (region == null) {
-            throw new SdkClientException("Unable to retrieve region information from EC2 Metadata service. "
-                                         + "Please make sure the application is running on EC2.");
+            throw SdkClientException.builder()
+                                    .message("Unable to retrieve region information from EC2 Metadata service. "
+                                         + "Please make sure the application is running on EC2.")
+                                    .build();
         }
 
         return Region.of(region);

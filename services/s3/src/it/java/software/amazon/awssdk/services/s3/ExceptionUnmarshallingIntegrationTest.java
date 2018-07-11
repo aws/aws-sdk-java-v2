@@ -103,7 +103,7 @@ public class ExceptionUnmarshallingIntegrationTest extends S3IntegrationTestBase
         } catch (S3Exception ex) {
             // This is a limitation of HEAD requests since S3 doesn't return an XML body containing the error details.
             assertThat(ex.statusCode()).isEqualTo(404);
-            assertThat(ex.errorCode()).isEqualTo("404 Not Found");
+            assertThat(ex.awsErrorDetails().errorCode()).isEqualTo("404 Not Found");
         }
     }
 
@@ -115,7 +115,7 @@ public class ExceptionUnmarshallingIntegrationTest extends S3IntegrationTestBase
         } catch (S3Exception ex) {
             // This is a limitation of HEAD requests since S3 doesn't return an XML body containing the error details.
             assertThat(ex.statusCode()).isEqualTo(404);
-            assertThat(ex.errorCode()).isEqualTo("404 Not Found");
+            assertThat(ex.awsErrorDetails().errorCode()).isEqualTo("404 Not Found");
         }
     }
 }

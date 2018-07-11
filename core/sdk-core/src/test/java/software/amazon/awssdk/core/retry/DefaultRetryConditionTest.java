@@ -53,17 +53,17 @@ public class DefaultRetryConditionTest {
 
     @Test
     public void retriesOnIOException() {
-        assertTrue(shouldRetry(b -> b.exception(new SdkClientException("IO", new IOException()))));
+        assertTrue(shouldRetry(b -> b.exception(SdkClientException.builder().message("IO").cause(new IOException()).build())));
     }
 
     @Test
     public void retriesOnRetryableException() {
-        assertTrue(shouldRetry(b -> b.exception(new RetryableException("this is retryable"))));
+        assertTrue(shouldRetry(b -> b.exception(RetryableException.builder().message("this is retryable").build())));
     }
 
     @Test
     public void doesNotRetryOnNonRetryableException() {
-        assertFalse(shouldRetry(b -> b.exception(new NonRetryableException("this is NOT retryable"))));
+        assertFalse(shouldRetry(b -> b.exception(NonRetryableException.builder().message("this is NOT retryable").build())));
     }
 
     @Test
@@ -78,9 +78,7 @@ public class DefaultRetryConditionTest {
     }
 
     private Consumer<RetryPolicyContext.Builder> applyStatusCode(Integer statusCode) {
-        SdkServiceException exception = new SdkServiceException("");
-        exception.statusCode(statusCode);
-        exception.errorCode("Foo");
+        SdkServiceException exception = SdkServiceException.builder().statusCode(statusCode).build();
         return b -> b.exception(exception)
                      .httpStatusCode(statusCode);
     }

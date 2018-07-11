@@ -77,7 +77,7 @@ public class ConditionDeserializer {
             return NotCondition.builder()
                                .condition(deserializeCondition(node.get(PropertyName.NOT)));
         }
-        throw new SdkClientException("Condition must be provided");
+        throw SdkClientException.builder().message("Condition must be provided").build();
     }
 
     private Condition.Builder deserializeBinaryCondition(

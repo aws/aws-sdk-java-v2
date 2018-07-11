@@ -34,9 +34,10 @@ public final class SystemSettingsRegionProvider implements AwsRegionProvider {
     }
 
     private SdkClientException exception() {
-        return new SdkClientException(String.format("Unable to load region from system settings. Region must be specified either "
-                                                    + "via environment variable (%s) or system property (%s).",
+        return SdkClientException.builder().message(String.format("Unable to load region from system settings. Region" +
+                                                    " must be specified either via environment variable (%s) or " +
+                                                    " system property (%s).",
                                                     SdkSystemSetting.AWS_REGION.environmentVariable(),
-                                                    SdkSystemSetting.AWS_REGION.property()));
+                                                    SdkSystemSetting.AWS_REGION.property())).build();
     }
 }

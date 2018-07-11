@@ -24,6 +24,6 @@ public class IncompatibleTypeException extends SdkClientException {
     private static final long serialVersionUID = 1L;
 
     public IncompatibleTypeException(String message) {
-        super(message);
+        super(SdkClientException.builder().message(message));
     }
 }

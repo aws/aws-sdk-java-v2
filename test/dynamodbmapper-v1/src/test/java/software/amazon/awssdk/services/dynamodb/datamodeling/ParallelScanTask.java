@@ -116,7 +116,10 @@ public class ParallelScanTask {
                 try {
                     segmentScanstates.wait();
                 } catch (InterruptedException ie) {
-                    throw new SdkClientException("Parallel scan interrupted by other thread.", ie);
+                    throw SdkClientException.builder()
+                                            .message("Parallel scan interrupted by other thread.")
+                                            .cause(ie)
+                                            .build();
                 }
             }
             /**
@@ -136,7 +139,9 @@ public class ParallelScanTask {
              */
             if (currentSegmentState == SegmentScanstate.Scanning) {
 
-                throw new SdkClientException("Should never see a 'Scanning' state when starting parallel scans.");
+                throw SdkClientException.builder()
+                                        .message("Should never see a 'Scanning' state when starting parallel scans.")
+                                        .build();
 
             } else if (currentSegmentState == SegmentScanstate.Failed ||
                      currentSegmentState == SegmentScanstate.SegmentScanCompleted) {
@@ -161,7 +166,7 @@ public class ParallelScanTask {
                         } else if (currentSegmentState == SegmentScanstate.Waiting) {
                             return scanNextPageOfSegment(currentSegment, false);
                         } else {
-                            throw new SdkClientException("Should not start a new future task");
+                            throw SdkClientException.builder().message("Should not start a new future task").build();
                         }
                     } catch (Exception e) {
                         synchronized (segmentScanstates) {
@@ -188,17 +193,21 @@ public class ParallelScanTask {
             if (currentSegmentState == SegmentScanstate.Failed) {
                 try {
                     segmentScanFutureTasks.get(segment).get();
-                    throw new SdkClientException("No Exception found in the failed scan task.");
+                    throw SdkClientException.builder().message("No Exception found in the failed scan task.").build();
                 } catch (ExecutionException ee) {
                     Throwable cause = ee.getCause();
                     if (cause instanceof SdkServiceException) {
                         throw (SdkServiceException) cause;
                     } else {
-                        throw new SdkClientException("Internal error during the scan on segment #" + segment + ".",
-                                                     ee.getCause());
+                        throw SdkClientException.builder()
+                                                .message("Internal error during the scan on segment #" + segment + ".")
+                                                .build();
                     }
                 } catch (Exception e) {
-                    throw new SdkClientException("Error during the scan on segment #" + segment + ".", e);
+                    throw SdkClientException.builder()
+                                            .message("Error during the scan on segment #" + segment + ".")
+                                            .cause(e)
+                                            .build();
                 }
             } else if (currentSegmentState == SegmentScanstate.HasNextPage ||
                        currentSegmentState == SegmentScanstate.SegmentScanCompleted) {
@@ -209,8 +218,10 @@ public class ParallelScanTask {
                 scanResults.add(scanResult);
             } else if (currentSegmentState == SegmentScanstate.Waiting
                        || currentSegmentState == SegmentScanstate.Scanning) {
-                throw new SdkClientException("Should never see a 'Scanning' or 'Waiting' state when marshalling parallel " +
-                                             "scan results.");
+                throw SdkClientException.builder()
+                                        .message("Should never see a 'Scanning' or 'Waiting' state when marshalling parallel " +
+                                                 "scan results.")
+                                        .build();
             }
         }
         return scanResults;

@@ -58,7 +58,7 @@ public class ${className} implements Marshaller<Request<${shapeName}>, ${shapeNa
     public Request<${shapeName}> marshall(${shape.variable.variableType} ${shape.variable.variableName}) {
 
         if (${shape.variable.variableName} == null) {
-            throw new SdkClientException("Invalid argument passed to marshall(...)");
+            throw SdkClientException.builder().message("Invalid argument passed to marshall(...)").build();
         }
 
         <@RequiredParameterValidationInvocationMacro.content customConfig shape/>
@@ -71,7 +71,7 @@ public class ${className} implements Marshaller<Request<${shapeName}>, ${shapeNa
             ${shapeName}ModelMarshaller.getInstance().marshall(${shape.variable.variableName}, protocolMarshaller);
             return protocolMarshaller.finishMarshalling();
         } catch(Exception e) {
-            throw new SdkClientException("Unable to marshall request to JSON: " + e.getMessage(), e);
+            throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).throwable(e).build();
         }
     }
 

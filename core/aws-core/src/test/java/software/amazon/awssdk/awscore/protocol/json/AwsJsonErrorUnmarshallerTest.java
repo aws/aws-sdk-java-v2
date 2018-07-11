@@ -26,7 +26,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.awscore.http.response.AwsJsonErrorResponseHandler;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonErrorUnmarshaller;
+import software.amazon.awssdk.awscore.internal.protocol.json.AwsStructuredPlainJsonFactory;
 
 public class AwsJsonErrorUnmarshallerTest {
 
@@ -49,7 +51,7 @@ public class AwsJsonErrorUnmarshallerTest {
     @Test
     public void unmarshall_ValidJsonContent_UnmarshallsCorrectly() throws Exception {
         CustomException exception = (CustomException) unmarshaller.unmarshall(JSON);
-        assertEquals("Some error message", exception.errorMessage());
+        assertEquals("Some error message", exception.getMessage());
         assertEquals("This is a customField", exception.getCustomField());
         assertEquals(Integer.valueOf(42), exception.getCustomInt());
     }
@@ -57,7 +59,7 @@ public class AwsJsonErrorUnmarshallerTest {
     @Test
     public void unmarshall_InvalidCaseJsonContent_DoesNotUnmarshallCustomFields() throws Exception {
         CustomException exception = (CustomException) unmarshaller.unmarshall(INVALID_CASE_JSON);
-        assertEquals("Some error message", exception.errorMessage());
+        assertEquals("Some error message", exception.getMessage());
         assertNull(exception.getCustomField());
         assertNull(exception.getCustomInt());
     }
@@ -93,7 +95,7 @@ public class AwsJsonErrorUnmarshallerTest {
         private Integer customInt;
 
         public CustomException(BeanStyleBuilder builder) {
-            super(builder.message);
+            super(builder);
             this.customField = builder.customField;
             this.customInt = builder.customInt;
         }
@@ -107,21 +109,33 @@ public class AwsJsonErrorUnmarshallerTest {
             return customInt;
         }
 
-        public static Class<?> serializableBuilderClass() {
+        public static Class<? extends Builder> serializableBuilderClass() {
             return BeanStyleBuilder.class;
         }
 
-        public interface Builder {
+        @Override
+        public Builder toBuilder() {
+            return new BeanStyleBuilder(this);
+        }
+
+        public interface Builder extends AwsServiceException.Builder {
             Builder customField(String customField);
             Builder customInt(Integer customInt);
 
             CustomException build();
         }
 
-        private static class BeanStyleBuilder implements Builder {
+        private static class BeanStyleBuilder extends AwsServiceException.BuilderImpl implements Builder {
             private String customField;
             private Integer customInt;
-            private String message;
+
+            private BeanStyleBuilder() {}
+
+            private BeanStyleBuilder(CustomException ex) {
+                super(ex);
+                this.customField = ex.getCustomField();
+                this.customInt = ex.getCustomInt();
+            }
 
             @Override
             public Builder customField(String customField) {

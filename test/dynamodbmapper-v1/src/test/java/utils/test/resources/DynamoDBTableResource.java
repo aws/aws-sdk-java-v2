@@ -16,6 +16,8 @@
 package utils.test.resources;
 
 import java.util.List;
+
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.TableUtils;
@@ -137,8 +139,8 @@ public abstract class DynamoDBTableResource implements TestResource {
         try {
             table = getClient().describeTable(DescribeTableRequest.builder().tableName(
                     createRequest.tableName()).build()).table();
-        } catch (SdkServiceException exception) {
-            if (exception.errorCode().equalsIgnoreCase("ResourceNotFoundException")) {
+        } catch (AwsServiceException exception) {
+            if (exception.awsErrorDetails().errorCode().equalsIgnoreCase("ResourceNotFoundException")) {
                 return ResourceStatus.NOT_EXIST;
             }
         }

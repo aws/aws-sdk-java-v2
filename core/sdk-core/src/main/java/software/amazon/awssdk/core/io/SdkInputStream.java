@@ -47,7 +47,7 @@ public abstract class SdkInputStream extends InputStream implements Releasable {
             } catch (IOException e) {
                 LoggerFactory.getLogger(getClass()).debug("FYI", e);
             }
-            throw new AbortedException();
+            throw AbortedException.builder().build();
         }
     }
 

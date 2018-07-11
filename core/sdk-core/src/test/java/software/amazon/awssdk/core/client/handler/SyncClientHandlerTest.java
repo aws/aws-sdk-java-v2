@@ -101,7 +101,7 @@ public class SyncClientHandlerTest {
 
     @Test
     public void failedExecutionCallsErrorResponseHandler() throws Exception {
-        SdkServiceException exception = new SdkServiceException("Uh oh!");
+        SdkServiceException exception = SdkServiceException.builder().message("Uh oh!").statusCode(500).build();
 
         Map<String, List<String>> headers = new HashMap<>();
         headers.put("foo", Arrays.asList("bar"));
@@ -112,7 +112,7 @@ public class SyncClientHandlerTest {
         when(errorResponseHandler.handle(any(), any())).thenReturn(exception); // Error response handler call
 
         // When
-        assertThatThrownBy(() -> syncClientHandler.execute(clientExecutionParams())).isEqualTo(exception);
+        assertThatThrownBy(() -> syncClientHandler.execute(clientExecutionParams())).isEqualToComparingFieldByField(exception);
 
         // Then
         verifyNoMoreInteractions(responseHandler); // No response handler calls

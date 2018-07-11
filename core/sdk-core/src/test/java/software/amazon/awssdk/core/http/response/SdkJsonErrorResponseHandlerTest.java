@@ -15,10 +15,8 @@
 
 package software.amazon.awssdk.core.http.response;
 
-import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
@@ -64,7 +62,6 @@ public class SdkJsonErrorResponseHandlerTest {
         httpResponse.setContent(new StringInputStream("{}"));
 
         responseHandler = new SdkJsonErrorResponseHandler(Collections.singletonList(unmarshaller),
-                                                          SdkJsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER,
                                                           new JsonFactory());
     }
 
@@ -72,7 +69,6 @@ public class SdkJsonErrorResponseHandlerTest {
     public void handle_NoUnmarshallersAdded_ReturnsGenericSdkServiceException() throws
                                                                                    Exception {
         responseHandler = new SdkJsonErrorResponseHandler(new ArrayList<>(),
-                                                          SdkJsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER,
                                                           new JsonFactory());
 
         SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
@@ -95,14 +91,11 @@ public class SdkJsonErrorResponseHandlerTest {
         httpResponse.setStatusCode(500);
         httpResponse.setContent(null);
 
-        ExecutionAttributes attributes =
-                new ExecutionAttributes().putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME);
-        SdkServiceException exception = responseHandler.handle(httpResponse, attributes);
+        SdkServiceException exception = responseHandler.handle(httpResponse, null);
 
         // We assert these common properties are set again to make sure that code path is exercised
         // for unknown SdkServiceExceptions as well
         assertEquals(500, exception.statusCode());
-        assertEquals(SERVICE_NAME, exception.serviceName());
     }
 
     @Test
@@ -141,15 +134,13 @@ public class SdkJsonErrorResponseHandlerTest {
         httpResponse.setStatusCode(400);
         expectUnmarshallerMatches();
         when(unmarshaller.unmarshall(anyObject()))
-                .thenReturn(new CustomException(ERROR_MESSAGE));
+                .thenReturn(SdkServiceException.builder().build());
 
         ExecutionAttributes attributes =
                 new ExecutionAttributes().putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME);
         SdkServiceException exception = responseHandler.handle(httpResponse, attributes);
 
-        assertEquals(ERROR_MESSAGE, exception.errorMessage());
         assertEquals(400, exception.statusCode());
-        assertEquals(SERVICE_NAME, exception.serviceName());
     }
 
     @Test
@@ -158,30 +149,11 @@ public class SdkJsonErrorResponseHandlerTest {
         httpResponse.addHeader(HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER, "1234");
         expectUnmarshallerMatches();
         when(unmarshaller.unmarshall(anyObject()))
-                .thenReturn(new CustomException(ERROR_MESSAGE));
+                .thenReturn(SdkServiceException.builder().build());
 
         SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
 
         assertEquals("1234", exception.requestId());
-    }
-
-    /**
-     * All headers (Including ones that populate other fields like request id) should be dumped into
-     * the header map.
-     */
-    @Test
-    public void handle_AllHeaders_DumpedIntoHeaderMap() throws Exception {
-        httpResponse.setStatusCode(500);
-        httpResponse.addHeader("FooHeader", "FooValue");
-        httpResponse.addHeader(HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER, "1234");
-        expectUnmarshallerMatches();
-        when(unmarshaller.unmarshall(anyObject()))
-                .thenReturn(new CustomException(ERROR_MESSAGE));
-
-        SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
-        assertThat(exception.headers(), hasEntry("FooHeader", "FooValue"));
-        assertThat(exception.headers(),
-                   hasEntry(HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER, "1234"));
     }
 
     private void expectUnmarshallerMatches() {
@@ -190,14 +162,5 @@ public class SdkJsonErrorResponseHandlerTest {
 
     private void expectUnmarshallerDoesNotMatch() {
         when(unmarshaller.matches(anyInt())).thenReturn(false);
-    }
-
-    private static class CustomException extends SdkServiceException {
-
-        private static final long serialVersionUID = 1305027296023640779L;
-
-        public CustomException(String errorMessage) {
-            super(errorMessage);
-        }
     }
 }

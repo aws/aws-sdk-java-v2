@@ -83,8 +83,6 @@ public abstract class AwsTestBase {
             protected boolean matchesSafely(SdkServiceException item) {
                 isNotBlank(item.requestId(), "requestId");
                 isNotBlank(item.getMessage(), "message");
-                isNotBlank(item.errorCode(), "errorCode");
-                isNotBlank(item.serviceName(), "serviceName");
                 return sb.length() == 0;
             }
 

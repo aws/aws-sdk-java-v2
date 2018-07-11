@@ -90,10 +90,12 @@ public final class ContainerCredentialsProvider extends HttpCredentialsProvider 
 
             if (!SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI.getStringValue().isPresent() &&
                 !SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_FULL_URI.getStringValue().isPresent()) {
-                throw new SdkClientException(
-                    String.format("Cannot fetch credentials from container - neither %s or %s environment variables are set.",
-                                  SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_FULL_URI.environmentVariable(),
-                                  SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI.environmentVariable()));
+                throw SdkClientException.builder()
+                        .message(String.format("Cannot fetch credentials from container - neither %s or %s " +
+                                 "environment variables are set.",
+                                 SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_FULL_URI.environmentVariable(),
+                                 SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI.environmentVariable()))
+                        .build();
             }
 
             try {
@@ -103,7 +105,10 @@ public final class ContainerCredentialsProvider extends HttpCredentialsProvider 
             } catch (SdkClientException e) {
                 throw e;
             } catch (Exception e) {
-                throw new SdkClientException("Unable to fetch credentials from container.", e);
+                throw SdkClientException.builder()
+                                        .message("Unable to fetch credentials from container.")
+                                        .cause(e)
+                                        .build();
             }
         }
 
@@ -128,12 +133,14 @@ public final class ContainerCredentialsProvider extends HttpCredentialsProvider 
             URI uri = URI.create(SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_FULL_URI.getStringValueOrThrow());
             if (!ALLOWED_HOSTS.contains(uri.getHost())) {
 
-                throw new SdkClientException(
-                    String.format("The full URI (%s) contained withing environment variable %s has an invalid host. "
-                                  + "Host can only be one of [%s].",
-                                  uri,
-                                  SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_FULL_URI.environmentVariable(),
-                                  ALLOWED_HOSTS.stream().collect(joining(","))));
+                throw SdkClientException.builder()
+                                        .message(String.format("The full URI (%s) contained withing environment " +
+                                                 "variable %s has an invalid host. Host can only be one of [%s].",
+                                                 uri,
+                                                 SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_FULL_URI
+                                                                 .environmentVariable(),
+                                                 ALLOWED_HOSTS.stream().collect(joining(","))))
+                                        .build();
             }
             return uri;
         }

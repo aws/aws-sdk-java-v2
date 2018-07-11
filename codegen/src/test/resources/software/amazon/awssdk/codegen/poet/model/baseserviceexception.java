@@ -2,16 +2,16 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
-import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 
-/**
- */
 @Generated("software.amazon.awssdk:codegen")
-public final class EmptyModeledException extends JsonProtocolTestsException implements
-        ToCopyableBuilder<EmptyModeledException.Builder, EmptyModeledException> {
-    private EmptyModeledException(BuilderImpl builder) {
+public class JsonProtocolTestsException extends AwsServiceException {
+    protected JsonProtocolTestsException(Builder builder) {
         super(builder);
+    }
+
+    public static Builder builder() {
+        return new BuilderImpl();
     }
 
     @Override
@@ -19,15 +19,11 @@ public final class EmptyModeledException extends JsonProtocolTestsException impl
         return new BuilderImpl(this);
     }
 
-    public static Builder builder() {
-        return new BuilderImpl();
-    }
-
     public static Class<? extends Builder> serializableBuilderClass() {
         return BuilderImpl.class;
     }
 
-    public interface Builder extends CopyableBuilder<Builder, EmptyModeledException>, JsonProtocolTestsException.Builder {
+    public interface Builder extends AwsServiceException.Builder {
         @Override
         Builder awsErrorDetails(AwsErrorDetails awsErrorDetails);
 
@@ -44,12 +40,12 @@ public final class EmptyModeledException extends JsonProtocolTestsException impl
         Builder cause(Throwable cause);
     }
 
-    static final class BuilderImpl extends JsonProtocolTestsException.BuilderImpl implements Builder {
-        private BuilderImpl() {
+    protected static class BuilderImpl extends AwsServiceException.BuilderImpl implements Builder {
+        protected BuilderImpl() {
         }
 
-        private BuilderImpl(EmptyModeledException model) {
-            super(model);
+        protected BuilderImpl(JsonProtocolTestsException ex) {
+            super(ex);
         }
 
         @Override
@@ -82,9 +78,8 @@ public final class EmptyModeledException extends JsonProtocolTestsException impl
             return this;
         }
 
-        @Override
-        public EmptyModeledException build() {
-            return new EmptyModeledException(this);
+        public JsonProtocolTestsException build() {
+            return new JsonProtocolTestsException(this);
         }
     }
 }

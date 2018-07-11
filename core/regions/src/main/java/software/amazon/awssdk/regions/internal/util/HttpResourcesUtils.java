@@ -102,7 +102,9 @@ public final class HttpResourcesUtils {
                     return IoUtils.toString(inputStream);
                 } else if (statusCode == HttpURLConnection.HTTP_NOT_FOUND) {
                     // This is to preserve existing behavior of EC2 Instance metadata service.
-                    throw new SdkClientException("The requested metadata is not found at " + connection.getURL());
+                    throw SdkClientException.builder()
+                                            .message("The requested metadata is not found at " + connection.getURL())
+                                            .build();
                 } else {
                     if (!endpointProvider.retryPolicy().shouldRetry(retriesAttempted++,
                                                                     ResourcesEndpointRetryParameters.builder()
@@ -130,8 +132,6 @@ public final class HttpResourcesUtils {
     }
 
     private void handleErrorResponse(InputStream errorStream, int statusCode, String responseMessage) throws IOException {
-        String errorCode = null;
-
         // Parse the error stream returned from the service.
         if (errorStream != null) {
             String errorResponse = IoUtils.toString(errorStream);
@@ -141,7 +141,6 @@ public final class HttpResourcesUtils {
                 JsonNode code = node.get("code");
                 JsonNode message = node.get("message");
                 if (code != null && message != null) {
-                    errorCode = code.asText();
                     responseMessage = message.asText();
                 }
             } catch (RuntimeException exception) {
@@ -149,9 +148,10 @@ public final class HttpResourcesUtils {
             }
         }
 
-        SdkServiceException exception = new SdkServiceException(responseMessage);
-        exception.statusCode(statusCode);
-        exception.errorCode(errorCode);
+        SdkServiceException exception = SdkServiceException.builder()
+                                                           .message(responseMessage)
+                                                           .statusCode(statusCode)
+                                                           .build();
         throw exception;
     }
 }

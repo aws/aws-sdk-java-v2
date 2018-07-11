@@ -86,7 +86,7 @@ public final class InstanceProfileCredentialsProvider extends HttpCredentialsPro
             String[] securityCredentials = securityCredentialsList.trim().split("\n");
 
             if (securityCredentials.length == 0) {
-                throw new SdkClientException("Unable to load credentials path");
+                throw SdkClientException.builder().message("Unable to load credentials path").build();
             }
 
             return URI.create(host + SECURITY_CREDENTIALS_RESOURCE + securityCredentials[0]);

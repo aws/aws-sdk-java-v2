@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.cloudformation.model.EstimateTemplateCostRequest;
 import software.amazon.awssdk.services.cloudformation.model.EstimateTemplateCostResponse;
@@ -36,7 +37,7 @@ import software.amazon.awssdk.services.cloudformation.model.ValidateTemplateResp
 /**
  * Integration tests of the template-related API of CloudFormation.
  */
-public class TemplateIntegrationTests extends CloudFormationIntegrationTestBase {
+public class TemplateIntegrationTest extends CloudFormationIntegrationTestBase {
 
     public static final String TEMPLATE_URL = "https://s3.amazonaws.com/cloudformation-templates/sampleTemplate";
     private static final String TEMPLATE_DESCRIPTION = "Template Description";
@@ -81,8 +82,8 @@ public class TemplateIntegrationTests extends CloudFormationIntegrationTestBase 
         try {
             cf.validateTemplate(ValidateTemplateRequest.builder().templateBody("{\"Foo\" : \"Bar\"}").build());
             fail("Should have thrown an exception");
-        } catch (SdkServiceException acfx) {
-            assertEquals("ValidationError", acfx.errorCode());
+        } catch (AwsServiceException acfx) {
+            assertEquals("ValidationError", acfx.awsErrorDetails().errorCode());
         } catch (Exception e) {
             fail("Should have thrown an AmazonCloudFormation Exception");
         }

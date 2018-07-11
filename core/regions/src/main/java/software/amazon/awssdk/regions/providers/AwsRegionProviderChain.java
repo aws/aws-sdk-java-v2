@@ -64,7 +64,9 @@ public class AwsRegionProviderChain implements AwsRegionProvider {
             }
         }
 
-        throw new SdkClientException("Unable to load region from any of the providers in the chain " + this
-                                     + ": " + exceptionMessages);
+        throw SdkClientException.builder()
+                                .message("Unable to load region from any of the providers in the chain " + this
+                                     + ": " + exceptionMessages)
+                                .build();
     }
 }

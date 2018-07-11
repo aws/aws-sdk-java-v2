@@ -27,7 +27,7 @@ public class RetryUtilsTest {
 
     @Test
     public void nonSdkServiceException_shouldReturnFalse() {
-        SdkClientException exception = new SdkClientException("exception");
+        SdkClientException exception = SdkClientException.builder().message("exception").build();
         assertThat(RetryUtils.isServiceException(exception)).isFalse();
         assertThat(RetryUtils.isClockSkewException(exception)).isFalse();
         assertThat(RetryUtils.isThrottlingException(exception)).isFalse();
@@ -36,33 +36,22 @@ public class RetryUtilsTest {
 
     @Test
     public void statusCode429_isThrottlingExceptionShouldReturnTrue() {
-        SdkServiceException throttlingException = new SdkServiceException("throttling");
-        throttlingException.statusCode(429);
+        SdkServiceException throttlingException = SdkServiceException.builder().message("Throttling").statusCode(429).build();
         assertThat(RetryUtils.isThrottlingException(throttlingException)).isTrue();
     }
 
     @Test
     public void sdkServiceException_shouldReturnFalseIfNotOverridden() {
-        SdkServiceException clockSkewException = new SdkServiceException("default");
+        SdkServiceException clockSkewException = SdkServiceException.builder().message("default").build();
         assertThat(RetryUtils.isClockSkewException(clockSkewException)).isFalse();
     }
 
     @Test
-    public void clockSkewException_shouldReturnTrue() {
-        SdkServiceException clockSkewException = new SdkServiceException("clockSkew") {
-            @Override
-            public boolean isClockSkewException() {
-                return true;
-            }
-        };
-
-        assertThat(RetryUtils.isClockSkewException(clockSkewException)).isTrue();
-    }
-
-    @Test
     public void statusCode413_isRequestEntityTooLargeShouldReturnTrue() {
-        SdkServiceException exception = new SdkServiceException("boom");
-        exception.statusCode(HttpStatusCode.REQUEST_TOO_LONG);
+        SdkServiceException exception = SdkServiceException.builder()
+                                                           .message("boom")
+                                                           .statusCode(HttpStatusCode.REQUEST_TOO_LONG)
+                                                           .build();
         assertThat(RetryUtils.isRequestEntityTooLargeException(exception)).isTrue();
     }
 }
