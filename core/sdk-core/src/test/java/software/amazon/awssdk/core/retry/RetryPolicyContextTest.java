@@ -46,7 +46,7 @@ public class RetryPolicyContextTest {
     public void buildFully() {
         final SdkRequest origRequest = NoopTestRequest.builder().build();
         final SdkHttpFullRequest request = ValidSdkObjects.sdkHttpFullRequest().build();
-        final SdkClientException exception = new SdkClientException("boom");
+        final SdkClientException exception = SdkClientException.builder().message("boom").build();
         final RetryPolicyContext context = RetryPolicyContext.builder()
                                                              .retriesAttempted(3)
                                                              .httpStatusCode(400)

@@ -74,9 +74,10 @@ class DecodedStreamBuffer {
 
     public void startReadBuffer() {
         if (bufferSizeOverflow) {
-            throw new SdkClientException(
-                    "The input stream is not repeatable since the buffer size "
-                            + maxBufferSize + " has been exceeded.");
+            throw SdkClientException.builder()
+                                    .message("The input stream is not repeatable since the buffer size "
+                                             + maxBufferSize + " has been exceeded.")
+                                    .build();
         }
         pos = 0;
     }

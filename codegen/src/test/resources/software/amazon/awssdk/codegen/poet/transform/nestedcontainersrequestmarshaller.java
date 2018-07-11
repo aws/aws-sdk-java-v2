@@ -19,7 +19,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class NestedContainersRequestMarshaller implements Marshaller<Request<NestedContainersRequest>, NestedContainersRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder().requestUri("/")
-                                                                            .httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(false).hasPayloadMembers(true).build();
+            .httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(false).hasPayloadMembers(true).build();
 
     private final AwsJsonProtocolFactory protocolFactory;
 
@@ -32,12 +32,13 @@ public class NestedContainersRequestMarshaller implements Marshaller<Request<Nes
         Validate.paramNotNull(nestedContainersRequest, "nestedContainersRequest");
         try {
             ProtocolRequestMarshaller<NestedContainersRequest> protocolMarshaller = protocolFactory.createProtocolMarshaller(
-                SDK_OPERATION_BINDING, nestedContainersRequest);
+                    SDK_OPERATION_BINDING, nestedContainersRequest);
             protocolMarshaller.startMarshalling();
             NestedContainersRequestModelMarshaller.getInstance().marshall(nestedContainersRequest, protocolMarshaller);
             return protocolMarshaller.finishMarshalling();
         } catch (Exception e) {
-            throw new SdkClientException("Unable to marshall request to JSON: " + e.getMessage(), e);
+            throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e)
+                    .build();
         }
     }
 }

@@ -52,7 +52,7 @@ public abstract class SdkIonGenerator implements StructuredJsonGenerator {
         try {
             writer.stepIn(IonType.LIST);
         } catch (IOException e) {
-            throw new SdkClientException(e);
+            throw SdkClientException.builder().cause(e).build();
         }
         return this;
     }
@@ -62,7 +62,7 @@ public abstract class SdkIonGenerator implements StructuredJsonGenerator {
         try {
             writer.writeNull();
         } catch (IOException e) {
-            throw new SdkClientException(e);
+            throw SdkClientException.builder().cause(e).build();
         }
         return this;
     }
@@ -72,7 +72,7 @@ public abstract class SdkIonGenerator implements StructuredJsonGenerator {
         try {
             writer.stepOut();
         } catch (IOException e) {
-            throw new SdkClientException(e);
+            throw SdkClientException.builder().cause(e).build();
         }
         return this;
     }
@@ -82,7 +82,7 @@ public abstract class SdkIonGenerator implements StructuredJsonGenerator {
         try {
             writer.stepIn(IonType.STRUCT);
         } catch (IOException e) {
-            throw new SdkClientException(e);
+            throw SdkClientException.builder().cause(e).build();
         }
         return this;
     }
@@ -92,7 +92,7 @@ public abstract class SdkIonGenerator implements StructuredJsonGenerator {
         try {
             writer.stepOut();
         } catch (IOException e) {
-            throw new SdkClientException(e);
+            throw SdkClientException.builder().cause(e).build();
         }
         return this;
     }
@@ -108,7 +108,7 @@ public abstract class SdkIonGenerator implements StructuredJsonGenerator {
         try {
             writer.writeString(val);
         } catch (IOException e) {
-            throw new SdkClientException(e);
+            throw SdkClientException.builder().cause(e).build();
         }
         return this;
     }
@@ -118,7 +118,7 @@ public abstract class SdkIonGenerator implements StructuredJsonGenerator {
         try {
             writer.writeBool(bool);
         } catch (IOException e) {
-            throw new SdkClientException(e);
+            throw SdkClientException.builder().cause(e).build();
         }
         return this;
     }
@@ -128,7 +128,7 @@ public abstract class SdkIonGenerator implements StructuredJsonGenerator {
         try {
             writer.writeInt(val);
         } catch (IOException e) {
-            throw new SdkClientException(e);
+            throw SdkClientException.builder().cause(e).build();
         }
         return this;
     }
@@ -138,7 +138,7 @@ public abstract class SdkIonGenerator implements StructuredJsonGenerator {
         try {
             writer.writeFloat(val);
         } catch (IOException e) {
-            throw new SdkClientException(e);
+            throw SdkClientException.builder().cause(e).build();
         }
         return this;
     }
@@ -148,7 +148,7 @@ public abstract class SdkIonGenerator implements StructuredJsonGenerator {
         try {
             writer.writeFloat(val);
         } catch (IOException e) {
-            throw new SdkClientException(e);
+            throw SdkClientException.builder().cause(e).build();
         }
         return this;
     }
@@ -158,7 +158,7 @@ public abstract class SdkIonGenerator implements StructuredJsonGenerator {
         try {
             writer.writeInt(val);
         } catch (IOException e) {
-            throw new SdkClientException(e);
+            throw SdkClientException.builder().cause(e).build();
         }
         return this;
     }
@@ -168,7 +168,7 @@ public abstract class SdkIonGenerator implements StructuredJsonGenerator {
         try {
             writer.writeInt(val);
         } catch (IOException e) {
-            throw new SdkClientException(e);
+            throw SdkClientException.builder().cause(e).build();
         }
         return this;
     }
@@ -178,7 +178,7 @@ public abstract class SdkIonGenerator implements StructuredJsonGenerator {
         try {
             writer.writeBlob(BinaryUtils.copyAllBytesFrom(bytes));
         } catch (IOException e) {
-            throw new SdkClientException(e);
+            throw SdkClientException.builder().cause(e).build();
         }
         return this;
     }
@@ -189,7 +189,7 @@ public abstract class SdkIonGenerator implements StructuredJsonGenerator {
             Date d = instant != null ? Date.from(instant) : null;
             writer.writeTimestamp(Timestamp.forDateZ(d));
         } catch (IOException e) {
-            throw new SdkClientException(e);
+            throw SdkClientException.builder().cause(e).build();
         }
         return this;
     }
@@ -199,7 +199,7 @@ public abstract class SdkIonGenerator implements StructuredJsonGenerator {
         try {
             writer.writeDecimal(value);
         } catch (IOException e) {
-            throw new SdkClientException(e);
+            throw SdkClientException.builder().cause(e).build();
         }
         return this;
     }
@@ -209,7 +209,7 @@ public abstract class SdkIonGenerator implements StructuredJsonGenerator {
         try {
             writer.writeInt(value);
         } catch (IOException e) {
-            throw new SdkClientException(e);
+            throw SdkClientException.builder().cause(e).build();
         }
         return this;
     }
@@ -235,7 +235,7 @@ public abstract class SdkIonGenerator implements StructuredJsonGenerator {
             try {
                 writer.finish();
             } catch (IOException e) {
-                throw new SdkClientException(e);
+                throw SdkClientException.builder().cause(e).build();
             }
             return bytes.toByteArray();
         }

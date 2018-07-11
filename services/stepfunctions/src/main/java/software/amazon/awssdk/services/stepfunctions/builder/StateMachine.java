@@ -70,8 +70,10 @@ public final class StateMachine {
         try {
             return MAPPER.readValue(json, StateMachine.Builder.class);
         } catch (IOException e) {
-            throw new SdkClientException(
-                    String.format("Could not deserialize state machine.\n%s", json), e);
+            throw SdkClientException.builder()
+                                    .message(String.format("Could not deserialize state machine.\n%s", json))
+                                    .cause(e)
+                                    .build();
         }
     }
 
@@ -119,7 +121,7 @@ public final class StateMachine {
         try {
             return MAPPER.writeValueAsString(this);
         } catch (JsonProcessingException e) {
-            throw new SdkClientException("Could not serialize state machine.", e);
+            throw SdkClientException.builder().message("Could not serialize state machine.").cause(e).build();
         }
     }
 
@@ -131,7 +133,7 @@ public final class StateMachine {
         try {
             return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(this);
         } catch (JsonProcessingException e) {
-            throw new SdkClientException("Could not serialize state machine.", e);
+            throw SdkClientException.builder().message("Could not serialize state machine.").cause(e).build();
         }
     }
 

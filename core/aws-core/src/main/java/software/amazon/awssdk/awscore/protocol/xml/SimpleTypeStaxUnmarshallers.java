@@ -240,8 +240,9 @@ public final class SimpleTypeStaxUnmarshallers {
 
             charString = charString.trim();
             if (charString.isEmpty() || charString.length() > 1) {
-                throw new SdkClientException("'" + charString
-                                             + "' cannot be converted to Character");
+                throw SdkClientException.builder()
+                                        .message("'" + charString + "' cannot be converted to Character")
+                                        .build();
             }
             return Character.valueOf(charString.charAt(0));
         }

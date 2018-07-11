@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.core.retry.conditions.RetryCondition;
 
@@ -39,10 +39,10 @@ public final class RetryOnErrorCodeCondition implements RetryCondition {
     public boolean shouldRetry(RetryPolicyContext context) {
 
         Exception ex = context.exception();
-        if (ex instanceof SdkServiceException) {
-            SdkServiceException exception = (SdkServiceException) ex;
+        if (ex instanceof AwsServiceException) {
+            AwsServiceException exception = (AwsServiceException) ex;
 
-            return retryableErrorCodes.contains(exception.errorCode());
+            return retryableErrorCodes.contains(exception.awsErrorDetails().errorCode());
         }
         return false;
     }

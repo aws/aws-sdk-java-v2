@@ -75,7 +75,7 @@ public final class MarshallerRegistry {
                         return marshallingType;
                     }
                 }
-                throw new SdkClientException("MarshallingType not found for class " + clzz);
+                throw SdkClientException.builder().message("MarshallingType not found for class " + clzz).build();
             }
         }
         return marshallingTypeCache.get(clzz);

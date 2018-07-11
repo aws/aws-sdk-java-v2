@@ -15,9 +15,6 @@
 
 package software.amazon.awssdk.core.exception;
 
-import java.util.Collections;
-import java.util.Map;
-import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.HttpStatusCode;
 
@@ -39,192 +36,29 @@ import software.amazon.awssdk.http.HttpStatusCode;
 @SdkPublicApi
 public class SdkServiceException extends SdkException {
 
-    /**
-     * The unique  identifier for the service request the caller made. The
-     * request ID can uniquely identify the request and can be used by the
-     * downstream service to identify specific caller requests to help
-     * with debugging.
-     */
-    private String requestId;
+    private final String requestId;
+    private final int statusCode;
 
-    /**
-     * The error message as returned by the service.
-     */
-    private String errorMessage;
-
-    /**
-     * The error code represented by this exception.
-     */
-    @ReviewBeforeRelease("Is this too specific to AWS?")
-    private String errorCode;
-
-    /**
-     * {@link ErrorType} is a best effort determination of whether
-     * or not a given {@link SdkServiceException} was caused by a
-     * problem with the downstream service or a problem with the clients
-     * request.
-     * <p>
-     * Requests marked as {@link ErrorType#CLIENT} indicate a problem
-     * with the request that the caller made. These requests are not expected
-     * to be able to succeed on a retry.
-     * <p>
-     * Requests marked with {@link ErrorType#SERVICE} indicate a problem
-     * on the service side. These requests may be able to succeed on a retry.
-     * <p>
-     * Requests that can't be determined to be either service or client errors
-     * are marked as {@link ErrorType#UNKNOWN}. These requests may be able to be
-     * safely retried.
-     */
-    private ErrorType errorType = ErrorType.UNKNOWN;
-
-    /**
-     * The HTTP status code that was returned with this error.
-     */
-    private int statusCode;
-
-    /**
-     * The name of the service that sent this error response.
-     */
-    private String serviceName;
-
-    /**
-     * All of HTTP headers that were returned in the response.
-     */
-    private Map<String, String> headers;
-
-    /**
-     * The raw payload of the HTTP response.
-     */
-    private byte[] rawResponse;
-
-    /**
-     * Constructs a new SdkServiceException with the specified message.
-     *
-     * @param errorMessage
-     *            An error message describing what went wrong.
-     */
-    public SdkServiceException(String errorMessage) {
-        super(errorMessage);
-        this.errorMessage = errorMessage;
+    protected SdkServiceException(Builder b) {
+        super(b);
+        this.requestId = b.requestId();
+        this.statusCode = b.statusCode();
     }
 
     /**
-     * Constructs a new SdkServiceException with the specified message and
-     * exception indicating the root cause.
-     *
-     * @param errorMessage
-     *            An error message describing what went wrong.
-     * @param cause
-     *            The root exception that caused this exception to be thrown.
-     */
-    public SdkServiceException(String errorMessage, Exception cause) {
-        super(errorMessage, cause);
-        this.errorMessage = errorMessage;
-    }
-
-    /**
-     * Returns the request ID that uniquely identifies the service request
-     * the caller made.
-     *
-     * @return The request ID that uniquely identifies the service request
-     *         the caller made.
+     * The requestId that was returned by the called service.
+     * @return String containing the requestId
      */
     public String requestId() {
         return requestId;
     }
 
-    public void requestId(String requestId) {
-        this.requestId = requestId;
-    }
-
     /**
-     * Returns the name of the service that sent this error response.
-     *
-     * @return The name of the service that sent this error response.
-     */
-    public String serviceName() {
-        return serviceName;
-    }
-
-    public void serviceName(String serviceName) {
-        this.serviceName = serviceName;
-    }
-
-    /**
-     * @return the human-readable error message provided by the service
-     */
-    public String errorMessage() {
-        return errorMessage;
-    }
-
-    public void errorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
-    }
-
-    /**
-     * Returns the error code associated with the response.
-     */
-    public String errorCode() {
-        return errorCode;
-    }
-
-    public void errorCode(String errorCode) {
-        this.errorCode = errorCode;
-    }
-
-    /**
-     * Returns the {@link ErrorType} associated with the request.
-     */
-    public ErrorType errorType() {
-        return errorType;
-    }
-
-    public void errorType(ErrorType errorType) {
-        this.errorType = errorType;
-    }
-
-    /**
-     * Returns the HTTP status code that was returned with this service
-     * exception.
+     * The status code that was returned by the called service.
+     * @return int containing the status code.
      */
     public int statusCode() {
         return statusCode;
-    }
-
-    public void statusCode(int statusCode) {
-        this.statusCode = statusCode;
-    }
-
-    /**
-     * Returns the response payload as bytes.
-     */
-    public byte[] rawResponse() {
-        return rawResponse == null ? null : rawResponse.clone();
-    }
-
-    public void rawResponse(byte[] rawResponse) {
-        if (rawResponse != null) {
-            this.rawResponse = rawResponse.clone();
-        }
-    }
-
-    /**
-     * Returns a map of HTTP headers associated with the error response.
-     */
-    public Map<String, String> headers() {
-        return headers;
-    }
-
-    public void headers(Map<String, String> headers) {
-        this.headers = Collections.unmodifiableMap(headers);
-    }
-
-    @Override
-    public String getMessage() {
-        return errorMessage()
-               + " (Service: " + serviceName()
-               + "; Status Code: " + statusCode()
-               + "; Request ID: " + requestId() + ")";
     }
 
     /**
@@ -240,7 +74,139 @@ public class SdkServiceException extends SdkException {
      * @return true if the status code is 429, otherwise false.
      */
     public boolean isThrottlingException() {
-        return statusCode() == HttpStatusCode.THROTTLING;
+        return statusCode == HttpStatusCode.THROTTLING;
     }
 
+    /**
+     * @return {@link Builder} instance to construct a new {@link SdkServiceException}.
+     */
+    public static Builder builder() {
+        return new BuilderImpl();
+    }
+
+    /**
+     * Create a {@link SdkServiceException.Builder} initialized with the properties of this {@code SdkServiceException}.
+     *
+     * @return A new builder initialized with this config's properties.
+     */
+    @Override
+    public Builder toBuilder() {
+        return new BuilderImpl(this);
+    }
+
+    public static Class<? extends Builder> serializableBuilderClass() {
+        return BuilderImpl.class;
+    }
+
+    public interface Builder extends SdkException.Builder {
+        Builder message(String message);
+
+        Builder cause(Throwable cause);
+
+        /**
+         * Specifies the requestId returned by the called service.
+         *
+         * @param requestId A string that identifies the request made to a service.
+         * @return This object for method chaining.
+         */
+        Builder requestId(String requestId);
+
+        /**
+         * The requestId returned by the called service.
+         *
+         * @return String containing the requestId
+         */
+        String requestId();
+
+        /**
+         * Specifies the status code returned by the service.
+         *
+         * @param statusCode an int containing the status code returned by the service.
+         * @return This method for object chaining.
+         */
+        Builder statusCode(int statusCode);
+
+        /**
+         * The status code returned by the service.
+         * @return int containing the status code
+         */
+        int statusCode();
+
+        /**
+         * Creates a new {@link SdkServiceException} with the specified properties.
+         *
+         * @return The new {@link SdkServiceException}.
+         */
+        @Override
+        SdkServiceException build();
+    }
+
+    protected static class BuilderImpl extends SdkException.BuilderImpl implements Builder {
+
+        protected String requestId;
+        protected int statusCode;
+
+        protected BuilderImpl() {}
+
+        protected BuilderImpl(SdkServiceException ex) {
+            super(ex);
+            this.requestId = ex.requestId();
+            this.statusCode = ex.statusCode();
+        }
+
+        @Override
+        public Builder message(String message) {
+            this.message = message;
+            return this;
+        }
+
+        @Override
+        public Builder cause(Throwable cause) {
+            this.cause = cause;
+            return this;
+        }
+
+        @Override
+        public Builder requestId(String requestId) {
+            this.requestId = requestId;
+            return this;
+        }
+
+        @Override
+        public String requestId() {
+            return requestId;
+        }
+
+        public String getRequestId() {
+            return requestId;
+        }
+
+        public void setRequestId(String requestId) {
+            this.requestId = requestId;
+        }
+
+        @Override
+        public Builder statusCode(int statusCode) {
+            this.statusCode = statusCode;
+            return this;
+        }
+
+        public int getStatusCode() {
+            return statusCode;
+        }
+
+        public void setStatusCode(int statusCode) {
+            this.statusCode = statusCode;
+        }
+
+        @Override
+        public int statusCode() {
+            return statusCode;
+        }
+
+        @Override
+        public SdkServiceException build() {
+            return new SdkServiceException(this);
+        }
+    }
 }

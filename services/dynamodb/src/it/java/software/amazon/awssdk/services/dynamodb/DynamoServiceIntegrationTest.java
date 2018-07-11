@@ -33,9 +33,8 @@ import java.util.Set;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.exception.ErrorType;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.dynamodb.model.AttributeAction;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValueUpdate;
@@ -122,8 +121,8 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
 
         try {
             dynamo.batchGetItem(request);
-        } catch (SdkServiceException exception) {
-            assertEquals("ValidationException", exception.errorCode());
+        } catch (AwsServiceException exception) {
+            assertEquals("ValidationException", exception.awsErrorDetails().errorCode());
         }
 
         Map<String, List<WriteRequest>> requestItems = new HashMap<String, List<WriteRequest>>();
@@ -136,8 +135,8 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
         requestItems.put(tableName, writeRequests);
         try {
             dynamo.batchWriteItem(BatchWriteItemRequest.builder().requestItems(requestItems).build());
-        } catch (SdkServiceException exception) {
-            assertEquals("ValidationException", exception.errorCode());
+        } catch (AwsServiceException exception) {
+            assertEquals("ValidationException", exception.awsErrorDetails().errorCode());
         }
 
     }
@@ -152,12 +151,11 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
         try {
             dynamo.deleteTable(request);
             fail("Expected an exception to be thrown");
-        } catch (SdkServiceException exception) {
-            assertNotEmpty(exception.errorCode());
-            assertEquals(ErrorType.CLIENT, exception.errorType());
+        } catch (AwsServiceException exception) {
+            assertNotEmpty(exception.awsErrorDetails().errorCode());
             assertNotEmpty(exception.getMessage());
             assertNotEmpty(exception.requestId());
-            assertNotEmpty(exception.serviceName());
+            assertNotEmpty(exception.awsErrorDetails().serviceName());
             assertTrue(exception.statusCode() >= 400);
             assertTrue(exception.statusCode() < 600);
         }
@@ -187,10 +185,9 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
 
         try {
             dynamo.batchGetItem(request);
-        } catch (SdkServiceException exception) {
+        } catch (AwsServiceException exception) {
             assertNotNull(exception.getMessage());
-            assertEquals("Request entity too large", exception.errorCode());
-            assertEquals(ErrorType.CLIENT, exception.errorType());
+            assertEquals("Request entity too large", exception.awsErrorDetails().errorCode());
             assertEquals(413, exception.statusCode());
         }
     }
@@ -209,12 +206,11 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
         requestItems.put(tableName, writeRequests);
         try {
             dynamo.batchWriteItem(BatchWriteItemRequest.builder().requestItems(requestItems).build());
-        } catch (SdkServiceException exception) {
-            assertEquals("ValidationException", exception.errorCode());
-            assertEquals(ErrorType.CLIENT, exception.errorType());
+        } catch (AwsServiceException exception) {
+            assertEquals("ValidationException", exception.awsErrorDetails().errorCode());
             assertNotEmpty(exception.getMessage());
             assertNotEmpty(exception.requestId());
-            assertNotEmpty(exception.serviceName());
+            assertNotEmpty(exception.awsErrorDetails().serviceName());
             assertEquals(400, exception.statusCode());
         }
     }

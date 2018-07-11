@@ -154,8 +154,8 @@ public class ResettableInputStream extends ReleasableInputStream {
             return new ResettableInputStream(file);
         } catch (IOException e) {
             throw errmsg == null
-                  ? new SdkClientException(e)
-                  : new SdkClientException(errmsg, e);
+                  ? SdkClientException.builder().cause(e).build()
+                  : SdkClientException.builder().message(errmsg).cause(e).build();
         }
     }
 
@@ -203,7 +203,7 @@ public class ResettableInputStream extends ReleasableInputStream {
         try {
             return new ResettableInputStream(fis);
         } catch (IOException e) {
-            throw new SdkClientException(errmsg, e);
+            throw SdkClientException.builder().message(errmsg).cause(e).build();
         }
     }
 
@@ -239,7 +239,7 @@ public class ResettableInputStream extends ReleasableInputStream {
         try {
             markPos = fileChannel.position();
         } catch (IOException e) {
-            throw new SdkClientException("Failed to mark the file position", e);
+            throw SdkClientException.builder().message("Failed to mark the file position").cause(e).build();
         }
         if (log.isTraceEnabled()) {
             log.trace("File input stream marked at position " + markPos);

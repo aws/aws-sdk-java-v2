@@ -182,10 +182,10 @@ public class AutoScalingIntegrationTest extends IntegrationTestBase {
             createLaunchConfiguration(launchConfigurationName);
         } catch (AlreadyExistsException aee) {
             assertEquals(400, aee.statusCode());
-            assertEquals("AlreadyExists", aee.errorCode());
+            assertEquals("AlreadyExists", aee.awsErrorDetails().errorCode());
             assertNotEmpty(aee.getMessage());
             assertNotEmpty(aee.requestId());
-            assertNotEmpty(aee.serviceName());
+            assertNotEmpty(aee.awsErrorDetails().serviceName());
         }
     }
 

@@ -90,7 +90,7 @@ public class SimpleTypeCborUnmarshallers {
                 Object embedded = parser.getEmbeddedObject();
                 return new BigInteger((byte[]) embedded);
             } else {
-                throw new SdkClientException("Invalid BigInteger Format.");
+                throw SdkClientException.builder().message("Invalid BigInteger Format.").build();
             }
         }
     }
@@ -109,7 +109,7 @@ public class SimpleTypeCborUnmarshallers {
 
             JsonToken current = parser.getCurrentToken();
             if (current != JsonToken.START_ARRAY) {
-                throw new SdkClientException("Invalid BigDecimal Format.");
+                throw SdkClientException.builder().message("Invalid BigDecimal Format.").build();
             }
             parser.nextToken();
             int exponent = parser.getIntValue();

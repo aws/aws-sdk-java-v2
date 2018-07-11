@@ -106,8 +106,10 @@ public final class AwsCredentialsProviderChain implements AwsCredentialsProvider
             }
         }
 
-        throw new SdkClientException("Unable to load credentials from any of the providers in the chain " + this
-                + ": " + exceptionMessages);
+        throw SdkClientException.builder()
+                                .message("Unable to load credentials from any of the providers in the chain " +
+                                         this + " : " + exceptionMessages)
+                                .build();
     }
 
     @Override

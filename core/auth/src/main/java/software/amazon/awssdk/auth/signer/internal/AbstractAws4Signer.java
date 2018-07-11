@@ -152,7 +152,10 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         try {
             payloadStream.reset();
         } catch (IOException e) {
-            throw new SdkClientException("Unable to reset stream after calculating AWS4 signature", e);
+            throw SdkClientException.builder()
+                                    .message("Unable to reset stream after calculating AWS4 signature")
+                                    .cause(e)
+                                    .build();
         }
         return contentSha256;
     }
@@ -377,10 +380,12 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
                                                  .orElse(SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS);
 
         if (expirationInSeconds > SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS) {
-            throw new SdkClientException(
-                "Requests that are pre-signed by SigV4 algorithm are valid for at most 7 days. "
-                + "The expiration date set on the current request ["
-                + Aws4SignerUtils.formatTimestamp(expirationInSeconds * 1000L) + "] has exceeded this limit.");
+            throw SdkClientException.builder()
+                                    .message("Requests that are pre-signed by SigV4 algorithm are valid for at most 7" +
+                                             " days. The expiration date set on the current request [" +
+                                             Aws4SignerUtils.formatTimestamp(expirationInSeconds * 1000L) + "] +" +
+                                            " has exceeded this limit.")
+                                    .build();
         }
         return expirationInSeconds;
     }

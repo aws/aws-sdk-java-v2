@@ -125,8 +125,6 @@ public class HttpCredentialsUtilsTest {
             fail("Expected SdkServiceException");
         } catch (SdkServiceException exception) {
             assertEquals(500, exception.statusCode());
-            assertEquals("500 Internal Server Error", exception.errorCode());
-            assertEquals("ERROR_MESSAGE", exception.errorMessage());
         }
     }
 
@@ -144,7 +142,6 @@ public class HttpCredentialsUtilsTest {
             fail("Expected SdkServiceException");
         } catch (SdkServiceException exception) {
             assertEquals(500, exception.statusCode());
-            assertNotNull(exception.errorMessage());
         }
     }
 

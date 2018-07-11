@@ -373,12 +373,11 @@ public final class EC2MetadataUtils {
 
     private static List<String> getItems(String path, int tries, boolean slurp) {
         if (tries == 0) {
-            throw new SdkClientException(
-                    "Unable to contact EC2 metadata service.");
+            throw SdkClientException.builder().message("Unable to contact EC2 metadata service.").build();
         }
 
         if (SdkSystemSetting.AWS_EC2_METADATA_DISABLED.getBooleanValueOrThrow()) {
-            throw new SdkClientException("EC2 metadata usage is disabled.");
+            throw SdkClientException.builder().message("EC2 metadata usage is disabled.").build();
         }
 
         List<String> items;
@@ -413,7 +412,7 @@ public final class EC2MetadataUtils {
 
     private static String fetchData(String path, boolean force) {
         if (SdkSystemSetting.AWS_EC2_METADATA_DISABLED.getBooleanValueOrThrow()) {
-            throw new SdkClientException("EC2 metadata usage is disabled.");
+            throw SdkClientException.builder().message("EC2 metadata usage is disabled.").build();
         }
 
         try {

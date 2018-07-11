@@ -107,7 +107,7 @@ public class AwsRegionProviderChainTest {
     private static class FaultyAwsRegionProvider implements AwsRegionProvider {
         @Override
         public Region getRegion() throws SdkClientException {
-            throw new SdkClientException("Unable to fetch region info");
+            throw SdkClientException.builder().message("Unable to fetch region info").build();
         }
     }
 
