@@ -26,9 +26,6 @@
         }
     ]
   },
-  "baseExceptionClass": {
-    "mainTemplate" : "/templates/common/base-exception-class.ftl"
-  },
   "exceptionUnmarshaller": {
       "mainTemplate" : "/templates/query/exception-unmarshaller.ftl"
   },
