@@ -53,7 +53,7 @@ public class SSMServiceIntegrationTest extends IntegrationTestBase {
     @Test
     public void testAll() throws Exception {
 
-        String documentContent = IoUtils.toString(getClass().getResourceAsStream(DOCUMENT_LOCATION));
+        String documentContent = IoUtils.toUtf8String(getClass().getResourceAsStream(DOCUMENT_LOCATION));
         testCreateDocument(DOCUMENT_NAME, documentContent);
         testDescribeDocument();
     }

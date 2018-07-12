@@ -13,16 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.utils;
+package software.amazon.awssdk.utils.internal;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Codec internal utilities
  *
  * @author Hanson Char
  */
-@SdkProtectedApi
+@SdkInternalApi
 public final class CodecUtils {
 
     private CodecUtils() {
@@ -105,17 +105,5 @@ public final class CodecUtils {
         }
 
         return new String(dest);
-    }
-
-    /**
-     * Sanity check the last decoded position is a possible value.
-     *
-     * @throws IllegalArgumentException if the given decoded position is
-     *     not a possible value produced via the respective encoding
-     */
-    static void sanityCheckLastPos(int pos, int mask) {
-        if ((pos & mask) != 0) {
-            throw new IllegalArgumentException("Invalid last non-pad character detected");
-        }
     }
 }

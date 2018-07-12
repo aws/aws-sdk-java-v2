@@ -210,7 +210,7 @@ public class MockServer {
         public DummyResponseServerBehavior(HttpResponse response) {
             this.response = response;
             try {
-                this.content = IoUtils.toString(response.getEntity().getContent());
+                this.content = IoUtils.toUtf8String(response.getEntity().getContent());
             } catch (Exception e) {
                 // Ignored or expected.
             }

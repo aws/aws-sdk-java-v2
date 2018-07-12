@@ -17,6 +17,7 @@ package software.amazon.awssdk.utils;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.internal.SystemSettingUtils;
 
 /**
  * An interface implemented by enums in other packages in order to define the system settings the want loaded. An enum

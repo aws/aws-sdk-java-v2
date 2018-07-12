@@ -174,7 +174,7 @@ public final class IntermediateModel {
     private String loadDefaultFileHeader() throws IOException {
         try (InputStream inputStream = getClass()
             .getResourceAsStream("/software/amazon/awssdk/codegen/DefaultFileHeader.txt")) {
-            return IoUtils.toString(inputStream)
+            return IoUtils.toUtf8String(inputStream)
                           .replaceFirst("%COPYRIGHT_DATE_RANGE%", getCopyrightDateRange());
         }
     }

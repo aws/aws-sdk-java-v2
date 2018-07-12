@@ -47,7 +47,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
-import software.amazon.awssdk.utils.ImmutableMapParameter;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 /**
  * Integration tests for the SQS message attributes.
@@ -119,8 +119,8 @@ public class MessageAttributesIntegrationTest extends IntegrationTestBase {
     public void receiveMessage_WithBinaryAttributeValue_DoesNotChangeStateOfByteBuffer() {
         byte[] bytes = new byte[]{1, 1, 1, 0, 0, 0};
         String byteBufferAttrName = "byte-buffer-attr";
-        Map<String, MessageAttributeValue> attrs = ImmutableMapParameter.of(byteBufferAttrName,
-                MessageAttributeValue.builder().dataType("Binary").binaryValue(SdkBytes.fromByteArray(bytes)).build());
+        Map<String, MessageAttributeValue> attrs = ImmutableMap.of(byteBufferAttrName,
+                                                                   MessageAttributeValue.builder().dataType("Binary").binaryValue(SdkBytes.fromByteArray(bytes)).build());
 
         sqsAsync.sendMessage(SendMessageRequest.builder().queueUrl(queueUrl).messageBody("test")
                 .messageAttributes(attrs)

@@ -62,7 +62,7 @@ public final class PoetMatchers {
         try {
             InputStream resource = spec.getClass().getResourceAsStream(testFile);
             Validate.notNull(resource, "Failed to load test file: " + testFile);
-            return processor.apply(IoUtils.toString(resource));
+            return processor.apply(IoUtils.toUtf8String(resource));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

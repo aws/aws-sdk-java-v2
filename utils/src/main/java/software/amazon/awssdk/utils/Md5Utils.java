@@ -68,7 +68,7 @@ public final class Md5Utils {
      * Note this method closes the given input stream upon completion.
      */
     public static String md5AsBase64(InputStream is) throws IOException {
-        return Base64Utils.encodeAsString(computeMD5Hash(is));
+        return BinaryUtils.toBase64(computeMD5Hash(is));
     }
 
     /**
@@ -89,7 +89,7 @@ public final class Md5Utils {
      * Returns the MD5 in base64 for the given byte array.
      */
     public static String md5AsBase64(byte[] input) {
-        return Base64Utils.encodeAsString(computeMD5Hash(input));
+        return BinaryUtils.toBase64(computeMD5Hash(input));
     }
 
     /**
@@ -103,6 +103,6 @@ public final class Md5Utils {
      * Returns the MD5 in base64 for the given file.
      */
     public static String md5AsBase64(File file) throws FileNotFoundException, IOException {
-        return Base64Utils.encodeAsString(computeMD5Hash(file));
+        return BinaryUtils.toBase64(computeMD5Hash(file));
     }
 }

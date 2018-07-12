@@ -74,7 +74,7 @@ class UnmarshallingTestRunner {
 
         @Override
         public Void transform(Object response, AbortableInputStream inputStream) throws Exception {
-            this.captured = IoUtils.toString(inputStream);
+            this.captured = IoUtils.toUtf8String(inputStream);
             return null;
         }
 
