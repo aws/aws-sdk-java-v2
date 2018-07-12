@@ -154,7 +154,7 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
             fail("Expected an exception to be thrown");
         } catch (AwsServiceException exception) {
             assertNotEmpty(exception.awsErrorDetails().errorCode());
-            assertNotEmpty(exception.getMessage());
+            assertNotEmpty(exception.awsErrorDetails().errorMessage());
             assertNotEmpty(exception.requestId());
             assertNotEmpty(exception.awsErrorDetails().serviceName());
             assertTrue(exception.statusCode() >= 400);
@@ -209,7 +209,7 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
             dynamo.batchWriteItem(BatchWriteItemRequest.builder().requestItems(requestItems).build());
         } catch (AwsServiceException exception) {
             assertEquals("ValidationException", exception.awsErrorDetails().errorCode());
-            assertNotEmpty(exception.getMessage());
+            assertNotEmpty(exception.awsErrorDetails().errorMessage());
             assertNotEmpty(exception.requestId());
             assertNotEmpty(exception.awsErrorDetails().serviceName());
             assertEquals(400, exception.statusCode());
