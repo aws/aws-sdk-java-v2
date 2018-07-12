@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.services.stepfunctions.builder.internal;
 
-import static software.amazon.awssdk.core.util.DateUtils.formatIso8601Date;
-import static software.amazon.awssdk.core.util.DateUtils.parseIso8601Date;
+import static software.amazon.awssdk.utils.DateUtils.formatIso8601Date;
+import static software.amazon.awssdk.utils.DateUtils.parseIso8601Date;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;

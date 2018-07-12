@@ -22,7 +22,6 @@ import java.util.UUID;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.efs.model.CreateFileSystemRequest;
 import software.amazon.awssdk.services.efs.model.DeleteFileSystemRequest;
@@ -30,6 +29,7 @@ import software.amazon.awssdk.services.efs.model.DescribeFileSystemsRequest;
 import software.amazon.awssdk.services.efs.model.FileSystemAlreadyExistsException;
 import software.amazon.awssdk.services.efs.model.FileSystemNotFoundException;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
+import software.amazon.awssdk.utils.StringUtils;
 
 public class ElasticFileSystemIntegrationTest extends AwsIntegrationTestBase {
 
@@ -43,7 +43,7 @@ public class ElasticFileSystemIntegrationTest extends AwsIntegrationTestBase {
 
     @After
     public void tearDown() {
-        if (!StringUtils.isNullOrEmpty(fileSystemId)) {
+        if (!StringUtils.isEmpty(fileSystemId)) {
             client.deleteFileSystem(DeleteFileSystemRequest.builder().fileSystemId(fileSystemId).build());
         }
     }

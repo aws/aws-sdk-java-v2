@@ -30,11 +30,11 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.unitils.util.ReflectionUtils;
 import software.amazon.awssdk.core.internal.http.SdkHttpResponseAdapter;
-import software.amazon.awssdk.core.util.Crc32ChecksumValidatingInputStream;
-import software.amazon.awssdk.core.util.StringInputStream;
+import software.amazon.awssdk.core.internal.util.Crc32ChecksumValidatingInputStream;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.utils.StringInputStream;
 import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)

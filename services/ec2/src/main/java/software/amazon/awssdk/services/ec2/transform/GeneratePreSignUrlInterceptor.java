@@ -20,13 +20,13 @@ import static software.amazon.awssdk.auth.signer.internal.AwsSignerExecutionAttr
 import java.net.URI;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
+import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.util.AwsHostNameUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.regions.Region;
@@ -66,10 +66,15 @@ public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
              * as the destination region in the client before calling this
              * request.
              */
-            String destinationRegion = originalCopySnapshotRequest
-                                               .destinationRegion() != null ? originalCopySnapshotRequest
-                    .destinationRegion() : AwsHostNameUtils
-                    .parseRegionName(request.host(), serviceName);
+            String destinationRegion = originalCopySnapshotRequest.destinationRegion();
+
+            if (destinationRegion == null) {
+                destinationRegion =
+                        AwsHostNameUtils.parseSigningRegion(request.host(), serviceName)
+                                        .orElseThrow(() -> new IllegalArgumentException("Could not determine region for " +
+                                                                                        request.host()))
+                                        .id();
+            }
 
             URI endPointSource = createEndpoint(sourceRegion, serviceName);
 

@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.dynamodb.datamodeling.unmarshallers;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import software.amazon.awssdk.core.util.DateUtils;
+import software.amazon.awssdk.utils.DateUtils;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**

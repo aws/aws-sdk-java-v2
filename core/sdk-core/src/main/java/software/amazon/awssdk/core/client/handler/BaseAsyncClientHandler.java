@@ -34,13 +34,13 @@ import software.amazon.awssdk.core.internal.http.AmazonAsyncHttpClient;
 import software.amazon.awssdk.core.internal.http.SdkHttpResponseAdapter;
 import software.amazon.awssdk.core.internal.http.async.SyncResponseHandlerAdapter;
 import software.amazon.awssdk.core.internal.interceptor.InterceptorContext;
-import software.amazon.awssdk.core.util.CompletableFutures;
-import software.amazon.awssdk.core.util.Throwables;
+import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkHttpRequestProvider;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 @SdkProtectedApi
 public abstract class BaseAsyncClientHandler extends BaseClientHandler implements AsyncClientHandler {
@@ -109,12 +109,12 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                     executionContext, successResponseHandler, errorHandler)
                     .handle((resp, err) -> {
                         if (err != null) {
-                            throw Throwables.failure(err);
+                            throw ThrowableUtils.failure(err);
                         }
                         return resp;
                     });
         } catch (Throwable t) {
-            return CompletableFutures.failedFuture(t);
+            return CompletableFutureUtils.failedFuture(t);
         }
     }
 
@@ -259,7 +259,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
 
                 asyncResponseTransformer.responseReceived(resp);
             } catch (Exception e) {
-                throw Throwables.failure(e);
+                throw ThrowableUtils.failure(e);
             }
         }
 

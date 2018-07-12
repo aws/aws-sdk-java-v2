@@ -16,7 +16,7 @@
         request.addParameter("${parameterPath}", <@IdempotencyTokenMacro.content getMember member.variable.simpleType/>);
     <#else>
         if(${getMember}() != null) {
-            request.addParameter("${parameterPath}", StringUtils.from${variable.simpleType}(${getMember}()));
+            request.addParameter("${parameterPath}", StringConversion.from${variable.simpleType}(${getMember}()));
         }
     </#if>
 <#elseif member.list>
@@ -73,7 +73,7 @@
             for (${listModel.memberType} ${loopVariable} : ${listVariable}) {
                 <#if listModel.simple>
                 if (${loopVariable} != null) {
-                    request.addParameter("${parameterPath}." + ${listIndex}, StringUtils.from${listModel.simpleType}(${loopVariable}));
+                    request.addParameter("${parameterPath}." + ${listIndex}, StringConversion.from${listModel.simpleType}(${loopVariable}));
                 }
                 <#else>
                 <@MemberMarshallerMacro.content customConfig listModel.memberType loopVariable shapes parameterPath + ".\" + " + listIndex + " + \""/>
@@ -104,11 +104,11 @@
         int ${listIndex} = 1;
         for (Map.Entry<${mapModel.keyModel.variable.variableType},${mapModel.valueModel.variable.variableType}> entry : ${variable.variableName}.entrySet()) {
             if (entry.getKey() != null) {
-                request.addParameter("${parameterPath}." + ${listIndex} + ".${mapModel.keyLocationName}", StringUtils.from${mapModel.keyModel.variable.variableType}(entry.getKey()));
+                request.addParameter("${parameterPath}." + ${listIndex} + ".${mapModel.keyLocationName}", StringConversion.from${mapModel.keyModel.variable.variableType}(entry.getKey()));
             }
             <#if mapModel.valueModel.simple>
             if (entry.getValue() != null) {
-                request.addParameter("${parameterPath}." + ${listIndex} + ".${mapModel.valueLocationName}", StringUtils.from${mapModel.valueModel.variable.simpleType}(entry.getValue()));
+                request.addParameter("${parameterPath}." + ${listIndex} + ".${mapModel.valueLocationName}", StringConversion.from${mapModel.valueModel.variable.simpleType}(entry.getValue()));
             }
             <#else>
             if (entry.getValue() != null) {

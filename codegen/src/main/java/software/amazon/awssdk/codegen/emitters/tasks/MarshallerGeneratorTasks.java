@@ -32,7 +32,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.transform.JsonModelMarshallerSpec;
 import software.amazon.awssdk.codegen.poet.transform.MarshallerSpec;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
+import software.amazon.awssdk.utils.ImmutableMapParameter;
 
 public class MarshallerGeneratorTasks extends BaseGeneratorTasks {
 

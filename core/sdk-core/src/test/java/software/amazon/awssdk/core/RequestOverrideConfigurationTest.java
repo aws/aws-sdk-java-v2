@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
+import software.amazon.awssdk.utils.ImmutableMapParameter;
 
 public class RequestOverrideConfigurationTest {
     private static final String HEADER = "header";

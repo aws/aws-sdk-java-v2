@@ -12,7 +12,7 @@ import software.amazon.awssdk.core.DefaultRequest;
 import software.amazon.awssdk.core.http.HttpMethodName;
 import ${metadata.fullModelPackageName}.*;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.core.util.StringConversion;
 import software.amazon.awssdk.core.util.IdempotentUtils;
 
 

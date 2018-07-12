@@ -21,7 +21,6 @@ import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.internal.io.Releasable;
-import software.amazon.awssdk.core.util.SdkRuntime;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -41,7 +40,7 @@ public class SdkFilterInputStream extends FilterInputStream implements Releasabl
      * @throws AbortedException if found necessary.
      */
     protected final void abortIfNeeded() {
-        if (SdkRuntime.shouldAbort()) {
+        if (Thread.currentThread().isInterrupted()) {
             abort();    // execute subclass specific abortion logic
             throw AbortedException.builder().build();
         }

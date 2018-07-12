@@ -15,13 +15,12 @@
 
 package software.amazon.awssdk.core.retry.conditions;
 
-import static software.amazon.awssdk.core.util.ValidationUtils.assertNotEmpty;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Composite {@link RetryCondition} that evaluates to true when all contained retry conditions evaluate to true.
@@ -32,7 +31,7 @@ public final class AndRetryCondition implements RetryCondition {
     private List<RetryCondition> conditions = new ArrayList<>();
 
     private AndRetryCondition(RetryCondition... conditions) {
-        Collections.addAll(this.conditions, assertNotEmpty(conditions, "conditions"));
+        Collections.addAll(this.conditions, Validate.notEmpty(conditions, "%s cannot be empty.", "conditions"));
     }
 
     /**

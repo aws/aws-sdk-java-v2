@@ -26,7 +26,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.util.Throwables;
+import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -91,7 +91,7 @@ public final class SyncResponseHandlerAdapter<T> implements SdkHttpResponseHandl
             }
             return responseHandler.handle(httpResponseAdapter.apply(httpResponse.build()), executionAttributes);
         } catch (Exception e) {
-            throw Throwables.failure(e);
+            throw ThrowableUtils.failure(e);
         }
     }
 }

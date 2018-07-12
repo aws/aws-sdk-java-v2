@@ -17,7 +17,6 @@ package software.amazon.awssdk.codegen.emitters.tasks;
 
 import java.util.Arrays;
 import java.util.List;
-
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;

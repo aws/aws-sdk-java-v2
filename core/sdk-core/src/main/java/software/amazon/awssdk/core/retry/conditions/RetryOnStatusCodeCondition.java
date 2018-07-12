@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.core.retry.conditions;
 
-import static software.amazon.awssdk.core.util.ValidationUtils.assertNotNull;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
@@ -24,6 +22,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Retry condition implementation that retries if the HTTP status code matches one of the provided status codes.
@@ -35,7 +34,7 @@ public final class RetryOnStatusCodeCondition implements RetryCondition {
 
     private RetryOnStatusCodeCondition(Set<Integer> statusCodesToRetryOn) {
         this.statusCodesToRetryOn = new HashSet<>(
-                assertNotNull(statusCodesToRetryOn, "statusCodesToRetryOn"));
+                Validate.paramNotNull(statusCodesToRetryOn, "statusCodesToRetryOn"));
     }
 
     /**
