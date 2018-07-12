@@ -147,10 +147,6 @@ public class Freemarker {
         return getTemplate(templateConfig.getPackageInfo());
     }
 
-    public Template getBaseExceptionClassTemplate() throws IOException {
-        return getTemplate(templateConfig.getBaseExceptionClass());
-    }
-
     public Template getCustomAuthorizerTemplate() throws IOException {
         return getTemplate(templateConfig.getCustomRequestSignerClass());
     }
