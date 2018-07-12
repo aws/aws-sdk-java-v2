@@ -54,6 +54,18 @@ public class AwsServiceException extends SdkServiceException {
     }
 
     @Override
+    public String getMessage() {
+        if (awsErrorDetails != null) {
+            return awsErrorDetails().errorMessage() +
+                    " (Service: " + awsErrorDetails().serviceName() +
+                    ", Status Code: " + statusCode() +
+                    ", Request ID: " + requestId() + ")";
+        }
+
+        return super.getMessage();
+    }
+
+    @Override
     public boolean isClockSkewException() {
         return Optional.ofNullable(awsErrorDetails)
                 .map(a -> AwsErrorCode.CLOCK_SKEW_ERROR_CODES.contains(a.errorCode()))
