@@ -18,10 +18,11 @@ package software.amazon.awssdk.core.runtime.transform;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
+import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.util.DateUtils;
+import software.amazon.awssdk.core.internal.util.AwsDateUtils;
 import software.amazon.awssdk.utils.Base64Utils;
 
 @SdkProtectedApi
@@ -173,9 +174,10 @@ public final class SimpleTypeJsonUnmarshallers {
             return INSTANCE;
         }
 
+        @ReviewBeforeRelease("This date parsing is coupled to AWS's format. Should we generalize it?")
         public Instant unmarshall(JsonUnmarshallerContext unmarshallerContext)
                 throws Exception {
-            return DateUtils.parseServiceSpecificInstant(unmarshallerContext
+            return AwsDateUtils.parseServiceSpecificInstant(unmarshallerContext
                     .readText());
         }
     }

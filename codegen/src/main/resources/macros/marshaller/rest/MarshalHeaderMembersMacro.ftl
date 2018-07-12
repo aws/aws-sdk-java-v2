@@ -12,7 +12,7 @@
                 ${member.listModel.templateType} ${member.variable.variableName} = ${getMember}();
 
                 for(int i = 0; i < ${member.variable.variableName}.size() ; i++) {
-                    builder.append(StringUtils.from${member.variable.simpleType}(${member.variable.variableName}.get(i));
+                    builder.append(StringConversion.from${member.variable.simpleType}(${member.variable.variableName}.get(i));
                     if(i < ${member.variable.variableName}.size() - 1){
                         builder.append(COMMA_SEPARATOR);
                     }
@@ -25,7 +25,7 @@
                 request.addHeader("${member.http.marshallLocationName}", <@IdempotencyTokenMacro.content getMember member.variable.simpleType/>);
             <#else>
                 if(${getMember}() != null) {
-                    request.addHeader("${member.http.marshallLocationName}", StringUtils.from${member.variable.simpleType}(${getMember}()));
+                    request.addHeader("${member.http.marshallLocationName}", StringConversion.from${member.variable.simpleType}(${getMember}()));
                 }
             </#if>
         </#if>

@@ -16,7 +16,7 @@
 package software.amazon.awssdk.core.util;
 
 import static org.junit.Assert.assertEquals;
-import static software.amazon.awssdk.core.util.XpathUtils.asString;
+import static software.amazon.awssdk.core.util.xml.XpathUtils.asString;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -30,6 +30,7 @@ import javax.xml.xpath.XPathExpressionException;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
+import software.amazon.awssdk.core.util.xml.XpathUtils;
 
 public class XpathUtilsSyncTest {
     public static void main(String[] args) throws Exception {

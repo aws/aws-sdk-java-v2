@@ -15,12 +15,10 @@
 
 package software.amazon.awssdk.core.runtime.transform;
 
-import static software.amazon.awssdk.core.util.ValidationUtils.assertNotNull;
-import static software.amazon.awssdk.core.util.ValidationUtils.assertStringNotEmpty;
-
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.util.IdempotentUtils;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.core.util.StringConversion;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkProtectedApi
@@ -79,20 +77,20 @@ public abstract class PathMarshaller {
     private static class NonGreedyPathMarshaller extends PathMarshaller {
         @Override
         public String marshall(String resourcePath, String paramName, String pathValue) {
-            assertStringNotEmpty(pathValue, paramName);
+            Validate.notEmpty(pathValue, "%s cannot be empty.", paramName);
             return resourcePath.replace(String.format("{%s}", paramName), SdkHttpUtils.urlEncode(pathValue));
         }
 
         @Override
         public String marshall(String resourcePath, String paramName, Integer pathValue) {
-            assertNotNull(pathValue, paramName);
-            return marshall(resourcePath, paramName, StringUtils.fromInteger(pathValue));
+            Validate.paramNotNull(pathValue, paramName);
+            return marshall(resourcePath, paramName, StringConversion.fromInteger(pathValue));
         }
 
         @Override
         public String marshall(String resourcePath, String paramName, Long pathValue) {
-            assertNotNull(pathValue, paramName);
-            return marshall(resourcePath, paramName, StringUtils.fromLong(pathValue));
+            Validate.paramNotNull(pathValue, paramName);
+            return marshall(resourcePath, paramName, StringConversion.fromLong(pathValue));
         }
     }
 
@@ -100,21 +98,21 @@ public abstract class PathMarshaller {
 
         @Override
         public String marshall(String resourcePath, String paramName, String pathValue) {
-            assertStringNotEmpty(pathValue, paramName);
+            Validate.notEmpty(pathValue, "%s cannot be empty.", paramName);
             return resourcePath.replace(String.format("{%s+}", paramName),
                                         SdkHttpUtils.urlEncodeIgnoreSlashes(trimLeadingSlash(pathValue)));
         }
 
         @Override
         public String marshall(String resourcePath, String paramName, Integer pathValue) {
-            assertNotNull(pathValue, paramName);
-            return marshall(resourcePath, paramName, StringUtils.fromInteger(pathValue));
+            Validate.paramNotNull(pathValue, paramName);
+            return marshall(resourcePath, paramName, StringConversion.fromInteger(pathValue));
         }
 
         @Override
         public String marshall(String resourcePath, String paramName, Long pathValue) {
-            assertNotNull(pathValue, paramName);
-            return marshall(resourcePath, paramName, StringUtils.fromLong(pathValue));
+            Validate.paramNotNull(pathValue, paramName);
+            return marshall(resourcePath, paramName, StringConversion.fromLong(pathValue));
         }
     }
 

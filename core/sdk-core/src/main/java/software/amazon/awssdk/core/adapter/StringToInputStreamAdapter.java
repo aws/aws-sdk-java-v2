@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.adapter;
 
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.util.StringInputStream;
+import software.amazon.awssdk.utils.StringInputStream;
 
 @SdkProtectedApi
 public final class StringToInputStreamAdapter implements TypeAdapter<String, InputStream> {

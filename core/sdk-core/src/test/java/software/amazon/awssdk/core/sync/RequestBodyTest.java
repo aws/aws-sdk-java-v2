@@ -25,9 +25,9 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.Test;
-import software.amazon.awssdk.core.util.Mimetype;
-import software.amazon.awssdk.core.util.StringInputStream;
+import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.StringInputStream;
 
 
 public class RequestBodyTest {

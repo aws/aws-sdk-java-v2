@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.util.ValidationUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * This class models a AWS partition and contains all metadata about it.
@@ -69,7 +69,7 @@ public final class Partition {
                              regions,
                      @JsonProperty(value = "services") Map<String,
                              Service> services) {
-        this.partition = ValidationUtils.assertNotNull(partition, "Partition");
+        this.partition = Validate.paramNotNull(partition, "Partition");
         this.regions = regions;
         this.services = services;
     }

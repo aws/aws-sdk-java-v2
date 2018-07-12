@@ -27,10 +27,10 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.Response;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
+import software.amazon.awssdk.core.internal.util.UnreliableFilterInputStream;
 import software.amazon.awssdk.core.io.ReleasableInputStream;
 import software.amazon.awssdk.core.io.ResettableInputStream;
 import software.amazon.awssdk.core.io.SdkBufferedInputStream;
-import software.amazon.awssdk.core.util.UnreliableFilterInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 /**
