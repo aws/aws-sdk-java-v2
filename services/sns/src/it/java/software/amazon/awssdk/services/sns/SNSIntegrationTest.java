@@ -36,6 +36,7 @@ import java.util.Map.Entry;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.sns.model.AddPermissionRequest;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
@@ -110,11 +111,11 @@ public class SNSIntegrationTest extends IntegrationTestBase {
     public void testCloudcastExceptionHandling() {
         try {
             sns.createTopic(CreateTopicRequest.builder().name("").build());
-        } catch (SdkServiceException exception) {
-            assertEquals("InvalidParameter", exception.errorCode());
+        } catch (AwsServiceException exception) {
+            assertEquals("InvalidParameter", exception.awsErrorDetails().errorCode());
             assertTrue(exception.getMessage().length() > 5);
             assertTrue(exception.requestId().length() > 5);
-            assertTrue(exception.serviceName().length() > 5);
+            assertTrue(exception.awsErrorDetails().serviceName().length() > 5);
             assertEquals(400, exception.statusCode());
         }
     }

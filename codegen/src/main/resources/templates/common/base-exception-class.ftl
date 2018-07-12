@@ -9,16 +9,16 @@ import javax.annotation.Generated;
 @Generated("software.amazon.awssdk:aws-java-sdk-code-generator")
 public class ${className} extends ${baseExceptionFqcn} {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Constructs a new ${className} with the specified error
      * message.
      *
      * @param message Describes the error encountered.
      */
-    public ${className}(String message) {
-        super(message);
+    public ${className}(Builder builder) {
+        super(builder);
     }
+
+
 
 }

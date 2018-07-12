@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet.client;
 
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.getCustomResponseHandler;
 
 import com.squareup.javapoet.ClassName;
@@ -81,7 +82,9 @@ public class SyncClientClass implements ClassSpec {
 
         classBuilder.addMethod(closeMethod());
 
-        classBuilder.addMethods(protocolSpec.additionalMethods());
+        if (model.hasPaginators()) {
+            classBuilder.addMethod(applyPaginatorUserAgentMethod(poetExtensions, model));
+        }
 
         return classBuilder.build();
     }
@@ -153,7 +156,7 @@ public class SyncClientClass implements ClassSpec {
                                                         .addAnnotation(Override.class)
                                                         .returns(poetExtensions.getResponseClassForPaginatedSyncOperation(
                                                             opModel.getOperationName()))
-                                                        .addStatement("return new $T(this, $L)",
+                                                        .addStatement("return new $T(this, applyPaginatorUserAgent($L))",
                                                                       poetExtensions.getResponseClassForPaginatedSyncOperation(
                                                                           opModel.getOperationName()),
                                                                       opModel.getInput().getVariableName())

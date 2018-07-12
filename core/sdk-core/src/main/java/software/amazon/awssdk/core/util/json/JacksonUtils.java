@@ -69,7 +69,7 @@ public final class JacksonUtils {
         try {
             return OBJECT_MAPPER.readValue(json, clazz);
         } catch (Exception e) {
-            throw new SdkClientException("Unable to parse Json String.", e);
+            throw SdkClientException.builder().message("Unable to parse Json String.").cause(e).build();
         }
     }
 

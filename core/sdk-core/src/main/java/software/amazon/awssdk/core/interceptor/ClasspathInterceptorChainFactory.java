@@ -62,7 +62,10 @@ public final class ClasspathInterceptorChainFactory {
         try {
             return createExecutionInterceptorsFromResources(classLoader().getResources(path)).collect(Collectors.toList());
         } catch (IOException e) {
-            throw new SdkClientException("Unable to instantiate execution interceptor chain.", e);
+            throw SdkClientException.builder()
+                                    .message("Unable to instantiate execution interceptor chain.")
+                                    .cause(e)
+                                    .build();
         }
     }
 
@@ -98,7 +101,10 @@ public final class ClasspathInterceptorChainFactory {
 
             return interceptors.stream();
         } catch (IOException e) {
-            throw new SdkClientException("Unable to instantiate execution interceptor chain.", e);
+            throw SdkClientException.builder()
+                                    .message("Unable to instantiate execution interceptor chain.")
+                                    .cause(e)
+                                    .build();
         }
     }
 
@@ -116,12 +122,17 @@ public final class ClasspathInterceptorChainFactory {
             if (executionInterceptorObject instanceof ExecutionInterceptor) {
                 return (ExecutionInterceptor) executionInterceptorObject;
             } else {
-                throw new SdkClientException("Unable to instantiate request handler chain for client. Listed request handler "
-                                                + "('" + interceptorClassName + "') does not implement the " +
-                                                ExecutionInterceptor.class + " API.");
+                throw SdkClientException.builder()
+                                        .message("Unable to instantiate request handler chain for client. Listed"
+                                                + " request handler ('" + interceptorClassName + "') does not implement" +
+                                                " the " + ExecutionInterceptor.class + " API.")
+                                        .build();
             }
         } catch (IllegalAccessException | ClassNotFoundException | InstantiationException e) {
-            throw new SdkClientException("Unable to instantiate executor interceptor for client.", e);
+            throw SdkClientException.builder()
+                                    .message("Unable to instantiate executor interceptor for client.")
+                                    .cause(e)
+                                    .build();
         }
     }
 

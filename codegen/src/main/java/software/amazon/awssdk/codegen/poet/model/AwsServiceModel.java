@@ -71,8 +71,7 @@ public class AwsServiceModel implements ClassSpec {
         this.typeProvider = new TypeProvider(intermediateModel);
         this.shapeModelSpec = new ShapeModelSpec(this.shapeModel, typeProvider, poetExtensions);
         this.modelMethodOverrides = new ModelMethodOverrides(this.poetExtensions);
-        this.modelBuilderSpecs = new ModelBuilderSpecs(intermediateModel, this.shapeModel, this.shapeModelSpec,
-                                                       this.typeProvider);
+        this.modelBuilderSpecs = new ModelBuilderSpecs(intermediateModel, this.shapeModel, this.typeProvider);
     }
 
     @Override
@@ -417,7 +416,7 @@ public class AwsServiceModel implements ClassSpec {
                                                    .addModifiers(Modifier.PRIVATE)
                                                    .addParameter(modelBuilderSpecs.builderImplName(), "builder");
 
-        ctorBuilder.addStatement("super(builder.message)");
+        ctorBuilder.addStatement("super(builder)");
 
         shapeModelSpec.fields().forEach(f -> ctorBuilder.addStatement("this.$N = builder.$N", f, f));
 

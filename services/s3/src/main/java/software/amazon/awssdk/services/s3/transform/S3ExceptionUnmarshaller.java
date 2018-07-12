@@ -20,6 +20,7 @@ import static software.amazon.awssdk.core.util.XpathUtils.xpath;
 
 import javax.xml.xpath.XPath;
 import org.w3c.dom.Node;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.runtime.transform.AbstractErrorUnmarshaller;
 import software.amazon.awssdk.utils.StringUtils;
@@ -49,10 +50,10 @@ public abstract class S3ExceptionUnmarshaller extends AbstractErrorUnmarshaller<
             return null;
         }
 
-        AwsServiceException exception = newException(message);
-        exception.errorCode(errorCode);
-        exception.requestId(requestId);
+        AwsServiceException.Builder exception = newException(message).toBuilder();
 
-        return exception;
+        AwsErrorDetails awsErrorDetails = AwsErrorDetails.builder().errorMessage(message).errorCode(errorCode).build();
+
+        return exception.requestId(requestId).awsErrorDetails(awsErrorDetails).build();
     }
 }

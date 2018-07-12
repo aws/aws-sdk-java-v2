@@ -19,20 +19,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
+
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.core.util.XpathUtils;
 import software.amazon.awssdk.utils.IoUtils;
 
@@ -70,14 +73,24 @@ public final class DefaultErrorResponseHandler implements HttpResponseHandler<Aw
     public AwsServiceException handle(HttpResponse errorResponse,
                                       ExecutionAttributes executionAttributes) throws Exception {
         AwsServiceException exception = createServiceException(errorResponse);
+
         if (exception == null) {
-            throw new SdkClientException("Unable to unmarshall error response from service");
+            throw SdkClientException.builder().message("Unable to unmarshall error response from service").build();
         }
-        exception.headers(errorResponse.getHeaders());
-        if (StringUtils.isNullOrEmpty(exception.errorCode())) {
-            exception.errorCode(errorResponse.getStatusCode() + " " + errorResponse.getStatusText());
+
+        AwsServiceException.Builder exceptionBuilder = exception.toBuilder();
+
+        AwsErrorDetails.Builder awsErrorDetails =
+                exceptionBuilder.awsErrorDetails()
+                                .toBuilder()
+                                .sdkHttpResponse(errorResponse)
+                                .serviceName(executionAttributes.getAttribute(SdkExecutionAttribute.SERVICE_NAME));
+
+        if (awsErrorDetails.errorCode() == null) {
+            awsErrorDetails.errorCode(errorResponse.getStatusCode() + " " + errorResponse.getStatusText());
         }
-        return exception;
+
+        return exceptionBuilder.awsErrorDetails(awsErrorDetails.build()).build();
     }
 
     private AwsServiceException createServiceException(HttpResponse errorResponse) throws Exception {
@@ -93,9 +106,9 @@ public final class DefaultErrorResponseHandler implements HttpResponseHandler<Aw
          */
         for (Unmarshaller<AwsServiceException, Node> unmarshaller : unmarshallerList) {
             AwsServiceException exception = unmarshaller.unmarshall(document);
+
             if (exception != null) {
-                exception.statusCode(errorResponse.getStatusCode());
-                return exception;
+                return exception.toBuilder().statusCode(errorResponse.getStatusCode()).build();
             }
         }
         return null;
@@ -134,8 +147,8 @@ public final class DefaultErrorResponseHandler implements HttpResponseHandler<Aw
         StringBuilder idString = new StringBuilder();
         try {
             errorResponse.getRequest()
-                         .firstMatchingHeader(ApplyTransactionIdStage.HEADER_SDK_TRANSACTION_ID)
-                         .ifPresent(h -> idString.append("Invocation Id:").append(h));
+                    .firstMatchingHeader(ApplyTransactionIdStage.HEADER_SDK_TRANSACTION_ID)
+                    .ifPresent(h -> idString.append("Invocation Id:").append(h));
             if (errorResponse.getHeaders().containsKey(X_AMZN_REQUEST_ID_HEADER)) {
                 if (idString.length() > 0) {
                     idString.append(", ");

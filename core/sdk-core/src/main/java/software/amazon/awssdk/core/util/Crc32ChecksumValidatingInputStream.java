@@ -56,9 +56,10 @@ public class Crc32ChecksumValidatingInputStream extends SdkFilterInputStream {
     private void validateChecksum() throws Crc32MismatchException {
         long actualChecksum = ((Crc32ChecksumCalculatingInputStream) in).getCrc32Checksum();
         if (expectedChecksum != actualChecksum) {
-            throw new Crc32MismatchException(
-                    String.format("Expected %d as the Crc32 checksum but the actual calculated" +
-                                  "checksum was %d", expectedChecksum, actualChecksum));
+            throw Crc32MismatchException.builder()
+                                        .message(String.format("Expected %d as the Crc32 checksum but the actual " +
+                                                 "calculated checksum was %d", expectedChecksum, actualChecksum))
+                                        .build();
         }
     }
 }

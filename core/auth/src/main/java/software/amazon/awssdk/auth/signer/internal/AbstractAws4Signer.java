@@ -76,7 +76,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         String contentSha256 = calculateContentHash(mutableRequest, signingParams);
         mutableRequest.firstMatchingHeader(SignerConstant.X_AMZ_CONTENT_SHA256)
                       .filter(h -> h.equals("required"))
-                      .ifPresent(h -> mutableRequest.header(SignerConstant.X_AMZ_CONTENT_SHA256, contentSha256));
+                      .ifPresent(h -> mutableRequest.putHeader(SignerConstant.X_AMZ_CONTENT_SHA256, contentSha256));
 
         final String canonicalRequest = createCanonicalRequest(mutableRequest, contentSha256, signingParams.doubleUrlEncode());
 
@@ -86,8 +86,8 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
         final byte[] signature = computeSignature(stringToSign, signingKey);
 
-        mutableRequest.header(SignerConstant.AUTHORIZATION,
-                              buildAuthorizationHeader(signature, sanitizedCredentials, requestParams, mutableRequest));
+        mutableRequest.putHeader(SignerConstant.AUTHORIZATION,
+                                 buildAuthorizationHeader(signature, sanitizedCredentials, requestParams, mutableRequest));
 
         processRequestPayload(mutableRequest, signature, signingKey, requestParams, signingParams);
 
@@ -108,8 +108,8 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
             // For SigV4 pre-signing URL, we need to add "X-Amz-Security-Token"
             // as a query string parameter, before constructing the canonical
             // request.
-            mutableRequest.rawQueryParameter(SignerConstant.X_AMZ_SECURITY_TOKEN,
-                                             ((AwsSessionCredentials) sanitizedCredentials).sessionToken());
+            mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_SECURITY_TOKEN,
+                                                ((AwsSessionCredentials) sanitizedCredentials).sessionToken());
         }
 
         // Add the important parameters for v4 signing
@@ -127,7 +127,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
         final byte[] signature = computeSignature(stringToSign, signingKey);
 
-        mutableRequest.rawQueryParameter(SignerConstant.X_AMZ_SIGNATURE, BinaryUtils.toHex(signature));
+        mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_SIGNATURE, BinaryUtils.toHex(signature));
 
         return mutableRequest;
     }
@@ -135,7 +135,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
     @Override
     protected void addSessionCredentials(SdkHttpFullRequest.Builder mutableRequest,
                                          AwsSessionCredentials credentials) {
-        mutableRequest.header(SignerConstant.X_AMZ_SECURITY_TOKEN, credentials.sessionToken());
+        mutableRequest.putHeader(SignerConstant.X_AMZ_SECURITY_TOKEN, credentials.sessionToken());
     }
 
     /**
@@ -152,7 +152,10 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         try {
             payloadStream.reset();
         } catch (IOException e) {
-            throw new SdkClientException("Unable to reset stream after calculating AWS4 signature", e);
+            throw SdkClientException.builder()
+                                    .message("Unable to reset stream after calculating AWS4 signature")
+                                    .cause(e)
+                                    .build();
         }
         return contentSha256;
     }
@@ -295,13 +298,13 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
         String signingCredentials = sanitizedCredentials.accessKeyId() + "/" + signerParams.getScope();
 
-        mutableRequest.rawQueryParameter(SignerConstant.X_AMZ_ALGORITHM, SignerConstant.AWS4_SIGNING_ALGORITHM);
-        mutableRequest.rawQueryParameter(SignerConstant.X_AMZ_DATE, timeStamp);
-        mutableRequest.rawQueryParameter(SignerConstant.X_AMZ_SIGNED_HEADER,
-                                         getSignedHeadersString(mutableRequest.headers()));
-        mutableRequest.rawQueryParameter(SignerConstant.X_AMZ_EXPIRES,
-                                         Long.toString(expirationInSeconds));
-        mutableRequest.rawQueryParameter(SignerConstant.X_AMZ_CREDENTIAL, signingCredentials);
+        mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_ALGORITHM, SignerConstant.AWS4_SIGNING_ALGORITHM);
+        mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_DATE, timeStamp);
+        mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_SIGNED_HEADER,
+                                            getSignedHeadersString(mutableRequest.headers()));
+        mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_EXPIRES,
+                                            Long.toString(expirationInSeconds));
+        mutableRequest.putRawQueryParameter(SignerConstant.X_AMZ_CREDENTIAL, signingCredentials);
     }
 
 
@@ -360,11 +363,11 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
             hostHeaderBuilder.append(":").append(mutableRequest.port());
         }
 
-        mutableRequest.header(SignerConstant.HOST, hostHeaderBuilder.toString());
+        mutableRequest.putHeader(SignerConstant.HOST, hostHeaderBuilder.toString());
     }
 
     private void addDateHeader(SdkHttpFullRequest.Builder mutableRequest, String dateTime) {
-        mutableRequest.header(SignerConstant.X_AMZ_DATE, dateTime);
+        mutableRequest.putHeader(SignerConstant.X_AMZ_DATE, dateTime);
     }
 
     /**
@@ -377,10 +380,12 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
                                                  .orElse(SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS);
 
         if (expirationInSeconds > SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS) {
-            throw new SdkClientException(
-                "Requests that are pre-signed by SigV4 algorithm are valid for at most 7 days. "
-                + "The expiration date set on the current request ["
-                + Aws4SignerUtils.formatTimestamp(expirationInSeconds * 1000L) + "] has exceeded this limit.");
+            throw SdkClientException.builder()
+                                    .message("Requests that are pre-signed by SigV4 algorithm are valid for at most 7" +
+                                             " days. The expiration date set on the current request [" +
+                                             Aws4SignerUtils.formatTimestamp(expirationInSeconds * 1000L) + "] +" +
+                                            " has exceeded this limit.")
+                                    .build();
         }
         return expirationInSeconds;
     }

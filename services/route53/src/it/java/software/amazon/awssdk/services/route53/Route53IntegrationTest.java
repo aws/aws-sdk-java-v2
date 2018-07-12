@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.AfterClass;
 import org.junit.Test;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.regions.Region;
@@ -145,10 +146,9 @@ public class Route53IntegrationTest extends IntegrationTestBase {
         try {
             gealthCheckResult = route53.getHealthCheck(GetHealthCheckRequest.builder().healthCheckId(healthCheckId).build());
             fail();
-        } catch (SdkServiceException e) {
+        } catch (AwsServiceException e) {
             assertNotNull(e.getMessage());
-            assertNotNull(e.errorCode());
-            assertNotNull(e.errorType());
+            assertNotNull(e.awsErrorDetails().errorCode());
         }
 
         // List Hosted Zones

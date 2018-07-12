@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,8 +45,7 @@ public class MergeCustomHeadersStage implements MutableRequestToRequestPipeline 
             throws Exception {
         return request.headers(mergeHeaders(request.headers(),
                                             config.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS),
-                                            adaptHeaders(context.requestConfig().headers()
-                                                    .orElse(Collections.emptyMap()))));
+                                            adaptHeaders(context.requestConfig().headers())));
     }
 
     @SafeVarargs

@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -46,7 +47,7 @@ import software.amazon.awssdk.utils.Logger;
  * the connection pool (if applicable).
  * <h3>Retries</h3>
  * <p>
- * Exceptions thrown from the transformer's {@link #transform(Object, AbortableInputStream)} method are not automatically retried
+ * Exceptions thrown from the transformer's {@link #apply(Object, AbortableInputStream)} method are not automatically retried
  * by the RetryPolicy of the client. Since we can't know if a transformer implementation is idempotent or safe to retry, if you
  * wish to retry on the event of a failure you must throw a {@link SdkException} with retryable set to true from the transformer.
  * This exception can wrap the original exception that was thrown. Note that throwing a {@link
@@ -59,11 +60,11 @@ import software.amazon.awssdk.utils.Logger;
  * Implementations should have proper handling of Thread interrupts. For long running, non-interruptible tasks, it is recommended
  * to check the thread interrupt status periodically and throw an {@link InterruptedException} if set. When an {@link
  * InterruptedException} is thrown from a interruptible task, you should either re-interrupt the current thread or throw that
- * {@link InterruptedException} from the {@link #transform(Object, AbortableInputStream)} method. Failure to do these things may
+ * {@link InterruptedException} from the {@link #apply(Object, AbortableInputStream)} method. Failure to do these things may
  * prevent the SDK from stopping the request in a timely manner in the event the thread is interrupted externally.
  *
  * @param <ResponseT> Type of unmarshalled POJO response.
- * @param <ReturnT>   Return type of the {@link #transform(Object, AbortableInputStream)} method. Implementations are free to
+ * @param <ReturnT>   Return type of the {@link #apply(Object, AbortableInputStream)} method. Implementations are free to
  * perform whatever transformations are appropriate.
  */
 @FunctionalInterface
@@ -78,6 +79,16 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      * @throws Exception if any error occurs during processing of the response. This will be re-thrown by the SDK, possibly
      *                   wrapped in an {@link SdkClientException}.
      */
+    default ReturnT apply(ResponseT response, AbortableInputStream inputStream) throws Exception {
+        try {
+            return transform(response, inputStream);
+        } catch (RetryableException e) {
+            throw e;
+        } catch (Exception e) {
+            throw NonRetryableException.builder().cause(e).build();
+        }
+    }
+
     ReturnT transform(ResponseT response, AbortableInputStream inputStream) throws Exception;
 
     /**
@@ -126,7 +137,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
                 }
 
                 // Retry the request
-                throw new RetryableException(copyError, copyException);
+                throw RetryableException.builder().message(copyError).cause(copyException).build();
             }
         };
     }
@@ -170,7 +181,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
             try {
                 return ResponseBytes.fromByteArray(response, IoUtils.toByteArray(inputStream));
             } catch (IOException e) {
-                throw new RetryableException("Failed to read response.", e);
+                throw RetryableException.builder().message("Failed to read response.").cause(e).build();
             }
         };
     }
@@ -204,7 +215,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
         return new ResponseTransformer<ResponseT, ReturnT>() {
             @Override
             public ReturnT transform(ResponseT response, AbortableInputStream inputStream) throws Exception {
-                return transformer.transform(response, inputStream);
+                return transformer.apply(response, inputStream);
             }
 
             @Override

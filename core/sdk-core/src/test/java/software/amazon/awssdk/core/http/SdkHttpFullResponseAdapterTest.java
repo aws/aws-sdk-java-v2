@@ -45,7 +45,7 @@ public class SdkHttpFullResponseAdapterTest {
     @Test
     public void adapt_SingleHeaderValue_AdaptedCorrectly() throws Exception {
         SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
-                                                              .header("FooHeader", "headerValue")
+                                                              .putHeader("FooHeader", "headerValue")
                                                               .statusCode(200)
                                                               .build();
 
@@ -85,7 +85,7 @@ public class SdkHttpFullResponseAdapterTest {
         InputStream content = new StringInputStream("content");
         SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
                                                               .statusCode(200)
-                                                              .header("x-amz-crc32", "1234")
+                                                              .putHeader("x-amz-crc32", "1234")
                                                               .content(new AbortableInputStream(content, () -> { }))
                                                               .build();
 
@@ -99,7 +99,7 @@ public class SdkHttpFullResponseAdapterTest {
         try (InputStream content = getClass().getResourceAsStream("/resources/compressed_json_body.gz")) {
             SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
                                                                   .statusCode(200)
-                                                                  .header("Content-Encoding", "gzip")
+                                                                  .putHeader("Content-Encoding", "gzip")
                                                                   .content(new AbortableInputStream(content, () -> {
                                                                   }))
                                                                   .build();
@@ -113,8 +113,8 @@ public class SdkHttpFullResponseAdapterTest {
         try (InputStream content = getClass().getResourceAsStream("/resources/compressed_json_body.gz")) {
             SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
                                                                   .statusCode(200)
-                                                                  .header("Content-Encoding", "gzip")
-                                                                  .header("x-amz-crc32", "1234")
+                                                                  .putHeader("Content-Encoding", "gzip")
+                                                                  .putHeader("x-amz-crc32", "1234")
                                                                   .content(new AbortableInputStream(content, () -> {
                                                                   }))
                                                                   .build();
@@ -129,7 +129,7 @@ public class SdkHttpFullResponseAdapterTest {
         InputStream content = new StringInputStream("this isn't GZIP");
         SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
                                                               .statusCode(200)
-                                                              .header("Content-Encoding", "gzip")
+                                                              .putHeader("Content-Encoding", "gzip")
                                                               .content(new AbortableInputStream(content, () -> { }))
                                                               .build();
 
@@ -142,7 +142,7 @@ public class SdkHttpFullResponseAdapterTest {
     public void adapt_ResponseWithCrc32Header_And_NoContent_DoesNotThrowNPE() throws UnsupportedEncodingException {
         SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
                                                               .statusCode(200)
-                                                              .header("x-amz-crc32", "1234")
+                                                              .putHeader("x-amz-crc32", "1234")
                                                               .build();
 
         HttpResponse adapted = adapt(httpResponse);
@@ -153,7 +153,7 @@ public class SdkHttpFullResponseAdapterTest {
     public void adapt_ResponseGzipEncoding_And_NoContent_DoesNotThrowNPE() throws IOException {
         SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
                                                               .statusCode(200)
-                                                              .header("Content-Encoding", "gzip")
+                                                              .putHeader("Content-Encoding", "gzip")
                                                               .build();
 
         HttpResponse adapted = adapt(httpResponse);

@@ -103,7 +103,7 @@ public final class PassState extends TransitionState {
         try {
             return result == null ? null : MAPPER.writeValueAsString(result);
         } catch (JsonProcessingException e) {
-            throw new SdkClientException("Could not serialize result", e);
+            throw SdkClientException.builder().message("Could not serialize result").cause(e).build();
         }
     }
 
@@ -197,7 +197,7 @@ public final class PassState extends TransitionState {
             try {
                 this.result = MAPPER.readTree(result);
             } catch (IOException e) {
-                throw new SdkClientException("Result must be a JSON document", e);
+                throw SdkClientException.builder().message("Result must be a JSON document").cause(e).build();
             }
             return this;
         }

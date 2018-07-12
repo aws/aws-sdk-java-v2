@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -51,8 +50,8 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request, RequestExecutionContext context)
             throws Exception {
-        final String userAgent = getUserAgent(clientConfig, context.requestConfig().apiNames().orElse(Collections.emptyList()));
-        return request.header(HEADER_USER_AGENT, userAgent);
+        final String userAgent = getUserAgent(clientConfig, context.requestConfig().apiNames());
+        return request.putHeader(HEADER_USER_AGENT, userAgent);
     }
 
     private String getUserAgent(SdkClientConfiguration config, List<ApiName> requestApiNames) {

@@ -85,7 +85,10 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
             try {
                 inputStream.reset();
             } catch (IOException ex) {
-                throw new ResetException("Failed to reset the request input stream", ex);
+                throw ResetException.builder()
+                                    .message("Failed to reset the request input stream")
+                                    .cause(ex)
+                                    .build();
             }
         }
     }
@@ -136,7 +139,7 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
                     executeRetry(future);
                 } else {
                     SdkException retryableException = handleSdkException(
-                        Response.fromFailure(new SdkClientException(err), null));
+                        Response.fromFailure(SdkClientException.builder().cause(err).build(), null));
                     retryHandler.setLastRetriedException(retryableException);
                     // Notify the response handler on each retry. Note that this does not notify
                     // on the last attempt by design. This is done in the generated client code so that

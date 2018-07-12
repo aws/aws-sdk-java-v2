@@ -330,8 +330,8 @@ public class S3EndpointResolutionTest {
                        .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                        .region(Region.AP_SOUTH_1)
                        .overrideConfiguration(ClientOverrideConfiguration.builder()
-                                                                         .advancedOption(SdkAdvancedClientOption.SIGNER,
-                                                                                         mockSigner)
+                                                                         .putAdvancedOption(SdkAdvancedClientOption.SIGNER,
+                                                                                            mockSigner)
                                                                          .build())
                        .httpClient(mockHttpClient);
     }

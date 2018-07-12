@@ -18,9 +18,9 @@ import software.amazon.awssdk.utils.Validate;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public class OperationWithNoInputOrOutputRequestMarshaller implements
-                                                           Marshaller<Request<OperationWithNoInputOrOutputRequest>, OperationWithNoInputOrOutputRequest> {
+        Marshaller<Request<OperationWithNoInputOrOutputRequest>, OperationWithNoInputOrOutputRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder().requestUri("/")
-                                                                            .httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(false).hasPayloadMembers(false).build();
+            .httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(false).hasPayloadMembers(false).build();
 
     private final AwsJsonProtocolFactory protocolFactory;
 
@@ -30,17 +30,18 @@ public class OperationWithNoInputOrOutputRequestMarshaller implements
 
     @Override
     public Request<OperationWithNoInputOrOutputRequest> marshall(
-        OperationWithNoInputOrOutputRequest operationWithNoInputOrOutputRequest) {
+            OperationWithNoInputOrOutputRequest operationWithNoInputOrOutputRequest) {
         Validate.paramNotNull(operationWithNoInputOrOutputRequest, "operationWithNoInputOrOutputRequest");
         try {
             ProtocolRequestMarshaller<OperationWithNoInputOrOutputRequest> protocolMarshaller = protocolFactory
-                .createProtocolMarshaller(SDK_OPERATION_BINDING, operationWithNoInputOrOutputRequest);
+                    .createProtocolMarshaller(SDK_OPERATION_BINDING, operationWithNoInputOrOutputRequest);
             protocolMarshaller.startMarshalling();
             OperationWithNoInputOrOutputRequestModelMarshaller.getInstance().marshall(operationWithNoInputOrOutputRequest,
-                                                                                      protocolMarshaller);
+                    protocolMarshaller);
             return protocolMarshaller.finishMarshalling();
         } catch (Exception e) {
-            throw new SdkClientException("Unable to marshall request to JSON: " + e.getMessage(), e);
+            throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e)
+                    .build();
         }
     }
 }

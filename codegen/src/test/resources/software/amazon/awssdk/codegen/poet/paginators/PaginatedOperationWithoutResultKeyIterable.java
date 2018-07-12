@@ -6,6 +6,8 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.pagination.sync.PaginatedResponsesIterator;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.core.pagination.sync.SyncPageFetcher;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.services.jsonprotocoltests.JsonProtocolTestsClient;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithoutResultKeyRequest;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithoutResultKeyResponse;
@@ -73,7 +75,7 @@ public class PaginatedOperationWithoutResultKeyIterable implements SdkIterable<P
     private final SyncPageFetcher nextPageFetcher;
 
     public PaginatedOperationWithoutResultKeyIterable(JsonProtocolTestsClient client,
-                                                      PaginatedOperationWithoutResultKeyRequest firstRequest) {
+            PaginatedOperationWithoutResultKeyRequest firstRequest) {
         this.client = client;
         this.firstRequest = firstRequest;
         this.nextPageFetcher = new PaginatedOperationWithoutResultKeyResponseFetcher();
@@ -94,7 +96,7 @@ public class PaginatedOperationWithoutResultKeyIterable implements SdkIterable<P
     private final PaginatedOperationWithoutResultKeyIterable resume(PaginatedOperationWithoutResultKeyResponse lastSuccessfulPage) {
         if (nextPageFetcher.hasNextPage(lastSuccessfulPage)) {
             return new PaginatedOperationWithoutResultKeyIterable(client, firstRequest.toBuilder()
-                                                                                      .nextToken(lastSuccessfulPage.nextToken()).build());
+                    .nextToken(lastSuccessfulPage.nextToken()).build());
         }
         return new PaginatedOperationWithoutResultKeyIterable(client, firstRequest) {
             @Override
@@ -105,10 +107,11 @@ public class PaginatedOperationWithoutResultKeyIterable implements SdkIterable<P
     }
 
     private class PaginatedOperationWithoutResultKeyResponseFetcher implements
-                                                                    SyncPageFetcher<PaginatedOperationWithoutResultKeyResponse> {
+            SyncPageFetcher<PaginatedOperationWithoutResultKeyResponse> {
         @Override
         public boolean hasNextPage(PaginatedOperationWithoutResultKeyResponse previousPage) {
-            return previousPage.nextToken() != null;
+            return previousPage.nextToken() != null && !SdkAutoConstructList.class.isInstance(previousPage.nextToken())
+                    && !SdkAutoConstructMap.class.isInstance(previousPage.nextToken());
         }
 
         @Override
@@ -117,7 +120,7 @@ public class PaginatedOperationWithoutResultKeyIterable implements SdkIterable<P
                 return client.paginatedOperationWithoutResultKey(firstRequest);
             }
             return client
-                .paginatedOperationWithoutResultKey(firstRequest.toBuilder().nextToken(previousPage.nextToken()).build());
+                    .paginatedOperationWithoutResultKey(firstRequest.toBuilder().nextToken(previousPage.nextToken()).build());
         }
     }
 }

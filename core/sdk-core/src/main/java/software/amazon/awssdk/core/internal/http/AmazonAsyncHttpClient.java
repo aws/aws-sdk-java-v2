@@ -211,7 +211,7 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
             } catch (RuntimeException e) {
                 throw e;
             } catch (Exception e) {
-                throw new SdkClientException(e);
+                throw SdkClientException.builder().cause(e).build();
             }
         }
 

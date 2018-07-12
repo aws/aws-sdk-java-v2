@@ -23,23 +23,11 @@ import software.amazon.awssdk.core.exception.SdkException;
  */
 @SdkPublicApi
 public final class EventStreamException extends SdkException {
-
     private final String errorCode;
 
-    private EventStreamException(String errorMessage, String errorCode) {
-        super(errorMessage);
-        this.errorCode = errorCode;
-    }
-
-    /**
-     * Creates a new {@link EventStreamException}.
-     *
-     * @param errorMessage Error message returned by the service.
-     * @param errorCode Error code returned by the service.
-     * @return New {@link EventStreamException}.
-     */
-    static EventStreamException create(String errorMessage, String errorCode) {
-        return new EventStreamException(errorMessage, errorCode);
+    private EventStreamException(Builder builder) {
+        super(builder);
+        this.errorCode = builder.errorCode();
     }
 
     /**
@@ -52,5 +40,69 @@ public final class EventStreamException extends SdkException {
     @Override
     public String getMessage() {
         return super.getMessage() + "; Error Code: " + errorCode;
+    }
+
+    public static Builder builder() {
+        return new BuilderImpl();
+    }
+
+    /**
+     * Builder interface for {@link EventStreamException}.
+     */
+    public interface Builder extends SdkException.Builder {
+
+        /**
+         * Set the error code for this exception.
+         *
+         * @param errorCode The error code.
+         * @return This object for method chaining.
+         */
+        Builder errorCode(String errorCode);
+
+        /**
+         * @return The exception error code set on this builder.
+         */
+        String errorCode();
+
+        @Override
+        Builder message(String message);
+
+        @Override
+        Builder cause(Throwable t);
+
+        @Override
+        EventStreamException build();
+    }
+
+    private static class BuilderImpl extends SdkException.BuilderImpl implements Builder {
+        private String errorCode;
+
+        @Override
+        public Builder errorCode(String errorCode) {
+            this.errorCode = errorCode;
+            return this;
+        }
+
+        @Override
+        public String errorCode() {
+            return errorCode;
+        }
+
+        @Override
+        public Builder cause(Throwable t) {
+            super.cause(t);
+            return this;
+        }
+
+        @Override
+        public Builder message(String message) {
+            super.message(message);
+            return this;
+        }
+
+        @Override
+        public EventStreamException build() {
+            return new EventStreamException(this);
+        }
     }
 }

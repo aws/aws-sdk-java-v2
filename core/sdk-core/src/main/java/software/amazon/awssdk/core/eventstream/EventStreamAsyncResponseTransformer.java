@@ -187,13 +187,17 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
                                                                             EMPTY_EXECUTION_ATTRIBUTES));
                     }
                 } else if (isError(m)) {
-                    EventStreamException exception = EventStreamException.create(m.getHeaders().get(":error-message").getString(),
-                                                                                 m.getHeaders().get(":error-code").getString());
+                    String message = m.getHeaders().get(":error-message").getString();
+                    String errorCode = m.getHeaders().get(":error-code").getString();
+                    EventStreamException exception = EventStreamException.builder()
+                                                                         .message(message)
+                                                                         .errorCode(errorCode)
+                                                                         .build();
                     runAndLogError(log, "Error thrown from exceptionOccurred, ignoring.",
                         () -> exceptionOccurred(exception));
                 }
             } catch (Exception e) {
-                throw new SdkClientException(e);
+                throw SdkClientException.builder().cause(e).build();
             }
         });
     }

@@ -88,8 +88,8 @@ public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
             final SdkHttpFullRequest presignedRequest = signer.presign(requestForPresigning, signingParams);
 
             return request.toBuilder()
-                          .rawQueryParameter("DestinationRegion", destinationRegion)
-                          .rawQueryParameter("PresignedUrl", presignedRequest.getUri().toString())
+                          .putRawQueryParameter("DestinationRegion", destinationRegion)
+                          .putRawQueryParameter("PresignedUrl", presignedRequest.getUri().toString())
                           .build();
         }
 
@@ -125,8 +125,10 @@ public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
         final Region region = Region.of(regionName);
 
         if (region == null) {
-            throw new SdkClientException("{" + serviceName + ", " + regionName + "} was not "
-                                            + "found in region metadata. Update to latest version of SDK and try again.");
+            throw SdkClientException.builder()
+                                    .message("{" + serviceName + ", " + regionName + "} was not "
+                                             + "found in region metadata. Update to latest version of SDK and try again.")
+                                    .build();
         }
 
         return Ec2Client.serviceMetadata().endpointFor(region);

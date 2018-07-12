@@ -18,8 +18,8 @@ package software.amazon.awssdk.awscore.protocol.xml;
 import javax.xml.xpath.XPath;
 import org.w3c.dom.Node;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.exception.ErrorType;
 import software.amazon.awssdk.core.runtime.transform.AbstractErrorUnmarshaller;
 import software.amazon.awssdk.core.util.XpathUtils;
 
@@ -56,21 +56,14 @@ public final class LegacyErrorUnmarshaller extends AbstractErrorUnmarshaller<Aws
         String errorCode = parseErrorCode(in, xpath);
         String message = XpathUtils.asString("Response/Errors/Error/Message", in, xpath);
         String requestId = XpathUtils.asString("Response/RequestID", in, xpath);
-        String errorType = XpathUtils.asString("Response/Errors/Error/Type", in, xpath);
 
-        AwsServiceException exception = newException(message);
-        exception.errorCode(errorCode);
+        AwsServiceException.Builder exception = newException(message).toBuilder();
         exception.requestId(requestId);
 
-        if ("Client".equalsIgnoreCase(errorType)) {
-            exception.errorType(ErrorType.CLIENT);
-        } else if ("Server".equalsIgnoreCase(errorType)) {
-            exception.errorType(ErrorType.SERVICE);
-        } else {
-            exception.errorType(ErrorType.fromValue(errorType));
-        }
+        AwsErrorDetails awsErrorDetails = AwsErrorDetails.builder().errorCode(errorCode).build();
+        exception.requestId(requestId).awsErrorDetails(awsErrorDetails);
 
-        return exception;
+        return exception.build();
     }
 
     /**

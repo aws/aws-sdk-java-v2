@@ -30,6 +30,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
 import software.amazon.awssdk.services.dynamodb.model.Condition;
@@ -111,8 +112,8 @@ public class SecondaryIndexesIntegrationTest extends DynamoDBTestBase {
         assertEquals(ProjectionType.KEYS_ONLY,
                      tableDescription.localSecondaryIndexes().get(0)
                                      .projection().projectionType());
-        assertEquals(null, tableDescription.localSecondaryIndexes().get(0)
-                                           .projection().nonKeyAttributes());
+        assertTrue(tableDescription.localSecondaryIndexes().get(0)
+                                           .projection().nonKeyAttributes() instanceof SdkAutoConstructList);
 
         assertEquals(1, tableDescription.globalSecondaryIndexes().size());
         assertEquals(GSI_NAME, tableDescription
@@ -130,8 +131,8 @@ public class SecondaryIndexesIntegrationTest extends DynamoDBTestBase {
         assertEquals(ProjectionType.KEYS_ONLY,
                      tableDescription.globalSecondaryIndexes().get(0)
                                      .projection().projectionType());
-        assertEquals(null, tableDescription.globalSecondaryIndexes().get(0)
-                                           .projection().nonKeyAttributes());
+        assertTrue(tableDescription.globalSecondaryIndexes().get(0)
+                                           .projection().nonKeyAttributes() instanceof SdkAutoConstructList);
 
     }
 

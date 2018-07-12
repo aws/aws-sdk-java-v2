@@ -16,13 +16,13 @@
 package software.amazon.awssdk.core.internal.http;
 
 import com.fasterxml.jackson.core.JsonFactory;
+
 import java.util.List;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
-import software.amazon.awssdk.core.internal.protocol.json.ErrorMessageParser;
 import software.amazon.awssdk.core.internal.protocol.json.JsonContent;
 import software.amazon.awssdk.core.internal.protocol.json.SdkJsonErrorUnmarshaller;
 
@@ -34,15 +34,12 @@ import software.amazon.awssdk.core.internal.protocol.json.SdkJsonErrorUnmarshall
 public class SdkJsonErrorResponseHandler extends JsonErrorResponseHandler<SdkServiceException> {
 
     private final List<SdkJsonErrorUnmarshaller> unmarshallers;
-    private final ErrorMessageParser errorMessageParser;
     private final JsonFactory jsonFactory;
 
     public SdkJsonErrorResponseHandler(
             List<SdkJsonErrorUnmarshaller> errorUnmarshallers,
-            ErrorMessageParser errorMessageParser,
             JsonFactory jsonFactory) {
         this.unmarshallers = errorUnmarshallers;
-        this.errorMessageParser = errorMessageParser;
         this.jsonFactory = jsonFactory;
     }
 
@@ -57,20 +54,12 @@ public class SdkJsonErrorResponseHandler extends JsonErrorResponseHandler<SdkSer
 
         JsonContent jsonContent = JsonContent.createJsonContent(response, jsonFactory);
 
-        SdkServiceException exception = createException(response.getStatusCode(), jsonContent);
+        SdkServiceException.Builder exception = createException(response.getStatusCode(), jsonContent).toBuilder();
 
-        if (exception.errorMessage() == null) {
-            exception.errorMessage(errorMessageParser.parseErrorMessage(response, jsonContent.getJsonNode()));
-        }
-
-        exception.serviceName(executionAttributes.getAttribute(SdkExecutionAttribute.SERVICE_NAME));
         exception.statusCode(response.getStatusCode());
-        exception.errorType(getErrorType(response.getStatusCode()));
-        exception.rawResponse(jsonContent.getRawContent());
         exception.requestId(getRequestIdFromHeaders(response.getHeaders()));
-        exception.headers(response.getHeaders());
 
-        return exception;
+        return exception.build();
     }
 
     /**
@@ -91,7 +80,8 @@ public class SdkJsonErrorResponseHandler extends JsonErrorResponseHandler<SdkSer
 
     @Override
     protected SdkServiceException createUnknownException() {
-        return new SdkServiceException(
-            "Unable to unmarshall exception response with the unmarshallers provided");
+        return SdkServiceException.builder()
+                                  .message("Unable to unmarshall exception response with the unmarshallers provided")
+                                  .build();
     }
 }

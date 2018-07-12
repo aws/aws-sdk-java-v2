@@ -175,7 +175,8 @@ public class JsonModelMarshallerSpec implements ClassSpec {
 
         methodSpecBuilder.endControlFlow();
         methodSpecBuilder.beginControlFlow("catch (Exception e)");
-        methodSpecBuilder.addStatement("throw new $T(\"Unable to marshall request to JSON: \" + e.getMessage(), e)", ClassName
+        methodSpecBuilder.addStatement("throw $T.builder().message(\"Unable to marshall request to JSON: \" + " +
+                "e.getMessage()).cause(e).build()", ClassName
             .get(SdkClientException.class));
         methodSpecBuilder.endControlFlow();
         return methodSpecBuilder.build();

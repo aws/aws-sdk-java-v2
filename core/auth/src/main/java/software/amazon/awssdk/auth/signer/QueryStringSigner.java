@@ -78,23 +78,23 @@ public final class QueryStringSigner extends AbstractAwsSigner {
         SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
 
         AwsCredentials sanitizedCredentials = sanitizeCredentials(awsCredentials);
-        mutableRequest.rawQueryParameter("AWSAccessKeyId", sanitizedCredentials.accessKeyId());
-        mutableRequest.rawQueryParameter("SignatureVersion", "2");
+        mutableRequest.putRawQueryParameter("AWSAccessKeyId", sanitizedCredentials.accessKeyId());
+        mutableRequest.putRawQueryParameter("SignatureVersion", "2");
 
         int timeOffset = offset == null ? 0 : offset;
-        mutableRequest.rawQueryParameter("Timestamp", getFormattedTimestamp(timeOffset));
+        mutableRequest.putRawQueryParameter("Timestamp", getFormattedTimestamp(timeOffset));
 
         if (sanitizedCredentials instanceof AwsSessionCredentials) {
             addSessionCredentials(mutableRequest, (AwsSessionCredentials) sanitizedCredentials);
         }
 
-        mutableRequest.rawQueryParameter("SignatureMethod", SigningAlgorithm.HmacSHA256.toString());
+        mutableRequest.putRawQueryParameter("SignatureMethod", SigningAlgorithm.HmacSHA256.toString());
         String stringToSign = calculateStringToSignV2(mutableRequest);
 
         String signatureValue = signAndBase64Encode(stringToSign,
                                                     sanitizedCredentials.secretAccessKey(),
                                                     SigningAlgorithm.HmacSHA256);
-        mutableRequest.rawQueryParameter("Signature", signatureValue);
+        mutableRequest.putRawQueryParameter("Signature", signatureValue);
         return mutableRequest.build();
     }
 
@@ -145,7 +145,7 @@ public final class QueryStringSigner extends AbstractAwsSigner {
 
     @Override
     protected void addSessionCredentials(SdkHttpFullRequest.Builder request, AwsSessionCredentials credentials) {
-        request.rawQueryParameter("SecurityToken", credentials.sessionToken());
+        request.putRawQueryParameter("SecurityToken", credentials.sessionToken());
     }
 
     /**

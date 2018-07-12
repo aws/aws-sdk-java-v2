@@ -101,13 +101,13 @@ public class AwsJsonErrorResponseHandlerTest {
 
         ExecutionAttributes attributes =
                 new ExecutionAttributes().putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME);
-        SdkServiceException exception = responseHandler.handle(httpResponse, attributes);
+        AwsServiceException exception = responseHandler.handle(httpResponse, attributes);
 
         // We assert these common properties are set again to make sure that code path is exercised
         // for unknown SdkServiceExceptions as well
-        assertEquals(ERROR_CODE, exception.errorCode());
+        assertEquals(ERROR_CODE, exception.awsErrorDetails().errorCode());
         assertEquals(500, exception.statusCode());
-        assertEquals(SERVICE_NAME, exception.serviceName());
+        assertEquals(SERVICE_NAME, exception.awsErrorDetails().serviceName());
     }
 
     @Test
@@ -125,10 +125,10 @@ public class AwsJsonErrorResponseHandlerTest {
                                                                                       Exception {
         expectUnmarshallerMatches();
 
-        SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
+        AwsServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
 
         assertNotNull(exception);
-        assertEquals(ERROR_CODE, exception.errorCode());
+        assertEquals(ERROR_CODE, exception.awsErrorDetails().errorCode());
     }
 
     @Test
@@ -137,10 +137,10 @@ public class AwsJsonErrorResponseHandlerTest {
         expectUnmarshallerMatches();
         when(unmarshaller.unmarshall(anyObject())).thenThrow(new RuntimeException());
 
-        SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
+        AwsServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
 
         assertNotNull(exception);
-        assertEquals(ERROR_CODE, exception.errorCode());
+        assertEquals(ERROR_CODE, exception.awsErrorDetails().errorCode());
     }
 
     @Test
@@ -148,15 +148,15 @@ public class AwsJsonErrorResponseHandlerTest {
         httpResponse.setStatusCode(400);
         expectUnmarshallerMatches();
         when(unmarshaller.unmarshall(anyObject()))
-                .thenReturn(new CustomException("error"));
+                .thenReturn(AwsServiceException.builder().build());
 
         ExecutionAttributes attributes =
                 new ExecutionAttributes().putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME);
-        SdkServiceException exception = responseHandler.handle(httpResponse, attributes);
+        AwsServiceException exception = responseHandler.handle(httpResponse, attributes);
 
-        assertEquals(ERROR_CODE, exception.errorCode());
+        assertEquals(ERROR_CODE, exception.awsErrorDetails().errorCode());
         assertEquals(400, exception.statusCode());
-        assertEquals(SERVICE_NAME, exception.serviceName());
+        assertEquals(SERVICE_NAME, exception.awsErrorDetails().serviceName());
     }
 
     @Test
@@ -165,7 +165,7 @@ public class AwsJsonErrorResponseHandlerTest {
         httpResponse.addHeader(HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER, "1234");
         expectUnmarshallerMatches();
         when(unmarshaller.unmarshall(anyObject()))
-                .thenReturn(new CustomException("error"));
+                .thenReturn(AwsServiceException.builder().build());
 
         SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
 
@@ -183,7 +183,7 @@ public class AwsJsonErrorResponseHandlerTest {
                                "1234");
         expectUnmarshallerMatches();
         when(unmarshaller.unmarshall(anyObject()))
-                .thenReturn(new CustomException("error"));
+                .thenReturn(AwsServiceException.builder().build());
 
         SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
 
@@ -201,11 +201,11 @@ public class AwsJsonErrorResponseHandlerTest {
         httpResponse.addHeader(HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER, "1234");
         expectUnmarshallerMatches();
         when(unmarshaller.unmarshall(anyObject()))
-                .thenReturn(new CustomException("error"));
+                .thenReturn(AwsServiceException.builder().build());
 
-        SdkServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
-        assertThat(exception.headers(), hasEntry("FooHeader", "FooValue"));
-        assertThat(exception.headers(),
+        AwsServiceException exception = responseHandler.handle(httpResponse, new ExecutionAttributes());
+        assertThat(exception.awsErrorDetails().sdkHttpResponse().getHeaders(), hasEntry("FooHeader", "FooValue"));
+        assertThat(exception.awsErrorDetails().sdkHttpResponse().getHeaders(),
                    hasEntry(HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER, "1234"));
     }
 
@@ -215,14 +215,5 @@ public class AwsJsonErrorResponseHandlerTest {
 
     private void expectUnmarshallerDoesNotMatch() throws Exception {
         when(unmarshaller.matchErrorCode(anyString())).thenReturn(false);
-    }
-
-    private static class CustomException extends AwsServiceException {
-
-        private static final long serialVersionUID = 1305027296023640779L;
-
-        public CustomException(String errorMessage) {
-            super(errorMessage);
-        }
     }
 }

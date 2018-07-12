@@ -210,7 +210,7 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
         }
 
         @Override
-        public DefaultSdkHttpFullRequest.Builder rawQueryParameter(String paramName, List<String> paramValues) {
+        public DefaultSdkHttpFullRequest.Builder putRawQueryParameter(String paramName, List<String> paramValues) {
             this.queryParameters.put(paramName, new ArrayList<>(paramValues));
             return this;
         }
@@ -250,7 +250,7 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
         }
 
         @Override
-        public DefaultSdkHttpFullRequest.Builder header(String headerName, List<String> headerValues) {
+        public DefaultSdkHttpFullRequest.Builder putHeader(String headerName, List<String> headerValues) {
             this.headers.put(headerName, new ArrayList<>(headerValues));
             return this;
         }

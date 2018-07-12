@@ -312,7 +312,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     public final B overrideConfiguration(ClientOverrideConfiguration overrideConfig) {
         clientConfiguration.option(EXECUTION_INTERCEPTORS, overrideConfig.executionInterceptors());
         clientConfiguration.option(RETRY_POLICY, overrideConfig.retryPolicy().orElse(null));
-        clientConfiguration.option(ADDITIONAL_HTTP_HEADERS, overrideConfig.additionalHttpHeaders());
+        clientConfiguration.option(ADDITIONAL_HTTP_HEADERS, overrideConfig.headers());
         clientConfiguration.option(SIGNER, overrideConfig.advancedOption(SIGNER).orElse(null));
         clientConfiguration.option(USER_AGENT_SUFFIX, overrideConfig.advancedOption(USER_AGENT_SUFFIX).orElse(null));
         clientConfiguration.option(USER_AGENT_PREFIX, overrideConfig.advancedOption(USER_AGENT_PREFIX).orElse(null));

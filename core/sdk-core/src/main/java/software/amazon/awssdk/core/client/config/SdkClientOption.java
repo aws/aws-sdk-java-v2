@@ -35,7 +35,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 @SdkProtectedApi
 public final class SdkClientOption<T> extends ClientOption<T> {
     /**
-     * @see ClientOverrideConfiguration#additionalHttpHeaders()
+     * @see ClientOverrideConfiguration#headers()
      */
     public static final SdkClientOption<Map<String, List<String>>> ADDITIONAL_HTTP_HEADERS =
             new SdkClientOption<>(new UnsafeValueType(Map.class));

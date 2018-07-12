@@ -57,7 +57,7 @@ public class AwsStructuredIonFactoryTest {
     private static IonStruct createPayload() {
         IonStruct payload = system.newEmptyStruct();
         payload.add("NotValidJson", system.newTimestamp(Timestamp.nowZ()));
-        payload.add("ErrorMessage", system.newString(ERROR_MESSAGE));
+        payload.add("errorMessage", system.newString(ERROR_MESSAGE));
         return payload;
     }
 
@@ -79,9 +79,9 @@ public class AwsStructuredIonFactoryTest {
         HttpResponse error = createResponse(payload);
         error.addHeader("x-amzn-ErrorType", ERROR_TYPE);
 
-        SdkServiceException exception = handleError(error);
+        AwsServiceException exception = handleError(error);
         assertThat(exception).isInstanceOf(InvalidParameterException.class);
-        assertEquals(ERROR_MESSAGE, exception.errorMessage());
+        assertEquals(ERROR_MESSAGE, exception.awsErrorDetails().errorMessage());
     }
 
     @Test
@@ -91,9 +91,9 @@ public class AwsStructuredIonFactoryTest {
 
         HttpResponse error = createResponse(payload);
 
-        SdkServiceException exception = handleError(error);
+        AwsServiceException exception = handleError(error);
         assertThat(exception).isInstanceOf(InvalidParameterException.class);
-        assertEquals(ERROR_MESSAGE, exception.errorMessage());
+        assertEquals(ERROR_MESSAGE, exception.awsErrorDetails().errorMessage());
     }
 
     @Test
@@ -103,9 +103,9 @@ public class AwsStructuredIonFactoryTest {
 
         HttpResponse error = createResponse(payload);
 
-        SdkServiceException exception = handleError(error);
+        AwsServiceException exception = handleError(error);
         assertThat(exception).isInstanceOf(InvalidParameterException.class);
-        assertEquals(ERROR_MESSAGE, exception.errorMessage());
+        assertEquals(ERROR_MESSAGE, exception.awsErrorDetails().errorMessage());
     }
 
     @Test(expected = SdkClientException.class)
@@ -128,12 +128,12 @@ public class AwsStructuredIonFactoryTest {
 
         HttpResponse error = createResponse(payload);
 
-        SdkServiceException exception = handleError(error);
+        AwsServiceException exception = handleError(error);
         assertThat(exception).isInstanceOf(InvalidParameterException.class);
-        assertEquals(ERROR_MESSAGE, exception.errorMessage());
+        assertEquals(ERROR_MESSAGE, exception.awsErrorDetails().errorMessage());
     }
 
-    private SdkServiceException handleError(HttpResponse error) throws Exception {
+    private AwsServiceException handleError(HttpResponse error) throws Exception {
         List<AwsJsonErrorUnmarshaller> unmarshallers = new LinkedList<>();
         unmarshallers.add(new AwsJsonErrorUnmarshaller(InvalidParameterException.class, ERROR_TYPE));
 
@@ -146,20 +146,34 @@ public class AwsStructuredIonFactoryTest {
         private static final long serialVersionUID = 0;
 
         public InvalidParameterException(BeanStyleBuilder builder) {
-            super(builder.message);
+            super(builder);
         }
 
-        public static Class<?> serializableBuilderClass() {
+        public static Class<? extends Builder> serializableBuilderClass() {
             return BeanStyleBuilder.class;
         }
 
-        public interface Builder {
+        @Override
+        public Builder toBuilder() {
+            return new BeanStyleBuilder(this);
+        }
+
+        public interface Builder extends AwsServiceException.Builder {
+            @Override
             Builder message(String message);
+
+            @Override
             InvalidParameterException build();
         }
 
-        private static class BeanStyleBuilder implements Builder {
+        private static class BeanStyleBuilder extends AwsServiceException.BuilderImpl implements Builder {
             private String message;
+
+            private BeanStyleBuilder() {}
+
+            private BeanStyleBuilder(InvalidParameterException ex) {
+                this.message = ex.getMessage();
+            }
 
             @Override
             public Builder message(String message) {

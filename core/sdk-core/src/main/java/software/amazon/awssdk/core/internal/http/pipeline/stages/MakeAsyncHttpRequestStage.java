@@ -101,7 +101,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     private SdkHttpFullRequest getRequestWithContentLength(SdkHttpFullRequest request, SdkHttpRequestProvider requestProvider) {
         if (shouldSetContentLength(request, requestProvider)) {
             return request.toBuilder()
-                          .header("Content-Length", String.valueOf(requestProvider.contentLength()))
+                          .putHeader("Content-Length", String.valueOf(requestProvider.contentLength()))
                           .build();
         }
         return request;

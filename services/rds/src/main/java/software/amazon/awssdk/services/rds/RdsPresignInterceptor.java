@@ -96,7 +96,7 @@ abstract class RdsPresignInterceptor<T extends RdsRequest> implements ExecutionI
         SdkHttpFullRequest requestToPresign =
                 marshalledRequest.encodedPath(SdkHttpUtils.appendUri(endpoint.getPath(), marshalledRequest.encodedPath()))
                                  .method(SdkHttpMethod.GET)
-                                 .rawQueryParameter(PARAM_DESTINATION_REGION, destinationRegion)
+                                 .putRawQueryParameter(PARAM_DESTINATION_REGION, destinationRegion)
                                  .removeQueryParameter(PARAM_SOURCE_REGION)
                                  .build();
 
@@ -105,7 +105,7 @@ abstract class RdsPresignInterceptor<T extends RdsRequest> implements ExecutionI
         final String presignedUrl = requestToPresign.getUri().toString();
 
         return request.toBuilder()
-                      .rawQueryParameter(PARAM_PRESIGNED_URL, presignedUrl)
+                      .putRawQueryParameter(PARAM_PRESIGNED_URL, presignedUrl)
                       // Remove the unmodeled params to stop them getting onto the wire
                       .removeQueryParameter(PARAM_SOURCE_REGION)
                       .build();
@@ -132,8 +132,10 @@ abstract class RdsPresignInterceptor<T extends RdsRequest> implements ExecutionI
         final Region region = Region.of(regionName);
 
         if (region == null) {
-            throw new SdkClientException("{" + serviceName + ", " + regionName + "} was not "
-                                            + "found in region metadata. Update to latest version of SDK and try again.");
+            throw SdkClientException.builder()
+                                    .message("{" + serviceName + ", " + regionName + "} was not "
+                                            + "found in region metadata. Update to latest version of SDK and try again.")
+                                    .build();
         }
 
         return new DefaultServiceEndpointBuilder(SERVICE_NAME, Protocol.HTTPS.toString())

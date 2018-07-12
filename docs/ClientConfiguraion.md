@@ -95,13 +95,42 @@ This section details the semantics of configuration fields.
 Special notes for collection types, like `List`, `Set`, and `Map`:
 
 1. Collection type field names must be plural.
-2. Collection types should be accompanied by an `addX` method on the builder that permits adding one item to the collection. This `addX` method should be singular.
+2. There should be two methods provided to modify the collection.
+  - method with plural field name which permits adding a collection. It should override any values currently configured in the builder.
+  - method that permits adding one item to the collection. 
+    - If the collection is a list,  the method name should use `add` prefix, eg: `addApiName`
+    - If the collection is a map, the method name should use `put` prefix, eg: `putHeader`
 
 ```Java
 public interface Builder {
+    
+    /**
+     *  Sets options.
+     *  
+     *  <p>
+     *  This overrides any option values already configured in the builder.
+     */
     Builder options(List<String> options);
+    
+    /**
+     * Add a single option to the collection.
+     */
     Builder addOption(String option);
 
+    /**
+     *  Sets headers to be set on the HTTP request. 
+     *  
+     *  <p>
+     *  This overrides any header values already configured in the builder.
+     */
     Builder headers(Map<String, String> headers);
-    Builder addHeader(String key, String value);
+    
+    /**
+     *  Add a single header to be set on the HTTP request.
+     *  
+     *  <p>
+     *  This overrides any values already configured with this header name in the builder.
+     */
+    Builder putHeader(String key, String value);
 }
+```

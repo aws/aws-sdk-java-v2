@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet.client;
 
 import static com.squareup.javapoet.TypeSpec.Builder;
 import static java.util.Collections.singletonList;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.getCustomResponseHandler;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
 
@@ -82,6 +83,10 @@ public final class AsyncClientClass extends AsyncClientInterface {
         // Kinesis doesn't support CBOR for STS yet so need another protocol factory for JSON
         if (model.getMetadata().isCborProtocol()) {
             classBuilder.addField(AwsJsonProtocolFactory.class, "jsonProtocolFactory", Modifier.PRIVATE, Modifier.FINAL);
+        }
+
+        if (model.hasPaginators()) {
+            classBuilder.addMethod(applyPaginatorUserAgentMethod(poetExtensions, model));
         }
 
         protocolSpec.createErrorResponseHandler().ifPresent(classBuilder::addMethod);
@@ -152,7 +157,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
     @Override
     protected MethodSpec.Builder paginatedMethodBody(MethodSpec.Builder builder, OperationModel opModel) {
         return builder.addModifiers(Modifier.PUBLIC)
-                      .addStatement("return new $T(this, $L)",
+                      .addStatement("return new $T(this, applyPaginatorUserAgent($L))",
                                     poetExtensions.getResponseClassForPaginatedAsyncOperation(opModel.getOperationName()),
                                     opModel.getInput().getVariableName());
     }
