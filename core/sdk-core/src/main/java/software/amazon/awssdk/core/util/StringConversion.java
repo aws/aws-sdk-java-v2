@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.utils.Base64Utils;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.DateUtils;
 
 /**
@@ -101,7 +101,7 @@ public class StringConversion {
      * @return The base64 encoded contents of the specified byte buffer.
      */
     public static String fromByteBuffer(ByteBuffer byteBuffer) {
-        return Base64Utils.encodeAsString(copyBytesFrom(byteBuffer));
+        return BinaryUtils.toBase64(copyBytesFrom(byteBuffer));
     }
 
     /**
@@ -111,6 +111,6 @@ public class StringConversion {
      * @return The base64 encoded contents of the specified bytes.
      */
     public static String fromSdkBytes(SdkBytes sdkBytes) {
-        return Base64Utils.encodeAsString(sdkBytes.asByteArray());
+        return BinaryUtils.toBase64(sdkBytes.asByteArray());
     }
 }

@@ -56,8 +56,8 @@ public class HttpCredentialsProviderTest {
             ("/resources/wiremock/successResponse.json");
              InputStream responseWithInvalidBodyInputStream = HttpCredentialsProviderTest.class.getResourceAsStream
                  ("/resources/wiremock/successResponseWithInvalidBody.json")) {
-            successResponse = IoUtils.toString(successInputStream);
-            successResponseWithInvalidBody = IoUtils.toString(responseWithInvalidBodyInputStream);
+            successResponse = IoUtils.toUtf8String(successInputStream);
+            successResponseWithInvalidBody = IoUtils.toUtf8String(responseWithInvalidBodyInputStream);
         }
     }
 

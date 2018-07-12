@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import software.amazon.awssdk.utils.Base64Utils;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * Utility for validating signatures on a Simple Notification Service JSON message.
@@ -130,7 +130,7 @@ public class SignatureChecker {
         boolean result = false;
         byte[] sigbytes = null;
         try {
-            sigbytes = Base64Utils.decode(signature.getBytes());
+            sigbytes = BinaryUtils.fromBase64Bytes(signature.getBytes());
             sigChecker = Signature.getInstance("SHA1withRSA"); //check the signature
             sigChecker.initVerify(publicKey);
             sigChecker.update(message.getBytes());

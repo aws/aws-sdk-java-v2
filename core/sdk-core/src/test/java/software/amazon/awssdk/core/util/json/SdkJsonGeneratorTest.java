@@ -30,7 +30,7 @@ import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.internal.protocol.json.SdkJsonGenerator;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
-import software.amazon.awssdk.utils.Base64Utils;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 public class SdkJsonGeneratorTest {
 
@@ -80,7 +80,7 @@ public class SdkJsonGeneratorTest {
         jsonGenerator.writeFieldName("binaryProp").writeValue(ByteBuffer.wrap(data));
         jsonGenerator.writeEndObject();
         JsonNode node = toJsonNode();
-        assertEquals(Base64Utils.encodeAsString(data), node.get("binaryProp").textValue());
+        assertEquals(BinaryUtils.toBase64(data), node.get("binaryProp").textValue());
     }
 
     @Test

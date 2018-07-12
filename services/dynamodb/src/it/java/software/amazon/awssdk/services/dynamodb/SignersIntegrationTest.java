@@ -131,7 +131,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
 
         assertEquals("Non success http status code", 200, response.statusCode());
 
-        String actualResult = IoUtils.toString(response.content().get());
+        String actualResult = IoUtils.toUtf8String(response.content().get());
         assertEquals(getExpectedResult(), actualResult);
     }
 
@@ -150,7 +150,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
 
         assertEquals("Non success http status code", 200, response.statusCode());
 
-        String actualResult = IoUtils.toString(response.content().get());
+        String actualResult = IoUtils.toUtf8String(response.content().get());
         assertEquals(getExpectedResult(), actualResult);
     }
 

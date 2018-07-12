@@ -23,6 +23,6 @@ import software.amazon.awssdk.utils.IoUtils;
 public final class GetBucketPolicyResponseUnmarshaller implements Unmarshaller<GetBucketPolicyResponse, HttpResponse> {
     @Override
     public GetBucketPolicyResponse unmarshall(HttpResponse response) throws Exception {
-        return GetBucketPolicyResponse.builder().policy(IoUtils.toString(response.getContent())).build();
+        return GetBucketPolicyResponse.builder().policy(IoUtils.toUtf8String(response.getContent())).build();
     }
 }

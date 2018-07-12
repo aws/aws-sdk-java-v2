@@ -13,27 +13,27 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.utils;
+package software.amazon.awssdk.utils.internal;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * A Base 16 codec API, which encodes into hex string in lower case.
+ * A Base 16 codec API, which encodes into hex string in upper case.
  *
  * See http://www.ietf.org/rfc/rfc4648.txt
  *
  * @author Hanson Char
  */
-@SdkProtectedApi
-public final class Base16Lower {
+@SdkInternalApi
+public final class Base16 {
 
-    private static final Base16Codec CODEC = new Base16Codec(false);
+    private static final Base16Codec CODEC = new Base16Codec();
 
-    private Base16Lower() {
+    private Base16() {
     }
 
     /**
-     * Returns a base 16 encoded string (in lower case) of the given bytes.
+     * Returns a base 16 encoded string (in upper case) of the given bytes.
      */
     public static String encodeAsString(byte... bytes) {
         if (bytes == null) {
