@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.zip.CRC32;
 import org.junit.Test;
+import software.amazon.awssdk.core.internal.util.Crc32ChecksumCalculatingInputStream;
 
 /**
  * Test CRC32ChecksumInputStream can calculate CRC32 checksum correctly.

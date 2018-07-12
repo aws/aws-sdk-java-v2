@@ -27,7 +27,7 @@ import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
+import software.amazon.awssdk.utils.ImmutableMapParameter;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.transform.PutItemRequestMarshaller;

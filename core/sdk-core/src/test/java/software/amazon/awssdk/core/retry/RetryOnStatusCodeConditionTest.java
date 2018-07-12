@@ -50,7 +50,7 @@ public class RetryOnStatusCodeConditionTest {
         assertFalse(noStatusCodes.shouldRetry(RetryPolicyContexts.withStatusCode(404)));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NullPointerException.class)
     public void nullListOfStatusCodes_ThrowsException() {
         Set<Integer> nullSet = null;
         RetryOnStatusCodeCondition.create(nullSet);

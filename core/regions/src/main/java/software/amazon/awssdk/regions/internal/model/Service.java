@@ -18,7 +18,7 @@ package software.amazon.awssdk.regions.internal.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.util.ValidationUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Endpoint configuration for a service in a partition.
@@ -50,7 +50,7 @@ public final class Service {
     public Service() {}
 
     public Service(@JsonProperty(value = "endpoints") Map<String, Endpoint> endpoints) {
-        this.endpoints = ValidationUtils.assertNotNull(endpoints, "endpoints");
+        this.endpoints = Validate.paramNotNull(endpoints, "endpoints");
     }
 
     /**

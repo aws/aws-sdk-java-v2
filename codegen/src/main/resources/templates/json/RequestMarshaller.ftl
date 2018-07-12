@@ -24,9 +24,9 @@ import ${metadata.fullModelPackageName}.*;
 import ${metadata.fullTransformPackageName}.*;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.core.util.StringConversion;
 import software.amazon.awssdk.core.util.IdempotentUtils;
-import software.amazon.awssdk.core.util.StringInputStream;
+import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.core.protocol.*;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 

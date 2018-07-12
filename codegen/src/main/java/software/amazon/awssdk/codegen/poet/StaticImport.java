@@ -46,7 +46,7 @@ public interface StaticImport {
      * @param members the members from that class to import, if none then * is assumed
      * @return an anonymous implementation of {@link StaticImport}
      */
-    static StaticImport staticMethodImport(Class<?> clz, String...members) {
+    static StaticImport staticMethodImport(Class<?> clz, String... members) {
         return new StaticImport() {
             @Override
             public ClassName className() {

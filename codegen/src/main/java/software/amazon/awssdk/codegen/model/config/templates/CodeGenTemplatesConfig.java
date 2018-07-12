@@ -33,7 +33,6 @@ public class CodeGenTemplatesConfig {
     private TopLevelTemplate modelUnmarshaller;
     private TopLevelTemplate modelMarshaller;
     private TopLevelTemplate requestMarshaller;
-    private TopLevelTemplate baseExceptionClass;
     private TopLevelTemplate exceptionUnmarshaller;
     private TopLevelTemplate policyActionClass;
     private TopLevelTemplate packageInfo;
@@ -86,8 +85,6 @@ public class CodeGenTemplatesConfig {
         merged.setRequestMarshaller(TopLevelTemplate.merge(
                 config.getRequestMarshaller(), override.getRequestMarshaller()));
 
-        merged.setBaseExceptionClass(TopLevelTemplate.merge(
-                config.getBaseExceptionClass(), override.getBaseExceptionClass()));
         merged.setExceptionUnmarshaller(TopLevelTemplate.merge(
                 config.getExceptionUnmarshaller(),
                 override.getExceptionUnmarshaller()));
@@ -187,14 +184,6 @@ public class CodeGenTemplatesConfig {
 
     public void setPackageInfo(TopLevelTemplate packageInfo) {
         this.packageInfo = packageInfo;
-    }
-
-    public TopLevelTemplate getBaseExceptionClass() {
-        return baseExceptionClass;
-    }
-
-    public void setBaseExceptionClass(TopLevelTemplate baseExceptionClass) {
-        this.baseExceptionClass = baseExceptionClass;
     }
 
     public TopLevelTemplate getCucumberModuleInjector() {

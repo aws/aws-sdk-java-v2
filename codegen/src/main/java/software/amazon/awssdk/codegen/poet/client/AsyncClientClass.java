@@ -34,7 +34,7 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.util.CompletableFutures;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public final class AsyncClientClass extends AsyncClientInterface {
     private final IntermediateModel model;
@@ -116,7 +116,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                           .addCode(protocolSpec.asyncExecutionHandler(opModel))
                       .endControlFlow()
                       .beginControlFlow("catch ($T t)", Throwable.class)
-                          .addStatement("return $T.failedFuture(t)", CompletableFutures.class)
+                          .addStatement("return $T.failedFuture(t)", CompletableFutureUtils.class)
                       .endControlFlow();
     }
 

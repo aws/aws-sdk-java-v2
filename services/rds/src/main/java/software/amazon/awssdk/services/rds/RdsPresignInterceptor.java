@@ -22,6 +22,7 @@ import java.time.Clock;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.Request;
 import software.amazon.awssdk.core.SdkRequest;
@@ -30,7 +31,6 @@ import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.util.AwsHostNameUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.regions.Region;
@@ -87,7 +87,11 @@ abstract class RdsPresignInterceptor<T extends RdsRequest> implements ExecutionI
             return request;
         }
 
-        String destinationRegion = AwsHostNameUtils.parseRegion(request.host(), SERVICE_NAME);
+        String destinationRegion =
+                AwsHostNameUtils.parseSigningRegion(request.host(), SERVICE_NAME)
+                                .orElseThrow(() -> new IllegalArgumentException("Could not determine region for " +
+                                                                                request.host()))
+                                .id();
 
         URI endpoint = createEndpoint(sourceRegion, SERVICE_NAME);
         Request<?> legacyRequest = presignableRequest.marshall();

@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.http;
 
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 @SdkProtectedApi
 @ReviewBeforeRelease("Replace with SdkHttpMethod")
@@ -37,7 +37,7 @@ public enum HttpMethodName {
      * @throws IllegalArgumentException If value does not represent a known enum value.
      */
     public static HttpMethodName fromValue(String value) {
-        if (StringUtils.isNullOrEmpty(value)) {
+        if (StringUtils.isEmpty(value)) {
             return null;
         }
 

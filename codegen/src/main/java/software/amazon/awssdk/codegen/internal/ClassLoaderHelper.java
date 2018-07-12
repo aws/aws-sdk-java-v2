@@ -20,7 +20,7 @@ import java.io.InputStream;
 import java.net.URL;
 
 /**
- * @deprecated should be replaced with {@link software.amazon.awssdk.core.util.ClassLoaderHelper}
+ * @deprecated should be replaced with {@link software.amazon.awssdk.core.internal.util.ClassLoaderHelper}
  */
 @Deprecated
 public final class ClassLoaderHelper {

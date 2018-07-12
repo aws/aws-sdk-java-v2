@@ -21,8 +21,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.util.StringInputStream;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.utils.StringInputStream;
 
 public class AwsCredentialsProviderChainTest {
 

@@ -20,19 +20,19 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static software.amazon.awssdk.core.util.XpathUtils.asBoolean;
-import static software.amazon.awssdk.core.util.XpathUtils.asByte;
-import static software.amazon.awssdk.core.util.XpathUtils.asByteBuffer;
-import static software.amazon.awssdk.core.util.XpathUtils.asDate;
-import static software.amazon.awssdk.core.util.XpathUtils.asDouble;
-import static software.amazon.awssdk.core.util.XpathUtils.asFloat;
-import static software.amazon.awssdk.core.util.XpathUtils.asInteger;
-import static software.amazon.awssdk.core.util.XpathUtils.asLong;
-import static software.amazon.awssdk.core.util.XpathUtils.asNode;
-import static software.amazon.awssdk.core.util.XpathUtils.asString;
-import static software.amazon.awssdk.core.util.XpathUtils.documentFrom;
-import static software.amazon.awssdk.core.util.XpathUtils.isEmpty;
-import static software.amazon.awssdk.core.util.XpathUtils.xpath;
+import static software.amazon.awssdk.core.util.xml.XpathUtils.asBoolean;
+import static software.amazon.awssdk.core.util.xml.XpathUtils.asByte;
+import static software.amazon.awssdk.core.util.xml.XpathUtils.asByteBuffer;
+import static software.amazon.awssdk.core.util.xml.XpathUtils.asDate;
+import static software.amazon.awssdk.core.util.xml.XpathUtils.asDouble;
+import static software.amazon.awssdk.core.util.xml.XpathUtils.asFloat;
+import static software.amazon.awssdk.core.util.xml.XpathUtils.asInteger;
+import static software.amazon.awssdk.core.util.xml.XpathUtils.asLong;
+import static software.amazon.awssdk.core.util.xml.XpathUtils.asNode;
+import static software.amazon.awssdk.core.util.xml.XpathUtils.asString;
+import static software.amazon.awssdk.core.util.xml.XpathUtils.documentFrom;
+import static software.amazon.awssdk.core.util.xml.XpathUtils.isEmpty;
+import static software.amazon.awssdk.core.util.xml.XpathUtils.xpath;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -50,6 +50,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+import software.amazon.awssdk.core.util.xml.XpathUtils;
 
 /**
  * Unit tests for the XpathUtils class.

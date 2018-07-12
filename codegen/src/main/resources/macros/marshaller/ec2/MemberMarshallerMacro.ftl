@@ -19,7 +19,7 @@
                 request.addParameter("${marshallLocationName}", <@IdempotencyTokenMacro.content getMember member.variable.simpleType/>);
             <#else>
                 if(${getMember}() != null) {
-                    request.addParameter("${marshallLocationName}", StringUtils.from${member.variable.simpleType}(${getMember}()));
+                    request.addParameter("${marshallLocationName}", StringConversion.from${member.variable.simpleType}(${getMember}()));
                 }
             </#if>
         <#elseif member.list>
@@ -42,9 +42,9 @@
                     <#if listModel.simple>
                          if (${loopVariable} != null) {
                             <#if listModel.memberAdditionalMarshallingPath?has_content>
-                                request.addParameter("${marshallLocationName}." + ${listIndex} + ".${listModel.memberAdditionalMarshallingPath}", StringUtils.from${listModel.memberType}(${loopVariable}));
+                                request.addParameter("${marshallLocationName}." + ${listIndex} + ".${listModel.memberAdditionalMarshallingPath}", StringConversion.from${listModel.memberType}(${loopVariable}));
                             <#else>
-                                request.addParameter("${marshallLocationName}." + ${listIndex}, StringUtils.from${listModel.memberType}(${loopVariable}));
+                                request.addParameter("${marshallLocationName}." + ${listIndex}, StringConversion.from${listModel.memberType}(${loopVariable}));
                             </#if>
                          }
                     <#else>

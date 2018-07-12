@@ -28,7 +28,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.util.async.NoopSubscription;
+import software.amazon.awssdk.core.internal.util.NoopSubscription;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
