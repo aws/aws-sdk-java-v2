@@ -39,7 +39,7 @@ public class EventStreamOperationRequestMarshaller implements
             EventStreamOperationRequestModelMarshaller.getInstance().marshall(eventStreamOperationRequest, protocolMarshaller);
             return protocolMarshaller.finishMarshalling();
         } catch (Exception e) {
-            throw new SdkClientException("Unable to marshall request to JSON: " + e.getMessage(), e);
+            throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e).build();
         }
     }
 }
