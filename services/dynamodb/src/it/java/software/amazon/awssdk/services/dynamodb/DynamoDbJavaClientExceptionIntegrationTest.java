@@ -52,7 +52,7 @@ public class DynamoDbJavaClientExceptionIntegrationTest extends AwsTestBase {
             Assert.fail("ResourceNotFoundException is expected.");
         } catch (ResourceNotFoundException e) {
             Assert.assertNotNull(e.awsErrorDetails().errorCode());
-            Assert.assertNotNull(e.getMessage());
+            Assert.assertNotNull(e.awsErrorDetails().errorMessage());
             Assert.assertNotNull(e.awsErrorDetails().rawResponse());
         }
     }
