@@ -30,9 +30,9 @@ public final class Throwables {
     }
 
     /**
-     * Returns the root cause of the given throwable, or null if the given
-     * throwable is null. If the root cause is over 1000 level deep, the
-     * original throwable will be returned defensively as this is heuristically
+     * Returns the root cause of the given cause, or null if the given
+     * cause is null. If the root cause is over 1000 level deep, the
+     * original cause will be returned defensively as this is heuristically
      * considered a circular reference, however unlikely.
      */
     public static Throwable getRootCause(Throwable orig) {
@@ -66,8 +66,8 @@ public final class Throwables {
             throw (Error) t;
         }
         return t instanceof InterruptedException
-               ? new AbortedException(t)
-               : new SdkClientException(t);
+               ? AbortedException.builder().cause(t).build()
+               : SdkClientException.builder().cause(t).build();
     }
 
     /**
@@ -83,7 +83,7 @@ public final class Throwables {
             throw (Error) t;
         }
         return t instanceof InterruptedException
-               ? new AbortedException(errmsg, t)
-               : new SdkClientException(errmsg, t);
+               ? AbortedException.builder().message(errmsg).cause(t).build()
+               : SdkClientException.builder().message(errmsg).cause(t).build();
     }
 }

@@ -151,13 +151,14 @@ public class LengthCheckInputStream extends SdkFilterInputStream {
     private void checkLength(boolean eof) {
         if (eof) {
             if (dataLength != expectedLength) {
-                throw new SdkClientException(
+                throw SdkClientException.builder().message(
                         "Data read has a different length than the expected: "
-                        + diagnosticInfo());
+                        + diagnosticInfo()).build();
             }
         } else if (dataLength > expectedLength) {
-            throw new SdkClientException("More data read than expected: "
-                                         + diagnosticInfo());
+            throw SdkClientException.builder()
+                                    .message("More data read than expected: " + diagnosticInfo())
+                                    .build();
         }
     }
 

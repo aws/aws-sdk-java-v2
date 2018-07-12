@@ -40,6 +40,7 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.RetryUtils;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -806,7 +807,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
             Thread.sleep(delay);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new SdkClientException(e.getMessage(), e);
+            throw SdkClientException.builder().message(e.getMessage()).cause(e).build();
         }
     }
 
@@ -1087,8 +1088,9 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
 
             if (conditionalExpression != null) {
                 if (!internalAssertions.isEmpty()) {
-                    throw new SdkClientException(
-                            "Condition Expressions cannot be used if a versioned attribute is present");
+                    throw SdkClientException.builder()
+                                            .message("Condition Expressions cannot be used if a versioned attribute is present")
+                                            .build();
                 }
 
                 req = req.toBuilder()
@@ -1522,7 +1524,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
             scanResult = db.scan(applyUserAgent(scanRequest));
             count += scanResult.count();
             scanRequest = scanRequest.toBuilder().exclusiveStartKey(scanResult.lastEvaluatedKey()).build();
-        } while (scanResult.lastEvaluatedKey() != null);
+        } while (!(scanResult.lastEvaluatedKey() instanceof SdkAutoConstructMap));
 
         return count;
     }
@@ -1541,7 +1543,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
             queryResult = db.query(applyUserAgent(queryRequest));
             count += queryResult.count();
             queryRequest = queryRequest.toBuilder().exclusiveStartKey(queryResult.lastEvaluatedKey()).build();
-        } while (queryResult.lastEvaluatedKey() != null);
+        } while (!(queryResult.lastEvaluatedKey() instanceof SdkAutoConstructMap));
 
         return count;
     }
@@ -1918,7 +1920,7 @@ public class DynamoDbMapper extends AbstractDynamoDbMapper {
 
         public BatchGetItemException(String message, Map<String, KeysAndAttributes> unprocessedKeys,
                                      Map<String, List<Object>> responses) {
-            super(message);
+            super(SdkClientException.builder().message(message));
             this.unprocessedKeys = unprocessedKeys;
             this.responses = responses;
         }

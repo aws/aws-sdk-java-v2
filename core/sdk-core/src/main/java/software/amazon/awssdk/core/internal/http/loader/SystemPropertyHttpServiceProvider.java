@@ -53,10 +53,13 @@ final class SystemPropertyHttpServiceProvider<T> implements SdkHttpServiceProvid
         try {
             return serviceClass.cast(Class.forName(httpImplFqcn).newInstance());
         } catch (Exception e) {
-            throw new SdkClientException(String.format(
-                    "Unable to load the HTTP factory implementation from the %s system property. " +
-                    "Ensure the class '%s' is present on the classpath and has a no-arg constructor",
-                    SdkSystemSetting.SYNC_HTTP_SERVICE_IMPL.property(), httpImplFqcn), e);
+            throw SdkClientException.builder()
+                                    .message(String.format("Unable to load the HTTP factory implementation from the "
+                                             + "%s system property. Ensure the class '%s' is present on the classpath" +
+                                             "and has a no-arg constructor",
+                                             SdkSystemSetting.SYNC_HTTP_SERVICE_IMPL.property(), httpImplFqcn))
+                                    .cause(e)
+                                    .build();
         }
     }
 

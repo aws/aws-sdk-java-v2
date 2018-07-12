@@ -31,7 +31,8 @@ import software.amazon.awssdk.core.runtime.transform.AbstractErrorUnmarshaller;
 public abstract class JsonErrorUnmarshaller<T extends SdkServiceException> extends AbstractErrorUnmarshaller<T, JsonNode> {
 
     private static final ObjectMapper MAPPER = new ObjectMapper().configure(
-        DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setPropertyNamingStrategy(UPPER_CAMEL_CASE);
+        DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .setPropertyNamingStrategy(UPPER_CAMEL_CASE);
 
     protected JsonErrorUnmarshaller(Class<? extends SdkServiceException> exceptionClass) {
         super(exceptionClass);

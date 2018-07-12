@@ -110,7 +110,7 @@ public class AsyncClientHandlerTest {
 
     @Test
     public void failedExecutionCallsErrorResponseHandler() throws Exception {
-        SdkServiceException exception = new SdkServiceException("Uh oh!");
+        SdkServiceException exception = SdkServiceException.builder().message("Uh oh!").statusCode(500).build();
 
         // Given
         ArgumentCaptor<SdkHttpResponseHandler> sdkHttpResponseHandler = ArgumentCaptor.forClass(SdkHttpResponseHandler.class);

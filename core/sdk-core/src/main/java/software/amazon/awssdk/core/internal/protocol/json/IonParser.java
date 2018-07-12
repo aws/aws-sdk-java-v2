@@ -262,7 +262,10 @@ public final class IonParser extends JsonParser {
     public Number getNumberValue() throws IOException {
         NumberType numberType = getNumberType();
         if (numberType == null) {
-            throw new SdkClientException(String.format("Unable to get number value for non-numeric token %s", reader.getType()));
+            throw SdkClientException.builder()
+                                    .message(String.format("Unable to get number value for non-numeric token %s",
+                                             reader.getType()))
+                                    .build();
         }
         switch (numberType) {
             case BIG_DECIMAL:
@@ -272,7 +275,10 @@ public final class IonParser extends JsonParser {
             case DOUBLE:
                 return reader.doubleValue();
             default:
-                throw new SdkClientException(String.format("Unable to get number value for number type %s", numberType));
+                throw SdkClientException.builder()
+                                        .message(String.format("Unable to get number value for number type %s",
+                                                 numberType))
+                                        .build();
         }
     }
 
@@ -333,7 +339,10 @@ public final class IonParser extends JsonParser {
             case TIMESTAMP:
                 return reader.timestampValue().dateValue();
             default:
-                throw new SdkClientException(String.format("Cannot return embedded object for Ion type %s", currentType));
+                throw SdkClientException.builder()
+                                        .message(String.format("Cannot return embedded object for Ion type %s",
+                                                 currentType))
+                                        .build();
         }
     }
 
@@ -386,7 +395,9 @@ public final class IonParser extends JsonParser {
             case TIMESTAMP:
                 return JsonToken.VALUE_EMBEDDED_OBJECT;
             default:
-                throw new SdkClientException(String.format("Unhandled Ion type %s", currentType));
+                throw SdkClientException.builder()
+                                        .message(String.format("Unhandled Ion type %s", currentType))
+                                        .build();
         }
     }
 

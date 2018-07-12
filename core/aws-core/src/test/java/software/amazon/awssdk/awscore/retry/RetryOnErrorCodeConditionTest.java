@@ -21,6 +21,8 @@ import static org.junit.Assert.assertTrue;
 import com.google.common.collect.Sets;
 import java.util.function.Consumer;
 import org.junit.Test;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.retry.conditions.RetryOnErrorCodeCondition;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
@@ -50,9 +52,9 @@ public class RetryOnErrorCodeConditionTest {
     }
 
     private Consumer<RetryPolicyContext.Builder> applyErrorCode(String errorCode) {
-        SdkServiceException exception = new SdkServiceException("");
+        AwsServiceException.Builder exception = AwsServiceException.builder();
         exception.statusCode(404);
-        exception.errorCode(errorCode);
-        return b -> b.exception(exception);
+        exception.awsErrorDetails(AwsErrorDetails.builder().errorCode(errorCode).build());
+        return b -> b.exception(exception.build());
     }
 }

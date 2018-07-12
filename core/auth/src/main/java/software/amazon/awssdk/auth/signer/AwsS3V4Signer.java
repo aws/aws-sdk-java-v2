@@ -179,7 +179,10 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
                     try {
                         originalContentLength = getContentLength(mutableRequest);
                     } catch (IOException e) {
-                        throw new SdkClientException("Cannot get the content-length of the request content.", e);
+                        throw SdkClientException.builder()
+                                                .message("Cannot get the content-length of the request content.")
+                                                .cause(e)
+                                                .build();
                     }
                 }
                 mutableRequest.putHeader("x-amz-decoded-content-length", Long.toString(originalContentLength));
@@ -246,7 +249,7 @@ public final class AwsS3V4Signer extends AbstractAws4Signer<AwsS3V4SignerParams,
         try {
             content.reset();
         } catch (IOException ex) {
-            throw new ResetException("Failed to reset the input stream", ex);
+            throw ResetException.builder().message("Failed to reset the input stream").cause(ex).build();
         }
         return contentLength;
     }

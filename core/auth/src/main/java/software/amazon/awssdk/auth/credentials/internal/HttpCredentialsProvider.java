@@ -93,7 +93,9 @@ public abstract class HttpCredentialsProvider implements AwsCredentialsProvider,
 
             Instant expiration = getExpiration(expirationNode).orElse(null);
             if (expiration != null && Instant.now().isAfter(expiration)) {
-                throw new SdkClientException("Credentials obtained from metadata service are already expired.");
+                throw SdkClientException.builder()
+                                        .message("Credentials obtained from metadata service are already expired.")
+                                        .build();
             }
             return RefreshResult.builder(credentials)
                                 .staleTime(getStaleTime(expiration))
@@ -102,9 +104,15 @@ public abstract class HttpCredentialsProvider implements AwsCredentialsProvider,
         } catch (SdkClientException e) {
             throw e;
         } catch (JsonMappingException e) {
-            throw new SdkClientException("Unable to parse response returned from service endpoint.", e);
+            throw SdkClientException.builder()
+                                    .message("Unable to parse response returned from service endpoint.")
+                                    .cause(e)
+                                    .build();
         } catch (RuntimeException | IOException e) {
-            throw new SdkClientException("Unable to load credentials from service endpoint.", e);
+            throw SdkClientException.builder()
+                                    .message("Unable to load credentials from service endpoint.")
+                                    .cause(e)
+                                    .build();
         }
     }
 
@@ -135,11 +143,13 @@ public abstract class HttpCredentialsProvider implements AwsCredentialsProvider,
     @Override
     public AwsCredentials resolveCredentials() {
         if (isLocalCredentialLoadingDisabled()) {
-            throw new SdkClientException("Loading credentials from local endpoint is disabled. Unable to load credentials from "
-                                         + "service endpoint.");
+            throw SdkClientException.builder()
+                                    .message("Loading credentials from local endpoint is disabled. Unable to load " +
+                                             "credentials from service endpoint.")
+                                    .build();
         }
-        return credentialsCache.map(CachedSupplier::get).orElseThrow(() -> new SdkClientException("Unable to load credentials "
-                                                                                                  + "from service endpoint"));
+        return credentialsCache.map(CachedSupplier::get).orElseThrow(() ->
+                SdkClientException.builder().message("Unable to load credentials from service endpoint").build());
     }
 
     @Override

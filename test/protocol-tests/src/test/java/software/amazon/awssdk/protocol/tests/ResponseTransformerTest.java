@@ -25,6 +25,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -97,6 +98,16 @@ public class ResponseTransformerTest {
         testClient().streamingOutputOperation(StreamingOutputOperationRequest.builder().build(), tmpFile);
 
         assertThat(Files.readAllLines(tmpFile)).containsExactly("retried");
+    }
+
+    @Test
+    public void downloadToExistingFileDoesNotRetry() throws IOException {
+        stubForRetriesTimeoutReadingFromStreams();
+
+        assertThatThrownBy(() -> testClient().streamingOutputOperation(StreamingOutputOperationRequest.builder().build(),
+            ResponseTransformer
+                .toFile(new File(".."))))
+            .isInstanceOf(SdkClientException.class);
     }
 
     @Test

@@ -31,36 +31,66 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 @SdkPublicApi
 public class SdkClientException extends SdkException {
 
-    /**
-     * Creates a new SdkClientException with the specified message, and root
-     * cause.
-     *
-     * @param message
-     *            An error message describing why this exception was thrown.
-     * @param t
-     *            The underlying cause of this exception.
-     */
-    public SdkClientException(String message, Throwable t) {
-        super(message, t);
+    protected SdkClientException(Builder b) {
+        super(b);
+    }
+
+    public static SdkClientException create(String message, Throwable cause) {
+        return SdkClientException.builder().message(message).cause(cause).build();
     }
 
     /**
-     * Creates a new SdkClientException with the specified message.
+     * Create a {@link Builder} initialized with the properties of this {@code SdkClientException}.
      *
-     * @param message
-     *            An error message describing why this exception was thrown.
+     * @return A new builder initialized with this config's properties.
      */
-    public SdkClientException(String message) {
-        super(message);
+    @Override
+    public Builder toBuilder() {
+        return new BuilderImpl(this);
     }
 
     /**
-     * Creates a new SdkClientException with the root cause.
-     *
-     * @param t
-     *          The underlying cause of this exception.
+     * @return {@link Builder} instance to construct a new {@link SdkClientException}.
      */
-    public SdkClientException(Throwable t) {
-        super(t);
+    public static Builder builder() {
+        return new BuilderImpl();
+    }
+
+    public interface Builder extends SdkException.Builder {
+
+        @Override
+        Builder message(String message);
+
+        @Override
+        Builder cause(Throwable cause);
+
+        @Override
+        SdkClientException build();
+    }
+
+    protected static class BuilderImpl extends SdkException.BuilderImpl implements Builder {
+
+        protected BuilderImpl() {}
+
+        protected BuilderImpl(SdkClientException ex) {
+            super(ex);
+        }
+
+        @Override
+        public Builder message(String message) {
+            this.message = message;
+            return this;
+        }
+
+        @Override
+        public Builder cause(Throwable cause) {
+            this.cause = cause;
+            return this;
+        }
+
+        @Override
+        public SdkClientException build() {
+            return new SdkClientException(this);
+        }
     }
 }

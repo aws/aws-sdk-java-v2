@@ -352,7 +352,10 @@ public final class AwsChunkedEncodingInputStream extends SdkInputStream {
                     trailer.length);
             return signedChunk;
         } catch (Exception e) {
-            throw new SdkClientException("Unable to sign the chunked data. " + e.getMessage(), e);
+            throw SdkClientException.builder()
+                                    .message("Unable to sign the chunked data. " + e.getMessage())
+                                    .cause(e)
+                                    .build();
         }
     }
 

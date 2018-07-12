@@ -33,8 +33,11 @@ public class GlobalServiceExecutionInterceptor implements ExecutionInterceptor {
     public void onExecutionFailure(Context.FailedExecution context, ExecutionAttributes executionAttributes) {
         if (hasCause(context.exception(), UnknownHostException.class) &&
             !executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION).isGlobalRegion()) {
-            throw new SdkClientException("This is a global service. Consider setting AWS_GLOBAL or another global " +
-                                         "region when creating your client.", context.exception());
+            throw SdkClientException.builder()
+                                    .message("This is a global service. Consider setting AWS_GLOBAL or another global " +
+                                         "region when creating your client.")
+                                    .cause(context.exception())
+                                    .build();
         }
     }
 

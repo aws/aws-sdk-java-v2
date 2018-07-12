@@ -51,8 +51,11 @@ public enum SigningAlgorithm {
             try {
                 return Mac.getInstance(algorithmName);
             } catch (NoSuchAlgorithmException e) {
-                throw new SdkClientException("Unable to fetch Mac instance for Algorithm "
-                                             + algorithmName + e.getMessage(), e);
+                throw SdkClientException.builder()
+                                        .message("Unable to fetch Mac instance for Algorithm "
+                                                 + algorithmName + e.getMessage())
+                                        .cause(e)
+                                        .build();
 
             }
         }

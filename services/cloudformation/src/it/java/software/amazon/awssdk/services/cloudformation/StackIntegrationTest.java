@@ -71,13 +71,13 @@ import software.amazon.awssdk.testutils.Waiter;
 /**
  * Tests of the Stack APIs : CloudFormation
  */
-public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
+public class StackIntegrationTest extends CloudFormationIntegrationTestBase {
 
-    private static final String STACK_NAME_PREFIX = StackIntegrationTests.class.getName().replace('.', '-');
+    private static final String STACK_NAME_PREFIX = StackIntegrationTest.class.getName().replace('.', '-');
 
     /** The initial stack policy which allows access to all resources. */
     private static final Policy INIT_STACK_POLICY;
-    private static Logger LOG = LoggerFactory.getLogger(StackIntegrationTests.class);
+    private static Logger LOG = LoggerFactory.getLogger(StackIntegrationTest.class);
     private static final int PAGINATION_THRESHOLD = 120;
     private static String testStackName;
     private static String testStackId;
@@ -378,7 +378,7 @@ public class StackIntegrationTests extends CloudFormationIntegrationTestBase {
                     testStackName).build());
             fail("Should have thrown an Exception");
         } catch (AlreadyExistsException aex) {
-            assertEquals("AlreadyExistsException", aex.errorCode());
+            assertEquals("AlreadyExistsException", aex.awsErrorDetails().errorCode());
         } catch (Exception e) {
             fail("Should have thrown an AlreadyExists Exception.");
         }

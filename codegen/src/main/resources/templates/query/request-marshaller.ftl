@@ -27,7 +27,7 @@ public class ${shapeName}Marshaller implements Marshaller<Request<${shapeName}>,
     public Request<${shapeName}> marshall(${shape.variable.variableType} ${shape.variable.variableName}) {
 
         if (${shape.variable.variableName} == null) {
-            throw new SdkClientException("Invalid argument passed to marshall(...)");
+            throw SdkClientException.builder().message("Invalid argument passed to marshall(...)").build();
         }
 
        <@RequiredParameterValidationInvocationMacro.content customConfig shape/>

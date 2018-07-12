@@ -25,7 +25,7 @@ public class NullErrorResponseHandler implements HttpResponseHandler<SdkServiceE
     @Override
     public SdkServiceException handle(HttpResponse response,
                                       ExecutionAttributes executionAttributes) throws Exception {
-        return new SdkServiceException(null);
+        return SdkServiceException.builder().build();
     }
 
     @Override

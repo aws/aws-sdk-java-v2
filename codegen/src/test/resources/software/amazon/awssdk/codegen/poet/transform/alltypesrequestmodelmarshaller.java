@@ -22,59 +22,59 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class AllTypesRequestModelMarshaller {
     private static final MarshallingInfo<String> STRINGMEMBER_BINDING = MarshallingInfo.builder(MarshallingType.STRING)
-                                                                                       .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("StringMember").isBinary(false)
-                                                                                       .defaultValueSupplier(software.amazon.awssdk.codegen.poet.transform.CustomDefaultValueSupplier.getInstance()).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("StringMember").isBinary(false)
+            .defaultValueSupplier(software.amazon.awssdk.codegen.poet.transform.CustomDefaultValueSupplier.getInstance()).build();
 
     private static final MarshallingInfo<Integer> INTEGERMEMBER_BINDING = MarshallingInfo.builder(MarshallingType.INTEGER)
-                                                                                         .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("IntegerMember").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("IntegerMember").isBinary(false).build();
 
     private static final MarshallingInfo<Boolean> BOOLEANMEMBER_BINDING = MarshallingInfo.builder(MarshallingType.BOOLEAN)
-                                                                                         .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("BooleanMember").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("BooleanMember").isBinary(false).build();
 
     private static final MarshallingInfo<Float> FLOATMEMBER_BINDING = MarshallingInfo.builder(MarshallingType.FLOAT)
-                                                                                     .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("FloatMember").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("FloatMember").isBinary(false).build();
 
     private static final MarshallingInfo<Double> DOUBLEMEMBER_BINDING = MarshallingInfo.builder(MarshallingType.DOUBLE)
-                                                                                       .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("DoubleMember").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("DoubleMember").isBinary(false).build();
 
     private static final MarshallingInfo<Long> LONGMEMBER_BINDING = MarshallingInfo.builder(MarshallingType.LONG)
-                                                                                   .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("LongMember").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("LongMember").isBinary(false).build();
 
     private static final MarshallingInfo<List> SIMPLELIST_BINDING = MarshallingInfo.builder(MarshallingType.LIST)
-                                                                                   .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("SimpleList").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("SimpleList").isBinary(false).build();
 
     private static final MarshallingInfo<List> LISTOFENUMS_BINDING = MarshallingInfo.builder(MarshallingType.LIST)
-                                                                                    .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("ListOfEnums").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("ListOfEnums").isBinary(false).build();
 
     private static final MarshallingInfo<List> LISTOFMAPS_BINDING = MarshallingInfo.builder(MarshallingType.LIST)
-                                                                                   .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("ListOfMaps").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("ListOfMaps").isBinary(false).build();
 
     private static final MarshallingInfo<List> LISTOFSTRUCTS_BINDING = MarshallingInfo.builder(MarshallingType.LIST)
-                                                                                      .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("ListOfStructs").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("ListOfStructs").isBinary(false).build();
 
     private static final MarshallingInfo<Map> MAPOFSTRINGTOINTEGERLIST_BINDING = MarshallingInfo.builder(MarshallingType.MAP)
-                                                                                                .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("MapOfStringToIntegerList").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("MapOfStringToIntegerList").isBinary(false).build();
 
     private static final MarshallingInfo<Map> MAPOFSTRINGTOSTRING_BINDING = MarshallingInfo.builder(MarshallingType.MAP)
-                                                                                           .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("MapOfStringToString").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("MapOfStringToString").isBinary(false).build();
 
     private static final MarshallingInfo<Map> MAPOFSTRINGTOSIMPLESTRUCT_BINDING = MarshallingInfo.builder(MarshallingType.MAP)
-                                                                                                 .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("MapOfStringToSimpleStruct").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("MapOfStringToSimpleStruct").isBinary(false).build();
 
     private static final MarshallingInfo<Map> MAPOFENUMTOENUM_BINDING = MarshallingInfo.builder(MarshallingType.MAP)
-                                                                                       .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("MapOfEnumToEnum").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("MapOfEnumToEnum").isBinary(false).build();
 
     private static final MarshallingInfo<Map> MAPOFENUMTOSTRING_BINDING = MarshallingInfo.builder(MarshallingType.MAP)
-                                                                                         .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("MapOfEnumToString").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("MapOfEnumToString").isBinary(false).build();
 
     private static final MarshallingInfo<Map> MAPOFSTRINGTOENUM_BINDING = MarshallingInfo.builder(MarshallingType.MAP)
-                                                                                         .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("MapOfStringToEnum").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("MapOfStringToEnum").isBinary(false).build();
 
     private static final MarshallingInfo<Map> MAPOFENUMTOSIMPLESTRUCT_BINDING = MarshallingInfo.builder(MarshallingType.MAP)
-                                                                                               .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("MapOfEnumToSimpleStruct").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("MapOfEnumToSimpleStruct").isBinary(false).build();
 
     private static final MarshallingInfo<Instant> TIMESTAMPMEMBER_BINDING = MarshallingInfo.builder(MarshallingType.INSTANT)
-                                                                                           .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("TimestampMember").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("TimestampMember").isBinary(false).build();
 
     private static final MarshallingInfo<StructuredPojo> STRUCTWITHNESTEDTIMESTAMPMEMBER_BINDING = MarshallingInfo
             .builder(MarshallingType.STRUCTURED).marshallLocation(MarshallLocation.PAYLOAD)
@@ -88,10 +88,10 @@ public class AllTypesRequestModelMarshaller {
             .marshallLocationName("StructWithNestedBlob").isBinary(false).build();
 
     private static final MarshallingInfo<Map> BLOBMAP_BINDING = MarshallingInfo.builder(MarshallingType.MAP)
-                                                                               .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("BlobMap").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("BlobMap").isBinary(false).build();
 
     private static final MarshallingInfo<List> LISTOFBLOBS_BINDING = MarshallingInfo.builder(MarshallingType.LIST)
-                                                                                    .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("ListOfBlobs").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("ListOfBlobs").isBinary(false).build();
 
     private static final MarshallingInfo<StructuredPojo> RECURSIVESTRUCT_BINDING = MarshallingInfo
             .builder(MarshallingType.STRUCTURED).marshallLocation(MarshallLocation.PAYLOAD)
@@ -106,7 +106,7 @@ public class AllTypesRequestModelMarshaller {
             .marshallLocationName("PolymorphicTypeWithoutSubTypes").isBinary(false).build();
 
     private static final MarshallingInfo<String> ENUMTYPE_BINDING = MarshallingInfo.builder(MarshallingType.STRING)
-                                                                                   .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("EnumType").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("EnumType").isBinary(false).build();
 
     private static final AllTypesRequestModelMarshaller INSTANCE = new AllTypesRequestModelMarshaller();
 
@@ -143,7 +143,7 @@ public class AllTypesRequestModelMarshaller {
             protocolMarshaller.marshall(allTypesRequest.mapOfEnumToSimpleStructAsStrings(), MAPOFENUMTOSIMPLESTRUCT_BINDING);
             protocolMarshaller.marshall(allTypesRequest.timestampMember(), TIMESTAMPMEMBER_BINDING);
             protocolMarshaller.marshall(allTypesRequest.structWithNestedTimestampMember(),
-                                        STRUCTWITHNESTEDTIMESTAMPMEMBER_BINDING);
+                    STRUCTWITHNESTEDTIMESTAMPMEMBER_BINDING);
             protocolMarshaller.marshall(allTypesRequest.blobArg(), BLOBARG_BINDING);
             protocolMarshaller.marshall(allTypesRequest.structWithNestedBlob(), STRUCTWITHNESTEDBLOB_BINDING);
             protocolMarshaller.marshall(allTypesRequest.blobMap(), BLOBMAP_BINDING);
@@ -153,7 +153,8 @@ public class AllTypesRequestModelMarshaller {
             protocolMarshaller.marshall(allTypesRequest.polymorphicTypeWithoutSubTypes(), POLYMORPHICTYPEWITHOUTSUBTYPES_BINDING);
             protocolMarshaller.marshall(allTypesRequest.enumTypeAsString(), ENUMTYPE_BINDING);
         } catch (Exception e) {
-            throw new SdkClientException("Unable to marshall request to JSON: " + e.getMessage(), e);
+            throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e)
+                    .build();
         }
     }
 }

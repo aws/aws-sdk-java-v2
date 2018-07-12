@@ -39,6 +39,7 @@ import java.util.Set;
 import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
 import software.amazon.awssdk.services.dynamodb.document.Expected;
 import software.amazon.awssdk.services.dynamodb.document.Item;
 import software.amazon.awssdk.services.dynamodb.document.KeyAttribute;
@@ -107,7 +108,7 @@ public class InternalUtilsTest {
         AttributeValue av = InternalUtils.toAttributeValue(new HashSet<Object>());
         List<String> ss = av.ss();
         assertTrue(ss.size() == 0);
-        assertNull(av.ns());
+        assertTrue(av.ns() instanceof SdkAutoConstructList);
     }
 
     @Test
@@ -119,7 +120,7 @@ public class InternalUtilsTest {
                 .with(new BigInteger("1234567890123456789012345678901234567890"))
                 .with(new BigDecimal("0.99999999999999999999999999999999999999"));
         AttributeValue av = InternalUtils.toAttributeValue(nsFrom);
-        assertNull(av.ss());
+        assertTrue(av.ss() instanceof SdkAutoConstructList);
         List<String> ns = av.ns();
         assertTrue(ns.size() == 5);
         assertTrue(ns.contains("123"));
@@ -137,7 +138,7 @@ public class InternalUtilsTest {
                 .with(ba1From)
                 .with(ba2From);
         AttributeValue av = InternalUtils.toAttributeValue(nsFrom);
-        assertNull(av.ss());
+        assertTrue(av.ss() instanceof SdkAutoConstructList);
         List<SdkBytes> bs = av.bs();
         assertTrue(bs.size() == 2);
         boolean bool1 = false;
@@ -161,7 +162,7 @@ public class InternalUtilsTest {
                 .with(ByteBuffer.wrap(ba1From))
                 .with(ByteBuffer.wrap(ba2From));
         AttributeValue av = InternalUtils.toAttributeValue(nsFrom);
-        assertNull(av.ss());
+        assertTrue(av.ss() instanceof SdkAutoConstructList);
         List<SdkBytes> bs = av.bs();
         assertTrue(bs.size() == 2);
         boolean bool1 = false;

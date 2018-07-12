@@ -50,19 +50,21 @@ public abstract class SystemSettingsCredentialsProvider implements AwsCredential
         String sessionToken = trim(loadSetting(SdkSystemSetting.AWS_SESSION_TOKEN).orElse(null));
 
         if (StringUtils.isEmpty(accessKey)) {
-            throw new SdkClientException(
-                    String.format("Unable to load credentials from system settings. Access key must be specified either via "
-                                  + "environment variable (%s) or system property (%s).",
-                                  SdkSystemSetting.AWS_ACCESS_KEY_ID.environmentVariable(),
-                                  SdkSystemSetting.AWS_ACCESS_KEY_ID.property()));
+            throw SdkClientException.builder()
+                                    .message(String.format("Unable to load credentials from system settings. Access key must be" +
+                                             " specified either via environment variable (%s) or system property (%s).",
+                                             SdkSystemSetting.AWS_ACCESS_KEY_ID.environmentVariable(),
+                                             SdkSystemSetting.AWS_ACCESS_KEY_ID.property()))
+                                    .build();
         }
 
         if (StringUtils.isEmpty(secretKey)) {
-            throw new SdkClientException(
-                    String.format("Unable to load credentials from system settings. Secret key must be specified either via "
-                                  + "environment variable (%s) or system property (%s).",
-                                  SdkSystemSetting.AWS_SECRET_ACCESS_KEY.environmentVariable(),
-                                  SdkSystemSetting.AWS_SECRET_ACCESS_KEY.property()));
+            throw SdkClientException.builder()
+                                    .message(String.format("Unable to load credentials from system settings. Secret key must be" +
+                                             " specified either via environment variable (%s) or system property (%s).",
+                                             SdkSystemSetting.AWS_SECRET_ACCESS_KEY.environmentVariable(),
+                                             SdkSystemSetting.AWS_SECRET_ACCESS_KEY.property()))
+                                    .build();
         }
 
         return sessionToken == null ? AwsBasicCredentials.create(accessKey, secretKey)

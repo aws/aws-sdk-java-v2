@@ -22,7 +22,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.http.JsonResponseHandler;
 import software.amazon.awssdk.core.internal.http.SdkJsonErrorResponseHandler;
 import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
-import software.amazon.awssdk.core.protocol.json.SdkJsonErrorMessageParser;
 import software.amazon.awssdk.core.protocol.json.SdkStructuredJsonFactory;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
@@ -60,10 +59,7 @@ public abstract class BaseSdkStructuredJsonFactory implements SdkStructuredJsonF
     @Override
     public SdkJsonErrorResponseHandler createErrorResponseHandler(
         List<SdkJsonErrorUnmarshaller> errorUnmarshallers) {
-        return new SdkJsonErrorResponseHandler(errorUnmarshallers,
-                                               SdkJsonErrorMessageParser
-                                                   .DEFAULT_ERROR_MESSAGE_PARSER,
-                                               jsonFactory);
+        return new SdkJsonErrorResponseHandler(errorUnmarshallers, jsonFactory);
     }
 
     protected abstract StructuredJsonGenerator createWriter(JsonFactory jsonFactory,

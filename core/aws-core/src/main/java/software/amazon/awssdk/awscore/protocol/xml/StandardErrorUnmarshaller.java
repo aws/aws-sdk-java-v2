@@ -21,8 +21,8 @@ import static software.amazon.awssdk.core.util.XpathUtils.xpath;
 import javax.xml.xpath.XPath;
 import org.w3c.dom.Node;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.exception.ErrorType;
 import software.amazon.awssdk.core.runtime.transform.AbstractErrorUnmarshaller;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
 
@@ -102,36 +102,15 @@ public class StandardErrorUnmarshaller extends AbstractErrorUnmarshaller<AwsServ
 
     public AwsServiceException standardErrorPathException(String errorCode, Node in, XPath xpath) throws Exception {
 
-        String errorType = asString("ErrorResponse/Error/Type", in, xpath);
         String requestId = asString("ErrorResponse/RequestId", in, xpath);
         String message = asString("ErrorResponse/Error/Message", in, xpath);
 
-        AwsServiceException exception = newException(message);
-        exception.errorCode(errorCode);
+        AwsServiceException.Builder exception = newException(message).toBuilder();
+
+        AwsErrorDetails awsErrorDetails = AwsErrorDetails.builder().errorCode(errorCode).errorMessage(message).build();
         exception.requestId(requestId);
-        exception.errorType(getErrorType(errorType));
+        exception.awsErrorDetails(awsErrorDetails);
 
-        return exception;
-    }
-
-    /**
-     * Query/Xml services optionally return an string error type that can is either "Sender" or
-     * "Receiver". These error types correspond to who was identified to be at fault with a
-     * request that caused an exception to be returned.
-     *
-     * Receiver will return {@link ErrorType#SERVICE}. Sender will return {@link ErrorType#CLIENT}.
-     * All other values will return {@link ErrorType#UNKNOWN}.
-     *
-     * @param errorType - String error type from returned response.
-     * @return {@link ErrorType}
-     */
-    public ErrorType getErrorType(String errorType) {
-        if ("Receiver".equals(errorType)) {
-            return ErrorType.SERVICE;
-        } else if ("Sender".equals(errorType)) {
-            return ErrorType.CLIENT;
-        } else {
-            return ErrorType.fromValue(errorType);
-        }
+        return exception.build();
     }
 }

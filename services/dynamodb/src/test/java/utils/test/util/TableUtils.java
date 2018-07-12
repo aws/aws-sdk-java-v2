@@ -97,7 +97,7 @@ public class TableUtils {
         TableDescription table = waitForTableDescription(dynamo, tableName, null, timeout, interval);
 
         if (table == null) {
-            throw new SdkClientException("Table " + tableName + " never returned a result");
+            throw SdkClientException.builder().message("Table " + tableName + " never returned a result").build();
         }
     }
 
@@ -253,7 +253,9 @@ public class TableUtils {
         private static final long serialVersionUID = 8920567021104846647L;
 
         public TableNeverTransitionedToStateException(String tableName, TableStatus desiredStatus) {
-            super("Table " + tableName + " never transitioned to desired state of " + desiredStatus.toString());
+            super(SdkClientException.builder()
+                                    .message("Table " + tableName + " never transitioned to desired state of " +
+                                             desiredStatus.toString()));
         }
 
     }

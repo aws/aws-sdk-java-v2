@@ -98,7 +98,7 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
             String errorMessage =
                     "Unable to unmarshall response (" + e.getMessage() + "). Response Code: "
                     + httpResponse.getStatusCode() + ", Response Text: " + httpResponse.getStatusText();
-            throw new SdkClientException(errorMessage, e);
+            throw SdkClientException.builder().message(errorMessage).cause(e).build();
         }
     }
 
@@ -122,7 +122,7 @@ public class HandleResponseStage<OutputT> implements RequestPipeline<HttpRespons
             String errorMessage = String.format("Unable to unmarshall error response (%s). " +
                                                 "Response Code: %d, Response Text: %s", e.getMessage(),
                                                 httpResponse.getStatusCode(), httpResponse.getStatusText());
-            throw new SdkClientException(errorMessage, e);
+            throw SdkClientException.builder().message(errorMessage).cause(e).build();
         }
     }
 

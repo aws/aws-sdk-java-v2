@@ -40,7 +40,7 @@ public class ${shapeName}Marshaller implements Marshaller<Request<${shapeName}>,
     public Request<${shapeName}> marshall(${shape.variable.variableType} ${shape.variable.variableName}) {
 
         if (${shape.variable.variableName} == null) {
-            throw new SdkClientException("Invalid argument passed to marshall(...)");
+            throw SdkClientException.builder().message("Invalid argument passed to marshall(...)").build();
         }
 
         <@RequiredParameterValidationInvocationMacro.content customConfig shape/>
@@ -123,7 +123,7 @@ public class ${shapeName}Marshaller implements Marshaller<Request<${shapeName}>,
                         request.addHeader("Content-Type", "application/xml");
                     }
                 } catch(Throwable t) {
-                    throw new SdkClientException("Unable to marshall request to XML: " + t.getMessage(), t);
+                    throw SdkClientException.builder().message("Unable to marshall request to XML: " + t.getMessage()).cause(t).build();
                 }
                 <#break>
                 </#if>
@@ -144,7 +144,7 @@ public class ${shapeName}Marshaller implements Marshaller<Request<${shapeName}>,
                 request.addHeader("Content-Type", "application/xml");
             }
         } catch(Throwable t) {
-            throw new SdkClientException("Unable to marshall request to XML: " + t.getMessage(), t);
+            throw SdkClientException.builder().message("Unable to marshall request to XML: " + t.getMessage()).cause(t).build();
         }
         </#if>
 
