@@ -21,7 +21,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.runtime.transform.AbstractErrorUnmarshaller;
-import software.amazon.awssdk.core.util.XpathUtils;
+import software.amazon.awssdk.core.util.xml.XpathUtils;
 
 /**
  * Unmarshalls an AWS error response into an SdkServiceException, or

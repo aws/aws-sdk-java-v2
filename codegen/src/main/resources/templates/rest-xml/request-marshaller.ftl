@@ -22,11 +22,11 @@ import software.amazon.awssdk.core.http.HttpMethodName;
 import ${metadata.fullModelPackageName}.*;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.core.util.StringInputStream;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.utils.StringInputStream;
+import software.amazon.awssdk.core.util.StringConversion;
 import software.amazon.awssdk.core.util.IdempotentUtils;
-import software.amazon.awssdk.core.util.Md5Utils;
-import software.amazon.awssdk.core.util.XmlWriter;
+import software.amazon.awssdk.utils.Md5Utils;
+import software.amazon.awssdk.core.util.xml.XmlWriter;
 import software.amazon.awssdk.core.util.SdkHttpUtils;
 
 /**

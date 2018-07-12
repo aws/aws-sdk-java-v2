@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.services.s3.transform;
 
-import static software.amazon.awssdk.core.util.XpathUtils.asString;
-import static software.amazon.awssdk.core.util.XpathUtils.xpath;
+import static software.amazon.awssdk.core.util.xml.XpathUtils.asString;
+import static software.amazon.awssdk.core.util.xml.XpathUtils.xpath;
 
 import javax.xml.xpath.XPath;
 import org.w3c.dom.Node;

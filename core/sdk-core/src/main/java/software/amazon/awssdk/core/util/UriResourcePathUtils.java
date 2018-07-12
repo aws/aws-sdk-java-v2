@@ -32,7 +32,6 @@ public final class UriResourcePathUtils {
      */
     public static String addStaticQueryParametersToRequest(final Request<?> request,
                                                            final String uriResourcePath) {
-
         if (request == null || uriResourcePath == null) {
             return null;
         }

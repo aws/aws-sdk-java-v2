@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.AbortedException;
-import software.amazon.awssdk.core.util.SdkRuntime;
 
 /**
  * A buffered input stream that can be aborted via thread interrupt.
@@ -41,7 +40,7 @@ public class SdkBufferedInputStream extends BufferedInputStream {
      * @throws AbortedException if found necessary.
      */
     protected final void abortIfNeeded() {
-        if (SdkRuntime.shouldAbort()) {
+        if (Thread.currentThread().isInterrupted()) {
             abort();    // execute subclass specific abortion logic
             throw AbortedException.builder().build();
         }

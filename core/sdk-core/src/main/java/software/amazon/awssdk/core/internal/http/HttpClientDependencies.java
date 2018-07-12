@@ -23,7 +23,7 @@ import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
 import software.amazon.awssdk.core.internal.http.timers.client.ClientExecutionTimer;
-import software.amazon.awssdk.core.util.CapacityManager;
+import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**

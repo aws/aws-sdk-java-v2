@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Asserts on the query parameters of the marshalled request.
@@ -99,7 +99,7 @@ public class QueryParamsAssertion extends MarshallingAssertion {
 
     private List<NameValuePair> parseNameValuePairsFromQuery(LoggedRequest actual) {
         final String queryParams = URI.create(actual.getUrl()).getQuery();
-        if (StringUtils.isNullOrEmpty(queryParams)) {
+        if (StringUtils.isEmpty(queryParams)) {
             return Collections.emptyList();
         }
         return URLEncodedUtils.parse(queryParams, StandardCharsets.UTF_8);

@@ -45,7 +45,6 @@ public final class IdempotentUtils {
         return generator;
     }
 
-
     @SdkTestInternalApi
     public static void setGenerator(Supplier<String> newGenerator) {
         generator = newGenerator;

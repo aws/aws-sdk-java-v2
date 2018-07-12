@@ -83,8 +83,8 @@ public class RestXmlExceptionTests {
     }
 
     @Test
-    public void illegalArgumentException_nullPathParam() {
-        assertThrowsIllegalArgumentException(() -> client.multiLocationOperation(MultiLocationOperationRequest.builder().build()));
+    public void nullPointerException_nullPathParam() {
+        assertThrowsNullPointerException(() -> client.multiLocationOperation(MultiLocationOperationRequest.builder().build()));
     }
 
     @Test
@@ -103,6 +103,10 @@ public class RestXmlExceptionTests {
 
     private void assertThrowsIllegalArgumentException(Runnable runnable) {
         assertThrowsException(runnable, IllegalArgumentException.class);
+    }
+
+    private void assertThrowsNullPointerException(Runnable runnable) {
+        assertThrowsException(runnable, NullPointerException.class);
     }
 
     private void assertThrowsException(Runnable runnable, Class<? extends Exception> expectedException) {

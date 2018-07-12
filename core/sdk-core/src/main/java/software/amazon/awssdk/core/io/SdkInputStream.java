@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.internal.io.Releasable;
-import software.amazon.awssdk.core.util.SdkRuntime;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -41,7 +40,7 @@ public abstract class SdkInputStream extends InputStream implements Releasable {
      * @throws AbortedException if found necessary.
      */
     protected final void abortIfNeeded() {
-        if (SdkRuntime.shouldAbort()) {
+        if (Thread.currentThread().isInterrupted()) {
             try {
                 abort();    // execute subclass specific abortion logic
             } catch (IOException e) {

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.util.json;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -23,6 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
@@ -133,6 +135,45 @@ public class SdkJsonGeneratorTest {
         JsonNode node = toJsonNode();
         assertTrue(node.isArray());
         assertEquals(3, node.size());
+    }
+
+    // See https://forums.aws.amazon.com/thread.jspa?threadID=158756
+    @Test
+    public void testNumericNoQuote() {
+        StructuredJsonGenerator jw = new SdkJsonGenerator(new JsonFactory(), null);
+        jw.writeStartObject();
+        jw.writeFieldName("foo").writeValue(Instant.now());
+        jw.writeEndObject();
+        String s = new String(jw.getBytes(), Charset.forName("UTF-8"));
+        // Something like: {"foo":1408378076.135}.
+        // Note prior to the changes, it was {"foo":1408414571}
+        // (with no decimal point nor places.)
+        System.out.println(s);
+        final String prefix = "{\"foo\":";
+        assertTrue(s, s.startsWith(prefix));
+        final int startPos = prefix.length();
+        // verify no starting quote for the value
+        assertFalse(s, s.startsWith("{\"foo\":\""));
+        assertTrue(s, s.endsWith("}"));
+        // Not: {"foo":"1408378076.135"}.
+        // verify no ending quote for the value
+        assertFalse(s, s.endsWith("\"}"));
+        final int endPos = s.indexOf("}");
+        final int dotPos = s.length() - 5;
+        assertTrue(s, s.charAt(dotPos) == '.');
+        // verify all numeric before '.'
+        char[] a = s.toCharArray();
+        for (int i = startPos; i < dotPos; i++) {
+            assertTrue(a[i] <= '9' && a[i] >= '0');
+        }
+        int j = 0;
+        // verify all numeric after '.'
+        for (int i = dotPos + 1; i < endPos; i++) {
+            assertTrue(a[i] <= '9' && a[i] >= '0');
+            j++;
+        }
+        // verify decimal precision of exactly 3
+        assertTrue(j == 3);
     }
 
     private JsonNode toJsonNode() throws IOException {

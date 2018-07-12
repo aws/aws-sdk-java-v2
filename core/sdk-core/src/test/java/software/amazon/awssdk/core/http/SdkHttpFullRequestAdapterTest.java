@@ -26,9 +26,9 @@ import java.net.URI;
 import java.util.Arrays;
 import org.junit.Test;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.core.util.StringInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.utils.StringInputStream;
 import utils.ValidSdkObjects;
 
 public class SdkHttpFullRequestAdapterTest {

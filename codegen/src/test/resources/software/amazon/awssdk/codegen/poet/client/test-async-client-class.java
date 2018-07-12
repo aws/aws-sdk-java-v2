@@ -21,7 +21,6 @@ import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorResponseMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonErrorShapeMetadata;
 import software.amazon.awssdk.core.protocol.json.JsonOperationMetadata;
-import software.amazon.awssdk.core.util.CompletableFutures;
 import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
@@ -55,6 +54,7 @@ import software.amazon.awssdk.services.json.transform.StreamingInputOperationReq
 import software.amazon.awssdk.services.json.transform.StreamingInputOperationResponseUnmarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingOutputOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingOutputOperationResponseUnmarshaller;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
  * Internal implementation of {@link JsonAsyncClient}.
@@ -115,7 +115,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
                                              .withErrorResponseHandler(errorResponseHandler).withInput(aPostOperationRequest));
         } catch (Throwable t) {
-            return CompletableFutures.failedFuture(t);
+            return CompletableFutureUtils.failedFuture(t);
         }
     }
 
@@ -159,7 +159,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withInput(aPostOperationWithOutputRequest));
         } catch (Throwable t) {
-            return CompletableFutures.failedFuture(t);
+            return CompletableFutureUtils.failedFuture(t);
         }
     }
 
@@ -203,7 +203,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withInput(getWithoutRequiredMembersRequest));
         } catch (Throwable t) {
-            return CompletableFutures.failedFuture(t);
+            return CompletableFutureUtils.failedFuture(t);
         }
     }
 
@@ -244,7 +244,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withInput(paginatedOperationWithResultKeyRequest));
         } catch (Throwable t) {
-            return CompletableFutures.failedFuture(t);
+            return CompletableFutureUtils.failedFuture(t);
         }
     }
 
@@ -359,7 +359,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withInput(paginatedOperationWithoutResultKeyRequest));
         } catch (Throwable t) {
-            return CompletableFutures.failedFuture(t);
+            return CompletableFutureUtils.failedFuture(t);
         }
     }
 
@@ -478,7 +478,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withAsyncRequestBody(requestBody).withInput(streamingInputOperationRequest));
         } catch (Throwable t) {
-            return CompletableFutures.failedFuture(t);
+            return CompletableFutureUtils.failedFuture(t);
         }
     }
 
@@ -524,7 +524,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withInput(streamingOutputOperationRequest), asyncResponseTransformer);
         } catch (Throwable t) {
-            return CompletableFutures.failedFuture(t);
+            return CompletableFutureUtils.failedFuture(t);
         }
     }
 

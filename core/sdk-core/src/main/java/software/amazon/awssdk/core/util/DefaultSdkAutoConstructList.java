@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Default implementation of {@link SdkAutoConstructList}.
@@ -29,7 +29,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  *
  * @param <T> The element type.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class DefaultSdkAutoConstructList<T> implements SdkAutoConstructList<T> {
     private static final DefaultSdkAutoConstructList INSTANCE = new DefaultSdkAutoConstructList();
 

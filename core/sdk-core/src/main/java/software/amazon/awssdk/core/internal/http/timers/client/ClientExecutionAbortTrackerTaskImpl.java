@@ -15,12 +15,11 @@
 
 package software.amazon.awssdk.core.internal.http.timers.client;
 
-import static software.amazon.awssdk.core.util.ValidationUtils.assertNotNull;
-
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Abortable;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Keeps track of the scheduled {@link ClientExecutionAbortTask} and the associated {@link Future}
@@ -32,8 +31,8 @@ public class ClientExecutionAbortTrackerTaskImpl implements ClientExecutionAbort
     private final ScheduledFuture<?> future;
 
     public ClientExecutionAbortTrackerTaskImpl(final ClientExecutionAbortTask task, final ScheduledFuture<?> future) {
-        this.task = assertNotNull(task, "task");
-        this.future = assertNotNull(future, "future");
+        this.task = Validate.paramNotNull(task, "task");
+        this.future = Validate.paramNotNull(future, "future");
     }
 
     @Override

@@ -18,8 +18,8 @@ package software.amazon.awssdk.core.internal.protocol.json;
 import java.time.Instant;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.util.DateUtils;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.core.util.StringConversion;
+import software.amazon.awssdk.utils.DateUtils;
 
 /**
  * Converts various types to Strings. Used for Query Param/Header/Path marshalling.
@@ -41,18 +41,18 @@ public final class ValueToStringConverter {
      */
     public static final ValueToString<String> FROM_STRING = val -> val;
 
-    public static final ValueToString<Integer> FROM_INTEGER = StringUtils::fromInteger;
+    public static final ValueToString<Integer> FROM_INTEGER = StringConversion::fromInteger;
 
-    public static final ValueToString<Long> FROM_LONG = StringUtils::fromLong;
+    public static final ValueToString<Long> FROM_LONG = StringConversion::fromLong;
 
-    public static final ValueToString<Float> FROM_FLOAT = StringUtils::fromFloat;
+    public static final ValueToString<Float> FROM_FLOAT = StringConversion::fromFloat;
 
-    public static final ValueToString<Double> FROM_DOUBLE = StringUtils::fromDouble;
+    public static final ValueToString<Double> FROM_DOUBLE = StringConversion::fromDouble;
 
     /**
      * Marshalls boolean as a literal 'true' or 'false' string.
      */
-    public static final ValueToString<Boolean> FROM_BOOLEAN = StringUtils::fromBoolean;
+    public static final ValueToString<Boolean> FROM_BOOLEAN = StringConversion::fromBoolean;
 
     /**
      * Marshalls date to an ISO8601 date string.

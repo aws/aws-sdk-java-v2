@@ -22,7 +22,7 @@ import java.util.Optional;
 import java.util.zip.GZIPInputStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.http.HttpResponse;
-import software.amazon.awssdk.core.util.Crc32ChecksumValidatingInputStream;
+import software.amazon.awssdk.core.internal.util.Crc32ChecksumValidatingInputStream;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;

@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling;
 
-import static software.amazon.awssdk.core.util.Throwables.failure;
+import static software.amazon.awssdk.core.internal.util.ThrowableUtils.failure;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

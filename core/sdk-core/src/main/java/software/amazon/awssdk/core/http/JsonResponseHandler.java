@@ -28,9 +28,9 @@ import software.amazon.awssdk.core.internal.protocol.json.VoidJsonUnmarshaller;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContextImpl;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.core.util.ValidationUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Default implementation of HttpResponseHandler that handles a successful response from a
@@ -78,9 +78,8 @@ public final class JsonResponseHandler<T> implements HttpResponseHandler<T> {
         this.needsConnectionLeftOpen = needsConnectionLeftOpen;
         this.isPayloadJson = isPayloadJson;
 
-        this.simpleTypeUnmarshallers = ValidationUtils
-                .assertNotNull(simpleTypeUnmarshallers, "simple type unmarshallers");
-        this.jsonFactory = ValidationUtils.assertNotNull(jsonFactory, "JSONFactory");
+        this.simpleTypeUnmarshallers = Validate.paramNotNull(simpleTypeUnmarshallers, "simple type unmarshallers");
+        this.jsonFactory = Validate.paramNotNull(jsonFactory, "JSONFactory");
     }
 
 
