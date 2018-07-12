@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
+import software.amazon.awssdk.utils.internal.Base16;
 
 public class Md5UtilsTest {
 

@@ -124,7 +124,7 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
 
         assertEquals("Non success http status code", 200, response.statusCode());
 
-        String actualResult = IoUtils.toString(response.content().get());
+        String actualResult = IoUtils.toUtf8String(response.content().get());
         assertEquals(CONTENT, actualResult);
     }
 
@@ -143,7 +143,7 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
 
         assertEquals("Non success http status code", 200, response.statusCode());
 
-        String actualResult = IoUtils.toString(response.content().get());
+        String actualResult = IoUtils.toUtf8String(response.content().get());
         assertEquals(CONTENT, actualResult);
     }
 

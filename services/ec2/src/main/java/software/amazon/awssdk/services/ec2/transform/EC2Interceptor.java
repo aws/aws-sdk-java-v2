@@ -39,7 +39,7 @@ import software.amazon.awssdk.services.ec2.model.Reservation;
 import software.amazon.awssdk.services.ec2.model.RunInstancesRequest;
 import software.amazon.awssdk.services.ec2.model.RunInstancesResponse;
 import software.amazon.awssdk.services.ec2.model.SpotInstanceRequest;
-import software.amazon.awssdk.utils.Base64Utils;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 public class EC2Interceptor implements ExecutionInterceptor {
     @Override
@@ -50,7 +50,7 @@ public class EC2Interceptor implements ExecutionInterceptor {
         if (originalRequest instanceof ImportKeyPairRequest) {
             ImportKeyPairRequest importKeyPairRequest = (ImportKeyPairRequest) originalRequest;
             String publicKeyMaterial = importKeyPairRequest.publicKeyMaterial();
-            String encodedKeyMaterial = Base64Utils.encodeAsString(publicKeyMaterial.getBytes(StandardCharsets.UTF_8));
+            String encodedKeyMaterial = BinaryUtils.toBase64(publicKeyMaterial.getBytes(StandardCharsets.UTF_8));
             mutableRequest.putRawQueryParameter("PublicKeyMaterial", encodedKeyMaterial);
         } else if (originalRequest instanceof RequestSpotInstancesRequest) {
             // Request -> Query string marshalling for RequestSpotInstancesRequest is a little tricky since

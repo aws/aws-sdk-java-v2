@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import org.junit.Test;
+import software.amazon.awssdk.utils.internal.Base16Lower;
 
 public class BinaryUtilsTest {
 
