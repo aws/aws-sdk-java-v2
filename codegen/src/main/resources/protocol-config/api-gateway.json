@@ -23,9 +23,6 @@
       }
     ]
   },
-  "baseExceptionClass": {
-    "mainTemplate" : "/templates/api-gateway/base-exception-class.ftl"
-  },
   "packageInfo" : {
     "mainTemplate" : "/templates/common/package-info.ftl"
   },
