@@ -24,13 +24,13 @@ import java.util.Map;
 import org.junit.Test;
 
 /**
- * Unit tests for the ImmutableMapParameterTest class.
+ * Unit tests for the ImmutableMapTest class.
  */
-public class ImmutableMapParameterTest {
+public class ImmutableMapTest {
 
     @Test
     public void testMapBuilder() {
-        Map<Integer, String> builtMap = new ImmutableMapParameter.Builder<Integer, String>()
+        Map<Integer, String> builtMap = new ImmutableMap.Builder<Integer, String>()
                 .put(1, "one")
                 .put(2, "two")
                 .put(3, "three")
@@ -43,25 +43,25 @@ public class ImmutableMapParameterTest {
 
     @Test
     public void testOfBuilder() {
-        Map<Integer, String> builtMap = ImmutableMapParameter.of(1, "one");
+        Map<Integer, String> builtMap = ImmutableMap.of(1, "one");
         assertEquals(1, builtMap.size());
         assertEquals("one", builtMap.get(1));
-        builtMap = ImmutableMapParameter.of(1, "one", 2, "two");
+        builtMap = ImmutableMap.of(1, "one", 2, "two");
         assertEquals(2, builtMap.size());
         assertEquals("one", builtMap.get(1));
         assertEquals("two", builtMap.get(2));
-        builtMap = ImmutableMapParameter.of(1, "one", 2, "two", 3, "three");
+        builtMap = ImmutableMap.of(1, "one", 2, "two", 3, "three");
         assertEquals(3, builtMap.size());
         assertEquals("one", builtMap.get(1));
         assertEquals("two", builtMap.get(2));
         assertEquals("three", builtMap.get(3));
-        builtMap = ImmutableMapParameter.of(1, "one", 2, "two", 3, "three", 4, "four");
+        builtMap = ImmutableMap.of(1, "one", 2, "two", 3, "three", 4, "four");
         assertEquals(4, builtMap.size());
         assertEquals("one", builtMap.get(1));
         assertEquals("two", builtMap.get(2));
         assertEquals("three", builtMap.get(3));
         assertEquals("four", builtMap.get(4));
-        builtMap = ImmutableMapParameter.of(1, "one", 2, "two", 3, "three", 4, "four", 5, "five");
+        builtMap = ImmutableMap.of(1, "one", 2, "two", 3, "three", 4, "four", 5, "five");
         assertEquals(5, builtMap.size());
         assertEquals("one", builtMap.get(1));
         assertEquals("two", builtMap.get(2));
@@ -73,7 +73,7 @@ public class ImmutableMapParameterTest {
     @Test
     public void testErrorOnDuplicateKeys() {
         try {
-            Map<Integer, String> builtMap = new ImmutableMapParameter.Builder<Integer, String>()
+            Map<Integer, String> builtMap = new ImmutableMap.Builder<Integer, String>()
                     .put(1, "one")
                     .put(1, "two")
                     .build();
@@ -87,7 +87,7 @@ public class ImmutableMapParameterTest {
 
     @Test
     public void testMapOperations() {
-        Map<Integer, String> builtMap = new ImmutableMapParameter.Builder<Integer, String>()
+        Map<Integer, String> builtMap = new ImmutableMap.Builder<Integer, String>()
                 .put(1, "one")
                 .put(2, "two")
                 .put(3, "three")

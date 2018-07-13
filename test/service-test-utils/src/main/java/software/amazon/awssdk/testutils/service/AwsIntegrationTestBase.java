@@ -73,7 +73,7 @@ public abstract class AwsIntegrationTestBase {
      */
     protected String getResourceAsString(Class<?> clazz, String location) {
         try (InputStream resourceStream = clazz.getResourceAsStream(location)) {
-            String resourceAsString = IoUtils.toString(resourceStream);
+            String resourceAsString = IoUtils.toUtf8String(resourceStream);
             resourceStream.close();
             return resourceAsString;
         } catch (IOException e) {

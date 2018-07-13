@@ -22,7 +22,6 @@ import java.util.Date;
 import java.util.Stack;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.utils.Base64Utils;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.DateUtils;
 
@@ -133,7 +132,7 @@ public class XmlWriter {
      *         together.
      */
     public XmlWriter value(ByteBuffer b) {
-        append(escapeXmlEntities(Base64Utils.encodeAsString(BinaryUtils.copyBytesFrom(b))));
+        append(escapeXmlEntities(BinaryUtils.toBase64(BinaryUtils.copyBytesFrom(b))));
         return this;
     }
 

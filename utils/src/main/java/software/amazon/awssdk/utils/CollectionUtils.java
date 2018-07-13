@@ -59,31 +59,6 @@ public final class CollectionUtils {
     }
 
     /**
-     * Joins a collection of strings with the given separator into a single string.
-     *
-     * @param toJoin    Collection containing items to join.
-     * @param separator String to join items with.
-     * @return Empty string if collection is null or empty. Otherwise joins all strings in the collection with the separator.
-     */
-    public static String join(Collection<String> toJoin, String separator) {
-        if (isNullOrEmpty(toJoin)) {
-            return "";
-        }
-
-        StringBuilder joinedString = new StringBuilder();
-        int currentIndex = 0;
-        for (String s : toJoin) {
-            if (s != null) {
-                joinedString.append(s);
-            }
-            if (currentIndex++ != toJoin.size() - 1) {
-                joinedString.append(separator);
-            }
-        }
-        return joinedString.toString();
-    }
-
-    /**
      * Perform a deep copy of the provided map of lists. This only performs a deep copy of the map and lists. Entries are not
      * copied, so care should be taken to ensure that entries are immutable if preventing unwanted mutations of the elements is
      * desired.

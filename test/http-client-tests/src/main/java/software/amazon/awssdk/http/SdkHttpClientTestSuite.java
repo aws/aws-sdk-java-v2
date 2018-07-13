@@ -126,7 +126,7 @@ public abstract class SdkHttpClientTestSuite {
                 .withHeader("User-Agent", equalTo("hello-world!"))
                 .withRequestBody(equalTo("Body")));
 
-        assertThat(IoUtils.toString(response.content().orElse(null))).isEqualTo("hello");
+        assertThat(IoUtils.toUtf8String(response.content().orElse(null))).isEqualTo("hello");
         assertThat(response.firstMatchingHeader("Some-Header")).contains("With Value");
         assertThat(response.statusCode()).isEqualTo(returnCode);
         mockServer.resetMappings();
