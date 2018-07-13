@@ -3,7 +3,7 @@ package software.amazon.awssdk.services.json.model;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.eventstream.EventStreamResponseHandler;
+import software.amazon.awssdk.awscore.eventstream.EventStreamResponseHandler;
 
 /**
  * Response handler for the EventStreamOperation API.

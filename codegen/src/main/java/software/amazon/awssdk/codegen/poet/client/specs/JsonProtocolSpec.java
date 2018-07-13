@@ -28,6 +28,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
+
+import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransformer;
+import software.amazon.awssdk.awscore.eventstream.EventStreamExceptionJsonUnmarshaller;
+import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionJsonUnmarshaller;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.protocol.json.AwsJsonProtocol;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
@@ -42,9 +46,6 @@ import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
-import software.amazon.awssdk.core.eventstream.EventStreamAsyncResponseTransformer;
-import software.amazon.awssdk.core.eventstream.EventStreamExceptionJsonUnmarshaller;
-import software.amazon.awssdk.core.eventstream.EventStreamTaggedUnionJsonUnmarshaller;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.internal.protocol.json.VoidJsonUnmarshaller;
 import software.amazon.awssdk.core.protocol.json.JsonClientMetadata;
@@ -163,7 +164,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
             builder.add("\n\n$T<$T> exceptionHandler = $L.createResponseHandler(\n" +
                         "    new JsonOperationMetadata().withPayloadJson(true).withHasStreamingSuccessResponse(false),\n" +
                         "    $T.builder()\n" +
-                        "        .defaultUnmarshaller(x -> $T.populateDefaultException($T::new, x))\n" +
+                        "        .defaultUnmarshaller(x -> $T.populateDefaultException($T::builder, x))\n" +
                         "        .build());",
                         HttpResponseHandler.class,
                         WildcardTypeName.subtypeOf(Throwable.class),

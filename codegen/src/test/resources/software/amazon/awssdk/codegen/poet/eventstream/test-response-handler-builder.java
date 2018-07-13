@@ -2,8 +2,8 @@ package software.amazon.awssdk.services.json.model;
 
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.eventstream.DefaultEventStreamResponseHandlerBuilder;
-import software.amazon.awssdk.core.eventstream.EventStreamResponseHandlerFromBuilder;
+import software.amazon.awssdk.awscore.eventstream.DefaultEventStreamResponseHandlerBuilder;
+import software.amazon.awssdk.awscore.eventstream.EventStreamResponseHandlerFromBuilder;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi

@@ -23,11 +23,11 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.eventstream.DefaultEventStreamResponseHandlerBuilder;
+import software.amazon.awssdk.awscore.eventstream.EventStreamResponseHandlerFromBuilder;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.eventstream.DefaultEventStreamResponseHandlerBuilder;
-import software.amazon.awssdk.core.eventstream.EventStreamResponseHandlerFromBuilder;
 
 /**
  * Generates implementation class for the event stream response handler builder.

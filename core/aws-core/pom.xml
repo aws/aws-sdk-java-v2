@@ -64,6 +64,11 @@
             <groupId>software.amazon.ion</groupId>
             <artifactId>ion-java</artifactId>
         </dependency>
+        <dependency>
+            <groupId>software.amazon</groupId>
+            <artifactId>flow</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
 
         <dependency>
             <groupId>junit</groupId>
@@ -136,6 +141,11 @@
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
             <version>${commons-lang.verson}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.reactivex.rxjava2</groupId>
+            <artifactId>rxjava</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

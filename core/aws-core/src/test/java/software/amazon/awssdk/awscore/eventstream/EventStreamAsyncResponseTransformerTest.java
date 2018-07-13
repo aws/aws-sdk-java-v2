@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.eventstream;
+package software.amazon.awssdk.awscore.eventstream;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -49,7 +49,7 @@ public class EventStreamAsyncResponseTransformerTest {
     }
 
     private void verifyExceptionThrown(Map<String, HeaderValue> headers) {
-        SdkServiceException exception = new SdkServiceException("");
+        SdkServiceException exception = SdkServiceException.builder().build();
 
         Message exceptionMessage = new Message(headers, new byte[0]);
 

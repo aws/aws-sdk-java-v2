@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.eventstream;
+package software.amazon.awssdk.awscore.eventstream;
 
 import java.util.HashMap;
 import java.util.Map;

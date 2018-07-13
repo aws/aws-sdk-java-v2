@@ -13,22 +13,22 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.eventstream;
-
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+package software.amazon.awssdk.awscore.eventstream;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.Supplier;
+
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.utils.IoUtils;
 
 @SdkProtectedApi
-public class EventStreamExceptionJsonUnmarshaller<T extends SdkServiceException>
+public class EventStreamExceptionJsonUnmarshaller<T extends AwsServiceException>
         implements Unmarshaller<T, JsonUnmarshallerContext> {
 
     private final Map<String, Unmarshaller<? extends T, JsonUnmarshallerContext>> unmarshallers;
@@ -39,12 +39,12 @@ public class EventStreamExceptionJsonUnmarshaller<T extends SdkServiceException>
         this.defaultUnmarshaller = builder.defaultUnmarshaller;
     }
 
-    public static <T extends SdkServiceException> Builder<T> builder() {
+    public static <T extends AwsServiceException> Builder<T> builder() {
         return new Builder<>();
     }
 
-    public static SdkServiceException populateDefaultException(
-            Function<String, ? extends SdkServiceException> exceptionConstructor, JsonUnmarshallerContext context) {
+    public static AwsServiceException populateDefaultException(
+            Supplier<? extends AwsServiceException.Builder> exceptionBuilderSupplier, JsonUnmarshallerContext context) {
         String errorMessage;
         String errorCode;
 
@@ -59,16 +59,13 @@ public class EventStreamExceptionJsonUnmarshaller<T extends SdkServiceException>
             throw new IllegalStateException("Unexpected exception message type: " + messageType);
         }
 
-        SdkServiceException exception = exceptionConstructor.apply("Service returned error code " + errorCode +
-                                                                   (errorMessage == null ? "" : " (" + errorMessage + ")"));
-        exception.errorMessage(errorMessage);
-        exception.errorCode(errorCode);
-
-        // Do not populate HTTP headers, status code, etc. because the HTTP response here isn't the real HTTP response.
-        // Fix this when we fix EventStreamAsyncResponseTransformer. The content is real, so it's safe.
-        exception.rawResponse(invokeSafely(() -> IoUtils.toByteArray(context.getHttpResponse().getContent())));
-
-        return exception;
+        return exceptionBuilderSupplier.get()
+                .awsErrorDetails(AwsErrorDetails.builder()
+                        .errorMessage(errorMessage)
+                        .errorCode(errorCode)
+                        .rawResponse(SdkBytes.fromInputStream(context.getHttpResponse().getContent()))
+                        .build())
+                .build();
     }
 
     @Override
@@ -77,7 +74,7 @@ public class EventStreamExceptionJsonUnmarshaller<T extends SdkServiceException>
         return unmarshallers.getOrDefault(exceptionType, defaultUnmarshaller).unmarshall(in);
     }
 
-    public static final class Builder<T extends SdkServiceException> {
+    public static final class Builder<T extends AwsServiceException> {
         private final Map<String, Unmarshaller<? extends T, JsonUnmarshallerContext>> unmarshallers =
                 new HashMap<>();
 
