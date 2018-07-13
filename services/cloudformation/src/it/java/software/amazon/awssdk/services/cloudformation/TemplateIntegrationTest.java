@@ -21,13 +21,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static software.amazon.awssdk.testutils.SdkAsserts.assertNotEmpty;
 
-import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.cloudformation.model.EstimateTemplateCostRequest;
 import software.amazon.awssdk.services.cloudformation.model.EstimateTemplateCostResponse;
 import software.amazon.awssdk.services.cloudformation.model.TemplateParameter;
@@ -39,7 +38,6 @@ import software.amazon.awssdk.services.cloudformation.model.ValidateTemplateResp
  */
 public class TemplateIntegrationTest extends CloudFormationIntegrationTestBase {
 
-    public static final String TEMPLATE_URL = "https://s3.amazonaws.com/cloudformation-templates/sampleTemplate";
     private static final String TEMPLATE_DESCRIPTION = "Template Description";
 
     @Test
@@ -57,7 +55,7 @@ public class TemplateIntegrationTest extends CloudFormationIntegrationTestBase {
 
     @Test
     public void testValidateTemplateBody() throws Exception {
-        String templateText = FileUtils.readFileToString(new File("tst/" + templateForCloudFormationIntegrationTests));
+        String templateText = FileUtils.readFileToString(templateForCloudFormationIntegrationTestsFile, StandardCharsets.UTF_8);
         ValidateTemplateResponse response = cf.validateTemplate(ValidateTemplateRequest.builder()
                                                                                      .templateBody(templateText).build());
         assertEquals(TEMPLATE_DESCRIPTION, response.description());
@@ -91,7 +89,7 @@ public class TemplateIntegrationTest extends CloudFormationIntegrationTestBase {
 
     @Test
     public void testEstimateCost() throws Exception {
-        String templateText = FileUtils.readFileToString(new File("tst/" + templateForCloudFormationIntegrationTests));
+        String templateText = FileUtils.readFileToString(templateForCloudFormationIntegrationTestsFile, StandardCharsets.UTF_8);
         EstimateTemplateCostResponse estimateTemplateCost = cf.estimateTemplateCost(EstimateTemplateCostRequest.builder()
                                                                                                              .templateBody(
                                                                                                                      templateText)
