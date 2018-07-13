@@ -27,7 +27,7 @@ import java.net.URI;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -47,7 +47,7 @@ public class RestJsonCrc32ChecksumTests {
     private static final String JSON_BODY_GZIP_Crc32_CHECKSUM = "3023995622";
     private static final String RESOURCE_PATH = "/2016-03-11/allTypes";
     private static final AwsCredentialsProvider FAKE_CREDENTIALS_PROVIDER = StaticCredentialsProvider.create(
-            AwsCredentials.create("foo", "bar"));
+        AwsBasicCredentials.create("foo", "bar"));
     @Rule
     public WireMockRule mockServer = new WireMockRule(WireMockConfiguration.wireMockConfig()
             .port(0)

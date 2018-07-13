@@ -2,7 +2,7 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Objects;
 import java.util.Optional;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.protocol.StructuredPojo;
@@ -72,10 +72,10 @@ public final class SimpleStruct implements StructuredPojo, ToCopyableBuilder<Sim
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "StringMember":
-                return Optional.of(clazz.cast(stringMember()));
-            default:
-                return Optional.empty();
+        case "StringMember":
+            return Optional.ofNullable(clazz.cast(stringMember()));
+        default:
+            return Optional.empty();
         }
     }
 

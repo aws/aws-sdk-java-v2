@@ -2,7 +2,7 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Optional;
 import java.util.function.Consumer;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -10,7 +10,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @Generated("software.amazon.awssdk:codegen")
 public final class EventStreamOperationRequest extends JsonProtocolTestsRequest implements
-                                                                                ToCopyableBuilder<EventStreamOperationRequest.Builder, EventStreamOperationRequest> {
+        ToCopyableBuilder<EventStreamOperationRequest.Builder, EventStreamOperationRequest> {
     private EventStreamOperationRequest(BuilderImpl builder) {
         super(builder);
     }

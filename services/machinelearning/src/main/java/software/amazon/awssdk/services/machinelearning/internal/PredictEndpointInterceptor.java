@@ -39,7 +39,7 @@ public class PredictEndpointInterceptor implements ExecutionInterceptor {
         if (originalRequest instanceof PredictRequest) {
             PredictRequest pr = (PredictRequest) originalRequest;
             if (pr.predictEndpoint() == null) {
-                throw new SdkClientException("PredictRequest.PredictEndpoint is required!");
+                throw SdkClientException.builder().message("PredictRequest.PredictEndpoint is required!").build();
             }
 
             try {
@@ -51,7 +51,10 @@ public class PredictEndpointInterceptor implements ExecutionInterceptor {
                               .encodedPath(SdkHttpUtils.appendUri(endpoint.getPath(), request.encodedPath()))
                               .build();
             } catch (URISyntaxException e) {
-                throw new SdkClientException("Unable to parse PredictRequest.PredictEndpoint", e);
+                throw SdkClientException.builder()
+                                        .message("Unable to parse PredictRequest.PredictEndpoint")
+                                        .cause(e)
+                                        .build();
             }
         }
         return request;

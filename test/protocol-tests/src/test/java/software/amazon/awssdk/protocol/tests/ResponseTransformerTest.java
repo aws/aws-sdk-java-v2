@@ -25,6 +25,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -35,7 +36,7 @@ import java.time.Duration;
 import java.util.UUID;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -100,6 +101,16 @@ public class ResponseTransformerTest {
     }
 
     @Test
+    public void downloadToExistingFileDoesNotRetry() throws IOException {
+        stubForRetriesTimeoutReadingFromStreams();
+
+        assertThatThrownBy(() -> testClient().streamingOutputOperation(StreamingOutputOperationRequest.builder().build(),
+            ResponseTransformer
+                .toFile(new File(".."))))
+            .isInstanceOf(SdkClientException.class);
+    }
+
+    @Test
     public void downloadToOutputStreamDoesNotRetry() throws IOException {
         stubForRetriesTimeoutReadingFromStreams();
 
@@ -125,7 +136,7 @@ public class ResponseTransformerTest {
         return ProtocolRestJsonClient.builder()
                                      .region(Region.US_WEST_1)
                                      .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                     .credentialsProvider(() -> AwsCredentials.create("akid", "skid"))
+                                     .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
                                      .httpClientBuilder(ApacheHttpClient.builder().socketTimeout(Duration.ofSeconds(1)))
                                      .build();
     }

@@ -18,25 +18,25 @@ package software.amazon.awssdk.services.rds;
 import java.time.Clock;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.Request;
-import software.amazon.awssdk.services.rds.model.CopyDBSnapshotRequest;
-import software.amazon.awssdk.services.rds.transform.CopyDBSnapshotRequestMarshaller;
+import software.amazon.awssdk.services.rds.model.CopyDbSnapshotRequest;
+import software.amazon.awssdk.services.rds.transform.CopyDbSnapshotRequestMarshaller;
 
 /**
- * Handler for pre-signing {@link CopyDBSnapshotRequest}.
+ * Handler for pre-signing {@link CopyDbSnapshotRequest}.
  */
-public class CopyDbSnapshotPresignInterceptor extends RdsPresignInterceptor<CopyDBSnapshotRequest> {
+public class CopyDbSnapshotPresignInterceptor extends RdsPresignInterceptor<CopyDbSnapshotRequest> {
 
     public CopyDbSnapshotPresignInterceptor() {
-        super(CopyDBSnapshotRequest.class);
+        super(CopyDbSnapshotRequest.class);
     }
 
     @SdkTestInternalApi
     CopyDbSnapshotPresignInterceptor(Clock signingOverrideClock) {
-        super(CopyDBSnapshotRequest.class, signingOverrideClock);
+        super(CopyDbSnapshotRequest.class, signingOverrideClock);
     }
 
     @Override
-    protected PresignableRequest adaptRequest(final CopyDBSnapshotRequest originalRequest) {
+    protected PresignableRequest adaptRequest(final CopyDbSnapshotRequest originalRequest) {
         return new PresignableRequest() {
             @Override
             public String getSourceRegion() {
@@ -45,7 +45,7 @@ public class CopyDbSnapshotPresignInterceptor extends RdsPresignInterceptor<Copy
 
             @Override
             public Request<?> marshall() {
-                return new CopyDBSnapshotRequestMarshaller().marshall(originalRequest);
+                return new CopyDbSnapshotRequestMarshaller().marshall(originalRequest);
             }
         };
     }

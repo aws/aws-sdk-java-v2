@@ -33,8 +33,9 @@ import java.util.Set;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import software.amazon.awssdk.core.exception.ErrorType;
-import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.services.dynamodb.model.AttributeAction;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValueUpdate;
@@ -121,8 +122,8 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
 
         try {
             dynamo.batchGetItem(request);
-        } catch (SdkServiceException exception) {
-            assertEquals("ValidationException", exception.errorCode());
+        } catch (AwsServiceException exception) {
+            assertEquals("ValidationException", exception.awsErrorDetails().errorCode());
         }
 
         Map<String, List<WriteRequest>> requestItems = new HashMap<String, List<WriteRequest>>();
@@ -135,8 +136,8 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
         requestItems.put(tableName, writeRequests);
         try {
             dynamo.batchWriteItem(BatchWriteItemRequest.builder().requestItems(requestItems).build());
-        } catch (SdkServiceException exception) {
-            assertEquals("ValidationException", exception.errorCode());
+        } catch (AwsServiceException exception) {
+            assertEquals("ValidationException", exception.awsErrorDetails().errorCode());
         }
 
     }
@@ -151,12 +152,11 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
         try {
             dynamo.deleteTable(request);
             fail("Expected an exception to be thrown");
-        } catch (SdkServiceException exception) {
-            assertNotEmpty(exception.errorCode());
-            assertEquals(ErrorType.CLIENT, exception.errorType());
-            assertNotEmpty(exception.getMessage());
+        } catch (AwsServiceException exception) {
+            assertNotEmpty(exception.awsErrorDetails().errorCode());
+            assertNotEmpty(exception.awsErrorDetails().errorMessage());
             assertNotEmpty(exception.requestId());
-            assertNotEmpty(exception.serviceName());
+            assertNotEmpty(exception.awsErrorDetails().serviceName());
             assertTrue(exception.statusCode() >= 400);
             assertTrue(exception.statusCode() < 600);
         }
@@ -186,10 +186,9 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
 
         try {
             dynamo.batchGetItem(request);
-        } catch (SdkServiceException exception) {
+        } catch (AwsServiceException exception) {
             assertNotNull(exception.getMessage());
-            assertEquals("Request entity too large", exception.errorCode());
-            assertEquals(ErrorType.CLIENT, exception.errorType());
+            assertEquals("Request entity too large", exception.awsErrorDetails().errorCode());
             assertEquals(413, exception.statusCode());
         }
     }
@@ -208,12 +207,11 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
         requestItems.put(tableName, writeRequests);
         try {
             dynamo.batchWriteItem(BatchWriteItemRequest.builder().requestItems(requestItems).build());
-        } catch (SdkServiceException exception) {
-            assertEquals("ValidationException", exception.errorCode());
-            assertEquals(ErrorType.CLIENT, exception.errorType());
-            assertNotEmpty(exception.getMessage());
+        } catch (AwsServiceException exception) {
+            assertEquals("ValidationException", exception.awsErrorDetails().errorCode());
+            assertNotEmpty(exception.awsErrorDetails().errorMessage());
             assertNotEmpty(exception.requestId());
-            assertNotEmpty(exception.serviceName());
+            assertNotEmpty(exception.awsErrorDetails().serviceName());
             assertEquals(400, exception.statusCode());
         }
     }
@@ -240,9 +238,9 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
 
         // Add some data
         int contentLength = 1 * 1024;
-        Set<ByteBuffer> byteBufferSet = new HashSet<ByteBuffer>();
-        byteBufferSet.add(ByteBuffer.wrap(generateByteArray(contentLength)));
-        byteBufferSet.add(ByteBuffer.wrap(generateByteArray(contentLength + 1)));
+        Set<SdkBytes> byteBufferSet = new HashSet<SdkBytes>();
+        byteBufferSet.add(SdkBytes.fromByteArray(generateByteArray(contentLength)));
+        byteBufferSet.add(SdkBytes.fromByteArray(generateByteArray(contentLength + 1)));
 
         Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
         item.put(HASH_KEY_NAME, AttributeValue.builder().s("bar").build());
@@ -250,9 +248,9 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
         item.put("bar", AttributeValue.builder().s("" + System.currentTimeMillis()).build());
         item.put("foos", AttributeValue.builder().ss("bleh", "blah").build());
         item.put("S", AttributeValue.builder().ss("ONE", "TWO").build());
-        item.put("blob", AttributeValue.builder().b(ByteBuffer.wrap(generateByteArray(contentLength))).build());
-        item.put("blobs", AttributeValue.builder().bs(ByteBuffer.wrap(generateByteArray(contentLength)),
-                                                      ByteBuffer.wrap(generateByteArray(contentLength + 1))).build());
+        item.put("blob", AttributeValue.builder().b(SdkBytes.fromByteArray(generateByteArray(contentLength))).build());
+        item.put("blobs", AttributeValue.builder().bs(SdkBytes.fromByteArray(generateByteArray(contentLength)),
+                                                      SdkBytes.fromByteArray(generateByteArray(contentLength + 1))).build());
         item.put("BS", AttributeValue.builder().bs(byteBufferSet).build());
 
         PutItemRequest putItemRequest = PutItemRequest.builder().tableName(tableName).item(item).returnValues(ReturnValue.ALL_OLD.toString()).build();
@@ -270,15 +268,15 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
         assertEquals("30", itemResult.item().get("age").n());
         assertNotNull(itemResult.item().get("bar").s());
         assertNotNull(itemResult.item().get("blob").b());
-        assertEquals(0, itemResult.item().get("blob").b().compareTo(ByteBuffer.wrap(generateByteArray(contentLength))));
+        assertTrue(itemResult.item().get("blob").b().equals(SdkBytes.fromByteArray(generateByteArray(contentLength))));
         assertNotNull(itemResult.item().get("blobs").bs());
         assertEquals(2, itemResult.item().get("blobs").bs().size());
-        assertTrue(itemResult.item().get("blobs").bs().contains(ByteBuffer.wrap(generateByteArray(contentLength))));
-        assertTrue(itemResult.item().get("blobs").bs().contains(ByteBuffer.wrap(generateByteArray(contentLength + 1))));
+        assertTrue(itemResult.item().get("blobs").bs().contains(SdkBytes.fromByteArray(generateByteArray(contentLength))));
+        assertTrue(itemResult.item().get("blobs").bs().contains(SdkBytes.fromByteArray(generateByteArray(contentLength + 1))));
         assertNotNull(itemResult.item().get("BS").bs());
         assertEquals(2, itemResult.item().get("BS").bs().size());
-        assertTrue(itemResult.item().get("BS").bs().contains(ByteBuffer.wrap(generateByteArray(contentLength))));
-        assertTrue(itemResult.item().get("BS").bs().contains(ByteBuffer.wrap(generateByteArray(contentLength + 1))));
+        assertTrue(itemResult.item().get("BS").bs().contains(SdkBytes.fromByteArray(generateByteArray(contentLength))));
+        assertTrue(itemResult.item().get("BS").bs().contains(SdkBytes.fromByteArray(generateByteArray(contentLength + 1))));
 
         // Pause to try and deal with ProvisionedThroughputExceededExceptions
         Thread.sleep(1000 * 5);
@@ -288,11 +286,11 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
         byteBuffer.put(generateByteArray(contentLength));
         byteBuffer.flip();
         item = new HashMap<String, AttributeValue>();
-        item.put(HASH_KEY_NAME, AttributeValue.builder().b(byteBuffer).build());
+        item.put(HASH_KEY_NAME, AttributeValue.builder().b(SdkBytes.fromByteBuffer(byteBuffer)).build());
         // Reuse the byteBuffer
-        item.put("blob", AttributeValue.builder().b(byteBuffer).build());
-        item.put("blobs", AttributeValue.builder().bs(ByteBuffer.wrap(generateByteArray(contentLength)),
-                                                      ByteBuffer.wrap(generateByteArray(contentLength + 1))).build());
+        item.put("blob", AttributeValue.builder().b(SdkBytes.fromByteBuffer(byteBuffer)).build());
+        item.put("blobs", AttributeValue.builder().bs(SdkBytes.fromByteArray(generateByteArray(contentLength)),
+                                                      SdkBytes.fromByteArray(generateByteArray(contentLength + 1))).build());
         // Reuse the byteBufferSet
         item.put("BS", AttributeValue.builder().bs(byteBufferSet).build());
 
@@ -301,18 +299,18 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
 
         // Get our new item
         itemResult = dynamo.getItem(GetItemRequest.builder().tableName(binaryKeyTableName).key(mapKey(HASH_KEY_NAME,
-                                                                                        AttributeValue.builder().b(byteBuffer).build()))
+                                                                                        AttributeValue.builder().b(SdkBytes.fromByteBuffer(byteBuffer)).build()))
                                                .consistentRead(true).build());
         assertNotNull(itemResult.item().get("blob").b());
-        assertEquals(0, itemResult.item().get("blob").b().compareTo(ByteBuffer.wrap(generateByteArray(contentLength))));
+        assertEquals(itemResult.item().get("blob").b(), SdkBytes.fromByteArray(generateByteArray(contentLength)));
         assertNotNull(itemResult.item().get("blobs").bs());
         assertEquals(2, itemResult.item().get("blobs").bs().size());
-        assertTrue(itemResult.item().get("blobs").bs().contains(ByteBuffer.wrap(generateByteArray(contentLength))));
-        assertTrue(itemResult.item().get("blobs").bs().contains(ByteBuffer.wrap(generateByteArray(contentLength + 1))));
+        assertTrue(itemResult.item().get("blobs").bs().contains(SdkBytes.fromByteArray(generateByteArray(contentLength))));
+        assertTrue(itemResult.item().get("blobs").bs().contains(SdkBytes.fromByteArray(generateByteArray(contentLength + 1))));
         assertNotNull(itemResult.item().get("BS").bs());
         assertEquals(2, itemResult.item().get("BS").bs().size());
-        assertTrue(itemResult.item().get("BS").bs().contains(ByteBuffer.wrap(generateByteArray(contentLength))));
-        assertTrue(itemResult.item().get("BS").bs().contains(ByteBuffer.wrap(generateByteArray(contentLength + 1))));
+        assertTrue(itemResult.item().get("BS").bs().contains(SdkBytes.fromByteArray(generateByteArray(contentLength))));
+        assertTrue(itemResult.item().get("BS").bs().contains(SdkBytes.fromByteArray(generateByteArray(contentLength + 1))));
 
         // Pause to try and deal with ProvisionedThroughputExceededExceptions
         Thread.sleep(1000 * 5);
@@ -336,10 +334,10 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
         itemUpdates.put("S", AttributeValueUpdate.builder().value(AttributeValue.builder().ss("THREE").build()).action(AttributeAction.ADD.toString()).build());
         itemUpdates.put("age", AttributeValueUpdate.builder().value(AttributeValue.builder().n("10").build()).action(AttributeAction.ADD.toString()).build());
         itemUpdates.put("blob", AttributeValueUpdate.builder().value(
-                AttributeValue.builder().b(ByteBuffer.wrap(generateByteArray(contentLength + 1))).build()).action(
+                AttributeValue.builder().b(SdkBytes.fromByteArray(generateByteArray(contentLength + 1))).build()).action(
                 AttributeAction.PUT.toString()).build());
         itemUpdates.put("blobs",
-                        AttributeValueUpdate.builder().value(AttributeValue.builder().bs(ByteBuffer.wrap(generateByteArray(contentLength))).build()).action(
+                        AttributeValueUpdate.builder().value(AttributeValue.builder().bs(SdkBytes.fromByteArray(generateByteArray(contentLength))).build()).action(
                                                  AttributeAction.PUT.toString()).build());
         UpdateItemRequest updateItemRequest = UpdateItemRequest.builder().tableName(tableName).key(
                 mapKey(HASH_KEY_NAME, AttributeValue.builder().s("bar").build())).attributeUpdates(
@@ -355,16 +353,15 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
         assertTrue(updateItemResult.attributes().get("S").ss().contains("TWO"));
         assertTrue(updateItemResult.attributes().get("S").ss().contains("THREE"));
         assertEquals(Integer.toString(30 + 10), updateItemResult.attributes().get("age").n());
-        assertEquals(0, updateItemResult.attributes().get("blob").b()
-                                        .compareTo(ByteBuffer.wrap(generateByteArray(contentLength + 1))));
+        assertEquals(updateItemResult.attributes().get("blob").b(), SdkBytes.fromByteArray(generateByteArray(contentLength + 1)));
         assertEquals(1, updateItemResult.attributes().get("blobs").bs().size());
         assertTrue(updateItemResult.attributes().get("blobs").bs()
-                                   .contains(ByteBuffer.wrap(generateByteArray(contentLength))));
+                                   .contains(SdkBytes.fromByteArray(generateByteArray(contentLength))));
 
         itemUpdates.clear();
         itemUpdates.put("age", AttributeValueUpdate.builder().value(AttributeValue.builder().n("30").build()).action(AttributeAction.PUT.toString()).build());
         itemUpdates.put("blobs", AttributeValueUpdate.builder()
-                .value(AttributeValue.builder().bs(ByteBuffer.wrap(generateByteArray(contentLength + 1))).build())
+                .value(AttributeValue.builder().bs(SdkBytes.fromByteArray(generateByteArray(contentLength + 1))).build())
                 .action(AttributeAction.ADD.toString())
                 .build());
         updateItemRequest = UpdateItemRequest.builder()
@@ -379,15 +376,15 @@ public class DynamoServiceIntegrationTest extends DynamoDBTestBase {
         assertEquals("30", updateItemResult.attributes().get("age").n());
         assertEquals(2, updateItemResult.attributes().get("blobs").bs().size());
         assertTrue(updateItemResult.attributes().get("blobs").bs()
-                                   .contains(ByteBuffer.wrap(generateByteArray(contentLength))));
+                                   .contains(SdkBytes.fromByteArray(generateByteArray(contentLength))));
         assertTrue(updateItemResult.attributes().get("blobs").bs()
-                                   .contains(ByteBuffer.wrap(generateByteArray(contentLength + 1))));
+                                   .contains(SdkBytes.fromByteArray(generateByteArray(contentLength + 1))));
 
         // Get an item that doesn't exist.
         GetItemRequest itemsRequest = GetItemRequest.builder().tableName(tableName).key(mapKey(HASH_KEY_NAME, AttributeValue.builder().s("3").build()))
                 .consistentRead(true).build();
         GetItemResponse itemsResult = dynamo.getItem(itemsRequest);
-        assertNull(itemsResult.item());
+        assertTrue(itemsResult.item() instanceof SdkAutoConstructMap);
 
         // Get an item that doesn't have any attributes,
         itemsRequest = GetItemRequest.builder().tableName(tableName).key(mapKey(HASH_KEY_NAME, AttributeValue.builder().s("bar").build()))

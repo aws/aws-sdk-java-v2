@@ -48,7 +48,7 @@ public final class TimestampFormatInterceptor implements ExecutionInterceptor {
 
             if (startTime != null && !startTime.isEmpty()) {
                 return request.toBuilder()
-                              .rawQueryParameter(START_TIME, sanitize(startTime.get(0)))
+                              .putRawQueryParameter(START_TIME, sanitize(startTime.get(0)))
                               .build();
             }
 
@@ -59,12 +59,12 @@ public final class TimestampFormatInterceptor implements ExecutionInterceptor {
             List<String> validFrom = params.get(VALID_FROM);
             List<String> validUntil = params.get(VALID_UNTIL);
 
-            return request.toBuilder().apply(builder -> {
+            return request.toBuilder().applyMutation(builder -> {
                 if (validFrom != null && !validFrom.isEmpty()) {
-                    builder.rawQueryParameter(VALID_FROM, sanitize(validFrom.get(0)));
+                    builder.putRawQueryParameter(VALID_FROM, sanitize(validFrom.get(0)));
                 }
                 if (validUntil != null && !validUntil.isEmpty()) {
-                    builder.rawQueryParameter(VALID_UNTIL, sanitize(validUntil.get(0)));
+                    builder.putRawQueryParameter(VALID_UNTIL, sanitize(validUntil.get(0)));
                 }
             }).build();
 

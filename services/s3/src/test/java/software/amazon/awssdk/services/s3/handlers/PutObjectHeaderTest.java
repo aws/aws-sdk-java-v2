@@ -32,10 +32,10 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.core.util.Mimetype;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -53,7 +53,7 @@ public class PutObjectHeaderTest {
     @Before
     public void setup() {
         s3Client = S3Client.builder()
-                           .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
+                           .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                            .region(Region.US_WEST_2).endpointOverride(URI.create(getEndpoint()))
                            .build();
         putObjectRequest = PutObjectRequest.builder().bucket("test").key("test").build();
@@ -115,7 +115,7 @@ public class PutObjectHeaderTest {
                                     .withBody("{}")));
         String contentType = "hello world";
 
-        putObjectRequest = (PutObjectRequest) putObjectRequest.toBuilder().overrideConfiguration(b -> b.header(CONTENT_TYPE, contentType)).build();
+        putObjectRequest = (PutObjectRequest) putObjectRequest.toBuilder().overrideConfiguration(b -> b.putHeader(CONTENT_TYPE, contentType)).build();
         s3Client.putObject(putObjectRequest, RequestBody.fromString("test"));
         verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(contentType)));
     }

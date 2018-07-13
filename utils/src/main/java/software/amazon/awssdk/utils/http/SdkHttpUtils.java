@@ -266,7 +266,7 @@ public final class SdkHttpUtils {
     /**
      * Perform a case-insensitive search for a particular header in the provided map of headers, returning the first matching
      * header, if one is found.
-     * <br/>
+     * <br>
      * This is useful for headers like 'Content-Type' or 'Content-Length' of which there is expected to be only one value present.
      *
      * @param headers The headers to search.

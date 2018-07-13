@@ -1,0 +1,5 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "type": "feature", 
+    "description": "Update all service models to follow V2 naming convention. eg: `WAFException` -> `WafException`"
+}

@@ -29,7 +29,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
-import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
+import software.amazon.awssdk.auth.signer.internal.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -61,7 +61,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
     private static final String HASH_KEY_VALUE = "123789";
     private static final String ATTRIBUTE_FOO = "foo";
     private static final String ATTRIBUTE_FOO_VALUE = "bar";
-    private static final AwsCredentials awsCredentials = CREDENTIALS_PROVIDER_CHAIN.getCredentials();
+    private static final AwsCredentials awsCredentials = CREDENTIALS_PROVIDER_CHAIN.resolveCredentials();
     private static final String SIGNING_NAME = "dynamodb";
 
     @BeforeClass
@@ -109,7 +109,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
     public void test_UsingSdkClient_WithSignerSetInConfig() {
         DynamoDbClient client = getClientBuilder()
             .overrideConfiguration(ClientOverrideConfiguration.builder()
-                                                              .advancedOption(SIGNER, Aws4Signer.create())
+                                                              .putAdvancedOption(SIGNER, Aws4Signer.create())
                                                               .build())
             .build();
 
@@ -131,7 +131,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
 
         assertEquals("Non success http status code", 200, response.statusCode());
 
-        String actualResult = IoUtils.toString(response.content().get());
+        String actualResult = IoUtils.toUtf8String(response.content().get());
         assertEquals(getExpectedResult(), actualResult);
     }
 
@@ -150,7 +150,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
 
         assertEquals("Non success http status code", 200, response.statusCode());
 
-        String actualResult = IoUtils.toString(response.content().get());
+        String actualResult = IoUtils.toUtf8String(response.content().get());
         assertEquals(getExpectedResult(), actualResult);
     }
 
@@ -161,9 +161,9 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
         return SdkHttpFullRequest.builder()
                                  .content(contentStream)
                                  .method(SdkHttpMethod.POST)
-                                 .header("Content-Length", Integer.toString(content.length()))
-                                 .header("Content-Type", "application/x-amz-json-1.0")
-                                 .header("X-Amz-Target", "DynamoDB_20120810.GetItem")
+                                 .putHeader("Content-Length", Integer.toString(content.length()))
+                                 .putHeader("Content-Type", "application/x-amz-json-1.0")
+                                 .putHeader("X-Amz-Target", "DynamoDB_20120810.GetItem")
                                  .encodedPath("/")
                                  .protocol("https")
                                  .host(getHost())

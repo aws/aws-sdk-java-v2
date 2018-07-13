@@ -13,9 +13,9 @@
                 for (Map.Entry<${mapModel.keyModel.variable.variableType},${mapModel.valueModel.variable.variableType}> entry : ${variable.variableName}.entrySet()) {
                     if (entry.getValue() != null) {
                         <#if mapModel.valueModel.list>
-                            request.addParameters(StringUtils.from${mapModel.keyModel.variable.variableType}(entry.getKey()), entry.getValue());
+                            request.addParameters(StringConversion.from${mapModel.keyModel.variable.variableType}(entry.getKey()), entry.getValue());
                         <#else>
-                            request.addParameter(StringUtils.from${mapModel.keyModel.variable.variableType}(entry.getKey()), StringUtils.from${mapModel.valueModel.variable.variableType}(entry.getValue()));
+                            request.addParameter(StringConversion.from${mapModel.keyModel.variable.variableType}(entry.getKey()), StringConversion.from${mapModel.valueModel.variable.variableType}(entry.getValue()));
                         </#if>
                     }
                 }
@@ -23,7 +23,7 @@
         <#elseif member.list>
             if (${getMember}() != null && !(${getMember}().isEmpty())) {
                 for(${member.listModel.simpleType} value : ${getMember}()) {
-                    request.addParameter("${member.http.marshallLocationName}", StringUtils.from${member.listModel.simpleType}(value));
+                    request.addParameter("${member.http.marshallLocationName}", StringConversion.from${member.listModel.simpleType}(value));
                 }
             }
         <#else>
@@ -31,7 +31,7 @@
                 request.addParameter("${member.http.marshallLocationName}", <@IdempotencyTokenMacro.content getMember member.variable.simpleType/>);
             <#else>
                 if(${getMember}() != null) {
-                    request.addParameter("${member.http.marshallLocationName}", StringUtils.from${variable.simpleType}(${getMember}()));
+                    request.addParameter("${member.http.marshallLocationName}", StringConversion.from${variable.simpleType}(${getMember}()));
                 }
             </#if>
         </#if>

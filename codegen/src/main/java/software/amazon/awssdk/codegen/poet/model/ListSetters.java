@@ -72,12 +72,21 @@ class ListSetters extends AbstractMemberSetters {
                                            .build());
         }
 
-        if (memberModel().getEnumType() != null) {
-            fluentDeclarations.add(fluentAbstractSetterDeclaration(ParameterSpec.builder(
-                    asArrayOfModeledEnum(), fieldName()).build(), returnType)
-                    .varargs(true)
-                    .addJavadoc("$L", setterDocumentation)
-                    .build());
+        if (enumTypeInListMemberModel() != null) {
+            // Generate setter with modeled Collections parameter
+            fluentDeclarations.add(fluentAbstractSetterDeclaration(memberModel().getFluentEnumSetterMethodName(),
+                                                                   collectionOfModeledEnumAsParameter(),
+                                                                   returnType)
+                                       .addJavadoc("$L", setterDocumentation)
+                                       .build());
+
+            // Generate setter with modeled var args parameter
+            fluentDeclarations.add(fluentAbstractSetterDeclaration(memberModel().getFluentEnumSetterMethodName(),
+                                                                   arrayOfModeledEnumAsParameter(),
+                                                                   returnType)
+                                       .varargs(true)
+                                       .addJavadoc("$L", setterDocumentation)
+                                       .build());
         }
 
         return fluentDeclarations;
@@ -94,8 +103,16 @@ class ListSetters extends AbstractMemberSetters {
             fluent.add(fluentVarargConsumerBuilderSetter(returnType));
         }
 
-        if (memberModel().getEnumType() != null) {
-            fluent.add(fluentEnumVarargToListSetter(returnType));
+        if (enumTypeInListMemberModel() != null) {
+            // Generate setter with modeled Collections parameter in BuilderImpl
+            fluent.add(fluentEnumCollectionsSetter(memberModel().getFluentEnumSetterMethodName(),
+                                                   collectionOfModeledEnumAsParameter(),
+                                                   returnType));
+
+            // Generate setter with modeled var args parameter in BuilderImpl
+            fluent.add(fluentEnumVarargToListSetter(memberModel().getFluentEnumSetterMethodName(),
+                                                    arrayOfModeledEnumAsParameter(),
+                                                    returnType));
         }
 
         return fluent;
@@ -104,7 +121,7 @@ class ListSetters extends AbstractMemberSetters {
     @Override
     public MethodSpec beanStyle() {
         MethodSpec.Builder builder = beanStyleSetterBuilder()
-            .addCode(memberModel().isCollectionWithBuilderMember() ? copySetterBuilderBody() : copySetterBody());
+            .addCode(memberModel().isCollectionWithBuilderMember() ? copySetterBuilderBody() : beanCopySetterBody());
 
         if (annotateJsonProperty()) {
             builder.addAnnotation(
@@ -142,8 +159,25 @@ class ListSetters extends AbstractMemberSetters {
                 .build();
     }
 
-    private MethodSpec fluentEnumVarargToListSetter(TypeName returnType) {
-        return fluentSetterBuilder(ParameterSpec.builder(asArrayOfModeledEnum(), fieldName()).build(), returnType)
+    /**
+     * {@link MethodSpec} to generate fluent setter method implementation that takes a collection of modeled enums as parameter
+     */
+    private MethodSpec fluentEnumCollectionsSetter(String methodName,
+                                                   ParameterSpec parameter,
+                                                   TypeName returnType) {
+        return fluentSetterBuilder(methodName, parameter, returnType)
+            .addCode(fluentSetterWithEnumCollectionsParameterMethodBody())
+            .addStatement("return this")
+            .build();
+    }
+
+    /**
+     * {@link MethodSpec} to generate fluent setter method implementation that takes var args of modeled enums as parameter
+     */
+    private MethodSpec fluentEnumVarargToListSetter(String methodName,
+                                                    ParameterSpec parameter,
+                                                    TypeName returnType) {
+        return fluentSetterBuilder(methodName, parameter, returnType)
                 .varargs(true)
                 .addAnnotation(SafeVarargs.class)
                 .addCode(enumVarargToListSetterBody())
@@ -153,17 +187,16 @@ class ListSetters extends AbstractMemberSetters {
 
 
     private CodeBlock varargToListSetterBody() {
-        return CodeBlock.of("$1L($2T.asList($1L));", fieldName(), Arrays.class);
+        return CodeBlock.of("$1L($2T.asList($3L));", memberModel().getFluentSetterMethodName(), Arrays.class, fieldName());
     }
 
     private CodeBlock consumerBuilderVarargSetterBody() {
-        return CodeBlock.of("$1L($2T.of($1L).map(c -> $3T.builder().apply(c).build()).collect($4T.toList()));",
+        return CodeBlock.of("$1L($2T.of($1L).map(c -> $3T.builder().applyMutation(c).build()).collect($4T.toList()));",
                             fieldName(), Stream.class, listElementType(), Collectors.class);
     }
 
     private CodeBlock enumVarargToListSetterBody() {
-        return CodeBlock.of("$1L($2T.of($1L).map($3T::toString).collect($4T.toList()));",
-                            fieldName(), Stream.class, Object.class, Collectors.class);
+        return CodeBlock.of("$1L($2T.asList($1L));", fieldName(), Arrays.class);
     }
 
     private MemberModel elementModel() {
@@ -171,7 +204,11 @@ class ListSetters extends AbstractMemberSetters {
     }
 
     private TypeName modeledEnumElement() {
-        return poetExtensions.getModelClass(memberModel().getEnumType());
+        return poetExtensions.getModelClass(enumTypeInListMemberModel());
+    }
+
+    private String enumTypeInListMemberModel() {
+        return memberModel().getListModel().getListMemberModel().getEnumType();
     }
 
     private TypeName listElementType() {
@@ -197,5 +234,14 @@ class ListSetters extends AbstractMemberSetters {
 
     private ArrayTypeName asArrayOfModeledEnum() {
         return ArrayTypeName.of(modeledEnumElement());
+    }
+
+    private ParameterSpec arrayOfModeledEnumAsParameter() {
+        return ParameterSpec.builder(asArrayOfModeledEnum(), fieldName()).build();
+    }
+
+    private ParameterSpec collectionOfModeledEnumAsParameter() {
+        return ParameterSpec.builder(typeProvider.listWithEnumParameterType(memberModel()), fieldName())
+                            .build();
     }
 }

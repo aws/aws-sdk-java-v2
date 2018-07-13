@@ -97,7 +97,7 @@ class NonCollectionSetters extends AbstractMemberSetters {
     @Override
     public MethodSpec beanStyle() {
         MethodSpec.Builder builder = beanStyleSetterBuilder()
-            .addCode(copySetterBuilderBody());
+            .addCode(beanCopySetterBody());
 
         if (annotateJsonProperty()) {
             builder.addAnnotation(
@@ -136,7 +136,7 @@ class NonCollectionSetters extends AbstractMemberSetters {
         ClassName builderClass = memberClass.nestedClass("Builder");
         return fluentDefaultSetterDeclaration(builderConsumerParam(builderClass), returnType)
             .addModifiers(Modifier.DEFAULT)
-            .addStatement("return $N($T.builder().apply($N).build())",
+            .addStatement("return $N($T.builder().applyMutation($N).build())",
                           memberModel().getFluentSetterMethodName(),
                           memberClass,
                           fieldName())

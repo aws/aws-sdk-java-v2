@@ -22,13 +22,13 @@ import static software.amazon.awssdk.testutils.SdkAsserts.assertNotEmpty;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
-import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.firehose.model.CreateDeliveryStreamRequest;
 import software.amazon.awssdk.services.firehose.model.ListDeliveryStreamsRequest;
 import software.amazon.awssdk.services.firehose.model.ListDeliveryStreamsResponse;
@@ -87,7 +87,7 @@ public class ServiceIntegrationTest extends AwsTestBase {
         String recordId = firehose.putRecord(PutRecordRequest.builder()
                                                              .deliveryStreamName(DEVLIVERY_STREAM_NAME)
                                                              .record(Record.builder()
-                                                                           .data(ByteBuffer.wrap(new byte[] {0, 1, 2}))
+                                                                           .data(SdkBytes.fromByteArray(new byte[] {0, 1, 2}))
                                                                            .build())
                                                              .build()
                                             ).recordId();
@@ -97,8 +97,8 @@ public class ServiceIntegrationTest extends AwsTestBase {
         List<PutRecordBatchResponseEntry> entries = firehose.putRecordBatch(
                 PutRecordBatchRequest.builder()
                                      .deliveryStreamName(DEVLIVERY_STREAM_NAME)
-                                     .records(Record.builder().data(ByteBuffer.wrap(new byte[] {0})).build(),
-                                              Record.builder().data(ByteBuffer.wrap(new byte[] {1})).build())
+                                     .records(Record.builder().data(SdkBytes.fromByteArray(new byte[] {0})).build(),
+                                              Record.builder().data(SdkBytes.fromByteArray(new byte[] {1})).build())
                                      .build()
                                                                            ).requestResponses();
         assertEquals(2, entries.size());
@@ -124,9 +124,9 @@ public class ServiceIntegrationTest extends AwsTestBase {
         try {
             firehose.createDeliveryStream(CreateDeliveryStreamRequest.builder().build());
             fail("ValidationException is expected.");
-        } catch (SdkServiceException exception) {
-            assertEquals("ValidationException", exception.errorCode());
-            assertNotEmpty(exception.errorMessage());
+        } catch (AwsServiceException exception) {
+            assertEquals("ValidationException", exception.awsErrorDetails().errorCode());
+            assertNotEmpty(exception.awsErrorDetails().errorMessage());
         }
     }
 

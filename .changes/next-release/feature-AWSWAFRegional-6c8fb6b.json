@@ -1,0 +1,5 @@
+{
+    "category": "AWS WAF Regional", 
+    "type": "feature", 
+    "description": "AWS Waf Regional clients are now in `software.amazon.awssdk.services.waf.regional` package."
+}

@@ -19,6 +19,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.datamodeling.ArgumentMarshaller.BinarySetAttributeMarshaller;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -43,10 +44,10 @@ public class ByteBufferSetToBinarySetMarshaller
     public AttributeValue marshall(Object obj) {
         @SuppressWarnings("unchecked")
         Set<ByteBuffer> buffers = (Set<ByteBuffer>) obj;
-        List<ByteBuffer> attributes = new ArrayList<ByteBuffer>(buffers.size());
+        List<SdkBytes> attributes = new ArrayList<SdkBytes>(buffers.size());
 
         for (ByteBuffer b : buffers) {
-            attributes.add(b);
+            attributes.add(SdkBytes.fromByteBuffer(b));
         }
 
         return AttributeValue.builder().bs(attributes).build();

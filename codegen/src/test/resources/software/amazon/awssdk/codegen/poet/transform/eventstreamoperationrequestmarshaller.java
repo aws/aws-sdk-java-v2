@@ -1,6 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests.transform;
 
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.protocol.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.core.Request;
@@ -18,10 +18,10 @@ import software.amazon.awssdk.utils.Validate;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public class EventStreamOperationRequestMarshaller implements
-                                                   Marshaller<Request<EventStreamOperationRequest>, EventStreamOperationRequest> {
+        Marshaller<Request<EventStreamOperationRequest>, EventStreamOperationRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder()
-                                                                            .requestUri("/2016-03-11/eventStreamOperation").httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(false)
-                                                                            .hasPayloadMembers(false).build();
+            .requestUri("/2016-03-11/eventStreamOperation").httpMethodName(HttpMethodName.POST).hasExplicitPayloadMember(false)
+            .hasPayloadMembers(false).build();
 
     private final AwsJsonProtocolFactory protocolFactory;
 
@@ -34,13 +34,12 @@ public class EventStreamOperationRequestMarshaller implements
         Validate.paramNotNull(eventStreamOperationRequest, "eventStreamOperationRequest");
         try {
             ProtocolRequestMarshaller<EventStreamOperationRequest> protocolMarshaller = protocolFactory.createProtocolMarshaller(
-                SDK_OPERATION_BINDING, eventStreamOperationRequest);
+                    SDK_OPERATION_BINDING, eventStreamOperationRequest);
             protocolMarshaller.startMarshalling();
             EventStreamOperationRequestModelMarshaller.getInstance().marshall(eventStreamOperationRequest, protocolMarshaller);
             return protocolMarshaller.finishMarshalling();
         } catch (Exception e) {
-            throw new SdkClientException("Unable to marshall request to JSON: " + e.getMessage(), e);
+            throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e).build();
         }
     }
 }
-

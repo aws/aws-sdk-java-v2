@@ -42,7 +42,6 @@ import utils.test.util.DynamoDBTestBase;
 /**
  * Tests on the DynamoDBMapper.generateCreateTableRequest method.
  */
-@Ignore // FIXME: setup fails with "region cannot be null"
 public class GenerateCreateTableRequestTest extends DynamoDBTestBase {
 
     private static DynamoDbMapper mapper;
@@ -65,6 +64,7 @@ public class GenerateCreateTableRequestTest extends DynamoDBTestBase {
     }
 
     @Test
+    @Ignore // No longer works because mapper is not aware of auto construct lists
     public void testParseIndexRangeKeyClass() {
         CreateTableRequest request = mapper.generateCreateTableRequest(IndexRangeKeyClass.class);
 

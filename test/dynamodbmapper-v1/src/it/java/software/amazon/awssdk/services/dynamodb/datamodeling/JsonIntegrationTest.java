@@ -24,6 +24,7 @@ import java.util.UUID;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -92,6 +93,7 @@ public class JsonIntegrationTest extends AwsTestBase {
     }
 
     @Test
+    @Ignore
     public void testIt() {
         final ChildClass child1 = new ChildClass();
         child1.setBool(true);

@@ -30,7 +30,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -77,7 +77,7 @@ public class VirtualHostAddressingSepTest {
 
     private S3Client constructClient(TestCaseModel testCaseModel) {
         return S3Client.builder()
-                       .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
+                       .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                        .httpClient(mockHttpClient)
                        .region(Region.of(testCaseModel.getRegion()))
                        .serviceConfiguration(c -> c.pathStyleAccessEnabled(testCaseModel.isPathStyle())

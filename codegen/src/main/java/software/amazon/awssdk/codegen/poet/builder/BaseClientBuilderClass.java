@@ -224,7 +224,7 @@ public class BaseClientBuilderClass implements ClassSpec {
 
     private CodeBlock s3SignerDefinitionMethodBody() {
         return CodeBlock.of("return $T.create();\n",
-                            ClassName.get("software.amazon.awssdk.services.s3", "AwsS3V4Signer"));
+                            ClassName.get("software.amazon.awssdk.auth.signer", "AwsS3V4Signer"));
     }
 
     @Override

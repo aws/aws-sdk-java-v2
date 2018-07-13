@@ -18,7 +18,6 @@ package software.amazon.awssdk.codegen.emitters.tasks;
 import static software.amazon.awssdk.utils.FunctionalUtils.safeFunction;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,8 +53,10 @@ public class PaginatorsGeneratorTasks extends BaseGeneratorTasks {
     }
 
     private Stream<GeneratorTask> createSyncAndAsyncTasks(Map.Entry<String, PaginatorDefinition> entry) throws IOException {
-        return Arrays.asList(createSyncTask(entry), createAsyncTask(entry))
-                     .stream();
+        if (!shouldGenerateSyncPaginators()) {
+            return Stream.of(createAsyncTask(entry));
+        }
+        return Stream.of(createSyncTask(entry), createAsyncTask(entry));
     }
 
     private GeneratorTask createSyncTask(Map.Entry<String, PaginatorDefinition> entry) throws IOException {
@@ -68,5 +69,9 @@ public class PaginatorsGeneratorTasks extends BaseGeneratorTasks {
         ClassSpec classSpec = new AsyncResponseClassSpec(model, entry.getKey(), entry.getValue());
 
         return new PoetGeneratorTask(paginatorsClassDir, model.getFileHeader(), classSpec);
+    }
+
+    private boolean shouldGenerateSyncPaginators() {
+        return !super.model.getCustomizationConfig().isSkipSyncClientGeneration();
     }
 }

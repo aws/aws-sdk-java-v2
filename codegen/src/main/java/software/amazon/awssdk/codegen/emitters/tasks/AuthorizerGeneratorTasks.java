@@ -25,7 +25,7 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.AuthorizerModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 public class AuthorizerGeneratorTasks extends BaseGeneratorTasks {
 
@@ -52,7 +52,7 @@ public class AuthorizerGeneratorTasks extends BaseGeneratorTasks {
 
     private GeneratorTask createTask(AuthorizerModel customAuthorizer) throws Exception {
         Metadata metadata = model.getMetadata();
-        Map<String, Object> dataModel = ImmutableMapParameter.of(
+        Map<String, Object> dataModel = ImmutableMap.of(
                 "fileHeader", model.getFileHeader(),
                 "className", customAuthorizer.getInterfaceName(),
                 "authorizer", customAuthorizer,

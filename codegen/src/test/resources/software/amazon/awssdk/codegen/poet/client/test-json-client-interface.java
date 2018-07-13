@@ -2,7 +2,7 @@ package software.amazon.awssdk.services.json;
 
 import java.nio.file.Path;
 import java.util.function.Consumer;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -108,7 +108,7 @@ public interface JsonClient extends SdkClient {
      */
     default APostOperationResponse aPostOperation(Consumer<APostOperationRequest.Builder> aPostOperationRequest)
             throws InvalidInputException, AwsServiceException, SdkClientException, JsonException {
-        return aPostOperation(APostOperationRequest.builder().apply(aPostOperationRequest).build());
+        return aPostOperation(APostOperationRequest.builder().applyMutation(aPostOperationRequest).build());
     }
 
     /**
@@ -167,7 +167,8 @@ public interface JsonClient extends SdkClient {
     default APostOperationWithOutputResponse aPostOperationWithOutput(
             Consumer<APostOperationWithOutputRequest.Builder> aPostOperationWithOutputRequest) throws InvalidInputException,
                                                                                                       AwsServiceException, SdkClientException, JsonException {
-        return aPostOperationWithOutput(APostOperationWithOutputRequest.builder().apply(aPostOperationWithOutputRequest).build());
+        return aPostOperationWithOutput(APostOperationWithOutputRequest.builder().applyMutation(aPostOperationWithOutputRequest)
+                                                                       .build());
     }
 
     /**
@@ -251,8 +252,8 @@ public interface JsonClient extends SdkClient {
     default GetWithoutRequiredMembersResponse getWithoutRequiredMembers(
             Consumer<GetWithoutRequiredMembersRequest.Builder> getWithoutRequiredMembersRequest) throws InvalidInputException,
                                                                                                         AwsServiceException, SdkClientException, JsonException {
-        return getWithoutRequiredMembers(GetWithoutRequiredMembersRequest.builder().apply(getWithoutRequiredMembersRequest)
-                                                                         .build());
+        return getWithoutRequiredMembers(GetWithoutRequiredMembersRequest.builder()
+                                                                         .applyMutation(getWithoutRequiredMembersRequest).build());
     }
 
     /**
@@ -324,7 +325,79 @@ public interface JsonClient extends SdkClient {
             Consumer<PaginatedOperationWithResultKeyRequest.Builder> paginatedOperationWithResultKeyRequest)
             throws AwsServiceException, SdkClientException, JsonException {
         return paginatedOperationWithResultKey(PaginatedOperationWithResultKeyRequest.builder()
-                                                                                     .apply(paginatedOperationWithResultKeyRequest).build());
+                                                                                     .applyMutation(paginatedOperationWithResultKeyRequest).build());
+    }
+
+    /**
+     * Some paginated operation with result_key in paginators.json file<br/>
+     * <p>
+     * This is a variant of
+     * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
+     * operation. The return type is a custom iterable that can be used to iterate through all the pages. SDK will
+     * internally handle making service calls for you.
+     * </p>
+     * <p>
+     * When this operation is called, a custom iterable is returned but no service calls are made yet. So there is no
+     * guarantee that the request is valid. As you iterate through the iterable, SDK will start lazily loading response
+     * pages by making service calls until there are no pages left or your iteration stops. If there are errors in your
+     * request, you will see the failures only after you start iterating through the iterable.
+     * </p>
+     *
+     * <p>
+     * The following are few ways to iterate through the response pages:
+     * </p>
+     * 1) Using a Stream
+     *
+     * <pre>
+     * {@code
+     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable responses = client.paginatedOperationWithResultKeyPaginator(request);
+     * responses.stream().forEach(....);
+     * }
+     * </pre>
+     *
+     * 2) Using For loop
+     *
+     * <pre>
+     * {
+     *     &#064;code
+     *     software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable responses = client
+     *             .paginatedOperationWithResultKeyPaginator(request);
+     *     for (software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse response : responses) {
+     *         // do something;
+     *     }
+     * }
+     * </pre>
+     *
+     * 3) Use iterator directly
+     *
+     * <pre>
+     * {@code
+     * software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable responses = client.paginatedOperationWithResultKeyPaginator(request);
+     * responses.iterator().forEachRemaining(....);
+     * }
+     * </pre>
+     * <p>
+     * <b>Note: If you prefer to have control on service calls, use the
+     * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
+     * operation.</b>
+     * </p>
+     *
+     * @return A custom iterable that can be used to iterate through all the response pages.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.PaginatedOperationWithResultKey
+     * @see #paginatedOperationWithResultKeyPaginator(PaginatedOperationWithResultKeyRequest)
+     * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default PaginatedOperationWithResultKeyIterable paginatedOperationWithResultKeyPaginator() throws AwsServiceException,
+                                                                                                      SdkClientException, JsonException {
+        return paginatedOperationWithResultKeyPaginator(PaginatedOperationWithResultKeyRequest.builder().build());
     }
 
     /**
@@ -453,7 +526,14 @@ public interface JsonClient extends SdkClient {
      * {@link #paginatedOperationWithResultKey(software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest)}
      * operation.</b>
      * </p>
+     * <p>
+     * This is a convenience which creates an instance of the {@link PaginatedOperationWithResultKeyRequest.Builder}
+     * avoiding the need to create one manually via {@link PaginatedOperationWithResultKeyRequest#builder()}
+     * </p>
      *
+     * @param paginatedOperationWithResultKeyRequest
+     *        A {@link Consumer} that will call methods on {@link PaginatedOperationWithResultKeyRequest.Builder} to
+     *        create a request.
      * @return A custom iterable that can be used to iterate through all the response pages.
      * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
@@ -463,13 +543,14 @@ public interface JsonClient extends SdkClient {
      * @throws JsonException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
      * @sample JsonClient.PaginatedOperationWithResultKey
-     * @see #paginatedOperationWithResultKeyPaginator(PaginatedOperationWithResultKeyRequest)
      * @see <a href="http://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PaginatedOperationWithResultKey"
      *      target="_top">AWS API Documentation</a>
      */
-    default PaginatedOperationWithResultKeyIterable paginatedOperationWithResultKeyPaginator() throws AwsServiceException,
-                                                                                                      SdkClientException, JsonException {
-        return paginatedOperationWithResultKeyPaginator(PaginatedOperationWithResultKeyRequest.builder().build());
+    default PaginatedOperationWithResultKeyIterable paginatedOperationWithResultKeyPaginator(
+            Consumer<PaginatedOperationWithResultKeyRequest.Builder> paginatedOperationWithResultKeyRequest)
+            throws AwsServiceException, SdkClientException, JsonException {
+        return paginatedOperationWithResultKeyPaginator(PaginatedOperationWithResultKeyRequest.builder()
+                                                                                              .applyMutation(paginatedOperationWithResultKeyRequest).build());
     }
 
     /**
@@ -520,7 +601,7 @@ public interface JsonClient extends SdkClient {
             Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest)
             throws AwsServiceException, SdkClientException, JsonException {
         return paginatedOperationWithoutResultKey(PaginatedOperationWithoutResultKeyRequest.builder()
-                                                                                           .apply(paginatedOperationWithoutResultKeyRequest).build());
+                                                                                           .applyMutation(paginatedOperationWithoutResultKeyRequest).build());
     }
 
     /**
@@ -673,7 +754,7 @@ public interface JsonClient extends SdkClient {
             Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest)
             throws AwsServiceException, SdkClientException, JsonException {
         return paginatedOperationWithoutResultKeyPaginator(PaginatedOperationWithoutResultKeyRequest.builder()
-                                                                                                    .apply(paginatedOperationWithoutResultKeyRequest).build());
+                                                                                                    .applyMutation(paginatedOperationWithoutResultKeyRequest).build());
     }
 
     /**
@@ -745,8 +826,8 @@ public interface JsonClient extends SdkClient {
     default StreamingInputOperationResponse streamingInputOperation(
             Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, RequestBody requestBody)
             throws AwsServiceException, SdkClientException, JsonException {
-        return streamingInputOperation(StreamingInputOperationRequest.builder().apply(streamingInputOperationRequest).build(),
-                                       requestBody);
+        return streamingInputOperation(StreamingInputOperationRequest.builder().applyMutation(streamingInputOperationRequest)
+                                                                     .build(), requestBody);
     }
 
     /**
@@ -808,8 +889,8 @@ public interface JsonClient extends SdkClient {
     default StreamingInputOperationResponse streamingInputOperation(
             Consumer<StreamingInputOperationRequest.Builder> streamingInputOperationRequest, Path filePath)
             throws AwsServiceException, SdkClientException, JsonException {
-        return streamingInputOperation(StreamingInputOperationRequest.builder().apply(streamingInputOperationRequest).build(),
-                                       filePath);
+        return streamingInputOperation(StreamingInputOperationRequest.builder().applyMutation(streamingInputOperationRequest)
+                                                                     .build(), filePath);
     }
 
     /**
@@ -874,8 +955,8 @@ public interface JsonClient extends SdkClient {
             Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest,
             ResponseTransformer<StreamingOutputOperationResponse, ReturnT> responseTransformer) throws AwsServiceException,
                                                                                                        SdkClientException, JsonException {
-        return streamingOutputOperation(StreamingOutputOperationRequest.builder().apply(streamingOutputOperationRequest).build(),
-                                        responseTransformer);
+        return streamingOutputOperation(StreamingOutputOperationRequest.builder().applyMutation(streamingOutputOperationRequest)
+                                                                       .build(), responseTransformer);
     }
 
     /**
@@ -935,8 +1016,8 @@ public interface JsonClient extends SdkClient {
     default StreamingOutputOperationResponse streamingOutputOperation(
             Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest, Path filePath)
             throws AwsServiceException, SdkClientException, JsonException {
-        return streamingOutputOperation(StreamingOutputOperationRequest.builder().apply(streamingOutputOperationRequest).build(),
-                                        filePath);
+        return streamingOutputOperation(StreamingOutputOperationRequest.builder().applyMutation(streamingOutputOperationRequest)
+                                                                       .build(), filePath);
     }
 
     /**
@@ -998,7 +1079,8 @@ public interface JsonClient extends SdkClient {
     default ResponseInputStream<StreamingOutputOperationResponse> streamingOutputOperation(
             Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest) throws AwsServiceException,
                                                                                                       SdkClientException, JsonException {
-        return streamingOutputOperation(StreamingOutputOperationRequest.builder().apply(streamingOutputOperationRequest).build());
+        return streamingOutputOperation(StreamingOutputOperationRequest.builder().applyMutation(streamingOutputOperationRequest)
+                                                                       .build());
     }
 
     /**
@@ -1056,8 +1138,8 @@ public interface JsonClient extends SdkClient {
     default ResponseBytes<StreamingOutputOperationResponse> streamingOutputOperationAsBytes(
             Consumer<StreamingOutputOperationRequest.Builder> streamingOutputOperationRequest) throws AwsServiceException,
                                                                                                       SdkClientException, JsonException {
-        return streamingOutputOperationAsBytes(StreamingOutputOperationRequest.builder().apply(streamingOutputOperationRequest)
-                                                                              .build());
+        return streamingOutputOperationAsBytes(StreamingOutputOperationRequest.builder()
+                                                                              .applyMutation(streamingOutputOperationRequest).build());
     }
 
     static ServiceMetadata serviceMetadata() {

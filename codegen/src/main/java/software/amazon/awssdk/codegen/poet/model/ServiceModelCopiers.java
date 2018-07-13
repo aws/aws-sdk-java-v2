@@ -26,7 +26,7 @@ import software.amazon.awssdk.codegen.model.intermediate.MapModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
-import software.amazon.awssdk.core.internal.StandardMemberCopier;
+import software.amazon.awssdk.core.adapter.StandardMemberCopier;
 
 public class ServiceModelCopiers {
     private final IntermediateModel intermediateModel;
@@ -71,7 +71,7 @@ public class ServiceModelCopiers {
             return Optional.of(ClassName.get(StandardMemberCopier.class));
         }
 
-        // FIXME: Ugly hack, but some services (Health) have shapes with names
+        // FIXME: Some services (Health) have shapes with names
         // that differ only in the casing of the first letter, and generating
         // classes for them breaks on case insensitive filesystems...
         String shapeName = memberModel.getC2jShape();
@@ -84,6 +84,10 @@ public class ServiceModelCopiers {
 
     public String copyMethodName() {
         return "copy";
+    }
+
+    public String enumToStringCopyMethodName() {
+        return "copyEnumToString";
     }
 
     public String builderCopyMethodName() {
@@ -128,7 +132,7 @@ public class ServiceModelCopiers {
 
         String simpleType = m.getVariable().getSimpleType();
 
-        return "Date".equals(simpleType) || "ByteBuffer".equals(simpleType);
+        return "Date".equals(simpleType) || "SdkBytes".equals(simpleType);
     }
 
     private boolean canCopyReference(MemberModel m) {
@@ -140,7 +144,7 @@ public class ServiceModelCopiers {
             String simpleType = m.getVariable().getSimpleType();
             switch (simpleType) {
                 case "Date":
-                case "ByteBuffer":
+                case "SdkBytes":
                     return false;
                 default:
                     return true;

@@ -25,10 +25,10 @@ import static software.amazon.awssdk.codegen.internal.DocumentationUtils.stripHt
 import static software.amazon.awssdk.utils.StringUtils.upperCase;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.runtime.transform.PathMarshaller;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -67,6 +67,8 @@ public class MemberModel extends DocumentationModel {
     private String fluentEnumGetterMethodName;
 
     private String fluentSetterMethodName;
+
+    private String fluentEnumSetterMethodName;
 
     private String beanStyleGetterName;
 
@@ -218,6 +220,19 @@ public class MemberModel extends DocumentationModel {
         return this;
     }
 
+    public String getFluentEnumSetterMethodName() {
+        return fluentEnumSetterMethodName;
+    }
+
+    public void setFluentEnumSetterMethodName(String fluentEnumSetterMethodName) {
+        this.fluentEnumSetterMethodName = fluentEnumSetterMethodName;
+    }
+
+    public MemberModel withFluentEnumSetterMethodName(String fluentEnumSetterMethodName) {
+        setFluentEnumSetterMethodName(fluentEnumSetterMethodName);
+        return this;
+    }
+
     public ReturnTypeModel getGetterModel() {
         return getterModel;
     }
@@ -316,11 +331,6 @@ public class MemberModel extends DocumentationModel {
 
         docBuilder.append(StringUtils.isNotBlank(documentation) ? documentation : defaultSetter().replace("%s", name) + "\n");
 
-        if (returnTypeIs(ByteBuffer.class)) {
-            appendParagraph(docBuilder, "To preserve immutability, the remaining bytes in the provided buffer will be copied "
-                                        + "into a new buffer when set.");
-        }
-
         docBuilder.append(getParamDoc())
                 .append(getEnumDoc());
 
@@ -332,10 +342,7 @@ public class MemberModel extends DocumentationModel {
         docBuilder.append(StringUtils.isNotBlank(documentation) ? documentation : defaultGetter().replace("%s", name))
                 .append(LF);
 
-        if (returnTypeIs(ByteBuffer.class)) {
-            appendParagraph(docBuilder,
-                            "This method will return a new read-only {@code ByteBuffer} each time it is invoked.");
-        } else if (returnTypeIs(List.class) || returnTypeIs(Map.class)) {
+        if (returnTypeIs(List.class) || returnTypeIs(Map.class)) {
             appendParagraph(docBuilder, "Attempts to modify the collection returned by this method will result in an "
                                         + "UnsupportedOperationException.");
         }
@@ -441,12 +448,11 @@ public class MemberModel extends DocumentationModel {
     }
 
     public boolean getIsBinary() {
-        return http.getIsStreaming() || (http.getIsPayload() && "java.nio.ByteBuffer".equals(variable.getVariableType()));
+        return http.getIsStreaming() || (http.getIsPayload() && isSdkBytesType());
     }
 
     /**
-     * @return Implementation of {@link software.amazon.awssdk.transform.PathMarshallers.PathMarshaller} to use if this
-     *     member is bound the the URI.
+     * @return Implementation of {@link PathMarshaller} to use if this member is bound the the URI.
      * @throws IllegalStateException If this member is not bound to the URI. Templates should first check
      *     {@link ParameterHttpMapping#isUri()} first.
      */
@@ -466,7 +472,7 @@ public class MemberModel extends DocumentationModel {
     }
 
     /**
-     * Used for JSON services. Name of the field containing the {@link MarshallingInfo} for
+     * Used for JSON services. Name of the field containing the {@link software.amazon.awssdk.core.protocol.MarshallingInfo} for
      * this member.
      */
     @JsonIgnore
@@ -485,11 +491,16 @@ public class MemberModel extends DocumentationModel {
                (isMap() && getMapModel().getValueModel() != null && getMapModel().getValueModel().hasBuilder());
     }
 
+    @JsonIgnore
+    public boolean isSdkBytesType() {
+        return SdkBytes.class.getName().equals(variable.getVariableType());
+    }
+
     /**
      * Currently used only for JSON services.
      *
-     * @return Marshalling type to use when creating a {@link MarshallingInfo}. Must be a field of {@link
-     * software.amazon.awssdk.core.protocol.MarshallingType}.
+     * @return Marshalling type to use when creating a {@link software.amazon.awssdk.core.protocol.MarshallingInfo}. Must be a
+     * field of {@link software.amazon.awssdk.core.protocol.MarshallingType}.
      */
     public String getMarshallingType() {
         if (isList()) {

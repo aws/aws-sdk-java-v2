@@ -76,9 +76,9 @@ public class S3IntegrationTestBase extends AwsTestBase {
                                        .build());
         } catch (S3Exception e) {
             System.err.println("Error attempting to create bucket: " + bucketName);
-            if (e.errorCode().equals("BucketAlreadyOwnedByYou")) {
+            if (e.awsErrorDetails().errorCode().equals("BucketAlreadyOwnedByYou")) {
                 System.err.printf("%s bucket already exists, likely leaked by a previous run\n", bucketName);
-            } else if (e.errorCode().equals("TooManyBuckets")) {
+            } else if (e.awsErrorDetails().errorCode().equals("TooManyBuckets")) {
                 System.err.println("Printing all buckets for debug:");
                 s3.listBuckets().buckets().forEach(System.err::println);
                 if (retryCount < 2) {

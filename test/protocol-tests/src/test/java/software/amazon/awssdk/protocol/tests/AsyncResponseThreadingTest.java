@@ -30,7 +30,7 @@ import java.util.concurrent.Executor;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.regions.Region;
@@ -54,7 +54,7 @@ public class AsyncResponseThreadingTest {
                 ProtocolRestJsonAsyncClient.builder()
                                            .region(Region.US_WEST_1)
                                            .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                           .credentialsProvider(() -> AwsCredentials.create("akid", "skid"))
+                                           .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
                                            .asyncConfiguration(c -> c.advancedOption(FUTURE_COMPLETION_EXECUTOR, mockExecutor))
                                            .build();
 

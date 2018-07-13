@@ -36,6 +36,7 @@ import java.util.Map.Entry;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.sns.model.AddPermissionRequest;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
@@ -110,11 +111,11 @@ public class SNSIntegrationTest extends IntegrationTestBase {
     public void testCloudcastExceptionHandling() {
         try {
             sns.createTopic(CreateTopicRequest.builder().name("").build());
-        } catch (SdkServiceException exception) {
-            assertEquals("InvalidParameter", exception.errorCode());
+        } catch (AwsServiceException exception) {
+            assertEquals("InvalidParameter", exception.awsErrorDetails().errorCode());
             assertTrue(exception.getMessage().length() > 5);
             assertTrue(exception.requestId().length() > 5);
-            assertTrue(exception.serviceName().length() > 5);
+            assertTrue(exception.awsErrorDetails().serviceName().length() > 5);
             assertEquals(400, exception.statusCode());
         }
     }
@@ -371,11 +372,12 @@ public class SNSIntegrationTest extends IntegrationTestBase {
 
         Thread.sleep(1000 * 4);
         String queueArn = sqs.getQueueAttributes(
-                GetQueueAttributesRequest.builder().queueUrl(queueUrl).attributeNames(new String[] {"QueueArn"}).build())
+                GetQueueAttributesRequest.builder().queueUrl(queueUrl).attributeNames(QueueAttributeName.QUEUE_ARN)
+                                         .build())
                              .attributes().get(QueueAttributeName.QUEUE_ARN);
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("Policy", generateSqsPolicyForTopic(queueArn, topicArn));
-        sqs.setQueueAttributes(SetQueueAttributesRequest.builder().queueUrl(queueUrl).attributes(attributes).build());
+        sqs.setQueueAttributes(SetQueueAttributesRequest.builder().queueUrl(queueUrl).attributesWithStrings(attributes).build());
         int policyPropagationDelayInSeconds = 60;
         System.out.println("Sleeping " + policyPropagationDelayInSeconds + " seconds to let SQS policy propagate");
         Thread.sleep(1000 * policyPropagationDelayInSeconds);

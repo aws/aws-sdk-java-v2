@@ -35,7 +35,7 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * An implementation of {@link AwsCredentialsProvider} that is extended within this package to provide support for periodically-
  * updating session credentials. When credentials get close to expiration, this class will attempt to update them asynchronously
  * using {@link #getUpdatedCredentials(StsClient)}. If the credentials end up expiring, this class will block all calls to
- * {@link #getCredentials()} until the credentials can be updated.
+ * {@link #resolveCredentials()} until the credentials can be updated.
  */
 @ThreadSafe
 @SdkInternalApi
@@ -74,7 +74,7 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
     }
 
     @Override
-    public AwsCredentials getCredentials() {
+    public AwsCredentials resolveCredentials() {
         return sessionCache.get().getSessionCredentials();
     }
 

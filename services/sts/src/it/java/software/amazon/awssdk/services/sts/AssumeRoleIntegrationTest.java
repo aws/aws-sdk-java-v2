@@ -22,6 +22,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.internal.ProfileCredentialsUtils;
@@ -31,7 +32,7 @@ import software.amazon.awssdk.core.auth.policy.Principal;
 import software.amazon.awssdk.core.auth.policy.Resource;
 import software.amazon.awssdk.core.auth.policy.Statement;
 import software.amazon.awssdk.core.auth.policy.Statement.Effect;
-import software.amazon.awssdk.core.util.StringInputStream;
+import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.services.iam.model.AccessKeyMetadata;
 import software.amazon.awssdk.services.iam.model.CreateAccessKeyRequest;
@@ -75,8 +76,8 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
         // Create credentials for that user
         CreateAccessKeyResponse createAccessKeyResult =
                 iam.createAccessKey(CreateAccessKeyRequest.builder().userName(USER_NAME).build());
-        userCredentials = AwsCredentials.create(createAccessKeyResult.accessKey().accessKeyId(),
-                                                createAccessKeyResult.accessKey().secretAccessKey());
+        userCredentials = AwsBasicCredentials.create(createAccessKeyResult.accessKey().accessKeyId(),
+                                                     createAccessKeyResult.accessKey().secretAccessKey());
 
         // Allow the user to assume roles
         String policyDoc = new Policy()
@@ -190,7 +191,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
 
         assertThat(profiles.profile("test")).hasValueSatisfying(profile -> {
             assertThat(new ProfileCredentialsUtils(profile, profiles::profile).credentialsProvider()).hasValueSatisfying(credentialsProvider -> {
-                assertThat(credentialsProvider.getCredentials()).satisfies(credentials -> {
+                assertThat(credentialsProvider.resolveCredentials()).satisfies(credentials -> {
                     assertThat(credentials.accessKeyId()).isNotBlank();
                     assertThat(credentials.secretAccessKey()).isNotBlank();
                     ((SdkAutoCloseable) credentialsProvider).close();

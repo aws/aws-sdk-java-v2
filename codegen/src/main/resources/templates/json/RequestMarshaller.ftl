@@ -24,9 +24,9 @@ import ${metadata.fullModelPackageName}.*;
 import ${metadata.fullTransformPackageName}.*;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.core.util.StringConversion;
 import software.amazon.awssdk.core.util.IdempotentUtils;
-import software.amazon.awssdk.core.util.StringInputStream;
+import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.core.protocol.*;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
@@ -58,7 +58,7 @@ public class ${className} implements Marshaller<Request<${shapeName}>, ${shapeNa
     public Request<${shapeName}> marshall(${shape.variable.variableType} ${shape.variable.variableName}) {
 
         if (${shape.variable.variableName} == null) {
-            throw new SdkClientException("Invalid argument passed to marshall(...)");
+            throw SdkClientException.builder().message("Invalid argument passed to marshall(...)").build();
         }
 
         <@RequiredParameterValidationInvocationMacro.content customConfig shape/>
@@ -71,7 +71,7 @@ public class ${className} implements Marshaller<Request<${shapeName}>, ${shapeNa
             ${shapeName}ModelMarshaller.getInstance().marshall(${shape.variable.variableName}, protocolMarshaller);
             return protocolMarshaller.finishMarshalling();
         } catch(Exception e) {
-            throw new SdkClientException("Unable to marshall request to JSON: " + e.getMessage(), e);
+            throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).throwable(e).build();
         }
     }
 

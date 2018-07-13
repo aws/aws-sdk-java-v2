@@ -48,8 +48,6 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
     private String requestSignerClassFqcn;
 
     private List<MemberModel> members;
-    // Any constructor in addition to the default no-arg
-    private List<ConstructorModel> additionalConstructors;
     private List<EnumModel> enums;
 
     private VariableModel variable;
@@ -294,22 +292,6 @@ public class ShapeModel extends DocumentationModel implements HasDeprecation {
             this.members = new ArrayList<MemberModel>();
         }
         members.add(member);
-    }
-
-    @JsonIgnore
-    public List<ConstructorModel> getAdditionalConstructors() {
-        return additionalConstructors;
-    }
-
-    public void setAdditionalConstructors(List<ConstructorModel> additionalConstructors) {
-        this.additionalConstructors = additionalConstructors;
-    }
-
-    public void addConstructor(ConstructorModel constructor) {
-        if (this.additionalConstructors == null) {
-            this.additionalConstructors = new ArrayList<ConstructorModel>();
-        }
-        this.additionalConstructors.add(constructor);
     }
 
     public List<EnumModel> getEnums() {

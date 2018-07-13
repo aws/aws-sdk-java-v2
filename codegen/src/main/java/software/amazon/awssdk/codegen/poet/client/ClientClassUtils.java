@@ -21,15 +21,23 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeVariableName;
 import java.util.Optional;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.util.VersionInfo;
 import software.amazon.awssdk.utils.Validate;
 
 final class ClientClassUtils {
+    private static final String PAGINATOR_USER_AGENT = "PAGINATED";
+
     private ClientClassUtils() {
     }
 
@@ -67,7 +75,7 @@ final class ClientClassUtils {
 
 
         // Parameters
-        StringBuilder methodBody = new StringBuilder("return $L($T.builder().apply($L).build()");
+        StringBuilder methodBody = new StringBuilder("return $L($T.builder().applyMutation($L).build()");
         for (int i = 1; i < spec.parameters.size(); i++) {
             ParameterSpec parameter = spec.parameters.get(i);
             methodBody.append(", ").append(parameter.name);
@@ -79,4 +87,39 @@ final class ClientClassUtils {
 
         return result.build();
     }
+
+    static MethodSpec applyPaginatorUserAgentMethod(PoetExtensions poetExtensions, IntermediateModel model) {
+
+        TypeVariableName typeVariableName =
+            TypeVariableName.get("T", poetExtensions.getModelClass(model.getSdkRequestBaseClassName()));
+
+        ParameterizedTypeName parameterizedTypeName = ParameterizedTypeName
+            .get(ClassName.get(Consumer.class), ClassName.get(AwsRequestOverrideConfiguration.Builder.class));
+
+        CodeBlock codeBlock = CodeBlock.builder()
+                                       .addStatement("$T userAgentApplier = b -> b.addApiName($T.builder().version"
+                                                     + "($T.SDK_VERSION).name($S).build())",
+                                                     parameterizedTypeName, ApiName.class,
+                                                     VersionInfo.class,
+                                                     PAGINATOR_USER_AGENT)
+                                       .addStatement("$T overrideConfiguration =\n"
+                                                     + "            request.overrideConfiguration().map(c -> c.toBuilder()"
+                                                     + ".applyMutation"
+                                                     + "(userAgentApplier).build())\n"
+                                                     + "            .orElse((AwsRequestOverrideConfiguration.builder()"
+                                                     + ".applyMutation"
+                                                     + "(userAgentApplier).build()))", AwsRequestOverrideConfiguration.class)
+                                       .addStatement("return (T) request.toBuilder().overrideConfiguration"
+                                                     + "(overrideConfiguration).build()")
+                                       .build();
+
+        return MethodSpec.methodBuilder("applyPaginatorUserAgent")
+                         .addModifiers(Modifier.PRIVATE)
+                         .addParameter(typeVariableName, "request")
+                         .addTypeVariable(typeVariableName)
+                         .addCode(codeBlock)
+                         .returns(typeVariableName)
+                         .build();
+    }
+
 }

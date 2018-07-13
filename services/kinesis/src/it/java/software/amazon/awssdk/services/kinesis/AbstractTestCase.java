@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Properties;
 import org.junit.BeforeClass;
-import software.amazon.awssdk.core.util.AwsHostNameUtils;
+import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
@@ -49,7 +49,9 @@ public class AbstractTestCase extends AwsTestBase {
             String endpoint = properties.getProperty("kinesis.endpoint");
 
             if (endpoint != null) {
-                Region region = Region.of(AwsHostNameUtils.parseRegion(endpoint, "kinesis"));
+                Region region = AwsHostNameUtils.parseSigningRegion(endpoint, "kinesis")
+                                                .orElseThrow(() -> new IllegalArgumentException("Unknown region for endpoint. " +
+                                                                                                endpoint));
                 builder.region(region)
                        .endpointOverride(URI.create(endpoint));
             }

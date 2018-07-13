@@ -48,6 +48,7 @@ public class CloudFormationIntegrationTestBase extends AwsTestBase {
     protected static String templateUrlForStackIntegrationTests = "https://s3.amazonaws.com/" + bucketName + "/"
                                                                   + templateForStackIntegrationTests;
     protected static S3Client s3;
+    protected static File templateForCloudFormationIntegrationTestsFile;
 
     /**
      * Loads the AWS account info for the integration tests and creates an S3 client for tests to
@@ -56,6 +57,7 @@ public class CloudFormationIntegrationTestBase extends AwsTestBase {
     @BeforeClass
     public static void setUp() throws Exception {
         setUpCredentials();
+        templateForCloudFormationIntegrationTestsFile = new File(getResourceFilePath(templateForCloudFormationIntegrationTests));
         cf = CloudFormationClient.builder()
                                  .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                  .region(Region.AP_NORTHEAST_1)
@@ -68,13 +70,19 @@ public class CloudFormationIntegrationTestBase extends AwsTestBase {
                                      .bucket(bucketName)
                                      .key(templateForCloudFormationIntegrationTests)
                                      .build(),
-                     RequestBody.fromFile(new File("tst/" + templateForCloudFormationIntegrationTests)));
+                     RequestBody.fromFile(templateForCloudFormationIntegrationTestsFile));
 
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(bucketName)
                                      .key(templateForStackIntegrationTests)
                                      .build(),
-                     RequestBody.fromFile(new File("tst/" + templateForStackIntegrationTests)));
+                     RequestBody.fromFile(new File(getResourceFilePath(templateForStackIntegrationTests))));
+    }
+
+    private static String getResourceFilePath(String file) {
+        return CloudFormationIntegrationTestBase.class.getClassLoader()
+                                                      .getResource(file)
+                                                      .getPath();
     }
 
     @AfterClass

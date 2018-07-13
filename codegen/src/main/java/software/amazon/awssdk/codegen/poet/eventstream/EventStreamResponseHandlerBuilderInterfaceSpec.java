@@ -23,10 +23,10 @@ import com.squareup.javapoet.TypeSpec;
 import java.util.function.Supplier;
 import javax.lang.model.element.Modifier;
 import org.reactivestreams.Publisher;
+import software.amazon.awssdk.awscore.eventstream.EventStreamResponseHandler;
 import software.amazon.awssdk.codegen.docs.DocumentationBuilder;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.eventstream.EventStreamResponseHandler;
 
 /**
  * Spec for generated response handler builder

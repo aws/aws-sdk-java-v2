@@ -32,11 +32,11 @@ public class Base64UtilsCodecTest {
         for (int i = 0; i < testVectors.length; i++) {
             String data = testVectors[i];
             byte[] source = data.getBytes("UTF-8");
-            String b64encoded = Base64Utils.encodeAsString(data.getBytes("UTF-8"));
+            String b64encoded = BinaryUtils.toBase64(data.getBytes("UTF-8"));
             Assert.assertEquals(expected[i], b64encoded);
             byte[] b64 = b64encoded.getBytes("UTF-8");
 
-            byte[] decoded = Base64Utils.decode(b64);
+            byte[] decoded = BinaryUtils.fromBase64Bytes(b64);
             Assert.assertTrue(Arrays.equals(source, decoded));
         }
     }
@@ -47,8 +47,8 @@ public class Base64UtilsCodecTest {
 
         for (int h = 0; h < 1000; h++) {
             byte[] digest = MessageDigest.getInstance("SHA-1").digest(UUID.randomUUID().toString().getBytes("UTF-8"));
-            String b64Encoded = Base64Utils.encodeAsString(digest);
-            decoded = Base64Utils.decode(b64Encoded);
+            String b64Encoded = BinaryUtils.toBase64(digest);
+            decoded = BinaryUtils.fromBase64(b64Encoded);
             Assert.assertTrue(Arrays.equals(decoded, digest));
         }
     }

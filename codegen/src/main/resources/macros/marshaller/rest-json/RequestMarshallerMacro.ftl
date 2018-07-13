@@ -9,7 +9,7 @@ ${dataModel.fileHeader}
 package ${metadata.fullRequestTransformPackageName};
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static software.amazon.awssdk.core.util.StringUtils.COMMA_SEPARATOR;
+import static software.amazon.awssdk.core.util.StringConversion.COMMA_SEPARATOR;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
@@ -29,9 +29,9 @@ import software.amazon.awssdk.core.http.HttpMethodName;
 import ${metadata.fullModelPackageName}.*;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.core.util.StringConversion;
 import software.amazon.awssdk.core.util.IdempotentUtils;
-import software.amazon.awssdk.core.util.StringInputStream;
+import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.core.util.SdkHttpUtils;
 import software.amazon.awssdk.core.protocol.json.*;
 
@@ -51,7 +51,7 @@ public class ${shapeName}Marshaller implements Marshaller<Request<${shapeName}>,
     public Request<${shapeName}> marshall(${shape.variable.variableType} ${shape.variable.variableName}) {
 
         if (${shape.variable.variableName} == null) {
-            throw new SdkClientException("Invalid argument passed to marshall(...)");
+            throw SdkClientException.builder().message("Invalid argument passed to marshall(...)").build();
         }
 
         <@RequiredParameterValidationInvocationMacro.content dataModel.customConfig shape/>
@@ -74,8 +74,8 @@ public class ${shapeName}Marshaller implements Marshaller<Request<${shapeName}>,
                 if (!request.getHeaders().containsKey("Content-Type")) {
                     request.addHeader("Content-Type", protocolFactory.getContentType());
                 }
-                <#elseif (member.http.isPayload) && member.variable.variableType = "java.nio.ByteBuffer">
-                request.setContent(BinaryUtils.toStream(${shape.variable.variableName}.${member.getterMethodName}()));
+                <#elseif (member.http.isPayload) && member.variable.variableType = "software.amazon.awssdk.core.SdkBytes">
+                request.setContent(${shape.variable.variableName}.${member.getterMethodName}().asInputStream());
                 if (!request.getHeaders().containsKey("Content-Type")) {
                     request.addHeader("Content-Type", protocolFactory.getContentType());
                 }
@@ -121,7 +121,7 @@ public class ${shapeName}Marshaller implements Marshaller<Request<${shapeName}>,
                         request.addHeader("Content-Type", protocolFactory.getContentType());
                     }
                 } catch(Throwable t) {
-                    throw new SdkClientException("Unable to marshall request to JSON: " + t.getMessage(), t);
+                    throw SdkClientException.builder().message("Unable to marshall request to JSON: " + t.getMessage().throwable(t).build();
                 }
                 <#break>
                 </#if>
@@ -148,7 +148,7 @@ public class ${shapeName}Marshaller implements Marshaller<Request<${shapeName}>,
                 request.addHeader("Content-Type", protocolFactory.getContentType());
             }
         } catch(Throwable t) {
-            throw new SdkClientException("Unable to marshall request to JSON: " + t.getMessage(), t);
+            throw SdkClientException.builder().message("Unable to marshall request to JSON: " + t.getMessage()).throwable(t).build();
         }
         </#if>
 

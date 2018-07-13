@@ -23,7 +23,7 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -31,11 +31,11 @@ import software.amazon.awssdk.services.s3.S3Client;
 @Ignore
 // FIXME: Depends on S3 properly parsing region information from the endpoint (see AmazonS3#getRegionName())
 public class S3ClientCacheIntegrationTest {
-    private AwsCredentials credentials;
+    private AwsBasicCredentials credentials;
 
     @Before
     public void setUp() {
-        credentials = AwsCredentials.create("mock", "mock");
+        credentials = AwsBasicCredentials.create("mock", "mock");
     }
 
     @Test

@@ -3,9 +3,10 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.Optional;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.internal.StandardMemberCopier;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.adapter.StandardMemberCopier;
 import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.protocol.StructuredPojo;
 import software.amazon.awssdk.services.jsonprotocoltests.transform.StructWithNestedBlobTypeMarshaller;
@@ -17,9 +18,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class StructWithNestedBlobType implements StructuredPojo,
-                                                       ToCopyableBuilder<StructWithNestedBlobType.Builder,
-                                                           StructWithNestedBlobType> {
-    private final ByteBuffer nestedBlob;
+        ToCopyableBuilder<StructWithNestedBlobType.Builder, StructWithNestedBlobType> {
+    private final SdkBytes nestedBlob;
 
     private StructWithNestedBlobType(BuilderImpl builder) {
         this.nestedBlob = builder.nestedBlob;
@@ -27,14 +27,11 @@ public final class StructWithNestedBlobType implements StructuredPojo,
 
     /**
      * Returns the value of the NestedBlob property for this object.
-     * <p>
-     * This method will return a new read-only {@code ByteBuffer} each time it is invoked.
-     * </p>
      *
      * @return The value of the NestedBlob property for this object.
      */
-    public ByteBuffer nestedBlob() {
-        return nestedBlob == null ? null : nestedBlob.asReadOnlyBuffer();
+    public SdkBytes nestedBlob() {
+        return nestedBlob;
     }
 
     @Override
@@ -79,10 +76,10 @@ public final class StructWithNestedBlobType implements StructuredPojo,
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "NestedBlob":
-                return Optional.of(clazz.cast(nestedBlob()));
-            default:
-                return Optional.empty();
+        case "NestedBlob":
+            return Optional.ofNullable(clazz.cast(nestedBlob()));
+        default:
+            return Optional.empty();
         }
     }
 
@@ -95,20 +92,16 @@ public final class StructWithNestedBlobType implements StructuredPojo,
     public interface Builder extends CopyableBuilder<Builder, StructWithNestedBlobType> {
         /**
          * Sets the value of the NestedBlob property for this object.
-         * <p>
-         * To preserve immutability, the remaining bytes in the provided buffer will be copied into a new buffer when
-         * set.
-         * </p>
          *
          * @param nestedBlob
          *        The new value for the NestedBlob property for this object.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
-        Builder nestedBlob(ByteBuffer nestedBlob);
+        Builder nestedBlob(SdkBytes nestedBlob);
     }
 
     static final class BuilderImpl implements Builder {
-        private ByteBuffer nestedBlob;
+        private SdkBytes nestedBlob;
 
         private BuilderImpl() {
         }
@@ -118,17 +111,17 @@ public final class StructWithNestedBlobType implements StructuredPojo,
         }
 
         public final ByteBuffer getNestedBlob() {
-            return nestedBlob;
+            return nestedBlob == null ? null : nestedBlob.asByteBuffer();
         }
 
         @Override
-        public final Builder nestedBlob(ByteBuffer nestedBlob) {
+        public final Builder nestedBlob(SdkBytes nestedBlob) {
             this.nestedBlob = StandardMemberCopier.copy(nestedBlob);
             return this;
         }
 
         public final void setNestedBlob(ByteBuffer nestedBlob) {
-            this.nestedBlob = StandardMemberCopier.copy(nestedBlob);
+            nestedBlob(nestedBlob == null ? null : SdkBytes.fromByteBuffer(nestedBlob));
         }
 
         @Override

@@ -3,7 +3,7 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.protocol.StructuredPojo;
@@ -15,7 +15,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public final class StructWithTimestamp implements StructuredPojo, ToCopyableBuilder<StructWithTimestamp.Builder, StructWithTimestamp> {
+public final class StructWithTimestamp implements StructuredPojo,
+        ToCopyableBuilder<StructWithTimestamp.Builder, StructWithTimestamp> {
     private final Instant nestedTimestamp;
 
     private StructWithTimestamp(BuilderImpl builder) {
@@ -73,10 +74,10 @@ public final class StructWithTimestamp implements StructuredPojo, ToCopyableBuil
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "NestedTimestamp":
-                return Optional.of(clazz.cast(nestedTimestamp()));
-            default:
-                return Optional.empty();
+        case "NestedTimestamp":
+            return Optional.ofNullable(clazz.cast(nestedTimestamp()));
+        default:
+            return Optional.empty();
         }
     }
 

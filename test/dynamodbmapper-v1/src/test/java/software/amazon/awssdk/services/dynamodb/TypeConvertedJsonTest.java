@@ -23,7 +23,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
+import software.amazon.awssdk.utils.ImmutableMap;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbHashKey;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbMapper;
 import software.amazon.awssdk.services.dynamodb.datamodeling.DynamoDbTable;
@@ -45,10 +45,10 @@ public class TypeConvertedJsonTest {
         final DynamoDbMapper mapper = new DynamoDbMapper(ddb);
         when(ddb.getItem(any(GetItemRequest.class)))
                 .thenReturn(GetItemResponse.builder().item(
-                        ImmutableMapParameter.of("hashKey", AttributeValue.builder().s(HASH_KEY).build(),
-                                                 "jsonMappedPojo", AttributeValue.builder().s(
+                        ImmutableMap.of("hashKey", AttributeValue.builder().s(HASH_KEY).build(),
+                                        "jsonMappedPojo", AttributeValue.builder().s(
                                         "{\"knownField\": \"knownValue\", \"unknownField\": \"unknownValue\"}").build()
-                                                )).build());
+                                       )).build());
 
         final TopLevelPojo pojo = mapper.load(new TopLevelPojo().setHashKey(HASH_KEY));
         assertEquals("knownValue", pojo.getJsonMappedPojo().getKnownField());

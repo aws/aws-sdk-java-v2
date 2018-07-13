@@ -24,7 +24,7 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -315,7 +315,7 @@ public class S3EndpointResolutionTest {
      */
     private S3ClientBuilder clientBuilder() {
         return S3Client.builder()
-                       .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
+                       .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                        .region(Region.AP_SOUTH_1)
                        .httpClient(mockHttpClient);
     }
@@ -327,11 +327,11 @@ public class S3EndpointResolutionTest {
      */
     private S3ClientBuilder clientBuilderWithMockSigner() {
         return S3Client.builder()
-                       .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
+                       .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                        .region(Region.AP_SOUTH_1)
                        .overrideConfiguration(ClientOverrideConfiguration.builder()
-                                                                         .advancedOption(SdkAdvancedClientOption.SIGNER,
-                                                                                         mockSigner)
+                                                                         .putAdvancedOption(SdkAdvancedClientOption.SIGNER,
+                                                                                            mockSigner)
                                                                          .build())
                        .httpClient(mockHttpClient);
     }

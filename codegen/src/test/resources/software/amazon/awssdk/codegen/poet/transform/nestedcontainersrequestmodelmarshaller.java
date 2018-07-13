@@ -2,7 +2,7 @@ package software.amazon.awssdk.services.jsonprotocoltests.transform;
 
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
@@ -19,14 +19,14 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class NestedContainersRequestModelMarshaller {
     private static final MarshallingInfo<List> LISTOFLISTOFSTRINGS_BINDING = MarshallingInfo.builder(MarshallingType.LIST)
-                                                                                            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("ListOfListOfStrings").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("ListOfListOfStrings").isBinary(false).build();
 
     private static final MarshallingInfo<List> LISTOFLISTOFLISTOFSTRINGS_BINDING = MarshallingInfo.builder(MarshallingType.LIST)
-                                                                                                  .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("ListOfListOfListOfStrings").isBinary(false).build();
+            .marshallLocation(MarshallLocation.PAYLOAD).marshallLocationName("ListOfListOfListOfStrings").isBinary(false).build();
 
     private static final MarshallingInfo<Map> MAPOFSTRINGTOLISTOFLISTOFSTRINGS_BINDING = MarshallingInfo
-        .builder(MarshallingType.MAP).marshallLocation(MarshallLocation.PAYLOAD)
-        .marshallLocationName("MapOfStringToListOfListOfStrings").isBinary(false).build();
+            .builder(MarshallingType.MAP).marshallLocation(MarshallLocation.PAYLOAD)
+            .marshallLocationName("MapOfStringToListOfListOfStrings").isBinary(false).build();
 
     private static final NestedContainersRequestModelMarshaller INSTANCE = new NestedContainersRequestModelMarshaller();
 
@@ -47,9 +47,10 @@ public class NestedContainersRequestModelMarshaller {
             protocolMarshaller.marshall(nestedContainersRequest.listOfListOfStrings(), LISTOFLISTOFSTRINGS_BINDING);
             protocolMarshaller.marshall(nestedContainersRequest.listOfListOfListOfStrings(), LISTOFLISTOFLISTOFSTRINGS_BINDING);
             protocolMarshaller.marshall(nestedContainersRequest.mapOfStringToListOfListOfStrings(),
-                                        MAPOFSTRINGTOLISTOFLISTOFSTRINGS_BINDING);
+                    MAPOFSTRINGTOLISTOFLISTOFSTRINGS_BINDING);
         } catch (Exception e) {
-            throw new SdkClientException("Unable to marshall request to JSON: " + e.getMessage(), e);
+            throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e)
+                    .build();
         }
     }
 }

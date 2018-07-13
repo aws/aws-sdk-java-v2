@@ -16,12 +16,37 @@
 package software.amazon.awssdk.codegen.naming;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.Map;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.config.customization.ShareModelConfig;
+import software.amazon.awssdk.codegen.model.service.Member;
+import software.amazon.awssdk.codegen.model.service.ServiceModel;
+import software.amazon.awssdk.codegen.model.service.Shape;
 
+@RunWith(MockitoJUnitRunner.class)
 public class DefaultNamingStrategyTest {
 
-    private DefaultNamingStrategy strat = new DefaultNamingStrategy(null, null);
+    private ServiceModel serviceModel = mock(ServiceModel.class);
+
+    @Mock
+    private Map<String, Shape> mockShapeMap;
+
+    @Mock
+    private Shape mockShape;
+
+    @Mock
+    private Member member;
+
+    private DefaultNamingStrategy strat = new DefaultNamingStrategy(serviceModel, null);
 
     @Test
     public void canConvertStringsWithNonAlphasToClassNames() {
@@ -85,6 +110,122 @@ public class DefaultNamingStrategyTest {
         validateConversion("S3Ec2", "S3_EC2");
         validateConversion("s3Ec2", "S3_EC2");
         validateConversion("s3ec2", "S3_EC2");
+    }
+
+    @Test
+    public void test_GetFluentSetterMethodName_NoEnum() {
+        when(serviceModel.getShapes()).thenReturn(mockShapeMap);
+        when(mockShape.getEnumValues()).thenReturn(null);
+        when(mockShape.getType()).thenReturn("foo");
+
+        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", mockShape)).isEqualTo("awesomeMethod");
+    }
+
+    @Test
+    public void test_GetFluentSetterMethodName_NoEnum_WithList() {
+        when(serviceModel.getShapes()).thenReturn(mockShapeMap);
+        when(mockShapeMap.get(any())).thenReturn(mockShape);
+
+        when(mockShape.getEnumValues()).thenReturn(null);
+        when(mockShape.getType()).thenReturn("list");
+        when(mockShape.getListMember()).thenReturn(member);
+        when(member.getShape()).thenReturn(null);
+
+        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", mockShape)).isEqualTo("awesomeMethod");
+    }
+
+    @Test
+    public void test_GetFluentSetterMethodName_WithEnumShape_NoListOrMap() {
+        when(serviceModel.getShapes()).thenReturn(mockShapeMap);
+        when(mockShapeMap.get(any())).thenReturn(mockShape);
+        when(mockShape.getEnumValues()).thenReturn(new ArrayList<>());
+        when(mockShape.getType()).thenReturn("foo");
+
+        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", mockShape)).isEqualTo("awesomeMethod");
+    }
+
+    @Test
+    public void test_GetFluentSetterMethodName_WithEnumShape_WithList() {
+        when(serviceModel.getShapes()).thenReturn(mockShapeMap);
+        when(mockShapeMap.get(any())).thenReturn(mockShape);
+
+        when(mockShape.getEnumValues()).thenReturn(new ArrayList<>());
+        when(mockShape.getType()).thenReturn("list");
+        when(mockShape.getListMember()).thenReturn(member);
+        when(member.getShape()).thenReturn("Foo");
+
+        assertThat(strat.getFluentSetterMethodName("AwesomeMethod", mockShape)).isEqualTo("awesomeMethodWithStrings");
+    }
+
+    @Test
+    public void test_GetFluentSetterMethodName_NoEum_WithMap() {
+        when(serviceModel.getShapes()).thenReturn(mockShapeMap);
+        when(mockShape.getEnumValues()).thenReturn(new ArrayList<>());
+
+    }
+
+    @Test
+    public void nonSharedModel_packageName() {
+        String serviceName = "foo";
+        DefaultNamingStrategy strategy = new DefaultNamingStrategy(serviceModel, CustomizationConfig.create());
+        assertThat(strategy.getClientPackageName(serviceName)).isEqualTo("foo");
+        assertThat(strategy.getPaginatorsPackageName(serviceName)).isEqualTo("foo.paginators");
+        assertThat(strategy.getSmokeTestPackageName(serviceName)).isEqualTo("foo.smoketests");
+        assertThat(strategy.getModelPackageName(serviceName)).isEqualTo("foo.model");
+        assertThat(strategy.getRequestTransformPackageName(serviceName)).isEqualTo("foo.transform");
+        assertThat(strategy.getTransformPackageName(serviceName)).isEqualTo("foo.transform");
+    }
+
+    @Test
+    public void sharedModel_notProvidingPackageName_shouldUseServiceName() {
+        CustomizationConfig config = CustomizationConfig.create();
+        ShareModelConfig shareModelConfig = new ShareModelConfig();
+        shareModelConfig.setShareModelWith("foo");
+        config.setShareModelConfig(shareModelConfig);
+        String serviceName = "bar";
+
+        DefaultNamingStrategy customizedModel = new DefaultNamingStrategy(serviceModel, config);
+
+        assertThat(customizedModel.getClientPackageName(serviceName)).isEqualTo("foo.bar");
+        assertThat(customizedModel.getPaginatorsPackageName(serviceName)).isEqualTo("foo.bar.paginators");
+        assertThat(customizedModel.getSmokeTestPackageName(serviceName)).isEqualTo("foo.bar.smoketests");
+        assertThat(customizedModel.getRequestTransformPackageName(serviceName)).isEqualTo("foo.bar.transform");
+
+        // should share the same model and non-request transform packages
+        assertThat(customizedModel.getModelPackageName(serviceName)).isEqualTo("foo.model");
+        assertThat(customizedModel.getTransformPackageName(serviceName)).isEqualTo("foo.transform");
+    }
+
+
+    @Test
+    public void sharedModel_providingPackageName_shouldUseProvidedPacakgeName() {
+        CustomizationConfig config = CustomizationConfig.create();
+        ShareModelConfig shareModelConfig = new ShareModelConfig();
+        shareModelConfig.setShareModelWith("foo");
+        shareModelConfig.setPackageName("b");
+        config.setShareModelConfig(shareModelConfig);
+        String serviceName = "bar";
+
+        DefaultNamingStrategy customizedModel = new DefaultNamingStrategy(serviceModel, config);
+
+        assertThat(customizedModel.getClientPackageName(serviceName)).isEqualTo("foo.b");
+        assertThat(customizedModel.getPaginatorsPackageName(serviceName)).isEqualTo("foo.b.paginators");
+        assertThat(customizedModel.getSmokeTestPackageName(serviceName)).isEqualTo("foo.b.smoketests");
+        assertThat(customizedModel.getRequestTransformPackageName(serviceName)).isEqualTo("foo.b.transform");
+
+        // should share the same model and non-request transform packages
+        assertThat(customizedModel.getModelPackageName(serviceName)).isEqualTo("foo.model");
+        assertThat(customizedModel.getTransformPackageName(serviceName)).isEqualTo("foo.transform");
+    }
+
+    @Test
+    public void modelNameShouldHavePascalCase() {
+        assertThat(strat.getRequestClassName("CAPSTest")).isEqualTo("CapsTestRequest");
+        assertThat(strat.getExceptionName("CAPSTest")).isEqualTo("CapsTestException");
+        assertThat(strat.getResponseClassName("CAPSTest")).isEqualTo("CapsTestResponse");
+        assertThat(strat.getResponseClassName("CAPSByIndex")).isEqualTo("CapsByIndexResponse");
+
+        assertThat(strat.getRequestClassName("FollowedByS3")).isEqualTo("FollowedByS3Request");
     }
 
     private void validateConversion(String input, String expectedOutput) {

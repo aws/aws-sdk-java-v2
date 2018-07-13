@@ -32,7 +32,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
-import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
+import software.amazon.awssdk.auth.signer.internal.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.auth.signer.params.AwsS3V4SignerParams;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -44,7 +44,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkRequestContext;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.services.s3.AwsS3V4Signer;
+import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
@@ -54,7 +54,7 @@ import software.amazon.awssdk.utils.IoUtils;
 
 public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
 
-    private static final AwsCredentials awsCredentials = CREDENTIALS_PROVIDER_CHAIN.getCredentials();
+    private static final AwsCredentials awsCredentials = CREDENTIALS_PROVIDER_CHAIN.resolveCredentials();
     private static final String SIGNING_NAME = "s3";
     private static final String BUCKET_NAME = temporaryBucketName("s3-signer-integ-test");
     private static final String KEY = "test-key";
@@ -87,7 +87,7 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
     public void test_UsingSdkClient_WithIncorrectSigner_SetInConfig() {
         S3Client customClient = getClientBuilder()
             .overrideConfiguration(ClientOverrideConfiguration.builder()
-                                                              .advancedOption(SIGNER, Aws4Signer.create())
+                                                              .putAdvancedOption(SIGNER, Aws4Signer.create())
                                                               .build())
             .build();
 
@@ -99,7 +99,7 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
     public void test_UsingSdkClient_WithCorrectSigner_SetInConfig() {
         S3Client customClient = getClientBuilder()
             .overrideConfiguration(ClientOverrideConfiguration.builder()
-                                                              .advancedOption(SIGNER, AwsS3V4Signer.create())
+                                                              .putAdvancedOption(SIGNER, AwsS3V4Signer.create())
                                                               .build())
             .build();
 
@@ -124,7 +124,7 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
 
         assertEquals("Non success http status code", 200, response.statusCode());
 
-        String actualResult = IoUtils.toString(response.content().get());
+        String actualResult = IoUtils.toUtf8String(response.content().get());
         assertEquals(CONTENT, actualResult);
     }
 
@@ -143,7 +143,7 @@ public class AwsS3V4SignerIntegrationTest extends S3IntegrationTestBase {
 
         assertEquals("Non success http status code", 200, response.statusCode());
 
-        String actualResult = IoUtils.toString(response.content().get());
+        String actualResult = IoUtils.toUtf8String(response.content().get());
         assertEquals(CONTENT, actualResult);
     }
 

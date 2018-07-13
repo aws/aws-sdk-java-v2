@@ -21,7 +21,6 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECT
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_PENDING_CONNECTION_ACQUIRES;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.READ_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.WRITE_TIMEOUT;
-import static software.amazon.awssdk.http.nio.netty.internal.utils.SocketChannelResolver.resolveSocketChannelClass;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import io.netty.bootstrap.Bootstrap;
@@ -38,7 +37,6 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
@@ -59,7 +57,7 @@ import software.amazon.awssdk.http.nio.netty.internal.RequestAdapter;
 import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
 import software.amazon.awssdk.http.nio.netty.internal.RunnableRequest;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
-import software.amazon.awssdk.http.nio.netty.internal.SharedEventLoopGroup;
+import software.amazon.awssdk.http.nio.netty.internal.SharedSdkEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpOrHttp2ChannelPool;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
@@ -72,9 +70,8 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
-
     private final RequestAdapter requestAdapter = new RequestAdapter();
-    private final EventLoopGroup group;
+    private final SdkEventLoopGroup sdkEventLoopGroup;
     private final ChannelPoolMap<URI, ChannelPool> pools;
     private final NettyConfiguration configuration;
     private final long maxStreams;
@@ -84,17 +81,16 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         this.configuration = new NettyConfiguration(serviceDefaultsMap);
         this.protocol = serviceDefaultsMap.get(SdkHttpConfigurationOption.PROTOCOL);
         this.maxStreams = 200;
-        this.group = eventLoopGroup(builder);
+        this.sdkEventLoopGroup = eventLoopGroup(builder);
         this.pools = createChannelPoolMap();
     }
 
-    private EventLoopGroup eventLoopGroup(DefaultBuilder builder) {
-        Validate.isTrue(builder.eventLoopGroup == null || builder.eventLoopGroupFactory == null,
+    private SdkEventLoopGroup eventLoopGroup(DefaultBuilder builder) {
+        Validate.isTrue(builder.eventLoopGroup == null || builder.eventLoopGroupBuilder == null,
                         "The eventLoopGroup and the eventLoopGroupFactory can't both be configured.");
-        return Either.fromNullable(builder.eventLoopGroup, builder.eventLoopGroupFactory)
-                     .map(e -> e.map(NonManagedEventLoopGroup::new,
-                                     EventLoopGroupFactory::create))
-                     .orElseGet(SharedEventLoopGroup::get);
+        return Either.fromNullable(builder.eventLoopGroup, builder.eventLoopGroupBuilder)
+                     .map(e -> e.map(this::nonManagedEventLoopGroup, SdkEventLoopGroup.Builder::build))
+                     .orElseGet(SharedSdkEventLoopGroup::get);
     }
 
     public static Builder builder() {
@@ -146,8 +142,8 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                 SslContext sslContext = sslContext(key.getScheme());
                 Bootstrap bootstrap =
                     new Bootstrap()
-                        .group(group)
-                        .channel(resolveSocketChannelClass(group))
+                        .group(sdkEventLoopGroup.eventLoopGroup())
+                        .channelFactory(sdkEventLoopGroup.channelFactory())
                         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, configuration.connectTimeoutMillis())
                         // TODO run some performance tests with and without this.
                         .option(ChannelOption.TCP_NODELAY, true)
@@ -163,6 +159,11 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         };
     }
 
+    private SdkEventLoopGroup nonManagedEventLoopGroup(SdkEventLoopGroup eventLoopGroup) {
+        return SdkEventLoopGroup.create(new NonManagedEventLoopGroup(eventLoopGroup.eventLoopGroup()),
+                                        eventLoopGroup.channelFactory());
+    }
+
     @Override
     public <T> Optional<T> getConfigurationValue(SdkHttpConfigurationOption<T> key) {
         return Optional.ofNullable(configuration.attribute(key));
@@ -170,18 +171,14 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
     @Override
     public void close() {
-        group.shutdownGracefully();
+        sdkEventLoopGroup.eventLoopGroup().shutdownGracefully();
     }
 
     /**
      * Builder that allows configuration of the Netty NIO HTTP implementation. Use {@link #builder()} to configure and construct
      * a Netty HTTP client.
      */
-    public interface Builder extends SdkAsyncHttpClient.Builder {
-        default Builder apply(Consumer<Builder> mutator) {
-            mutator.accept(this);
-            return this;
-        }
+    public interface Builder extends SdkAsyncHttpClient.Builder<NettyNioAsyncHttpClient.Builder> {
 
         /**
          * Max allowed connections per endpoint allowed in the connection pool.
@@ -231,9 +228,9 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout);
 
         /**
-         * Sets the {@link EventLoopGroup} to use for the Netty HTTP client. This event loop group may be shared
+         * Sets the {@link SdkEventLoopGroup} to use for the Netty HTTP client. This event loop group may be shared
          * across multiple HTTP clients for better resource and thread utilization. The preferred way to create
-         * an {@link EventLoopGroup} is by using the {@link EventLoopGroupFactory#create()} method which will choose the
+         * an {@link EventLoopGroup} is by using the {@link SdkEventLoopGroup#builder()})} method which will choose the
          * optimal implementation per the platform.
          *
          * <p>The {@link EventLoopGroup} <b>MUST</b> be closed by the caller when it is ready to
@@ -242,31 +239,31 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          *
          * <p>This configuration method is only recommended when you wish to share an {@link EventLoopGroup}
          * with multiple clients. If you do not need to share the group it is recommended to use
-         * {@link #eventLoopGroupFactory(EventLoopGroupFactory)} as the SDK will handle its cleanup when
+         * {@link #eventLoopGroupBuilder(SdkEventLoopGroup.Builder)} as the SDK will handle its cleanup when
          * the HTTP client is closed.</p>
          *
-         * @param eventLoopGroup Netty {@link EventLoopGroup} to use.
+         * @param eventLoopGroup Netty {@link SdkEventLoopGroup} to use.
          * @return This builder for method chaining.
-         * @see DefaultEventLoopGroupFactory
+         * @see SdkEventLoopGroup
          */
-        Builder eventLoopGroup(EventLoopGroup eventLoopGroup);
+        Builder eventLoopGroup(SdkEventLoopGroup eventLoopGroup);
 
         /**
-         * Sets the {@link EventLoopGroupFactory} which will be used to create the {@link EventLoopGroup} for the Netty
+         * Sets the {@link SdkEventLoopGroup.Builder} which will be used to create the {@link SdkEventLoopGroup} for the Netty
          * HTTP client. This allows for custom configuration of the Netty {@link EventLoopGroup}.
          *
-         * <p>The {@link EventLoopGroup} created by the factory is managed by the SDK and will be shutdown
+         * <p>The {@link EventLoopGroup} created by the builder is managed by the SDK and will be shutdown
          * when the HTTP client is closed.</p>
          *
          * <p>This is the preferred configuration method when you just want to customize the {@link EventLoopGroup}
          * but not share it across multiple HTTP clients. If you do wish to share an {@link EventLoopGroup}, see
-         * {@link #eventLoopGroup(EventLoopGroup)}</p>
+         * {@link #eventLoopGroup(SdkEventLoopGroup)}</p>
          *
-         * @param eventLoopGroupFactory {@link EventLoopGroupFactory} to use.
+         * @param eventLoopGroupBuilder {@link SdkEventLoopGroup.Builder} to use.
          * @return This builder for method chaining.
-         * @see DefaultEventLoopGroupFactory
+         * @see SdkEventLoopGroup.Builder
          */
-        Builder eventLoopGroupFactory(EventLoopGroupFactory eventLoopGroupFactory);
+        Builder eventLoopGroupBuilder(SdkEventLoopGroup.Builder eventLoopGroupBuilder);
 
         /**
          * Sets the HTTP protocol to use (i.e. HTTP/1.1 or HTTP/2). Not all services support HTTP/2.
@@ -285,8 +282,8 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     private static final class DefaultBuilder implements Builder {
 
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
-        private EventLoopGroup eventLoopGroup;
-        private EventLoopGroupFactory eventLoopGroupFactory;
+        private SdkEventLoopGroup eventLoopGroup;
+        private SdkEventLoopGroup.Builder eventLoopGroupBuilder;
 
         private DefaultBuilder() {
         }
@@ -331,6 +328,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          */
         @Override
         public Builder readTimeout(Duration readTimeout) {
+            Validate.isPositive(readTimeout, "readTimeout");
             standardOptions.put(READ_TIMEOUT, readTimeout);
             return this;
         }
@@ -347,6 +345,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          */
         @Override
         public Builder writeTimeout(Duration writeTimeout) {
+            Validate.isPositive(writeTimeout, "connectionAcquisitionTimeout");
             standardOptions.put(WRITE_TIMEOUT, writeTimeout);
             return this;
         }
@@ -363,6 +362,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          */
         @Override
         public Builder connectionTimeout(Duration timeout) {
+            Validate.isPositive(timeout, "connectionTimeout");
             standardOptions.put(CONNECTION_TIMEOUT, timeout);
             return this;
         }
@@ -378,6 +378,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          */
         @Override
         public Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout) {
+            Validate.isPositive(connectionAcquisitionTimeout, "connectionAcquisitionTimeout");
             standardOptions.put(CONNECTION_ACQUIRE_TIMEOUT, connectionAcquisitionTimeout);
             return this;
         }
@@ -386,62 +387,24 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             connectionAcquisitionTimeout(connectionAcquisitionTimeout);
         }
 
-        /**
-         * Sets the {@link EventLoopGroup} to use for the Netty HTTP client. This event loop group may be shared
-         * across multiple HTTP clients for better resource and thread utilization. The preferred way to create
-         * an {@link EventLoopGroup} is by using the {@link EventLoopGroupFactory#create()} method which will choose the
-         * optimal implementation per the platform.
-         *
-         * <p>The {@link EventLoopGroup} <b>MUST</b> be closed by the caller when it is ready to
-         * be disposed. The SDK will not close the {@link EventLoopGroup} when the HTTP client is closed. See
-         * {@link EventLoopGroup#shutdownGracefully()} to properly close the event loop group.</p>
-         *
-         * <p>This configuration method is only recommended when you wish to share an {@link EventLoopGroup}
-         * with multiple clients. If you do not need to share the group it is recommended to use
-         * {@link #eventLoopGroupFactory(EventLoopGroupFactory)} as the SDK will handle its cleanup when
-         * the HTTP client is closed.</p>
-         *
-         * <p>Setting this will un-set anything set by {@link #eventLoopGroupFactory(EventLoopGroupFactory)}</p>
-         *
-         * @param eventLoopGroup Netty {@link EventLoopGroup} to use.
-         * @return This builder for method chaining.
-         * @see DefaultEventLoopGroupFactory
-         */
         @Override
-        public Builder eventLoopGroup(EventLoopGroup eventLoopGroup) {
+        public Builder eventLoopGroup(SdkEventLoopGroup eventLoopGroup) {
             this.eventLoopGroup = eventLoopGroup;
             return this;
         }
 
-        public void setEventLoopGroup(EventLoopGroup eventLoopGroup) {
+        public void setEventLoopGroup(SdkEventLoopGroup eventLoopGroup) {
             eventLoopGroup(eventLoopGroup);
         }
 
-        /**
-         * Sets the {@link EventLoopGroupFactory} which will be used to create the {@link EventLoopGroup} for the Netty
-         * HTTP client. This allows for custom configuration of the Netty {@link EventLoopGroup}.
-         *
-         * <p>The {@link EventLoopGroup} created by the factory is managed by the SDK and will be shutdown
-         * when the HTTP client is closed.</p>
-         *
-         * <p>This is the preferred configuration method when you just want to customize the {@link EventLoopGroup}
-         * but not share it across multiple HTTP clients. If you do wish to share an {@link EventLoopGroup}, see
-         * {@link #eventLoopGroup(EventLoopGroup)}</p>
-         *
-         * <p>Setting this will un-set anything set by {@link #eventLoopGroup(EventLoopGroup)}</p>
-         *
-         * @param eventLoopGroupFactory {@link EventLoopGroupFactory} to use.
-         * @return This builder for method chaining.
-         * @see DefaultEventLoopGroupFactory
-         */
         @Override
-        public Builder eventLoopGroupFactory(EventLoopGroupFactory eventLoopGroupFactory) {
-            this.eventLoopGroupFactory = eventLoopGroupFactory;
+        public Builder eventLoopGroupBuilder(SdkEventLoopGroup.Builder eventLoopGroupBuilder) {
+            this.eventLoopGroupBuilder = eventLoopGroupBuilder;
             return this;
         }
 
-        public void setEventLoopGroupFactory(EventLoopGroupFactory eventLoopGroupFactory) {
-            eventLoopGroupFactory(eventLoopGroupFactory);
+        public void setEventLoopGroupBuilder(SdkEventLoopGroup.Builder eventLoopGroupBuilder) {
+            eventLoopGroupBuilder(eventLoopGroupBuilder);
         }
 
         @Override

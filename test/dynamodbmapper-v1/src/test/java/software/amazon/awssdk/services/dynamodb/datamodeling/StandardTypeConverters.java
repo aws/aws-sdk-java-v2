@@ -39,7 +39,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.util.DateUtils;
+import software.amazon.awssdk.utils.DateUtils;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 /**

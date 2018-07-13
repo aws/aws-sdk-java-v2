@@ -32,6 +32,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtensions;
 import software.amazon.awssdk.core.util.DefaultSdkAutoConstructList;
+import software.amazon.awssdk.core.util.DefaultSdkAutoConstructMap;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 
 /**
@@ -46,7 +47,6 @@ class ModelBuilderSpecs {
 
     ModelBuilderSpecs(IntermediateModel intermediateModel,
                       ShapeModel shapeModel,
-                      ShapeModelSpec shapeModelSpec,
                       TypeProvider typeProvider) {
         this.intermediateModel = intermediateModel;
         this.shapeModel = shapeModel;
@@ -75,10 +75,8 @@ class ModelBuilderSpecs {
                   });
 
         if (isException()) {
-            builder.addMethod(MethodSpec.methodBuilder("message")
-                    .returns(builderInterfaceName())
-                    .addParameter(String.class, "message")
-                    .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT).build());
+            builder.addSuperinterface(parentExceptionBuilder().nestedClass("Builder"));
+            builder.addMethods(ExceptionProperties.builderInterfaceMethods(builderInterfaceName()));
         }
 
         if (isRequest()) {
@@ -101,6 +99,15 @@ class ModelBuilderSpecs {
         return builder.build();
     }
 
+    private ClassName parentExceptionBuilder() {
+        final String customExceptionBase = intermediateModel.getCustomizationConfig()
+                .getSdkModeledExceptionBaseClassName();
+        if (customExceptionBase != null) {
+            return poetExtensions.getModelClass(customExceptionBase);
+        }
+        return poetExtensions.getModelClass(intermediateModel.getSdkModeledExceptionBaseClassName());
+    }
+
     public TypeSpec beanStyleBuilder() {
         TypeSpec.Builder builderClassBuilder = TypeSpec.classBuilder(builderImplName())
                 .addSuperinterface(builderInterfaceName())
@@ -108,6 +115,11 @@ class ModelBuilderSpecs {
                 //.addSuperinterface(copyableBuilderSuperInterface())
                 .superclass(builderImplSuperClass())
                 .addModifiers(Modifier.STATIC, Modifier.FINAL);
+
+        if (isException()) {
+            builderClassBuilder.superclass(parentExceptionBuilder().nestedClass("BuilderImpl"));
+        }
+
         builderClassBuilder.addFields(fields());
         builderClassBuilder.addMethod(noargConstructor());
         builderClassBuilder.addMethod(modelCopyConstructor());
@@ -137,15 +149,13 @@ class ModelBuilderSpecs {
                         fieldSpec = fieldSpec.toBuilder()
                                 .initializer("$T.getInstance()", DefaultSdkAutoConstructList.class)
                                 .build();
+                    } else if (m.isMap() && typeProvider.useAutoConstructMaps()) {
+                        fieldSpec = fieldSpec.toBuilder()
+                                .initializer("$T.getInstance()", DefaultSdkAutoConstructMap.class)
+                                .build();
                     }
                     return fieldSpec;
                 }).collect(Collectors.toList());
-
-        // Inject a message member for the isException message
-        if (isException()) {
-            fields = new ArrayList<>(fields);
-            fields.add(FieldSpec.builder(String.class, "message", Modifier.PRIVATE).build());
-        }
 
         return fields;
     }
@@ -161,7 +171,7 @@ class ModelBuilderSpecs {
                 .addModifiers(Modifier.PRIVATE)
                 .addParameter(classToBuild(), "model");
 
-        if (isRequest() || isResponse()) {
+        if (isRequest() || isResponse() || isException()) {
             copyBuilderCtor.addCode("super(model);");
         }
 
@@ -169,10 +179,6 @@ class ModelBuilderSpecs {
             String name = m.getVariable().getVariableName();
             copyBuilderCtor.addStatement("$N(model.$N)", m.getFluentSetterMethodName(), name);
         });
-
-        if (isException()) {
-            copyBuilderCtor.addStatement("this.message = model.getMessage()");
-        }
 
         return copyBuilderCtor.build();
     }
@@ -188,8 +194,7 @@ class ModelBuilderSpecs {
                   });
 
         if (isException()) {
-            accessors.addAll(exceptionMessageGetters());
-            accessors.addAll(exceptionMessageSetters());
+            accessors.addAll(ExceptionProperties.builderImplMethods(builderImplName()));
         }
 
         if (isRequest()) {
@@ -252,46 +257,5 @@ class ModelBuilderSpecs {
         superInterfaces.add(ParameterizedTypeName.get(ClassName.get(CopyableBuilder.class),
                 classToBuild().nestedClass("Builder"), classToBuild()));
         return superInterfaces;
-    }
-
-    private List<MethodSpec> exceptionMessageGetters() {
-        List<MethodSpec> getters = new ArrayList<>();
-
-        // bean style
-        getters.add(MethodSpec.methodBuilder("getMessage")
-                .addModifiers(Modifier.PUBLIC)
-                .returns(String.class)
-                .addStatement("return message")
-                .build());
-
-        getters.add(MethodSpec.methodBuilder("message")
-                .addModifiers(Modifier.PUBLIC)
-                .returns(String.class)
-                .addStatement("return message")
-                .build());
-
-        return getters;
-    }
-
-    private List<MethodSpec> exceptionMessageSetters() {
-        List<MethodSpec> setters = new ArrayList<>();
-
-        // bean style
-        setters.add(MethodSpec.methodBuilder("setMessage")
-                .addModifiers(Modifier.PUBLIC)
-                .addParameter(String.class, "message")
-                .addStatement("this.message = message")
-                .build());
-
-        setters.add(MethodSpec.methodBuilder("message")
-                .addModifiers(Modifier.PUBLIC)
-                .returns(builderInterfaceName())
-                .addAnnotation(Override.class)
-                .addParameter(String.class, "message")
-                .addStatement("this.message = message")
-                .addStatement("return this")
-                .build());
-
-        return setters;
     }
 }

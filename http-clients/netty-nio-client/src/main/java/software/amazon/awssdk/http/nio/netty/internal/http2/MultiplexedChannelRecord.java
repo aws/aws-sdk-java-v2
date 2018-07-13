@@ -33,12 +33,15 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
+
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 
 /**
  * Contains a {@link Future} for the actual socket channel and tracks available
  * streams based on the MAX_CONCURRENT_STREAMS setting for the connection.
  */
+@SdkInternalApi
 public final class MultiplexedChannelRecord {
 
     private final Future<Channel> connectionFuture;

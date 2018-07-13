@@ -17,10 +17,10 @@ package software.amazon.awssdk.services.sqs;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Test;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -257,7 +257,7 @@ public class MessageMD5ChecksumInterceptorTest {
                                                              .dataType("String")
                                                              .build());
         messageAttributes.put("Binary", MessageAttributeValue.builder()
-                                                             .binaryValue(ByteBuffer.wrap(new byte[] {5 }))
+                                                             .binaryValue(SdkBytes.fromByteArray(new byte[] { 5 }))
                                                              .dataType("Binary")
                                                              .build());
         messageAttributes.put("StringList", MessageAttributeValue.builder()
@@ -265,7 +265,7 @@ public class MessageMD5ChecksumInterceptorTest {
                                                                  .dataType("String")
                                                                  .build());
         messageAttributes.put("ByteList", MessageAttributeValue.builder()
-                                                               .binaryListValues(ByteBuffer.wrap(new byte[] { 3 }))
+                                                               .binaryListValues(SdkBytes.fromByteArray(new byte[] { 3 }))
                                                                .dataType("Binary")
                                                                .build());
         return messageAttributes;

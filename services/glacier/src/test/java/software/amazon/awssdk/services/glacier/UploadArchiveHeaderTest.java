@@ -32,10 +32,10 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.core.util.Mimetype;
+import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.glacier.model.UploadArchiveRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
@@ -52,7 +52,7 @@ public class UploadArchiveHeaderTest {
     @Before
     public void setup() {
         glacier = GlacierClient.builder()
-                .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
+                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                 .region(Region.US_WEST_2).endpointOverride(URI.create(getEndpoint()))
                 .build();
         request = UploadArchiveRequest.builder().vaultName("test").build();
@@ -91,7 +91,7 @@ public class UploadArchiveHeaderTest {
                                     .withStatus(200)
                                     .withBody("{}")));
 
-        request = (UploadArchiveRequest) request.toBuilder().overrideConfiguration(b -> b.header(CONTENT_TYPE, "test")).build();
+        request = (UploadArchiveRequest) request.toBuilder().overrideConfiguration(b -> b.putHeader(CONTENT_TYPE, "test")).build();
         glacier.uploadArchive(request, RequestBody.fromBytes("test".getBytes()));
         verify(postRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo("test")));
     }

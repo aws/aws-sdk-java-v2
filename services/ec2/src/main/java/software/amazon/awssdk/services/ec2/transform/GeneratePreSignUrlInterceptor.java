@@ -15,18 +15,18 @@
 
 package software.amazon.awssdk.services.ec2.transform;
 
-import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.AWS_CREDENTIALS;
+import static software.amazon.awssdk.auth.signer.internal.AwsSignerExecutionAttribute.AWS_CREDENTIALS;
 
 import java.net.URI;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
+import software.amazon.awssdk.awscore.util.AwsHostNameUtils;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.SdkHttpFullRequestAdapter;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.util.AwsHostNameUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.regions.Region;
@@ -66,10 +66,15 @@ public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
              * as the destination region in the client before calling this
              * request.
              */
-            String destinationRegion = originalCopySnapshotRequest
-                                               .destinationRegion() != null ? originalCopySnapshotRequest
-                    .destinationRegion() : AwsHostNameUtils
-                    .parseRegionName(request.host(), serviceName);
+            String destinationRegion = originalCopySnapshotRequest.destinationRegion();
+
+            if (destinationRegion == null) {
+                destinationRegion =
+                        AwsHostNameUtils.parseSigningRegion(request.host(), serviceName)
+                                        .orElseThrow(() -> new IllegalArgumentException("Could not determine region for " +
+                                                                                        request.host()))
+                                        .id();
+            }
 
             URI endPointSource = createEndpoint(sourceRegion, serviceName);
 
@@ -88,8 +93,8 @@ public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
             final SdkHttpFullRequest presignedRequest = signer.presign(requestForPresigning, signingParams);
 
             return request.toBuilder()
-                          .rawQueryParameter("DestinationRegion", destinationRegion)
-                          .rawQueryParameter("PresignedUrl", presignedRequest.getUri().toString())
+                          .putRawQueryParameter("DestinationRegion", destinationRegion)
+                          .putRawQueryParameter("PresignedUrl", presignedRequest.getUri().toString())
                           .build();
         }
 
@@ -125,8 +130,10 @@ public class GeneratePreSignUrlInterceptor implements ExecutionInterceptor {
         final Region region = Region.of(regionName);
 
         if (region == null) {
-            throw new SdkClientException("{" + serviceName + ", " + regionName + "} was not "
-                                            + "found in region metadata. Update to latest version of SDK and try again.");
+            throw SdkClientException.builder()
+                                    .message("{" + serviceName + ", " + regionName + "} was not "
+                                             + "found in region metadata. Update to latest version of SDK and try again.")
+                                    .build();
         }
 
         return Ec2Client.serviceMetadata().endpointFor(region);

@@ -3,11 +3,13 @@ package software.amazon.awssdk.services.jsonprotocoltests.paginators;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.function.Function;
-import javax.annotation.Generated;
-import software.amazon.awssdk.core.pagination.PaginatedItemsIterable;
-import software.amazon.awssdk.core.pagination.PaginatedResponsesIterator;
-import software.amazon.awssdk.core.pagination.SdkIterable;
-import software.amazon.awssdk.core.pagination.SyncPageFetcher;
+import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.core.pagination.sync.PaginatedItemsIterable;
+import software.amazon.awssdk.core.pagination.sync.PaginatedResponsesIterator;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
+import software.amazon.awssdk.core.pagination.sync.SyncPageFetcher;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.services.jsonprotocoltests.JsonProtocolTestsClient;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithResultKeyRequest;
 import software.amazon.awssdk.services.jsonprotocoltests.model.PaginatedOperationWithResultKeyResponse;
@@ -76,7 +78,7 @@ public class PaginatedOperationWithResultKeyIterable implements SdkIterable<Pagi
     private final SyncPageFetcher nextPageFetcher;
 
     public PaginatedOperationWithResultKeyIterable(JsonProtocolTestsClient client,
-                                                   PaginatedOperationWithResultKeyRequest firstRequest) {
+            PaginatedOperationWithResultKeyRequest firstRequest) {
         this.client = client;
         this.firstRequest = firstRequest;
         this.nextPageFetcher = new PaginatedOperationWithResultKeyResponseFetcher();
@@ -84,7 +86,7 @@ public class PaginatedOperationWithResultKeyIterable implements SdkIterable<Pagi
 
     @Override
     public Iterator<PaginatedOperationWithResultKeyResponse> iterator() {
-        return new PaginatedResponsesIterator(nextPageFetcher);
+        return PaginatedResponsesIterator.builder().nextPageFetcher(nextPageFetcher).build();
     }
 
     /**
@@ -103,7 +105,7 @@ public class PaginatedOperationWithResultKeyIterable implements SdkIterable<Pagi
             }
             return Collections.emptyIterator();
         };
-        return new PaginatedItemsIterable(this, getIterator);
+        return PaginatedItemsIterable.builder().pagesIterable(this).itemIteratorFunction(getIterator).build();
     }
 
     /**
@@ -116,7 +118,7 @@ public class PaginatedOperationWithResultKeyIterable implements SdkIterable<Pagi
     private final PaginatedOperationWithResultKeyIterable resume(PaginatedOperationWithResultKeyResponse lastSuccessfulPage) {
         if (nextPageFetcher.hasNextPage(lastSuccessfulPage)) {
             return new PaginatedOperationWithResultKeyIterable(client, firstRequest.toBuilder()
-                                                                                   .nextToken(lastSuccessfulPage.nextToken()).build());
+                    .nextToken(lastSuccessfulPage.nextToken()).build());
         }
         return new PaginatedOperationWithResultKeyIterable(client, firstRequest) {
             @Override
@@ -127,10 +129,11 @@ public class PaginatedOperationWithResultKeyIterable implements SdkIterable<Pagi
     }
 
     private class PaginatedOperationWithResultKeyResponseFetcher implements
-                                                                 SyncPageFetcher<PaginatedOperationWithResultKeyResponse> {
+            SyncPageFetcher<PaginatedOperationWithResultKeyResponse> {
         @Override
         public boolean hasNextPage(PaginatedOperationWithResultKeyResponse previousPage) {
-            return previousPage.nextToken() != null;
+            return previousPage.nextToken() != null && !SdkAutoConstructList.class.isInstance(previousPage.nextToken())
+                    && !SdkAutoConstructMap.class.isInstance(previousPage.nextToken());
         }
 
         @Override

@@ -68,7 +68,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
     public void handlerThrowsRetryableException_RetriedUpToLimit() throws Exception {
         RequestCountingResponseTransformer<GetObjectResponse, ?> handler = new RequestCountingResponseTransformer<>(
                 (resp, in) -> {
-                    throw new RetryableException("");
+                    throw RetryableException.builder().build();
                 });
         assertThatThrownBy(() -> s3.getObject(getObjectRequest(), handler))
                 .isInstanceOf(SdkClientException.class);
@@ -79,7 +79,7 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
     public void handlerThrowsNonRetryableException_RequestNotRetried() throws Exception {
         RequestCountingResponseTransformer<GetObjectResponse, ?> handler = new RequestCountingResponseTransformer<>(
                 (resp, in) -> {
-                    throw new NonRetryableException("");
+                    throw NonRetryableException.builder().build();
                 });
         assertThatThrownBy(() -> s3.getObject(getObjectRequest(), handler))
                 .isInstanceOf(SdkClientException.class);
@@ -170,9 +170,9 @@ public class GetObjectFaultIntegrationTest extends S3IntegrationTestBase {
         }
 
         @Override
-        public ReturnT apply(ResponseT response, AbortableInputStream inputStream) throws Exception {
+        public ReturnT transform(ResponseT response, AbortableInputStream inputStream) throws Exception {
             callCount.incrementAndGet();
-            return delegate.apply(response, inputStream);
+            return delegate.transform(response, inputStream);
         }
 
         @Override

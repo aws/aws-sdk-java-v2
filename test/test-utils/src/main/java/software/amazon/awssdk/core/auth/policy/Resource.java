@@ -36,7 +36,7 @@ public class Resource {
      * <p>
      * You specify the resource using the following Amazon Resource Name (ARN)
      * format:
-     * <b>arn:aws:&lt;vendor>:&lt;region>:&lt;namespace>:&lt;relative-id></b>
+     * <b>{@code arn:aws:<vendor>:<region>:<namespace>:<relative-id>}</b>
      * <p>
      * <ul>
      * <li>vendor identifies the AWS product (e.g., sns)</li>

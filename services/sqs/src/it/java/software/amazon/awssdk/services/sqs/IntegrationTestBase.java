@@ -15,14 +15,13 @@
 
 package software.amazon.awssdk.services.sqs;
 
-import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import org.junit.Before;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.GetUserRequest;
@@ -30,6 +29,7 @@ import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.CreateQueueResponse;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Base class for SQS integration tests. Provides convenience methods for creating test data, and
@@ -93,7 +93,7 @@ public class IntegrationTestBase extends AwsIntegrationTestBase {
     protected static MessageAttributeValue createRandomBinaryAttributeValue() {
         byte[] randomBytes = new byte[10];
         random.nextBytes(randomBytes);
-        return MessageAttributeValue.builder().dataType("Binary").binaryValue(ByteBuffer.wrap(randomBytes)).build();
+        return MessageAttributeValue.builder().dataType("Binary").binaryValue(SdkBytes.fromByteArray(randomBytes)).build();
     }
 
     protected static Map<String, MessageAttributeValue> createRandomAttributeValues(int attrNumber) {
@@ -159,7 +159,7 @@ public class IntegrationTestBase extends AwsIntegrationTestBase {
      */
     private String parseAccountIdFromArn(String arn) throws IllegalArgumentException {
         String[] arnComponents = arn.split(":");
-        if (arnComponents.length < 5 || StringUtils.isNullOrEmpty(arnComponents[4])) {
+        if (arnComponents.length < 5 || StringUtils.isEmpty(arnComponents[4])) {
             throw new IllegalArgumentException(String.format("%s is not a valid ARN", arn));
         }
         return arnComponents[4];

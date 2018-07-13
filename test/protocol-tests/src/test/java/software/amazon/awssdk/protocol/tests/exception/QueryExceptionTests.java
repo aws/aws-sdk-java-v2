@@ -26,9 +26,9 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.exception.ErrorType;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolquery.ProtocolQueryClient;
@@ -48,7 +48,7 @@ public class QueryExceptionTests {
     @Before
     public void setupClient() {
         client = ProtocolQueryClient.builder()
-                                    .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
+                                    .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                                     .region(Region.US_EAST_1)
                                     .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                     .build();
@@ -66,16 +66,16 @@ public class QueryExceptionTests {
     public void unmodeledException_ErrorCodeSetOnServiceException() {
         stub404Response(PATH,
                 "<ErrorResponse><Error><Code>UnmodeledException</Code></Error></ErrorResponse>");
-        final SdkServiceException exception = captureServiceException(this::callAllTypes);
-        assertEquals("UnmodeledException", exception.errorCode());
+        final AwsServiceException exception = captureServiceException(this::callAllTypes);
+        assertEquals("UnmodeledException", exception.awsErrorDetails().errorCode());
     }
 
     @Test
     public void unmodeledExceptionWithMessage_MessageSetOnServiceException() {
         stub404Response(PATH,
                 "<ErrorResponse><Error><Code>UnmodeledException</Code><Message>Something happened</Message></Error></ErrorResponse>");
-        final SdkServiceException exception = captureServiceException(this::callAllTypes);
-        assertEquals("Something happened", exception.errorMessage());
+        final AwsServiceException exception = captureServiceException(this::callAllTypes);
+        assertEquals("Something happened", exception.awsErrorDetails().errorMessage());
     }
 
     @Test
@@ -94,7 +94,7 @@ public class QueryExceptionTests {
             callAllTypes();
         } catch (EmptyModeledException e) {
             assertThat(e, instanceOf(ProtocolQueryException.class));
-            assertEquals("EmptyModeledException", e.errorCode());
+            assertEquals("EmptyModeledException", e.awsErrorDetails().errorCode());
         }
     }
 
@@ -103,7 +103,7 @@ public class QueryExceptionTests {
         stub404Response(PATH,
                 "<ErrorResponse><Error><Code>EmptyModeledException</Code><Message>Something happened</Message></Error></ErrorResponse>");
         final EmptyModeledException exception = captureModeledException(this::callAllTypes);
-        assertEquals("Something happened", exception.errorMessage());
+        assertEquals("Something happened", exception.awsErrorDetails().errorMessage());
     }
 
     @Test
@@ -111,7 +111,7 @@ public class QueryExceptionTests {
         stub404Response(PATH,
                 "<ErrorResponse><Error><Code>EmptyModeledException</Code></Error></ErrorResponse>");
         final EmptyModeledException exception = captureModeledException(this::callAllTypes);
-        assertEquals("EmptyModeledException", exception.errorCode());
+        assertEquals("EmptyModeledException", exception.awsErrorDetails().errorCode());
     }
 
     @Test
@@ -135,44 +135,18 @@ public class QueryExceptionTests {
     }
 
     @Test
-    public void errorTypeSender_UnmarshallsIntoClientErrorType() {
-        stub404Response(PATH,
-                "<ErrorResponse><Error><Code>UnmodeledException</Code><Type>Sender</Type></Error></ErrorResponse>");
-        final SdkServiceException exception = captureServiceException(this::callAllTypes);
-        assertEquals(ErrorType.CLIENT, exception.errorType());
-    }
-
-    @Test
-    public void errorTypeReceiver_UnmarshallsIntoServiceErrorType() {
-        stub404Response(PATH,
-                "<ErrorResponse><Error><Code>UnmodeledException</Code><Type>Receiver</Type></Error></ErrorResponse>");
-        final SdkServiceException exception = captureServiceException(this::callAllTypes);
-        assertEquals(ErrorType.SERVICE, exception.errorType());
-    }
-
-    @Test
-    public void noErrorTypeInXml_UnmarshallsIntoUnknownErrorType() {
-        stub404Response(PATH,
-                "<ErrorResponse><Error><Code>UnmodeledException</Code></Error></ErrorResponse>");
-        final SdkServiceException exception = captureServiceException(this::callAllTypes);
-        assertEquals(ErrorType.UNKNOWN, exception.errorType());
-    }
-
-    @Test
     public void emptyErrorResponse_UnmarshallsIntoUnknownErrorType() {
         stub404Response(PATH, "");
-        final SdkServiceException exception = captureServiceException(this::callAllTypes);
-        assertEquals(ErrorType.UNKNOWN, exception.errorType());
-        assertEquals("404 Not Found", exception.errorCode());
+        final AwsServiceException exception = captureServiceException(this::callAllTypes);
+        assertEquals("404 Not Found", exception.awsErrorDetails().errorCode());
         assertEquals(404, exception.statusCode());
     }
 
     @Test
     public void malformedErrorResponse_UnmarshallsIntoUnknownErrorType() {
         stub404Response(PATH, "THIS ISN'T XML");
-        final SdkServiceException exception = captureServiceException(this::callAllTypes);
-        assertEquals(ErrorType.UNKNOWN, exception.errorType());
-        assertEquals("404 Not Found", exception.errorCode());
+        final AwsServiceException exception = captureServiceException(this::callAllTypes);
+        assertEquals("404 Not Found", exception.awsErrorDetails().errorCode());
         assertEquals(404, exception.statusCode());
     }
 
@@ -188,11 +162,11 @@ public class QueryExceptionTests {
         }
     }
 
-    private SdkServiceException captureServiceException(Runnable runnable) {
+    private AwsServiceException captureServiceException(Runnable runnable) {
         try {
             runnable.run();
             return null;
-        } catch (SdkServiceException exception) {
+        } catch (AwsServiceException exception) {
             return exception;
         }
     }

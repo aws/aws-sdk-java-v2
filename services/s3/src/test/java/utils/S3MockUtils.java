@@ -16,9 +16,9 @@
 package utils;
 
 import java.io.UnsupportedEncodingException;
-import software.amazon.awssdk.core.util.StringInputStream;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.utils.StringInputStream;
 
 /**
  * Various utility methods for mocking the S3Client at the HTTP layer.

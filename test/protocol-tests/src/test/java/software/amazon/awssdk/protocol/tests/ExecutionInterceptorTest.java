@@ -47,7 +47,7 @@ import org.mockito.InOrder;
 import org.mockito.Mockito;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.SdkRequest;
@@ -468,7 +468,7 @@ public class ExecutionInterceptorTest {
     private <T extends AwsClientBuilder<?, U>, U> U initializeAndBuild(T builder, ExecutionInterceptor interceptor) {
         return builder.region(Region.US_WEST_1)
                       .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                      .credentialsProvider(StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid")))
+                      .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                       .overrideConfiguration(ClientOverrideConfiguration.builder()
                                                                         .addExecutionInterceptor(interceptor)
                                                                         .build())
@@ -488,14 +488,14 @@ public class ExecutionInterceptorTest {
         public SdkHttpFullRequest modifyHttpRequest(Context.ModifyHttpRequest context,
                                                     ExecutionAttributes executionAttributes) {
             SdkHttpFullRequest httpRequest = context.httpRequest();
-            return httpRequest.copy(b -> b.header("x-amz-integer", "2"));
+            return httpRequest.copy(b -> b.putHeader("x-amz-integer", "2"));
         }
 
         @Override
         public SdkHttpFullResponse modifyHttpResponse(Context.ModifyHttpResponse context,
                                                       ExecutionAttributes executionAttributes) {
             SdkHttpFullResponse httpResponse = context.httpResponse();
-            return httpResponse.copy(b -> b.header("x-amz-integer", Collections.singletonList("3")));
+            return httpResponse.copy(b -> b.putHeader("x-amz-integer", Collections.singletonList("3")));
         }
 
         @Override

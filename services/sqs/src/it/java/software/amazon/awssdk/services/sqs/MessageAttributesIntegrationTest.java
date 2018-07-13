@@ -30,13 +30,13 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
 import software.amazon.awssdk.services.sqs.model.DeleteQueueRequest;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
@@ -47,6 +47,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 /**
  * Integration tests for the SQS message attributes.
@@ -118,8 +119,8 @@ public class MessageAttributesIntegrationTest extends IntegrationTestBase {
     public void receiveMessage_WithBinaryAttributeValue_DoesNotChangeStateOfByteBuffer() {
         byte[] bytes = new byte[]{1, 1, 1, 0, 0, 0};
         String byteBufferAttrName = "byte-buffer-attr";
-        Map<String, MessageAttributeValue> attrs = ImmutableMapParameter.of(byteBufferAttrName,
-                MessageAttributeValue.builder().dataType("Binary").binaryValue(ByteBuffer.wrap(bytes)).build());
+        Map<String, MessageAttributeValue> attrs = ImmutableMap.of(byteBufferAttrName,
+                                                                   MessageAttributeValue.builder().dataType("Binary").binaryValue(SdkBytes.fromByteArray(bytes)).build());
 
         sqsAsync.sendMessage(SendMessageRequest.builder().queueUrl(queueUrl).messageBody("test")
                 .messageAttributes(attrs)
@@ -129,7 +130,7 @@ public class MessageAttributesIntegrationTest extends IntegrationTestBase {
                 ReceiveMessageRequest.builder().queueUrl(queueUrl).messageAttributeNames("All").waitTimeSeconds(20).build()).join()
                 .messages();
 
-        ByteBuffer actualByteBuffer = messages.get(0).messageAttributes().get(byteBufferAttrName).binaryValue();
+        ByteBuffer actualByteBuffer = messages.get(0).messageAttributes().get(byteBufferAttrName).binaryValue().asByteBuffer();
         assertEquals(bytes.length, actualByteBuffer.remaining());
     }
 

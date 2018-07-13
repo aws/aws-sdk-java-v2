@@ -36,12 +36,14 @@ import io.netty.handler.codec.http2.HttpConversionUtil;
 import io.netty.handler.codec.http2.HttpToHttp2ConnectionHandler;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.concurrent.EventExecutor;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Translates HTTP/1.1 Netty objects to the corresponding HTTP/2 frame objects. Much of this was lifted from
  * {@link HttpToHttp2ConnectionHandler} but since that actually encodes to the raw bytes it doesn't play nice with
  * {@link Http2MultiplexCodec} which expects the frame objects.
  */
+@SdkInternalApi
 public class HttpToHttp2OutboundAdapter extends ChannelOutboundHandlerAdapter {
 
     public HttpToHttp2OutboundAdapter() {

@@ -15,9 +15,9 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import ${metadata.fullModelPackageName}.*;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.core.util.StringUtils;
+import software.amazon.awssdk.core.util.StringConversion;
 import software.amazon.awssdk.core.util.IdempotentUtils;
-import software.amazon.awssdk.core.util.StringInputStream;
+import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.core.protocol.json.*;
 
 /**
@@ -33,7 +33,7 @@ public class ${shapeName}JsonMarshaller {
     public void marshall(${shapeName} ${shape.variable.variableName}, StructuredJsonGenerator jsonGenerator) {
 
         if (${shape.variable.variableName} == null) {
-            throw new SdkClientException("Invalid argument passed to marshall(...)");
+            throw SdkClientException.builder().message("Invalid argument passed to marshall(...)").build();
         }
 
         <@RequiredParameterValidationInvocationMacro.content dataModel.customConfig shape/>
@@ -45,7 +45,7 @@ public class ${shapeName}JsonMarshaller {
 
             jsonGenerator.writeEndObject();
         } catch(Throwable t) {
-            throw new SdkClientException("Unable to marshall request to JSON: " + t.getMessage(), t);
+            throw SdkClientException.builder().message("Unable to marshall request to JSON: " + t.getMessage()).throwable(t).build();
         }
     }
 

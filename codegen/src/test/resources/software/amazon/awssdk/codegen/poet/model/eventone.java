@@ -2,7 +2,7 @@ package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Objects;
 import java.util.Optional;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.protocol.ProtocolMarshaller;
 import software.amazon.awssdk.core.protocol.StructuredPojo;
@@ -72,10 +72,10 @@ public final class EventOne implements StructuredPojo, ToCopyableBuilder<EventOn
 
     public <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-            case "Foo":
-                return Optional.of(clazz.cast(foo()));
-            default:
-                return Optional.empty();
+        case "Foo":
+            return Optional.ofNullable(clazz.cast(foo()));
+        default:
+            return Optional.empty();
         }
     }
 
@@ -137,4 +137,3 @@ public final class EventOne implements StructuredPojo, ToCopyableBuilder<EventOn
         }
     }
 }
-

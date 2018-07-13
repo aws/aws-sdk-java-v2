@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -72,14 +72,14 @@ public class SdkHttpResponseTest {
                                        .region(Region.US_WEST_1)
                                        .endpointOverride(URI.create("http://localhost:"
                                                                     + wireMock.port()))
-                                       .credentialsProvider(() -> AwsCredentials.create("akid", "skid"))
+                                       .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
                                        .build();
 
         asyncClient = ProtocolRestJsonAsyncClient.builder()
                                                  .region(Region.US_WEST_1)
                                                  .endpointOverride(URI.create("http://localhost:"
                                                                               + wireMock.port()))
-                                                 .credentialsProvider(() -> AwsCredentials.create("akid", "skid"))
+                                                 .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
                                                  .build();
     }
 

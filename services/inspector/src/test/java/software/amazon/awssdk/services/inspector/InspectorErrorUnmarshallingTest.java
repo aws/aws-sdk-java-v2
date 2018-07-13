@@ -39,7 +39,7 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.regions.Region;
@@ -55,7 +55,7 @@ public class InspectorErrorUnmarshallingTest {
 
     @Before
     public void setup() {
-        StaticCredentialsProvider credsProvider = StaticCredentialsProvider.create(AwsCredentials.create("akid", "skid"));
+        StaticCredentialsProvider credsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
         inspector = InspectorClient.builder()
                                    .credentialsProvider(credsProvider)
                                    .region(Region.US_EAST_1)
@@ -78,7 +78,7 @@ public class InspectorErrorUnmarshallingTest {
         try {
             inspector.listRulesPackages(ListRulesPackagesRequest.builder().build());
         } catch (AccessDeniedException e) {
-            assertEquals("AccessDeniedException", e.errorCode());
+            assertEquals("AccessDeniedException", e.awsErrorDetails().errorCode());
             assertEquals("ACCESS_DENIED_TO_RULES_PACKAGE", e.inspectorErrorCodeAsString());
         }
     }

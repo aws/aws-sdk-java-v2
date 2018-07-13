@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling.marshallers;
 
-import static software.amazon.awssdk.core.util.DateUtils.formatIso8601Date;
+import static software.amazon.awssdk.utils.DateUtils.formatIso8601Date;
 
 import java.util.Date;
 import software.amazon.awssdk.services.dynamodb.datamodeling.ArgumentMarshaller.StringAttributeMarshaller;

@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.ReviewBeforeRelease;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
@@ -145,7 +146,7 @@ public final class Item extends HashMap<String, AttributeValue> {
          * @return the builder for method chaining
          */
         public Builder attribute(String key, ByteBuffer binaryValue) {
-            item.put(key, AttributeValue.builder().b(binaryValue).build());
+            item.put(key, AttributeValue.builder().b(SdkBytes.fromByteBuffer(binaryValue)).build());
             return this;
         }
 
@@ -316,7 +317,7 @@ public final class Item extends HashMap<String, AttributeValue> {
          * </code></pre>
          *
          * @param key the key of this attribute
-         * @param byteArrays the binary values of the attribute
+         * @param binaryValues the binary values of the attribute
          * @return the builder for method chaining
          */
         public Builder byteBuffers(String key, ByteBuffer... binaryValues) {
@@ -332,11 +333,11 @@ public final class Item extends HashMap<String, AttributeValue> {
          * </code></pre>
          *
          * @param key the key of this attribute
-         * @param byteArrays the binary values of the attribute
+         * @param binaryValues the binary values of the attribute
          * @return the builder for method chaining
          */
         public Builder byteBuffers(String key, Collection<? extends ByteBuffer> binaryValues) {
-            item.put(key, AttributeValue.builder().bs(binaryValues.stream().collect(toList())).build());
+            item.put(key, AttributeValue.builder().bs(binaryValues.stream().map(SdkBytes::fromByteBuffer).collect(toList())).build());
             return this;
         }
 
@@ -351,10 +352,10 @@ public final class Item extends HashMap<String, AttributeValue> {
                 return AttributeValue.builder().n(String.valueOf((Number) object)).build();
             }
             if (object instanceof byte[]) {
-                return AttributeValue.builder().b(ByteBuffer.wrap((byte[]) object)).build();
+                return AttributeValue.builder().b(SdkBytes.fromByteArray((byte[]) object)).build();
             }
             if (object instanceof ByteBuffer) {
-                return AttributeValue.builder().b((ByteBuffer) object).build();
+                return AttributeValue.builder().b(SdkBytes.fromByteBuffer((ByteBuffer) object)).build();
             }
             if (object instanceof Boolean) {
                 return AttributeValue.builder().bool((Boolean) object).build();

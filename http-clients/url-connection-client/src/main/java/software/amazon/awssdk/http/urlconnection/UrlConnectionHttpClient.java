@@ -28,7 +28,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.AbortableCallable;
@@ -145,11 +144,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
      * .build();
      * </pre>
      */
-    public interface Builder extends SdkHttpClient.Builder {
-        default Builder apply(Consumer<Builder> mutator) {
-            mutator.accept(this);
-            return this;
-        }
+    public interface Builder extends SdkHttpClient.Builder<UrlConnectionHttpClient.Builder> {
 
         /**
          * The amount of time to wait for data to be transferred over an established, open connection before the connection is

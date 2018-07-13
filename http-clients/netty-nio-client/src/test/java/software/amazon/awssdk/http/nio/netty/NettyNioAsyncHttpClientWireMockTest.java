@@ -35,14 +35,18 @@ import static org.apache.commons.lang3.StringUtils.reverse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.http.trafficlistener.WiremockNetworkTrafficListener;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import io.netty.channel.ChannelFactory;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URI;
@@ -69,6 +73,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
@@ -110,11 +115,10 @@ public class NettyNioAsyncHttpClientWireMockTest {
     public void customFactoryIsUsed() throws Exception {
         ThreadFactory threadFactory = spy(new CustomThreadFactory());
         SdkAsyncHttpClient customClient =
-                NettyNioAsyncHttpClient.builder()
-                                       .eventLoopGroupFactory(DefaultEventLoopGroupFactory.builder()
-                                                                                          .threadFactory(threadFactory)
-                                                                                          .build())
-                                       .build();
+            NettyNioAsyncHttpClient.builder()
+                                   .eventLoopGroupBuilder(SdkEventLoopGroup.builder()
+                                                                           .threadFactory(threadFactory))
+                                   .build();
 
         makeSimpleRequest(customClient);
         customClient.close();
@@ -139,10 +143,9 @@ public class NettyNioAsyncHttpClientWireMockTest {
         ThreadFactory threadFactory = spy(new CustomThreadFactory());
         SdkAsyncHttpClient customClient =
                 NettyNioAsyncHttpClient.builder()
-                                       .eventLoopGroupFactory(DefaultEventLoopGroupFactory.builder()
-                                                                                          .threadFactory(threadFactory)
-                                                                                          .numberOfThreads(threadCount)
-                                                                                          .build())
+                                       .eventLoopGroupBuilder(SdkEventLoopGroup.builder()
+                                                                               .threadFactory(threadFactory)
+                                                                               .numberOfThreads(threadCount))
                                        .build();
 
         // Have to make enough requests to prime the threads
@@ -164,7 +167,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
         EventLoopGroup eventLoopGroup = spy(new NioEventLoopGroup(0, threadFactory));
         SdkAsyncHttpClient customClient =
                 NettyNioAsyncHttpClient.builder()
-                                       .eventLoopGroup(eventLoopGroup)
+                                       .eventLoopGroup(SdkEventLoopGroup.create(eventLoopGroup, NioSocketChannel::new))
                                        .build();
 
         makeSimpleRequest(customClient);
@@ -172,6 +175,24 @@ public class NettyNioAsyncHttpClientWireMockTest {
 
         Mockito.verify(threadFactory, atLeastOnce()).newThread(Mockito.any());
         Mockito.verify(eventLoopGroup, never()).shutdownGracefully();
+    }
+
+    @Test
+    public void customChannelFactoryIsUsed() throws Exception {
+
+        ChannelFactory channelFactory = mock(ChannelFactory.class);
+
+        when(channelFactory.newChannel()).thenAnswer((Answer<NioSocketChannel>) invocationOnMock -> new NioSocketChannel());
+
+        SdkAsyncHttpClient customClient =
+            NettyNioAsyncHttpClient.builder()
+                                   .eventLoopGroup(SdkEventLoopGroup.create(new NioEventLoopGroup(), channelFactory))
+                                   .build();
+
+        makeSimpleRequest(customClient);
+        customClient.close();
+
+        Mockito.verify(channelFactory, atLeastOnce()).newChannel();
     }
 
     /**
@@ -253,7 +274,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
         URI uri = URI.create("http://localhost:" + mockServer.port());
 
         SdkHttpFullRequest request = createRequest(uri, "/echo", streamContent, SdkHttpMethod.POST, singletonMap("reversed", "true"));
-        request = request.toBuilder().header("Content-Length", Integer.toString(content.length())).build();
+        request = request.toBuilder().putHeader("Content-Length", Integer.toString(content.length())).build();
         RecordingResponseHandler recorder = new RecordingResponseHandler();
 
 
@@ -331,11 +352,11 @@ public class NettyNioAsyncHttpClientWireMockTest {
                                  .port(uri.getPort())
                                  .method(method)
                                  .encodedPath(resourcePath)
-                                 .apply(b -> params.forEach(b::rawQueryParameter))
-                                 .apply(b -> {
-                                     b.header("Host", uri.getHost());
+                                 .applyMutation(b -> params.forEach(b::putRawQueryParameter))
+                                 .applyMutation(b -> {
+                                     b.putHeader("Host", uri.getHost());
                                      if (contentLength != null) {
-                                         b.header("Content-Length", contentLength);
+                                         b.putHeader("Content-Length", contentLength);
                                      }
                                  }).build();
     }

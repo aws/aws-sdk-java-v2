@@ -71,8 +71,7 @@ public class AwsServiceModel implements ClassSpec {
         this.typeProvider = new TypeProvider(intermediateModel);
         this.shapeModelSpec = new ShapeModelSpec(this.shapeModel, typeProvider, poetExtensions);
         this.modelMethodOverrides = new ModelMethodOverrides(this.poetExtensions);
-        this.modelBuilderSpecs = new ModelBuilderSpecs(intermediateModel, this.shapeModel, this.shapeModelSpec,
-                                                       this.typeProvider);
+        this.modelBuilderSpecs = new ModelBuilderSpecs(intermediateModel, this.shapeModel, this.typeProvider);
     }
 
     @Override
@@ -263,7 +262,7 @@ public class AwsServiceModel implements ClassSpec {
         methodBuilder.beginControlFlow("switch ($L)", "fieldName");
 
         shapeModel.getNonStreamingMembers().forEach(m -> methodBuilder.addCode("case $S:", m.getC2jName())
-                                                                      .addStatement("return $T.of(clazz.cast($L()))",
+                                                                      .addStatement("return $T.ofNullable(clazz.cast($L()))",
                                                                                     Optional.class,
                                                                                     m.getFluentGetterMethodName()));
 
@@ -363,11 +362,6 @@ public class AwsServiceModel implements ClassSpec {
 
     private CodeBlock getterStatement(MemberModel model) {
         VariableModel modelVariable = model.getVariable();
-
-        if ("java.nio.ByteBuffer".equals(modelVariable.getVariableType())) {
-            return CodeBlock.of("return $1N == null ? null : $1N.asReadOnlyBuffer();", modelVariable.getVariableName());
-        }
-
         return CodeBlock.of("return $N;", modelVariable.getVariableName());
     }
 
@@ -422,7 +416,7 @@ public class AwsServiceModel implements ClassSpec {
                                                    .addModifiers(Modifier.PRIVATE)
                                                    .addParameter(modelBuilderSpecs.builderImplName(), "builder");
 
-        ctorBuilder.addStatement("super(builder.message)");
+        ctorBuilder.addStatement("super(builder)");
 
         shapeModelSpec.fields().forEach(f -> ctorBuilder.addStatement("this.$N = builder.$N", f, f));
 

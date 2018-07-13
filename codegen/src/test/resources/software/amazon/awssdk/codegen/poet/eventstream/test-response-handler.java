@@ -1,9 +1,9 @@
 package software.amazon.awssdk.services.json.model;
 
 import java.util.function.Consumer;
-import javax.annotation.Generated;
+import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.eventstream.EventStreamResponseHandler;
+import software.amazon.awssdk.awscore.eventstream.EventStreamResponseHandler;
 
 /**
  * Response handler for the EventStreamOperation API.
@@ -11,7 +11,7 @@ import software.amazon.awssdk.core.eventstream.EventStreamResponseHandler;
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
 public interface EventStreamOperationResponseHandler extends
-                                                     EventStreamResponseHandler<EventStreamOperationResponse, EventStream> {
+        EventStreamResponseHandler<EventStreamOperationResponse, EventStream> {
     /**
      * Create a {@link Builder}, used to create a {@link EventStreamOperationResponseHandler}.
      */
@@ -136,4 +136,3 @@ public interface EventStreamOperationResponseHandler extends
         }
     }
 }
-
