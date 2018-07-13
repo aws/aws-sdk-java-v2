@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.profiles.internal;
+package software.amazon.awssdk.profiles;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.utils.JavaSystemSetting;
 import software.amazon.awssdk.utils.StringUtils;
@@ -29,12 +30,12 @@ import software.amazon.awssdk.utils.StringUtils;
 /**
  * A collection of static methods for loading the location for configuration and credentials files.
  */
-@SdkInternalApi
-public final class ProfileFileLocations {
+@SdkPublicApi
+public final class ProfileFileLocation {
     private static final Pattern HOME_DIRECTORY_PATTERN =
         Pattern.compile("^~(/|" + Pattern.quote(FileSystems.getDefault().getSeparator()) + ").*$");
 
-    private ProfileFileLocations() {
+    private ProfileFileLocation() {
     }
 
     /**
@@ -44,7 +45,7 @@ public final class ProfileFileLocations {
     public static Optional<Path> configurationFileLocation() {
         return resolveProfileFilePath(
             SdkSystemSetting.AWS_CONFIG_FILE.getStringValue()
-                                            .orElse(Paths.get(ProfileFileLocations.userHomeDirectory(),
+                                            .orElse(Paths.get(ProfileFileLocation.userHomeDirectory(),
                                                               ".aws", "config").toString()));
     }
 
@@ -63,7 +64,8 @@ public final class ProfileFileLocations {
      * Load the home directory that should be used for the profile file. This will check the same environment variables as the CLI
      * to identify the location of home, before falling back to java-specific resolution.
      */
-    public static String userHomeDirectory() {
+    @SdkInternalApi
+    static String userHomeDirectory() {
         boolean isWindows = JavaSystemSetting.OS_NAME.getStringValue()
                                                      .map(s -> StringUtils.lowerCase(s).startsWith("windows"))
                                                      .orElse(false);
