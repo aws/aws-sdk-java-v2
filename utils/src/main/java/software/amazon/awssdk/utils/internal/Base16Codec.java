@@ -13,17 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.utils;
+package software.amazon.awssdk.utils.internal;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * A Base 16 codec implementation.
  *
  * @author Hanson Char
  */
-@SdkProtectedApi
-final class Base16Codec {
+@SdkInternalApi
+public final class Base16Codec {
     private static final int OFFSET_OF_LITTLE_A = 'a' - 10;
     private static final int OFFSET_OF_A = 'A' - 10;
     private static final int MASK_4BITS = (1 << 4) - 1;

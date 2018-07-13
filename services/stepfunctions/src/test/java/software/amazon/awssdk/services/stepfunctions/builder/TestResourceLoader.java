@@ -34,7 +34,7 @@ public class TestResourceLoader {
 
     public static String loadAsString(String resourcePath) {
         try {
-            return IoUtils.toString(TestResourceLoader.class.getResourceAsStream("/resources/state_machines/" + resourcePath));
+            return IoUtils.toUtf8String(TestResourceLoader.class.getResourceAsStream("/resources/state_machines/" + resourcePath));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

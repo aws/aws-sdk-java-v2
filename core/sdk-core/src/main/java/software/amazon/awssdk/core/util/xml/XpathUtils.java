@@ -40,7 +40,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.internal.util.NamespaceRemovingInputStream;
-import software.amazon.awssdk.utils.Base64Utils;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.DateUtils;
 import software.amazon.awssdk.utils.XmlUtils;
 
@@ -521,7 +521,7 @@ public final class XpathUtils {
         }
 
         if (!isEmpty(node)) {
-            byte[] decodedBytes = Base64Utils.decode(base64EncodedString);
+            byte[] decodedBytes = BinaryUtils.fromBase64(base64EncodedString);
             return ByteBuffer.wrap(decodedBytes);
         }
         return null;

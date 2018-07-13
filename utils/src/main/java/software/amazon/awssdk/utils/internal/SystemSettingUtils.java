@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.utils;
+package software.amazon.awssdk.utils.internal;
 
 import static software.amazon.awssdk.utils.OptionalUtils.firstPresent;
 
@@ -21,12 +21,13 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.SystemSetting;
 
 /**
  * A set of static utility methods for shared code in {@link SystemSetting}.
  */
 @SdkInternalApi
-final class SystemSettingUtils {
+public final class SystemSettingUtils {
     private static final Logger LOG = LoggerFactory.getLogger(SystemSettingUtils.class);
 
     private SystemSettingUtils() {}
@@ -39,7 +40,7 @@ final class SystemSettingUtils {
      *     <li>The default value.</li>
      * </ol>
      */
-    static Optional<String> resolveSetting(SystemSetting setting) {
+    public static Optional<String> resolveSetting(SystemSetting setting) {
         return firstPresent(resolveProperty(setting), () -> resolveEnvironmentVariable(setting), () -> resolveDefault(setting))
                 .map(String::trim);
     }
@@ -79,7 +80,7 @@ final class SystemSettingUtils {
      * Convert a string to boolean safely (as opposed to the less strict {@link Boolean#parseBoolean(String)}). If a customer
      * specifies a boolean value it should be "true" or "false" (case insensitive) or an exception will be thrown.
      */
-    static Boolean safeStringToBoolean(SystemSetting setting, String value) {
+    public static Boolean safeStringToBoolean(SystemSetting setting, String value) {
         if (value.equalsIgnoreCase("true")) {
             return true;
         } else if (value.equalsIgnoreCase("false")) {

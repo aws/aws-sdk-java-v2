@@ -125,7 +125,7 @@ public final class DefaultErrorResponseHandler implements HttpResponseHandler<Aw
 
     private String contentToString(InputStream content, String idString) throws Exception {
         try {
-            return IoUtils.toString(content);
+            return IoUtils.toUtf8String(content);
         } catch (Exception e) {
             log.debug(String.format("Unable to read input stream to string (%s)", idString), e);
             throw e;

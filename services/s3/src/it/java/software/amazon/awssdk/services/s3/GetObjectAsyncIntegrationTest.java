@@ -41,7 +41,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
-import software.amazon.awssdk.utils.ImmutableMapParameter;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
 
@@ -152,7 +152,7 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
         public SdkResponse modifyResponse(Context.ModifyResponse context, ExecutionAttributes executionAttributes) {
             return ((GetObjectResponse) context.response())
                     .toBuilder()
-                    .metadata(ImmutableMapParameter.of("x-amz-assert", "injected-value"))
+                    .metadata(ImmutableMap.of("x-amz-assert", "injected-value"))
                     .build();
         }
     }

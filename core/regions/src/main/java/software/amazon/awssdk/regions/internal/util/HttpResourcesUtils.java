@@ -99,7 +99,7 @@ public final class HttpResourcesUtils {
 
                 if (statusCode == HttpURLConnection.HTTP_OK) {
                     inputStream = connection.getInputStream();
-                    return IoUtils.toString(inputStream);
+                    return IoUtils.toUtf8String(inputStream);
                 } else if (statusCode == HttpURLConnection.HTTP_NOT_FOUND) {
                     // This is to preserve existing behavior of EC2 Instance metadata service.
                     throw SdkClientException.builder()
@@ -134,7 +134,7 @@ public final class HttpResourcesUtils {
     private void handleErrorResponse(InputStream errorStream, int statusCode, String responseMessage) throws IOException {
         // Parse the error stream returned from the service.
         if (errorStream != null) {
-            String errorResponse = IoUtils.toString(errorStream);
+            String errorResponse = IoUtils.toUtf8String(errorStream);
 
             try {
                 JsonNode node = JacksonUtils.jsonNodeOf(errorResponse);
