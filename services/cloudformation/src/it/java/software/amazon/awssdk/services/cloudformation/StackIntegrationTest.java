@@ -69,8 +69,10 @@ import software.amazon.awssdk.services.cloudformation.model.UpdateStackResponse;
 import software.amazon.awssdk.testutils.Waiter;
 
 /**
+ * TODO Remove Ignore
  * Tests of the Stack APIs : CloudFormation
  */
+@Ignore
 public class StackIntegrationTest extends CloudFormationIntegrationTestBase {
 
     private static final String STACK_NAME_PREFIX = StackIntegrationTest.class.getName().replace('.', '-');
