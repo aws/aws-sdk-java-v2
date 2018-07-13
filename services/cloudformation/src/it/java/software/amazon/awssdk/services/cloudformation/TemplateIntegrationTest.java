@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.services.cloudformation.model.EstimateTemplateCostRequest;
@@ -34,8 +35,10 @@ import software.amazon.awssdk.services.cloudformation.model.ValidateTemplateRequ
 import software.amazon.awssdk.services.cloudformation.model.ValidateTemplateResponse;
 
 /**
+ * TODO Remove Ignore
  * Integration tests of the template-related API of CloudFormation.
  */
+@Ignore
 public class TemplateIntegrationTest extends CloudFormationIntegrationTestBase {
 
     private static final String TEMPLATE_DESCRIPTION = "Template Description";
