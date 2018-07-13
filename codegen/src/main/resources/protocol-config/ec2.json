@@ -23,9 +23,6 @@
         }
     ]
   },
-  "baseExceptionClass": {
-    "mainTemplate" : "/templates/common/base-exception-class.ftl"
-  },
   "exceptionUnmarshaller": {},
   "packageInfo" : {
     "mainTemplate" : "/templates/common/package-info.ftl"

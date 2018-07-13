@@ -19,13 +19,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
-
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
@@ -36,7 +34,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.core.util.XpathUtils;
+import software.amazon.awssdk.core.util.xml.XpathUtils;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -127,7 +125,7 @@ public final class DefaultErrorResponseHandler implements HttpResponseHandler<Aw
 
     private String contentToString(InputStream content, String idString) throws Exception {
         try {
-            return IoUtils.toString(content);
+            return IoUtils.toUtf8String(content);
         } catch (Exception e) {
             log.debug(String.format("Unable to read input stream to string (%s)", idString), e);
             throw e;

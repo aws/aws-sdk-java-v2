@@ -72,7 +72,7 @@ public class ${shape.shapeName}Unmarshaller implements Unmarshaller<${shape.shap
             context.setCurrentHeader("${memberModel.http.unmarshallLocationName}");
             ${shape.variable.variableName}.${memberModel.fluentSetterMethodName}(
             <#if memberModel.variable.simpleType == "Instant">
-                software.amazon.awssdk.core.util.DateUtils.parseRfc1123Date(context.readText()));
+                software.amazon.awssdk.utils.DateUtils.parseRfc1123Date(context.readText()));
             <#else>
                 ${memberModel.variable.simpleType}Unmarshaller.getInstance().unmarshall(context));
             </#if>

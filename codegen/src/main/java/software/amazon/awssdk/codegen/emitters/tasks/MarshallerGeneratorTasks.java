@@ -32,7 +32,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.transform.JsonModelMarshallerSpec;
 import software.amazon.awssdk.codegen.poet.transform.MarshallerSpec;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 public class MarshallerGeneratorTasks extends BaseGeneratorTasks {
 
@@ -84,7 +84,7 @@ public class MarshallerGeneratorTasks extends BaseGeneratorTasks {
 
     private GeneratorTask createMarshallerTask(String javaShapeName, Template template,
                                                String marshallerClassName, String marshallerDirectory) throws IOException {
-        Map<String, Object> marshallerDataModel = ImmutableMapParameter.<String, Object>builder()
+        Map<String, Object> marshallerDataModel = ImmutableMap.<String, Object>builder()
             .put("fileHeader", model.getFileHeader())
             .put("shapeName", javaShapeName)
             .put("shapes", shapes)

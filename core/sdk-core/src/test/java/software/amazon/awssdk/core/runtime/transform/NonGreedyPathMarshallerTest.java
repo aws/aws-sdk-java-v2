@@ -23,7 +23,7 @@ public class NonGreedyPathMarshallerTest {
 
     private final PathMarshaller marshaller = PathMarshaller.NON_GREEDY;
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NullPointerException.class)
     public void nullPathValue_ThrowsException() {
         marshaller.marshall("/foo/{pathParam}", "pathParam", (String) null);
     }
@@ -53,12 +53,12 @@ public class NonGreedyPathMarshallerTest {
         assertEquals("/foo/9001", marshaller.marshall("/foo/{pathParam}", "pathParam", 9001L));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NullPointerException.class)
     public void nullIntegerPathValue_ThrowsException() {
         marshaller.marshall("/foo/{pathParam}", "pathParam", (Integer) null);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NullPointerException.class)
     public void nullLongPathValue_ThrowsException() {
         marshaller.marshall("/foo/{pathParam}", "pathParam", (Long) null);
     }

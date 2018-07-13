@@ -22,10 +22,10 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
+import software.amazon.awssdk.core.internal.util.CapacityManager;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.core.retry.RetryUtils;
-import software.amazon.awssdk.core.util.CapacityManager;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
 @SdkInternalApi

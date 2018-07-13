@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.auth.signer.internal;
 
-import static software.amazon.awssdk.core.util.DateUtils.numberOfDaysSinceEpoch;
+import static software.amazon.awssdk.utils.DateUtils.numberOfDaysSinceEpoch;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
 import java.io.IOException;
@@ -38,7 +38,6 @@ import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Presigner;
-import software.amazon.awssdk.core.util.StringUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
@@ -320,16 +319,57 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
             String key = lowerCase(header);
 
             for (String headerValue : headers.get(header)) {
-                StringUtils.appendCompactedString(buffer, key);
+                appendCompactedString(buffer, key);
                 buffer.append(":");
                 if (headerValue != null) {
-                    StringUtils.appendCompactedString(buffer, headerValue);
+                    appendCompactedString(buffer, headerValue);
                 }
                 buffer.append("\n");
             }
         }
 
         return buffer.toString();
+    }
+
+    /**
+     * This method appends a string to a string builder and collapses contiguous
+     * white space is a single space.
+     *
+     * This is equivalent to:
+     *      destination.append(source.replaceAll("\\s+", " "))
+     * but does not create a Pattern object that needs to compile the match
+     * string; it also prevents us from having to make a Matcher object as well.
+     *
+     */
+    private void appendCompactedString(final StringBuilder destination, final String source) {
+        boolean previousIsWhiteSpace = false;
+        int length = source.length();
+
+        for (int i = 0; i < length; i++) {
+            char ch = source.charAt(i);
+            if (isWhiteSpace(ch)) {
+                if (previousIsWhiteSpace) {
+                    continue;
+                }
+                destination.append(' ');
+                previousIsWhiteSpace = true;
+            } else {
+                destination.append(ch);
+                previousIsWhiteSpace = false;
+            }
+        }
+    }
+
+    /**
+     * Tests a char to see if is it whitespace.
+     * This method considers the same characters to be white
+     * space as the Pattern class does when matching \s
+     *
+     * @param ch the character to be tested
+     * @return true if the character is white  space, false otherwise.
+     */
+    private boolean isWhiteSpace(final char ch) {
+        return ch == ' ' || ch == '\t' || ch == '\n' || ch == '\u000b' || ch == '\r' || ch == '\f';
     }
 
     private String getSignedHeadersString(Map<String, List<String>> headers) {

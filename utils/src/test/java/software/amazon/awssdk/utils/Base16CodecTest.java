@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
+import software.amazon.awssdk.utils.internal.Base16;
+import software.amazon.awssdk.utils.internal.Base16Lower;
 
 /**
  * @author hchar

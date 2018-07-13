@@ -26,9 +26,6 @@
   "requestMarshaller": {
     "mainTemplate" : "/templates/json/RequestMarshaller.ftl"
   },
-  "baseExceptionClass": {
-    "mainTemplate" : "/templates/common/base-exception-class.ftl"
-  },
   "packageInfo" : {
     "mainTemplate" : "/templates/common/package-info.ftl"
   },

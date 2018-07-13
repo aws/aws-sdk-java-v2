@@ -28,9 +28,6 @@
     "childTemplates" : [
     ]
   },
-  "baseExceptionClass": {
-    "mainTemplate" : "/templates/common/base-exception-class.ftl"
-  },
   "packageInfo" : {
     "mainTemplate" : "/templates/common/package-info.ftl"
   },

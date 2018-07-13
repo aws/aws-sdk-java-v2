@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.dynamodb.datamodeling.unmarshallers;
 
 import java.util.Date;
-import software.amazon.awssdk.core.util.DateUtils;
+import software.amazon.awssdk.utils.DateUtils;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**

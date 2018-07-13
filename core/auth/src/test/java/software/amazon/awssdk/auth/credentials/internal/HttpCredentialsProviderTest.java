@@ -35,8 +35,8 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.util.DateUtils;
 import software.amazon.awssdk.regions.internal.util.ResourcesEndpointProvider;
+import software.amazon.awssdk.utils.DateUtils;
 import software.amazon.awssdk.utils.IoUtils;
 
 public class HttpCredentialsProviderTest {
@@ -56,8 +56,8 @@ public class HttpCredentialsProviderTest {
             ("/resources/wiremock/successResponse.json");
              InputStream responseWithInvalidBodyInputStream = HttpCredentialsProviderTest.class.getResourceAsStream
                  ("/resources/wiremock/successResponseWithInvalidBody.json")) {
-            successResponse = IoUtils.toString(successInputStream);
-            successResponseWithInvalidBody = IoUtils.toString(responseWithInvalidBodyInputStream);
+            successResponse = IoUtils.toUtf8String(successInputStream);
+            successResponseWithInvalidBody = IoUtils.toUtf8String(responseWithInvalidBodyInputStream);
         }
     }
 

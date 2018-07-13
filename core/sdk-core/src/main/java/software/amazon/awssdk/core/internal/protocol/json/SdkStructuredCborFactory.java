@@ -28,7 +28,7 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 /**
  * Creates generators and protocol handlers for CBOR wire format.
@@ -45,7 +45,7 @@ public abstract class SdkStructuredCborFactory {
      * cbor unmarshallers for scalar types.
      */
     protected static final Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> CBOR_SCALAR_UNMARSHALLERS =
-        new ImmutableMapParameter.Builder<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>>()
+        new ImmutableMap.Builder<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>>()
             .put(String.class, SimpleTypeCborUnmarshallers.StringCborUnmarshaller.getInstance())
             .put(Double.class, SimpleTypeCborUnmarshallers.DoubleCborUnmarshaller.getInstance())
             .put(Integer.class, SimpleTypeCborUnmarshallers.IntegerCborUnmarshaller.getInstance())

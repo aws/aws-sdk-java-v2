@@ -40,7 +40,7 @@ import software.amazon.awssdk.codegen.poet.StaticImport;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.internal.client.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.util.CompletableFutures;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.FunctionalUtils;
 
 public final class AsyncClientClass extends AsyncClientInterface {
@@ -150,7 +150,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                  "() -> $L.exceptionOccurred(t))", paramName);
         }
 
-        return builder.addStatement("return $T.failedFuture(t)", CompletableFutures.class)
+        return builder.addStatement("return $T.failedFuture(t)", CompletableFutureUtils.class)
                       .endControlFlow();
     }
 

@@ -28,7 +28,7 @@ import java.util.Map;
 import org.junit.Test;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.request.SlowExecutionInterceptor;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 public class ClientOverrideConfigurationTest {
 
@@ -54,8 +54,8 @@ public class ClientOverrideConfigurationTest {
     public void settingCollection_shouldOverrideAddItem() {
         ClientOverrideConfiguration configuration = ClientOverrideConfiguration.builder()
                                                                                .putHeader("value", "foo")
-                                                                               .headers(ImmutableMapParameter.of("value",
-                                                                                                                 Arrays.asList
+                                                                               .headers(ImmutableMap.of("value",
+                                                                                                        Arrays.asList
                                                                                                                      ("hello",
                                                                                                                       "world")))
                                                                                .putAdvancedOption(SdkAdvancedClientOption
@@ -75,8 +75,8 @@ public class ClientOverrideConfigurationTest {
 
     @Test
     public void addSameItemAfterSetCollection_shouldOverride() {
-        ImmutableMapParameter<String, List<String>> map =
-            ImmutableMapParameter.of("value", Arrays.asList("hello", "world"));
+        ImmutableMap<String, List<String>> map =
+            ImmutableMap.of("value", Arrays.asList("hello", "world"));
         ClientOverrideConfiguration configuration = ClientOverrideConfiguration.builder()
                                                                                .headers(map)
                                                                                .putHeader("value", "blah")

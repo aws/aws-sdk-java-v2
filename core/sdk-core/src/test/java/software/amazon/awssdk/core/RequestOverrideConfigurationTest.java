@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 public class RequestOverrideConfigurationTest {
     private static final String HEADER = "header";
@@ -49,10 +49,10 @@ public class RequestOverrideConfigurationTest {
 
     @Test
     public void settingCollection_shouldOverrideAddItem() {
-        ImmutableMapParameter<String, List<String>> map =
-            ImmutableMapParameter.of(HEADER, Arrays.asList("hello", "world"));
-        ImmutableMapParameter<String, List<String>> queryMap =
-            ImmutableMapParameter.of(QUERY_PARAM, Arrays.asList("hello", "world"));
+        ImmutableMap<String, List<String>> map =
+            ImmutableMap.of(HEADER, Arrays.asList("hello", "world"));
+        ImmutableMap<String, List<String>> queryMap =
+            ImmutableMap.of(QUERY_PARAM, Arrays.asList("hello", "world"));
         RequestOverrideConfiguration configuration = SdkRequestOverrideConfiguration.builder()
                                                                                     .putHeader(HEADER, "blah")
                                                                                     .headers(map)
@@ -66,8 +66,8 @@ public class RequestOverrideConfigurationTest {
 
     @Test
     public void addSameItemAfterSetCollection_shouldOverride() {
-        ImmutableMapParameter<String, List<String>> map =
-            ImmutableMapParameter.of(HEADER, Arrays.asList("hello", "world"));
+        ImmutableMap<String, List<String>> map =
+            ImmutableMap.of(HEADER, Arrays.asList("hello", "world"));
         RequestOverrideConfiguration configuration = SdkRequestOverrideConfiguration.builder()
                                                                                     .headers(map)
                                                                                     .putHeader(HEADER, "blah")

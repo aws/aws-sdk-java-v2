@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
+import software.amazon.awssdk.core.internal.util.NamespaceRemovingInputStream;
 
 
 /**

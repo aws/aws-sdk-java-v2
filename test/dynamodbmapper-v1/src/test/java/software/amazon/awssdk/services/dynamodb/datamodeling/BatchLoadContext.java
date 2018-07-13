@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.services.dynamodb.datamodeling;
 
-import software.amazon.awssdk.core.util.ValidationUtils;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
+import software.amazon.awssdk.utils.Validate;
 
 
 /**
@@ -44,7 +44,7 @@ public class BatchLoadContext {
      *  @param batchGetItemRequest  see {@link BatchGetItemRequest}.
      * */
     public BatchLoadContext(BatchGetItemRequest batchGetItemRequest) {
-        this.batchGetItemRequest = ValidationUtils.assertNotNull(batchGetItemRequest, "batchGetItemRequest");
+        this.batchGetItemRequest = Validate.paramNotNull(batchGetItemRequest, "batchGetItemRequest");
         this.batchGetItemResponse = null;
         this.retriesAttempted = 0;
     }

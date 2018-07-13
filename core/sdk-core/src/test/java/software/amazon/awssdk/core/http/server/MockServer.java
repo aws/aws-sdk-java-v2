@@ -26,8 +26,8 @@ import org.apache.http.ProtocolVersion;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
-import software.amazon.awssdk.core.util.StringInputStream;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.StringInputStream;
 
 /**
  * MockServer implementation with several different configurable behaviors
@@ -210,7 +210,7 @@ public class MockServer {
         public DummyResponseServerBehavior(HttpResponse response) {
             this.response = response;
             try {
-                this.content = IoUtils.toString(response.getEntity().getContent());
+                this.content = IoUtils.toUtf8String(response.getEntity().getContent());
             } catch (Exception e) {
                 // Ignored or expected.
             }

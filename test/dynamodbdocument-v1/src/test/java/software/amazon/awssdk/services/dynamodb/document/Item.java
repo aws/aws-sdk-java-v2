@@ -39,7 +39,7 @@ import java.util.Set;
 import software.amazon.awssdk.core.util.json.JacksonUtils;
 import software.amazon.awssdk.services.dynamodb.document.internal.InternalUtils;
 import software.amazon.awssdk.services.dynamodb.document.internal.ItemValueConformer;
-import software.amazon.awssdk.utils.Base64Utils;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * An <a href=
@@ -1314,11 +1314,11 @@ public class Item {
             checkInvalidAttrName(attrName);
             if (String.class == getTypeOf(attrName)) {
                 String b64 = getString(attrName);
-                Base64Utils.decode(b64);
+                BinaryUtils.fromBase64(b64);
             } else {
                 Set<String> b64s = getStringSet(attrName);
                 for (String b64 : b64s) {
-                    Base64Utils.decode(b64);
+                    BinaryUtils.fromBase64(b64);
                 }
             }
         }
@@ -1326,13 +1326,13 @@ public class Item {
         for (String attrName : binaryAttrNames) {
             if (String.class == getTypeOf(attrName)) {
                 String b64 = getString(attrName);
-                byte[] bytes = Base64Utils.decode(b64);
+                byte[] bytes = BinaryUtils.fromBase64(b64);
                 withBinary(attrName, bytes);
             } else {
                 Set<String> b64s = getStringSet(attrName);
                 Set<byte[]> binarySet = new LinkedHashSet<byte[]>(b64s.size());
                 for (String b64 : b64s) {
-                    binarySet.add(Base64Utils.decode(b64));
+                    binarySet.add(BinaryUtils.fromBase64(b64));
                 }
                 withBinarySet(attrName, binarySet);
             }

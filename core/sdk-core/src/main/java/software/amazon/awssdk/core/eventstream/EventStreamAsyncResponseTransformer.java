@@ -34,7 +34,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponse;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.util.Throwables;
+import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.eventstream.Message;
 import software.amazon.eventstream.MessageDecoder;
@@ -163,7 +163,7 @@ public class EventStreamAsyncResponseTransformer<ResponseT, EventT>
             } else {
                 // Need to propagate the failure up so the future is completed exceptionally. This should only happen
                 // when there is a frame level exception that the upper layers don't know about.
-                throw Throwables.failure(error.get());
+                throw ThrowableUtils.failure(error.get());
             }
         }
     }

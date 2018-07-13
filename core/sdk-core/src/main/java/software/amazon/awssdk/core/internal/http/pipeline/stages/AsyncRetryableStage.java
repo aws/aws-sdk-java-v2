@@ -36,10 +36,10 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.retry.RetryHandler;
+import software.amazon.awssdk.core.internal.util.CapacityManager;
+import software.amazon.awssdk.core.internal.util.ClockSkewUtil;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.RetryUtils;
-import software.amazon.awssdk.core.util.CapacityManager;
-import software.amazon.awssdk.core.util.ClockSkewUtil;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.async.SdkHttpResponseHandler;
 

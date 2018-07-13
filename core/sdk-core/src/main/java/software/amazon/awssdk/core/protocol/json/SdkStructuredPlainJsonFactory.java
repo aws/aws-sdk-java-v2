@@ -28,7 +28,7 @@ import software.amazon.awssdk.core.internal.protocol.json.SdkJsonGenerator;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.SimpleTypeJsonUnmarshallers;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 /**
  * Creates generators and protocol handlers for plain text JSON wire format.
@@ -44,7 +44,7 @@ public abstract class SdkStructuredPlainJsonFactory {
 
     @SdkTestInternalApi
     protected static final Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> JSON_SCALAR_UNMARSHALLERS =
-            new ImmutableMapParameter.Builder<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>>()
+            new ImmutableMap.Builder<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>>()
             .put(String.class, SimpleTypeJsonUnmarshallers.StringJsonUnmarshaller.getInstance())
             .put(Double.class, SimpleTypeJsonUnmarshallers.DoubleJsonUnmarshaller.getInstance())
             .put(Integer.class, SimpleTypeJsonUnmarshallers.IntegerJsonUnmarshaller.getInstance())

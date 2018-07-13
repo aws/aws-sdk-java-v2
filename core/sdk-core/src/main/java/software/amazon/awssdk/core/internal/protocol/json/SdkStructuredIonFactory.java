@@ -26,7 +26,7 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.protocol.json.StructuredJsonGenerator;
 import software.amazon.awssdk.core.runtime.transform.JsonUnmarshallerContext;
 import software.amazon.awssdk.core.runtime.transform.Unmarshaller;
-import software.amazon.awssdk.core.util.ImmutableMapParameter;
+import software.amazon.awssdk.utils.ImmutableMap;
 import software.amazon.ion.IonSystem;
 import software.amazon.ion.system.IonSystemBuilder;
 import software.amazon.ion.system.IonWriterBuilder;
@@ -41,7 +41,7 @@ public abstract class SdkStructuredIonFactory {
     protected static final IonGeneratorSupplier ION_GENERATOR_SUPPLIER = SdkIonGenerator::create;
 
     protected static final Map<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>> UNMARSHALLERS =
-        new ImmutableMapParameter.Builder<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>>()
+        new ImmutableMap.Builder<Class<?>, Unmarshaller<?, JsonUnmarshallerContext>>()
             .put(BigDecimal.class, SimpleTypeIonUnmarshallers.BigDecimalIonUnmarshaller.getInstance())
             .put(BigInteger.class, SimpleTypeIonUnmarshallers.BigIntegerIonUnmarshaller.getInstance())
             .put(Boolean.class, SimpleTypeIonUnmarshallers.BooleanIonUnmarshaller.getInstance())
