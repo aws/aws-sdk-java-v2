@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.0.0-preview-11-SNAPSHOT</version>
+        <version>2.0.0</version>
     </parent>
     <artifactId>codegen</artifactId>
     <name>AWS Java SDK :: Code Generator</name>
@@ -38,37 +38,37 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>annotations</artifactId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>http-client-spi</artifactId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>regions</artifactId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>auth</artifactId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
         </dependency>
         <dependency>
             <artifactId>sdk-core</artifactId>
             <groupId>software.amazon.awssdk</groupId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
         </dependency>
         <dependency>
             <artifactId>aws-core</artifactId>
             <groupId>software.amazon.awssdk</groupId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
         </dependency>
         <dependency>
             <artifactId>utils</artifactId>
             <groupId>software.amazon.awssdk</groupId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
         </dependency>
         <dependency>
             <artifactId>org.eclipse.jdt.core</artifactId>

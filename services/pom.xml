@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.0.0-preview-11-SNAPSHOT</version>
+        <version>2.0.0</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -32,129 +32,9 @@
     </properties>
 
     <modules>
-        <module>acm</module>
-        <module>api-gateway</module>
-        <module>applicationautoscaling</module>
-        <module>appstream</module>
-        <module>athena</module>
-        <module>autoscaling</module>
-        <module>batch</module>
-        <module>budgets</module>
-        <module>clouddirectory</module>
-        <module>cloudformation</module>
-        <module>cloudfront</module>
-        <module>cloudhsm</module>
-        <module>cloudsearch</module>
-        <module>cloudsearchdomain</module>
-        <module>cloudtrail</module>
-        <module>cloudwatch</module>
-        <module>codebuild</module>
-        <module>codecommit</module>
-        <module>codedeploy</module>
-        <module>codepipeline</module>
-        <module>codestar</module>
-        <module>cognitoidentity</module>
-        <module>cognitoidp</module>
-        <module>cognitosync</module>
-        <module>config</module>
-        <module>costandusagereport</module>
-        <module>datapipeline</module>
-        <module>dax</module>
-        <module>devicefarm</module>
-        <module>directconnect</module>
-        <module>directory</module>
-        <module>discovery</module>
-        <module>dms</module>
         <module>dynamodb</module>
-        <module>ec2</module>
-        <module>ecr</module>
-        <module>ecs</module>
-        <module>efs</module>
-        <module>elasticache</module>
-        <module>elasticbeanstalk</module>
-        <module>elasticloadbalancing</module>
-        <module>elasticloadbalancingv2</module>
-        <module>elasticsearch</module>
-        <module>elastictranscoder</module>
-        <module>emr</module>
-        <module>events</module>
-        <module>gamelift</module>
-        <module>glacier</module>
-        <module>greengrass</module>
-        <module>health</module>
-        <module>iam</module>
-        <module>importexport</module>
-        <module>inspector</module>
-        <module>iot</module>
-        <module>iotdata</module>
         <module>kinesis</module>
-        <!-- <module>kinesis-bundle</module> -->
-        <module>kinesisanalytics</module>
-        <module>kinesisfirehose</module>
-        <module>kms</module>
-        <module>lambda</module>
-        <module>lightsail</module>
-        <module>lexmodelbuilding</module>
-        <module>logs</module>
-        <module>machinelearning</module>
-        <module>marketplacecommerceanalytics</module>
-        <module>marketplaceentitlement</module>
-        <module>marketplacemeteringservice</module>
-        <module>mechanicalturkrequester</module>
-        <module>opsworks</module>
-        <module>opsworkscm</module>
-        <module>organizations</module>
-        <module>pinpoint</module>
-        <module>polly</module>
-        <module>rds</module>
-        <module>redshift</module>
-        <module>rekognition</module>
-        <module>resourcegroupstaggingapi</module>
-        <module>route53</module>
-        <module>route53domains</module>
-        <module>s3</module>
-        <module>servermigration</module>
-        <module>servicecatalog</module>
-        <module>ses</module>
-        <module>shield</module>
-        <module>simpledb</module>
-        <module>simpleworkflow</module>
-        <module>snowball</module>
-        <module>sns</module>
-        <module>sqs</module>
-        <module>ssm</module>
-        <module>stepfunctions</module>
-        <module>storagegateway</module>
-        <module>sts</module>
-        <module>support</module>
-        <module>waf</module>
-        <module>workdocs</module>
-        <module>workspaces</module>
-        <module>xray</module>
-        <module>appsync</module>
-        <module>alexaforbusiness</module>
-        <module>migrationhub</module>
-        <module>cost-explorer</module>
-        <module>cloud9</module>
-        <module>cloudhsmv2</module>
-        <module>comprehend</module>
-        <module>glue</module>
-        <module>guardduty</module>
-        <module>kinesisvideo</module>
-        <module>mediaconvert</module>
-        <module>medialive</module>
-        <module>mediapackage</module>
-        <module>mediastore</module>
-        <module>mobile</module>
-        <module>mq</module>
-        <module>pricing</module>
-        <module>resource-groups</module>
-        <module>sagemaker</module>
-        <module>serverlessrepo</module>
-        <module>servicediscovery</module>
-        <module>translate</module>
-        <module>workmail</module>
-        <module>secretsmanager</module>
+        <module>cloudwatch</module>
     </modules>
 
     <description>The AWS Java SDK services</description>
@@ -164,55 +44,55 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sdk-core</artifactId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>auth</artifactId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>http-client-spi</artifactId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>regions</artifactId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>annotations</artifactId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>utils</artifactId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
         </dependency>
         <dependency>
             <artifactId>aws-core</artifactId>
             <groupId>software.amazon.awssdk</groupId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
         </dependency>
         <dependency>
             <artifactId>apache-client</artifactId>
             <groupId>software.amazon.awssdk</groupId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <artifactId>netty-nio-client</artifactId>
             <groupId>software.amazon.awssdk</groupId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <artifactId>service-test-utils</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <scope>test</scope>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
@@ -237,7 +117,7 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>test-utils</artifactId>
-            <version>${awsjavasdk.version}</version>
+            <version>[${awsjavasdk.version}]</version>
             <scope>test</scope>
         </dependency>
         <dependency>
