@@ -90,11 +90,18 @@ public class CloudSearchv2IntegrationTest extends AwsIntegrationTestBase {
     /** Name of the test analysis scheme being created in the domain. */
     private static final String testAnalysisSchemeName = "analysis"
                                                          + System.currentTimeMillis();
-    public static String POLICY = "{\"Statement\": " + "[ "
-                                  + "{\"Effect\":\"Allow\", " + "\"Action\":\"*\", "
-                                  + "\"Condition\": " + "{ " + "\"IpAddress\": "
-                                  + "{ \"aws:SourceIp\": [\"203.0.113.1/32\"]} "
-                                  + "} " + "}" + "] " + "}";
+
+    public static String POLICY = "{\n"
+                                   + "  \"Statement\":[\n"
+                                   + "    {\n"
+                                   + "      \"Effect\":\"Allow\",\n"
+                                   + "      \"Principal\":\"*\",\n"
+                                   + "      \"Action\":[\"cloudsearch:search\"],\n"
+                                   + "      \"Condition\":{\"IpAddress\":{\"aws:SourceIp\":\"203.0.113.1/32\"}}\n"
+                                   + "    }\n"
+                                   + "  ]\n"
+                                   + "}";
+
     /** Reference to the cloud search client during the testing process. */
     private static CloudSearchClient cloudSearch = null;
     /**
