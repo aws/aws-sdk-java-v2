@@ -73,6 +73,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
@@ -181,7 +182,7 @@ public class NettyNioAsyncHttpClientWireMockTest {
 
         ChannelFactory channelFactory = mock(ChannelFactory.class);
 
-        when(channelFactory.newChannel()).thenReturn(new NioSocketChannel());
+        when(channelFactory.newChannel()).thenAnswer((Answer<NioSocketChannel>) invocationOnMock -> new NioSocketChannel());
 
         SdkAsyncHttpClient customClient =
             NettyNioAsyncHttpClient.builder()
