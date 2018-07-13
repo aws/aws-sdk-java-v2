@@ -29,7 +29,6 @@ import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.profiles.internal.ProfileFileLocations;
 import software.amazon.awssdk.profiles.internal.ProfileFileReader;
 import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.IoUtils;
@@ -134,16 +133,16 @@ public final class ProfileFile {
     }
 
     private static void addCredentialsFile(ProfileFile.Aggregator builder) {
-        ProfileFileLocations.credentialsFileLocation()
-                            .ifPresent(l -> builder.addFile(ProfileFile.builder()
+        ProfileFileLocation.credentialsFileLocation()
+                           .ifPresent(l -> builder.addFile(ProfileFile.builder()
                                                                        .content(l)
                                                                        .type(ProfileFile.Type.CREDENTIALS)
                                                                        .build()));
     }
 
     private static void addConfigFile(ProfileFile.Aggregator builder) {
-        ProfileFileLocations.configurationFileLocation()
-                            .ifPresent(l -> builder.addFile(ProfileFile.builder()
+        ProfileFileLocation.configurationFileLocation()
+                           .ifPresent(l -> builder.addFile(ProfileFile.builder()
                                                                        .content(l)
                                                                        .type(ProfileFile.Type.CONFIGURATION)
                                                                        .build()));
