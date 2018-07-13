@@ -137,7 +137,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                       .addAnnotation(Override.class)
                       .beginControlFlow("try")
                           .addCode(getCustomResponseHandler(opModel, returnType)
-                                       .orElseGet(() -> protocolSpec.responseHandler(opModel)))
+                                       .orElseGet(() -> protocolSpec.responseHandler(model, opModel)))
                           .addCode(protocolSpec.errorResponseHandler(opModel))
                           .addCode(protocolSpec.asyncExecutionHandler(opModel))
                .endControlFlow()

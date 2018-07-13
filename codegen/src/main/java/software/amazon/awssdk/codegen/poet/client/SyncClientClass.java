@@ -134,7 +134,7 @@ public class SyncClientClass implements ClassSpec {
         methods.add(SyncClientInterface.operationMethodSignature(model, opModel)
                                   .addAnnotation(Override.class)
                                   .addCode(getCustomResponseHandler(opModel, returnType)
-                                               .orElseGet(() -> protocolSpec.responseHandler(opModel)))
+                                               .orElseGet(() -> protocolSpec.responseHandler(model, opModel)))
                                   .addCode(protocolSpec.errorResponseHandler(opModel))
                                   .addCode(protocolSpec.executionHandler(opModel))
                                   .build());
