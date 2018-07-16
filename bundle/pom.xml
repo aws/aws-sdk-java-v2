@@ -145,7 +145,7 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <sourcepath>${basedir}/../core/src</sourcepath>
+                            <sourcepath>${basedir}/../core/sdk-core/src</sourcepath>
                         </configuration>
                     </plugin>
                 </plugins>
