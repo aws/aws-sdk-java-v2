@@ -394,8 +394,9 @@ public class NettyNioAsyncHttpClientWireMockTest {
             futures.add(makeSimpleRequestAndReturnResponseHandler(customClient).completeFuture);
         }
 
-        assertThatThrownBy(() -> CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join())
-            .hasMessageContaining(expectedErrorMsg);
+        assertThatThrownBy(() -> {
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        }).hasMessageContaining(expectedErrorMsg);
 
         customClient.close();
     }
@@ -417,8 +418,9 @@ public class NettyNioAsyncHttpClientWireMockTest {
             futures.add(makeSimpleRequestAndReturnResponseHandler(customClient).completeFuture);
         }
 
-        assertThatThrownBy(() -> CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join())
-            .hasMessageContaining(expectedErrorMsg);
+        assertThatThrownBy(() -> {
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        }).hasMessageContaining(expectedErrorMsg);
 
         customClient.close();
     }
