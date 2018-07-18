@@ -60,7 +60,7 @@ public class SyncClientBuilderClass implements ClassSpec {
                              .addAnnotation(Override.class)
                              .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                              .returns(clientInterfaceName)
-                             .addCode("return new $T(super.syncClientConfiguration());", clientClassName)
+                             .addCode("return new $T(super.asyncClientConfiguration());", clientClassName)
                              .build();
     }
 
